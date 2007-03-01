@@ -179,8 +179,6 @@ public class RootDSEBackend
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-
-
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
     if (configEntry == null)
@@ -370,7 +368,6 @@ public class RootDSEBackend
    */
   public void finalizeBackend()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
   }
 
@@ -387,7 +384,6 @@ public class RootDSEBackend
    */
   private boolean isDSEConfigAttribute(Attribute attribute)
   {
-
     AttributeType attrType = attribute.getAttributeType();
     if (attrType.hasName(ATTR_ROOT_DSE_SUBORDINATE_BASE_DN.toLowerCase()) ||
         attrType.hasName(ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES.toLowerCase()) ||
@@ -408,7 +404,6 @@ public class RootDSEBackend
    */
   public DN[] getBaseDNs()
   {
-
     return baseDNs;
   }
 
@@ -419,7 +414,6 @@ public class RootDSEBackend
    */
   public synchronized long getEntryCount()
   {
-
     // There is always just a single entry in this backend.
     return 1;
   }
@@ -437,7 +431,6 @@ public class RootDSEBackend
    */
   public boolean isLocal()
   {
-
     // For the purposes of this method, this is a local backend.
     return true;
   }
@@ -458,8 +451,6 @@ public class RootDSEBackend
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-
-
     // If the requested entry was the root DSE, then create and return it.
     if ((entryDN == null) || entryDN.isNullDN())
     {
@@ -504,7 +495,6 @@ public class RootDSEBackend
    */
   public Entry getRootDSE()
   {
-
     HashMap<AttributeType,List<Attribute>> dseUserAttrs =
          new HashMap<AttributeType,List<Attribute>>();
 
@@ -770,7 +760,6 @@ public class RootDSEBackend
   private Attribute createAttribute(String name, String lowerName,
                                     String value)
   {
-
     AttributeType type = DirectoryServer.getAttributeType(lowerName);
     if (type == null)
     {
@@ -799,7 +788,6 @@ public class RootDSEBackend
   private Attribute createDNAttribute(String name, String lowerName,
                                       Collection<DN> values)
   {
-
     AttributeType type = DirectoryServer.getAttributeType(lowerName);
     if (type == null)
     {
@@ -832,7 +820,6 @@ public class RootDSEBackend
   private Attribute createAttribute(String name, String lowerName,
                                     Collection<String> values)
   {
-
     AttributeType type = DirectoryServer.getAttributeType(lowerName);
     if (type == null)
     {
@@ -869,8 +856,6 @@ public class RootDSEBackend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-
-
     // If the specified DN was the null DN, then it exists.
     if (entryDN.isNullDN())
     {
@@ -923,7 +908,6 @@ public class RootDSEBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_ROOTDSE_ADD_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entry.getDN()));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -949,7 +933,6 @@ public class RootDSEBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_ROOTDSE_DELETE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entryDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -975,7 +958,6 @@ public class RootDSEBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_ROOTDSE_MODIFY_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entry.getDN()),
                                 String.valueOf(configEntryDN));
@@ -1004,7 +986,6 @@ public class RootDSEBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_ROOTDSE_MODIFY_DN_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(currentDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -1030,7 +1011,6 @@ public class RootDSEBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException, CancelledOperationException
   {
-
     DN baseDN = searchOperation.getBaseDN();
     if (! baseDN.isNullDN())
     {
@@ -1172,7 +1152,6 @@ public class RootDSEBackend
    */
   public HashSet<String> getSupportedControls()
   {
-
     return supportedControls;
   }
 
@@ -1185,7 +1164,6 @@ public class RootDSEBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-
     return supportedFeatures;
   }
 
@@ -1200,7 +1178,6 @@ public class RootDSEBackend
    */
   public boolean supportsLDIFExport()
   {
-
     // We will only export the DSE entry itself.
     return true;
   }
@@ -1224,8 +1201,6 @@ public class RootDSEBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-
-
     // Create the LDIF writer.
     LDIFWriter ldifWriter;
     try
@@ -1291,7 +1266,6 @@ public class RootDSEBackend
    */
   public boolean supportsLDIFImport()
   {
-
     // This backend does not support LDIF imports.
     return false;
   }
@@ -1315,8 +1289,6 @@ public class RootDSEBackend
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-
-
     // This backend does not support LDIF imports.
     int    msgID   = MSGID_ROOTDSE_IMPORT_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1339,7 +1311,6 @@ public class RootDSEBackend
    */
   public boolean supportsBackup()
   {
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -1364,8 +1335,6 @@ public class RootDSEBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -1388,8 +1357,6 @@ public class RootDSEBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     int    msgID   = MSGID_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1415,8 +1382,6 @@ public class RootDSEBackend
                            String backupID)
          throws DirectoryException
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     int    msgID   = MSGID_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1434,8 +1399,6 @@ public class RootDSEBackend
    */
   public boolean supportsRestore()
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -1459,8 +1422,6 @@ public class RootDSEBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     int    msgID   = MSGID_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1479,7 +1440,6 @@ public class RootDSEBackend
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -1494,7 +1454,6 @@ public class RootDSEBackend
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     String description = getMessage(MSGID_ROOTDSE_SUBORDINATE_BASE_DESCRIPTION);
@@ -1537,8 +1496,6 @@ public class RootDSEBackend
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     boolean configIsAcceptable = true;
 
 
@@ -1632,8 +1589,6 @@ public class RootDSEBackend
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

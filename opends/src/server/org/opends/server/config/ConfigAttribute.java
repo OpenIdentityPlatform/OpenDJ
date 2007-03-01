@@ -103,8 +103,6 @@ public abstract class ConfigAttribute
   protected ConfigAttribute(String name, String description, boolean isRequired,
                             boolean isMultiValued, boolean requiresAdminAction)
   {
-
-
     this.name                = name;
     this.description         = description;
     this.isRequired          = isRequired;
@@ -138,8 +136,6 @@ public abstract class ConfigAttribute
                             boolean isMultiValued, boolean requiresAdminAction,
                             LinkedHashSet<AttributeValue> activeValues)
   {
-
-
     this.name                = name;
     this.description         = description;
     this.isRequired          = isRequired;
@@ -191,8 +187,6 @@ public abstract class ConfigAttribute
                             boolean hasPendingValues,
                             LinkedHashSet<AttributeValue> pendingValues)
   {
-
-
     this.name                = name;
     this.description         = description;
     this.isRequired          = isRequired;
@@ -235,7 +229,6 @@ public abstract class ConfigAttribute
    */
   public String getName()
   {
-
     return name;
   }
 
@@ -249,7 +242,6 @@ public abstract class ConfigAttribute
    */
   public String getDescription()
   {
-
     return description;
   }
 
@@ -285,7 +277,6 @@ public abstract class ConfigAttribute
    */
   public boolean isRequired()
   {
-
     return isRequired;
   }
 
@@ -299,7 +290,6 @@ public abstract class ConfigAttribute
    */
   public boolean isMultiValued()
   {
-
     return isMultiValued;
   }
 
@@ -315,7 +305,6 @@ public abstract class ConfigAttribute
    */
   public boolean requiresAdminAction()
   {
-
     return requiresAdminAction;
   }
 
@@ -329,7 +318,6 @@ public abstract class ConfigAttribute
    */
   public LinkedHashSet<AttributeValue> getActiveValues()
   {
-
     return activeValues;
   }
 
@@ -345,7 +333,6 @@ public abstract class ConfigAttribute
    */
   public boolean hasPendingValues()
   {
-
     return hasPendingValues;
   }
 
@@ -362,7 +349,6 @@ public abstract class ConfigAttribute
    */
   public LinkedHashSet<AttributeValue> getPendingValues()
   {
-
     if (requiresAdminAction)
     {
       return pendingValues;
@@ -409,8 +395,6 @@ public abstract class ConfigAttribute
   protected void setValues(LinkedHashSet<AttributeValue> values)
          throws ConfigException
   {
-
-
     // If no values are provided, then check to see if this is a required
     // attribute.  If it is, then reject the change.
     if ((values == null) || values.isEmpty())
@@ -521,7 +505,6 @@ public abstract class ConfigAttribute
    */
   protected void setActiveValues(LinkedHashSet<AttributeValue> values)
   {
-
     activeValues = values;
   }
 
@@ -536,7 +519,6 @@ public abstract class ConfigAttribute
    */
   protected void setPendingValues(LinkedHashSet<AttributeValue> values)
   {
-
     pendingValues    = values;
     hasPendingValues = true;
   }
@@ -558,8 +540,6 @@ public abstract class ConfigAttribute
   protected void addValues(List<AttributeValue> values)
          throws ConfigException
   {
-
-
     // If there are no values provided, then do nothing.
     if (values == null)
     {
@@ -656,8 +636,6 @@ public abstract class ConfigAttribute
   protected void removeValues(List<AttributeValue> values)
          throws ConfigException
   {
-
-
     // Create a temporary set of values that we will use for this change.  It
     // may not actually be applied if an error occurs for some reason.
     LinkedHashSet<AttributeValue> tempValues;
@@ -725,7 +703,6 @@ public abstract class ConfigAttribute
   protected void removeAllValues()
          throws ConfigException
   {
-
     if (isRequired)
     {
       int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
@@ -769,7 +746,6 @@ public abstract class ConfigAttribute
    */
   public void setInitialValues(LinkedHashSet<AttributeValue> values)
   {
-
     if (values == null)
     {
       values = new LinkedHashSet<AttributeValue>();
@@ -789,7 +765,6 @@ public abstract class ConfigAttribute
    */
   public void applyPendingValues()
   {
-
     if (hasPendingValues)
     {
       activeValues     = pendingValues;

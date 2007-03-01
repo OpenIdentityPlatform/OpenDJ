@@ -61,7 +61,6 @@ public final class MultiOutputStream
    */
   public MultiOutputStream(OutputStream... targetStreams)
   {
-
     Validator.ensureNotNull(targetStreams);
 
     this.targetStreams = targetStreams;
@@ -74,7 +73,6 @@ public final class MultiOutputStream
    */
   public void close()
   {
-
     for (OutputStream s : targetStreams)
     {
       try
@@ -98,7 +96,6 @@ public final class MultiOutputStream
    */
   public void flush()
   {
-
     for (OutputStream s : targetStreams)
     {
       try
@@ -125,7 +122,6 @@ public final class MultiOutputStream
    */
   public void write(byte[] b)
   {
-
     for (OutputStream s : targetStreams)
     {
       try
@@ -154,7 +150,6 @@ public final class MultiOutputStream
    */
   public void write(byte[] b, int off, int len)
   {
-
     for (OutputStream s : targetStreams)
     {
       try
@@ -180,7 +175,6 @@ public final class MultiOutputStream
    */
   public void write(int b)
   {
-
     for (OutputStream s : targetStreams)
     {
       try

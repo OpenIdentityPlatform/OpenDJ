@@ -553,7 +553,6 @@ public final class AccessControlConfigManager
    */
   public DN getComponentEntryDN()
   {
-
     return currentConfiguration.getConfigEntry().getDN();
   }
 
@@ -568,7 +567,6 @@ public final class AccessControlConfigManager
    */
   public String getClassName()
   {
-
     return CLASS_NAME;
   }
 
@@ -587,7 +585,6 @@ public final class AccessControlConfigManager
    */
   public LinkedHashMap<String,String> getAlerts()
   {
-
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 
     alerts.put(ALERT_TYPE_ACCESS_CONTROL_DISABLED,

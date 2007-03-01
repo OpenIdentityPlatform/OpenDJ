@@ -81,8 +81,6 @@ public class RestoreTask extends Task
    */
   @Override public void initializeTask() throws DirectoryException
   {
-
-
     // If the client connection is available, then make sure the associated
     // client has the BACKEND_RESTORE privilege.
     Operation operation = getOperation();
@@ -200,7 +198,6 @@ public class RestoreTask extends Task
    */
   protected TaskState runTask()
   {
-
     // Open the backup directory and make sure it is valid.
     BackupDirectory backupDir;
     try

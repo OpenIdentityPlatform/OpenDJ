@@ -72,7 +72,6 @@ public class ASN1Reader
   public ASN1Reader(Socket socket)
          throws IOException
   {
-
     this.socket = socket;
     inputStream = socket.getInputStream();
 
@@ -90,7 +89,6 @@ public class ASN1Reader
    */
   public ASN1Reader(InputStream inputStream)
   {
-
     this.inputStream = inputStream;
     socket           = null;
     maxElementSize   = -1;
@@ -107,7 +105,6 @@ public class ASN1Reader
    */
   public int getMaxElementSize()
   {
-
     return maxElementSize;
   }
 
@@ -122,7 +119,6 @@ public class ASN1Reader
    */
   public void setMaxElementSize(int maxElementSize)
   {
-
     this.maxElementSize = maxElementSize;
   }
 
@@ -144,7 +140,6 @@ public class ASN1Reader
   public int getIOTimeout()
          throws IOException
   {
-
     if (socket == null)
     {
       return -1;
@@ -173,7 +168,6 @@ public class ASN1Reader
   public void setIOTimeout(int ioTimeout)
          throws IOException
   {
-
     if (socket == null)
     {
       return;
@@ -288,7 +282,6 @@ public class ASN1Reader
    */
   public void close()
   {
-
     try
     {
       inputStream.close();

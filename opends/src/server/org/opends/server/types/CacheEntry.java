@@ -62,7 +62,6 @@ public class CacheEntry
    */
   public CacheEntry(Entry entry, Backend backend, long entryID)
   {
-
     this.entry   = entry;
     this.backend = backend;
     this.entryID = entryID;
@@ -77,7 +76,6 @@ public class CacheEntry
    */
   public Entry getEntry()
   {
-
     return entry;
   }
 
@@ -90,7 +88,6 @@ public class CacheEntry
    */
   public void setEntry(Entry entry)
   {
-
     this.entry = entry;
   }
 
@@ -103,7 +100,6 @@ public class CacheEntry
    */
   public Backend getBackend()
   {
-
     return backend;
   }
 
@@ -116,7 +112,6 @@ public class CacheEntry
    */
   public void setBackend(Backend backend)
   {
-
     this.backend = backend;
   }
 
@@ -129,7 +124,6 @@ public class CacheEntry
    */
   public long getEntryID()
   {
-
     return entryID;
   }
 
@@ -142,7 +136,6 @@ public class CacheEntry
    */
   public void setEntryID(long entryID)
   {
-
     this.entryID = entryID;
   }
 
@@ -155,7 +148,6 @@ public class CacheEntry
    */
   public DN getDN()
   {
-
     return entry.getDN();
   }
 
@@ -169,7 +161,6 @@ public class CacheEntry
    */
   public int hashCode()
   {
-
     return (int) entryID;
   }
 
@@ -187,7 +178,6 @@ public class CacheEntry
    */
   public boolean equals(Object o)
   {
-
     if (o == null)
     {
       return false;

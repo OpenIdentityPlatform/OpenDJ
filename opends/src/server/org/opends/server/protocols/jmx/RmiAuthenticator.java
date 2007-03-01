@@ -87,7 +87,6 @@ public class RmiAuthenticator implements JMXAuthenticator
    */
   public RmiAuthenticator(JmxConnectionHandler jmxConnectionHandler)
   {
-
     this.jmxConnectionHandler = jmxConnectionHandler;
   }
 
@@ -115,7 +114,6 @@ public class RmiAuthenticator implements JMXAuthenticator
    */
   public Subject authenticate(Object credentials)
   {
-
     //
     // If we are in the finalized phase, we should not accept
     // new connection

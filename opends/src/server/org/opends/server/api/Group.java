@@ -98,7 +98,6 @@ public abstract class Group
    */
   public void finalizeGroupImplementation()
   {
-
     // No implementation is required by default.
   }
 
@@ -287,7 +286,6 @@ public abstract class Group
   public MemberList getMembers()
          throws DirectoryException
   {
-
     return getMembers(null, null, null);
   }
 
@@ -387,7 +385,6 @@ public abstract class Group
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();

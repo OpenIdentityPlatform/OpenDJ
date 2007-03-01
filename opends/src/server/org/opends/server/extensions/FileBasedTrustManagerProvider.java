@@ -105,7 +105,6 @@ public class FileBasedTrustManagerProvider
    */
   public FileBasedTrustManagerProvider()
   {
-
     // No implementation is required.
   }
 
@@ -129,8 +128,6 @@ public class FileBasedTrustManagerProvider
   public void initializeTrustManagerProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     // Store the DN of the configuration entry.
     configEntryDN = configEntry.getDN();
 
@@ -487,7 +484,6 @@ pinSelection:
    */
   public void finalizeTrustManagerProvider()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
   }
 
@@ -506,8 +502,6 @@ pinSelection:
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
-
-
     KeyStore trustStore;
     try
     {
@@ -567,7 +561,6 @@ pinSelection:
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -582,7 +575,6 @@ pinSelection:
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
 
@@ -663,8 +655,6 @@ pinSelection:
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // Make sure that a trust store file was provided.
     int msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_FILE;
     StringConfigAttribute fileStub =
@@ -982,7 +972,6 @@ pinSelection:
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

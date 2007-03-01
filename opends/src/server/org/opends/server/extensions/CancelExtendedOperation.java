@@ -97,7 +97,6 @@ public class CancelExtendedOperation
   public void initializeExtendedOperationHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No special configuration is required.
 
     DirectoryServer.registerSupportedExtension(OID_CANCEL_REQUEST, this);
@@ -111,7 +110,6 @@ public class CancelExtendedOperation
    */
   public void finalizeExtendedOperationHandler()
   {
-
     DirectoryServer.deregisterSupportedExtension(OID_CANCEL_REQUEST);
   }
 
@@ -124,8 +122,6 @@ public class CancelExtendedOperation
    */
   public void processExtendedOperation(ExtendedOperation operation)
   {
-
-
     // The value of the request must be a sequence containing an integer element
     // that holds the message ID of the operation to cancel.  If there is no
     // value or it cannot be decoded, then fail.

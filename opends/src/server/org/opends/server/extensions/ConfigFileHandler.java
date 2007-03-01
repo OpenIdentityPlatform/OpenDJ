@@ -193,8 +193,6 @@ public class ConfigFileHandler
   public void initializeConfigHandler(String configFile, boolean checkSchema)
          throws InitializationException
   {
-
-
     // Initialize the config lock.
     configLock = new ReentrantLock();
 
@@ -732,8 +730,6 @@ public class ConfigFileHandler
   private void applyChangesFile(File sourceFile, File changesFile)
           throws IOException, LDIFException
   {
-
-
     // FIXME -- Do we need to do anything special for configuration archiving?
 
 
@@ -820,7 +816,6 @@ public class ConfigFileHandler
    */
   public void finalizeConfigHandler()
   {
-
     try
     {
       DirectoryServer.deregisterBaseDN(configRootEntry.getDN(), false);
@@ -867,7 +862,6 @@ public class ConfigFileHandler
   public ConfigEntry getConfigRootEntry()
          throws ConfigException
   {
-
     return configRootEntry;
   }
 
@@ -887,7 +881,6 @@ public class ConfigFileHandler
   public ConfigEntry getConfigEntry(DN entryDN)
          throws ConfigException
   {
-
     return configEntries.get(entryDN);
   }
 
@@ -900,7 +893,6 @@ public class ConfigFileHandler
    */
   public String getServerRoot()
   {
-
     return serverRoot;
   }
 
@@ -925,7 +917,6 @@ public class ConfigFileHandler
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-
     // No action is required, since all initialization was performed in the
     // initializeConfigHandler method.
   }
@@ -939,7 +930,6 @@ public class ConfigFileHandler
    */
   public DN[] getBaseDNs()
   {
-
     return baseDNs;
   }
 
@@ -950,7 +940,6 @@ public class ConfigFileHandler
    */
   public long getEntryCount()
   {
-
     return configEntries.size();
   }
 
@@ -967,7 +956,6 @@ public class ConfigFileHandler
    */
   public boolean isLocal()
   {
-
     // The configuration information will always be local.
     return true;
   }
@@ -988,7 +976,6 @@ public class ConfigFileHandler
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-
     ConfigEntry configEntry = configEntries.get(entryDN);
     if (configEntry == null)
     {
@@ -1018,7 +1005,6 @@ public class ConfigFileHandler
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-
     return configEntries.containsKey(entryDN);
   }
 
@@ -1040,8 +1026,6 @@ public class ConfigFileHandler
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-
-
     // If there is an add operation, then make sure that the associated user has
     // both the CONFIG_READ and CONFIG_WRITE privileges.
     if (addOperation != null)
@@ -1193,8 +1177,6 @@ public class ConfigFileHandler
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-
-
     // If there is a delete operation, then make sure that the associated user
     // has both the CONFIG_READ and CONFIG_WRITE privileges.
     if (deleteOperation != null)
@@ -1342,8 +1324,6 @@ public class ConfigFileHandler
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-
-
     // If there is a modify operation, then make sure that the associated user
     // has both the CONFIG_READ and CONFIG_WRITE privileges.  Also, if the
     // operation targets the set of root privileges then make sure the user has
@@ -1532,8 +1512,6 @@ public class ConfigFileHandler
                           ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-
-
     // If there is a modify DN operation, then make sure that the associated
     // user has both the CONFIG_READ and CONFIG_WRITE privileges.
     if (modifyDNOperation != null)
@@ -1574,8 +1552,6 @@ public class ConfigFileHandler
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-
-
     // Make sure that the associated user has the CONFIG_READ privilege.
     ClientConnection clientConnection = searchOperation.getClientConnection();
     if (! clientConnection.hasPrivilege(Privilege.CONFIG_READ, searchOperation))
@@ -1699,7 +1675,6 @@ public class ConfigFileHandler
                                 SearchOperation searchOperation)
           throws DirectoryException
   {
-
     Entry e = baseEntry.getEntry();
     if (filter.matchesEntry(e))
     {
@@ -1733,8 +1708,6 @@ public class ConfigFileHandler
   public void writeUpdatedConfig()
          throws DirectoryException
   {
-
-
     // FIXME -- This needs support for encryption.
 
 
@@ -1977,7 +1950,6 @@ writeConfigArchive:
    */
   public boolean supportsLDIFExport()
   {
-
     return true;
   }
 
@@ -2000,7 +1972,6 @@ writeConfigArchive:
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-
     LDIFWriter writer;
     try
     {
@@ -2056,7 +2027,6 @@ writeConfigArchive:
   private void writeEntryAndChildren(LDIFWriter writer, ConfigEntry configEntry)
           throws DirectoryException
   {
-
     try
     {
       // Write the entry itself to LDIF.
@@ -2099,7 +2069,6 @@ writeConfigArchive:
    */
   public boolean supportsLDIFImport()
   {
-
     return false;
   }
 
@@ -2122,7 +2091,6 @@ writeConfigArchive:
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-
     int msgID     =  MSGID_CONFIG_FILE_UNWILLING_TO_IMPORT;
     String message = getMessage(msgID);
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -2144,7 +2112,6 @@ writeConfigArchive:
    */
   public boolean supportsBackup()
   {
-
     // We do support an online backup mechanism for the configuration.
     return true;
   }
@@ -2169,8 +2136,6 @@ writeConfigArchive:
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-
-
     // We should support online backup for the configuration in any form.  This
     // implementation does not support incremental backups, but in this case
     // even if we're asked to do an incremental we'll just do a full backup
@@ -2196,8 +2161,6 @@ writeConfigArchive:
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-
-
     // Get the properties to use for the backup.  We don't care whether or not
     // it's incremental, so there's no need to get that.
     String          backupID        = backupConfig.getBackupID();
@@ -2607,8 +2570,6 @@ writeConfigArchive:
                            String backupID)
          throws DirectoryException
   {
-
-
     // NYI
   }
 
@@ -2622,8 +2583,6 @@ writeConfigArchive:
    */
   public boolean supportsRestore()
   {
-
-
     // We will provide a restore, but only for offline operations.
     return true;
   }
@@ -2647,8 +2606,6 @@ writeConfigArchive:
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-
-
     // First, make sure that the requested backup exists.
     BackupDirectory backupDirectory = restoreConfig.getBackupDirectory();
     String          backupPath      = backupDirectory.getPath();
@@ -3177,7 +3134,6 @@ writeConfigArchive:
    */
   public DN getComponentEntryDN()
   {
-
     return configRootEntry.getDN();
   }
 
@@ -3192,7 +3148,6 @@ writeConfigArchive:
    */
   public String getClassName()
   {
-
     return CLASS_NAME;
   }
 
@@ -3210,7 +3165,6 @@ writeConfigArchive:
    */
   public LinkedHashMap<String,String> getAlerts()
   {
-
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 
     alerts.put(ALERT_TYPE_CANNOT_WRITE_CONFIGURATION,

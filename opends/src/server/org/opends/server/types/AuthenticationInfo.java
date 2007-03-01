@@ -84,7 +84,6 @@ public class AuthenticationInfo
    */
   public AuthenticationInfo()
   {
-
     isAuthenticated     = false;
     isRoot              = false;
     mustChangePassword  = false;
@@ -109,7 +108,6 @@ public class AuthenticationInfo
    */
   public AuthenticationInfo(Entry authenticationEntry, boolean isRoot)
   {
-
     this.authenticationEntry = authenticationEntry;
     this.isRoot              = isRoot;
 
@@ -141,7 +139,6 @@ public class AuthenticationInfo
   public AuthenticationInfo(Entry authenticationEntry,
                             ByteString simplePassword, boolean isRoot)
   {
-
     ensureNotNull(authenticationEntry, simplePassword);
 
     this.authenticationEntry = authenticationEntry;
@@ -176,7 +173,6 @@ public class AuthenticationInfo
   public AuthenticationInfo(Entry authenticationEntry,
                             String saslMechanism, boolean isRoot)
   {
-
     ensureNotNull(authenticationEntry, saslMechanism);
 
     this.authenticationEntry = authenticationEntry;
@@ -220,7 +216,6 @@ public class AuthenticationInfo
                             Entry authorizationEntry,
                             String saslMechanism, boolean isRoot)
   {
-
     ensureNotNull(authenticationEntry, saslMechanism);
 
     this.authenticationEntry = authenticationEntry;
@@ -249,7 +244,6 @@ public class AuthenticationInfo
    */
   public boolean isAuthenticated()
   {
-
     return isAuthenticated;
   }
 
@@ -261,7 +255,6 @@ public class AuthenticationInfo
    */
   public void setUnauthenticated()
   {
-
     isAuthenticated     = false;
     isRoot              = false;
     mustChangePassword  = false;
@@ -283,7 +276,6 @@ public class AuthenticationInfo
    */
   public boolean isRoot()
   {
-
     return isRoot;
   }
 
@@ -299,7 +291,6 @@ public class AuthenticationInfo
    */
   public boolean mustChangePassword()
   {
-
     return mustChangePassword;
   }
 
@@ -316,7 +307,6 @@ public class AuthenticationInfo
    */
   public void setMustChangePassword(boolean mustChangePassword)
   {
-
     this.mustChangePassword = mustChangePassword;
   }
 
@@ -335,7 +325,6 @@ public class AuthenticationInfo
   public boolean hasAuthenticationType(AuthenticationType
                                             authenticationType)
   {
-
     return authenticationTypes.contains(authenticationType);
   }
 
@@ -355,7 +344,6 @@ public class AuthenticationInfo
   public boolean hasAnyAuthenticationType(
                       Collection<AuthenticationType> types)
   {
-
     for (AuthenticationType t : types)
     {
       if (authenticationTypes.contains(t))
@@ -377,7 +365,6 @@ public class AuthenticationInfo
    */
   public Set<AuthenticationType> getAuthenticationTypes()
   {
-
     return authenticationTypes;
   }
 
@@ -395,7 +382,6 @@ public class AuthenticationInfo
   public void addAuthenticationType(AuthenticationType
                                          authenticationType)
   {
-
     authenticationTypes.add(authenticationType);
   }
 
@@ -411,7 +397,6 @@ public class AuthenticationInfo
    */
   public Entry getAuthenticationEntry()
   {
-
     return authenticationEntry;
   }
 
@@ -425,7 +410,6 @@ public class AuthenticationInfo
    */
   public DN getAuthenticationDN()
   {
-
     if (authenticationEntry == null)
     {
       return null;
@@ -449,7 +433,6 @@ public class AuthenticationInfo
    */
   public Entry getAuthorizationEntry()
   {
-
     return authorizationEntry;
   }
 
@@ -466,7 +449,6 @@ public class AuthenticationInfo
    */
   public DN getAuthorizationDN()
   {
-
     if (authorizationEntry == null)
     {
       return null;
@@ -489,7 +471,6 @@ public class AuthenticationInfo
    */
   public ByteString getSimplePassword()
   {
-
     return simplePassword;
   }
 
@@ -508,7 +489,6 @@ public class AuthenticationInfo
    */
   public boolean hasSASLMechanism(String saslMechanism)
   {
-
     return saslMechanisms.contains(saslMechanism);
   }
 
@@ -527,7 +507,6 @@ public class AuthenticationInfo
    */
   public boolean hasAnySASLMechanism(Collection<String> mechanisms)
   {
-
     for (String s : mechanisms)
     {
       if (saslMechanisms.contains(s))
@@ -551,7 +530,6 @@ public class AuthenticationInfo
    */
   public Set<String> getSASLMechanisms()
   {
-
     return saslMechanisms;
   }
 
@@ -569,7 +547,6 @@ public class AuthenticationInfo
    */
   public void addSASLMechanism(String saslMechanism)
   {
-
     saslMechanisms.add(saslMechanism);
   }
 
@@ -584,7 +561,6 @@ public class AuthenticationInfo
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
 
@@ -602,7 +578,6 @@ public class AuthenticationInfo
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("AuthenticationInfo(isAuthenticated=");
     buffer.append(isAuthenticated);
     buffer.append(",isRoot=");
@@ -701,7 +676,6 @@ public class AuthenticationInfo
   public AuthenticationInfo duplicate(Entry newAuthenticationEntry,
                                       Entry newAuthorizationEntry)
   {
-
     AuthenticationInfo authInfo = new AuthenticationInfo();
 
     authInfo.simplePassword      = simplePassword;

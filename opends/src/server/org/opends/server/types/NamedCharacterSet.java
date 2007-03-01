@@ -73,7 +73,6 @@ public class NamedCharacterSet
   public NamedCharacterSet(String name, char[] characters)
          throws ConfigException
   {
-
     this.name       = name;
     this.characters = characters;
 
@@ -116,7 +115,6 @@ public class NamedCharacterSet
                            Random random)
          throws ConfigException
   {
-
     this.name       = name;
     this.characters = characters;
     this.random     = random;
@@ -149,7 +147,6 @@ public class NamedCharacterSet
    */
   public String getName()
   {
-
     return name;
   }
 
@@ -162,7 +159,6 @@ public class NamedCharacterSet
    */
   public char[] getCharacters()
   {
-
     return characters;
   }
 
@@ -176,7 +172,6 @@ public class NamedCharacterSet
    */
   public char getRandomCharacter()
   {
-
     if ((characters == null) || (characters.length == 0))
     {
       return 0;
@@ -198,7 +193,6 @@ public class NamedCharacterSet
    */
   public void getRandomCharacters(StringBuilder buffer, int count)
   {
-
     if ((characters == null) || (characters.length == 0))
     {
       return;

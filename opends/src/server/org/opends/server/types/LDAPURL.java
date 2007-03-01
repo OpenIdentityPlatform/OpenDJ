@@ -146,8 +146,6 @@ public class LDAPURL
                  SearchScope scope, String rawFilter,
                  LinkedList<String> extensions)
   {
-
-
     this.host = toLowerCase(host);
 
     baseDN = null;
@@ -238,8 +236,6 @@ public class LDAPURL
                  LinkedHashSet<String> attributes, SearchScope scope,
                  SearchFilter filter, LinkedList<String> extensions)
   {
-
-
     this.host = toLowerCase(host);
 
 
@@ -332,8 +328,6 @@ public class LDAPURL
   public static LDAPURL decode(String url, boolean fullyDecode)
          throws DirectoryException
   {
-
-
     // Find the "://" component, which will separate the scheme from
     // the host.
     String scheme;
@@ -694,8 +688,6 @@ public class LDAPURL
   private static String urlDecode(String s)
           throws DirectoryException
   {
-
-
     if (s == null)
     {
       return "";
@@ -892,8 +884,6 @@ public class LDAPURL
    */
   private static String urlEncode(String s, boolean isExtension)
   {
-
-
     if (s == null)
     {
       return "";
@@ -996,8 +986,6 @@ public class LDAPURL
    */
   private static void hexEncode(char c, StringBuilder buffer)
   {
-
-
     if ((c & (byte) 0xFF) == c)
     {
       // It's a single byte.
@@ -1027,7 +1015,6 @@ public class LDAPURL
    */
   public String getScheme()
   {
-
     return scheme;
   }
 
@@ -1040,7 +1027,6 @@ public class LDAPURL
    */
   public void setScheme(String scheme)
   {
-
     if (scheme == null)
     {
       this.scheme = DEFAULT_SCHEME;
@@ -1061,7 +1047,6 @@ public class LDAPURL
    */
   public String getHost()
   {
-
     return host;
   }
 
@@ -1074,7 +1059,6 @@ public class LDAPURL
    */
   public void setHost(String host)
   {
-
     this.host = host;
   }
 
@@ -1087,7 +1071,6 @@ public class LDAPURL
    */
   public int getPort()
   {
-
     return port;
   }
 
@@ -1100,7 +1083,6 @@ public class LDAPURL
    */
   public void setPort(int port)
   {
-
     if ((port <= 0) || (port > 65535))
     {
       this.port = DEFAULT_PORT;
@@ -1122,7 +1104,6 @@ public class LDAPURL
    */
   public String getRawBaseDN()
   {
-
     return rawBaseDN;
   }
 
@@ -1136,7 +1117,6 @@ public class LDAPURL
    */
   public void setRawBaseDN(String rawBaseDN)
   {
-
     this.rawBaseDN = rawBaseDN;
     this.baseDN    = null;
   }
@@ -1154,7 +1134,6 @@ public class LDAPURL
   public DN getBaseDN()
          throws DirectoryException
   {
-
     if (baseDN == null)
     {
       if ((rawBaseDN == null) || (rawBaseDN.length() == 0))
@@ -1177,8 +1156,6 @@ public class LDAPURL
    */
   public void setBaseDN(DN baseDN)
   {
-
-
     if (baseDN == null)
     {
       this.baseDN    = null;
@@ -1201,7 +1178,6 @@ public class LDAPURL
    */
   public LinkedHashSet<String> getAttributes()
   {
-
     return attributes;
   }
 
@@ -1216,7 +1192,6 @@ public class LDAPURL
    */
   public SearchScope getScope()
   {
-
     return scope;
   }
 
@@ -1229,7 +1204,6 @@ public class LDAPURL
    */
   public void setScope(SearchScope scope)
   {
-
     if (scope == null)
     {
       this.scope = DEFAULT_SEARCH_SCOPE;
@@ -1251,7 +1225,6 @@ public class LDAPURL
    */
   public String getRawFilter()
   {
-
     return rawFilter;
   }
 
@@ -1265,7 +1238,6 @@ public class LDAPURL
    */
   public void setRawFilter(String rawFilter)
   {
-
     this.rawFilter = rawFilter;
     this.filter    = null;
   }
@@ -1283,7 +1255,6 @@ public class LDAPURL
   public SearchFilter getFilter()
          throws DirectoryException
   {
-
     if (filter == null)
     {
       if (rawFilter == null)
@@ -1308,8 +1279,6 @@ public class LDAPURL
    */
   public void setFilter(SearchFilter filter)
   {
-
-
     if (filter == null)
     {
       this.rawFilter = null;
@@ -1332,7 +1301,6 @@ public class LDAPURL
    */
   public LinkedList<String> getExtensions()
   {
-
     return extensions;
   }
 
@@ -1348,7 +1316,6 @@ public class LDAPURL
    */
   public boolean equals(Object o)
   {
-
     if (o == null)
     {
       return false;
@@ -1521,7 +1488,6 @@ outerExtLoop:
    */
   public int hashCode()
   {
-
     int hashCode = 0;
 
     hashCode += scheme.hashCode();
@@ -1591,7 +1557,6 @@ outerExtLoop:
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer, false);
     return buffer.toString();
@@ -1612,7 +1577,6 @@ outerExtLoop:
    */
   public void toString(StringBuilder buffer, boolean baseOnly)
   {
-
     urlEncode(scheme, false, buffer);
     buffer.append("://");
 

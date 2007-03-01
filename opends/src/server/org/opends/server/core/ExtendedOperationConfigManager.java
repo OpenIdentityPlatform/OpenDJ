@@ -91,7 +91,6 @@ public class ExtendedOperationConfigManager
    */
   public ExtendedOperationConfigManager()
   {
-
     configHandler = DirectoryServer.getConfigHandler();
     handlers      = new ConcurrentHashMap<DN,ExtendedOperationHandler>();
   }
@@ -113,8 +112,6 @@ public class ExtendedOperationConfigManager
   public void initializeExtendedOperationHandlers()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the configuration base entry.
     ConfigEntry baseEntry;
     try
@@ -230,8 +227,6 @@ public class ExtendedOperationConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for an extended
     // operation handler.
     if (! configEntry.hasObjectClass(OC_EXTENDED_OPERATION_HANDLER))
@@ -370,8 +365,6 @@ public class ExtendedOperationConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -614,8 +607,6 @@ public class ExtendedOperationConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (handlers.containsKey(configEntryDN))
@@ -793,8 +784,6 @@ public class ExtendedOperationConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -977,8 +966,6 @@ public class ExtendedOperationConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -995,8 +982,6 @@ public class ExtendedOperationConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

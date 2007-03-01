@@ -107,7 +107,6 @@ public class LDAPException
    */
   public int getResultCode()
   {
-
     return resultCode;
   }
 
@@ -120,7 +119,6 @@ public class LDAPException
    */
   public int getMessageID()
   {
-
     return messageID;
   }
 }

@@ -215,7 +215,6 @@ public final class ObjectClass
    */
   public String getDefinition()
   {
-
     return definition;
   }
 

@@ -96,7 +96,6 @@ public class TelexNumberSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -134,7 +133,6 @@ public class TelexNumberSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_TELEX_NAME;
   }
 
@@ -147,7 +145,6 @@ public class TelexNumberSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_TELEX_OID;
   }
 
@@ -160,7 +157,6 @@ public class TelexNumberSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_TELEX_DESCRIPTION;
   }
 
@@ -176,7 +172,6 @@ public class TelexNumberSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -192,7 +187,6 @@ public class TelexNumberSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -208,7 +202,6 @@ public class TelexNumberSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -224,7 +217,6 @@ public class TelexNumberSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -246,8 +238,6 @@ public class TelexNumberSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Get a string representation of the value and find its length.
     String valueString = value.stringValue();
     int    valueLength = valueString.length();

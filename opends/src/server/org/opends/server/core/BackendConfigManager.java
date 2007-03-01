@@ -96,7 +96,6 @@ public class BackendConfigManager
    */
   public BackendConfigManager()
   {
-
     // No implementation is required.
   }
 
@@ -116,8 +115,6 @@ public class BackendConfigManager
   public void initializeBackendConfig()
          throws ConfigException, InitializationException
   {
-
-
     registeredBackends = new ConcurrentHashMap<DN,Backend>();
 
 
@@ -623,7 +620,6 @@ public class BackendConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
     DN backendDN = configEntry.getDN();
 
 
@@ -939,7 +935,6 @@ public class BackendConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
     DN                backendDN           = configEntry.getDN();
     Backend           backend             = registeredBackends.get(backendDN);
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -1512,8 +1507,6 @@ public class BackendConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     DN backendDN = configEntry.getDN();
 
 
@@ -1825,8 +1818,6 @@ public class BackendConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                backendDN           = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -2295,8 +2286,6 @@ public class BackendConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     DN backendDN = configEntry.getDN();
 
 
@@ -2338,8 +2327,6 @@ public class BackendConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN                backendDN           = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;

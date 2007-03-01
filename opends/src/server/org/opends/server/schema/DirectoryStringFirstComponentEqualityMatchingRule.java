@@ -87,7 +87,6 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -101,7 +100,6 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME;
   }
 
@@ -114,7 +112,6 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_DIRECTORY_STRING_FIRST_COMPONENT_OID;
   }
 
@@ -128,7 +125,6 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -143,7 +139,6 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_DIRECTORY_STRING_OID;
   }
 
@@ -163,7 +158,6 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value.value(), buffer, true);
 
@@ -213,8 +207,6 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
-
     // For this purpose, the first value will be considered the attribute value,
     // and the second the assertion value.  The attribute value must start with
     // an open parenthesis, followed by one or more spaces.
@@ -281,7 +273,6 @@ public class DirectoryStringFirstComponentEqualityMatchingRule
    * @return  The hash code generated for the provided attribute value.*/
   public int generateHashCode(AttributeValue attributeValue)
   {
-
     // In this case, we'll always return the same value because the matching
     // isn't based on the entire value.
     return 1;

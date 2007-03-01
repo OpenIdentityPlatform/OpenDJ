@@ -57,7 +57,6 @@ public class NullKeyManagerProvider
    */
   public NullKeyManagerProvider()
   {
-
     // No implementation is required.
   }
 
@@ -81,7 +80,6 @@ public class NullKeyManagerProvider
   public void initializeKeyManagerProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No implementation is required.
   }
 
@@ -93,7 +91,6 @@ public class NullKeyManagerProvider
    */
   public void finalizeKeyManagerProvider()
   {
-
     // No implementation is required.
   }
 
@@ -112,7 +109,6 @@ public class NullKeyManagerProvider
   public KeyManager[] getKeyManagers()
          throws DirectoryException
   {
-
     return new KeyManager[0];
   }
 }

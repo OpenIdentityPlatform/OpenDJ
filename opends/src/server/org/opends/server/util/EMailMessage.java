@@ -93,7 +93,6 @@ public class EMailMessage
    */
   public EMailMessage(String sender, String recipient, String subject)
   {
-
     this.sender  = sender;
     this.subject = subject;
 
@@ -117,7 +116,6 @@ public class EMailMessage
   public EMailMessage(String sender, ArrayList<String> recipients,
                       String subject)
   {
-
     this.sender     = sender;
     this.recipients = recipients;
     this.subject    = subject;
@@ -134,7 +132,6 @@ public class EMailMessage
    */
   public String getSender()
   {
-
     return sender;
   }
 
@@ -147,7 +144,6 @@ public class EMailMessage
    */
   public void setSender(String sender)
   {
-
     this.sender = sender;
   }
 
@@ -161,7 +157,6 @@ public class EMailMessage
    */
   public ArrayList<String> getRecipients()
   {
-
     return recipients;
   }
 
@@ -174,7 +169,6 @@ public class EMailMessage
    */
   public void setRecipients(ArrayList<String> recipients)
   {
-
     this.recipients = recipients;
   }
 
@@ -187,7 +181,6 @@ public class EMailMessage
    */
   public void addRecipient(String recipient)
   {
-
     recipients.add(recipient);
   }
 
@@ -200,7 +193,6 @@ public class EMailMessage
    */
   public String getSubject()
   {
-
     return subject;
   }
 
@@ -213,7 +205,6 @@ public class EMailMessage
    */
   public void setSubject(String subject)
   {
-
     this.subject = subject;
   }
 
@@ -227,7 +218,6 @@ public class EMailMessage
    */
   public StringBuilder getBody()
   {
-
     return body;
   }
 
@@ -240,7 +230,6 @@ public class EMailMessage
    */
   public void setBody(StringBuilder body)
   {
-
     this.body = body;
   }
 
@@ -253,7 +242,6 @@ public class EMailMessage
    */
   public void setBody(String bodyString)
   {
-
     body = new StringBuilder(bodyString);
   }
 
@@ -266,7 +254,6 @@ public class EMailMessage
    */
   public void appendToBody(String text)
   {
-
     body.append(text);
   }
 
@@ -280,7 +267,6 @@ public class EMailMessage
    */
   public LinkedList<MimeBodyPart> getAttachments()
   {
-
     return attachments;
   }
 
@@ -293,7 +279,6 @@ public class EMailMessage
    */
   public void addAttachment(MimeBodyPart attachment)
   {
-
     attachments.add(attachment);
   }
 
@@ -310,7 +295,6 @@ public class EMailMessage
   public void addAttachment(String attachmentText)
          throws MessagingException
   {
-
     MimeBodyPart attachment = new MimeBodyPart();
     attachment.setText(attachmentText);
     attachments.add(attachment);
@@ -329,7 +313,6 @@ public class EMailMessage
   public void addAttachment(File attachmentFile)
          throws MessagingException
   {
-
     MimeBodyPart attachment = new MimeBodyPart();
 
     FileDataSource dataSource = new FileDataSource(attachmentFile);
@@ -353,8 +336,6 @@ public class EMailMessage
   public void send()
          throws MessagingException
   {
-
-
     // Get information about the available mail servers that we can use.
     MessagingException sendException = null;
     for (Properties props : DirectoryServer.getMailServerPropertySets())

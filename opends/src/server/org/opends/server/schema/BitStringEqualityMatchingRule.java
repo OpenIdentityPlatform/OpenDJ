@@ -87,7 +87,6 @@ public class BitStringEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -101,7 +100,6 @@ public class BitStringEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_BIT_STRING_NAME;
   }
 
@@ -114,7 +112,6 @@ public class BitStringEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_BIT_STRING_OID;
   }
 
@@ -128,7 +125,6 @@ public class BitStringEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -143,7 +139,6 @@ public class BitStringEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_BIT_STRING_OID;
   }
 
@@ -163,7 +158,6 @@ public class BitStringEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     String valueString = value.stringValue().toUpperCase();
 
     int length = valueString.length();
@@ -254,7 +248,6 @@ public class BitStringEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.
     return Arrays.equals(value1.value(), value2.value());

@@ -120,7 +120,6 @@ public abstract class SubstringMatchingRule
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)
   {
-
     return ConditionResult.UNDEFINED;
   }
 }

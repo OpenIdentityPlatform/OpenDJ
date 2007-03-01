@@ -179,8 +179,6 @@ public final class PasswordPolicyImportPlugin
                                      ConfigEntry configEntry)
          throws ConfigException
   {
-
-
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)
     {
@@ -208,8 +206,6 @@ public final class PasswordPolicyImportPlugin
   public final LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
                                              Entry entry)
   {
-
-
     // Create a list that we will use to hold new encoded values.
     ArrayList<ByteString> encodedValueList = new ArrayList<ByteString>();
 

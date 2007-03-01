@@ -84,7 +84,6 @@ public class DefaultEntryCache
   public void initializeEntryCache(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No implementation required.
   }
 
@@ -97,7 +96,6 @@ public class DefaultEntryCache
    */
   public void finalizeEntryCache()
   {
-
     // No implementation required.
   }
 
@@ -115,7 +113,6 @@ public class DefaultEntryCache
    */
   public boolean containsEntry(DN entryDN)
   {
-
     // This implementation does not store any entries.
     return false;
   }
@@ -134,7 +131,6 @@ public class DefaultEntryCache
    */
   public Entry getEntry(DN entryDN)
   {
-
     // This implementation does not store any entries.
     return null;
   }
@@ -153,7 +149,6 @@ public class DefaultEntryCache
    */
   public long getEntryID(DN entryDN)
   {
-
     // This implementation does not store any entries.
     return -1;
   }
@@ -178,7 +173,6 @@ public class DefaultEntryCache
    */
   public Entry getEntry(DN entryDN, LockType lockType, List<Lock> lockList)
   {
-
     // This implementation does not store entries.
     return null;
   }
@@ -206,7 +200,6 @@ public class DefaultEntryCache
   public Entry getEntry(Backend backend, long entryID, LockType lockType,
                         List<Lock> lockList)
   {
-
     // This implementation does not store entries.
     return null;
   }
@@ -225,7 +218,6 @@ public class DefaultEntryCache
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-
     // This implementation does not store entries.
   }
 
@@ -251,7 +243,6 @@ public class DefaultEntryCache
    */
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
-
     // This implementation does not store entries, so we will never have a
     // conflict.
     return true;
@@ -266,7 +257,6 @@ public class DefaultEntryCache
    */
   public void removeEntry(DN entryDN)
   {
-
     // This implementation does not store entries.
   }
 
@@ -278,7 +268,6 @@ public class DefaultEntryCache
    */
   public void clear()
   {
-
     // This implementation does not store entries.
   }
 
@@ -292,7 +281,6 @@ public class DefaultEntryCache
    */
   public void clearBackend(Backend backend)
   {
-
     // This implementation does not store entries.
   }
 
@@ -305,7 +293,6 @@ public class DefaultEntryCache
    */
   public void clearSubtree(DN baseDN)
   {
-
     // This implementation does not store entries.
   }
 
@@ -319,7 +306,6 @@ public class DefaultEntryCache
    */
   public void handleLowMemory()
   {
-
     // This implementation does not store entries, so there are no resources
     // that it can free.
   }

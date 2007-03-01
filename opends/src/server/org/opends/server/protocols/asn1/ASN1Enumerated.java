@@ -118,7 +118,6 @@ public class ASN1Enumerated
    */
   public int intValue()
   {
-
     return intValue;
   }
 
@@ -131,7 +130,6 @@ public class ASN1Enumerated
    */
   public void setValue(int intValue)
   {
-
     this.intValue = intValue;
     setValueInternal(encodeValue(intValue));
   }
@@ -149,7 +147,6 @@ public class ASN1Enumerated
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-
     if (value == null)
     {
       int    msgID   = MSGID_ASN1_ENUMERATED_SET_VALUE_NULL;
@@ -188,7 +185,6 @@ public class ASN1Enumerated
   public static ASN1Enumerated decodeAsEnumerated(ASN1Element element)
          throws ASN1Exception
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_ASN1_ENUMERATED_DECODE_ELEMENT_NULL;
@@ -229,7 +225,6 @@ public class ASN1Enumerated
   public static ASN1Enumerated decodeAsEnumerated(byte[] encodedElement)
          throws ASN1Exception
   {
-
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 enumerated element.
     if (encodedElement == null)
@@ -320,7 +315,6 @@ public class ASN1Enumerated
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ASN1Enumerated(type=");
     buffer.append(byteToHex(getType()));
     buffer.append(", value=");
@@ -341,7 +335,6 @@ public class ASN1Enumerated
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

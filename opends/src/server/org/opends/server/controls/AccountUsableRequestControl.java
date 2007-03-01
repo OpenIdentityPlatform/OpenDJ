@@ -93,7 +93,6 @@ public class AccountUsableRequestControl
   public static AccountUsableRequestControl decodeControl(Control control)
          throws LDAPException
   {
-
     if (control.hasValue())
     {
       int    msgID   = MSGID_ACCTUSABLEREQ_CONTROL_HAS_VALUE;
@@ -115,7 +114,6 @@ public class AccountUsableRequestControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -131,7 +129,6 @@ public class AccountUsableRequestControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("AccountUsableRequestControl()");
   }
 }

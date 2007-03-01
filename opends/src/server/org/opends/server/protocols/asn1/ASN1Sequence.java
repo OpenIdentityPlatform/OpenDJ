@@ -173,7 +173,6 @@ public class ASN1Sequence
    */
   public ArrayList<ASN1Element> elements()
   {
-
     return elements;
   }
 
@@ -186,7 +185,6 @@ public class ASN1Sequence
    */
   public void setElements(ArrayList<ASN1Element> elements)
   {
-
     if (elements == null)
     {
       this.elements.clear();
@@ -212,7 +210,6 @@ public class ASN1Sequence
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-
     if (value == null)
     {
       int    msgID   = MSGID_ASN1_SEQUENCE_SET_VALUE_NULL;
@@ -239,7 +236,6 @@ public class ASN1Sequence
   public static ASN1Sequence decodeAsSequence(ASN1Element element)
          throws ASN1Exception
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_ASN1_SEQUENCE_DECODE_ELEMENT_NULL;
@@ -268,7 +264,6 @@ public class ASN1Sequence
   public static ASN1Sequence decodeAsSequence(byte[] encodedElement)
          throws ASN1Exception
   {
-
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 sequence element.
     if (encodedElement == null)
@@ -352,7 +347,6 @@ public class ASN1Sequence
   public static ASN1Sequence decodeAsSequence(byte type, byte[] encodedValue)
          throws ASN1Exception
   {
-
     ArrayList<ASN1Element> elements = decodeElements(encodedValue);
     return new ASN1Sequence(type, encodedValue, elements);
   }
@@ -367,7 +361,6 @@ public class ASN1Sequence
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ASN1Sequence(type=");
     buffer.append(byteToHex(getType()));
     buffer.append(", values={ ");
@@ -401,7 +394,6 @@ public class ASN1Sequence
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

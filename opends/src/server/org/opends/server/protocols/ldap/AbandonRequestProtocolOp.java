@@ -65,7 +65,6 @@ public class AbandonRequestProtocolOp
    */
   public AbandonRequestProtocolOp(int idToAbandon)
   {
-
     this.idToAbandon = idToAbandon;
   }
 
@@ -78,7 +77,6 @@ public class AbandonRequestProtocolOp
    */
   public int getIDToAbandon()
   {
-
     return idToAbandon;
   }
 
@@ -91,7 +89,6 @@ public class AbandonRequestProtocolOp
    */
   public void setIDToAbandon(int idToAbandon)
   {
-
     this.idToAbandon = idToAbandon;
   }
 
@@ -104,7 +101,6 @@ public class AbandonRequestProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_ABANDON_REQUEST;
   }
 
@@ -117,7 +113,6 @@ public class AbandonRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Abandon Request";
   }
 
@@ -131,7 +126,6 @@ public class AbandonRequestProtocolOp
    */
   public ASN1Element encode()
   {
-
     return new ASN1Integer(OP_TYPE_ABANDON_REQUEST, idToAbandon);
   }
 
@@ -151,7 +145,6 @@ public class AbandonRequestProtocolOp
                                                                    element)
          throws LDAPException
   {
-
     int idToAbandon;
     try
     {
@@ -182,7 +175,6 @@ public class AbandonRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("AbandonRequest(idToAbandon=");
     buffer.append(idToAbandon);
     buffer.append(")");
@@ -200,7 +192,6 @@ public class AbandonRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

@@ -68,7 +68,6 @@ public class DSMLAbandonOperation
         AbandonRequest abandonRequest)
     throws IOException
   {
-
     LDAPResult abandonResponse = objFactory.createLDAPResult();
 
     String requestID = abandonRequest.getRequestID();

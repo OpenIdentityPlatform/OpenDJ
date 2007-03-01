@@ -96,7 +96,6 @@ public class WordEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -110,7 +109,6 @@ public class WordEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_WORD_NAME;
   }
 
@@ -123,7 +121,6 @@ public class WordEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_WORD_OID;
   }
 
@@ -137,7 +134,6 @@ public class WordEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -152,7 +148,6 @@ public class WordEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_DIRECTORY_STRING_OID;
   }
 
@@ -172,7 +167,6 @@ public class WordEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value.value(), buffer, true);
 
@@ -222,8 +216,6 @@ public class WordEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
-
     // For this purpose, the first value will be considered the attribute value,
     // and the second the assertion value.  See if the second value is contained
     // in the first.  If not, then it isn't a match.
@@ -307,7 +299,6 @@ public class WordEqualityMatchingRule
    * @return  The hash code generated for the provided attribute value.*/
   public int generateHashCode(AttributeValue attributeValue)
   {
-
     // In this case, we'll always return the same value because the matching
     // isn't based on the entire value.
     return 1;

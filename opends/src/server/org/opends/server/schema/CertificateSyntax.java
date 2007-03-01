@@ -96,7 +96,6 @@ public class CertificateSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null)
@@ -134,7 +133,6 @@ public class CertificateSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_CERTIFICATE_NAME;
   }
 
@@ -147,7 +145,6 @@ public class CertificateSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_CERTIFICATE_OID;
   }
 
@@ -160,7 +157,6 @@ public class CertificateSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_CERTIFICATE_DESCRIPTION;
   }
 
@@ -176,7 +172,6 @@ public class CertificateSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -192,7 +187,6 @@ public class CertificateSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -208,7 +202,6 @@ public class CertificateSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -224,7 +217,6 @@ public class CertificateSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -246,7 +238,6 @@ public class CertificateSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     // All values will be acceptable for the certificate syntax.
     return true;
   }

@@ -78,7 +78,6 @@ public class LDAPAttribute
    */
   public LDAPAttribute(String attributeType)
   {
-
     this.attributeType = attributeType;
 
     values = new ArrayList<ASN1OctetString>(0);
@@ -94,7 +93,6 @@ public class LDAPAttribute
    */
   public LDAPAttribute(String attributeType, ArrayList<ASN1OctetString> values)
   {
-
     this.attributeType = attributeType;
 
     if (values == null)
@@ -116,7 +114,6 @@ public class LDAPAttribute
    */
   public LDAPAttribute(Attribute attribute)
   {
-
     StringBuilder attrName = new StringBuilder(attribute.getName());
     for (String o : attribute.getOptions())
     {
@@ -149,7 +146,6 @@ public class LDAPAttribute
    */
   public String getAttributeType()
   {
-
     return attributeType;
   }
 
@@ -162,7 +158,6 @@ public class LDAPAttribute
    */
   public void setAttributeType(String attributeType)
   {
-
     this.attributeType = attributeType;
   }
 
@@ -176,7 +171,6 @@ public class LDAPAttribute
    */
   public ArrayList<ASN1OctetString> getValues()
   {
-
     return values;
   }
 
@@ -189,7 +183,6 @@ public class LDAPAttribute
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1OctetString(attributeType));
 
@@ -227,7 +220,6 @@ public class LDAPAttribute
   public static LDAPAttribute decode(ASN1Element element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -314,7 +306,6 @@ public class LDAPAttribute
   public Attribute toAttribute()
          throws LDAPException
   {
-
     String baseName;
     String lowerBaseName;
     int    semicolonPos = attributeType.indexOf(';');
@@ -382,7 +373,6 @@ public class LDAPAttribute
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -397,7 +387,6 @@ public class LDAPAttribute
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("LDAPAttribute(type=");
     buffer.append(attributeType);
     buffer.append(", values={");
@@ -428,7 +417,6 @@ public class LDAPAttribute
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

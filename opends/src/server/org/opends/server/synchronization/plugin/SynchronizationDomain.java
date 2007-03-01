@@ -1093,7 +1093,6 @@ public class SynchronizationDomain extends DirectoryThread
   @Override
   public void run()
   {
-
     /* synchroThreads
      * create the threads that will wait for incoming changes
      * TODO : should use a pool of threads shared between all the servers

@@ -58,7 +58,6 @@ public class NullTrustManagerProvider
    */
   public NullTrustManagerProvider()
   {
-
     // No implementation is required.
   }
 
@@ -82,7 +81,6 @@ public class NullTrustManagerProvider
   public void initializeTrustManagerProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No implementation is required.
   }
 
@@ -94,7 +92,6 @@ public class NullTrustManagerProvider
    */
   public void finalizeTrustManagerProvider()
   {
-
     // No implementation is required.
   }
 
@@ -113,7 +110,6 @@ public class NullTrustManagerProvider
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
-
     return new TrustManager[0];
   }
 }

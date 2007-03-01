@@ -272,7 +272,6 @@ public class LDAPClientConnection
    */
   public long getConnectionID()
   {
-
     return connectionID;
   }
 
@@ -285,7 +284,6 @@ public class LDAPClientConnection
    */
   public ConnectionHandler getConnectionHandler()
   {
-
     return connectionHandler;
   }
 
@@ -300,7 +298,6 @@ public class LDAPClientConnection
    */
   public LDAPRequestHandler getRequestHandler()
   {
-
     return requestHandler;
   }
 
@@ -315,7 +312,6 @@ public class LDAPClientConnection
    */
   public void setRequestHandler(LDAPRequestHandler requestHandler)
   {
-
     this.requestHandler = requestHandler;
   }
 
@@ -330,7 +326,6 @@ public class LDAPClientConnection
    */
   public SocketChannel getSocketChannel()
   {
-
     return clientChannel;
   }
 
@@ -345,7 +340,6 @@ public class LDAPClientConnection
    */
   public String getProtocol()
   {
-
     return protocol;
   }
 
@@ -358,7 +352,6 @@ public class LDAPClientConnection
    */
   public String getClientAddress()
   {
-
     return clientAddress;
   }
 
@@ -371,7 +364,6 @@ public class LDAPClientConnection
    */
   public int getClientPort()
   {
-
     return clientPort;
   }
 
@@ -398,7 +390,6 @@ public class LDAPClientConnection
    */
   public String getServerAddress()
   {
-
     return serverAddress;
   }
 
@@ -411,7 +402,6 @@ public class LDAPClientConnection
    */
   public int getServerPort()
   {
-
     return serverPort;
   }
 
@@ -439,7 +429,6 @@ public class LDAPClientConnection
    */
   public InetAddress getRemoteAddress()
   {
-
     return clientChannel.socket().getInetAddress();
   }
 
@@ -456,7 +445,6 @@ public class LDAPClientConnection
    */
   public InetAddress getLocalAddress()
   {
-
     return clientChannel.socket().getLocalAddress();
   }
 
@@ -475,7 +463,6 @@ public class LDAPClientConnection
    */
   public boolean isSecure()
   {
-
     return securityProvider.isSecure();
   }
 
@@ -488,7 +475,6 @@ public class LDAPClientConnection
    */
   public ConnectionSecurityProvider getConnectionSecurityProvider()
   {
-
     return securityProvider;
   }
 
@@ -503,7 +489,6 @@ public class LDAPClientConnection
   public void setConnectionSecurityProvider(ConnectionSecurityProvider
                                                  securityProvider)
   {
-
     this.securityProvider = securityProvider;
 
     if (securityProvider.isSecure())
@@ -528,7 +513,6 @@ public class LDAPClientConnection
    */
   public String getSecurityMechanism()
   {
-
     return securityProvider.getSecurityMechanismName();
   }
 
@@ -541,7 +525,6 @@ public class LDAPClientConnection
    */
   public long nextOperationID()
   {
-
     return nextOperationID.getAndIncrement();
   }
 
@@ -555,7 +538,6 @@ public class LDAPClientConnection
    */
   public void sendResponse(Operation operation)
   {
-
     LDAPMessage message = operationToResponseLDAPMessage(operation);
     if (message != null)
     {
@@ -577,7 +559,6 @@ public class LDAPClientConnection
    */
   private LDAPMessage operationToResponseLDAPMessage(Operation operation)
   {
-
     ResultCode resultCode = operation.getResultCode();
     if (resultCode == null)
     {
@@ -734,7 +715,6 @@ public class LDAPClientConnection
   public void sendSearchEntry(SearchOperation searchOperation,
                               SearchResultEntry searchEntry)
   {
-
     SearchResultEntryProtocolOp protocolOp =
          new SearchResultEntryProtocolOp(searchEntry);
 
@@ -776,8 +756,6 @@ public class LDAPClientConnection
   public boolean sendSearchReference(SearchOperation searchOperation,
                                      SearchResultReference searchReference)
   {
-
-
     // Make sure this is not an LDAPv2 client.  If it is, then they can't see
     // referrals so we'll not send anything.  Also, throw an exception so that
     // the core server will know not to try sending any more referrals to this
@@ -831,7 +809,6 @@ public class LDAPClientConnection
   protected boolean sendIntermediateResponseMessage(
                          IntermediateResponse intermediateResponse)
   {
-
     IntermediateResponseProtocolOp protocolOp =
          new IntermediateResponseProtocolOp(intermediateResponse.getOID(),
                                             intermediateResponse.getValue());
@@ -869,7 +846,6 @@ public class LDAPClientConnection
   private void sendLDAPMessage(ConnectionSecurityProvider secProvider,
                                LDAPMessage message)
   {
-
     ASN1Element messageElement = message.encode();
 
     ByteBuffer messageBuffer = ByteBuffer.wrap(messageElement.encode());
@@ -958,8 +934,6 @@ public class LDAPClientConnection
                          boolean sendNotification, String message,
                          int messageID)
   {
-
-
     // If we are already in the middle of a disconnect, then don't do anything.
     if (disconnectRequested)
     {
@@ -1142,7 +1116,6 @@ public class LDAPClientConnection
    */
   public Collection<Operation> getOperationsInProgress()
   {
-
     return operationsInProgress.values();
   }
 
@@ -1158,7 +1131,6 @@ public class LDAPClientConnection
    */
   public Operation getOperationInProgress(int messageID)
   {
-
     return operationsInProgress.get(messageID);
   }
 
@@ -1178,7 +1150,6 @@ public class LDAPClientConnection
   public void addOperationInProgress(Operation operation)
          throws DirectoryException
   {
-
     int messageID = operation.getMessageID();
 
     // We need to grab a lock to ensure that no one else can add operations to
@@ -1261,7 +1232,6 @@ public class LDAPClientConnection
    */
   public boolean removeOperationInProgress(int messageID)
   {
-
     Operation operation = operationsInProgress.remove(messageID);
     return (operation != null);
   }
@@ -1281,7 +1251,6 @@ public class LDAPClientConnection
   public CancelResult cancelOperation(int messageID,
                                       CancelRequest cancelRequest)
   {
-
     Operation op = operationsInProgress.get(messageID);
     if (op == null)
     {
@@ -1326,8 +1295,6 @@ public class LDAPClientConnection
    */
   public void cancelAllOperations(CancelRequest cancelRequest)
   {
-
-
     // Make sure that no one can add any new operations.
     opsInProgressLock.lock();
 
@@ -1387,8 +1354,6 @@ public class LDAPClientConnection
   public void cancelAllOperationsExcept(CancelRequest cancelRequest,
                                         int messageID)
   {
-
-
     // Make sure that no one can add any new operations.
     opsInProgressLock.lock();
 
@@ -1754,8 +1719,6 @@ public class LDAPClientConnection
    */
   private boolean processLDAPMessage(LDAPMessage message)
   {
-
-
     if (keepStats)
     {
       statTracker.updateMessageRead(message);
@@ -1852,8 +1815,6 @@ public class LDAPClientConnection
   private boolean processAbandonRequest(LDAPMessage message,
                                         ArrayList<Control> controls)
   {
-
-
     AbandonRequestProtocolOp protocolOp = message.getAbandonRequestProtocolOp();
     AbandonOperation abandonOp =
          new AbandonOperation(this, nextOperationID.getAndIncrement(),
@@ -1886,8 +1847,6 @@ public class LDAPClientConnection
   private boolean processAddRequest(LDAPMessage message,
                                     ArrayList<Control> controls)
   {
-
-
     // Create the add operation and add it into the work queue.
     AddRequestProtocolOp protocolOp = message.getAddRequestProtocolOp();
     AddOperation addOp =
@@ -1935,8 +1894,6 @@ public class LDAPClientConnection
   private boolean processBindRequest(LDAPMessage message,
                                      ArrayList<Control> controls)
   {
-
-
     BindRequestProtocolOp protocolOp = message.getBindRequestProtocolOp();
 
     // See if this is an LDAPv2 bind request, and if so whether that should be
@@ -2034,8 +1991,6 @@ public class LDAPClientConnection
   private boolean processCompareRequest(LDAPMessage message,
                                         ArrayList<Control> controls)
   {
-
-
     CompareRequestProtocolOp protocolOp = message.getCompareRequestProtocolOp();
     CompareOperation compareOp =
          new CompareOperation(this, nextOperationID.getAndIncrement(),
@@ -2087,8 +2042,6 @@ public class LDAPClientConnection
   private boolean processDeleteRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
-
-
     DeleteRequestProtocolOp protocolOp = message.getDeleteRequestProtocolOp();
     DeleteOperation deleteOp =
          new DeleteOperation(this, nextOperationID.getAndIncrement(),
@@ -2138,8 +2091,6 @@ public class LDAPClientConnection
   private boolean processExtendedRequest(LDAPMessage message,
                                          ArrayList<Control> controls)
   {
-
-
     // See if this is an LDAPv2 client.  If it is, then they should not be
     // issuing extended requests.  We can't send a response that we can be sure
     // they can understand, so we have no choice but to close the connection.
@@ -2211,8 +2162,6 @@ public class LDAPClientConnection
   private boolean processModifyRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
-
-
     ModifyRequestProtocolOp protocolOp = message.getModifyRequestProtocolOp();
     ModifyOperation modifyOp =
          new ModifyOperation(this, nextOperationID.getAndIncrement(),
@@ -2262,8 +2211,6 @@ public class LDAPClientConnection
   private boolean processModifyDNRequest(LDAPMessage message,
                                          ArrayList<Control> controls)
   {
-
-
     ModifyDNRequestProtocolOp protocolOp =
          message.getModifyDNRequestProtocolOp();
     ModifyDNOperation modifyDNOp =
@@ -2317,8 +2264,6 @@ public class LDAPClientConnection
   private boolean processSearchRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
-
-
     SearchRequestProtocolOp protocolOp = message.getSearchRequestProtocolOp();
     SearchOperation searchOp =
          new SearchOperation(this, nextOperationID.getAndIncrement(),
@@ -2374,8 +2319,6 @@ public class LDAPClientConnection
   private boolean processUnbindRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
-
-
     UnbindOperation unbindOp =
          new UnbindOperation(this, nextOperationID.getAndIncrement(),
                               message.getMessageID(), controls);
@@ -2394,7 +2337,6 @@ public class LDAPClientConnection
    */
   public String getMonitorSummary()
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append("connID=\"");
     buffer.append(connectionID);
@@ -2445,7 +2387,6 @@ public class LDAPClientConnection
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("LDAP client connection from ");
     buffer.append(clientAddress);
     buffer.append(":");
@@ -2473,8 +2414,6 @@ public class LDAPClientConnection
    */
   public boolean tlsProtectionAvailable(StringBuilder unavailableReason)
   {
-
-
     // Make sure that this client connection does not already have some other
     // security provider enabled.
     if (! (securityProvider instanceof NullConnectionSecurityProvider))
@@ -2550,7 +2489,6 @@ public class LDAPClientConnection
   public void enableTLSConnectionSecurityProvider()
          throws DirectoryException
   {
-
     if (tlsSecurityProvider == null)
     {
       int    msgID   = MSGID_LDAP_TLS_NO_PROVIDER;
@@ -2581,7 +2519,6 @@ public class LDAPClientConnection
   public void disableTLSConnectionSecurityProvider()
          throws DirectoryException
   {
-
     int    msgID   = MSGID_LDAP_TLS_CLOSURE_NOT_ALLOWED;
     String message = getMessage(msgID);
 
@@ -2608,7 +2545,6 @@ public class LDAPClientConnection
   public void sendClearResponse(Operation operation)
          throws DirectoryException
   {
-
     if (clearSecurityProvider == null)
     {
       int    msgID   = MSGID_LDAP_NO_CLEAR_SECURITY_PROVIDER;
@@ -2628,7 +2564,6 @@ public class LDAPClientConnection
    */
   public DN getKeyManagerProviderDN()
   {
-
     return connectionHandler.getKeyManagerProviderDN();
   }
 
@@ -2639,7 +2574,6 @@ public class LDAPClientConnection
    */
   public DN getTrustManagerProviderDN()
   {
-
     return connectionHandler.getTrustManagerProviderDN();
   }
 

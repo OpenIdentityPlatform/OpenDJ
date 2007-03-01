@@ -91,7 +91,6 @@ public class PasswordExpiredControl
   public static PasswordExpiredControl decodeControl(Control control)
          throws LDAPException
   {
-
     if (control.hasValue())
     {
       int    msgID   = MSGID_PWEXPIRED_CONTROL_HAS_VALUE;
@@ -112,7 +111,6 @@ public class PasswordExpiredControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -128,7 +126,6 @@ public class PasswordExpiredControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("PasswordExpiredControl()");
   }
 }

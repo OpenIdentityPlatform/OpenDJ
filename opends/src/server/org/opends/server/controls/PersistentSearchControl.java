@@ -180,8 +180,6 @@ public class PersistentSearchControl
                                              boolean changesOnly,
                                              boolean returnECs)
   {
-
-
     ArrayList<ASN1Element> elements =
          new ArrayList<ASN1Element>(3);
     elements.add(new ASN1Integer(
@@ -210,8 +208,6 @@ public class PersistentSearchControl
   public static PersistentSearchControl decodeControl(Control control)
          throws LDAPException
   {
-
-
     if (! control.hasValue())
     {
       int    msgID   = MSGID_PSEARCH_NO_CONTROL_VALUE;
@@ -270,7 +266,6 @@ public class PersistentSearchControl
    */
   public Set<PersistentSearchChangeType> getChangeTypes()
   {
-
     return changeTypes;
   }
 
@@ -284,7 +279,6 @@ public class PersistentSearchControl
    */
   public void setChangeTypes(Set<PersistentSearchChangeType> changeTypes)
   {
-
     this.changeTypes = changeTypes;
 
     setValue(encodeValue(changeTypes, changesOnly, returnECs));
@@ -302,7 +296,6 @@ public class PersistentSearchControl
    */
   public boolean getChangesOnly()
   {
-
     return changesOnly;
   }
 
@@ -318,7 +311,6 @@ public class PersistentSearchControl
    */
   public void setChangesOnly(boolean changesOnly)
   {
-
     this.changesOnly = changesOnly;
 
     setValue(encodeValue(changeTypes, changesOnly, returnECs));
@@ -336,7 +328,6 @@ public class PersistentSearchControl
    */
   public boolean getReturnECs()
   {
-
     return returnECs;
   }
 
@@ -353,7 +344,6 @@ public class PersistentSearchControl
    */
   public void setReturnECs(boolean returnECs)
   {
-
     this.returnECs = returnECs;
 
     setValue(encodeValue(changeTypes, changesOnly, returnECs));
@@ -368,7 +358,6 @@ public class PersistentSearchControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -384,7 +373,6 @@ public class PersistentSearchControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("PersistentSearchControl(changeTypes=\"");
     PersistentSearchChangeType.changeTypesToString(changeTypes, buffer);
     buffer.append("\",changesOnly=");

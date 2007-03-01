@@ -97,7 +97,6 @@ public class SupportedAlgorithmSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null)
@@ -135,7 +134,6 @@ public class SupportedAlgorithmSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_SUPPORTED_ALGORITHM_NAME;
   }
 
@@ -148,7 +146,6 @@ public class SupportedAlgorithmSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_SUPPORTED_ALGORITHM_OID;
   }
 
@@ -161,7 +158,6 @@ public class SupportedAlgorithmSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_SUPPORTED_ALGORITHM_DESCRIPTION;
   }
 
@@ -177,7 +173,6 @@ public class SupportedAlgorithmSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -193,7 +188,6 @@ public class SupportedAlgorithmSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -209,7 +203,6 @@ public class SupportedAlgorithmSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -225,7 +218,6 @@ public class SupportedAlgorithmSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -247,7 +239,6 @@ public class SupportedAlgorithmSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     // All values will be acceptable for the supported algorithm syntax.
     return true;
   }

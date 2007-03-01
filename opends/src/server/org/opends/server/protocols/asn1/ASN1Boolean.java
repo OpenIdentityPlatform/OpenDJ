@@ -118,7 +118,6 @@ public class ASN1Boolean
    */
   public boolean booleanValue()
   {
-
     return booleanValue;
   }
 
@@ -131,7 +130,6 @@ public class ASN1Boolean
    */
   public void setValue(boolean booleanValue)
   {
-
     this.booleanValue = booleanValue;
     setValueInternal(encodeValue(booleanValue));
   }
@@ -149,7 +147,6 @@ public class ASN1Boolean
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-
     if (value == null)
     {
       int    msgID   = MSGID_ASN1_BOOLEAN_SET_VALUE_NULL;
@@ -183,7 +180,6 @@ public class ASN1Boolean
   public static ASN1Boolean decodeAsBoolean(ASN1Element element)
          throws ASN1Exception
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_ASN1_BOOLEAN_DECODE_ELEMENT_NULL;
@@ -219,7 +215,6 @@ public class ASN1Boolean
   public static ASN1Boolean decodeAsBoolean(byte[] encodedElement)
          throws ASN1Exception
   {
-
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 Boolean element.
     if (encodedElement == null)
@@ -303,7 +298,6 @@ public class ASN1Boolean
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ASN1Boolean(type=");
     buffer.append(byteToHex(getType()));
     buffer.append(", value=");
@@ -324,7 +318,6 @@ public class ASN1Boolean
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

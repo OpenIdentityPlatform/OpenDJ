@@ -89,7 +89,6 @@ public class CertificateMapperConfigManager
    */
   public CertificateMapperConfigManager()
   {
-
     configHandler = DirectoryServer.getConfigHandler();
     mappers       = new ConcurrentHashMap<DN,CertificateMapper>();
   }
@@ -111,8 +110,6 @@ public class CertificateMapperConfigManager
   public void initializeCertificateMappers()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the configuration base entry.
     ConfigEntry baseEntry;
     try
@@ -228,8 +225,6 @@ public class CertificateMapperConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for a certificate
     // mapper.
     if (! configEntry.hasObjectClass(OC_CERTIFICATE_MAPPER))
@@ -367,8 +362,6 @@ public class CertificateMapperConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -592,8 +585,6 @@ public class CertificateMapperConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (mappers.containsKey(configEntryDN))
@@ -777,8 +768,6 @@ public class CertificateMapperConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -941,8 +930,6 @@ public class CertificateMapperConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -959,8 +946,6 @@ public class CertificateMapperConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

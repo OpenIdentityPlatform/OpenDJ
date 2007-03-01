@@ -90,7 +90,6 @@ public class DistinguishedNameEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -104,7 +103,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_DN_NAME;
   }
 
@@ -117,7 +115,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_DN_OID;
   }
 
@@ -131,7 +128,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -146,7 +142,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_DN_OID;
   }
 
@@ -166,8 +161,6 @@ public class DistinguishedNameEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
-
     // Since the normalization for DNs is so complex, it will be handled
     // elsewhere.
     DN dn;
@@ -229,7 +222,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   private ByteString bestEffortNormalize(String lowerString)
   {
-
     int           length = lowerString.length();
     StringBuilder buffer = new StringBuilder(length);
 
@@ -305,7 +297,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.
     return Arrays.equals(value1.value(), value2.value());

@@ -108,7 +108,6 @@ public class CancelledOperationException
    */
   public final CancelResult getCancelResult()
   {
-
     return cancelResult;
   }
 
@@ -124,7 +123,6 @@ public class CancelledOperationException
    */
   public final int getMessageID()
   {
-
     return messageID;
   }
 }

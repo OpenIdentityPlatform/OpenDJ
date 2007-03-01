@@ -74,7 +74,6 @@ public class LDAPModification
   public LDAPModification(ModificationType modificationType,
                           LDAPAttribute attribute)
   {
-
     this.modificationType = modificationType;
     this.attribute        = attribute;
   }
@@ -88,7 +87,6 @@ public class LDAPModification
    */
   public ModificationType getModificationType()
   {
-
     return modificationType;
   }
 
@@ -101,7 +99,6 @@ public class LDAPModification
    */
   public void setModificationType(ModificationType modificationType)
   {
-
     this.modificationType = modificationType;
   }
 
@@ -114,7 +111,6 @@ public class LDAPModification
    */
   public LDAPAttribute getAttribute()
   {
-
     return attribute;
   }
 
@@ -127,7 +123,6 @@ public class LDAPModification
    */
   public void setAttribute(LDAPAttribute attribute)
   {
-
     this.attribute = attribute;
   }
 
@@ -140,7 +135,6 @@ public class LDAPModification
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1Enumerated(modificationType.intValue()));
     elements.add(attribute.encode());
@@ -163,7 +157,6 @@ public class LDAPModification
   public static LDAPModification decode(ASN1Element element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -279,7 +272,6 @@ public class LDAPModification
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -295,7 +287,6 @@ public class LDAPModification
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("LDAPModification(type=");
     buffer.append(String.valueOf(modificationType));
     buffer.append(", attr=");
@@ -315,7 +306,6 @@ public class LDAPModification
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

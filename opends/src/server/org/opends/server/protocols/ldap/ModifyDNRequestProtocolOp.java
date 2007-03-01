@@ -80,7 +80,6 @@ public class ModifyDNRequestProtocolOp
   public ModifyDNRequestProtocolOp(ASN1OctetString entryDN,
                                    ASN1OctetString newRDN, boolean deleteOldRDN)
   {
-
     this.entryDN      = entryDN;
     this.newRDN       = newRDN;
     this.deleteOldRDN = deleteOldRDN;
@@ -101,7 +100,6 @@ public class ModifyDNRequestProtocolOp
                                    ASN1OctetString newRDN, boolean deleteOldRDN,
                                    ASN1OctetString newSuperior)
   {
-
     this.entryDN      = entryDN;
     this.newRDN       = newRDN;
     this.deleteOldRDN = deleteOldRDN;
@@ -117,7 +115,6 @@ public class ModifyDNRequestProtocolOp
    */
   public ASN1OctetString getEntryDN()
   {
-
     return entryDN;
   }
 
@@ -130,7 +127,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void setEntryDN(ASN1OctetString entryDN)
   {
-
     this.entryDN = entryDN;
   }
 
@@ -143,7 +139,6 @@ public class ModifyDNRequestProtocolOp
    */
   public ASN1OctetString getNewRDN()
   {
-
     return newRDN;
   }
 
@@ -156,7 +151,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void setNewRDN(ASN1OctetString newRDN)
   {
-
     this.newRDN = newRDN;
   }
 
@@ -170,7 +164,6 @@ public class ModifyDNRequestProtocolOp
    */
   public boolean deleteOldRDN()
   {
-
     return deleteOldRDN;
   }
 
@@ -184,7 +177,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void setDeleteOldRDN(boolean deleteOldRDN)
   {
-
     this.deleteOldRDN = deleteOldRDN;
   }
 
@@ -198,7 +190,6 @@ public class ModifyDNRequestProtocolOp
    */
   public ASN1OctetString getNewSuperior()
   {
-
     return newSuperior;
   }
 
@@ -211,7 +202,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void setNewSuperior(ASN1OctetString newSuperior)
   {
-
     this.newSuperior = newSuperior;
   }
 
@@ -224,7 +214,6 @@ public class ModifyDNRequestProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_MODIFY_DN_REQUEST;
   }
 
@@ -237,7 +226,6 @@ public class ModifyDNRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Modify DN Request";
   }
 
@@ -251,7 +239,6 @@ public class ModifyDNRequestProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(4);
     elements.add(entryDN);
     elements.add(newRDN);
@@ -283,7 +270,6 @@ public class ModifyDNRequestProtocolOp
                                                                      element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -404,7 +390,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ModifyDNRequest(dn=");
     entryDN.toString(buffer);
     buffer.append(", newRDN=");
@@ -433,7 +418,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

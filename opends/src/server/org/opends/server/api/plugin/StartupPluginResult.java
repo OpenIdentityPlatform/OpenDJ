@@ -101,7 +101,6 @@ public class StartupPluginResult
                              boolean continueStartup, int errorID,
                              String errorMessage)
   {
-
     this.completedSuccessfully = completedSuccessfully;
     this.continueStartup       = continueStartup;
     this.errorID               = errorID;
@@ -119,7 +118,6 @@ public class StartupPluginResult
    */
   public boolean completedSuccessfully()
   {
-
     return completedSuccessfully;
   }
 
@@ -135,7 +133,6 @@ public class StartupPluginResult
    */
   public boolean continueStartup()
   {
-
     return continueStartup;
   }
 
@@ -150,7 +147,6 @@ public class StartupPluginResult
    */
   public int getErrorID()
   {
-
     return errorID;
   }
 
@@ -166,7 +162,6 @@ public class StartupPluginResult
    */
   public String getErrorMessage()
   {
-
     return errorMessage;
   }
 
@@ -179,7 +174,6 @@ public class StartupPluginResult
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -196,7 +190,6 @@ public class StartupPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("StartupPluginResult(completedSuccessfully=");
     buffer.append(completedSuccessfully);
     buffer.append(", continueStartup=");

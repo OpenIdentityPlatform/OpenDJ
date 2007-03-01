@@ -94,7 +94,6 @@ public class SubjectEqualsDNCertificateMapper
   public void initializeCertificateMapper(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -123,8 +122,6 @@ public class SubjectEqualsDNCertificateMapper
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
-
-
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
     {

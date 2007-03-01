@@ -90,7 +90,6 @@ public class OctetStringOrderingMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -104,7 +103,6 @@ public class OctetStringOrderingMatchingRule
    */
   public String getName()
   {
-
     return OMR_OCTET_STRING_NAME;
   }
 
@@ -117,7 +115,6 @@ public class OctetStringOrderingMatchingRule
    */
   public String getOID()
   {
-
     return OMR_OCTET_STRING_OID;
   }
 
@@ -131,7 +128,6 @@ public class OctetStringOrderingMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -146,7 +142,6 @@ public class OctetStringOrderingMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_OCTET_STRING_OID;
   }
 
@@ -166,7 +161,6 @@ public class OctetStringOrderingMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     return new ASN1OctetString(value.value());
   }
 
@@ -187,7 +181,6 @@ public class OctetStringOrderingMatchingRule
    */
   public int compareValues(ByteString value1, ByteString value2)
   {
-
     return compare(value1.value(), value2.value());
   }
 
@@ -208,7 +201,6 @@ public class OctetStringOrderingMatchingRule
    */
   public int compare(byte[] b1, byte[] b2)
   {
-
     return StaticUtils.compare(b1, b2);
   }
 }

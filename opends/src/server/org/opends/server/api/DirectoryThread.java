@@ -165,7 +165,6 @@ public class DirectoryThread
    */
   public StackTraceElement[] getCreationStackTrace()
   {
-
     return creationStackTrace;
   }
 
@@ -181,7 +180,6 @@ public class DirectoryThread
    */
   public Thread getParentThread()
   {
-
     return parentThread;
   }
 
@@ -197,7 +195,6 @@ public class DirectoryThread
    */
   public Task getAssociatedTask()
   {
-
     return task;
   }
 
@@ -212,7 +209,6 @@ public class DirectoryThread
    */
   public void setAssociatedTask(Task task)
   {
-
     this.task = task;
   }
 }

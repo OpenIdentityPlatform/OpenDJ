@@ -53,7 +53,6 @@ public abstract class ChangeRecordEntry
    */
   protected ChangeRecordEntry(DN dn)
   {
-
     ensureNotNull(dn);
     this.dn = dn;
   }
@@ -66,7 +65,6 @@ public abstract class ChangeRecordEntry
    */
   public final DN getDN()
   {
-
     return dn;
   }
 

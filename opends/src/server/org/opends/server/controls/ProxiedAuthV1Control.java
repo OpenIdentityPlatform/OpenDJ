@@ -156,7 +156,6 @@ public class ProxiedAuthV1Control
    */
   private static ASN1OctetString encodeValue(ASN1OctetString rawAuthorizationDN)
   {
-
     ensureNotNull(rawAuthorizationDN);
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(1);
@@ -184,7 +183,6 @@ public class ProxiedAuthV1Control
   public static ProxiedAuthV1Control decodeControl(Control control)
          throws LDAPException
   {
-
     ensureNotNull(control);
 
     if (! control.isCritical())
@@ -246,7 +244,6 @@ public class ProxiedAuthV1Control
    */
   public ASN1OctetString getRawAuthorizationDN()
   {
-
     return rawAuthorizationDN;
   }
 
@@ -261,7 +258,6 @@ public class ProxiedAuthV1Control
    */
   public void setRawAuthorizationDN(ASN1OctetString rawAuthorizationDN)
   {
-
     this.rawAuthorizationDN = rawAuthorizationDN;
 
     setValue(encodeValue(rawAuthorizationDN));
@@ -281,7 +277,6 @@ public class ProxiedAuthV1Control
   public DN getAuthorizationDN()
          throws DirectoryException
   {
-
     if (authorizationDN == null)
     {
       authorizationDN = DN.decode(rawAuthorizationDN);
@@ -300,7 +295,6 @@ public class ProxiedAuthV1Control
    */
   public void setAuthorizationDN(DN authorizationDN)
   {
-
     ensureNotNull(authorizationDN);
 
     this.authorizationDN = authorizationDN;
@@ -328,7 +322,6 @@ public class ProxiedAuthV1Control
   public Entry getAuthorizationEntry()
          throws DirectoryException
   {
-
     DN authzDN = getAuthorizationDN();
     if (authzDN.isNullDN())
     {
@@ -411,7 +404,6 @@ public class ProxiedAuthV1Control
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -427,7 +419,6 @@ public class ProxiedAuthV1Control
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ProxiedAuthorizationV1Control(authorizationDN=\"");
     rawAuthorizationDN.toString(buffer);
     buffer.append("\")");

@@ -129,8 +129,6 @@ public final class EntryUUIDPlugin
                                      ConfigEntry configEntry)
          throws ConfigException
   {
-
-
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)
     {
@@ -159,8 +157,6 @@ public final class EntryUUIDPlugin
   public final LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
                                              Entry entry)
   {
-
-
     // See if the entry being imported already contains an entryUUID attribute.
     // If so, then leave it alone.
     List<Attribute> uuidList = entry.getAttribute(entryUUIDType);
@@ -199,8 +195,6 @@ public final class EntryUUIDPlugin
   public final PreOperationPluginResult
        doPreOperation(PreOperationAddOperation addOperation)
   {
-
-
     // See if the entry being added already contains an entryUUID attribute.
     // It shouldn't, since it's NO-USER-MODIFICATION, but if it does then leave
     // it alone.

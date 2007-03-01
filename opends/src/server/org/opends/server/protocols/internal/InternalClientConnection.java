@@ -289,7 +289,6 @@ public class InternalClientConnection
    */
   public static InternalClientConnection getRootConnection()
   {
-
     return rootConnection;
   }
 
@@ -304,7 +303,6 @@ public class InternalClientConnection
    */
   public static long nextOperationID()
   {
-
     long opID = nextOperationID.getAndIncrement();
     if (opID < 0)
     {
@@ -336,7 +334,6 @@ public class InternalClientConnection
    */
   public static int nextMessageID()
   {
-
     int msgID = nextMessageID.getAndIncrement();
     if (msgID < 0)
     {
@@ -368,7 +365,6 @@ public class InternalClientConnection
    */
   public long getConnectionID()
   {
-
     return connectionID;
   }
 
@@ -383,7 +379,6 @@ public class InternalClientConnection
    */
   public ConnectionHandler getConnectionHandler()
   {
-
     return InternalConnectionHandler.getInstance();
   }
 
@@ -398,7 +393,6 @@ public class InternalClientConnection
    */
   public String getProtocol()
   {
-
     return "internal";
   }
 
@@ -411,7 +405,6 @@ public class InternalClientConnection
    */
   public String getClientAddress()
   {
-
     return "internal";
   }
 
@@ -426,7 +419,6 @@ public class InternalClientConnection
    */
   public String getServerAddress()
   {
-
     return "internal";
   }
 
@@ -443,7 +435,6 @@ public class InternalClientConnection
    */
   public InetAddress getRemoteAddress()
   {
-
     return null;
   }
 
@@ -460,7 +451,6 @@ public class InternalClientConnection
    */
   public InetAddress getLocalAddress()
   {
-
     return null;
   }
 
@@ -480,7 +470,6 @@ public class InternalClientConnection
    */
   public boolean isSecure()
   {
-
     // Internal connections will generally be considered secure, but
     // they may be declared insecure if they are accessed through some
     // external mechanism (e.g., a DSML handler that runs the server
@@ -500,7 +489,6 @@ public class InternalClientConnection
    */
   public ConnectionSecurityProvider getConnectionSecurityProvider()
   {
-
     return securityProvider;
   }
 
@@ -517,7 +505,6 @@ public class InternalClientConnection
   public void setConnectionSecurityProvider(ConnectionSecurityProvider
                                                  securityProvider)
   {
-
     this.securityProvider = securityProvider;
   }
 
@@ -533,7 +520,6 @@ public class InternalClientConnection
    */
   public String getSecurityMechanism()
   {
-
     return securityProvider.getSecurityMechanismName();
   }
 
@@ -560,7 +546,6 @@ public class InternalClientConnection
    */
   public boolean processDataRead(ByteBuffer buffer)
   {
-
     // This method will not do anything with the data because there is
     // no actual "connection" from which information can be read, nor
     // any protocol to use to read it.
@@ -577,7 +562,6 @@ public class InternalClientConnection
    */
   public void sendResponse(Operation operation)
   {
-
     // There will not be any response sent by this method, since there
     // is not an actual connection.
   }
@@ -593,7 +577,6 @@ public class InternalClientConnection
    */
   public AuthenticationInfo getAuthenticationInfo()
   {
-
     return authenticationInfo;
   }
 
@@ -612,7 +595,6 @@ public class InternalClientConnection
   public void setAuthenticationInfo(AuthenticationInfo
                                          authenticationInfo)
   {
-
     // No implementation required.
   }
 
@@ -625,7 +607,6 @@ public class InternalClientConnection
    */
   public void setUnauthenticated()
   {
-
     // No implementation required.
   }
 
@@ -645,7 +626,6 @@ public class InternalClientConnection
   public AddOperation processAdd(ByteString rawEntryDN,
                                  List<LDAPAttribute> rawAttributes)
   {
-
     AddOperation addOperation =
          new AddOperation(this, nextOperationID(), nextMessageID(),
                           new ArrayList<Control>(0), rawEntryDN,
@@ -681,7 +661,6 @@ public class InternalClientConnection
                            Map<AttributeType,List<Attribute>>
                                 operationalAttributes)
   {
-
     AddOperation addOperation =
          new AddOperation(this, nextOperationID(), nextMessageID(),
                           new ArrayList<Control>(0), entryDN,
@@ -710,7 +689,6 @@ public class InternalClientConnection
   public BindOperation processSimpleBind(ByteString rawBindDN,
                                          ByteString password)
   {
-
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
                            new ArrayList<Control>(0), rawBindDN,
@@ -738,7 +716,6 @@ public class InternalClientConnection
   public BindOperation processSimpleBind(DN bindDN,
                                          ByteString password)
   {
-
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
                            new ArrayList<Control>(0), bindDN,
@@ -768,7 +745,6 @@ public class InternalClientConnection
                             String saslMechanism,
                             ASN1OctetString saslCredentials)
   {
-
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
                            new ArrayList<Control>(0), rawBindDN,
@@ -798,7 +774,6 @@ public class InternalClientConnection
                             String saslMechanism,
                             ASN1OctetString saslCredentials)
   {
-
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
                            new ArrayList<Control>(0), bindDN,
@@ -829,7 +804,6 @@ public class InternalClientConnection
                                          String attributeType,
                                          ByteString assertionValue)
   {
-
     CompareOperation compareOperation =
          new CompareOperation(this, nextOperationID(),
                               nextMessageID(),
@@ -861,7 +835,6 @@ public class InternalClientConnection
                                          AttributeType attributeType,
                                          ByteString assertionValue)
   {
-
     CompareOperation compareOperation =
          new CompareOperation(this, nextOperationID(),
                               nextMessageID(),
@@ -887,7 +860,6 @@ public class InternalClientConnection
    */
   public DeleteOperation processDelete(ByteString rawEntryDN)
   {
-
     DeleteOperation deleteOperation =
          new DeleteOperation(this, nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(0), rawEntryDN);
@@ -911,7 +883,6 @@ public class InternalClientConnection
    */
   public DeleteOperation processDelete(DN entryDN)
   {
-
     DeleteOperation deleteOperation =
          new DeleteOperation(this, nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(0), entryDN);
@@ -939,7 +910,6 @@ public class InternalClientConnection
   public ExtendedOperation processExtendedOperation(String requestOID,
                                 ASN1OctetString requestValue)
   {
-
     ExtendedOperation extendedOperation =
          new ExtendedOperation(this, nextOperationID(),
                                nextMessageID(),
@@ -969,7 +939,6 @@ public class InternalClientConnection
   public ModifyOperation processModify(ByteString rawEntryDN,
                               List<LDAPModification> rawModifications)
   {
-
     ModifyOperation modifyOperation =
          new ModifyOperation(this, nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(0), rawEntryDN,
@@ -997,7 +966,6 @@ public class InternalClientConnection
   public ModifyOperation processModify(DN entryDN,
                               List<Modification> modifications)
   {
-
     ModifyOperation modifyOperation =
          new ModifyOperation(this, nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(0), entryDN,
@@ -1027,7 +995,6 @@ public class InternalClientConnection
                                            ByteString rawNewRDN,
                                            boolean deleteOldRDN)
   {
-
     return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN, null);
   }
 
@@ -1054,7 +1021,6 @@ public class InternalClientConnection
                                            boolean deleteOldRDN,
                                            ByteString rawNewSuperior)
   {
-
     ModifyDNOperation modifyDNOperation =
          new ModifyDNOperation(this, nextOperationID(),
                                nextMessageID(),
@@ -1085,7 +1051,6 @@ public class InternalClientConnection
   public ModifyDNOperation processModifyDN(DN entryDN, RDN newRDN,
                                            boolean deleteOldRDN)
   {
-
     return processModifyDN(entryDN, newRDN, deleteOldRDN, null);
   }
 
@@ -1111,7 +1076,6 @@ public class InternalClientConnection
                                            boolean deleteOldRDN,
                                            DN newSuperior)
   {
-
     ModifyDNOperation modifyDNOperation =
          new ModifyDNOperation(this, nextOperationID(),
                                nextMessageID(),
@@ -1144,7 +1108,6 @@ public class InternalClientConnection
                                       SearchScope scope,
                                       LDAPFilter filter)
   {
-
     return processSearch(rawBaseDN, scope,
                          DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                          false, filter, new LinkedHashSet<String>(0));
@@ -1180,7 +1143,6 @@ public class InternalClientConnection
                             boolean typesOnly, LDAPFilter filter,
                             LinkedHashSet<String> attributes)
   {
-
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
                                      nextMessageID(),
@@ -1227,7 +1189,6 @@ public class InternalClientConnection
                             LinkedHashSet<String> attributes,
                             InternalSearchListener searchListener)
   {
-
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
                                      nextMessageID(),
@@ -1262,7 +1223,6 @@ public class InternalClientConnection
                                       SearchScope scope,
                                       SearchFilter filter)
   {
-
     return processSearch(baseDN, scope,
                          DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                          false, filter, new LinkedHashSet<String>(0));
@@ -1297,7 +1257,6 @@ public class InternalClientConnection
                             boolean typesOnly, SearchFilter filter,
                             LinkedHashSet<String> attributes)
   {
-
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
                                      nextMessageID(),
@@ -1343,7 +1302,6 @@ public class InternalClientConnection
                             LinkedHashSet<String> attributes,
                             InternalSearchListener searchListener)
   {
-
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
                                      nextMessageID(),
@@ -1370,7 +1328,6 @@ public class InternalClientConnection
   public void sendSearchEntry(SearchOperation searchOperation,
                               SearchResultEntry searchEntry)
   {
-
     ((InternalSearchOperation) searchOperation).
          addSearchEntry(searchEntry);
   }
@@ -1393,8 +1350,6 @@ public class InternalClientConnection
   public boolean sendSearchReference(SearchOperation searchOperation,
                       SearchResultReference searchReference)
   {
-
-
     ((InternalSearchOperation)
      searchOperation).addSearchReference(searchReference);
     return true;
@@ -1415,8 +1370,6 @@ public class InternalClientConnection
   protected boolean sendIntermediateResponseMessage(
                          IntermediateResponse intermediateResponse)
   {
-
-
     // FIXME -- Do we need to support internal intermediate responses?
     //          If so, then implement this.
     return false;
@@ -1448,7 +1401,6 @@ public class InternalClientConnection
                          boolean sendNotification, String message,
                          int messageID)
   {
-
     // No implementation is required since there is nothing to
     // disconnect.  Further, since there is no real disconnect, we can
     // wait to have the garbage collector call
@@ -1468,7 +1420,6 @@ public class InternalClientConnection
    */
   public boolean bindInProgress()
   {
-
     // For internal operations, we don't care if there are any binds
     // in progress.
     return false;
@@ -1486,7 +1437,6 @@ public class InternalClientConnection
    */
   public void setBindInProgress(boolean bindInProgress)
   {
-
     // No implementation is required.
   }
 
@@ -1501,7 +1451,6 @@ public class InternalClientConnection
    */
   public Collection<Operation> getOperationsInProgress()
   {
-
     return operationList;
   }
 
@@ -1519,7 +1468,6 @@ public class InternalClientConnection
    */
   public Operation getOperationInProgress(int messageID)
   {
-
     // Internal operations will not be tracked.
     return null;
   }
@@ -1541,7 +1489,6 @@ public class InternalClientConnection
    */
   public boolean removeOperationInProgress(int messageID)
   {
-
     // No implementation is required, since internal operations will
     // not be tracked.
     return false;
@@ -1562,7 +1509,6 @@ public class InternalClientConnection
   public CancelResult cancelOperation(int messageID,
                                       CancelRequest cancelRequest)
   {
-
     // Internal operations cannot be cancelled.
     return CancelResult.CANNOT_CANCEL;
   }
@@ -1577,7 +1523,6 @@ public class InternalClientConnection
    */
   public void cancelAllOperations(CancelRequest cancelRequest)
   {
-
     // No implementation is required since internal operations cannot
     // be cancelled.
   }
@@ -1596,7 +1541,6 @@ public class InternalClientConnection
   public void cancelAllOperationsExcept(CancelRequest cancelRequest,
                                         int messageID)
   {
-
     // No implementation is required since internal operations cannot
     // be cancelled.
   }
@@ -1608,7 +1552,6 @@ public class InternalClientConnection
    */
   public String getMonitorSummary()
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append("connID=\"");
     buffer.append(connectionID);
@@ -1630,7 +1573,6 @@ public class InternalClientConnection
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("InternalClientConnection(connID=");
     buffer.append(connectionID);
     buffer.append(", authDN=\"");

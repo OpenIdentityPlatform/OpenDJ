@@ -87,7 +87,6 @@ public class PostOperationPluginResult
   public PostOperationPluginResult(boolean connectionTerminated,
                                    boolean continuePluginProcessing)
   {
-
     this.connectionTerminated     = connectionTerminated;
     this.continuePluginProcessing = continuePluginProcessing;
   }
@@ -104,7 +103,6 @@ public class PostOperationPluginResult
    */
   public boolean connectionTerminated()
   {
-
     return connectionTerminated;
   }
 
@@ -120,7 +118,6 @@ public class PostOperationPluginResult
    */
   public boolean continuePluginProcessing()
   {
-
     return continuePluginProcessing;
   }
 
@@ -135,7 +132,6 @@ public class PostOperationPluginResult
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -152,7 +148,6 @@ public class PostOperationPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("PostOperationPluginResult(connectionTerminated=");
     buffer.append(connectionTerminated);
     buffer.append(", continuePluginProcessing=");

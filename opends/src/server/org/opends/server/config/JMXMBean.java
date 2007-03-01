@@ -251,7 +251,6 @@ public class JMXMBean
    */
   public ObjectName getObjectName()
   {
-
     return objectName;
   }
 
@@ -264,7 +263,6 @@ public class JMXMBean
    */
   public CopyOnWriteArrayList<AlertGenerator> getAlertGenerators()
   {
-
     return alertGenerators;
   }
 
@@ -279,7 +277,6 @@ public class JMXMBean
    */
   public void addAlertGenerator(AlertGenerator generator)
   {
-
     synchronized (alertGenerators)
     {
       if (! alertGenerators.contains(generator))
@@ -303,7 +300,6 @@ public class JMXMBean
    */
   public boolean removeAlertGenerator(AlertGenerator generator)
   {
-
     synchronized (alertGenerators)
     {
       return alertGenerators.remove(generator);
@@ -320,7 +316,6 @@ public class JMXMBean
    */
   public CopyOnWriteArrayList<ConfigurableComponent> getConfigurableComponents()
   {
-
     return configurableComponents;
   }
 
@@ -335,7 +330,6 @@ public class JMXMBean
    */
   public void addConfigurableComponent(ConfigurableComponent component)
   {
-
     synchronized (configurableComponents)
     {
       if (! configurableComponents.contains(component))
@@ -359,7 +353,6 @@ public class JMXMBean
    */
   public boolean removeConfigurableComponent(ConfigurableComponent component)
   {
-
     synchronized (configurableComponents)
     {
       return configurableComponents.remove(component);
@@ -375,7 +368,6 @@ public class JMXMBean
    */
   public CopyOnWriteArrayList<InvokableComponent> getInvokableComponents()
   {
-
     return invokableComponents;
   }
 
@@ -390,7 +382,6 @@ public class JMXMBean
    */
   public void addInvokableComponent(InvokableComponent component)
   {
-
     synchronized (invokableComponents)
     {
       if (! invokableComponents.contains(component))
@@ -414,7 +405,6 @@ public class JMXMBean
    */
   public boolean removeInvokableComponent(InvokableComponent component)
   {
-
     synchronized (invokableComponents)
     {
       return invokableComponents.remove(component);
@@ -430,7 +420,6 @@ public class JMXMBean
    */
   public CopyOnWriteArrayList<MonitorProvider> getMonitorProviders()
   {
-
     return monitorProviders;
   }
 
@@ -445,7 +434,6 @@ public class JMXMBean
    */
   public void addMonitorProvider(MonitorProvider component)
   {
-
     synchronized (monitorProviders)
     {
       if (! monitorProviders.contains(component))
@@ -469,7 +457,6 @@ public class JMXMBean
    */
   public boolean removeMonitorProvider(MonitorProvider component)
   {
-
     synchronized (monitorProviders)
     {
       return monitorProviders.remove(component);
@@ -488,7 +475,6 @@ public class JMXMBean
    */
   private ConfigAttribute getConfigAttribute(String name)
   {
-
     for (ConfigurableComponent component : configurableComponents)
     {
       for (ConfigAttribute attr : component.getConfigurationAttributes())
@@ -515,7 +501,6 @@ public class JMXMBean
    */
   private Attribute getJmxAttribute(String name)
   {
-
     String attributeName ;
     String pendingString = ";" + OPTION_PENDING_VALUES ;
     boolean pending = false ;
@@ -613,7 +598,6 @@ public class JMXMBean
   public Attribute getAttribute(String attributeName)
          throws AttributeNotFoundException
   {
-
     //
     // Get the jmx Client connection
     JmxClientConnection jmxClientConnection = getClientConnection();
@@ -703,7 +687,6 @@ private LDAPAttribute getLdapAttributeFromJmx(
       javax.management.Attribute attribute, ConfigEntry configEntry)
       throws AttributeNotFoundException, InvalidAttributeValueException
   {
-
     String name = attribute.getName() ;
     //
     // Get a duplicated version of the config attribute
@@ -783,7 +766,6 @@ private LDAPAttribute getLdapAttributeFromJmx(
   public void setAttribute(javax.management.Attribute attribute)
          throws AttributeNotFoundException, InvalidAttributeValueException
   {
-
     ConfigEntry configEntry;
     ConfigEntry newConfigEntry ;
 
@@ -980,7 +962,6 @@ private LDAPAttribute getLdapAttributeFromJmx(
    */
   public AttributeList setAttributes(AttributeList attributes)
   {
-
     AttributeList setAttrs = new AttributeList();
 
     //
@@ -1095,7 +1076,6 @@ private LDAPAttribute getLdapAttributeFromJmx(
   public Object invoke(String actionName, Object[] params, String[] signature)
          throws MBeanException
   {
-
     for (InvokableComponent component : invokableComponents)
     {
       for (InvokableMethod method : component.getOperationSignatures())

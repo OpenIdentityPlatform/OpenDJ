@@ -118,7 +118,6 @@ public class SaltedSHA1PasswordStorageScheme
   public void initializePasswordStorageScheme(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     try
     {
       messageDigest = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_1);
@@ -148,7 +147,6 @@ public class SaltedSHA1PasswordStorageScheme
   @Override()
   public String getStorageSchemeName()
   {
-
     return STORAGE_SCHEME_NAME_SALTED_SHA_1;
   }
 
@@ -161,7 +159,6 @@ public class SaltedSHA1PasswordStorageScheme
   public ByteString encodePassword(ByteString plaintext)
          throws DirectoryException
   {
-
     byte[] plainBytes    = plaintext.value();
     byte[] saltBytes     = new byte[NUM_SALT_BYTES];
     byte[] plainPlusSalt = new byte[plainBytes.length + NUM_SALT_BYTES];
@@ -220,7 +217,6 @@ public class SaltedSHA1PasswordStorageScheme
   public ByteString encodePasswordWithScheme(ByteString plaintext)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append('{');
     buffer.append(STORAGE_SCHEME_NAME_SALTED_SHA_1);
@@ -285,8 +281,6 @@ public class SaltedSHA1PasswordStorageScheme
   public boolean passwordMatches(ByteString plaintextPassword,
                                  ByteString storedPassword)
   {
-
-
     // Base64-decode the stored value and take the last 8 bytes as the salt.
     byte[] saltBytes = new byte[NUM_SALT_BYTES];
     byte[] digestBytes;
@@ -356,7 +350,6 @@ public class SaltedSHA1PasswordStorageScheme
   @Override()
   public boolean supportsAuthPasswordSyntax()
   {
-
     // This storage scheme does support the authentication password syntax.
     return true;
   }
@@ -369,7 +362,6 @@ public class SaltedSHA1PasswordStorageScheme
   @Override()
   public String getAuthPasswordSchemeName()
   {
-
     return AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1;
   }
 
@@ -382,8 +374,6 @@ public class SaltedSHA1PasswordStorageScheme
   public ByteString encodeAuthPassword(ByteString plaintext)
          throws DirectoryException
   {
-
-
     byte[] plainBytes    = plaintext.value();
     byte[] saltBytes     = new byte[NUM_SALT_BYTES];
     byte[] plainPlusSalt = new byte[plainBytes.length + NUM_SALT_BYTES];
@@ -444,8 +434,6 @@ public class SaltedSHA1PasswordStorageScheme
   public boolean authPasswordMatches(ByteString plaintextPassword,
                                      String authInfo, String authValue)
   {
-
-
     byte[] saltBytes;
     byte[] digestBytes;
     try
@@ -491,7 +479,6 @@ public class SaltedSHA1PasswordStorageScheme
   @Override()
   public boolean isReversible()
   {
-
     return false;
   }
 
@@ -504,7 +491,6 @@ public class SaltedSHA1PasswordStorageScheme
   public ByteString getPlaintextValue(ByteString storedPassword)
          throws DirectoryException
   {
-
     int msgID = MSGID_PWSCHEME_NOT_REVERSIBLE;
     String message = getMessage(msgID, STORAGE_SCHEME_NAME_SALTED_SHA_1);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
@@ -521,7 +507,6 @@ public class SaltedSHA1PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-
     int msgID = MSGID_PWSCHEME_NOT_REVERSIBLE;
     String message = getMessage(msgID, AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
@@ -536,7 +521,6 @@ public class SaltedSHA1PasswordStorageScheme
   @Override()
   public boolean isStorageSchemeSecure()
   {
-
     // SHA-1 should be considered secure.
     return true;
   }

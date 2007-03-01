@@ -74,7 +74,6 @@ public class ProfileStackFrame
    */
   public ProfileStackFrame(String className, String methodName)
   {
-
     this.className  = className;
     this.methodName = methodName;
 
@@ -91,7 +90,6 @@ public class ProfileStackFrame
    */
   public String getClassName()
   {
-
     return className;
   }
 
@@ -104,7 +102,6 @@ public class ProfileStackFrame
    */
   public String getMethodName()
   {
-
     return methodName;
   }
 
@@ -119,7 +116,6 @@ public class ProfileStackFrame
    */
   public String getHTMLSafeMethodName()
   {
-
     int length = methodName.length();
     StringBuilder buffer = new StringBuilder(length + 6);
 
@@ -154,7 +150,6 @@ public class ProfileStackFrame
    */
   public HashMap<Integer,Long> getLineNumbers()
   {
-
     return lineNumbers;
   }
 
@@ -170,7 +165,6 @@ public class ProfileStackFrame
    */
   public void updateLineNumberCount(int lineNumber, long numOccurrences)
   {
-
     Long existingCount = lineNumbers.get(lineNumber);
     if (existingCount == null)
     {
@@ -193,7 +187,6 @@ public class ProfileStackFrame
    */
   public long getTotalCount()
   {
-
     long totalCount = 0;
 
     for (Long l : lineNumbers.values())
@@ -216,7 +209,6 @@ public class ProfileStackFrame
    */
   public ProfileStackFrame[] getSubordinateFrames()
   {
-
     ProfileStackFrame[] subFrames = new ProfileStackFrame[0];
     subFrames = subordinateFrames.values().toArray(subFrames);
 
@@ -235,7 +227,6 @@ public class ProfileStackFrame
    */
   public boolean hasSubFrames()
   {
-
     return (! subordinateFrames.isEmpty());
   }
 
@@ -255,7 +246,6 @@ public class ProfileStackFrame
   public void recurseSubFrames(ProfileStack stack, int depth, long count,
                    HashMap<String,HashMap<ProfileStack,Long>> stacksByMethod)
   {
-
     if (depth < 0)
     {
       return;
@@ -299,7 +289,6 @@ public class ProfileStackFrame
    */
   public int hashCode()
   {
-
     return (className.hashCode() + methodName.hashCode());
   }
 
@@ -317,7 +306,6 @@ public class ProfileStackFrame
    */
   public boolean equals(Object o)
   {
-
     if (o == null)
     {
       return false;
@@ -364,7 +352,6 @@ public class ProfileStackFrame
   public int compareTo(Object o)
          throws ClassCastException
   {
-
     ProfileStackFrame f;
     try
     {
@@ -405,7 +392,6 @@ public class ProfileStackFrame
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append(getTotalCount());
     buffer.append("    ");

@@ -89,7 +89,6 @@ public class MonitorConfigManager
    */
   public MonitorConfigManager()
   {
-
     configHandler = DirectoryServer.getConfigHandler();
 
     monitorProviders = new ConcurrentHashMap<DN,MonitorProvider>();
@@ -111,8 +110,6 @@ public class MonitorConfigManager
   public void initializeMonitorProviders()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the monitor configuration base entry.
     ConfigEntry monitorBaseEntry;
     try
@@ -228,8 +225,6 @@ public class MonitorConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for a monitor
     // provider.
     if (! configEntry.hasObjectClass(OC_MONITOR_PROVIDER))
@@ -366,8 +361,6 @@ public class MonitorConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -590,8 +583,6 @@ public class MonitorConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (monitorProviders.containsKey(configEntryDN))
@@ -769,8 +760,6 @@ public class MonitorConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -933,8 +922,6 @@ public class MonitorConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -951,8 +938,6 @@ public class MonitorConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

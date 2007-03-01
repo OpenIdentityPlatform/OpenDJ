@@ -89,7 +89,6 @@ public class PasswordStorageSchemeConfigManager
    */
   public PasswordStorageSchemeConfigManager()
   {
-
     configHandler  = DirectoryServer.getConfigHandler();
     storageSchemes = new ConcurrentHashMap<DN,PasswordStorageScheme>();
   }
@@ -111,8 +110,6 @@ public class PasswordStorageSchemeConfigManager
   public void initializePasswordStorageSchemes()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the configuration base entry.
     ConfigEntry baseEntry;
     try
@@ -228,8 +225,6 @@ public class PasswordStorageSchemeConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for a password
     // storage scheme.
     if (! configEntry.hasObjectClass(OC_PASSWORD_STORAGE_SCHEME))
@@ -368,8 +363,6 @@ public class PasswordStorageSchemeConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -596,8 +589,6 @@ public class PasswordStorageSchemeConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (storageSchemes.containsKey(configEntryDN))
@@ -776,8 +767,6 @@ public class PasswordStorageSchemeConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -940,8 +929,6 @@ public class PasswordStorageSchemeConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -958,8 +945,6 @@ public class PasswordStorageSchemeConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

@@ -128,7 +128,6 @@ public class LDAPFilter
                      ASN1OctetString subFinalElement, String matchingRuleID,
                      boolean dnAttributes)
   {
-
     this.filterType        = filterType;
     this.filterComponents  = filterComponents;
     this.notComponent      = notComponent;
@@ -150,7 +149,6 @@ public class LDAPFilter
    */
   public LDAPFilter(SearchFilter filter)
   {
-
     this.filterType = filter.getFilterType();
 
     switch (filterType)
@@ -301,7 +299,6 @@ public class LDAPFilter
   public static LDAPFilter createANDFilter(ArrayList<LDAPFilter>
                                                 filterComponents)
   {
-
     return new LDAPFilter(FilterType.AND, filterComponents, null, null, null,
                           null, null, null, null, false);
   }
@@ -318,7 +315,6 @@ public class LDAPFilter
   public static LDAPFilter createORFilter(ArrayList<LDAPFilter>
                                                filterComponents)
   {
-
     return new LDAPFilter(FilterType.OR, filterComponents, null, null, null,
                           null, null, null, null, false);
   }
@@ -334,7 +330,6 @@ public class LDAPFilter
    */
   public static LDAPFilter createNOTFilter(LDAPFilter notComponent)
   {
-
     return new LDAPFilter(FilterType.NOT, null, notComponent, null, null, null,
                           null, null, null, false);
   }
@@ -352,7 +347,6 @@ public class LDAPFilter
   public static LDAPFilter createEqualityFilter(String attributeType,
                                                 ASN1OctetString assertionValue)
   {
-
     return new LDAPFilter(FilterType.EQUALITY, null, null, attributeType,
                           assertionValue, null, null, null, null, false);
   }
@@ -375,7 +369,6 @@ public class LDAPFilter
                                 ArrayList<ASN1OctetString> subAnyElements,
                                 ASN1OctetString subFinalElement)
   {
-
     return new LDAPFilter(FilterType.SUBSTRING, null, null, attributeType, null,
                           subInitialElement, subAnyElements, subFinalElement,
                           null, false);
@@ -396,7 +389,6 @@ public class LDAPFilter
   public static LDAPFilter createGreaterOrEqualFilter(String attributeType,
                                 ASN1OctetString assertionValue)
   {
-
     return new LDAPFilter(FilterType.GREATER_OR_EQUAL, null, null,
                           attributeType, assertionValue, null, null, null, null,
                           false);
@@ -415,7 +407,6 @@ public class LDAPFilter
   public static LDAPFilter createLessOrEqualFilter(String attributeType,
                                 ASN1OctetString assertionValue)
   {
-
     return new LDAPFilter(FilterType.LESS_OR_EQUAL, null, null, attributeType,
                           assertionValue, null, null, null, null, false);
   }
@@ -431,7 +422,6 @@ public class LDAPFilter
    */
   public static LDAPFilter createPresenceFilter(String attributeType)
   {
-
     return new LDAPFilter(FilterType.PRESENT, null, null, attributeType, null,
                           null, null, null, null, false);
   }
@@ -449,7 +439,6 @@ public class LDAPFilter
   public static LDAPFilter createApproximateFilter(String attributeType,
                                 ASN1OctetString assertionValue)
   {
-
     return new LDAPFilter(FilterType.APPROXIMATE_MATCH, null, null,
                           attributeType, assertionValue, null, null, null, null,
                           false);
@@ -473,7 +462,6 @@ public class LDAPFilter
                                 ASN1OctetString assertionValue,
                                 boolean dnAttributes)
   {
-
     return new LDAPFilter(FilterType.EXTENSIBLE_MATCH, null, null,
                           attributeType, assertionValue, null, null, null,
                           matchingRuleID, dnAttributes);
@@ -495,8 +483,6 @@ public class LDAPFilter
   public static LDAPFilter decode(String filterString)
          throws LDAPException
   {
-
-
     if (filterString == null)
     {
       int msgID = MSGID_LDAP_FILTER_STRING_NULL;
@@ -552,8 +538,6 @@ public class LDAPFilter
                                    int endPos)
           throws LDAPException
   {
-
-
     // Make sure that the length is sufficient for a valid search filter.
     int length = endPos - startPos;
     if (length <= 0)
@@ -878,8 +862,6 @@ public class LDAPFilter
                                                  int startPos, int endPos)
           throws LDAPException
   {
-
-
     // Create a list to hold the returned components.
     ArrayList<LDAPFilter> filterComponents = new ArrayList<LDAPFilter>();
 
@@ -986,8 +968,6 @@ public class LDAPFilter
                                                   int endPos)
           throws LDAPException
   {
-
-
     // Get a binary representation of the value.
     byte[] valueBytes = getBytes(filterString.substring(equalPos+1, endPos));
 
@@ -1571,8 +1551,6 @@ public class LDAPFilter
                                                         int endPos)
           throws LDAPException
   {
-
-
     String  attributeType  = null;
     boolean dnAttributes   = false;
     String  matchingRuleID = null;
@@ -1823,7 +1801,6 @@ public class LDAPFilter
    */
   public FilterType getFilterType()
   {
-
     return filterType;
   }
 
@@ -1838,7 +1815,6 @@ public class LDAPFilter
    */
   public ArrayList<LDAPFilter> getFilterComponents()
   {
-
     return filterComponents;
   }
 
@@ -1853,7 +1829,6 @@ public class LDAPFilter
    */
   public void setFilterComponents(ArrayList<LDAPFilter> filterComponents)
   {
-
     this.filterComponents = filterComponents;
   }
 
@@ -1867,7 +1842,6 @@ public class LDAPFilter
    */
   public LDAPFilter getNOTComponent()
   {
-
     return notComponent;
   }
 
@@ -1881,7 +1855,6 @@ public class LDAPFilter
    */
   public void setNOTComponent(LDAPFilter notComponent)
   {
-
     this.notComponent = notComponent;
   }
 
@@ -1896,7 +1869,6 @@ public class LDAPFilter
    */
   public String getAttributeType()
   {
-
     return attributeType;
   }
 
@@ -1910,7 +1882,6 @@ public class LDAPFilter
    */
   public void setAttributeType(String attributeType)
   {
-
     this.attributeType = attributeType;
   }
 
@@ -1926,7 +1897,6 @@ public class LDAPFilter
    */
   public ASN1OctetString getAssertionValue()
   {
-
     return assertionValue;
   }
 
@@ -1940,7 +1910,6 @@ public class LDAPFilter
    */
   public void setAssertionValue(ASN1OctetString assertionValue)
   {
-
     this.assertionValue = assertionValue;
   }
 
@@ -1956,7 +1925,6 @@ public class LDAPFilter
    */
   public ASN1OctetString getSubInitialElement()
   {
-
     return subInitialElement;
   }
 
@@ -1971,7 +1939,6 @@ public class LDAPFilter
    */
   public void setSubInitialElement(ASN1OctetString subInitialElement)
   {
-
     this.subInitialElement = subInitialElement;
   }
 
@@ -1987,7 +1954,6 @@ public class LDAPFilter
    */
   public ArrayList<ASN1OctetString> getSubAnyElements()
   {
-
     return subAnyElements;
   }
 
@@ -2002,7 +1968,6 @@ public class LDAPFilter
    */
   public void setSubAnyElements(ArrayList<ASN1OctetString> subAnyElements)
   {
-
     this.subAnyElements = subAnyElements;
   }
 
@@ -2018,7 +1983,6 @@ public class LDAPFilter
    */
   public ASN1OctetString getSubFinalElement()
   {
-
     return subFinalElement;
   }
 
@@ -2032,7 +1996,6 @@ public class LDAPFilter
    */
   public void setSubFinalElement(ASN1OctetString subFinalElement)
   {
-
     this.subFinalElement = subFinalElement;
   }
 
@@ -2048,7 +2011,6 @@ public class LDAPFilter
    */
   public String getMatchingRuleID()
   {
-
     return matchingRuleID;
   }
 
@@ -2063,7 +2025,6 @@ public class LDAPFilter
    */
   public void setMatchingRuleID(String matchingRuleID)
   {
-
     this.matchingRuleID = matchingRuleID;
   }
 
@@ -2079,7 +2040,6 @@ public class LDAPFilter
    */
   public boolean getDNAttributes()
   {
-
     return dnAttributes;
   }
 
@@ -2094,7 +2054,6 @@ public class LDAPFilter
    */
   public void setDNAttributes(boolean dnAttributes)
   {
-
     this.dnAttributes = dnAttributes;
   }
 
@@ -2107,7 +2066,6 @@ public class LDAPFilter
    */
   public ASN1Element encode()
   {
-
     switch (filterType)
     {
       case AND:
@@ -2207,7 +2165,6 @@ public class LDAPFilter
   public static LDAPFilter decode(ASN1Element element)
          throws LDAPException
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_LDAP_FILTER_DECODE_NULL;
@@ -2262,8 +2219,6 @@ public class LDAPFilter
   private static LDAPFilter decodeCompoundFilter(ASN1Element element)
           throws LDAPException
   {
-
-
     FilterType filterType;
     switch (element.getType())
     {
@@ -2347,8 +2302,6 @@ public class LDAPFilter
   private static LDAPFilter decodeNotFilter(ASN1Element element)
           throws LDAPException
   {
-
-
     ASN1Element notFilterElement;
     try
     {
@@ -2410,8 +2363,6 @@ public class LDAPFilter
   private static LDAPFilter decodeTypeAndValueFilter(ASN1Element element)
           throws LDAPException
   {
-
-
     FilterType filterType;
     switch (element.getType())
     {
@@ -2519,8 +2470,6 @@ public class LDAPFilter
   private static LDAPFilter decodeSubstringFilter(ASN1Element element)
           throws LDAPException
   {
-
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -2658,8 +2607,6 @@ public class LDAPFilter
   private static LDAPFilter decodePresenceFilter(ASN1Element element)
           throws LDAPException
   {
-
-
     String attributeType;
     try
     {
@@ -2697,7 +2644,6 @@ public class LDAPFilter
   private static LDAPFilter decodeExtensibleMatchFilter(ASN1Element element)
           throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -2781,8 +2727,6 @@ public class LDAPFilter
   public SearchFilter toSearchFilter()
          throws DirectoryException
   {
-
-
     ArrayList<SearchFilter> subComps;
     if (filterComponents == null)
     {
@@ -2911,7 +2855,6 @@ public class LDAPFilter
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -2927,7 +2870,6 @@ public class LDAPFilter
    */
   public void toString(StringBuilder buffer)
   {
-
     switch (filterType)
     {
       case AND:
@@ -3053,7 +2995,6 @@ public class LDAPFilter
   public static void valueToFilterString(StringBuilder buffer,
                                          ASN1OctetString value)
   {
-
     if (value == null)
     {
       return;

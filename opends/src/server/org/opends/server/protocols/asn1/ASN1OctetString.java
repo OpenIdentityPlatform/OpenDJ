@@ -181,7 +181,6 @@ public class ASN1OctetString
    */
   public String stringValue()
   {
-
     if (stringValue == null)
     {
 /*
@@ -229,7 +228,6 @@ public class ASN1OctetString
    */
   public void stringValue(StringBuilder buffer)
   {
-
     if (stringValue != null)
     {
       buffer.append(stringValue);
@@ -277,7 +275,6 @@ public class ASN1OctetString
    */
   public void setValue(String stringValue)
   {
-
     if (stringValue == null)
     {
       this.stringValue = null;
@@ -299,7 +296,6 @@ public class ASN1OctetString
    */
   public void setValue(byte[] value)
   {
-
     if (value == null)
     {
       setValueInternal(NO_VALUE);
@@ -327,7 +323,6 @@ public class ASN1OctetString
   public static ASN1OctetString decodeAsOctetString(ASN1Element element)
          throws ASN1Exception
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_ASN1_OCTET_STRING_DECODE_ELEMENT_NULL;
@@ -354,7 +349,6 @@ public class ASN1OctetString
   public static ASN1OctetString decodeAsOctetString(byte[] encodedElement)
          throws ASN1Exception
   {
-
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 element.
     if (encodedElement == null)
@@ -428,7 +422,6 @@ public class ASN1OctetString
    */
   public ASN1OctetString duplicate()
   {
-
     byte[] value = value();
     int length = value.length;
 
@@ -448,7 +441,6 @@ public class ASN1OctetString
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append(stringValue());
   }
 
@@ -465,7 +457,6 @@ public class ASN1OctetString
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {
@@ -500,7 +491,6 @@ public class ASN1OctetString
    */
   public ASN1OctetString toASN1OctetString()
   {
-
     return this;
   }
 }

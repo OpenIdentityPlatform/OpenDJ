@@ -84,7 +84,6 @@ public class RestartTaskThread
    */
   public void run()
   {
-
     DirectoryServer.restart(CLASS_NAME, shutdownMessage);
   }
 }

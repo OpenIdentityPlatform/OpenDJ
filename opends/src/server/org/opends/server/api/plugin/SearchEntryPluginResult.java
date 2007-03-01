@@ -102,7 +102,6 @@ public class SearchEntryPluginResult
                                  boolean sendEntry,
                                  boolean continueSearch)
   {
-
     this.connectionTerminated     = connectionTerminated;
     this.continuePluginProcessing = continuePluginProcessing;
     this.sendEntry                = sendEntry;
@@ -121,7 +120,6 @@ public class SearchEntryPluginResult
    */
   public boolean connectionTerminated()
   {
-
     return connectionTerminated;
   }
 
@@ -137,7 +135,6 @@ public class SearchEntryPluginResult
    */
   public boolean continuePluginProcessing()
   {
-
     return continuePluginProcessing;
   }
 
@@ -153,7 +150,6 @@ public class SearchEntryPluginResult
    */
   public boolean sendEntry()
   {
-
     return sendEntry;
   }
 
@@ -169,7 +165,6 @@ public class SearchEntryPluginResult
    */
   public boolean continueSearch()
   {
-
     return continueSearch;
   }
 
@@ -184,7 +179,6 @@ public class SearchEntryPluginResult
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -201,7 +195,6 @@ public class SearchEntryPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("SearchEntryPluginResult(connectionTerminated=");
     buffer.append(connectionTerminated);
     buffer.append(", continuePluginProcessing=");

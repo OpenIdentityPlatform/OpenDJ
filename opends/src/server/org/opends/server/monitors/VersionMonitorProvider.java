@@ -87,7 +87,6 @@ public class VersionMonitorProvider
   public void initializeMonitorProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -101,7 +100,6 @@ public class VersionMonitorProvider
    */
   public String getMonitorInstanceName()
   {
-
     return "Version";
   }
 
@@ -118,7 +116,6 @@ public class VersionMonitorProvider
    */
   public long getUpdateInterval()
   {
-
     // This monitor does not need to run periodically.
     return 0;
   }
@@ -134,7 +131,6 @@ public class VersionMonitorProvider
    */
   public void updateMonitorData()
   {
-
     // This monitor does not need to run periodically.
     return;
   }
@@ -151,8 +147,6 @@ public class VersionMonitorProvider
    */
   public ArrayList<Attribute> getMonitorData()
   {
-
-
     ArrayList<Attribute> attrs = new ArrayList<Attribute>(8);
 
     attrs.add(createAttribute("productName", DynamicConstants.PRODUCT_NAME));
@@ -187,7 +181,6 @@ public class VersionMonitorProvider
    */
   private Attribute createAttribute(String name, String value)
   {
-
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
 
     ASN1OctetString encodedValue = new ASN1OctetString(value);

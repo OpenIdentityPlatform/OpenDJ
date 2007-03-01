@@ -290,8 +290,6 @@ public class LDAPConnectionHandler
   public void initializeConnectionHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     enabled = true;
 
     configEntryDN = configEntry.getDN();
@@ -1235,7 +1233,6 @@ public class LDAPConnectionHandler
   public void finalizeConnectionHandler(String finalizeReason,
                                        boolean closeConnections)
   {
-
     shutdownRequested = true;
 
     DirectoryServer.deregisterConfigurableComponent(this);
@@ -1276,7 +1273,6 @@ public class LDAPConnectionHandler
    */
   public String getConnectionHandlerName()
   {
-
     return handlerName;
   }
 
@@ -1287,7 +1283,6 @@ public class LDAPConnectionHandler
    */
   public String getProtocol()
   {
-
     return protocol;
   }
 
@@ -1298,7 +1293,6 @@ public class LDAPConnectionHandler
    */
   public Collection<HostPort> getListeners()
   {
-
     return listeners;
   }
 
@@ -1313,7 +1307,6 @@ public class LDAPConnectionHandler
    */
   public Collection<ClientConnection> getClientConnections()
   {
-
     LinkedList<ClientConnection> connectionList =
          new LinkedList<ClientConnection>();
     for (LDAPRequestHandler requestHandler : requestHandlers)
@@ -1335,7 +1328,6 @@ public class LDAPConnectionHandler
    */
   public int getListenPort()
   {
-
     return listenPort;
   }
 
@@ -1347,7 +1339,6 @@ public class LDAPConnectionHandler
    */
   public void run()
   {
-
     connHandlerThread = Thread.currentThread();
     setName(handlerName);
 
@@ -1670,7 +1661,6 @@ public class LDAPConnectionHandler
    */
   private void cleanUpSelector()
   {
-
     try
     {
       Iterator<SelectionKey> iterator = selector.keys().iterator();
@@ -1722,7 +1712,6 @@ public class LDAPConnectionHandler
    */
   public boolean keepStats()
   {
-
     return keepStats;
   }
 
@@ -1736,7 +1725,6 @@ public class LDAPConnectionHandler
    */
   public void setKeepStats(boolean keepStats)
   {
-
     this.keepStats = keepStats;
   }
 
@@ -1749,7 +1737,6 @@ public class LDAPConnectionHandler
    */
   public LDAPStatistics getStatTracker()
   {
-
     return statTracker;
   }
 
@@ -1764,7 +1751,6 @@ public class LDAPConnectionHandler
    */
   public boolean allowLDAPv2()
   {
-
     return allowLDAPv2;
   }
 
@@ -1779,7 +1765,6 @@ public class LDAPConnectionHandler
    */
   public boolean allowStartTLS()
   {
-
     return allowStartTLS;
   }
 
@@ -1794,7 +1779,6 @@ public class LDAPConnectionHandler
    */
   public boolean useSSL()
   {
-
     return useSSL;
   }
 
@@ -1807,7 +1791,6 @@ public class LDAPConnectionHandler
    */
   public SSLClientAuthPolicy getSSLClientAuthPolicy()
   {
-
     return sslClientAuthPolicy;
   }
 
@@ -1822,7 +1805,6 @@ public class LDAPConnectionHandler
    */
   public String[] getEnabledSSLProtocols()
   {
-
     return enabledSSLProtocols;
   }
 
@@ -1837,7 +1819,6 @@ public class LDAPConnectionHandler
    */
   public String[] getEnabledSSLCipherSuites()
   {
-
     return enabledSSLCipherSuites;
   }
 
@@ -1855,7 +1836,6 @@ public class LDAPConnectionHandler
    */
   public DN getKeyManagerProviderDN()
   {
-
     return keyManagerProviderDN;
   }
 
@@ -1873,7 +1853,6 @@ public class LDAPConnectionHandler
    */
   public DN getTrustManagerProviderDN()
   {
-
     return trustManagerProviderDN;
   }
 
@@ -1902,7 +1881,6 @@ public class LDAPConnectionHandler
    */
   public int getMaxRequestSize()
   {
-
     return maxRequestSize;
   }
 
@@ -1915,7 +1893,6 @@ public class LDAPConnectionHandler
    */
   public String getShutdownListenerName()
   {
-
     return handlerName;
   }
 
@@ -1930,7 +1907,6 @@ public class LDAPConnectionHandler
    */
   public void processServerShutdown(String reason)
   {
-
     shutdownRequested = true;
 
     try
@@ -1956,7 +1932,6 @@ public class LDAPConnectionHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -1971,7 +1946,6 @@ public class LDAPConnectionHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> configAttrs = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_ADDRESS;
@@ -2168,8 +2142,6 @@ public class LDAPConnectionHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     boolean configValid = true;
 
 
@@ -2888,8 +2860,6 @@ public class LDAPConnectionHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     // Create variables to include in the response.
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -3777,7 +3747,6 @@ public class LDAPConnectionHandler
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append(handlerName);
   }
 
@@ -3792,7 +3761,6 @@ public class LDAPConnectionHandler
    */
   public DN getComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -3807,7 +3775,6 @@ public class LDAPConnectionHandler
    */
   public String getClassName()
   {
-
     return CLASS_NAME;
   }
 
@@ -3825,7 +3792,6 @@ public class LDAPConnectionHandler
    */
   public LinkedHashMap<String,String> getAlerts()
   {
-
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 
     alerts.put(ALERT_TYPE_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,

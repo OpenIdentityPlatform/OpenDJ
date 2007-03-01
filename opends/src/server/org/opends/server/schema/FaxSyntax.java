@@ -96,7 +96,6 @@ public class FaxSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null)
@@ -134,7 +133,6 @@ public class FaxSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_FAX_NAME;
   }
 
@@ -147,7 +145,6 @@ public class FaxSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_FAX_OID;
   }
 
@@ -160,7 +157,6 @@ public class FaxSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_FAX_DESCRIPTION;
   }
 
@@ -176,7 +172,6 @@ public class FaxSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -192,7 +187,6 @@ public class FaxSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -208,7 +202,6 @@ public class FaxSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -224,7 +217,6 @@ public class FaxSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -246,7 +238,6 @@ public class FaxSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     // All values will be acceptable for the fax syntax.
     return true;
   }

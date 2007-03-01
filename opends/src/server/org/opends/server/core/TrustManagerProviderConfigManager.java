@@ -90,7 +90,6 @@ public class TrustManagerProviderConfigManager
    */
   public TrustManagerProviderConfigManager()
   {
-
     configHandler = DirectoryServer.getConfigHandler();
     providers     = new ConcurrentHashMap<DN,TrustManagerProvider>();
   }
@@ -112,8 +111,6 @@ public class TrustManagerProviderConfigManager
   public void initializeTrustManagerProviders()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the configuration base entry.
     ConfigEntry baseEntry;
     try
@@ -229,8 +226,6 @@ public class TrustManagerProviderConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for a trust
     // manager provider.
     if (! configEntry.hasObjectClass(OC_TRUST_MANAGER_PROVIDER))
@@ -369,8 +364,6 @@ public class TrustManagerProviderConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -594,8 +587,6 @@ public class TrustManagerProviderConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (providers.containsKey(configEntryDN))
@@ -779,8 +770,6 @@ public class TrustManagerProviderConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -943,8 +932,6 @@ public class TrustManagerProviderConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -961,8 +948,6 @@ public class TrustManagerProviderConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

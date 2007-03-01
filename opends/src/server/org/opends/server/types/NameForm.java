@@ -117,7 +117,6 @@ public final class NameForm
                   Set<AttributeType> optionalAttributes,
                   Map<String,List<String>> extraProperties)
   {
-
     ensureNotNull(definition, oid, structuralClass);
 
     this.definition      = definition;
@@ -176,7 +175,6 @@ public final class NameForm
    */
   public String getDefinition()
   {
-
     return definition;
   }
 
@@ -220,7 +218,6 @@ public final class NameForm
    */
   public Map<String,String> getNames()
   {
-
     return names;
   }
 
@@ -238,7 +235,6 @@ public final class NameForm
    */
   public boolean hasName(String lowerName)
   {
-
     return names.containsKey(lowerName);
   }
 
@@ -251,7 +247,6 @@ public final class NameForm
    */
   public String getOID()
   {
-
     return oid;
   }
 
@@ -267,7 +262,6 @@ public final class NameForm
    */
   public String getNameOrOID()
   {
-
     if (names.isEmpty())
     {
       return oid;
@@ -294,7 +288,6 @@ public final class NameForm
    */
   public boolean hasNameOrOID(String lowerValue)
   {
-
     if (names.containsKey(lowerValue))
     {
       return true;
@@ -315,7 +308,6 @@ public final class NameForm
    */
   public String getSchemaFile()
   {
-
     List<String> values =
          extraProperties.get(SCHEMA_PROPERTY_FILENAME);
     if ((values == null) || values.isEmpty())
@@ -337,7 +329,6 @@ public final class NameForm
    */
   public void setSchemaFile(String schemaFile)
   {
-
     setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
@@ -351,7 +342,6 @@ public final class NameForm
    */
   public String getDescription()
   {
-
     return description;
   }
 
@@ -366,7 +356,6 @@ public final class NameForm
    */
   public ObjectClass getStructuralClass()
   {
-
     return structuralClass;
   }
 
@@ -379,7 +368,6 @@ public final class NameForm
    */
   public Set<AttributeType> getRequiredAttributes()
   {
-
     return requiredAttributes;
   }
 
@@ -397,7 +385,6 @@ public final class NameForm
    */
   public boolean isRequired(AttributeType attributeType)
   {
-
     return requiredAttributes.contains(attributeType);
   }
 
@@ -410,7 +397,6 @@ public final class NameForm
    */
   public Set<AttributeType> getOptionalAttributes()
   {
-
     return optionalAttributes;
   }
 
@@ -428,7 +414,6 @@ public final class NameForm
    */
   public boolean isOptional(AttributeType attributeType)
   {
-
     return optionalAttributes.contains(attributeType);
   }
 
@@ -447,7 +432,6 @@ public final class NameForm
    */
   public boolean isRequiredOrOptional(AttributeType attributeType)
   {
-
     return (requiredAttributes.contains(attributeType) ||
             optionalAttributes.contains(attributeType));
   }
@@ -462,7 +446,6 @@ public final class NameForm
    */
   public boolean isObsolete()
   {
-
     return isObsolete;
   }
 
@@ -479,7 +462,6 @@ public final class NameForm
    */
   public Map<String,List<String>> getExtraProperties()
   {
-
     return extraProperties;
   }
 
@@ -498,7 +480,6 @@ public final class NameForm
    */
   public List<String> getExtraProperty(String propertyName)
   {
-
     return extraProperties.get(propertyName);
   }
 
@@ -514,7 +495,6 @@ public final class NameForm
    */
   public void setExtraProperty(String name, String value)
   {
-
     ensureNotNull(name);
 
     if (value == null)
@@ -542,7 +522,6 @@ public final class NameForm
    */
   public void setExtraProperty(String name, List<String> values)
   {
-
     ensureNotNull(name);
 
     if ((values == null) || values.isEmpty())
@@ -570,7 +549,6 @@ public final class NameForm
    */
   public boolean equals(Object o)
   {
-
     if (this == o)
     {
       return true;
@@ -594,7 +572,6 @@ public final class NameForm
    */
   public int hashCode()
   {
-
     int oidLength = oid.length();
     int hashCode  = 0;
     for (int i=0; i < oidLength; i++)
@@ -616,7 +593,6 @@ public final class NameForm
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer, true);
     return buffer.toString();
@@ -638,7 +614,6 @@ public final class NameForm
   public void toString(StringBuilder buffer,
                        boolean includeFileElement)
   {
-
     buffer.append("( ");
     buffer.append(oid);
 

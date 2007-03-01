@@ -100,7 +100,6 @@ public class TaskThread
    */
   public Task getTask()
   {
-
     return task;
   }
 
@@ -114,7 +113,6 @@ public class TaskThread
    */
   public void setTask(Task task)
   {
-
     this.task = task;
 
     synchronized (notifyLock)
@@ -138,7 +136,6 @@ public class TaskThread
   public void interruptTask(TaskState interruptState, String interruptReason,
                             boolean exitThread)
   {
-
     if (task != null)
     {
       try
@@ -168,7 +165,6 @@ public class TaskThread
    */
   public void run()
   {
-
     while (! exitRequested)
     {
       if (task == null)

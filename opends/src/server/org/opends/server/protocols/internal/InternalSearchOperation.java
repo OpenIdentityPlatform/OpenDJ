@@ -214,7 +214,6 @@ public class InternalSearchOperation
    */
   public LinkedList<SearchResultEntry> getSearchEntries()
   {
-
     return entryList;
   }
 
@@ -230,7 +229,6 @@ public class InternalSearchOperation
    */
   public void addSearchEntry(SearchResultEntry searchEntry)
   {
-
     if (searchListener == null)
     {
       entryList.add(searchEntry);
@@ -253,7 +251,6 @@ public class InternalSearchOperation
    */
   public LinkedList<SearchResultReference> getSearchReferences()
   {
-
     return referenceList;
   }
 
@@ -270,7 +267,6 @@ public class InternalSearchOperation
   public void addSearchReference(
                    SearchResultReference searchReference)
   {
-
     if (searchListener == null)
     {
       referenceList.add(searchReference);

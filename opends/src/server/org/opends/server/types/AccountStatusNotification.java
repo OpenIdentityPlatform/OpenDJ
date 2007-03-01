@@ -67,7 +67,6 @@ public class AccountStatusNotification
               AccountStatusNotificationType notificationType,
               DN userDN, int messageID, String message)
   {
-
     this.notificationType = notificationType;
     this.userDN           = userDN;
     this.messageID        = messageID;
@@ -85,7 +84,6 @@ public class AccountStatusNotification
    */
   public AccountStatusNotificationType getNotificationType()
   {
-
     return notificationType;
   }
 
@@ -100,7 +98,6 @@ public class AccountStatusNotification
    */
   public DN getUserDN()
   {
-
     return userDN;
   }
 
@@ -115,7 +112,6 @@ public class AccountStatusNotification
    */
   public int getMessageID()
   {
-
     return messageID;
   }
 
@@ -130,7 +126,6 @@ public class AccountStatusNotification
    */
   public String getMessage()
   {
-
     return message;
   }
 
@@ -145,7 +140,6 @@ public class AccountStatusNotification
    */
   public String toString()
   {
-
     return "AccountStatusNotification(type=" +
            notificationType.getNotificationTypeName() + ",dn=" +
            userDN + ",id=" + messageID + ",message=" + message + ")";

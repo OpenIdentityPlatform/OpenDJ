@@ -210,7 +210,6 @@ public class LDAPStatistics
   public void initializeMonitorProvider(ConfigEntry configEntry)
          throws ConfigException
   {
-
     // Throw an exception, because this monitor is not intended to be
     // dynamically loaded from the configuration.  Rather, it should be
     // explicitly created and registered by the LDAP connection handler or an
@@ -230,7 +229,6 @@ public class LDAPStatistics
    */
   public String getMonitorInstanceName()
   {
-
     return instanceName;
   }
 
@@ -247,8 +245,6 @@ public class LDAPStatistics
    */
   public long getUpdateInterval()
   {
-
-
     // This monitor should not run periodically.
     return -1;
   }
@@ -264,7 +260,6 @@ public class LDAPStatistics
    */
   public void updateMonitorData()
   {
-
     // No implementation is required since this does not do periodic updates.
   }
 
@@ -280,7 +275,6 @@ public class LDAPStatistics
    */
   public ArrayList<Attribute> getMonitorData()
   {
-
     ArrayList<Attribute> attrs = new ArrayList<Attribute>(29);
 
     long tmpAbandonRequests;
@@ -502,8 +496,6 @@ public class LDAPStatistics
    */
   public void clearStatistics()
   {
-
-
     // Quickly grab the locks and store consistent copies of the information.
     // Note that when grabbing multiple locks, it is essential that they are all
     // acquired in the same order to prevent deadlocks.
@@ -626,7 +618,6 @@ public class LDAPStatistics
    */
   public void updateConnect()
   {
-
     connectLock.lock();
 
     try
@@ -660,7 +651,6 @@ public class LDAPStatistics
    */
   public void updateDisconnect()
   {
-
     disconnectLock.lock();
 
     try
@@ -696,7 +686,6 @@ public class LDAPStatistics
    */
   public void updateBytesRead(int bytesRead)
   {
-
     readLock.lock();
 
     try
@@ -732,7 +721,6 @@ public class LDAPStatistics
    */
   public void updateMessageRead(LDAPMessage message)
   {
-
     readLock.lock();
 
     try
@@ -804,7 +792,6 @@ public class LDAPStatistics
    */
   public void updateMessageWritten(LDAPMessage message, int bytesWritten)
   {
-
     writeLock.lock();
 
     try
@@ -887,7 +874,6 @@ public class LDAPStatistics
    */
   public void updateAbandonedOperation()
   {
-
     abandonLock.lock();
 
     try
@@ -926,7 +912,6 @@ public class LDAPStatistics
    */
   private Attribute createAttribute(String name, String value)
   {
-
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
 
     ASN1OctetString encodedValue = new ASN1OctetString(value);
@@ -959,7 +944,6 @@ public class LDAPStatistics
    */
   public long getConnectionsEstablished()
   {
-
     connectLock.lock();
 
     try
@@ -981,7 +965,6 @@ public class LDAPStatistics
    */
   public long getConnectionsClosed()
   {
-
     disconnectLock.lock();
 
     try
@@ -1003,7 +986,6 @@ public class LDAPStatistics
    */
   public long getBytesRead()
   {
-
     readLock.lock();
 
     try
@@ -1025,7 +1007,6 @@ public class LDAPStatistics
    */
   public long getBytesWritten()
   {
-
     writeLock.lock();
 
     try
@@ -1047,7 +1028,6 @@ public class LDAPStatistics
    */
   public long getMessagesRead()
   {
-
     readLock.lock();
 
     try
@@ -1069,7 +1049,6 @@ public class LDAPStatistics
    */
   public long getMessagesWritten()
   {
-
     writeLock.lock();
 
     try
@@ -1091,7 +1070,6 @@ public class LDAPStatistics
    */
   public long getOperationsInitiated()
   {
-
     readLock.lock();
 
     try
@@ -1115,7 +1093,6 @@ public class LDAPStatistics
    */
   public long getOperationsCompleted()
   {
-
     writeLock.lock();
 
     try
@@ -1137,7 +1114,6 @@ public class LDAPStatistics
    */
   public long getOperationsAbandoned()
   {
-
     abandonLock.lock();
 
     try
@@ -1159,7 +1135,6 @@ public class LDAPStatistics
    */
   public long getAbandonRequests()
   {
-
     readLock.lock();
 
     try
@@ -1181,7 +1156,6 @@ public class LDAPStatistics
    */
   public long getAddRequests()
   {
-
     readLock.lock();
 
     try
@@ -1203,7 +1177,6 @@ public class LDAPStatistics
    */
   public long getAddResponses()
   {
-
     writeLock.lock();
 
     try
@@ -1225,7 +1198,6 @@ public class LDAPStatistics
    */
   public long getBindRequests()
   {
-
     readLock.lock();
 
     try
@@ -1247,7 +1219,6 @@ public class LDAPStatistics
    */
   public long getBindResponses()
   {
-
     writeLock.lock();
 
     try
@@ -1269,7 +1240,6 @@ public class LDAPStatistics
    */
   public long getCompareRequests()
   {
-
     readLock.lock();
 
     try
@@ -1291,7 +1261,6 @@ public class LDAPStatistics
    */
   public long getCompareResponses()
   {
-
     writeLock.lock();
 
     try
@@ -1313,7 +1282,6 @@ public class LDAPStatistics
    */
   public long getDeleteRequests()
   {
-
     readLock.lock();
 
     try
@@ -1335,7 +1303,6 @@ public class LDAPStatistics
    */
   public long getDeleteResponses()
   {
-
     writeLock.lock();
 
     try
@@ -1357,7 +1324,6 @@ public class LDAPStatistics
    */
   public long getExtendedRequests()
   {
-
     readLock.lock();
 
     try
@@ -1379,7 +1345,6 @@ public class LDAPStatistics
    */
   public long getExtendedResponses()
   {
-
     writeLock.lock();
 
     try
@@ -1401,7 +1366,6 @@ public class LDAPStatistics
    */
   public long getModifyRequests()
   {
-
     readLock.lock();
 
     try
@@ -1423,7 +1387,6 @@ public class LDAPStatistics
    */
   public long getModifyResponses()
   {
-
     writeLock.lock();
 
     try
@@ -1445,7 +1408,6 @@ public class LDAPStatistics
    */
   public long getModifyDNRequests()
   {
-
     readLock.lock();
 
     try
@@ -1467,7 +1429,6 @@ public class LDAPStatistics
    */
   public long getModifyDNResponses()
   {
-
     writeLock.lock();
 
     try
@@ -1489,7 +1450,6 @@ public class LDAPStatistics
    */
   public long getSearchRequests()
   {
-
     readLock.lock();
 
     try
@@ -1511,7 +1471,6 @@ public class LDAPStatistics
    */
   public long getSearchResultEntries()
   {
-
     writeLock.lock();
 
     try
@@ -1533,7 +1492,6 @@ public class LDAPStatistics
    */
   public long getSearchResultReferences()
   {
-
     writeLock.lock();
 
     try
@@ -1555,7 +1513,6 @@ public class LDAPStatistics
    */
   public long getSearchResultsDone()
   {
-
     writeLock.lock();
 
     try
@@ -1577,7 +1534,6 @@ public class LDAPStatistics
    */
   public long getUnbindRequests()
   {
-
     readLock.lock();
 
     try
@@ -1600,7 +1556,6 @@ public class LDAPStatistics
    */
   public LDAPStatistics getParent()
   {
-
     return parent;
   }
 }

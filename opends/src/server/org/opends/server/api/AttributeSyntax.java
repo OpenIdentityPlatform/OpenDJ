@@ -74,7 +74,6 @@ public abstract class AttributeSyntax
    */
   public void finalizeSyntax()
   {
-
     // No implementation required.
   }
 
@@ -186,7 +185,6 @@ public abstract class AttributeSyntax
    */
   public int hashCode()
   {
-
     int hashCode = 0;
 
     String oidString = getOID();
@@ -215,7 +213,6 @@ public abstract class AttributeSyntax
    */
   public boolean equals(Object o)
   {
-
     if (o == null)
     {
       return false;
@@ -245,7 +242,6 @@ public abstract class AttributeSyntax
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -262,7 +258,6 @@ public abstract class AttributeSyntax
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("( ");
     buffer.append(getOID());
 

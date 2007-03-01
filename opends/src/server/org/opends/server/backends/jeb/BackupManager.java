@@ -146,8 +146,6 @@ public class BackupManager
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
        throws DirectoryException
   {
-
-
     // Parse our backend configuration.
     Config config = new Config();
     try
@@ -965,8 +963,6 @@ public class BackupManager
                               Set<String> includeFiles)
        throws DirectoryException,IOException
   {
-
-
     BackupDirectory backupDir       = restoreConfig.getBackupDirectory();
     boolean verifyOnly              = restoreConfig.verifyOnly();
 

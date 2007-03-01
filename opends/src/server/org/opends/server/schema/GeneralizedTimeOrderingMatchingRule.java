@@ -147,7 +147,6 @@ public class GeneralizedTimeOrderingMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -161,7 +160,6 @@ public class GeneralizedTimeOrderingMatchingRule
    */
   public String getName()
   {
-
     return OMR_GENERALIZED_TIME_NAME;
   }
 
@@ -174,7 +172,6 @@ public class GeneralizedTimeOrderingMatchingRule
    */
   public String getOID()
   {
-
     return OMR_GENERALIZED_TIME_OID;
   }
 
@@ -188,7 +185,6 @@ public class GeneralizedTimeOrderingMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -203,7 +199,6 @@ public class GeneralizedTimeOrderingMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_GENERALIZED_TIME_OID;
   }
 
@@ -223,8 +218,6 @@ public class GeneralizedTimeOrderingMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
-
     String valueString = value.stringValue().toUpperCase();
     int length = valueString.length();
 
@@ -562,8 +555,6 @@ public class GeneralizedTimeOrderingMatchingRule
                                      int second, int millisecond)
           throws DirectoryException
   {
-
-
     // First, check to see if we are at the end of the string.  If so, then
     // that could either result in an exception or assuming that we should just
     // use the local time zone.
@@ -893,7 +884,6 @@ public class GeneralizedTimeOrderingMatchingRule
    */
   public int compareValues(ByteString value1, ByteString value2)
   {
-
     return compare(value1.value(), value2.value());
   }
 
@@ -914,7 +904,6 @@ public class GeneralizedTimeOrderingMatchingRule
    */
   public int compare(byte[] b1, byte[] b2)
   {
-
     int minLength = Math.min(b1.length, b2.length);
 
     for (int i=0; i < minLength; i++)

@@ -265,8 +265,6 @@ public class SchemaBackend
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-
-
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
     if (configEntry == null)
@@ -441,7 +439,6 @@ public class SchemaBackend
    */
   public void finalizeBackend()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
 
     for (DN baseDN : baseDNs)
@@ -473,7 +470,6 @@ public class SchemaBackend
    */
   private boolean isSchemaConfigAttribute(Attribute attribute)
   {
-
     AttributeType attrType = attribute.getAttributeType();
     if (attrType.hasName(ATTR_SCHEMA_ENTRY_DN.toLowerCase()) ||
         attrType.hasName(ATTR_BACKEND_ENABLED.toLowerCase()) ||
@@ -503,7 +499,6 @@ public class SchemaBackend
    */
   public DN[] getBaseDNs()
   {
-
     return baseDNs;
   }
 
@@ -514,7 +509,6 @@ public class SchemaBackend
    */
   public long getEntryCount()
   {
-
     // There is always only a single entry in this backend.
     return 1;
   }
@@ -532,7 +526,6 @@ public class SchemaBackend
    */
   public boolean isLocal()
   {
-
     // For the purposes of this method, this is a local backend.
     return true;
   }
@@ -553,8 +546,6 @@ public class SchemaBackend
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-
-
     // If the requested entry was one of the schema entries, then create and
     // return it.
     DN[] dnArray = baseDNs;
@@ -582,7 +573,6 @@ public class SchemaBackend
    */
   public Entry getSchemaEntry(DN entryDN)
   {
-
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
          new LinkedHashMap<AttributeType,List<Attribute>>();
 
@@ -877,8 +867,6 @@ public class SchemaBackend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-
-
     // The specified DN must be one of the specified schema DNs.
     DN[] baseArray = baseDNs;
     for (DN baseDN : baseArray)
@@ -910,7 +898,6 @@ public class SchemaBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_SCHEMA_ADD_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entry.getDN()));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -936,7 +923,6 @@ public class SchemaBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_SCHEMA_DELETE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entryDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -962,8 +948,6 @@ public class SchemaBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-
-
     // Make sure that the authenticated user has the necessary UPDATE_SCHEMA
     // privilege.
     ClientConnection clientConnection = modifyOperation.getClientConnection();
@@ -1491,8 +1475,6 @@ public class SchemaBackend
                                 Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // First, see if the specified attribute type already exists.  We'll check
     // the OID and all of the names, which means that it's possible there could
     // be more than one match (although if there is, then we'll refuse the
@@ -1675,8 +1657,6 @@ public class SchemaBackend
                                    Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // See if the specified attribute type is actually defined in the server
     // schema.  If not, then fail.
     AttributeType removeType = schema.getAttributeType(attributeType.getOID());
@@ -1848,8 +1828,6 @@ public class SchemaBackend
                               Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // First, see if the specified objectclass already exists.  We'll check the
     // OID and all of the names, which means that it's possible there could be
     // more than one match (although if there is, then we'll refuse the
@@ -2030,8 +2008,6 @@ public class SchemaBackend
                                  Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // See if the specified objectclass is actually defined in the server
     // schema.  If not, then fail.
     ObjectClass removeClass = schema.getObjectClass(objectClass.getOID());
@@ -2167,8 +2143,6 @@ public class SchemaBackend
                            Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // First, see if the specified name form already exists.  We'll check the
     // OID and all of the names, which means that it's possible there could be
     // more than one match (although if there is, then we'll refuse the
@@ -2364,8 +2338,6 @@ public class SchemaBackend
                               Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // See if the specified name form is actually defined in the server schema.
     // If not, then fail.
     NameForm removeNF = schema.getNameForm(nameForm.getOID());
@@ -2470,8 +2442,6 @@ public class SchemaBackend
                                  Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // First, see if the specified DIT content rule already exists.  We'll check
     // all of the names, which means that it's possible there could be more than
     // one match (although if there is, then we'll refuse the operation).
@@ -2722,8 +2692,6 @@ public class SchemaBackend
                                     Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // See if the specified DIT content rule is actually defined in the server
     // schema.  If not, then fail.
     DITContentRule removeDCR =
@@ -2773,8 +2741,6 @@ public class SchemaBackend
                                    Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // First, see if the specified DIT structure rule already exists.  We'll
     // check the rule ID and all of the names, which means that it's possible
     // there could be more than one match (although if there is, then we'll
@@ -2943,8 +2909,6 @@ public class SchemaBackend
                                       Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // See if the specified DIT structure rule is actually defined in the server
     // schema.  If not, then fail.
     DITStructureRule removeDSR =
@@ -3054,8 +3018,6 @@ public class SchemaBackend
                                   Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // First, see if the specified matching rule use already exists.  We'll
     // check all of the names, which means that it's possible that there could
     // be more than one match (although if there is, then we'll refuse the
@@ -3221,8 +3183,6 @@ public class SchemaBackend
                                      Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-
-
     // See if the specified DIT content rule is actually defined in the server
     // schema.  If not, then fail.
     MatchingRuleUse removeMRU =
@@ -3258,7 +3218,6 @@ public class SchemaBackend
    */
   private Entry createEmptySchemaEntry()
   {
-
     LinkedHashMap<ObjectClass,String> objectClasses =
          new LinkedHashMap<ObjectClass,String>();
     objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
@@ -3322,8 +3281,6 @@ public class SchemaBackend
   private File writeTempSchemaFile(Schema schema, String schemaFile)
           throws DirectoryException, IOException, LDIFException
   {
-
-
     // Start with an empty schema entry.
     Entry schemaEntry = createEmptySchemaEntry();
 
@@ -3512,7 +3469,6 @@ public class SchemaBackend
                                        int depth)
           throws DirectoryException
   {
-
     if (depth > 20)
     {
       int    msgID   = MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_AT;
@@ -3565,7 +3521,6 @@ public class SchemaBackend
                                           int depth)
           throws DirectoryException
   {
-
     if (depth > 20)
     {
       int    msgID   = MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_OC;
@@ -3618,7 +3573,6 @@ public class SchemaBackend
                     HashSet<DITStructureRule> addedDSRs, int depth)
           throws DirectoryException
   {
-
     if (depth > 20)
     {
       int    msgID   = MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_DSR;
@@ -3661,8 +3615,6 @@ public class SchemaBackend
   private void installSchemaFiles(HashMap<String,File> tempSchemaFiles)
           throws DirectoryException
   {
-
-
     // Create lists that will hold the three types of files we'll be dealing
     // with (the temporary files that will be installed, the installed schema
     // files, and the previously-installed schema files).
@@ -3897,7 +3849,6 @@ public class SchemaBackend
   private void copyFile(File from, File to)
           throws IOException
   {
-
     byte[]           buffer        = new byte[4096];
     FileInputStream  inputStream   = null;
     FileOutputStream outputStream  = null;
@@ -3948,7 +3899,6 @@ public class SchemaBackend
    */
   private void cleanUpTempSchemaFiles(HashMap<String,File> tempSchemaFiles)
   {
-
     if ((tempSchemaFiles == null) || tempSchemaFiles.isEmpty())
     {
       return;
@@ -3994,7 +3944,6 @@ public class SchemaBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_SCHEMA_MODIFY_DN_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(currentDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -4016,7 +3965,6 @@ public class SchemaBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-
     DN baseDN = searchOperation.getBaseDN();
 
     boolean found = false;
@@ -4069,7 +4017,6 @@ public class SchemaBackend
    */
   public HashSet<String> getSupportedControls()
   {
-
     return supportedControls;
   }
 
@@ -4082,7 +4029,6 @@ public class SchemaBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-
     return supportedFeatures;
   }
 
@@ -4097,7 +4043,6 @@ public class SchemaBackend
    */
   public boolean supportsLDIFExport()
   {
-
     // We will only export the DSE entry itself.
     return true;
   }
@@ -4121,8 +4066,6 @@ public class SchemaBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-
-
     // Create the LDIF writer.
     LDIFWriter ldifWriter;
     try
@@ -4188,7 +4131,6 @@ public class SchemaBackend
    */
   public boolean supportsLDIFImport()
   {
-
     // This backend does not support LDIF imports.
     // FIXME -- Should we support them?
     return false;
@@ -4213,8 +4155,6 @@ public class SchemaBackend
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-
-
     // This backend does not support LDIF imports.
     int    msgID   = MSGID_SCHEMA_IMPORT_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -4237,7 +4177,6 @@ public class SchemaBackend
    */
   public boolean supportsBackup()
   {
-
     // We do support an online backup mechanism for the schema.
     return true;
   }
@@ -4262,8 +4201,6 @@ public class SchemaBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-
-
     // We should support online backup for the schema in any form.  This
     // implementation does not support incremental backups, but in this case
     // even if we're asked to do an incremental we'll just do a full backup
@@ -4289,8 +4226,6 @@ public class SchemaBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-
-
     // Get the properties to use for the backup.  We don't care whether or not
     // it's incremental, so there's no need to get that.
     String          backupID        = backupConfig.getBackupID();
@@ -4659,8 +4594,6 @@ public class SchemaBackend
                            String backupID)
          throws DirectoryException
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     int    msgID   = MSGID_SCHEMA_BACKUP_AND_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -4678,8 +4611,6 @@ public class SchemaBackend
    */
   public boolean supportsRestore()
   {
-
-
     // We will provide a restore, but only for offline operations.
     return true;
   }
@@ -4703,8 +4634,6 @@ public class SchemaBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-
-
     // First, make sure that the requested backup exists.
     BackupDirectory backupDirectory = restoreConfig.getBackupDirectory();
     String          backupPath      = backupDirectory.getPath();
@@ -5213,7 +5142,6 @@ public class SchemaBackend
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -5228,7 +5156,6 @@ public class SchemaBackend
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     String description = getMessage(MSGID_SCHEMA_DESCRIPTION_ENTRY_DN);
@@ -5271,8 +5198,6 @@ public class SchemaBackend
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     boolean configIsAcceptable = true;
 
 
@@ -5350,8 +5275,6 @@ public class SchemaBackend
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -5557,7 +5480,6 @@ public class SchemaBackend
    */
   boolean showAllAttributes()
   {
-
     return showAllAttributes;
   }
 
@@ -5573,7 +5495,6 @@ public class SchemaBackend
    */
   void setShowAllAttributes(boolean showAllAttributes)
   {
-
     this.showAllAttributes = showAllAttributes;
   }
 
@@ -5588,7 +5509,6 @@ public class SchemaBackend
    */
   public DN getComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -5603,7 +5523,6 @@ public class SchemaBackend
    */
   public String getClassName()
   {
-
     return CLASS_NAME;
   }
 
@@ -5621,7 +5540,6 @@ public class SchemaBackend
    */
   public LinkedHashMap<String,String> getAlerts()
   {
-
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 
     alerts.put(ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES,

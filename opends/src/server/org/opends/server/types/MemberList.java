@@ -63,7 +63,6 @@ public abstract class MemberList
   public DN nextMemberDN()
          throws MembershipException
   {
-
     Entry e = nextMemberEntry();
     if (e == null)
     {

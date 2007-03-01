@@ -84,7 +84,6 @@ public class TelephoneNumberSubstringMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -98,7 +97,6 @@ public class TelephoneNumberSubstringMatchingRule
    */
   public String getName()
   {
-
     return SMR_TELEPHONE_NAME;
   }
 
@@ -111,7 +109,6 @@ public class TelephoneNumberSubstringMatchingRule
    */
   public String getOID()
   {
-
     return SMR_TELEPHONE_OID;
   }
 
@@ -125,7 +122,6 @@ public class TelephoneNumberSubstringMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -140,7 +136,6 @@ public class TelephoneNumberSubstringMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_SUBSTRING_ASSERTION_OID;
   }
 
@@ -160,7 +155,6 @@ public class TelephoneNumberSubstringMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     String valueString = value.stringValue();
     int    valueLength = valueString.length();
     StringBuilder buffer = new StringBuilder(valueLength);
@@ -197,8 +191,6 @@ public class TelephoneNumberSubstringMatchingRule
   public ByteString normalizeSubstring(ByteString substring)
          throws DirectoryException
   {
-
-
     // In this case, the logic used to normalize a substring is identical to the
     // logic used to normalize a full value.
     return normalizeValue(substring);
@@ -227,8 +219,6 @@ public class TelephoneNumberSubstringMatchingRule
                                        List<ByteString> subAnyElements,
                                        ByteString subFinal)
   {
-
-
     byte[] valueBytes = value.value();
     int valueLength = valueBytes.length;
 

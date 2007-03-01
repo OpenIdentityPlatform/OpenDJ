@@ -78,7 +78,6 @@ public class Base64PasswordStorageScheme
   public void initializePasswordStorageScheme(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -90,7 +89,6 @@ public class Base64PasswordStorageScheme
   @Override()
   public String getStorageSchemeName()
   {
-
     return STORAGE_SCHEME_NAME_BASE64;
   }
 
@@ -103,7 +101,6 @@ public class Base64PasswordStorageScheme
   public ByteString encodePassword(ByteString plaintext)
          throws DirectoryException
   {
-
     return ByteStringFactory.create(Base64.encode(plaintext.value()));
   }
 
@@ -116,7 +113,6 @@ public class Base64PasswordStorageScheme
   public ByteString encodePasswordWithScheme(ByteString plaintext)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append('{');
     buffer.append(STORAGE_SCHEME_NAME_BASE64);
@@ -135,8 +131,6 @@ public class Base64PasswordStorageScheme
   public boolean passwordMatches(ByteString plaintextPassword,
                                  ByteString storedPassword)
   {
-
-
     String userString   = Base64.encode(plaintextPassword.value());
     String storedString = storedPassword.stringValue();
     return userString.equals(storedString);
@@ -150,7 +144,6 @@ public class Base64PasswordStorageScheme
   @Override()
   public boolean isReversible()
   {
-
     return true;
   }
 
@@ -163,7 +156,6 @@ public class Base64PasswordStorageScheme
   public ByteString getPlaintextValue(ByteString storedPassword)
          throws DirectoryException
   {
-
     try
     {
       return ByteStringFactory.create(Base64.decode(
@@ -192,7 +184,6 @@ public class Base64PasswordStorageScheme
   @Override()
   public boolean supportsAuthPasswordSyntax()
   {
-
     // This storage scheme does not support the authentication password syntax.
     return false;
   }
@@ -206,8 +197,6 @@ public class Base64PasswordStorageScheme
   public ByteString encodeAuthPassword(ByteString plaintext)
          throws DirectoryException
   {
-
-
     int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
     String message = getMessage(msgID, getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -223,8 +212,6 @@ public class Base64PasswordStorageScheme
   public boolean authPasswordMatches(ByteString plaintextPassword,
                                      String authInfo, String authValue)
   {
-
-
     // This storage scheme does not support the authentication password syntax.
     return false;
   }
@@ -239,7 +226,6 @@ public class Base64PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
     String message = getMessage(msgID, getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -254,7 +240,6 @@ public class Base64PasswordStorageScheme
   @Override()
   public boolean isStorageSchemeSecure()
   {
-
     // Base64-encoded values may be easily decoded with no key or special
     // knowledge.
     return false;

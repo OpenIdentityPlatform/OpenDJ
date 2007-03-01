@@ -832,7 +832,6 @@ StatusPanelButtonListener
    */
   private void runProgressUpdater()
   {
-
     progressUpdater = new Thread()
     {
       public void run()

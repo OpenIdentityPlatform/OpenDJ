@@ -392,8 +392,6 @@ public class AccountUsableResponseControl
    */
   private static ASN1OctetString encodeValue(int secondsBeforeExpiration)
   {
-
-
     ASN1Integer sbeInteger = new ASN1Integer(TYPE_SECONDS_BEFORE_EXPIRATION,
                                              secondsBeforeExpiration);
 
@@ -434,8 +432,6 @@ public class AccountUsableResponseControl
                                              boolean isLocked,
                                              int secondsBeforeUnlock)
   {
-
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(5);
 
     if (isInactive)
@@ -488,8 +484,6 @@ public class AccountUsableResponseControl
   public static AccountUsableResponseControl decodeControl(Control control)
          throws LDAPException
   {
-
-
     ASN1OctetString controlValue = control.getValue();
     if (controlValue == null)
     {
@@ -602,7 +596,6 @@ public class AccountUsableResponseControl
    */
   public boolean isUsable()
   {
-
     return isUsable;
   }
 
@@ -618,7 +611,6 @@ public class AccountUsableResponseControl
    */
   public int getSecondsBeforeExpiration()
   {
-
     return secondsBeforeExpiration;
   }
 
@@ -633,7 +625,6 @@ public class AccountUsableResponseControl
    */
   public boolean isInactive()
   {
-
     return isInactive;
   }
 
@@ -649,7 +640,6 @@ public class AccountUsableResponseControl
    */
   public boolean isReset()
   {
-
     return isReset;
   }
 
@@ -663,7 +653,6 @@ public class AccountUsableResponseControl
    */
   public boolean isExpired()
   {
-
     return isExpired;
   }
 
@@ -678,7 +667,6 @@ public class AccountUsableResponseControl
    */
   public int getRemainingGraceLogins()
   {
-
     return remainingGraceLogins;
   }
 
@@ -692,7 +680,6 @@ public class AccountUsableResponseControl
    */
   public boolean isLocked()
   {
-
     return isLocked;
   }
 
@@ -709,7 +696,6 @@ public class AccountUsableResponseControl
    */
   public int getSecondsBeforeUnlock()
   {
-
     return secondsBeforeUnlock;
   }
 
@@ -722,7 +708,6 @@ public class AccountUsableResponseControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -738,7 +723,6 @@ public class AccountUsableResponseControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("AccountUsableResponseControl(isUsable=");
     buffer.append(isUsable);
 

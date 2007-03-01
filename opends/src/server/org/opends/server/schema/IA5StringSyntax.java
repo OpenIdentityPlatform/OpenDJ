@@ -100,7 +100,6 @@ public class IA5StringSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultApproximateMatchingRule =
          DirectoryServer.getApproximateMatchingRule(AMR_DOUBLE_METAPHONE_OID);
     if (defaultApproximateMatchingRule == null)
@@ -147,7 +146,6 @@ public class IA5StringSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_IA5_STRING_NAME;
   }
 
@@ -160,7 +158,6 @@ public class IA5StringSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_IA5_STRING_OID;
   }
 
@@ -173,7 +170,6 @@ public class IA5StringSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_IA5_STRING_DESCRIPTION;
   }
 
@@ -189,7 +185,6 @@ public class IA5StringSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -205,7 +200,6 @@ public class IA5StringSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -221,7 +215,6 @@ public class IA5StringSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -237,7 +230,6 @@ public class IA5StringSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     return defaultApproximateMatchingRule;
   }
 
@@ -258,8 +250,6 @@ public class IA5StringSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // We will allow any value that does not contain any non-ASCII characters.
     // Empty values are acceptable as well.
     for (byte b : value.value())

@@ -77,7 +77,6 @@ public class RotationConfigUtil
                      getRotationPolicies(ConfigEntry configEntry)
          throws ConfigException
   {
-
     HashSet<String> allowedValues = new HashSet<String>();
     allowedValues.add("size");
     allowedValues.add("timeofday");
@@ -207,7 +206,6 @@ public class RotationConfigUtil
                      getRetentionPolicies(ConfigEntry configEntry)
          throws ConfigException
   {
-
     StringConfigAttribute logFileStub =
                   new StringConfigAttribute(ATTR_LOGGER_FILE,
                   getMessage(MSGID_CONFIG_LOGGER_DESCRIPTION_CLASS_NAME),
@@ -343,7 +341,6 @@ public class RotationConfigUtil
                      getPostRotationActions(ConfigEntry configEntry)
          throws ConfigException
   {
-
     ArrayList<ActionType> actions = new ArrayList<ActionType>();
 
     StringConfigAttribute rotationActionStub =
@@ -447,7 +444,6 @@ public class RotationConfigUtil
   public static int getIntegerAttribute(ConfigEntry configEntry,
       String attrName, int msgID) throws ConfigException
   {
-
     int value = -1;
 
     IntegerConfigAttribute attrStub =

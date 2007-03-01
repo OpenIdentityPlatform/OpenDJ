@@ -108,8 +108,6 @@ public class SearchRequestProtocolOp
                                  boolean typesOnly, LDAPFilter filter,
                                  LinkedHashSet<String> attributes)
   {
-
-
     this.baseDN            = baseDN;
     this.scope             = scope;
     this.dereferencePolicy = dereferencePolicy;
@@ -137,7 +135,6 @@ public class SearchRequestProtocolOp
    */
   public ASN1OctetString getBaseDN()
   {
-
     return baseDN;
   }
 
@@ -150,7 +147,6 @@ public class SearchRequestProtocolOp
    */
   public void setBaseDN(ASN1OctetString baseDN)
   {
-
     this.baseDN = baseDN;
   }
 
@@ -163,7 +159,6 @@ public class SearchRequestProtocolOp
    */
   public SearchScope getScope()
   {
-
     return scope;
   }
 
@@ -176,7 +171,6 @@ public class SearchRequestProtocolOp
    */
   public void setScope(SearchScope scope)
   {
-
     this.scope = scope;
   }
 
@@ -189,7 +183,6 @@ public class SearchRequestProtocolOp
    */
   public DereferencePolicy getDereferencePolicy()
   {
-
     return dereferencePolicy;
   }
 
@@ -203,7 +196,6 @@ public class SearchRequestProtocolOp
    */
   public void setDereferencePolicy(DereferencePolicy dereferencePolicy)
   {
-
     this.dereferencePolicy = dereferencePolicy;
   }
 
@@ -216,7 +208,6 @@ public class SearchRequestProtocolOp
    */
   public int getSizeLimit()
   {
-
     return sizeLimit;
   }
 
@@ -229,7 +220,6 @@ public class SearchRequestProtocolOp
    */
   public void setSizeLimit(int sizeLimit)
   {
-
     this.sizeLimit = sizeLimit;
   }
 
@@ -242,7 +232,6 @@ public class SearchRequestProtocolOp
    */
   public int getTimeLimit()
   {
-
     return timeLimit;
   }
 
@@ -255,7 +244,6 @@ public class SearchRequestProtocolOp
    */
   public void setTimeLimit(int timeLimit)
   {
-
     this.timeLimit = timeLimit;
   }
 
@@ -268,7 +256,6 @@ public class SearchRequestProtocolOp
    */
   public boolean getTypesOnly()
   {
-
     return typesOnly;
   }
 
@@ -281,7 +268,6 @@ public class SearchRequestProtocolOp
    */
   public void setTypesOnly(boolean typesOnly)
   {
-
     this.typesOnly = typesOnly;
   }
 
@@ -294,7 +280,6 @@ public class SearchRequestProtocolOp
    */
   public LDAPFilter getFilter()
   {
-
     return filter;
   }
 
@@ -307,7 +292,6 @@ public class SearchRequestProtocolOp
    */
   public void setFilter(LDAPFilter filter)
   {
-
     this.filter = filter;
   }
 
@@ -321,7 +305,6 @@ public class SearchRequestProtocolOp
    */
   public LinkedHashSet<String> getAttributes()
   {
-
     return attributes;
   }
 
@@ -335,7 +318,6 @@ public class SearchRequestProtocolOp
    */
   public void setAttributes(LinkedHashSet<String> attributes)
   {
-
     if (attributes == null)
     {
       this.attributes.clear();
@@ -355,7 +337,6 @@ public class SearchRequestProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_SEARCH_REQUEST;
   }
 
@@ -368,7 +349,6 @@ public class SearchRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Search Request";
   }
 
@@ -382,7 +362,6 @@ public class SearchRequestProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(8);
     elements.add(baseDN);
     elements.add(new ASN1Enumerated(scope.intValue()));
@@ -419,7 +398,6 @@ public class SearchRequestProtocolOp
   public static SearchRequestProtocolOp decodeSearchRequest(ASN1Element element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -658,7 +636,6 @@ public class SearchRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("SearchRequest(baseDN=");
     baseDN.toString(buffer);
     buffer.append(", scope=");
@@ -702,7 +679,6 @@ public class SearchRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

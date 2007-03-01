@@ -104,7 +104,6 @@ public class BackendMonitor
    */
   public void initializeMonitorProvider(ConfigEntry configEntry)
   {
-
     monitorName = backend.getBackendID() + " Backend";
 
     backendIDType = DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_ID,
@@ -133,7 +132,6 @@ public class BackendMonitor
    */
   public String getMonitorInstanceName()
   {
-
     return monitorName;
   }
 
@@ -148,7 +146,6 @@ public class BackendMonitor
    */
   public ObjectClass getMonitorObjectClass()
   {
-
     return DirectoryConfig.getObjectClass(OC_MONITOR_BACKEND, true);
   }
 
@@ -159,7 +156,6 @@ public class BackendMonitor
    */
   public long getUpdateInterval()
   {
-
     // We don't need do anything on a periodic basis.
     return 0;
   }
@@ -171,7 +167,6 @@ public class BackendMonitor
    */
   public void updateMonitorData()
   {
-
     // No implementaiton is required.
   }
 
@@ -182,7 +177,6 @@ public class BackendMonitor
    */
   public List<Attribute> getMonitorData()
   {
-
     LinkedList<Attribute> attrs = new LinkedList<Attribute>();
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();

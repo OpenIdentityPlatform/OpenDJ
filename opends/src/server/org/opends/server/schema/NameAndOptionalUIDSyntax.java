@@ -98,7 +98,6 @@ public class NameAndOptionalUIDSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_UNIQUE_MEMBER_OID);
     if (defaultEqualityMatchingRule == null)
@@ -127,7 +126,6 @@ public class NameAndOptionalUIDSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
   }
 
@@ -140,7 +138,6 @@ public class NameAndOptionalUIDSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_NAME_AND_OPTIONAL_UID_OID;
   }
 
@@ -153,7 +150,6 @@ public class NameAndOptionalUIDSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_NAME_AND_OPTIONAL_UID_DESCRIPTION;
   }
 
@@ -169,7 +165,6 @@ public class NameAndOptionalUIDSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -185,7 +180,6 @@ public class NameAndOptionalUIDSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     // There is no ordering matching rule by default.
     return null;
   }
@@ -202,7 +196,6 @@ public class NameAndOptionalUIDSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -218,7 +211,6 @@ public class NameAndOptionalUIDSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -240,7 +232,6 @@ public class NameAndOptionalUIDSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     String valueString = value.stringValue().trim();
     int    valueLength = valueString.length();
 

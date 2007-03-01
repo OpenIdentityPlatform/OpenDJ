@@ -91,7 +91,6 @@ public abstract class ExtendedOperationHandler
    */
   public void finalizeExtendedOperationHandler()
   {
-
     // No implementation is required by default.
   }
 
@@ -118,7 +117,6 @@ public abstract class ExtendedOperationHandler
    */
   public Set<String> getSupportedControls()
   {
-
     return supportedControlOIDs;
   }
 
@@ -136,7 +134,6 @@ public abstract class ExtendedOperationHandler
    */
   public final boolean supportsControl(String controlOID)
   {
-
     return getSupportedControls().contains(controlOID);
   }
 
@@ -151,7 +148,6 @@ public abstract class ExtendedOperationHandler
    */
   public Set<String> getSupportedFeatures()
   {
-
     return supportedFeatureOIDs;
   }
 
@@ -169,7 +165,6 @@ public abstract class ExtendedOperationHandler
    */
   public final boolean supportsFeature(String featureOID)
   {
-
     return getSupportedFeatures().contains(featureOID);
   }
 }

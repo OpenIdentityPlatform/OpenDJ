@@ -78,7 +78,6 @@ public abstract class DirectoryServerPlugin
    */
   protected DirectoryServerPlugin()
   {
-
   }
 
 
@@ -95,7 +94,6 @@ public abstract class DirectoryServerPlugin
   public final void initializeInternal(DN pluginDN,
                                        Set<PluginType> pluginTypes)
   {
-
     this.pluginDN    = pluginDN;
     this.pluginTypes = pluginTypes;
   }
@@ -133,7 +131,6 @@ public abstract class DirectoryServerPlugin
    */
   public void finalizePlugin()
   {
-
     // No implementation is required by default.
   }
 
@@ -146,7 +143,6 @@ public abstract class DirectoryServerPlugin
    */
   public final DN getPluginEntryDN()
   {
-
     return pluginDN;
   }
 
@@ -160,7 +156,6 @@ public abstract class DirectoryServerPlugin
    */
   public final Set<PluginType> getPluginTypes()
   {
-
     return pluginTypes;
   }
 
@@ -176,7 +171,6 @@ public abstract class DirectoryServerPlugin
    */
   public StartupPluginResult doStartup()
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                                 PluginType.STARTUP.getName());
@@ -196,7 +190,6 @@ public abstract class DirectoryServerPlugin
    */
   public void doShutdown(String reason)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                                 PluginType.SHUTDOWN.getName());
@@ -219,7 +212,6 @@ public abstract class DirectoryServerPlugin
   public PostConnectPluginResult doPostConnect(ClientConnection
                                                     clientConnection)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                                 PluginType.POST_CONNECT.getName());
@@ -250,7 +242,6 @@ public abstract class DirectoryServerPlugin
                                DisconnectReason disconnectReason,
                                int messageID, String message)
   {
-
     int    msgID = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String msg   = getMessage(msgID, String.valueOf(pluginDN),
                               PluginType.POST_DISCONNECT.getName());
@@ -274,7 +265,6 @@ public abstract class DirectoryServerPlugin
   public LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
                                        Entry entry)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                                 PluginType.LDIF_IMPORT.getName());
@@ -296,7 +286,6 @@ public abstract class DirectoryServerPlugin
   public LDIFPluginResult doLDIFExport(LDIFExportConfig exportConfig,
                                        Entry entry)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                                 PluginType.LDIF_EXPORT.getName());
@@ -317,7 +306,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseAbandonOperation abandonOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_PARSE_ABANDON.getName());
@@ -339,7 +327,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
          getMessage(msgID, String.valueOf(pluginDN),
@@ -360,7 +347,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseAddOperation addOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                                 PluginType.PRE_PARSE_ADD.getName());
@@ -383,7 +369,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationAddOperation addOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_OPERATION_ADD.getName());
@@ -406,7 +391,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationAddOperation addOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_OPERATION_ADD.getName());
@@ -429,7 +413,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseAddOperation addOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_RESPONSE_ADD.getName());
@@ -450,7 +433,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseBindOperation bindOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                                 PluginType.PRE_PARSE_BIND.getName());
@@ -471,7 +453,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationBindOperation bindOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_OPERATION_BIND.getName());
@@ -494,7 +475,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationBindOperation bindOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_OPERATION_BIND.getName());
@@ -517,7 +497,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseBindOperation bindOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_RESPONSE_BIND.getName());
@@ -538,7 +517,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseCompareOperation compareOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_PARSE_COMPARE.getName());
@@ -559,7 +537,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationCompareOperation compareOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_OPERATION_COMPARE.getName());
@@ -582,7 +559,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationCompareOperation compareOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
          getMessage(msgID, String.valueOf(pluginDN),
@@ -606,7 +582,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseCompareOperation compareOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_RESPONSE_COMPARE.getName());
@@ -627,7 +602,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseDeleteOperation deleteOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_PARSE_DELETE.getName());
@@ -650,7 +624,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_OPERATION_DELETE.getName());
@@ -673,7 +646,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_OPERATION_DELETE.getName());
@@ -696,7 +668,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_RESPONSE_DELETE.getName());
@@ -717,7 +688,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseExtendedOperation extendedOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_PARSE_EXTENDED.getName());
@@ -739,7 +709,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
          getMessage(msgID, String.valueOf(pluginDN),
@@ -765,7 +734,6 @@ public abstract class DirectoryServerPlugin
        doPostOperation(PostOperationExtendedOperation
                             extendedOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
          getMessage(msgID, String.valueOf(pluginDN),
@@ -789,7 +757,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
          getMessage(msgID, String.valueOf(pluginDN),
@@ -811,7 +778,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseModifyOperation modifyOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_PARSE_MODIFY.getName());
@@ -834,7 +800,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_OPERATION_MODIFY.getName());
@@ -857,7 +822,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_OPERATION_MODIFY.getName());
@@ -880,7 +844,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseModifyOperation modifyOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_RESPONSE_MODIFY.getName());
@@ -901,7 +864,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_PARSE_MODIFY_DN.getName());
@@ -925,7 +887,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
          getMessage(msgID, String.valueOf(pluginDN),
@@ -950,7 +911,6 @@ public abstract class DirectoryServerPlugin
        doPostOperation(PostOperationModifyDNOperation
                             modifyDNOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
          getMessage(msgID, String.valueOf(pluginDN),
@@ -974,7 +934,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
          getMessage(msgID, String.valueOf(pluginDN),
@@ -996,7 +955,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseSearchOperation searchOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_PARSE_SEARCH.getName());
@@ -1017,7 +975,6 @@ public abstract class DirectoryServerPlugin
   public PreOperationPluginResult
        doPreOperation(PreOperationSearchOperation searchOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_OPERATION_SEARCH.getName());
@@ -1046,7 +1003,6 @@ public abstract class DirectoryServerPlugin
        processSearchEntry(SearchEntrySearchOperation searchOperation,
                           SearchResultEntry searchEntry)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.SEARCH_RESULT_ENTRY.getName());
@@ -1072,7 +1028,6 @@ public abstract class DirectoryServerPlugin
                                    searchOperation,
                               SearchResultReference searchReference)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message =
          getMessage(msgID, String.valueOf(pluginDN),
@@ -1096,7 +1051,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationSearchOperation searchOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_OPERATION_SEARCH.getName());
@@ -1119,7 +1073,6 @@ public abstract class DirectoryServerPlugin
   public PostResponsePluginResult
        doPostResponse(PostResponseSearchOperation searchOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_RESPONSE_SEARCH.getName());
@@ -1140,7 +1093,6 @@ public abstract class DirectoryServerPlugin
   public PreParsePluginResult
        doPreParse(PreParseUnbindOperation unbindOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.PRE_PARSE_UNBIND.getName());
@@ -1162,7 +1114,6 @@ public abstract class DirectoryServerPlugin
   public PostOperationPluginResult
        doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.POST_OPERATION_UNBIND.getName());
@@ -1184,7 +1135,6 @@ public abstract class DirectoryServerPlugin
               processIntermediateResponse(
                    IntermediateResponse intermediateResponse)
   {
-
     int    msgID   = MSGID_PLUGIN_TYPE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(pluginDN),
                           PluginType.INTERMEDIATE_RESPONSE.getName());

@@ -142,7 +142,6 @@ public class ExtendedOperation
    */
   public final String getRequestOID()
   {
-
     return requestOID;
   }
 
@@ -157,7 +156,6 @@ public class ExtendedOperation
    */
   public final void setRequestOID(String requestOID)
   {
-
     this.requestOID = requestOID;
   }
 
@@ -171,7 +169,6 @@ public class ExtendedOperation
    */
   public final ASN1OctetString getRequestValue()
   {
-
     return requestValue;
   }
 
@@ -186,7 +183,6 @@ public class ExtendedOperation
    */
   public final void setRequestValue(ASN1OctetString requestValue)
   {
-
     this.requestValue = requestValue;
   }
 
@@ -200,7 +196,6 @@ public class ExtendedOperation
    */
   public final String getResponseOID()
   {
-
     return responseOID;
   }
 
@@ -214,7 +209,6 @@ public class ExtendedOperation
    */
   public final void setResponseOID(String responseOID)
   {
-
     this.responseOID = responseOID;
   }
 
@@ -228,7 +222,6 @@ public class ExtendedOperation
    */
   public final ASN1OctetString getResponseValue()
   {
-
     return responseValue;
   }
 
@@ -242,7 +235,6 @@ public class ExtendedOperation
    */
   public final void setResponseValue(ASN1OctetString responseValue)
   {
-
     this.responseValue = responseValue;
   }
 
@@ -254,7 +246,6 @@ public class ExtendedOperation
   @Override()
   public final long getProcessingStartTime()
   {
-
     return processingStartTime;
   }
 
@@ -266,7 +257,6 @@ public class ExtendedOperation
   @Override()
   public final long getProcessingStopTime()
   {
-
     return processingStopTime;
   }
 
@@ -278,7 +268,6 @@ public class ExtendedOperation
   @Override()
   public final long getProcessingTime()
   {
-
     return (processingStopTime - processingStartTime);
   }
 
@@ -410,7 +399,6 @@ public class ExtendedOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-
     return responseControls;
   }
 
@@ -444,7 +432,6 @@ public class ExtendedOperation
   @Override()
   public final void run()
   {
-
     setResultCode(ResultCode.UNDEFINED);
 
 
@@ -678,7 +665,6 @@ extendedProcessing:
    */
   public final void sendExtendedResponse()
   {
-
     if (! responseSent)
     {
       responseSent = true;
@@ -696,7 +682,6 @@ extendedProcessing:
    */
   public final void setResponseSent()
   {
-
     this.responseSent = true;
   }
 
@@ -708,7 +693,6 @@ extendedProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
 
     CancelResult cancelResult = getCancelResult();
@@ -751,7 +735,6 @@ extendedProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-
     return cancelRequest;
   }
 
@@ -763,7 +746,6 @@ extendedProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
     return true;
   }
@@ -776,7 +758,6 @@ extendedProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-
     buffer.append("ExtendedOperation(connID=");
     buffer.append(clientConnection.getConnectionID());
     buffer.append(", opID=");

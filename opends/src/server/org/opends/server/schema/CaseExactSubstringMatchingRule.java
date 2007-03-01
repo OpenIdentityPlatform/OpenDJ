@@ -80,7 +80,6 @@ public class CaseExactSubstringMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -94,7 +93,6 @@ public class CaseExactSubstringMatchingRule
    */
   public String getName()
   {
-
     return SMR_CASE_EXACT_NAME;
   }
 
@@ -107,7 +105,6 @@ public class CaseExactSubstringMatchingRule
    */
   public String getOID()
   {
-
     return SMR_CASE_EXACT_OID;
   }
 
@@ -121,7 +118,6 @@ public class CaseExactSubstringMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -136,7 +132,6 @@ public class CaseExactSubstringMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_SUBSTRING_ASSERTION_OID;
   }
 
@@ -156,7 +151,6 @@ public class CaseExactSubstringMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append(value.stringValue().trim());
 
@@ -208,7 +202,6 @@ public class CaseExactSubstringMatchingRule
   public ByteString normalizeSubstring(ByteString substring)
          throws DirectoryException
   {
-
     // In this case, the process for normalizing a substring is the same as
     // normalizing a full value with the exception that it may include an
     // opening or trailing space.
@@ -270,8 +263,6 @@ public class CaseExactSubstringMatchingRule
                                        List<ByteString> subAnyElements,
                                        ByteString subFinal)
   {
-
-
     byte[] valueBytes = value.value();
     int valueLength = valueBytes.length;
 

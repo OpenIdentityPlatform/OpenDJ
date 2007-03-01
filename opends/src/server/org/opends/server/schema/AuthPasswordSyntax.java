@@ -93,7 +93,6 @@ public class AuthPasswordSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_AUTH_PASSWORD_EXACT_OID);
     if (defaultEqualityMatchingRule == null)
@@ -113,7 +112,6 @@ public class AuthPasswordSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_AUTH_PASSWORD_NAME;
   }
 
@@ -126,7 +124,6 @@ public class AuthPasswordSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_AUTH_PASSWORD_OID;
   }
 
@@ -139,7 +136,6 @@ public class AuthPasswordSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_AUTH_PASSWORD_DESCRIPTION;
   }
 
@@ -155,7 +151,6 @@ public class AuthPasswordSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -171,7 +166,6 @@ public class AuthPasswordSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     // There is no ordering matching rule by default.
     return null;
   }
@@ -188,7 +182,6 @@ public class AuthPasswordSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     // There is no substring matching rule by default.
     return null;
   }
@@ -205,7 +198,6 @@ public class AuthPasswordSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -227,7 +219,6 @@ public class AuthPasswordSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     try
     {
       decodeAuthPassword(value.stringValue());
@@ -257,8 +248,6 @@ public class AuthPasswordSyntax
   public static StringBuilder[] decodeAuthPassword(String authPasswordValue)
          throws DirectoryException
   {
-
-
     // Create placeholders for the values to return.
     StringBuilder scheme    = new StringBuilder();
     StringBuilder authInfo  = new StringBuilder();
@@ -510,8 +499,6 @@ readAuthValue:
    */
   public static boolean isEncoded(ByteString value)
   {
-
-
     // FIXME -- Make this more efficient, and don't use exceptions for flow
     // control.
 

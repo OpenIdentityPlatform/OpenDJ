@@ -158,8 +158,6 @@ public class BackupBackend
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-
-
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
     if (configEntry == null)
@@ -308,7 +306,6 @@ public class BackupBackend
    */
   public void finalizeBackend()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
 
     try
@@ -333,7 +330,6 @@ public class BackupBackend
    */
   public DN[] getBaseDNs()
   {
-
     return baseDNs;
   }
 
@@ -344,7 +340,6 @@ public class BackupBackend
    */
   public long getEntryCount()
   {
-
     int numEntries = 1;
 
     AttributeType backupPathType =
@@ -385,7 +380,6 @@ public class BackupBackend
    */
   public boolean isLocal()
   {
-
     // For the purposes of this method, this is a local backend.
     return true;
   }
@@ -406,8 +400,6 @@ public class BackupBackend
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-
-
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
@@ -471,8 +463,6 @@ public class BackupBackend
   private Entry getBackupDirectoryEntry(DN entryDN)
          throws DirectoryException
   {
-
-
     // Make sure that the DN specifies a backup directory.
     AttributeType t =
          DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
@@ -573,8 +563,6 @@ public class BackupBackend
   private Entry getBackupEntry(DN entryDN)
           throws DirectoryException
   {
-
-
     // First, get the backup ID from the entry DN.
     AttributeType idType = DirectoryServer.getAttributeType(ATTR_BACKUP_ID,
                                                             true);
@@ -797,7 +785,6 @@ public class BackupBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_BACKUP_ADD_NOT_SUPPORTED;
     String message = getMessage(msgID);
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -823,7 +810,6 @@ public class BackupBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_BACKUP_DELETE_NOT_SUPPORTED;
     String message = getMessage(msgID);
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -849,7 +835,6 @@ public class BackupBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_BACKUP_MODIFY_NOT_SUPPORTED;
     String message = getMessage(msgID);
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -877,7 +862,6 @@ public class BackupBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_BACKUP_MODIFY_DN_NOT_SUPPORTED;
     String message = getMessage(msgID);
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -899,8 +883,6 @@ public class BackupBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-
-
     // Get the base entry for the search, if possible.  If it doesn't exist,
     // then this will throw an exception.
     DN    baseDN    = searchOperation.getBaseDN();
@@ -1097,7 +1079,6 @@ public class BackupBackend
    */
   public HashSet<String> getSupportedControls()
   {
-
     return supportedControls;
   }
 
@@ -1110,7 +1091,6 @@ public class BackupBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-
     return supportedFeatures;
   }
 
@@ -1125,7 +1105,6 @@ public class BackupBackend
    */
   public boolean supportsLDIFExport()
   {
-
     // We do not support LDIF exports.
     return false;
   }
@@ -1149,7 +1128,6 @@ public class BackupBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_BACKUP_EXPORT_NOT_SUPPORTED;
     String message = getMessage(msgID);
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -1167,7 +1145,6 @@ public class BackupBackend
    */
   public boolean supportsLDIFImport()
   {
-
     // This backend does not support LDIF imports.
     return false;
   }
@@ -1191,8 +1168,6 @@ public class BackupBackend
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-
-
     // This backend does not support LDIF imports.
     int    msgID   = MSGID_BACKUP_IMPORT_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1215,7 +1190,6 @@ public class BackupBackend
    */
   public boolean supportsBackup()
   {
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -1240,8 +1214,6 @@ public class BackupBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -1264,8 +1236,6 @@ public class BackupBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     int    msgID   = MSGID_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1291,8 +1261,6 @@ public class BackupBackend
                            String backupID)
          throws DirectoryException
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     int    msgID   = MSGID_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1310,8 +1278,6 @@ public class BackupBackend
    */
   public boolean supportsRestore()
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -1335,8 +1301,6 @@ public class BackupBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     int    msgID   = MSGID_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1355,7 +1319,6 @@ public class BackupBackend
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -1370,8 +1333,6 @@ public class BackupBackend
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     LinkedList<ConfigAttribute> attrs = new LinkedList<ConfigAttribute>();
 
 
@@ -1408,8 +1369,6 @@ public class BackupBackend
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // We'll accept anything here.  The only configurable attribute is the
     // default set of backup directories, but that doesn't require any
     // validation at this point.
@@ -1437,8 +1396,6 @@ public class BackupBackend
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

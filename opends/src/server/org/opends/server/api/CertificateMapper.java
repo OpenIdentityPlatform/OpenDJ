@@ -79,7 +79,6 @@ public abstract class CertificateMapper
    */
   public void finalizeCertificateMapper()
   {
-
     // No implementation is required by default.
   }
 

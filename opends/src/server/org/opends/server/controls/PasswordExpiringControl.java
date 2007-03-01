@@ -140,7 +140,6 @@ public class PasswordExpiringControl
   public static PasswordExpiringControl decodeControl(Control control)
          throws LDAPException
   {
-
     if (! control.hasValue())
     {
       int    msgID   = MSGID_PWEXPIRING_NO_CONTROL_VALUE;
@@ -183,7 +182,6 @@ public class PasswordExpiringControl
    */
   public int getSecondsUntilExpiration()
   {
-
     return secondsUntilExpiration;
   }
 
@@ -196,7 +194,6 @@ public class PasswordExpiringControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -212,7 +209,6 @@ public class PasswordExpiringControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("PasswordExpiringControl(secondsUntilExpiration=");
     buffer.append(secondsUntilExpiration);
     buffer.append(")");

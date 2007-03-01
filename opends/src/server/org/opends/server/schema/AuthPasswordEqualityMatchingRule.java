@@ -88,7 +88,6 @@ public class AuthPasswordEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -102,7 +101,6 @@ public class AuthPasswordEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_AUTH_PASSWORD_NAME;
   }
 
@@ -115,7 +113,6 @@ public class AuthPasswordEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_AUTH_PASSWORD_OID;
   }
 
@@ -129,7 +126,6 @@ public class AuthPasswordEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return EMR_AUTH_PASSWORD_DESCRIPTION;
   }
@@ -144,7 +140,6 @@ public class AuthPasswordEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_AUTH_PASSWORD_OID;
   }
 
@@ -164,8 +159,6 @@ public class AuthPasswordEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
-
     // We will not alter the value in any way, but we'll create a new value
     // just in case something else is using the underlying array.
     byte[] currentValue = value.value();
@@ -189,7 +182,6 @@ public class AuthPasswordEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.
     return Arrays.equals(value1.value(), value2.value());
@@ -215,8 +207,6 @@ public class AuthPasswordEqualityMatchingRule
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)
   {
-
-
     // We must be able to decode the attribute value using the authentication
     // password syntax.
     StringBuilder[] authPWComponents;
@@ -279,8 +269,6 @@ public class AuthPasswordEqualityMatchingRule
    */
   public int generateHashCode(AttributeValue attributeValue)
   {
-
-
     // Because of the variable encoding that may be used, we have no way of
     // comparing two auth password values by hash code and therefore we'll
     // always return the same value so that the valuesMatch method will be

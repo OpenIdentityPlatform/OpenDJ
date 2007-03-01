@@ -102,7 +102,6 @@ public class AbandonOperation
    */
   public final int getIDToAbandon()
   {
-
     return idToAbandon;
   }
 
@@ -114,7 +113,6 @@ public class AbandonOperation
   @Override()
   public final long getProcessingStartTime()
   {
-
     return processingStartTime;
   }
 
@@ -126,7 +124,6 @@ public class AbandonOperation
   @Override()
   public final long getProcessingStopTime()
   {
-
     return processingStopTime;
   }
 
@@ -138,7 +135,6 @@ public class AbandonOperation
   @Override()
   public final long getProcessingTime()
   {
-
     return (processingStopTime - processingStartTime);
   }
 
@@ -150,7 +146,6 @@ public class AbandonOperation
   @Override()
   public final OperationType getOperationType()
   {
-
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
 
@@ -181,7 +176,6 @@ public class AbandonOperation
   @Override()
   public final String[][] getRequestLogElements()
   {
-
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
 
@@ -236,7 +230,6 @@ public class AbandonOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-
     // An abandon operation can never have a response, so just return an empty
     // list.
     return NO_RESPONSE_CONTROLS;
@@ -272,7 +265,6 @@ public class AbandonOperation
   @Override()
   public final void run()
   {
-
     setResultCode(ResultCode.UNDEFINED);
 
 
@@ -373,7 +365,6 @@ abandonProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-
     cancelRequest.addResponseMessage(getMessage(MSGID_CANNOT_CANCEL_ABANDON));
     return CancelResult.CANNOT_CANCEL;
   }
@@ -386,7 +377,6 @@ abandonProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-
     return null;
   }
 
@@ -398,7 +388,6 @@ abandonProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-
     // Abandon operations cannot be canceled.
     return false;
   }
@@ -411,7 +400,6 @@ abandonProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-
     buffer.append("AbandonOperation(connID=");
     buffer.append(clientConnection.getConnectionID());
     buffer.append(", opID=");

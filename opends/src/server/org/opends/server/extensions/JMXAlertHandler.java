@@ -126,7 +126,6 @@ public class JMXAlertHandler
   public void initializeAlertHandler(ConfigEntry configEntry)
        throws ConfigException, InitializationException
   {
-
     sequenceNumber = new AtomicLong(1);
 
     if (configEntry == null)
@@ -174,7 +173,6 @@ public class JMXAlertHandler
    */
   public void finalizeAlertHandler()
   {
-
     // No action is required.
   }
 
@@ -187,7 +185,6 @@ public class JMXAlertHandler
    */
   public ObjectName getObjectName()
   {
-
     return objectName;
   }
 
@@ -206,7 +203,6 @@ public class JMXAlertHandler
   public void sendAlertNotification(AlertGenerator generator, String alertType,
                                     int alertID, String alertMessage)
   {
-
     sendNotification(new Notification(alertType, generator.getClassName(),
                                       sequenceNumber.getAndIncrement(),
                                       System.currentTimeMillis(),
@@ -224,7 +220,6 @@ public class JMXAlertHandler
    */
   public MBeanNotificationInfo[] getNotificationInfo()
   {
-
     ArrayList<MBeanNotificationInfo> notifications =
          new ArrayList<MBeanNotificationInfo>();
     ConcurrentHashMap<DN,JMXMBean> mBeans = DirectoryServer.getJMXMBeans();
@@ -258,7 +253,6 @@ public class JMXAlertHandler
   public Attribute getAttribute(String attribute)
          throws AttributeNotFoundException
   {
-
     // There are no attributes for this MBean.
     int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
     String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -283,8 +277,6 @@ public class JMXAlertHandler
   public void setAttribute(Attribute attribute)
          throws AttributeNotFoundException, InvalidAttributeValueException
   {
-
-
     // There are no attributes for this MBean.
     int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
     String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -303,8 +295,6 @@ public class JMXAlertHandler
    */
   public AttributeList getAttributes(String[] attributes)
   {
-
-
     // There are no attributes for this MBean.
     return new AttributeList();
   }
@@ -322,7 +312,6 @@ public class JMXAlertHandler
    */
   public AttributeList setAttributes(AttributeList attributes)
   {
-
     // There are no attributes for this MBean.
     return new AttributeList();
   }
@@ -349,7 +338,6 @@ public class JMXAlertHandler
   public Object invoke(String actionName, Object[] params, String[] signature)
          throws MBeanException
   {
-
     // There are no invokable components for this MBean.
     StringBuilder buffer = new StringBuilder();
     buffer.append(actionName);
@@ -385,7 +373,6 @@ public class JMXAlertHandler
    */
   public MBeanInfo getMBeanInfo()
   {
-
     return new MBeanInfo(CLASS_NAME, "JMX Alert Handler",
                          new MBeanAttributeInfo[0], new MBeanConstructorInfo[0],
                          new MBeanOperationInfo[0], getNotificationInfo());

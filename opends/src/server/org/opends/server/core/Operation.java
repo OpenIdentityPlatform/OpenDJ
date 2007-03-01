@@ -153,7 +153,6 @@ public abstract class Operation
   protected Operation(ClientConnection clientConnection, long operationID,
                       int messageID, List<Control> requestControls)
   {
-
     this.clientConnection = clientConnection;
     this.operationID      = operationID;
     this.messageID        = messageID;
@@ -275,7 +274,6 @@ public abstract class Operation
    */
   public final ClientConnection getClientConnection()
   {
-
     return clientConnection;
   }
 
@@ -290,7 +288,6 @@ public abstract class Operation
    */
   public final long getConnectionID()
   {
-
     return clientConnection.getConnectionID();
   }
 
@@ -303,7 +300,6 @@ public abstract class Operation
    */
   public final long getOperationID()
   {
-
     return operationID;
   }
 
@@ -316,7 +312,6 @@ public abstract class Operation
    */
   public final int getMessageID()
   {
-
     return messageID;
   }
 
@@ -330,7 +325,6 @@ public abstract class Operation
    */
   public final List<Control> getRequestControls()
   {
-
     return requestControls;
   }
 
@@ -345,7 +339,6 @@ public abstract class Operation
    */
   public final void addRequestControl(Control control)
   {
-
     requestControls.add(control);
   }
 
@@ -360,7 +353,6 @@ public abstract class Operation
    */
   public final void removeRequestControl(Control control)
   {
-
     requestControls.remove(control);
   }
 
@@ -407,7 +399,6 @@ public abstract class Operation
    */
   public final ResultCode getResultCode()
   {
-
     return resultCode;
   }
 
@@ -421,7 +412,6 @@ public abstract class Operation
    */
   public final void setResultCode(ResultCode resultCode)
   {
-
     this.resultCode = resultCode;
   }
 
@@ -436,7 +426,6 @@ public abstract class Operation
    */
   public final StringBuilder getErrorMessage()
   {
-
     return errorMessage;
   }
 
@@ -450,7 +439,6 @@ public abstract class Operation
    */
   public final void setErrorMessage(StringBuilder errorMessage)
   {
-
     if (errorMessage == null)
     {
       this.errorMessage = new StringBuilder();
@@ -472,7 +460,6 @@ public abstract class Operation
    */
   public final void appendErrorMessage(String message)
   {
-
     if (errorMessage == null)
     {
       errorMessage = new StringBuilder(message);
@@ -500,7 +487,6 @@ public abstract class Operation
    */
   public final StringBuilder getAdditionalLogMessage()
   {
-
     return additionalLogMessage;
   }
 
@@ -516,7 +502,6 @@ public abstract class Operation
    */
   public final void setAdditionalLogMessage(StringBuilder additionalLogMessage)
   {
-
     if (additionalLogMessage == null)
     {
       this.additionalLogMessage = new StringBuilder();
@@ -538,7 +523,6 @@ public abstract class Operation
    */
   public final void appendAdditionalLogMessage(String message)
   {
-
     if (additionalLogMessage == null)
     {
       additionalLogMessage = new StringBuilder(message);
@@ -559,7 +543,6 @@ public abstract class Operation
    */
   public final DN getMatchedDN()
   {
-
     return matchedDN;
   }
 
@@ -573,7 +556,6 @@ public abstract class Operation
    */
   public final void setMatchedDN(DN matchedDN)
   {
-
     this.matchedDN = matchedDN;
   }
 
@@ -589,7 +571,6 @@ public abstract class Operation
    */
   public final List<String> getReferralURLs()
   {
-
     return referralURLs;
   }
 
@@ -603,7 +584,6 @@ public abstract class Operation
    */
   public final void setReferralURLs(List<String> referralURLs)
   {
-
     this.referralURLs = referralURLs;
   }
 
@@ -619,7 +599,6 @@ public abstract class Operation
    */
   public final void setResponseData(DirectoryException directoryException)
   {
-
     this.resultCode   = directoryException.getResultCode();
     this.matchedDN    = directoryException.getMatchedDN();
     this.referralURLs = directoryException.getReferralURLs();
@@ -638,7 +617,6 @@ public abstract class Operation
    */
   public final boolean isInternalOperation()
   {
-
     return isInternalOperation;
   }
 
@@ -655,7 +633,6 @@ public abstract class Operation
    */
   public final void setInternalOperation(boolean isInternalOperation)
   {
-
     this.isInternalOperation = isInternalOperation;
   }
 
@@ -670,7 +647,6 @@ public abstract class Operation
    */
   public final boolean isSynchronizationOperation()
   {
-
     return isSynchronizationOperation;
   }
 
@@ -689,7 +665,6 @@ public abstract class Operation
   public final void setSynchronizationOperation(
                          boolean isSynchronizationOperation)
   {
-
     this.isSynchronizationOperation = isSynchronizationOperation;
   }
 
@@ -704,7 +679,6 @@ public abstract class Operation
    */
   public final void setDontSynchronize(boolean dontSynchronize)
   {
-
     this.dontSynchronizeFlag = dontSynchronize;
   }
 
@@ -724,7 +698,6 @@ public abstract class Operation
    */
   public final Entry getAuthorizationEntry()
   {
-
     return authorizationEntry;
   }
 
@@ -760,7 +733,6 @@ public abstract class Operation
    */
   public final DN getAuthorizationDN()
   {
-
     if (authorizationEntry == null)
     {
       return DN.nullDN();
@@ -781,7 +753,6 @@ public abstract class Operation
    */
   public final Map<String,Object> getAttachments()
   {
-
     return attachments;
   }
 
@@ -798,7 +769,6 @@ public abstract class Operation
    */
   public final Object getAttachment(String name)
   {
-
     return attachments.get(name);
   }
 
@@ -815,7 +785,6 @@ public abstract class Operation
    */
   public final Object removeAttachment(String name)
   {
-
     return attachments.remove(name);
   }
 
@@ -834,7 +803,6 @@ public abstract class Operation
    */
   public final Object setAttachment(String name, Object value)
   {
-
     return attachments.put(name, value);
   }
 
@@ -888,8 +856,6 @@ public abstract class Operation
    */
   public final void operationCompleted()
   {
-
-
     // Notify the client connection that this operation is complete and that it
     // no longer needs to be retained.
     clientConnection.removeOperationInProgress(messageID);
@@ -946,7 +912,6 @@ public abstract class Operation
    */
   public final CancelResult getCancelResult()
   {
-
     return cancelResult;
   }
 
@@ -959,7 +924,6 @@ public abstract class Operation
    */
   public final void setCancelResult(CancelResult cancelResult)
   {
-
     this.cancelResult = cancelResult;
   }
 
@@ -976,7 +940,6 @@ public abstract class Operation
    */
   protected final void indicateCancelled(CancelRequest cancelRequest)
   {
-
     setCancelResult(CancelResult.CANCELED);
 
     if (cancelRequest.notifyOriginalRequestor() ||
@@ -1003,7 +966,6 @@ public abstract class Operation
    */
   public final String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();

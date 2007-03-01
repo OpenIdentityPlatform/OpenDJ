@@ -152,7 +152,6 @@ public class UnbindOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-
     // An unbind operation can never have a response, so just return an empty
     // list.
     return NO_RESPONSE_CONTROLS;
@@ -188,7 +187,6 @@ public class UnbindOperation
   @Override()
   public long getProcessingStartTime()
   {
-
     return processingStartTime;
   }
 
@@ -200,7 +198,6 @@ public class UnbindOperation
   @Override()
   public long getProcessingStopTime()
   {
-
     return processingStopTime;
   }
 
@@ -212,7 +209,6 @@ public class UnbindOperation
   @Override()
   public long getProcessingTime()
   {
-
     return (processingStopTime - processingStartTime);
   }
 
@@ -224,8 +220,6 @@ public class UnbindOperation
   @Override()
   public final void run()
   {
-
-
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
          DirectoryServer.getPluginConfigManager();
@@ -266,7 +260,6 @@ public class UnbindOperation
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-
     cancelRequest.addResponseMessage(getMessage(MSGID_CANNOT_CANCEL_UNBIND));
     return CancelResult.CANNOT_CANCEL;
   }
@@ -279,7 +272,6 @@ public class UnbindOperation
   @Override()
   public final CancelRequest getCancelRequest()
   {
-
     return null;
   }
 
@@ -291,7 +283,6 @@ public class UnbindOperation
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-
     // Unbind operations cannot be canceled.
     return false;
   }
@@ -304,7 +295,6 @@ public class UnbindOperation
   @Override()
   public final void toString(StringBuilder buffer)
   {
-
     buffer.append("UnbindOperation(connID=");
     buffer.append(clientConnection.getConnectionID());
     buffer.append(", opID=");

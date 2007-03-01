@@ -183,8 +183,6 @@ public class TaskBackend
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-
-
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete the initialization.
     if (configEntry == null)
@@ -375,8 +373,6 @@ public class TaskBackend
    */
   public void finalizeBackend()
   {
-
-
     DirectoryServer.deregisterConfigurableComponent(this);
 
 
@@ -430,7 +426,6 @@ public class TaskBackend
    */
   public DN[] getBaseDNs()
   {
-
     return baseDNs;
   }
 
@@ -441,7 +436,6 @@ public class TaskBackend
    */
   public long getEntryCount()
   {
-
     if (taskScheduler != null)
     {
       return taskScheduler.getEntryCount();
@@ -463,7 +457,6 @@ public class TaskBackend
    */
   public boolean isLocal()
   {
-
     // For the purposes of this method, this is a local backend.
     return true;
   }
@@ -484,8 +477,6 @@ public class TaskBackend
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-
-
     if (entryDN == null)
     {
       return null;
@@ -546,8 +537,6 @@ public class TaskBackend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-
-
     if (entryDN == null)
     {
       return false;
@@ -597,8 +586,6 @@ public class TaskBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-
-
     // Get the DN for the entry and then get its parent.
     DN entryDN = entry.getDN();
     DN parentDN = entryDN.getParentDNInSuffix();
@@ -657,8 +644,6 @@ public class TaskBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-
-
     // Get the parent for the provided entry DN.  It must be either the
     // scheduled or recurring task parent DN.
     DN parentDN = entryDN.getParentDNInSuffix();
@@ -744,7 +729,6 @@ public class TaskBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-
     // FIXME -- We need to support this.
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                  "Modify operations are not yet supported in " +
@@ -772,8 +756,6 @@ public class TaskBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-
-
     int    msgID   = MSGID_TASKBE_MODIFY_DN_NOT_SUPPORTED;
     String message = getMessage(msgID);
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -799,8 +781,6 @@ public class TaskBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException, CancelledOperationException
   {
-
-
     // Look at the base DN and scope for the search operation to decide which
     // entries we need to look at.
     boolean searchRoot            = false;
@@ -1019,7 +999,6 @@ public class TaskBackend
    */
   public HashSet<String> getSupportedControls()
   {
-
     return supportedControls;
   }
 
@@ -1032,7 +1011,6 @@ public class TaskBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-
     return supportedFeatures;
   }
 
@@ -1047,7 +1025,6 @@ public class TaskBackend
    */
   public boolean supportsLDIFExport()
   {
-
     // LDIF exports are supported.
     return true;
   }
@@ -1071,8 +1048,6 @@ public class TaskBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-
-
     // FIXME -- Implement support for exporting to LDIF.
   }
 
@@ -1087,7 +1062,6 @@ public class TaskBackend
    */
   public boolean supportsLDIFImport()
   {
-
     // This backend does not support LDIF imports.
     return false;
   }
@@ -1111,8 +1085,6 @@ public class TaskBackend
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-
-
     // This backend does not support LDIF imports.
     int    msgID   = MSGID_TASKBE_IMPORT_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1135,7 +1107,6 @@ public class TaskBackend
    */
   public boolean supportsBackup()
   {
-
     // This backend does provide a backup/restore mechanism.
     return true;
   }
@@ -1160,8 +1131,6 @@ public class TaskBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-
-
     // This backend does provide a backup/restore mechanism.
     return true;
   }
@@ -1184,8 +1153,6 @@ public class TaskBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-
-
     // NYI -- Create the backup.
   }
 
@@ -1207,8 +1174,6 @@ public class TaskBackend
                            String backupID)
          throws DirectoryException
   {
-
-
     // NYI -- Remove the backup.
   }
 
@@ -1222,8 +1187,6 @@ public class TaskBackend
    */
   public boolean supportsRestore()
   {
-
-
     // This backend does provide a backup/restore mechanism.
     return true;
   }
@@ -1247,8 +1210,6 @@ public class TaskBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-
-
     // NYI -- Restore the backup.
   }
 
@@ -1263,7 +1224,6 @@ public class TaskBackend
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -1278,7 +1238,6 @@ public class TaskBackend
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     String description = getMessage(MSGID_TASKBE_DESCRIPTION_BACKING_FILE);
@@ -1315,8 +1274,6 @@ public class TaskBackend
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     boolean configIsAcceptable = true;
 
 
@@ -1444,8 +1401,6 @@ public class TaskBackend
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -1597,7 +1552,6 @@ public class TaskBackend
    */
   public DN getConfigEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -1612,7 +1566,6 @@ public class TaskBackend
    */
   public String getTaskBackingFile()
   {
-
     File f = getFileForPath(taskBackingFile);
     return f.getPath();
   }
@@ -1628,7 +1581,6 @@ public class TaskBackend
    */
   public long getRetentionTime()
   {
-
     return retentionTime;
   }
 
@@ -1643,7 +1595,6 @@ public class TaskBackend
    */
   public DN getTaskRootDN()
   {
-
     return taskRootDN;
   }
 
@@ -1658,7 +1609,6 @@ public class TaskBackend
    */
   public DN getRecurringTasksParentDN()
   {
-
     return recurringTaskParentDN;
   }
 
@@ -1673,7 +1623,6 @@ public class TaskBackend
    */
   public DN getScheduledTasksParentDN()
   {
-
     return scheduledTaskParentDN;
   }
 
@@ -1689,7 +1638,6 @@ public class TaskBackend
    */
   public Task getScheduledTask(DN taskEntryDN)
   {
-
     return taskScheduler.getScheduledTask(taskEntryDN);
   }
 
@@ -1706,7 +1654,6 @@ public class TaskBackend
    */
   public RecurringTask getRecurringTask(DN taskEntryDN)
   {
-
     return taskScheduler.getRecurringTask(taskEntryDN);
   }
 }

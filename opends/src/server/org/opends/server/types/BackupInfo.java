@@ -203,7 +203,6 @@ public class BackupInfo
                     HashSet<String> dependencies,
                     HashMap<String,String> backupProperties)
   {
-
     this.backupDirectory = backupDirectory;
     this.backupID        = backupID;
     this.backupDate      = backupDate;
@@ -243,7 +242,6 @@ public class BackupInfo
    */
   public BackupDirectory getBackupDirectory()
   {
-
     return backupDirectory;
   }
 
@@ -256,7 +254,6 @@ public class BackupInfo
    */
   public String getBackupID()
   {
-
     return backupID;
   }
 
@@ -282,7 +279,6 @@ public class BackupInfo
    */
   public boolean isIncremental()
   {
-
     return isIncremental;
   }
 
@@ -296,7 +292,6 @@ public class BackupInfo
    */
   public boolean isCompressed()
   {
-
     return isCompressed;
   }
 
@@ -310,7 +305,6 @@ public class BackupInfo
    */
   public boolean isEncrypted()
   {
-
     return isEncrypted;
   }
 
@@ -325,7 +319,6 @@ public class BackupInfo
    */
   public byte[] getUnsignedHash()
   {
-
     return unsignedHash;
   }
 
@@ -340,7 +333,6 @@ public class BackupInfo
    */
   public byte[] getSignedHash()
   {
-
     return signedHash;
   }
 
@@ -359,7 +351,6 @@ public class BackupInfo
    */
   public HashSet<String> getDependencies()
   {
-
     return dependencies;
   }
 
@@ -378,7 +369,6 @@ public class BackupInfo
    */
   public boolean dependsOn(String backupID)
   {
-
     return dependencies.contains(backupID);
   }
 
@@ -399,7 +389,6 @@ public class BackupInfo
    */
   public HashMap<String,String> getBackupProperties()
   {
-
     return backupProperties;
   }
 
@@ -416,7 +405,6 @@ public class BackupInfo
    */
   public String getBackupProperty(String name)
   {
-
     return backupProperties.get(name);
   }
 
@@ -432,7 +420,6 @@ public class BackupInfo
    */
   public LinkedList<String> encode()
   {
-
     LinkedList<String> list       = new LinkedList<String>();
     SimpleDateFormat   dateFormat =
          new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
@@ -508,7 +495,6 @@ public class BackupInfo
                                   LinkedList<String> encodedInfo)
          throws ConfigException
   {
-
     String                 backupID         = null;
     Date                   backupDate       = null;
     boolean                isIncremental    = false;
@@ -653,7 +639,6 @@ public class BackupInfo
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -670,7 +655,6 @@ public class BackupInfo
    */
   public void toString(StringBuilder buffer)
   {
-
     LinkedList<String> lines = encode();
     for (String line : lines)
     {

@@ -135,8 +135,6 @@ public enum TaskState
    */
   public static boolean isPending(TaskState taskState)
   {
-
-
     switch (taskState)
     {
       case UNSCHEDULED:
@@ -160,8 +158,6 @@ public enum TaskState
    */
   public static boolean isRunning(TaskState taskState)
   {
-
-
     switch (taskState)
     {
       case RUNNING:
@@ -186,8 +182,6 @@ public enum TaskState
    */
   public static boolean isDone(TaskState taskState)
   {
-
-
     switch (taskState)
     {
       case UNSCHEDULED:
@@ -214,8 +208,6 @@ public enum TaskState
    */
   public static boolean isSuccessful(TaskState taskState)
   {
-
-
     switch (taskState)
     {
       case WAITING_ON_START_TIME:

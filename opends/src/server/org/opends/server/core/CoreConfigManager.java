@@ -110,7 +110,6 @@ public class CoreConfigManager
    */
   public CoreConfigManager()
   {
-
     // No implementation is required.
   }
 
@@ -130,8 +129,6 @@ public class CoreConfigManager
   public void initializeCoreConfig()
          throws ConfigException, InitializationException
   {
-
-
     // Get the configuration root entry, since all the attributes we care about
     // should be contained in it.
     ConfigEntry configRoot =
@@ -861,7 +858,6 @@ public class CoreConfigManager
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -876,7 +872,6 @@ public class CoreConfigManager
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrs = new LinkedList<ConfigAttribute>();
 
     ConfigEntry configEntry;
@@ -1401,8 +1396,6 @@ public class CoreConfigManager
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // Start out assuming that the configuration is valid.
     boolean configIsAcceptable = true;
 
@@ -1895,7 +1888,6 @@ public class CoreConfigManager
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
     ArrayList<String> resultMessages      = new ArrayList<String>();
     boolean           adminActionRequired = false;
     ResultCode        resultCode          = ResultCode.SUCCESS;

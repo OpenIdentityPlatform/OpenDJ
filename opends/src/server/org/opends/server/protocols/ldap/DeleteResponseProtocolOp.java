@@ -81,7 +81,6 @@ public class DeleteResponseProtocolOp
    */
   public DeleteResponseProtocolOp(int resultCode)
   {
-
     this.resultCode = resultCode;
 
     errorMessage = null;
@@ -100,7 +99,6 @@ public class DeleteResponseProtocolOp
    */
   public DeleteResponseProtocolOp(int resultCode, String errorMessage)
   {
-
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
 
@@ -121,7 +119,6 @@ public class DeleteResponseProtocolOp
   public DeleteResponseProtocolOp(int resultCode, String errorMessage,
                                   DN matchedDN, List<String> referralURLs)
   {
-
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
     this.matchedDN    = matchedDN;
@@ -137,7 +134,6 @@ public class DeleteResponseProtocolOp
    */
   public int getResultCode()
   {
-
     return resultCode;
   }
 
@@ -150,7 +146,6 @@ public class DeleteResponseProtocolOp
    */
   public void setResultCode(int resultCode)
   {
-
     this.resultCode = resultCode;
   }
 
@@ -164,7 +159,6 @@ public class DeleteResponseProtocolOp
    */
   public String getErrorMessage()
   {
-
     return errorMessage;
   }
 
@@ -177,7 +171,6 @@ public class DeleteResponseProtocolOp
    */
   public void setErrorMessage(String errorMessage)
   {
-
     this.errorMessage = errorMessage;
   }
 
@@ -191,7 +184,6 @@ public class DeleteResponseProtocolOp
    */
   public DN getMatchedDN()
   {
-
     return matchedDN;
   }
 
@@ -204,7 +196,6 @@ public class DeleteResponseProtocolOp
    */
   public void setMatchedDN(DN matchedDN)
   {
-
     this.matchedDN = matchedDN;
   }
 
@@ -218,7 +209,6 @@ public class DeleteResponseProtocolOp
    */
   public List<String> getReferralURLs()
   {
-
     return referralURLs;
   }
 
@@ -231,7 +221,6 @@ public class DeleteResponseProtocolOp
    */
   public void setReferralURLs(List<String> referralURLs)
   {
-
     this.referralURLs = referralURLs;
   }
 
@@ -244,7 +233,6 @@ public class DeleteResponseProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_DELETE_RESPONSE;
   }
 
@@ -257,7 +245,6 @@ public class DeleteResponseProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Delete Response";
   }
 
@@ -271,7 +258,6 @@ public class DeleteResponseProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(4);
     elements.add(new ASN1Enumerated(resultCode));
 
@@ -318,7 +304,6 @@ public class DeleteResponseProtocolOp
                                                                    element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -458,7 +443,6 @@ public class DeleteResponseProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("DeleteResponse(resultCode=");
     buffer.append(resultCode);
 
@@ -505,7 +489,6 @@ public class DeleteResponseProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

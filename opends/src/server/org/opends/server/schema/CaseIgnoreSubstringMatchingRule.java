@@ -81,7 +81,6 @@ public class CaseIgnoreSubstringMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -95,7 +94,6 @@ public class CaseIgnoreSubstringMatchingRule
    */
   public String getName()
   {
-
     return SMR_CASE_IGNORE_NAME;
   }
 
@@ -108,7 +106,6 @@ public class CaseIgnoreSubstringMatchingRule
    */
   public String getOID()
   {
-
     return SMR_CASE_IGNORE_OID;
   }
 
@@ -122,7 +119,6 @@ public class CaseIgnoreSubstringMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -137,7 +133,6 @@ public class CaseIgnoreSubstringMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_SUBSTRING_ASSERTION_OID;
   }
 
@@ -157,7 +152,6 @@ public class CaseIgnoreSubstringMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value.value(), buffer, true);
 
@@ -209,7 +203,6 @@ public class CaseIgnoreSubstringMatchingRule
   public ByteString normalizeSubstring(ByteString substring)
          throws DirectoryException
   {
-
     // In this case, the process for normalizing a substring is the same as
     // normalizing a full value with the exception that it may include an
     // opening or trailing space.
@@ -271,8 +264,6 @@ public class CaseIgnoreSubstringMatchingRule
                                        List<ByteString> subAnyElements,
                                        ByteString subFinal)
   {
-
-
     byte[] valueBytes = value.value();
     int valueLength = valueBytes.length;
 

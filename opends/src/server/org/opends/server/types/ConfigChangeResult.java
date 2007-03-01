@@ -72,7 +72,6 @@ public class ConfigChangeResult
   public ConfigChangeResult(ResultCode resultCode,
                             boolean adminActionRequired)
   {
-
     this.resultCode          = resultCode;
     this.adminActionRequired = adminActionRequired;
     this.messages            = new ArrayList<String>();
@@ -97,7 +96,6 @@ public class ConfigChangeResult
                             boolean adminActionRequired,
                             ArrayList<String> messages)
   {
-
     this.resultCode          = resultCode;
     this.adminActionRequired = adminActionRequired;
     this.messages            = messages;
@@ -112,7 +110,6 @@ public class ConfigChangeResult
    */
   public ResultCode getResultCode()
   {
-
     return resultCode;
   }
 
@@ -126,7 +123,6 @@ public class ConfigChangeResult
    */
   public void setResultCode(ResultCode resultCode)
   {
-
     this.resultCode = resultCode;
   }
 
@@ -142,7 +138,6 @@ public class ConfigChangeResult
    */
   public boolean adminActionRequired()
   {
-
     return adminActionRequired;
   }
 
@@ -159,7 +154,6 @@ public class ConfigChangeResult
    */
   public void setAdminActionRequired(boolean adminActionRequired)
   {
-
     this.adminActionRequired = adminActionRequired;
   }
 
@@ -175,7 +169,6 @@ public class ConfigChangeResult
    */
   public List<String> getMessages()
   {
-
     return messages;
   }
 
@@ -190,7 +183,6 @@ public class ConfigChangeResult
    */
   public void addMessage(String message)
   {
-
     messages.add(message);
   }
 
@@ -203,7 +195,6 @@ public class ConfigChangeResult
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -220,7 +211,6 @@ public class ConfigChangeResult
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ConfigChangeResult(result=");
     buffer.append(resultCode.toString());
     buffer.append(", adminActionRequired=");

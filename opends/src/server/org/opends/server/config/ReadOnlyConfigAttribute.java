@@ -147,7 +147,6 @@ public class ReadOnlyConfigAttribute
    */
   public String getDataType()
   {
-
     return "ReadOnly";
   }
 
@@ -160,7 +159,6 @@ public class ReadOnlyConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-
     return DirectoryServer.getDefaultStringSyntax();
   }
 
@@ -178,7 +176,6 @@ public class ReadOnlyConfigAttribute
   public String activeValue()
          throws ConfigException
   {
-
     if ((values == null) || values.isEmpty())
     {
       int    msgID   = MSGID_CONFIG_ATTR_NO_STRING_VALUE;
@@ -205,7 +202,6 @@ public class ReadOnlyConfigAttribute
    */
   public List<String> activeValues()
   {
-
     return values;
   }
 
@@ -225,7 +221,6 @@ public class ReadOnlyConfigAttribute
   public String pendingValue()
          throws ConfigException
   {
-
     return  activeValue();
   }
 
@@ -240,7 +235,6 @@ public class ReadOnlyConfigAttribute
    */
   public List<String> pendingValues()
   {
-
     return activeValues();
   }
 
@@ -256,7 +250,6 @@ public class ReadOnlyConfigAttribute
   public void setValue(String value)
          throws ConfigException
   {
-
     int    msgID   = MSGID_CONFIG_ATTR_READ_ONLY;
     String message = getMessage(msgID, getName());
     throw new ConfigException(msgID, message);
@@ -275,7 +268,6 @@ public class ReadOnlyConfigAttribute
   public void setValues(List<String> values)
          throws ConfigException
   {
-
     int    msgID   = MSGID_CONFIG_ATTR_READ_ONLY;
     String message = getMessage(msgID, getName());
     throw new ConfigException(msgID, message);
@@ -292,7 +284,6 @@ public class ReadOnlyConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(String value)
   {
-
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
 
@@ -313,7 +304,6 @@ public class ReadOnlyConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(List<String> values)
   {
-
     if (values == null)
     {
       return null;
@@ -359,7 +349,6 @@ public class ReadOnlyConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-
     rejectReason.append(getMessage(MSGID_CONFIG_ATTR_READ_ONLY, getName()));
     return false;
   }
@@ -390,7 +379,6 @@ public class ReadOnlyConfigAttribute
                               boolean allowFailures)
          throws ConfigException
   {
-
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
       return new LinkedHashSet<AttributeValue>();
@@ -424,7 +412,6 @@ public class ReadOnlyConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-
     return values;
   }
 
@@ -443,7 +430,6 @@ public class ReadOnlyConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-
     return activeValuesToStrings();
   }
 
@@ -473,7 +459,6 @@ public class ReadOnlyConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-
     // The attribute won't be present in the entry, so we'll just return a
     // reference to this attribute.
     return duplicate();
@@ -491,7 +476,6 @@ public class ReadOnlyConfigAttribute
    */
   public javax.management.Attribute toJMXAttribute()
   {
-
     if (isMultiValued())
     {
       String[] valueArray = new String[values.size()];
@@ -542,7 +526,6 @@ public class ReadOnlyConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-
     javax.management.Attribute jmxAttr = toJMXAttribute();
     attributeList.add(jmxAttr);
   }
@@ -563,8 +546,6 @@ public class ReadOnlyConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-
-
     if (isMultiValued())
     {
       attributeInfoList.add(new MBeanAttributeInfo(getName(),
@@ -592,7 +573,6 @@ public class ReadOnlyConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-
     if (isMultiValued())
     {
       return new MBeanParameterInfo(getName(), JMX_TYPE_STRING_ARRAY,
@@ -621,7 +601,6 @@ public class ReadOnlyConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-
     int    msgID   = MSGID_CONFIG_ATTR_READ_ONLY;
     String message = getMessage(msgID, getName());
     throw new ConfigException(msgID, message);
@@ -636,7 +615,6 @@ public class ReadOnlyConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-
     return new ReadOnlyConfigAttribute(getName(), getDescription(),
                                        activeValues());
   }

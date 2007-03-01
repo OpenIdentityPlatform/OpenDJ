@@ -109,7 +109,6 @@ public class DirectoryAuditLogger extends AccessLogger
   public void initializeAccessLogger(ConfigEntry configEntry)
          throws ConfigException
   {
-
     configDN = configEntry.getDN();
 
     // FIXME - read the logger name from the config

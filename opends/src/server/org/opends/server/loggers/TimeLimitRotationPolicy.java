@@ -45,7 +45,6 @@ public class TimeLimitRotationPolicy implements RotationPolicy
    */
   public TimeLimitRotationPolicy(long time)
   {
-
     timeInterval = time;
     lastModifiedTime = TimeThread.getTime();
   }
@@ -59,7 +58,6 @@ public class TimeLimitRotationPolicy implements RotationPolicy
    */
   public boolean rotateFile()
   {
-
     long currTime = TimeThread.getTime();
     if (currTime - lastModifiedTime > timeInterval)
     {

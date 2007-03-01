@@ -80,7 +80,6 @@ public abstract class PasswordStorageScheme
    */
   public void finalizePasswordStorageScheme()
   {
-
     // No implementation required by default.
   }
 
@@ -182,7 +181,6 @@ public abstract class PasswordStorageScheme
    */
   public String getAuthPasswordSchemeName()
   {
-
     return getStorageSchemeName();
   }
 

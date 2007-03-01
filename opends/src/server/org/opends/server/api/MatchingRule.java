@@ -97,7 +97,6 @@ public abstract class MatchingRule
    */
   public String getNameOrOID()
   {
-
     String name = getName();
     if ((name == null) || (name.length() == 0))
     {
@@ -144,7 +143,6 @@ public abstract class MatchingRule
    */
   public boolean isObsolete()
   {
-
     return false;
   }
 
@@ -201,7 +199,6 @@ public abstract class MatchingRule
    */
   public int hashCode()
   {
-
     int hashCode = 0;
 
     String oidString = getOID();
@@ -228,7 +225,6 @@ public abstract class MatchingRule
    */
   public boolean equals(Object o)
   {
-
     if (o == null)
     {
       return false;
@@ -258,7 +254,6 @@ public abstract class MatchingRule
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -275,7 +270,6 @@ public abstract class MatchingRule
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("( ");
     buffer.append(getOID());
     buffer.append(" NAME '");

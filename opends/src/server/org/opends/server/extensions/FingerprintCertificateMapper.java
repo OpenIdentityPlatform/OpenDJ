@@ -134,7 +134,6 @@ public class FingerprintCertificateMapper
   public void initializeCertificateMapper(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     this.configEntryDN = configEntry.getDN();
 
     // Get the attribute type that will be used to hold the fingerprint.
@@ -263,7 +262,6 @@ public class FingerprintCertificateMapper
    */
   public void finalizeCertificateMapper()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
   }
 
@@ -275,8 +273,6 @@ public class FingerprintCertificateMapper
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
-
-
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
     {
@@ -396,7 +392,6 @@ public class FingerprintCertificateMapper
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -411,7 +406,6 @@ public class FingerprintCertificateMapper
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_FCM_DESCRIPTION_FINGERPRINT_ATTR;
@@ -464,7 +458,6 @@ public class FingerprintCertificateMapper
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
     DN configEntryDN = configEntry.getDN();
     boolean configAcceptable = true;
 
@@ -618,7 +611,6 @@ public class FingerprintCertificateMapper
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     ArrayList<String> messages            = new ArrayList<String>();

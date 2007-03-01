@@ -311,7 +311,6 @@ public class IntegerConfigAttribute
    */
   public String getDataType()
   {
-
     return "Integer";
   }
 
@@ -324,7 +323,6 @@ public class IntegerConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-
     return DirectoryServer.getDefaultIntegerSyntax();
   }
 
@@ -342,7 +340,6 @@ public class IntegerConfigAttribute
   public long activeValue()
          throws ConfigException
   {
-
     if ((activeValues == null) || activeValues.isEmpty())
     {
       int    msgID   = MSGID_CONFIG_ATTR_NO_INT_VALUE;
@@ -377,7 +374,6 @@ public class IntegerConfigAttribute
   public int activeIntValue()
          throws ConfigException
   {
-
     if ((activeValues == null) || activeValues.isEmpty())
     {
       int    msgID   = MSGID_CONFIG_ATTR_NO_INT_VALUE;
@@ -415,7 +411,6 @@ public class IntegerConfigAttribute
    */
   public List<Long> activeValues()
   {
-
     return activeValues;
   }
 
@@ -435,7 +430,6 @@ public class IntegerConfigAttribute
   public long pendingValue()
          throws ConfigException
   {
-
     if (! hasPendingValues())
     {
       return activeValue();
@@ -476,7 +470,6 @@ public class IntegerConfigAttribute
   public int pendingIntValue()
          throws ConfigException
   {
-
     if (! hasPendingValues())
     {
       return activeIntValue();
@@ -521,7 +514,6 @@ public class IntegerConfigAttribute
    */
   public List<Long> pendingValues()
   {
-
     if (! hasPendingValues())
     {
       return activeValues;
@@ -542,7 +534,6 @@ public class IntegerConfigAttribute
    */
   public boolean hasLowerBound()
   {
-
     return hasLowerBound;
   }
 
@@ -555,7 +546,6 @@ public class IntegerConfigAttribute
    */
   public long getLowerBound()
   {
-
     return lowerBound;
   }
 
@@ -571,7 +561,6 @@ public class IntegerConfigAttribute
    */
   public boolean hasUpperBound()
   {
-
     return hasUpperBound;
   }
 
@@ -586,7 +575,6 @@ public class IntegerConfigAttribute
    */
   public long getUpperBound()
   {
-
     return upperBound;
   }
 
@@ -602,7 +590,6 @@ public class IntegerConfigAttribute
   public void setValue(long value)
          throws ConfigException
   {
-
     if (hasLowerBound && (value < lowerBound))
     {
       int    msgID   = MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND;
@@ -645,8 +632,6 @@ public class IntegerConfigAttribute
   public void setValues(List<Long> values)
          throws ConfigException
   {
-
-
     // First check if the set is empty and if that is allowed.
     if ((values == null) || (values.isEmpty()))
     {
@@ -743,7 +728,6 @@ public class IntegerConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(long value)
   {
-
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
 
@@ -765,7 +749,6 @@ public class IntegerConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(List<Long> values)
   {
-
     if (values == null)
     {
       return null;
@@ -793,7 +776,6 @@ public class IntegerConfigAttribute
    */
   public void applyPendingValues()
   {
-
     if (! hasPendingValues())
     {
       return;
@@ -820,8 +802,6 @@ public class IntegerConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-
-
     // First, make sure we can represent it as a long.
     String stringValue = value.getStringValue();
     long longValue;
@@ -888,7 +868,6 @@ public class IntegerConfigAttribute
                               boolean allowFailures)
          throws ConfigException
   {
-
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
       if (isRequired())
@@ -1015,7 +994,6 @@ public class IntegerConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-
     ArrayList<String> valueStrings =
          new ArrayList<String>(activeValues.size());
     for (long l : activeValues)
@@ -1041,7 +1019,6 @@ public class IntegerConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-
     if (hasPendingValues())
     {
       ArrayList<String> valueStrings =
@@ -1085,8 +1062,6 @@ public class IntegerConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-
-
     ArrayList<Long> activeValues  = null;
     ArrayList<Long> pendingValues = null;
 
@@ -1354,7 +1329,6 @@ public class IntegerConfigAttribute
    */
   public  javax.management.Attribute toJMXAttributePending()
   {
-
       return _toJMXAttribute(true);
   }
 
@@ -1373,7 +1347,6 @@ public class IntegerConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-
     if (activeValues.size() > 0)
     {
       if (isMultiValued())
@@ -1445,8 +1418,6 @@ public class IntegerConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-
-
     if (isMultiValued())
     {
       attributeInfoList.add(new MBeanAttributeInfo(getName(),
@@ -1493,7 +1464,6 @@ public class IntegerConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-
     if (isMultiValued())
     {
       return new MBeanParameterInfo(getName(), JMX_TYPE_LONG_ARRAY,
@@ -1522,7 +1492,6 @@ public class IntegerConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-
     Object value = jmxAttribute.getValue();
     if (value instanceof Long)
     {
@@ -1639,7 +1608,6 @@ public class IntegerConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-
     return new IntegerConfigAttribute(getName(), getDescription(), isRequired(),
                                       isMultiValued(), requiresAdminAction(),
                                       hasLowerBound, lowerBound, hasUpperBound,

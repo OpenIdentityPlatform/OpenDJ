@@ -72,7 +72,6 @@ public class ModifyRequestProtocolOp
    */
   public ModifyRequestProtocolOp(ASN1OctetString dn)
   {
-
     this.dn            = dn;
     this.modifications = new ArrayList<LDAPModification>();
   }
@@ -89,7 +88,6 @@ public class ModifyRequestProtocolOp
   public ModifyRequestProtocolOp(ASN1OctetString dn,
                                  ArrayList<LDAPModification> modifications)
   {
-
     this.dn = dn;
 
     if (modifications == null)
@@ -111,7 +109,6 @@ public class ModifyRequestProtocolOp
    */
   public ASN1OctetString getDN()
   {
-
     return dn;
   }
 
@@ -124,7 +121,6 @@ public class ModifyRequestProtocolOp
    */
   public void setDN(ASN1OctetString dn)
   {
-
     this.dn = dn;
   }
 
@@ -138,7 +134,6 @@ public class ModifyRequestProtocolOp
    */
   public ArrayList<LDAPModification> getModifications()
   {
-
     return modifications;
   }
 
@@ -151,7 +146,6 @@ public class ModifyRequestProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_MODIFY_REQUEST;
   }
 
@@ -164,7 +158,6 @@ public class ModifyRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Modify Request";
   }
 
@@ -178,7 +171,6 @@ public class ModifyRequestProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(dn);
 
@@ -211,7 +203,6 @@ public class ModifyRequestProtocolOp
   public static ModifyRequestProtocolOp decodeModifyRequest(ASN1Element element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -295,7 +286,6 @@ public class ModifyRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ModifyRequest(dn=");
     dn.toString(buffer);
     buffer.append(", mods={");
@@ -327,7 +317,6 @@ public class ModifyRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

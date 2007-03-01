@@ -101,7 +101,6 @@ public class PrintableStringSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultApproximateMatchingRule =
          DirectoryServer.getApproximateMatchingRule(AMR_DOUBLE_METAPHONE_OID);
     if (defaultApproximateMatchingRule == null)
@@ -148,7 +147,6 @@ public class PrintableStringSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_PRINTABLE_STRING_NAME;
   }
 
@@ -161,7 +159,6 @@ public class PrintableStringSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_PRINTABLE_STRING_OID;
   }
 
@@ -174,7 +171,6 @@ public class PrintableStringSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_PRINTABLE_STRING_DESCRIPTION;
   }
 
@@ -190,7 +186,6 @@ public class PrintableStringSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -206,7 +201,6 @@ public class PrintableStringSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -222,7 +216,6 @@ public class PrintableStringSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -238,7 +231,6 @@ public class PrintableStringSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     return defaultApproximateMatchingRule;
   }
 
@@ -259,8 +251,6 @@ public class PrintableStringSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Check to see if the provided value was null.  If so, then that's not
     // acceptable.
     if (value == null)

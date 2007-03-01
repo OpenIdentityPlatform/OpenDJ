@@ -95,7 +95,6 @@ public class BinarySyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null)
@@ -133,7 +132,6 @@ public class BinarySyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_BINARY_NAME;
   }
 
@@ -146,7 +144,6 @@ public class BinarySyntax
    */
   public String getOID()
   {
-
     return SYNTAX_BINARY_OID;
   }
 
@@ -159,7 +156,6 @@ public class BinarySyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_BINARY_DESCRIPTION;
   }
 
@@ -175,7 +171,6 @@ public class BinarySyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -191,7 +186,6 @@ public class BinarySyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -207,7 +201,6 @@ public class BinarySyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -223,7 +216,6 @@ public class BinarySyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -245,7 +237,6 @@ public class BinarySyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     // All values will be acceptable for the binary syntax.
     return true;
   }

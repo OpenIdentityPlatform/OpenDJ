@@ -198,7 +198,6 @@ public class PasswordPolicy
    */
   private PasswordPolicy()
   {
-
     configEntryDN                    = null;
     passwordAttribute                = null;
     authPasswordSyntax               = false;
@@ -1460,7 +1459,6 @@ public class PasswordPolicy
    */
   public AttributeType getPasswordAttribute()
   {
-
     return passwordAttribute;
   }
 
@@ -1475,7 +1473,6 @@ public class PasswordPolicy
    */
   public boolean usesAuthPasswordSyntax()
   {
-
     return authPasswordSyntax;
   }
 
@@ -1491,7 +1488,6 @@ public class PasswordPolicy
    */
   public CopyOnWriteArrayList<PasswordStorageScheme> getDefaultStorageSchemes()
   {
-
     return defaultStorageSchemes;
   }
 
@@ -1509,7 +1505,6 @@ public class PasswordPolicy
    */
   public boolean isDefaultStorageScheme(String name)
   {
-
     CopyOnWriteArrayList<PasswordStorageScheme> defaultSchemes =
          getDefaultStorageSchemes();
     if (defaultSchemes == null)
@@ -1553,7 +1548,6 @@ public class PasswordPolicy
    */
   public CopyOnWriteArraySet<String> getDeprecatedStorageSchemes()
   {
-
     return deprecatedStorageSchemes;
   }
 
@@ -1570,7 +1564,6 @@ public class PasswordPolicy
    */
   public boolean isDeprecatedStorageScheme(String name)
   {
-
     CopyOnWriteArraySet<String> deprecatedSchemes =
          getDeprecatedStorageSchemes();
     if (deprecatedSchemes == null)
@@ -1599,7 +1592,6 @@ public class PasswordPolicy
    */
   public ConcurrentHashMap<DN,PasswordValidator> getPasswordValidators()
   {
-
     return passwordValidators;
   }
 
@@ -1616,7 +1608,6 @@ public class PasswordPolicy
   public ConcurrentHashMap<DN,AccountStatusNotificationHandler>
               getAccountStatusNotificationHandlers()
   {
-
     return notificationHandlers;
   }
 
@@ -1631,7 +1622,6 @@ public class PasswordPolicy
    */
   public boolean allowUserPasswordChanges()
   {
-
     return allowUserPasswordChanges;
   }
 
@@ -1647,7 +1637,6 @@ public class PasswordPolicy
    */
   public boolean requireCurrentPassword()
   {
-
     return requireCurrentPassword;
   }
 
@@ -1663,7 +1652,6 @@ public class PasswordPolicy
    */
   public boolean forceChangeOnAdd()
   {
-
     return forceChangeOnAdd;
   }
 
@@ -1679,7 +1667,6 @@ public class PasswordPolicy
    */
   public boolean forceChangeOnReset()
   {
-
     return forceChangeOnReset;
   }
 
@@ -1696,7 +1683,6 @@ public class PasswordPolicy
    */
   public boolean skipValidationForAdministrators()
   {
-
     return skipValidationForAdministrators;
   }
 
@@ -1709,7 +1695,6 @@ public class PasswordPolicy
    */
   public DN getPasswordGeneratorDN()
   {
-
     return passwordGeneratorDN;
   }
 
@@ -1724,7 +1709,6 @@ public class PasswordPolicy
    */
   public PasswordGenerator getPasswordGenerator()
   {
-
     return passwordGenerator;
   }
 
@@ -1741,7 +1725,6 @@ public class PasswordPolicy
    */
   public boolean requireSecureAuthentication()
   {
-
     return requireSecureAuthentication;
   }
 
@@ -1759,7 +1742,6 @@ public class PasswordPolicy
    */
   public boolean requireSecurePasswordChanges()
   {
-
     return requireSecurePasswordChanges;
   }
 
@@ -1774,7 +1756,6 @@ public class PasswordPolicy
    */
   public boolean allowMultiplePasswordValues()
   {
-
     return allowMultiplePasswordValues;
   }
 
@@ -1789,7 +1770,6 @@ public class PasswordPolicy
    */
   public boolean allowPreEncodedPasswords()
   {
-
     return allowPreEncodedPasswords;
   }
 
@@ -1805,7 +1785,6 @@ public class PasswordPolicy
    */
   public int getMinimumPasswordAge()
   {
-
     if (minimumPasswordAge <= 0)
     {
       return 0;
@@ -1826,7 +1805,6 @@ public class PasswordPolicy
    */
   public int getMaximumPasswordAge()
   {
-
     if (maximumPasswordAge < 0)
     {
       return 0;
@@ -1848,7 +1826,6 @@ public class PasswordPolicy
    */
   public int getMaximumPasswordResetAge()
   {
-
     if (maximumPasswordResetAge < 0)
     {
       return 0;
@@ -1869,7 +1846,6 @@ public class PasswordPolicy
    */
   public int getWarningInterval()
   {
-
     if (warningInterval < 0)
     {
       return 0;
@@ -1891,7 +1867,6 @@ public class PasswordPolicy
    */
   public boolean expirePasswordsWithoutWarning()
   {
-
     return expirePasswordsWithoutWarning;
   }
 
@@ -1909,7 +1884,6 @@ public class PasswordPolicy
    */
   public boolean allowExpiredPasswordChanges()
   {
-
     return allowExpiredPasswordChanges;
   }
 
@@ -1927,7 +1901,6 @@ public class PasswordPolicy
    */
   public int getGraceLoginCount()
   {
-
     if (graceLoginCount < 0)
     {
       return 0;
@@ -1948,7 +1921,6 @@ public class PasswordPolicy
    */
   public int getLockoutFailureCount()
   {
-
     if (lockoutFailureCount < 0)
     {
       return 0;
@@ -1970,7 +1942,6 @@ public class PasswordPolicy
    */
   public int getLockoutDuration()
   {
-
     if (lockoutDuration < 0)
     {
       return 0;
@@ -1993,7 +1964,6 @@ public class PasswordPolicy
    */
   public int getLockoutFailureExpirationInterval()
   {
-
     if (lockoutFailureExpirationInterval < 0)
     {
       return 0;
@@ -2017,7 +1987,6 @@ public class PasswordPolicy
    */
   public long getRequireChangeByTime()
   {
-
     if (requireChangeByTime < 0)
     {
       return 0;
@@ -2036,7 +2005,6 @@ public class PasswordPolicy
    */
   public AttributeType getLastLoginTimeAttribute()
   {
-
     return lastLoginTimeAttribute;
   }
 
@@ -2051,7 +2019,6 @@ public class PasswordPolicy
    */
   public String getLastLoginTimeFormat()
   {
-
     return lastLoginTimeFormat;
   }
 
@@ -2066,7 +2033,6 @@ public class PasswordPolicy
    */
   public CopyOnWriteArrayList<String> getPreviousLastLoginTimeFormats()
   {
-
     return previousLastLoginTimeFormats;
   }
 
@@ -2082,7 +2048,6 @@ public class PasswordPolicy
    */
   public int getIdleLockoutInterval()
   {
-
     if (idleLockoutInterval < 0)
     {
       return 0;
@@ -2100,7 +2065,6 @@ public class PasswordPolicy
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -2116,8 +2080,6 @@ public class PasswordPolicy
    */
   public void toString(StringBuilder buffer)
   {
-
-
     buffer.append("Password Attribute:                    ");
     buffer.append(passwordAttribute.getNameOrOID());
     buffer.append(EOL);

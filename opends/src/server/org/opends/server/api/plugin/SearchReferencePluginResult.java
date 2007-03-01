@@ -103,7 +103,6 @@ public class SearchReferencePluginResult
                                      boolean sendReference,
                                      boolean continueSearch)
   {
-
     this.connectionTerminated     = connectionTerminated;
     this.continuePluginProcessing = continuePluginProcessing;
     this.sendReference            = sendReference;
@@ -122,7 +121,6 @@ public class SearchReferencePluginResult
    */
   public boolean connectionTerminated()
   {
-
     return connectionTerminated;
   }
 
@@ -138,7 +136,6 @@ public class SearchReferencePluginResult
    */
   public boolean continuePluginProcessing()
   {
-
     return continuePluginProcessing;
   }
 
@@ -154,7 +151,6 @@ public class SearchReferencePluginResult
    */
   public boolean sendReference()
   {
-
     return sendReference;
   }
 
@@ -170,7 +166,6 @@ public class SearchReferencePluginResult
    */
   public boolean continueSearch()
   {
-
     return continueSearch;
   }
 
@@ -185,7 +180,6 @@ public class SearchReferencePluginResult
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -202,7 +196,6 @@ public class SearchReferencePluginResult
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("SearchReferencePluginResult(" +
                   "connectionTerminated=");
     buffer.append(connectionTerminated);

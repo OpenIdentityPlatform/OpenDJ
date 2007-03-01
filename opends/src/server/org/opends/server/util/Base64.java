@@ -71,7 +71,6 @@ public final class Base64
    */
   public static String encode(byte[] rawData)
   {
-
     ensureNotNull(rawData);
 
 
@@ -126,7 +125,6 @@ public final class Base64
   public static byte[] decode(String encodedData)
          throws ParseException
   {
-
     ensureNotNull(encodedData);
 
 

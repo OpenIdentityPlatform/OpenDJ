@@ -129,7 +129,6 @@ public class ProxiedAuthV2Control
   public static ProxiedAuthV2Control decodeControl(Control control)
          throws LDAPException
   {
-
     ensureNotNull(control);
 
     if (! control.isCritical())
@@ -198,7 +197,6 @@ public class ProxiedAuthV2Control
    */
   public ASN1OctetString getAuthorizationID()
   {
-
     return authorizationID;
   }
 
@@ -212,7 +210,6 @@ public class ProxiedAuthV2Control
    */
   public void setAuthorizationID(ASN1OctetString authorizationID)
   {
-
     if (authorizationID == null)
     {
       this.authorizationID = new ASN1OctetString();
@@ -244,8 +241,6 @@ public class ProxiedAuthV2Control
   public Entry getAuthorizationEntry()
          throws DirectoryException
   {
-
-
     // Check for a zero-length value, which would be for an anonymous user.
     if (authorizationID.value().length == 0)
     {
@@ -399,7 +394,6 @@ public class ProxiedAuthV2Control
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -415,7 +409,6 @@ public class ProxiedAuthV2Control
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ProxiedAuthorizationV2Control(authzID=\"");
     authorizationID.toString(buffer);
     buffer.append("\")");

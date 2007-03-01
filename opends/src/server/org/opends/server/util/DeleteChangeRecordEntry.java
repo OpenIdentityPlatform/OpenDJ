@@ -61,7 +61,6 @@ public final class DeleteChangeRecordEntry extends ChangeRecordEntry
    */
   public ChangeOperationType getChangeOperationType()
   {
-
     return ChangeOperationType.DELETE;
   }
 

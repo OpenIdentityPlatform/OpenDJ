@@ -85,7 +85,6 @@ public class ProfileStack
    */
   public ProfileStack(StackTraceElement[] stackElements)
   {
-
     numFrames   = stackElements.length;
     classNames  = new String[numFrames];
     methodNames = new String[numFrames];
@@ -123,7 +122,6 @@ public class ProfileStack
   private ProfileStack(String[] classNames, String[] methodNames,
                        int[] lineNumbers)
   {
-
     this.numFrames   = classNames.length;
     this.classNames  = classNames;
     this.methodNames = methodNames;
@@ -139,7 +137,6 @@ public class ProfileStack
    */
   public int getNumFrames()
   {
-
     return numFrames;
   }
 
@@ -152,7 +149,6 @@ public class ProfileStack
    */
   public String[] getClassNames()
   {
-
     return classNames;
   }
 
@@ -168,7 +164,6 @@ public class ProfileStack
    */
   public String getClassName(int depth)
   {
-
     return classNames[depth];
   }
 
@@ -181,7 +176,6 @@ public class ProfileStack
    */
   public String[] getMethodNames()
   {
-
     return methodNames;
   }
 
@@ -197,7 +191,6 @@ public class ProfileStack
    */
   public String getMethodName(int depth)
   {
-
     return methodNames[depth];
   }
 
@@ -210,7 +203,6 @@ public class ProfileStack
    */
   public int[] getLineNumbers()
   {
-
     return lineNumbers;
   }
 
@@ -226,7 +218,6 @@ public class ProfileStack
    */
   public int getLineNumber(int depth)
   {
-
     return lineNumbers[depth];
   }
 
@@ -241,7 +232,6 @@ public class ProfileStack
    */
   public int hashCode()
   {
-
     if (numFrames == 0)
     {
       return 0;
@@ -266,7 +256,6 @@ public class ProfileStack
    */
   public boolean equals(Object o)
   {
-
     if (o == null)
     {
       return false;
@@ -319,7 +308,6 @@ public class ProfileStack
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(3*numFrames);
     for (int i=0; i < numFrames; i++)
     {
@@ -344,7 +332,6 @@ public class ProfileStack
    */
   public static ProfileStack decode(ASN1Element stackElement)
   {
-
     try
     {
       ArrayList<ASN1Element> elements =

@@ -3376,7 +3376,6 @@ public class EntryContainer
    */
   public void listDatabases(List<Database> dbList)
   {
-
     // There may be more than one handle open for a given database
     // so we eliminate duplicates here.
     HashSet<String> set = new HashSet<String>();
@@ -3770,7 +3769,6 @@ public class EntryContainer
    */
   public String getContainerName()
   {
-
     String normStr = baseDN.toNormalizedString();
     StringBuilder builder = new StringBuilder(normStr.length());
     for (int i = 0; i < normStr.length(); i++)

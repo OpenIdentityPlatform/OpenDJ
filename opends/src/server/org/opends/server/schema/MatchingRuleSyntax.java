@@ -105,7 +105,6 @@ public class MatchingRuleSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -143,7 +142,6 @@ public class MatchingRuleSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_MATCHING_RULE_NAME;
   }
 
@@ -156,7 +154,6 @@ public class MatchingRuleSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_MATCHING_RULE_OID;
   }
 
@@ -169,7 +166,6 @@ public class MatchingRuleSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_MATCHING_RULE_DESCRIPTION;
   }
 
@@ -185,7 +181,6 @@ public class MatchingRuleSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -201,7 +196,6 @@ public class MatchingRuleSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -217,7 +211,6 @@ public class MatchingRuleSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -233,7 +226,6 @@ public class MatchingRuleSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -255,8 +247,6 @@ public class MatchingRuleSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
     String valueStr = value.stringValue();
@@ -671,8 +661,6 @@ public class MatchingRuleSyntax
                                    int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -732,8 +720,6 @@ public class MatchingRuleSyntax
                                       StringBuilder valueBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -821,8 +807,6 @@ public class MatchingRuleSyntax
                                       StringBuilder lowerBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -904,10 +888,6 @@ public class MatchingRuleSyntax
                               int startPos)
           throws DirectoryException
   {
-
-
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -1060,8 +1040,6 @@ public class MatchingRuleSyntax
                           CopyOnWriteArrayList<String> valueList, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = valueStr.charAt(startPos++);

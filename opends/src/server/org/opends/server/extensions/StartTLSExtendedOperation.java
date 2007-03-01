@@ -97,7 +97,6 @@ public class StartTLSExtendedOperation
   public void initializeExtendedOperationHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // FIXME -- Are there any configurable options that we should support?
     DirectoryServer.registerSupportedExtension(OID_START_TLS_REQUEST, this);
   }
@@ -110,7 +109,6 @@ public class StartTLSExtendedOperation
    */
   public void finalizeExtendedOperationHandler()
   {
-
     DirectoryServer.deregisterSupportedExtension(OID_START_TLS_REQUEST);
   }
 
@@ -123,8 +121,6 @@ public class StartTLSExtendedOperation
    */
   public void processExtendedOperation(ExtendedOperation operation)
   {
-
-
     // We should always include the StartTLS OID in the response (the same OID
     // is used for both the request and the response), so make sure that it will
     // happen.

@@ -56,7 +56,6 @@ public class DigestMD5StateInfo
    */
   public DigestMD5StateInfo(String nonce, String nonceCount)
   {
-
     this.nonce      = nonce;
     this.nonceCount = nonceCount;
   }
@@ -71,7 +70,6 @@ public class DigestMD5StateInfo
    */
   public String getNonce()
   {
-
     return nonce;
   }
 
@@ -86,7 +84,6 @@ public class DigestMD5StateInfo
    */
   public String getNonceCount()
   {
-
     return nonceCount;
   }
 
@@ -101,7 +98,6 @@ public class DigestMD5StateInfo
    */
   public void setNonceCount(String nonceCount)
   {
-
     this.nonceCount = nonceCount;
   }
 }

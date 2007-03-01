@@ -778,7 +778,6 @@ public class DirectoryServer
   public static void initializeJMX()
          throws InitializationException
   {
-
     try
     {
       // FIXME -- Should we use the plaform Mbean Server or
@@ -900,7 +899,6 @@ public class DirectoryServer
    */
   public static String getConfigFile()
   {
-
     return directoryServer.configFile;
   }
 
@@ -1919,7 +1917,6 @@ public class DirectoryServer
    */
   public static AuthenticatedUsers getAuthenticatedUsers()
   {
-
     return directoryServer.authenticatedUsers;
   }
 
@@ -1950,7 +1947,6 @@ public class DirectoryServer
    */
   public static CryptoManager getCryptoManager()
   {
-
     return directoryServer.cryptoManager;
   }
 
@@ -1970,7 +1966,6 @@ public class DirectoryServer
   public void initializeMailServerPropertySets()
          throws ConfigException, InitializationException
   {
-
     mailServerPropertySets = new CopyOnWriteArrayList<Properties>();
 
     // FIXME -- Actually read the information from the config handler.
@@ -1990,7 +1985,6 @@ public class DirectoryServer
    */
   public static CopyOnWriteArrayList<Properties> getMailServerPropertySets()
   {
-
     return directoryServer.mailServerPropertySets;
   }
 
@@ -2032,8 +2026,6 @@ public class DirectoryServer
   public void initializeSchema()
          throws ConfigException, InitializationException
   {
-
-
     // Create the schema configuration manager, and initialize the schema from
     // the configuration.
     schemaConfigManager = new SchemaConfigManager();
@@ -2100,7 +2092,6 @@ public class DirectoryServer
   public static Set<BackendInitializationListener>
                      getBackendInitializationListeners()
   {
-
     return directoryServer.backendInitializationListeners;
   }
 
@@ -2116,7 +2107,6 @@ public class DirectoryServer
   public static void registerBackendInitializationListener(
                           BackendInitializationListener listener)
   {
-
     directoryServer.backendInitializationListeners.add(listener);
   }
 
@@ -2132,7 +2122,6 @@ public class DirectoryServer
   public static void deregisterBackendInitializationListener(
                           BackendInitializationListener listener)
   {
-
     directoryServer.backendInitializationListeners.remove(listener);
   }
 
@@ -2151,7 +2140,6 @@ public class DirectoryServer
   private void initializeBackends()
           throws ConfigException, InitializationException
   {
-
     backendConfigManager = new BackendConfigManager();
     backendConfigManager.initializeBackendConfig();
 
@@ -2196,7 +2184,6 @@ public class DirectoryServer
   public void initializeGroupManager()
          throws ConfigException, InitializationException
   {
-
     groupManager = new GroupManager();
     groupManager.initializeGroupImplementations();
 
@@ -2214,7 +2201,6 @@ public class DirectoryServer
    */
   public static GroupManager getGroupManager()
   {
-
     return directoryServer.groupManager;
   }
 
@@ -2233,7 +2219,6 @@ public class DirectoryServer
   private void initializeSupportedControls()
           throws ConfigException, InitializationException
   {
-
     supportedControls.add(OID_LDAP_ASSERTION);
     supportedControls.add(OID_LDAP_READENTRY_PREREAD);
     supportedControls.add(OID_LDAP_READENTRY_POSTREAD);
@@ -2262,7 +2247,6 @@ public class DirectoryServer
   private void initializeSupportedFeatures()
           throws ConfigException, InitializationException
   {
-
     supportedFeatures.add(OID_ALL_OPERATIONAL_ATTRS_FEATURE);
     supportedFeatures.add(OID_MODIFY_INCREMENT_FEATURE);
     supportedFeatures.add(OID_TRUE_FALSE_FILTERS_FEATURE);
@@ -2283,7 +2267,6 @@ public class DirectoryServer
   private void initializeIdentityMappers()
           throws ConfigException, InitializationException
   {
-
     identityMapperConfigManager = new IdentityMapperConfigManager();
     identityMapperConfigManager.initializeIdentityMappers();
   }
@@ -2304,7 +2287,6 @@ public class DirectoryServer
   private void initializeExtendedOperations()
           throws ConfigException, InitializationException
   {
-
     extendedOperationConfigManager = new ExtendedOperationConfigManager();
     extendedOperationConfigManager.initializeExtendedOperationHandlers();
   }
@@ -2324,7 +2306,6 @@ public class DirectoryServer
   private void initializeSASLMechanisms()
           throws ConfigException, InitializationException
   {
-
     saslConfigManager = new SASLConfigManager();
     saslConfigManager.initializeSASLMechanismHandlers();
   }
@@ -2364,7 +2345,6 @@ public class DirectoryServer
   private void initializeConnectionHandlers()
           throws ConfigException, InitializationException
   {
-
     connectionHandlerConfigManager = new ConnectionHandlerConfigManager();
     connectionHandlerConfigManager.initializeConnectionHandlerConfig();
   }
@@ -2385,8 +2365,6 @@ public class DirectoryServer
   public void initializePasswordPolicyComponents()
          throws ConfigException, InitializationException
   {
-
-
     // Initialize all the password storage schemes.
     storageSchemeConfigManager = new PasswordStorageSchemeConfigManager();
     storageSchemeConfigManager.initializePasswordStorageSchemes();
@@ -2423,7 +2401,6 @@ public class DirectoryServer
    */
   public static OperatingSystem getOperatingSystem()
   {
-
     return directoryServer.operatingSystem;
   }
 
@@ -2438,7 +2415,6 @@ public class DirectoryServer
    */
   public static ThreadGroup getDirectoryThreadGroup()
   {
-
     return directoryServer.directoryThreadGroup;
   }
 
@@ -2451,7 +2427,6 @@ public class DirectoryServer
    */
   public static ConfigHandler getConfigHandler()
   {
-
     return directoryServer.configHandler;
   }
 
@@ -2470,7 +2445,6 @@ public class DirectoryServer
   public void initializePlugins()
          throws ConfigException, InitializationException
   {
-
     pluginConfigManager.initializePluginConfig(null);
   }
 
@@ -2493,7 +2467,6 @@ public class DirectoryServer
   public void initializePlugins(Set<PluginType> pluginTypes)
          throws ConfigException, InitializationException
   {
-
     pluginConfigManager = new PluginConfigManager();
     pluginConfigManager.initializePluginConfig(pluginTypes);
   }
@@ -2507,7 +2480,6 @@ public class DirectoryServer
    */
   public static PluginConfigManager getPluginConfigManager()
   {
-
     return directoryServer.pluginConfigManager;
   }
 
@@ -2526,7 +2498,6 @@ public class DirectoryServer
   public static ConfigEntry getConfigEntry(DN entryDN)
          throws ConfigException
   {
-
     return directoryServer.configHandler.getConfigEntry(entryDN);
   }
 
@@ -2541,7 +2512,6 @@ public class DirectoryServer
   */
   public static String getServerRoot()
   {
-
     if (directoryServer.configHandler == null)
     {
       String serverRoot = System.getenv(ENV_VAR_INSTANCE_ROOT);
@@ -2573,7 +2543,6 @@ public class DirectoryServer
    */
   public static long getStartTime()
   {
-
     return directoryServer.startUpTime;
   }
 
@@ -2586,7 +2555,6 @@ public class DirectoryServer
    */
   public static String getStartTimeUTC()
   {
-
     return directoryServer.startTimeUTC;
   }
 
@@ -2599,7 +2567,6 @@ public class DirectoryServer
    */
   public static Schema getSchema()
   {
-
     return directoryServer.schema;
   }
 
@@ -2612,7 +2579,6 @@ public class DirectoryServer
    */
   public static void setSchema(Schema schema)
   {
-
     directoryServer.schema = schema;
   }
 
@@ -2628,7 +2594,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<String,MatchingRule> getMatchingRules()
   {
-
     return directoryServer.schema.getMatchingRules();
   }
 
@@ -2643,7 +2608,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getMatchingRuleSet()
   {
-
     return directoryServer.schema.getMatchingRuleSet();
   }
 
@@ -2660,7 +2624,6 @@ public class DirectoryServer
    */
   public static MatchingRule getMatchingRule(String lowerName)
   {
-
     return directoryServer.schema.getMatchingRule(lowerName);
   }
 
@@ -2683,7 +2646,6 @@ public class DirectoryServer
                                           boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerMatchingRule(matchingRule,
                                                 overwriteExisting);
   }
@@ -2697,7 +2659,6 @@ public class DirectoryServer
    */
   public static void deregisterMatchingRule(MatchingRule matchingRule)
   {
-
     directoryServer.schema.deregisterMatchingRule(matchingRule);
   }
 
@@ -2716,7 +2677,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,ApproximateMatchingRule>
                      getApproximateMatchingRules()
   {
-
     return directoryServer.schema.getApproximateMatchingRules();
   }
 
@@ -2734,7 +2694,6 @@ public class DirectoryServer
   public static ApproximateMatchingRule
                      getApproximateMatchingRule(String lowerName)
   {
-
     return directoryServer.schema.getApproximateMatchingRule(lowerName);
   }
 
@@ -2759,7 +2718,6 @@ public class DirectoryServer
                                                      boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerApproximateMatchingRule(matchingRule,
                                                            overwriteExisting);
   }
@@ -2775,7 +2733,6 @@ public class DirectoryServer
   public static void deregisterApproximateMatchingRule(ApproximateMatchingRule
                                                             matchingRule)
   {
-
     directoryServer.schema.deregisterApproximateMatchingRule(matchingRule);
   }
 
@@ -2794,7 +2751,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,EqualityMatchingRule>
                      getEqualityMatchingRules()
   {
-
     return directoryServer.schema.getEqualityMatchingRules();
   }
 
@@ -2811,7 +2767,6 @@ public class DirectoryServer
    */
   public static EqualityMatchingRule getEqualityMatchingRule(String lowerName)
   {
-
     return directoryServer.schema.getEqualityMatchingRule(lowerName);
   }
 
@@ -2835,7 +2790,6 @@ public class DirectoryServer
                                                   boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerEqualityMatchingRule(matchingRule,
                                                         overwriteExisting);
   }
@@ -2850,7 +2804,6 @@ public class DirectoryServer
   public static void deregisterEqualityMatchingRule(EqualityMatchingRule
                                                     matchingRule)
   {
-
     directoryServer.schema.deregisterEqualityMatchingRule(matchingRule);
   }
 
@@ -2869,7 +2822,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,OrderingMatchingRule>
                      getOrderingMatchingRules()
   {
-
     return directoryServer.schema.getOrderingMatchingRules();
   }
 
@@ -2886,7 +2838,6 @@ public class DirectoryServer
    */
   public static OrderingMatchingRule getOrderingMatchingRule(String lowerName)
   {
-
     return directoryServer.schema.getOrderingMatchingRule(lowerName);
   }
 
@@ -2910,7 +2861,6 @@ public class DirectoryServer
                                                   boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerOrderingMatchingRule(matchingRule,
                                                         overwriteExisting);
   }
@@ -2925,7 +2875,6 @@ public class DirectoryServer
   public static void deregisterOrderingMatchingRule(OrderingMatchingRule
                                                     matchingRule)
   {
-
     directoryServer.schema.deregisterOrderingMatchingRule(matchingRule);
   }
 
@@ -2944,7 +2893,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,SubstringMatchingRule>
                      getSubstringMatchingRules()
   {
-
     return directoryServer.schema.getSubstringMatchingRules();
   }
 
@@ -2961,7 +2909,6 @@ public class DirectoryServer
    */
   public static SubstringMatchingRule getSubstringMatchingRule(String lowerName)
   {
-
     return directoryServer.schema.getSubstringMatchingRule(lowerName);
   }
 
@@ -2985,7 +2932,6 @@ public class DirectoryServer
                                                    boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerSubstringMatchingRule(matchingRule,
                                                          overwriteExisting);
   }
@@ -3000,7 +2946,6 @@ public class DirectoryServer
   public static void deregisterSubstringMatchingRule(SubstringMatchingRule
                                                      matchingRule)
   {
-
     directoryServer.schema.deregisterSubstringMatchingRule(matchingRule);
   }
 
@@ -3013,7 +2958,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<String,ObjectClass> getObjectClasses()
   {
-
     return directoryServer.schema.getObjectClasses();
   }
 
@@ -3028,7 +2972,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getObjectClassSet()
   {
-
     return directoryServer.schema.getObjectClassSet();
   }
 
@@ -3045,7 +2988,6 @@ public class DirectoryServer
    */
   public static ObjectClass getObjectClass(String lowerName)
   {
-
     return directoryServer.schema.getObjectClass(lowerName);
   }
 
@@ -3069,7 +3011,6 @@ public class DirectoryServer
   public static ObjectClass getObjectClass(String lowerName,
                                            boolean returnDefault)
   {
-
     ObjectClass oc = directoryServer.schema.getObjectClass(lowerName);
     if (returnDefault && (oc == null))
     {
@@ -3099,7 +3040,6 @@ public class DirectoryServer
                                          boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerObjectClass(objectClass, overwriteExisting);
   }
 
@@ -3113,7 +3053,6 @@ public class DirectoryServer
    */
   public static void deregisterObjectClass(ObjectClass objectClass)
   {
-
     directoryServer.schema.deregisterObjectClass(objectClass);
   }
 
@@ -3128,7 +3067,6 @@ public class DirectoryServer
    */
   public static ObjectClass getTopObjectClass()
   {
-
     ObjectClass objectClass =
          directoryServer.schema.getObjectClass(TOP_OBJECTCLASS_NAME);
     if (objectClass == null)
@@ -3164,7 +3102,6 @@ public class DirectoryServer
    */
   public static ObjectClass getDefaultObjectClass(String name)
   {
-
     String lowerName = toLowerCase(name);
     ObjectClass objectClass = directoryServer.schema.getObjectClass(lowerName);
     if (objectClass == null)
@@ -3196,7 +3133,6 @@ public class DirectoryServer
    */
   public static ObjectClass getDefaultAuxiliaryObjectClass(String name)
   {
-
     String lowerName = toLowerCase(name);
     ObjectClass objectClass = directoryServer.schema.getObjectClass(lowerName);
     if (objectClass == null)
@@ -3224,7 +3160,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<String,AttributeType> getAttributeTypes()
   {
-
     return directoryServer.schema.getAttributeTypes();
   }
 
@@ -3239,7 +3174,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getAttributeTypeSet()
   {
-
     return directoryServer.schema.getAttributeTypeSet();
   }
 
@@ -3256,7 +3190,6 @@ public class DirectoryServer
    */
   public static AttributeType getAttributeType(String lowerName)
   {
-
     return directoryServer.schema.getAttributeType(lowerName);
   }
 
@@ -3280,7 +3213,6 @@ public class DirectoryServer
   public static AttributeType getAttributeType(String lowerName,
                                                boolean returnDefault)
   {
-
     AttributeType type = directoryServer.schema.getAttributeType(lowerName);
     if (returnDefault && (type == null))
     {
@@ -3310,7 +3242,6 @@ public class DirectoryServer
                                            boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerAttributeType(attributeType,
                                                  overwriteExisting);
   }
@@ -3325,7 +3256,6 @@ public class DirectoryServer
    */
   public static void deregisterAttributeType(AttributeType attributeType)
   {
-
     directoryServer.schema.deregisterAttributeType(attributeType);
   }
 
@@ -3338,7 +3268,6 @@ public class DirectoryServer
    */
   public static AttributeType getObjectClassAttributeType()
   {
-
     if (directoryServer.objectClassAttributeType == null)
     {
       directoryServer.objectClassAttributeType =
@@ -3409,8 +3338,6 @@ public class DirectoryServer
    */
   public static AttributeType getDefaultAttributeType(String name)
   {
-
-
     return getDefaultAttributeType(name, getDefaultAttributeSyntax());
   }
 
@@ -3430,8 +3357,6 @@ public class DirectoryServer
   public static AttributeType getDefaultAttributeType(String name,
                                                       AttributeSyntax syntax)
   {
-
-
     String oid        = toLowerCase(name) + "-oid";
     String definition = "( " + oid + " NAME '" + name + "' SYNTAX " +
                         syntax.getOID() + " )";
@@ -3451,7 +3376,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<String,AttributeSyntax> getAttributeSyntaxes()
   {
-
     return directoryServer.schema.getSyntaxes();
   }
 
@@ -3466,7 +3390,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getAttributeSyntaxSet()
   {
-
     return directoryServer.schema.getSyntaxSet();
   }
 
@@ -3486,7 +3409,6 @@ public class DirectoryServer
   public static AttributeSyntax getAttributeSyntax(String oid,
                                                    boolean allowDefault)
   {
-
     AttributeSyntax syntax = directoryServer.schema.getSyntax(oid);
     if ((syntax == null) && allowDefault)
     {
@@ -3516,7 +3438,6 @@ public class DirectoryServer
                                              boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerSyntax(syntax, overwriteExisting);
   }
 
@@ -3530,7 +3451,6 @@ public class DirectoryServer
    */
   public static void deregisterAttributeSyntax(AttributeSyntax syntax)
   {
-
     directoryServer.schema.deregisterSyntax(syntax);
   }
 
@@ -3545,7 +3465,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultAttributeSyntax()
   {
-
     return directoryServer.defaultSyntax;
   }
 
@@ -3562,7 +3481,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultBinarySyntax()
   {
-
     return directoryServer.defaultBinarySyntax;
   }
 
@@ -3579,7 +3497,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultBooleanSyntax()
   {
-
     return directoryServer.defaultBooleanSyntax;
   }
 
@@ -3595,7 +3512,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultDNSyntax()
   {
-
     return directoryServer.defaultDNSyntax;
   }
 
@@ -3612,7 +3528,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultIntegerSyntax()
   {
-
     return directoryServer.defaultIntegerSyntax;
   }
 
@@ -3629,7 +3544,6 @@ public class DirectoryServer
    */
   public static AttributeSyntax getDefaultStringSyntax()
   {
-
     return directoryServer.defaultStringSyntax;
   }
 
@@ -3643,7 +3557,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<MatchingRule,MatchingRuleUse>
                      getMatchingRuleUses()
   {
-
     return directoryServer.schema.getMatchingRuleUses();
   }
 
@@ -3658,7 +3571,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getMatchingRuleUseSet()
   {
-
     return directoryServer.schema.getMatchingRuleUseSet();
   }
 
@@ -3675,7 +3587,6 @@ public class DirectoryServer
    */
   public static MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
   {
-
     return directoryServer.schema.getMatchingRuleUse(matchingRule);
   }
 
@@ -3699,7 +3610,6 @@ public class DirectoryServer
                                              boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerMatchingRuleUse(matchingRuleUse,
                                                    overwriteExisting);
   }
@@ -3714,7 +3624,6 @@ public class DirectoryServer
    */
   public static void deregisterMatchingRuleUse(MatchingRuleUse matchingRuleUse)
   {
-
     directoryServer.schema.deregisterMatchingRuleUse(matchingRuleUse);
   }
 
@@ -3728,7 +3637,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<ObjectClass,DITContentRule>
                      getDITContentRules()
   {
-
     return directoryServer.schema.getDITContentRules();
   }
 
@@ -3743,7 +3651,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getDITContentRuleSet()
   {
-
     return directoryServer.schema.getDITContentRuleSet();
   }
 
@@ -3760,7 +3667,6 @@ public class DirectoryServer
    */
   public static DITContentRule getDITContentRule(ObjectClass objectClass)
   {
-
     return directoryServer.schema.getDITContentRule(objectClass);
   }
 
@@ -3784,7 +3690,6 @@ public class DirectoryServer
                                             boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerDITContentRule(ditContentRule,
                                                   overwriteExisting);
   }
@@ -3798,7 +3703,6 @@ public class DirectoryServer
    */
   public static void deregisterDITContentRule(DITContentRule ditContentRule)
   {
-
     directoryServer.schema.deregisterDITContentRule(ditContentRule);
   }
 
@@ -3812,7 +3716,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<NameForm,DITStructureRule>
                      getDITStructureRules()
   {
-
     return directoryServer.schema.getDITStructureRulesByNameForm();
   }
 
@@ -3827,7 +3730,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getDITStructureRuleSet()
   {
-
     return directoryServer.schema.getDITStructureRuleSet();
   }
 
@@ -3844,7 +3746,6 @@ public class DirectoryServer
    */
   public static DITStructureRule getDITStructureRule(int ruleID)
   {
-
     return directoryServer.schema.getDITStructureRule(ruleID);
   }
 
@@ -3861,7 +3762,6 @@ public class DirectoryServer
    */
   public static DITStructureRule getDITStructureRule(NameForm nameForm)
   {
-
     return directoryServer.schema.getDITStructureRule(nameForm);
   }
 
@@ -3885,7 +3785,6 @@ public class DirectoryServer
                                               boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerDITStructureRule(ditStructureRule,
                                                     overwriteExisting);
   }
@@ -3901,7 +3800,6 @@ public class DirectoryServer
   public static void deregisterDITStructureRule(DITStructureRule
                                                      ditStructureRule)
   {
-
     directoryServer.schema.deregisterDITStructureRule(ditStructureRule);
   }
 
@@ -3914,7 +3812,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<ObjectClass,NameForm> getNameForms()
   {
-
     return directoryServer.schema.getNameFormsByObjectClass();
   }
 
@@ -3929,7 +3826,6 @@ public class DirectoryServer
    */
   public static LinkedHashSet<AttributeValue> getNameFormSet()
   {
-
     return directoryServer.schema.getNameFormSet();
   }
 
@@ -3946,7 +3842,6 @@ public class DirectoryServer
    */
   public static NameForm getNameForm(ObjectClass objectClass)
   {
-
     return directoryServer.schema.getNameForm(objectClass);
   }
 
@@ -3963,7 +3858,6 @@ public class DirectoryServer
    */
   public static NameForm getNameForm(String lowerName)
   {
-
     return directoryServer.schema.getNameForm(lowerName);
   }
 
@@ -3986,7 +3880,6 @@ public class DirectoryServer
                                       boolean overwriteExisting)
          throws DirectoryException
   {
-
     directoryServer.schema.registerNameForm(nameForm, overwriteExisting);
   }
 
@@ -3999,7 +3892,6 @@ public class DirectoryServer
    */
   public static void deregisterNameForm(NameForm nameForm)
   {
-
     directoryServer.schema.deregisterNameForm(nameForm);
   }
 
@@ -4013,7 +3905,6 @@ public class DirectoryServer
    */
   public static MBeanServer getJMXMBeanServer()
   {
-
     return directoryServer.mBeanServer;
   }
 
@@ -4026,7 +3917,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<DN,JMXMBean> getJMXMBeans()
   {
-
     return directoryServer.mBeans;
   }
 
@@ -4045,7 +3935,6 @@ public class DirectoryServer
    */
   public static JMXMBean getJMXMBean(DN configEntryDN)
   {
-
     return directoryServer.mBeans.get(configEntryDN);
   }
 
@@ -4059,7 +3948,6 @@ public class DirectoryServer
   public static void registerConfigurableComponent(ConfigurableComponent
                                                         component)
   {
-
     DN componentDN = component.getConfigurableComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
     if (mBean == null)
@@ -4084,7 +3972,6 @@ public class DirectoryServer
   public static void deregisterConfigurableComponent(ConfigurableComponent
                                                           component)
   {
-
     DN componentDN = component.getConfigurableComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
     if (mBean != null)
@@ -4102,7 +3989,6 @@ public class DirectoryServer
    */
   public static void registerInvokableComponent(InvokableComponent component)
   {
-
     DN componentDN = component.getInvokableComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
     if (mBean == null)
@@ -4126,7 +4012,6 @@ public class DirectoryServer
    */
   public static void deregisterInvokableComponent(InvokableComponent component)
   {
-
     DN componentDN = component.getInvokableComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
     if (mBean != null)
@@ -4144,7 +4029,6 @@ public class DirectoryServer
    */
   public static void registerAlertGenerator(AlertGenerator alertGenerator)
   {
-
     DN componentDN = alertGenerator.getComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
     if (mBean == null)
@@ -4168,7 +4052,6 @@ public class DirectoryServer
    */
   public static void deregisterAlertGenerator(AlertGenerator alertGenerator)
   {
-
     DN componentDN = alertGenerator.getComponentEntryDN();
     JMXMBean mBean = directoryServer.mBeans.get(componentDN);
     if (mBean != null)
@@ -4188,7 +4071,6 @@ public class DirectoryServer
    */
   public static CopyOnWriteArrayList<AlertHandler> getAlertHandlers()
   {
-
     return directoryServer.alertHandlers;
   }
 
@@ -4201,7 +4083,6 @@ public class DirectoryServer
    */
   public static void registerAlertHandler(AlertHandler alertHandler)
   {
-
     directoryServer.alertHandlers.add(alertHandler);
   }
 
@@ -4214,7 +4095,6 @@ public class DirectoryServer
    */
   public static void deregisterAlertHandler(AlertHandler alertHandler)
   {
-
     directoryServer.alertHandlers.remove(alertHandler);
   }
 
@@ -4234,8 +4114,6 @@ public class DirectoryServer
                                            String alertType, int alertID,
                                            String alertMessage)
   {
-
-
     if ((directoryServer.alertHandlers == null) ||
         directoryServer.alertHandlers.isEmpty())
     {
@@ -4289,7 +4167,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,PasswordStorageScheme>
                      getPasswordStorageSchemes()
   {
-
     return directoryServer.passwordStorageSchemes;
   }
 
@@ -4306,7 +4183,6 @@ public class DirectoryServer
    */
   public static PasswordStorageScheme getPasswordStorageScheme(String lowerName)
   {
-
     return directoryServer.passwordStorageSchemes.get(lowerName);
   }
 
@@ -4323,7 +4199,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,PasswordStorageScheme>
                      getAuthPasswordStorageSchemes()
   {
-
     return directoryServer.authPasswordStorageSchemes;
   }
 
@@ -4340,7 +4215,6 @@ public class DirectoryServer
    */
   public static PasswordStorageScheme getAuthPasswordStorageScheme(String name)
   {
-
     return directoryServer.authPasswordStorageSchemes.get(name);
   }
 
@@ -4356,7 +4230,6 @@ public class DirectoryServer
    */
   public static void registerPasswordStorageScheme(PasswordStorageScheme scheme)
   {
-
     String name = toLowerCase(scheme.getStorageSchemeName());
     directoryServer.passwordStorageSchemes.put(name, scheme);
 
@@ -4379,7 +4252,6 @@ public class DirectoryServer
    */
   public static void deregisterPasswordStorageScheme(String lowerName)
   {
-
     PasswordStorageScheme scheme =
          directoryServer.passwordStorageSchemes.remove(lowerName);
 
@@ -4402,7 +4274,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<DN,PasswordValidator> getPasswordValidators()
   {
-
     return directoryServer.passwordValidators;
   }
 
@@ -4420,7 +4291,6 @@ public class DirectoryServer
    */
   public static PasswordValidator getPasswordValidator(DN configEntryDN)
   {
-
     return directoryServer.passwordValidators.get(configEntryDN);
   }
 
@@ -4438,7 +4308,6 @@ public class DirectoryServer
   public static void registerPasswordValidator(DN configEntryDN,
                                                PasswordValidator validator)
   {
-
     directoryServer.passwordValidators.put(configEntryDN, validator);
   }
 
@@ -4453,7 +4322,6 @@ public class DirectoryServer
    */
   public static void deregisterPasswordValidator(DN configEntryDN)
   {
-
     directoryServer.passwordValidators.remove(configEntryDN);
   }
 
@@ -4470,7 +4338,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<DN,AccountStatusNotificationHandler>
                      getAccountStatusNotificationHandlers()
   {
-
     return directoryServer.accountStatusNotificationHandlers;
   }
 
@@ -4489,7 +4356,6 @@ public class DirectoryServer
   public static AccountStatusNotificationHandler
                      getAccountStatusNotificationHandler(DN handlerDN)
   {
-
     return directoryServer.accountStatusNotificationHandlers.get(handlerDN);
   }
 
@@ -4507,7 +4373,6 @@ public class DirectoryServer
   public static void registerAccountStatusNotificationHandler(DN handlerDN,
                           AccountStatusNotificationHandler handler)
   {
-
     directoryServer.accountStatusNotificationHandlers.put(handlerDN, handler);
   }
 
@@ -4522,7 +4387,6 @@ public class DirectoryServer
    */
   public static void deregisterAccountStatusNotificationHandler(DN handlerDN)
   {
-
     directoryServer.accountStatusNotificationHandlers.remove(handlerDN);
   }
 
@@ -4539,7 +4403,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<DN,PasswordGenerator> getPasswordGenerators()
   {
-
     return directoryServer.passwordGenerators;
   }
 
@@ -4557,7 +4420,6 @@ public class DirectoryServer
    */
   public static PasswordGenerator getPasswordGenerator(DN configEntryDN)
   {
-
     return directoryServer.passwordGenerators.get(configEntryDN);
   }
 
@@ -4575,7 +4437,6 @@ public class DirectoryServer
   public static void registerPasswordGenerator(DN configEntryDN,
                                                PasswordGenerator generator)
   {
-
     directoryServer.passwordGenerators.put(configEntryDN, generator);
   }
 
@@ -4590,7 +4451,6 @@ public class DirectoryServer
    */
   public static void deregisterPasswordGenerator(DN configEntryDN)
   {
-
     directoryServer.passwordGenerators.remove(configEntryDN);
   }
 
@@ -4606,7 +4466,6 @@ public class DirectoryServer
    */
   public static PasswordPolicy[] getPasswordPolicies()
   {
-
     // The password policy objects are returned in an array to prevent the
     // caller from modifying the map structure.
     PasswordPolicyConfig[] values = directoryServer.passwordPolicies.values()
@@ -4696,7 +4555,6 @@ public class DirectoryServer
    */
   public static DN getDefaultPasswordPolicyDN()
   {
-
     return directoryServer.defaultPasswordPolicyDN;
   }
 
@@ -4715,7 +4573,6 @@ public class DirectoryServer
    */
   public static void setDefaultPasswordPolicyDN(DN defaultPasswordPolicyDN)
   {
-
     directoryServer.defaultPasswordPolicyDN = defaultPasswordPolicyDN;
     directoryServer.defaultPasswordPolicyConfig = null;
   }
@@ -4762,7 +4619,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<String,MonitorProvider> getMonitorProviders()
   {
-
     return directoryServer.monitorProviders;
   }
 
@@ -4779,7 +4635,6 @@ public class DirectoryServer
    */
   public static MonitorProvider getMonitorProvider(String lowerName)
   {
-
     return directoryServer.monitorProviders.get(lowerName);
   }
 
@@ -4795,7 +4650,6 @@ public class DirectoryServer
    */
   public static void registerMonitorProvider(MonitorProvider monitorProvider)
   {
-
     String lowerName = toLowerCase(monitorProvider.getMonitorInstanceName());
     directoryServer.monitorProviders.put(lowerName, monitorProvider);
 
@@ -4836,7 +4690,6 @@ public class DirectoryServer
    */
   public static void deregisterMonitorProvider(String lowerName)
   {
-
     MonitorProvider provider =
          directoryServer.monitorProviders.remove(toLowerCase(lowerName));
 
@@ -4872,7 +4725,6 @@ public class DirectoryServer
    */
   public static EntryCache getEntryCache()
   {
-
     return directoryServer.entryCache;
   }
 
@@ -4886,7 +4738,6 @@ public class DirectoryServer
    */
   public static void setEntryCache(EntryCache entryCache)
   {
-
     synchronized (directoryServer)
     {
       directoryServer.entryCache = entryCache;
@@ -4904,7 +4755,6 @@ public class DirectoryServer
    */
   public static Map<DN,KeyManagerProvider> getKeyManagerProviders()
   {
-
     return directoryServer.keyManagerProviders;
   }
 
@@ -4922,7 +4772,6 @@ public class DirectoryServer
    */
   public static KeyManagerProvider getKeyManagerProvider(DN providerDN)
   {
-
     return directoryServer.keyManagerProviders.get(providerDN);
   }
 
@@ -4937,7 +4786,6 @@ public class DirectoryServer
   public static void registerKeyManagerProvider(DN providerDN,
                                                 KeyManagerProvider provider)
   {
-
     directoryServer.keyManagerProviders.put(providerDN, provider);
   }
 
@@ -4951,7 +4799,6 @@ public class DirectoryServer
    */
   public static void deregisterKeyManagerProvider(DN providerDN)
   {
-
     directoryServer.keyManagerProviders.remove(providerDN);
   }
 
@@ -4966,7 +4813,6 @@ public class DirectoryServer
    */
   public static Map<DN,TrustManagerProvider> getTrustManagerProviders()
   {
-
     return directoryServer.trustManagerProviders;
   }
 
@@ -4984,7 +4830,6 @@ public class DirectoryServer
    */
   public static TrustManagerProvider getTrustManagerProvider(DN providerDN)
   {
-
     return directoryServer.trustManagerProviders.get(providerDN);
   }
 
@@ -5000,7 +4845,6 @@ public class DirectoryServer
   public static void registerTrustManagerProvider(DN providerDN,
                                                   TrustManagerProvider provider)
   {
-
     directoryServer.trustManagerProviders.put(providerDN, provider);
   }
 
@@ -5014,7 +4858,6 @@ public class DirectoryServer
    */
   public static void deregisterTrustManagerProvider(DN providerDN)
   {
-
     directoryServer.trustManagerProviders.remove(providerDN);
   }
 
@@ -5029,7 +4872,6 @@ public class DirectoryServer
    */
   public static Map<DN,CertificateMapper> getCertificateMappers()
   {
-
     return directoryServer.certificateMappers;
   }
 
@@ -5046,7 +4888,6 @@ public class DirectoryServer
    */
   public static CertificateMapper getCertificateMapper(DN mapperDN)
   {
-
     return directoryServer.certificateMappers.get(mapperDN);
   }
 
@@ -5061,7 +4902,6 @@ public class DirectoryServer
   public static void registerCertificateMapper(DN mapperDN,
                                                CertificateMapper mapper)
   {
-
     directoryServer.certificateMappers.put(mapperDN, mapper);
   }
 
@@ -5074,7 +4914,6 @@ public class DirectoryServer
    */
   public static void deregisterCertificateMapper(DN mapperDN)
   {
-
     directoryServer.certificateMappers.remove(mapperDN);
   }
 
@@ -5090,7 +4929,6 @@ public class DirectoryServer
    */
   public static Set<Privilege> getRootPrivileges()
   {
-
     return directoryServer.rootDNConfigManager.getRootPrivileges();
   }
 
@@ -5106,7 +4944,6 @@ public class DirectoryServer
    */
   public static CopyOnWriteArraySet<DN> getRootDNs()
   {
-
     return directoryServer.rootDNs;
   }
 
@@ -5123,7 +4960,6 @@ public class DirectoryServer
    */
   public static boolean isRootDN(DN userDN)
   {
-
     return directoryServer.rootDNs.contains(userDN);
   }
 
@@ -5136,7 +4972,6 @@ public class DirectoryServer
    */
   public static void registerRootDN(DN rootDN)
   {
-
     directoryServer.rootDNs.add(rootDN);
   }
 
@@ -5150,7 +4985,6 @@ public class DirectoryServer
    */
   public static void deregisterRootDN(DN rootDN)
   {
-
     directoryServer.rootDNs.remove(rootDN);
   }
 
@@ -5166,7 +5000,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<DN,DN> getAlternateRootBindDNs()
   {
-
     return directoryServer.alternateRootBindDNs;
   }
 
@@ -5184,7 +5017,6 @@ public class DirectoryServer
    */
   public static DN getActualRootBindDN(DN alternateRootBindDN)
   {
-
     return directoryServer.alternateRootBindDNs.get(alternateRootBindDN);
   }
 
@@ -5204,7 +5036,6 @@ public class DirectoryServer
                                              DN alternateRootBindDN)
          throws DirectoryException
   {
-
     DN existingRootEntryDN =
          directoryServer.alternateRootBindDNs.putIfAbsent(alternateRootBindDN,
                                                           actualRootEntryDN);
@@ -5234,7 +5065,6 @@ public class DirectoryServer
    */
   public static DN deregisterAlternateRootBindDN(DN alternateRootBindDN)
   {
-
     return directoryServer.alternateRootBindDNs.remove(alternateRootBindDN);
   }
 
@@ -5249,7 +5079,6 @@ public class DirectoryServer
    */
   public static ResultCode getServerErrorResultCode()
   {
-
     return directoryServer.serverErrorResultCode;
   }
 
@@ -5265,7 +5094,6 @@ public class DirectoryServer
    */
   public static void setServerErrorResultCode(ResultCode serverErrorResultCode)
   {
-
     directoryServer.serverErrorResultCode = serverErrorResultCode;
   }
 
@@ -5281,7 +5109,6 @@ public class DirectoryServer
    */
   public static boolean addMissingRDNAttributes()
   {
-
     return directoryServer.addMissingRDNAttributes;
   }
 
@@ -5298,7 +5125,6 @@ public class DirectoryServer
    */
   public static void setAddMissingRDNAttributes(boolean addMissingRDNAttributes)
   {
-
     directoryServer.addMissingRDNAttributes = addMissingRDNAttributes;
   }
 
@@ -5316,7 +5142,6 @@ public class DirectoryServer
    */
   public static boolean allowAttributeNameExceptions()
   {
-
     return directoryServer.allowAttributeNameExceptions;
   }
 
@@ -5333,7 +5158,6 @@ public class DirectoryServer
   public static void setAllowAttributeNameExceptions(
                           boolean allowAttributeNameExceptions)
   {
-
     directoryServer.allowAttributeNameExceptions = allowAttributeNameExceptions;
   }
 
@@ -5347,7 +5171,6 @@ public class DirectoryServer
    */
   public static boolean checkSchema()
   {
-
     return directoryServer.checkSchema;
   }
 
@@ -5361,7 +5184,6 @@ public class DirectoryServer
    */
   public static void setCheckSchema(boolean checkSchema)
   {
-
     directoryServer.checkSchema = checkSchema;
   }
 
@@ -5376,7 +5198,6 @@ public class DirectoryServer
    */
   public static AcceptRejectWarn getSingleStructuralObjectClassPolicy()
   {
-
     return directoryServer.singleStructuralClassPolicy;
   }
 
@@ -5393,7 +5214,6 @@ public class DirectoryServer
   public static void setSingleStructuralObjectClassPolicy(
                           AcceptRejectWarn singleStructuralClassPolicy)
   {
-
     directoryServer.singleStructuralClassPolicy = singleStructuralClassPolicy;
   }
 
@@ -5408,7 +5228,6 @@ public class DirectoryServer
    */
   public static AcceptRejectWarn getSyntaxEnforcementPolicy()
   {
-
     return directoryServer.syntaxEnforcementPolicy;
   }
 
@@ -5426,7 +5245,6 @@ public class DirectoryServer
   public static void setSyntaxEnforcementPolicy(
                           AcceptRejectWarn syntaxEnforcementPolicy)
   {
-
     directoryServer.syntaxEnforcementPolicy = syntaxEnforcementPolicy;
   }
 
@@ -5445,7 +5263,6 @@ public class DirectoryServer
    */
   public static boolean notifyAbandonedOperations()
   {
-
     return directoryServer.notifyAbandonedOperations;
   }
 
@@ -5465,7 +5282,6 @@ public class DirectoryServer
   public static void setNotifyAbandonedOperations(
                           boolean notifyAbandonedOperations)
   {
-
     directoryServer.notifyAbandonedOperations = notifyAbandonedOperations;
   }
 
@@ -5480,7 +5296,6 @@ public class DirectoryServer
    */
   public static Map<String,Backend> getBackends()
   {
-
     return directoryServer.backends;
   }
 
@@ -5496,7 +5311,6 @@ public class DirectoryServer
    */
   public static Backend getBackend(String backendID)
   {
-
     return directoryServer.backends.get(backendID);
   }
 
@@ -5513,7 +5327,6 @@ public class DirectoryServer
    */
   public static boolean hasBackend(String backendID)
   {
-
     return directoryServer.backends.containsKey(backendID);
   }
 
@@ -5534,7 +5347,6 @@ public class DirectoryServer
   public static void registerBackend(Backend backend)
          throws DirectoryException
   {
-
     ensureNotNull(backend);
 
     String backendID = backend.getBackendID();
@@ -5576,7 +5388,6 @@ public class DirectoryServer
    */
   public static void deregisterBackend(Backend backend)
   {
-
     ensureNotNull(backend);
 
     synchronized (directoryServer)
@@ -5609,7 +5420,6 @@ public class DirectoryServer
    */
   public static Map<DN,Backend> getBaseDNs()
   {
-
     return directoryServer.baseDNs;
   }
 
@@ -5626,7 +5436,6 @@ public class DirectoryServer
    */
   public static Backend getBackendWithBaseDN(DN baseDN)
   {
-
     return directoryServer.baseDNs.get(baseDN);
   }
 
@@ -5645,7 +5454,6 @@ public class DirectoryServer
    */
   public static Backend getBackend(DN entryDN)
   {
-
     if (entryDN.isNullDN())
     {
       return directoryServer.rootDSEBackend;
@@ -5691,7 +5499,6 @@ public class DirectoryServer
                                     boolean isPrivate, boolean testOnly)
          throws DirectoryException
   {
-
     ensureNotNull(baseDN, backend);
 
     synchronized (directoryServer)
@@ -5903,7 +5710,6 @@ public class DirectoryServer
   public static void deregisterBaseDN(DN baseDN, boolean testOnly)
          throws DirectoryException
   {
-
     ensureNotNull(baseDN);
 
     synchronized (directoryServer)
@@ -6046,7 +5852,6 @@ public class DirectoryServer
    */
   public static Map<DN,Backend> getPublicNamingContexts()
   {
-
     return directoryServer.publicNamingContexts;
   }
 
@@ -6061,7 +5866,6 @@ public class DirectoryServer
    */
   public static Map<DN,Backend> getPrivateNamingContexts()
   {
-
     return directoryServer.privateNamingContexts;
   }
 
@@ -6078,7 +5882,6 @@ public class DirectoryServer
    */
   public static boolean isNamingContext(DN dn)
   {
-
     return (directoryServer.publicNamingContexts.containsKey(dn) ||
             directoryServer.privateNamingContexts.containsKey(dn));
   }
@@ -6092,7 +5895,6 @@ public class DirectoryServer
    */
   public static Entry getRootDSE()
   {
-
     return directoryServer.rootDSEBackend.getRootDSE();
   }
 
@@ -6105,7 +5907,6 @@ public class DirectoryServer
    */
   public static RootDSEBackend getRootDSEBackend()
   {
-
     return directoryServer.rootDSEBackend;
   }
 
@@ -6120,7 +5921,6 @@ public class DirectoryServer
    */
   public static DN getSchemaDN()
   {
-
     return directoryServer.schemaDN;
   }
 
@@ -6134,7 +5934,6 @@ public class DirectoryServer
    */
   public static void setSchemaDN(DN schemaDN)
   {
-
     directoryServer.schemaDN = schemaDN;
   }
 
@@ -6156,8 +5955,6 @@ public class DirectoryServer
   public static Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-
-
     // If the entry is the root DSE, then get and return that.
     if (entryDN.isNullDN())
     {
@@ -6193,8 +5990,6 @@ public class DirectoryServer
   public static boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-
-
     // If the entry is the root DSE, then it will always exist.
     if (entryDN.isNullDN())
     {
@@ -6224,7 +6019,6 @@ public class DirectoryServer
    */
   public static TreeSet<String> getSupportedControls()
   {
-
     return directoryServer.supportedControls;
   }
 
@@ -6242,7 +6036,6 @@ public class DirectoryServer
    */
   public static boolean isSupportedControl(String controlOID)
   {
-
     return directoryServer.supportedControls.contains(controlOID);
   }
 
@@ -6258,7 +6051,6 @@ public class DirectoryServer
    */
   public static void registerSupportedControl(String controlOID)
   {
-
     synchronized (directoryServer.supportedControls)
     {
       directoryServer.supportedControls.add(controlOID);
@@ -6277,7 +6069,6 @@ public class DirectoryServer
    */
   public static void deregisterSupportedControl(String controlOID)
   {
-
     synchronized (directoryServer.supportedControls)
     {
       directoryServer.supportedControls.remove(controlOID);
@@ -6295,7 +6086,6 @@ public class DirectoryServer
    */
   public static TreeSet<String> getSupportedFeatures()
   {
-
     return directoryServer.supportedFeatures;
   }
 
@@ -6313,7 +6103,6 @@ public class DirectoryServer
    */
   public static boolean isSupportedFeature(String featureOID)
   {
-
     return directoryServer.supportedFeatures.contains(featureOID);
   }
 
@@ -6329,7 +6118,6 @@ public class DirectoryServer
    */
   public static void registerSupportedFeature(String featureOID)
   {
-
     synchronized (directoryServer.supportedFeatures)
     {
       directoryServer.supportedFeatures.add(featureOID);
@@ -6348,7 +6136,6 @@ public class DirectoryServer
    */
   public static void deregisterSupportedFeature(String featureOID)
   {
-
     synchronized (directoryServer.supportedFeatures)
     {
       directoryServer.supportedFeatures.remove(featureOID);
@@ -6367,7 +6154,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,ExtendedOperationHandler>
                      getSupportedExtensions()
   {
-
     return directoryServer.extendedOperationHandlers;
   }
 
@@ -6383,7 +6169,6 @@ public class DirectoryServer
    */
   public static ExtendedOperationHandler getExtendedOperationHandler(String oid)
   {
-
     return directoryServer.extendedOperationHandlers.get(oid);
   }
 
@@ -6400,7 +6185,6 @@ public class DirectoryServer
   public static void registerSupportedExtension(String oid,
                           ExtendedOperationHandler handler)
   {
-
     directoryServer.extendedOperationHandlers.put(toLowerCase(oid), handler);
   }
 
@@ -6414,7 +6198,6 @@ public class DirectoryServer
    */
   public static void deregisterSupportedExtension(String oid)
   {
-
     directoryServer.extendedOperationHandlers.remove(toLowerCase(oid));
   }
 
@@ -6430,7 +6213,6 @@ public class DirectoryServer
   public static ConcurrentHashMap<String,SASLMechanismHandler>
                      getSupportedSASLMechanisms()
   {
-
     return directoryServer.saslMechanismHandlers;
   }
 
@@ -6446,7 +6228,6 @@ public class DirectoryServer
    */
   public static SASLMechanismHandler getSASLMechanismHandler(String name)
   {
-
     return directoryServer.saslMechanismHandlers.get(name);
   }
 
@@ -6462,7 +6243,6 @@ public class DirectoryServer
   public static void registerSASLMechanismHandler(String name,
                                                   SASLMechanismHandler handler)
   {
-
     // FIXME -- Should we force this name to be lowercase?  If so, then will
     // that cause the lower name to be used in the root DSE?
     directoryServer.saslMechanismHandlers.put(name, handler);
@@ -6477,7 +6257,6 @@ public class DirectoryServer
    */
   public static void deregisterSASLMechanismHandler(String name)
   {
-
     // FIXME -- Should we force this name to be lowercase?
     directoryServer.saslMechanismHandlers.remove(name);
   }
@@ -6494,7 +6273,6 @@ public class DirectoryServer
    */
   public static ConcurrentHashMap<DN,IdentityMapper> getIdentityMappers()
   {
-
     return directoryServer.identityMappers;
   }
 
@@ -6513,7 +6291,6 @@ public class DirectoryServer
    */
   public static IdentityMapper getIdentityMapper(DN configEntryDN)
   {
-
     return directoryServer.identityMappers.get(configEntryDN);
   }
 
@@ -6529,7 +6306,6 @@ public class DirectoryServer
   public static void registerIdentityMapper(DN configEntryDN,
                                             IdentityMapper identityMapper)
   {
-
     directoryServer.identityMappers.put(configEntryDN, identityMapper);
   }
 
@@ -6543,7 +6319,6 @@ public class DirectoryServer
    */
   public static void deregisterIdentityMapper(DN configEntryDN)
   {
-
     directoryServer.identityMappers.remove(configEntryDN);
   }
 
@@ -6559,7 +6334,6 @@ public class DirectoryServer
    */
   public static DN getProxiedAuthorizationIdentityMapperDN()
   {
-
     return directoryServer.proxiedAuthorizationIdentityMapperDN;
   }
 
@@ -6578,7 +6352,6 @@ public class DirectoryServer
   public static void setProxiedAuthorizationIdentityMapperDN(
                           DN proxiedAuthorizationIdentityMapperDN)
   {
-
     directoryServer.proxiedAuthorizationIdentityMapperDN =
          proxiedAuthorizationIdentityMapperDN;
   }
@@ -6595,7 +6368,6 @@ public class DirectoryServer
    */
   public static IdentityMapper getProxiedAuthorizationIdentityMapper()
   {
-
     if (directoryServer.proxiedAuthorizationIdentityMapperDN == null)
     {
       return null;
@@ -6615,7 +6387,6 @@ public class DirectoryServer
    */
   public static CopyOnWriteArrayList<ConnectionHandler> getConnectionHandlers()
   {
-
     return directoryServer.connectionHandlers;
   }
 
@@ -6629,7 +6400,6 @@ public class DirectoryServer
    */
   public static void registerConnectionHandler(ConnectionHandler handler)
   {
-
     synchronized (directoryServer.connectionHandlers)
     {
       directoryServer.connectionHandlers.add(handler);
@@ -6651,7 +6421,6 @@ public class DirectoryServer
    */
   public static void deregisterConnectionHandler(ConnectionHandler handler)
   {
-
     synchronized (directoryServer.connectionHandlers)
     {
       directoryServer.connectionHandlers.remove(handler);
@@ -6682,7 +6451,6 @@ public class DirectoryServer
   private void initializeWorkQueue()
           throws ConfigException, InitializationException
   {
-
     DN configEntryDN;
     try
     {
@@ -6775,7 +6543,6 @@ public class DirectoryServer
    */
   public static WorkQueue getWorkQueue()
   {
-
     return directoryServer.workQueue;
   }
 
@@ -6793,8 +6560,6 @@ public class DirectoryServer
   public static void enqueueRequest(Operation operation)
          throws DirectoryException
   {
-
-
     // See if a bind is already in progress on the associated connection.  If so
     // then reject the operation.
     ClientConnection clientConnection = operation.getClientConnection();
@@ -6901,7 +6666,6 @@ public class DirectoryServer
   public static CopyOnWriteArrayList<ChangeNotificationListener>
                      getChangeNotificationListeners()
   {
-
     return directoryServer.changeNotificationListeners;
   }
 
@@ -6918,7 +6682,6 @@ public class DirectoryServer
   public static void registerChangeNotificationListener(
                           ChangeNotificationListener changeListener)
   {
-
     directoryServer.changeNotificationListeners.add(changeListener);
   }
 
@@ -6935,7 +6698,6 @@ public class DirectoryServer
   public static void deregisterChangeNotificationListener(
                           ChangeNotificationListener changeListener)
   {
-
     directoryServer.changeNotificationListeners.remove(changeListener);
   }
 
@@ -6950,7 +6712,6 @@ public class DirectoryServer
    */
   public static CopyOnWriteArrayList<PersistentSearch> getPersistentSearches()
   {
-
     return directoryServer.persistentSearches;
   }
 
@@ -6966,7 +6727,6 @@ public class DirectoryServer
    */
   public static void registerPersistentSearch(PersistentSearch persistentSearch)
   {
-
     directoryServer.persistentSearches.add(persistentSearch);
     persistentSearch.getSearchOperation().getClientConnection().
          registerPersistentSearch(persistentSearch);
@@ -6985,7 +6745,6 @@ public class DirectoryServer
   public static void deregisterPersistentSearch(PersistentSearch
                                                      persistentSearch)
   {
-
     directoryServer.persistentSearches.remove(persistentSearch);
     persistentSearch.getSearchOperation().getClientConnection().
          deregisterPersistentSearch(persistentSearch);
@@ -7004,7 +6763,6 @@ public class DirectoryServer
   public static CopyOnWriteArrayList<SynchronizationProvider>
               getSynchronizationProviders()
   {
-
     return directoryServer.synchronizationProviders;
   }
 
@@ -7018,7 +6776,6 @@ public class DirectoryServer
   public static void registerSynchronizationProvider(SynchronizationProvider
                                                           provider)
   {
-
     directoryServer.synchronizationProviders.add(provider);
   }
 
@@ -7033,7 +6790,6 @@ public class DirectoryServer
   public static void deregisterSynchronizationProvider(SynchronizationProvider
                                                             provider)
   {
-
     directoryServer.synchronizationProviders.remove(provider);
   }
 
@@ -7048,7 +6804,6 @@ public class DirectoryServer
    */
   public static void registerShutdownListener(ServerShutdownListener listener)
   {
-
     directoryServer.shutdownListeners.add(listener);
   }
 
@@ -7062,7 +6817,6 @@ public class DirectoryServer
    */
   public static void deregisterShutdownListener(ServerShutdownListener listener)
   {
-
     directoryServer.shutdownListeners.remove(listener);
   }
 
@@ -7078,7 +6832,6 @@ public class DirectoryServer
    */
   public static void shutDown(String className, String reason)
   {
-
     synchronized (directoryServer)
     {
       if (directoryServer.shuttingDown)
@@ -7409,7 +7162,6 @@ public class DirectoryServer
    */
   public static void restart(String className, String reason)
   {
-
     try
     {
       String configClass = directoryServer.configClass;
@@ -7443,7 +7195,6 @@ public class DirectoryServer
    */
   public static long getMaxAllowedConnections()
   {
-
     return directoryServer.maxAllowedConnections;
   }
 
@@ -7459,7 +7210,6 @@ public class DirectoryServer
    */
   public static void setMaxAllowedConnections(long maxAllowedConnections)
   {
-
     if (maxAllowedConnections > 0)
     {
       directoryServer.maxAllowedConnections = maxAllowedConnections;
@@ -7485,7 +7235,6 @@ public class DirectoryServer
    */
   public static long newConnectionAccepted(ClientConnection clientConnection)
   {
-
     synchronized (directoryServer.establishedConnections)
     {
       if ((directoryServer.maxAllowedConnections > 0) &&
@@ -7516,7 +7265,6 @@ public class DirectoryServer
    */
   public static void connectionClosed(ClientConnection clientConnection)
   {
-
     synchronized (directoryServer.establishedConnections)
     {
       directoryServer.establishedConnections.remove(clientConnection);
@@ -7533,7 +7281,6 @@ public class DirectoryServer
    */
   public static long getCurrentConnections()
   {
-
     return directoryServer.currentConnections;
   }
 
@@ -7548,7 +7295,6 @@ public class DirectoryServer
    */
   public static long getMaxConnections()
   {
-
     return directoryServer.maxConnections;
   }
 
@@ -7563,7 +7309,6 @@ public class DirectoryServer
    */
   public static long getTotalConnections()
   {
-
     return directoryServer.totalConnections;
   }
 
@@ -7605,7 +7350,6 @@ public class DirectoryServer
    */
   public static int getSizeLimit()
   {
-
     return directoryServer.sizeLimit;
   }
 
@@ -7620,7 +7364,6 @@ public class DirectoryServer
    */
   public static void setSizeLimit(int sizeLimit)
   {
-
     directoryServer.sizeLimit = sizeLimit;
   }
 
@@ -7635,7 +7378,6 @@ public class DirectoryServer
    */
   public static int getLookthroughLimit()
   {
-
     return directoryServer.lookthroughLimit;
   }
 
@@ -7650,7 +7392,6 @@ public class DirectoryServer
    */
   public static void setLookthroughLimit(int lookthroughLimit)
   {
-
     directoryServer.lookthroughLimit = lookthroughLimit;
   }
 
@@ -7665,7 +7406,6 @@ public class DirectoryServer
    */
   public static int getTimeLimit()
   {
-
     return directoryServer.timeLimit;
   }
 
@@ -7680,7 +7420,6 @@ public class DirectoryServer
    */
   public static void setTimeLimit(int timeLimit)
   {
-
     directoryServer.timeLimit = timeLimit;
   }
 
@@ -7694,7 +7433,6 @@ public class DirectoryServer
    */
   public static WritabilityMode getWritabilityMode()
   {
-
     return directoryServer.writabilityMode;
   }
 
@@ -7709,7 +7447,6 @@ public class DirectoryServer
    */
   public static void setWritabilityMode(WritabilityMode writabilityMode)
   {
-
     directoryServer.writabilityMode = writabilityMode;
   }
 
@@ -7726,7 +7463,6 @@ public class DirectoryServer
    */
   public static boolean bindWithDNRequiresPassword()
   {
-
     return directoryServer.bindWithDNRequiresPassword;
   }
 
@@ -7743,7 +7479,6 @@ public class DirectoryServer
   public static void setBindWithDNRequiresPassword(boolean
                           bindWithDNRequiresPassword)
   {
-
     directoryServer.bindWithDNRequiresPassword = bindWithDNRequiresPassword;
   }
 
@@ -7757,7 +7492,6 @@ public class DirectoryServer
    */
   public static boolean rejectUnauthenticatedRequests()
   {
-
      return directoryServer.rejectUnauthenticatedRequests;
   }
 
@@ -7771,7 +7505,6 @@ public class DirectoryServer
   public static void setRejectUnauthenticatedRequests(boolean
                           rejectUnauthenticatedRequests)
   {
-
         directoryServer.rejectUnauthenticatedRequests =
                                   rejectUnauthenticatedRequests;
   }
@@ -7787,7 +7520,6 @@ public class DirectoryServer
    */
   public DN getComponentEntryDN()
   {
-
     try
     {
       if (configHandler == null)
@@ -7823,7 +7555,6 @@ public class DirectoryServer
    */
   public String getClassName()
   {
-
     return CLASS_NAME;
   }
 
@@ -7864,7 +7595,6 @@ public class DirectoryServer
    */
   public void uncaughtException(Thread thread, Throwable exception)
   {
-
     if (debugEnabled())
     {
       debugCought(DebugLogLevel.ERROR, exception);

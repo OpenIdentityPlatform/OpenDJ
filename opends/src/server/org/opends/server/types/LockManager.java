@@ -129,8 +129,6 @@ public class LockManager
    */
   public static Lock tryLockRead(DN entryDN)
   {
-
-
     int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
 
 
@@ -256,7 +254,6 @@ public class LockManager
    */
   public static Lock lockRead(DN entryDN)
   {
-
     return lockRead(entryDN, DEFAULT_TIMEOUT);
   }
 
@@ -280,8 +277,6 @@ public class LockManager
    */
   public static Lock lockRead(DN entryDN, long timeout)
   {
-
-
     int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
 
 
@@ -434,8 +429,6 @@ public class LockManager
    */
   public static Lock tryLockWrite(DN entryDN)
   {
-
-
     int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
 
 
@@ -561,7 +554,6 @@ public class LockManager
    */
   public static Lock lockWrite(DN entryDN)
   {
-
     return lockWrite(entryDN, DEFAULT_TIMEOUT);
   }
 
@@ -583,8 +575,6 @@ public class LockManager
    */
   public static Lock lockWrite(DN entryDN, long timeout)
   {
-
-
     int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
 
 
@@ -731,8 +721,6 @@ public class LockManager
    */
   public static void unlock(DN entryDN, Lock lock)
   {
-
-
     // Unlock the entry without grabbing any additional locks.
     try
     {
@@ -847,7 +835,6 @@ public class LockManager
    */
   public static ReentrantReadWriteLock destroyLock(DN entryDN)
   {
-
     return entryLocks.remove(entryDN);
   }
 
@@ -861,7 +848,6 @@ public class LockManager
    */
   public static int lockTableSize()
   {
-
     return entryLocks.size();
   }
 }

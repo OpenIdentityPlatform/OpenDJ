@@ -95,7 +95,6 @@ public class RecurringTask
   public RecurringTask(TaskScheduler taskScheduler, Entry recurringTaskEntry)
          throws DirectoryException
   {
-
     this.taskScheduler        = taskScheduler;
     this.recurringTaskEntry   = recurringTaskEntry;
     this.recurringTaskEntryDN = recurringTaskEntry.getDN();
@@ -279,7 +278,6 @@ public class RecurringTask
    */
   public String getRecurringTaskID()
   {
-
     return recurringTaskID;
   }
 
@@ -292,7 +290,6 @@ public class RecurringTask
    */
   public DN getRecurringTaskEntryDN()
   {
-
     return recurringTaskEntryDN;
   }
 
@@ -305,7 +302,6 @@ public class RecurringTask
    */
   public Entry getRecurringTaskEntry()
   {
-
     return recurringTaskEntry;
   }
 
@@ -320,7 +316,6 @@ public class RecurringTask
    */
   public String getTaskClassName()
   {
-
     return taskClassName;
   }
 
@@ -333,7 +328,6 @@ public class RecurringTask
    */
   public Task scheduleNextIteration()
   {
-
     // NYI
     return null;
   }

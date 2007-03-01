@@ -111,7 +111,6 @@ public class ProfilerThread
    */
   public void run()
   {
-
     captureThread    = currentThread();
     captureStartTime = System.currentTimeMillis();
 
@@ -195,7 +194,6 @@ public class ProfilerThread
    */
   public void stopProfiling()
   {
-
     stopProfiling  = true;
 
     try
@@ -228,8 +226,6 @@ public class ProfilerThread
   public void writeCaptureData(String filename)
          throws IOException
   {
-
-
     // Open the capture file for writing.  We'll use an ASN.1 writer to write
     // the data.
     ASN1Writer writer = new ASN1Writer(new FileOutputStream(filename));

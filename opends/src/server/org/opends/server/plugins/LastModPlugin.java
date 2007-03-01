@@ -121,8 +121,6 @@ public final class LastModPlugin
                                      ConfigEntry configEntry)
          throws ConfigException
   {
-
-
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)
     {
@@ -152,8 +150,6 @@ public final class LastModPlugin
   public final PreOperationPluginResult
        doPreOperation(PreOperationAddOperation addOperation)
   {
-
-
     // Create the attribute list for the creatorsName attribute, if appropriate.
     DN creatorDN = addOperation.getAuthorizationDN();
     LinkedHashSet<AttributeValue> nameValues =
@@ -203,8 +199,6 @@ public final class LastModPlugin
   public final PreOperationPluginResult
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
-
-
     // Create the modifiersName attribute.
     DN modifierDN = modifyOperation.getAuthorizationDN();
     LinkedHashSet<AttributeValue> nameValues =
@@ -282,8 +276,6 @@ public final class LastModPlugin
   public final PreOperationPluginResult
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
-
-
     // Create the modifiersName attribute.
     DN modifierDN = modifyDNOperation.getAuthorizationDN();
     LinkedHashSet<AttributeValue> nameValues =

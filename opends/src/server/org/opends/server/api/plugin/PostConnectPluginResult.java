@@ -86,7 +86,6 @@ public class PostConnectPluginResult
   public PostConnectPluginResult(boolean connectionTerminated,
                                  boolean continuePluginProcessing)
   {
-
     this.connectionTerminated     = connectionTerminated;
     this.continuePluginProcessing = continuePluginProcessing;
   }
@@ -102,7 +101,6 @@ public class PostConnectPluginResult
    */
   public boolean connectionTerminated()
   {
-
     return connectionTerminated;
   }
 
@@ -118,7 +116,6 @@ public class PostConnectPluginResult
    */
   public boolean continuePluginProcessing()
   {
-
     return continuePluginProcessing;
   }
 
@@ -133,7 +130,6 @@ public class PostConnectPluginResult
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -150,7 +146,6 @@ public class PostConnectPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("PostConnectPluginResult(connectionTerminated=");
     buffer.append(connectionTerminated);
     buffer.append(", continuePluginProcessing=");

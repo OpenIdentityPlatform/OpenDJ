@@ -96,7 +96,6 @@ public class BackupDirectory
    */
   public BackupDirectory(String path, DN configEntryDN)
   {
-
     this.path          = path;
     this.configEntryDN = configEntryDN;
 
@@ -120,7 +119,6 @@ public class BackupDirectory
   public BackupDirectory(String path, DN configEntryDN,
                          LinkedHashMap<String,BackupInfo> backups)
   {
-
     this.path          = path;
     this.configEntryDN = configEntryDN;
 
@@ -144,7 +142,6 @@ public class BackupDirectory
    */
   public String getPath()
   {
-
     return path;
   }
 
@@ -159,7 +156,6 @@ public class BackupDirectory
    */
   public DN getConfigEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -175,7 +171,6 @@ public class BackupDirectory
    */
   public LinkedHashMap<String,BackupInfo> getBackups()
   {
-
     return backups;
   }
 
@@ -192,7 +187,6 @@ public class BackupDirectory
    */
   public BackupInfo getBackupInfo(String backupID)
   {
-
     return backups.get(backupID);
   }
 
@@ -208,7 +202,6 @@ public class BackupDirectory
    */
   public BackupInfo getLatestBackup()
   {
-
     BackupInfo latestBackup = null;
     for (BackupInfo backup : backups.values())
     {
@@ -244,7 +237,6 @@ public class BackupDirectory
   public void addBackup(BackupInfo backupInfo)
          throws ConfigException
   {
-
     String backupID = backupInfo.getBackupID();
     if (backups.containsKey(backupID))
     {
@@ -273,7 +265,6 @@ public class BackupDirectory
   public void removeBackup(String backupID)
          throws ConfigException
   {
-
     if (! backups.containsKey(backupID))
     {
       int    msgID   = MSGID_BACKUPDIRECTORY_NO_SUCH_BACKUP;
@@ -306,7 +297,6 @@ public class BackupDirectory
    */
   public String getDescriptorPath()
   {
-
     return path + File.separator + BACKUP_DIRECTORY_DESCRIPTOR_FILE;
   }
 
@@ -321,8 +311,6 @@ public class BackupDirectory
   public void writeBackupDirectoryDescriptor()
          throws IOException
   {
-
-
     // First make sure that the target directory exists.  If it
     // doesn't, then try to create it.
     File dir = new File(path);
@@ -489,8 +477,6 @@ public class BackupDirectory
                      readBackupDirectoryDescriptor(String path)
          throws IOException, ConfigException
   {
-
-
     // Make sure that the descriptor file exists.
     String descriptorFilePath = path + File.separator +
                                 BACKUP_DIRECTORY_DESCRIPTOR_FILE;

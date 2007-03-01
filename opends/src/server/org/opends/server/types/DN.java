@@ -119,7 +119,6 @@ public class DN
    */
   public DN(RDN[] rdnComponents)
   {
-
     if (rdnComponents == null)
     {
       this.rdnComponents = new RDN[0];
@@ -145,7 +144,6 @@ public class DN
    */
   public DN(ArrayList<RDN> rdnComponents)
   {
-
     if ((rdnComponents == null) || rdnComponents.isEmpty())
     {
       this.rdnComponents = new RDN[0];
@@ -170,7 +168,6 @@ public class DN
    */
   public static DN nullDN()
   {
-
     return NULL_DN;
   }
 
@@ -186,7 +183,6 @@ public class DN
    */
   public boolean isNullDN()
   {
-
     return (numComponents == 0);
   }
 
@@ -199,7 +195,6 @@ public class DN
    */
   public int getNumComponents()
   {
-
     return numComponents;
   }
 
@@ -215,7 +210,6 @@ public class DN
    */
   public RDN getRDN()
   {
-
     if (numComponents == 0)
     {
       return null;
@@ -239,7 +233,6 @@ public class DN
    */
   public RDN getRDN(int pos)
   {
-
     return rdnComponents[pos];
   }
 
@@ -257,7 +250,6 @@ public class DN
    */
   public DN getParent()
   {
-
     if (numComponents <= 1)
     {
       return null;
@@ -286,7 +278,6 @@ public class DN
    */
   public DN getParentDNInSuffix()
   {
-
     if ((numComponents <= 1) ||
         DirectoryServer.isNamingContext(this))
     {
@@ -312,7 +303,6 @@ public class DN
    */
   public DN concat(RDN rdn)
   {
-
     RDN[] newComponents = new RDN[rdnComponents.length+1];
     newComponents[0] = rdn;
     System.arraycopy(rdnComponents, 0, newComponents, 1,
@@ -335,7 +325,6 @@ public class DN
    */
   public DN concat(RDN[] rdnComponents)
   {
-
     RDN[] newComponents =
          new RDN[rdnComponents.length+this.rdnComponents.length];
     System.arraycopy(rdnComponents, 0, newComponents, 0,
@@ -362,7 +351,6 @@ public class DN
    */
   public DN concat(DN relativeBaseDN)
   {
-
     RDN[] newComponents =
                new RDN[rdnComponents.length+
                        relativeBaseDN.rdnComponents.length];
@@ -390,7 +378,6 @@ public class DN
    */
   public boolean isDescendantOf(DN dn)
   {
-
     int offset = numComponents - dn.numComponents;
     if (offset < 0)
     {
@@ -422,7 +409,6 @@ public class DN
    */
   public boolean isAncestorOf(DN dn)
   {
-
     int offset = dn.numComponents - numComponents;
     if (offset < 0)
     {
@@ -456,8 +442,6 @@ public class DN
   public static DN decode(ByteString dnString)
          throws DirectoryException
   {
-
-
     // A null or empty DN is acceptable.
     if (dnString == null)
     {
@@ -860,8 +844,6 @@ public class DN
   public static DN decode(String dnString)
          throws DirectoryException
   {
-
-
     // A null or empty DN is acceptable.
     if (dnString == null)
     {
@@ -1259,7 +1241,6 @@ public class DN
                                 boolean allowExceptions)
           throws DirectoryException
   {
-
     int length = dnBytes.length;
 
 
@@ -1678,7 +1659,6 @@ public class DN
                                 boolean allowExceptions)
           throws DirectoryException
   {
-
     int length = dnString.length();
 
 
@@ -2088,8 +2068,6 @@ public class DN
                                  ByteString attributeValue)
           throws DirectoryException
   {
-
-
     // All leading spaces have already been stripped so we can start
     // reading the value.  However, it may be empty so check for that.
     int length = dnBytes.length;
@@ -2361,8 +2339,6 @@ public class DN
                                  ByteString attributeValue)
           throws DirectoryException
   {
-
-
     // All leading spaces have already been stripped so we can start
     // reading the value.  However, it may be empty so check for that.
     int length = dnString.length();
@@ -2725,7 +2701,6 @@ public class DN
    */
   public boolean equals(Object o)
   {
-
     if (this == o)
     {
       return true;
@@ -2766,7 +2741,6 @@ public class DN
    */
   public int hashCode()
   {
-
     return normalizedDN.hashCode();
   }
 
@@ -2779,7 +2753,6 @@ public class DN
    */
   public String toString()
   {
-
     if (dnString == null)
     {
       if (numComponents == 0)
@@ -2815,7 +2788,6 @@ public class DN
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append(toString());
   }
 
@@ -2828,7 +2800,6 @@ public class DN
    */
   public String toNormalizedString()
   {
-
     if (normalizedDN == null)
     {
       if (numComponents == 0)
@@ -2864,7 +2835,6 @@ public class DN
    */
   public void toNormalizedString(StringBuilder buffer)
   {
-
     buffer.append(toNormalizedString());
   }
 
@@ -2885,7 +2855,6 @@ public class DN
    */
   public int compareTo(DN dn)
   {
-
     if (equals(dn))
     {
       return 0;

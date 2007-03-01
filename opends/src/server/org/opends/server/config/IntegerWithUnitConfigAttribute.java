@@ -296,7 +296,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public String getDataType()
   {
-
     return "IntegerWithUnit";
   }
 
@@ -309,7 +308,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-
     return DirectoryServer.getDefaultStringSyntax();
   }
 
@@ -324,7 +322,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long activeIntValue()
   {
-
     return activeIntValue;
   }
 
@@ -337,7 +334,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public String activeUnit()
   {
-
     return activeUnit;
   }
 
@@ -352,7 +348,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long activeCalculatedValue()
   {
-
     return activeCalculatedValue;
   }
 
@@ -368,7 +363,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long pendingIntValue()
   {
-
     if (hasPendingValues())
     {
       return pendingIntValue;
@@ -390,7 +384,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public String pendingUnit()
   {
-
     if (hasPendingValues())
     {
       return pendingUnit;
@@ -413,7 +406,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long pendingCalculatedValue()
   {
-
     if (hasPendingValues())
     {
       return pendingCalculatedValue;
@@ -435,7 +427,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public HashMap<String,Double> getUnits()
   {
-
     return units;
   }
 
@@ -451,7 +442,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public boolean hasLowerBound()
   {
-
     return hasLowerBound;
   }
 
@@ -466,7 +456,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long getLowerBound()
   {
-
     return lowerBound;
   }
 
@@ -482,7 +471,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public boolean hasUpperBound()
   {
-
     return hasUpperBound;
   }
 
@@ -497,7 +485,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long getUpperBound()
   {
-
     return upperBound;
   }
 
@@ -517,7 +504,6 @@ public class IntegerWithUnitConfigAttribute
   public void setValue(long intValue, String unit)
          throws ConfigException
   {
-
     if ((unit == null) || (! units.containsKey(unit)))
     {
       int    msgID   = MSGID_CONFIG_ATTR_INVALID_UNIT;
@@ -573,7 +559,6 @@ public class IntegerWithUnitConfigAttribute
   public void setValue(String value)
          throws ConfigException
   {
-
     int spacePos = value.indexOf(' ');
     if (spacePos <= 0)
     {
@@ -617,7 +602,6 @@ public class IntegerWithUnitConfigAttribute
   private static LinkedHashSet<AttributeValue> getValueSet(long intValue,
                                                            String unit)
   {
-
     if (unit == null)
     {
       return null;
@@ -642,7 +626,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public void applyPendingValues()
   {
-
     if (! hasPendingValues())
     {
       return;
@@ -671,8 +654,6 @@ public class IntegerWithUnitConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-
-
     // Get a string representation of the value and convert it to lowercase.
     String lowerValue = value.getStringValue().toLowerCase();
 
@@ -697,8 +678,6 @@ public class IntegerWithUnitConfigAttribute
   public boolean valueIsAcceptable(String lowerValue,
                                    StringBuilder rejectReason)
   {
-
-
     // Find the first space in the value, since it should separate the integer
     // from the unit.
     int spacePos = lowerValue.indexOf(' ');
@@ -792,7 +771,6 @@ public class IntegerWithUnitConfigAttribute
               stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
-
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
       if (isRequired())
@@ -892,7 +870,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-
     ArrayList<String> valueStrings = new ArrayList<String>(1);
     valueStrings.add(activeIntValue + " " + activeUnit);
 
@@ -914,7 +891,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-
     if (hasPendingValues())
     {
       ArrayList<String> valueStrings = new ArrayList<String>(1);
@@ -954,8 +930,6 @@ public class IntegerWithUnitConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-
-
     long   activeIntValue  = 0;
     long   pendingIntValue = 0;
     String activeUnit      = null;
@@ -1173,7 +1147,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public javax.management.Attribute toJMXAttribute()
   {
-
     return new javax.management.Attribute(getName(),
                                           activeIntValue + " " + activeUnit);
   }
@@ -1208,7 +1181,6 @@ public class IntegerWithUnitConfigAttribute
      */
   public void toJMXAttribute(AttributeList attributeList)
   {
-
     String activeValue = activeIntValue + " " + activeUnit;
     attributeList.add(new javax.management.Attribute(getName(), activeValue));
 
@@ -1237,7 +1209,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-
     attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                  String.class.getName(),
                                                  getDescription(), true, true,
@@ -1264,7 +1235,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-
     return new MBeanParameterInfo(getName(), String.class.getName(),
                                   getDescription());
   }
@@ -1285,7 +1255,6 @@ public class IntegerWithUnitConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-
     Object value = jmxAttribute.getValue();
     if (value instanceof String)
     {
@@ -1309,7 +1278,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-
     return new IntegerWithUnitConfigAttribute(getName(), getDescription(),
                                               requiresAdminAction(), units,
                                               hasLowerBound, lowerBound,

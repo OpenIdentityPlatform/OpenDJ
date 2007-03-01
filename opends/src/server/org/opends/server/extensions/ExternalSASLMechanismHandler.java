@@ -137,8 +137,6 @@ public class ExternalSASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     this.configEntryDN = configEntry.getDN();
 
 
@@ -276,7 +274,6 @@ public class ExternalSASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_EXTERNAL);
   }
@@ -290,8 +287,6 @@ public class ExternalSASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-
-
     // Get the client connection used for the bind request, and get the
     // security manager for that connection.  If either are null, then fail.
     ClientConnection clientConnection = bindOperation.getClientConnection();
@@ -539,7 +534,6 @@ public class ExternalSASLMechanismHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -555,8 +549,6 @@ public class ExternalSASLMechanismHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_SASLEXTERNAL_DESCRIPTION_VALIDATION_POLICY;
@@ -598,8 +590,6 @@ public class ExternalSASLMechanismHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // Look at the validation policy configuration.
     int msgID = MSGID_SASLEXTERNAL_DESCRIPTION_VALIDATION_POLICY;
     MultiChoiceConfigAttribute validateStub =
@@ -742,8 +732,6 @@ public class ExternalSASLMechanismHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -938,7 +926,6 @@ public class ExternalSASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-
     // This is not a password-based mechanism.
     return false;
   }
@@ -951,7 +938,6 @@ public class ExternalSASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-
     // This may be considered a secure mechanism.
     return true;
   }

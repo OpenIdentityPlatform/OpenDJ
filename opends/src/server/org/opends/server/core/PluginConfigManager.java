@@ -160,7 +160,6 @@ public class PluginConfigManager
    */
   public PluginConfigManager()
   {
-
     pluginLock = new ReentrantLock();
 
     startupPlugins               = new DirectoryServerPlugin[0];
@@ -236,8 +235,6 @@ public class PluginConfigManager
   public void initializePluginConfig(Set<PluginType> pluginTypes)
          throws ConfigException, InitializationException
   {
-
-
     registeredPlugins.clear();
 
 
@@ -583,7 +580,6 @@ parsePluginEntry:
    */
   public ConcurrentHashMap<DN,DirectoryServerPlugin> getRegisteredPlugins()
   {
-
     return registeredPlugins;
   }
 
@@ -600,7 +596,6 @@ parsePluginEntry:
    */
   public DirectoryServerPlugin getRegisteredPlugin(DN pluginDN)
   {
-
     return registeredPlugins.get(pluginDN);
   }
 
@@ -622,8 +617,6 @@ parsePluginEntry:
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for a plugin.
     if (! configEntry.hasObjectClass(OC_PLUGIN))
     {
@@ -795,8 +788,6 @@ parsePluginEntry:
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -1073,8 +1064,6 @@ parsePluginEntry:
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // NYI
     return false;
   }
@@ -1092,8 +1081,6 @@ parsePluginEntry:
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -1121,8 +1108,6 @@ parsePluginEntry:
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // NYI
     return false;
   }
@@ -1139,8 +1124,6 @@ parsePluginEntry:
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -1165,7 +1148,6 @@ parsePluginEntry:
   private void registerPlugin(DirectoryServerPlugin plugin, DN pluginEntryDN,
                               HashSet<PluginType> pluginTypes)
   {
-
     pluginLock.lock();
 
     try
@@ -1366,7 +1348,6 @@ parsePluginEntry:
   private DirectoryServerPlugin[] addPlugin(DirectoryServerPlugin[] pluginArray,
                                             DirectoryServerPlugin plugin)
   {
-
     DirectoryServerPlugin[] newPlugins =
          new DirectoryServerPlugin[pluginArray.length+1];
     System.arraycopy(pluginArray, 0, newPlugins, 0, pluginArray.length);
@@ -1385,7 +1366,6 @@ parsePluginEntry:
    */
   private void deregisterPlugin(DN configEntryDN)
   {
-
     pluginLock.lock();
 
     try
@@ -1594,7 +1574,6 @@ parsePluginEntry:
                removePlugin(DirectoryServerPlugin[] pluginArray,
                             DirectoryServerPlugin plugin)
   {
-
     int slot   = -1;
     int length = pluginArray.length;
     for (int i=0; i < length; i++)
@@ -1646,8 +1625,6 @@ parsePluginEntry:
    */
   public StartupPluginResult invokeStartupPlugins()
   {
-
-
     StartupPluginResult result = null;
 
     for (DirectoryServerPlugin p : startupPlugins)
@@ -1727,8 +1704,6 @@ parsePluginEntry:
    */
   public void invokeShutdownPlugins(String reason)
   {
-
-
     for (DirectoryServerPlugin p : shutdownPlugins)
     {
       try
@@ -1764,8 +1739,6 @@ parsePluginEntry:
   public PostConnectPluginResult invokePostConnectPlugins(ClientConnection
                                                                clientConnection)
   {
-
-
     PostConnectPluginResult result = null;
 
     for (DirectoryServerPlugin p : postConnectPlugins)
@@ -1869,8 +1842,6 @@ parsePluginEntry:
                                          DisconnectReason disconnectReason,
                                          int messageID, String message)
   {
-
-
     PostDisconnectPluginResult result = null;
 
     for (DirectoryServerPlugin p : postDisconnectPlugins)
@@ -1941,7 +1912,6 @@ parsePluginEntry:
   public LDIFPluginResult invokeLDIFImportPlugins(LDIFImportConfig importConfig,
                                                   Entry entry)
   {
-
     LDIFPluginResult result = null;
 
     for (DirectoryServerPlugin p : ldifImportPlugins)
@@ -2008,7 +1978,6 @@ parsePluginEntry:
   public LDIFPluginResult invokeLDIFExportPlugins(LDIFExportConfig exportConfig,
                                                   Entry entry)
   {
-
     LDIFPluginResult result = null;
 
     for (DirectoryServerPlugin p : ldifExportPlugins)
@@ -2074,7 +2043,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseAbandonPlugins(
                                    AbandonOperation abandonOperation)
   {
-
     PreParsePluginResult result = null;
 
     for (DirectoryServerPlugin p : preParseAbandonPlugins)
@@ -2157,7 +2125,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseAddPlugins(AddOperation
                                                             addOperation)
   {
-
     PreParsePluginResult result = null;
 
     for (DirectoryServerPlugin p : preParseAddPlugins)
@@ -2238,7 +2205,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseBindPlugins(
                                    BindOperation bindOperation)
   {
-
     PreParsePluginResult result = null;
 
     for (DirectoryServerPlugin p : preParseBindPlugins)
@@ -2319,7 +2285,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseComparePlugins(
                                    CompareOperation compareOperation)
   {
-
     PreParsePluginResult result = null;
 
     for (DirectoryServerPlugin p : preParseComparePlugins)
@@ -2402,7 +2367,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseDeletePlugins(
                                    DeleteOperation deleteOperation)
   {
-
     PreParsePluginResult result = null;
 
     for (DirectoryServerPlugin p : preParseDeletePlugins)
@@ -2485,7 +2449,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseExtendedPlugins(
                                    ExtendedOperation extendedOperation)
   {
-
     PreParsePluginResult result = null;
 
     for (DirectoryServerPlugin p : preParseExtendedPlugins)
@@ -2568,7 +2531,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseModifyPlugins(
                                    ModifyOperation modifyOperation)
   {
-
     PreParsePluginResult result = null;
 
     for (DirectoryServerPlugin p : preParseModifyPlugins)
@@ -2651,7 +2613,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseModifyDNPlugins(
                                    ModifyDNOperation modifyDNOperation)
   {
-
     PreParsePluginResult result = null;
 
     for (DirectoryServerPlugin p : preParseModifyDNPlugins)
@@ -2734,7 +2695,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseSearchPlugins(
                                    SearchOperation searchOperation)
   {
-
     PreParsePluginResult result = null;
 
     for (DirectoryServerPlugin p : preParseSearchPlugins)
@@ -2817,7 +2777,6 @@ parsePluginEntry:
   public PreParsePluginResult invokePreParseUnbindPlugins(
                                    UnbindOperation unbindOperation)
   {
-
     PreParsePluginResult result = null;
 
     for (DirectoryServerPlugin p : preParseUnbindPlugins)
@@ -2900,7 +2859,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationAddPlugins(
                                        AddOperation addOperation)
   {
-
     PreOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : preOperationAddPlugins)
@@ -2981,7 +2939,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationBindPlugins(
                                        BindOperation bindOperation)
   {
-
     PreOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : preOperationBindPlugins)
@@ -3062,7 +3019,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationComparePlugins(
                                        CompareOperation compareOperation)
   {
-
     PreOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : preOperationComparePlugins)
@@ -3145,7 +3101,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationDeletePlugins(
                                        DeleteOperation deleteOperation)
   {
-
     PreOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : preOperationDeletePlugins)
@@ -3228,7 +3183,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationExtendedPlugins(
                                        ExtendedOperation extendedOperation)
   {
-
     PreOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : preOperationExtendedPlugins)
@@ -3311,7 +3265,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationModifyPlugins(
                                        ModifyOperation modifyOperation)
   {
-
     PreOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : preOperationModifyPlugins)
@@ -3394,7 +3347,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationModifyDNPlugins(
                                        ModifyDNOperation modifyDNOperation)
   {
-
     PreOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : preOperationModifyDNPlugins)
@@ -3477,7 +3429,6 @@ parsePluginEntry:
   public PreOperationPluginResult invokePreOperationSearchPlugins(
                                        SearchOperation searchOperation)
   {
-
     PreOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : preOperationSearchPlugins)
@@ -3560,7 +3511,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationAbandonPlugins(
                                         AbandonOperation abandonOperation)
   {
-
     PostOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : postOperationAbandonPlugins)
@@ -3643,7 +3593,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationAddPlugins(
                                         AddOperation addOperation)
   {
-
     PostOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : postOperationAddPlugins)
@@ -3724,7 +3673,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationBindPlugins(
                                         BindOperation bindOperation)
   {
-
     PostOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : postOperationBindPlugins)
@@ -3805,7 +3753,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationComparePlugins(
                                         CompareOperation compareOperation)
   {
-
     PostOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : postOperationComparePlugins)
@@ -3888,7 +3835,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationDeletePlugins(
                                         DeleteOperation deleteOperation)
   {
-
     PostOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : postOperationDeletePlugins)
@@ -3971,7 +3917,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationExtendedPlugins(
                                         ExtendedOperation extendedOperation)
   {
-
     PostOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : postOperationExtendedPlugins)
@@ -4054,7 +3999,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationModifyPlugins(
                                         ModifyOperation modifyOperation)
   {
-
     PostOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : postOperationModifyPlugins)
@@ -4137,7 +4081,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationModifyDNPlugins(
                                         ModifyDNOperation modifyDNOperation)
   {
-
     PostOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : postOperationModifyDNPlugins)
@@ -4220,7 +4163,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationSearchPlugins(
                                         SearchOperation searchOperation)
   {
-
     PostOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : postOperationSearchPlugins)
@@ -4303,7 +4245,6 @@ parsePluginEntry:
   public PostOperationPluginResult invokePostOperationUnbindPlugins(
                                         UnbindOperation unbindOperation)
   {
-
     PostOperationPluginResult result = null;
 
     for (DirectoryServerPlugin p : postOperationUnbindPlugins)
@@ -4386,7 +4327,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseAddPlugins(
                                        AddOperation addOperation)
   {
-
     PostResponsePluginResult result = null;
 
     for (DirectoryServerPlugin p : postResponseAddPlugins)
@@ -4461,7 +4401,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseBindPlugins(
                                        BindOperation bindOperation)
   {
-
     PostResponsePluginResult result = null;
 
     for (DirectoryServerPlugin p : postResponseBindPlugins)
@@ -4536,7 +4475,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseComparePlugins(
                                        CompareOperation compareOperation)
   {
-
     PostResponsePluginResult result = null;
 
     for (DirectoryServerPlugin p : postResponseComparePlugins)
@@ -4611,7 +4549,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseDeletePlugins(
                                        DeleteOperation deleteOperation)
   {
-
     PostResponsePluginResult result = null;
 
     for (DirectoryServerPlugin p : postResponseDeletePlugins)
@@ -4686,7 +4623,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseExtendedPlugins(
                                        ExtendedOperation extendedOperation)
   {
-
     PostResponsePluginResult result = null;
 
     for (DirectoryServerPlugin p : postResponseExtendedPlugins)
@@ -4761,7 +4697,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseModifyPlugins(
                                        ModifyOperation modifyOperation)
   {
-
     PostResponsePluginResult result = null;
 
     for (DirectoryServerPlugin p : postResponseModifyPlugins)
@@ -4836,7 +4771,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseModifyDNPlugins(
                                        ModifyDNOperation modifyDNOperation)
   {
-
     PostResponsePluginResult result = null;
 
     for (DirectoryServerPlugin p : postResponseModifyDNPlugins)
@@ -4911,7 +4845,6 @@ parsePluginEntry:
   public PostResponsePluginResult invokePostResponseSearchPlugins(
                                        SearchOperation searchOperation)
   {
-
     PostResponsePluginResult result = null;
 
     for (DirectoryServerPlugin p : postResponseSearchPlugins)
@@ -4988,7 +4921,6 @@ parsePluginEntry:
                                       SearchOperation searchOperation,
                                       SearchResultEntry searchEntry)
   {
-
     SearchEntryPluginResult result = null;
 
     for (DirectoryServerPlugin p : searchResultEntryPlugins)
@@ -5061,7 +4993,6 @@ parsePluginEntry:
                                           SearchOperation searchOperation,
                                           SearchResultReference searchReference)
   {
-
     SearchReferencePluginResult result = null;
 
     for (DirectoryServerPlugin p : searchResultReferencePlugins)
@@ -5133,7 +5064,6 @@ parsePluginEntry:
               invokeIntermediateResponsePlugins(
                    IntermediateResponse intermediateResponse)
   {
-
     IntermediateResponsePluginResult result = null;
     Operation operation = intermediateResponse.getOperation();
 

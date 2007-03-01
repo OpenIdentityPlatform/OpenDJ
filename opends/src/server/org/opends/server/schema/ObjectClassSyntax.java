@@ -105,7 +105,6 @@ public class ObjectClassSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -144,7 +143,6 @@ public class ObjectClassSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_OBJECTCLASS_NAME;
   }
 
@@ -155,7 +153,6 @@ public class ObjectClassSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_OBJECTCLASS_OID;
   }
 
@@ -166,7 +163,6 @@ public class ObjectClassSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_OBJECTCLASS_DESCRIPTION;
   }
 
@@ -177,7 +173,6 @@ public class ObjectClassSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -188,7 +183,6 @@ public class ObjectClassSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -199,7 +193,6 @@ public class ObjectClassSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -210,7 +203,6 @@ public class ObjectClassSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -223,8 +215,6 @@ public class ObjectClassSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // We'll use the decodeObjectClass method to determine if the value is
     // acceptable.
     try
@@ -273,8 +263,6 @@ public class ObjectClassSyntax
                                               boolean allowUnknownElements)
          throws DirectoryException
   {
-
-
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
     String valueStr = value.stringValue();
@@ -869,8 +857,6 @@ public class ObjectClassSyntax
                                    int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -930,8 +916,6 @@ public class ObjectClassSyntax
                                       StringBuilder valueBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -1019,8 +1003,6 @@ public class ObjectClassSyntax
                                       StringBuilder lowerBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -1102,10 +1084,6 @@ public class ObjectClassSyntax
                               int startPos)
           throws DirectoryException
   {
-
-
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -1258,8 +1236,6 @@ public class ObjectClassSyntax
                           List<String> valueList, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = valueStr.charAt(startPos++);
@@ -1377,7 +1353,6 @@ public class ObjectClassSyntax
    */
   private static boolean superiorChainIncludesTop(ObjectClass superiorClass)
   {
-
     if (superiorClass == null)
     {
       return false;

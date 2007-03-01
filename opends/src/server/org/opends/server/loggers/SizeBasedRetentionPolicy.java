@@ -49,7 +49,6 @@ public class SizeBasedRetentionPolicy implements RetentionPolicy
    */
   public SizeBasedRetentionPolicy(String dir, String prefix, long size)
   {
-
     this.size = size;
     this.directory = new File(dir);
     this.prefix = prefix;
@@ -63,7 +62,6 @@ public class SizeBasedRetentionPolicy implements RetentionPolicy
    */
   public int deleteFiles()
   {
-
     int count = 0;
 
     File[] selectedFiles = directory.listFiles(new LogFileFilter(prefix));

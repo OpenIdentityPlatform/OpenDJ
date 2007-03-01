@@ -98,7 +98,6 @@ public class ConfigEntry
    */
   public ConfigEntry(Entry entry, ConfigEntry parent)
   {
-
     this.entry  = entry;
     this.parent = parent;
 
@@ -118,7 +117,6 @@ public class ConfigEntry
    */
   public Entry getEntry()
   {
-
     return entry;
   }
 
@@ -136,7 +134,6 @@ public class ConfigEntry
    */
   public void setEntry(Entry entry)
   {
-
     entryLock.lock();
 
     try
@@ -158,7 +155,6 @@ public class ConfigEntry
    */
   public DN getDN()
   {
-
     return entry.getDN();
   }
 
@@ -176,7 +172,6 @@ public class ConfigEntry
    */
   public boolean hasObjectClass(String name)
   {
-
     ObjectClass oc = DirectoryServer.getObjectClass(name.toLowerCase());
     if (oc == null)
     {
@@ -206,7 +201,6 @@ public class ConfigEntry
   public ConfigAttribute getConfigAttribute(ConfigAttribute stub)
          throws ConfigException
   {
-
     String attrName = stub.getName();
     AttributeType attrType =
          DirectoryServer.getAttributeType(attrName.toLowerCase());
@@ -236,7 +230,6 @@ public class ConfigEntry
    */
   public void putConfigAttribute(ConfigAttribute attribute)
   {
-
     String name = attribute.getName();
     AttributeType attrType =
          DirectoryServer.getAttributeType(name.toLowerCase());
@@ -273,7 +266,6 @@ public class ConfigEntry
    */
   public boolean removeConfigAttribute(String lowerName)
   {
-
     for (AttributeType t : entry.getUserAttributes().keySet())
     {
       if (t.hasNameOrOID(lowerName))
@@ -307,7 +299,6 @@ public class ConfigEntry
    */
   public ConfigEntry getParent()
   {
-
     return parent;
   }
 
@@ -321,7 +312,6 @@ public class ConfigEntry
    */
   public ConcurrentHashMap<DN,ConfigEntry> getChildren()
   {
-
     return children;
   }
 
@@ -335,7 +325,6 @@ public class ConfigEntry
    */
   public boolean hasChildren()
   {
-
     return (! children.isEmpty());
   }
 
@@ -357,8 +346,6 @@ public class ConfigEntry
   public void addChild(ConfigEntry childEntry)
          throws ConfigException
   {
-
-
     ConfigEntry conflictingChild;
 
     entryLock.lock();
@@ -409,7 +396,6 @@ public class ConfigEntry
   public ConfigEntry removeChild(DN childDN)
          throws ConfigException
   {
-
     entryLock.lock();
 
     try
@@ -473,7 +459,6 @@ public class ConfigEntry
    */
   public ConfigEntry duplicate()
   {
-
     return new ConfigEntry(entry.duplicate(), parent);
   }
 
@@ -488,7 +473,6 @@ public class ConfigEntry
    */
   public CopyOnWriteArrayList<ConfigChangeListener> getChangeListeners()
   {
-
     return changeListeners;
   }
 
@@ -503,7 +487,6 @@ public class ConfigEntry
    */
   public void registerChangeListener(ConfigChangeListener listener)
   {
-
     changeListeners.add(listener);
   }
 
@@ -520,7 +503,6 @@ public class ConfigEntry
    */
   public boolean deregisterChangeListener(ConfigChangeListener listener)
   {
-
     return changeListeners.remove(listener);
   }
 
@@ -535,7 +517,6 @@ public class ConfigEntry
    */
   public CopyOnWriteArrayList<ConfigAddListener> getAddListeners()
   {
-
     return addListeners;
   }
 
@@ -549,7 +530,6 @@ public class ConfigEntry
    */
   public void registerAddListener(ConfigAddListener listener)
   {
-
     addListeners.addIfAbsent(listener);
   }
 
@@ -564,7 +544,6 @@ public class ConfigEntry
    */
   public void deregisterAddListener(ConfigAddListener listener)
   {
-
     addListeners.remove(listener);
   }
 
@@ -579,7 +558,6 @@ public class ConfigEntry
    */
   public CopyOnWriteArrayList<ConfigDeleteListener> getDeleteListeners()
   {
-
     return deleteListeners;
   }
 
@@ -593,7 +571,6 @@ public class ConfigEntry
    */
   public void registerDeleteListener(ConfigDeleteListener listener)
   {
-
     deleteListeners.addIfAbsent(listener);
   }
 
@@ -607,7 +584,6 @@ public class ConfigEntry
    */
   public void deregisterDeleteListener(ConfigDeleteListener listener)
   {
-
     deleteListeners.remove(listener);
   }
 }

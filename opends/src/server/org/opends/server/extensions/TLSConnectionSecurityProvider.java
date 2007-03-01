@@ -288,7 +288,6 @@ public class TLSConnectionSecurityProvider
   public void initializeConnectionSecurityProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // Initialize default values for the connection-specific variables.
     clientConnection = null;
     socketChannel    = null;
@@ -315,7 +314,6 @@ public class TLSConnectionSecurityProvider
    */
   public void finalizeConnectionSecurityProvider()
   {
-
     // No implementation is required.
   }
 
@@ -328,7 +326,6 @@ public class TLSConnectionSecurityProvider
    */
   public String getSecurityMechanismName()
   {
-
     return SSL_CONTEXT_INSTANCE_NAME;
   }
 
@@ -344,7 +341,6 @@ public class TLSConnectionSecurityProvider
    */
   public boolean isSecure()
   {
-
     // This should be considered secure.
     return true;
   }
@@ -372,7 +368,6 @@ public class TLSConnectionSecurityProvider
                                                 SocketChannel socketChannel)
          throws DirectoryException
   {
-
     return new TLSConnectionSecurityProvider(clientConnection, socketChannel,
                                              this);
   }
@@ -396,7 +391,6 @@ public class TLSConnectionSecurityProvider
    */
   public void disconnect(boolean connectionValid)
   {
-
     if (connectionValid)
     {
       try
@@ -478,7 +472,6 @@ public class TLSConnectionSecurityProvider
    */
   public int getClearBufferSize()
   {
-
     return clearBufferSize;
   }
 
@@ -494,7 +487,6 @@ public class TLSConnectionSecurityProvider
    */
   public int getEncodedBufferSize()
   {
-
     return sslBufferSize;
   }
 
@@ -515,8 +507,6 @@ public class TLSConnectionSecurityProvider
    */
   public boolean readData()
   {
-
-
     while (true)
     {
       try
@@ -698,7 +688,6 @@ handshakeLoop:
    */
   public boolean writeData(ByteBuffer clearData)
   {
-
     int originalPosition = clearData.position();
     int originalLimit    = clearData.limit();
     int length           = originalLimit - originalPosition;
@@ -986,7 +975,6 @@ handshakeStatusLoop:
    */
   public String[] getEnabledProtocols()
   {
-
     return enabledProtocols;
   }
 
@@ -1001,7 +989,6 @@ handshakeStatusLoop:
    */
   public void setEnabledProtocols(String[] enabledProtocols)
   {
-
     this.enabledProtocols = enabledProtocols;
   }
 
@@ -1014,7 +1001,6 @@ handshakeStatusLoop:
    */
   public String[] getEnabledCipherSuites()
   {
-
     return enabledCipherSuites;
   }
 
@@ -1028,7 +1014,6 @@ handshakeStatusLoop:
    */
   public void setEnabledCipherSuites(String[] enabledCipherSuites)
   {
-
     this.enabledCipherSuites = enabledCipherSuites;
   }
 
@@ -1041,7 +1026,6 @@ handshakeStatusLoop:
    */
   public SSLClientAuthPolicy getSSLClientAuthPolicy()
   {
-
     return sslClientAuthPolicy;
   }
 
@@ -1055,7 +1039,6 @@ handshakeStatusLoop:
    */
   public void setSSLClientAuthPolicy(SSLClientAuthPolicy sslClientAuthPolicy)
   {
-
     this.sslClientAuthPolicy = sslClientAuthPolicy;
   }
 
@@ -1068,7 +1051,6 @@ handshakeStatusLoop:
    */
   public SSLSession getSSLSession()
   {
-
     return sslEngine.getSession();
   }
 
@@ -1085,7 +1067,6 @@ handshakeStatusLoop:
    */
   public Certificate[] getClientCertificateChain()
   {
-
     try
     {
       return sslEngine.getSession().getPeerCertificates();

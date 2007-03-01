@@ -365,7 +365,6 @@ public final class AttributeType
    */
   public String getDefinition()
   {
-
     return definition;
   }
 
@@ -410,7 +409,6 @@ public final class AttributeType
    */
   public AttributeType getSuperiorType()
   {
-
     return superiorType;
   }
 
@@ -433,7 +431,6 @@ public final class AttributeType
    */
   boolean mayHaveSubordinateTypes()
   {
-
     return mayHaveSubordinateTypes;
   }
 
@@ -447,7 +444,6 @@ public final class AttributeType
    */
   void setMayHaveSubordinateTypes()
   {
-
     mayHaveSubordinateTypes = true;
   }
 
@@ -460,7 +456,6 @@ public final class AttributeType
    */
   public AttributeSyntax getSyntax()
   {
-
     return syntax;
   }
 
@@ -475,7 +470,6 @@ public final class AttributeType
    */
   public String getSyntaxOID()
   {
-
     return syntax.getOID();
   }
 
@@ -490,7 +484,6 @@ public final class AttributeType
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     return approximateMatchingRule;
   }
 
@@ -505,7 +498,6 @@ public final class AttributeType
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return equalityMatchingRule;
   }
 
@@ -520,7 +512,6 @@ public final class AttributeType
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return orderingMatchingRule;
   }
 
@@ -535,7 +526,6 @@ public final class AttributeType
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return substringMatchingRule;
   }
 
@@ -548,7 +538,6 @@ public final class AttributeType
    */
   public AttributeUsage getUsage()
   {
-
     return attributeUsage;
   }
 
@@ -565,7 +554,6 @@ public final class AttributeType
    */
   public boolean isOperational()
   {
-
     return attributeUsage.isOperational();
   }
 
@@ -579,7 +567,6 @@ public final class AttributeType
    */
   public boolean isCollective()
   {
-
     return isCollective;
   }
 
@@ -594,7 +581,6 @@ public final class AttributeType
    */
   public boolean isNoUserModification()
   {
-
     return isNoUserModification;
   }
 
@@ -608,7 +594,6 @@ public final class AttributeType
    */
   public boolean isSingleValue()
   {
-
     return isSingleValue;
   }
 
@@ -624,7 +609,6 @@ public final class AttributeType
    */
   public boolean isObjectClassType()
   {
-
     return isObjectClassType;
   }
 
@@ -646,7 +630,6 @@ public final class AttributeType
   public ByteString normalize(ByteString value)
          throws DirectoryException
   {
-
     if (equalityMatchingRule == null)
     {
       int    msgID   = MSGID_ATTR_TYPE_NORMALIZE_NO_MR;
@@ -676,7 +659,6 @@ public final class AttributeType
    */
   public int generateHashCode(AttributeValue value)
   {
-
     try
     {
       if (equalityMatchingRule == null)
@@ -726,7 +708,6 @@ public final class AttributeType
    */
   protected void toStringContent(StringBuilder buffer)
   {
-
     if (superiorType != null)
     {
       buffer.append(" SUP ");

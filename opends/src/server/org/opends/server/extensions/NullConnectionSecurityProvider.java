@@ -134,7 +134,6 @@ public class NullConnectionSecurityProvider
   public void initializeConnectionSecurityProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     clearBuffer      = null;
     clientConnection = null;
     socketChannel    = null;
@@ -148,7 +147,6 @@ public class NullConnectionSecurityProvider
    */
   public void finalizeConnectionSecurityProvider()
   {
-
     // No implementation is required.
   }
 
@@ -161,7 +159,6 @@ public class NullConnectionSecurityProvider
    */
   public String getSecurityMechanismName()
   {
-
     return "NULL";
   }
 
@@ -177,7 +174,6 @@ public class NullConnectionSecurityProvider
    */
   public boolean isSecure()
   {
-
     // This is not a secure provider.
     return false;
   }
@@ -205,7 +201,6 @@ public class NullConnectionSecurityProvider
                                                 SocketChannel socketChannel)
          throws DirectoryException
   {
-
     return new NullConnectionSecurityProvider(clientConnection,
                                               socketChannel);
   }
@@ -229,7 +224,6 @@ public class NullConnectionSecurityProvider
    */
   public void disconnect(boolean connectionValid)
   {
-
     // No implementation is required.
   }
 
@@ -245,7 +239,6 @@ public class NullConnectionSecurityProvider
    */
   public int getClearBufferSize()
   {
-
     return BUFFER_SIZE;
   }
 
@@ -261,7 +254,6 @@ public class NullConnectionSecurityProvider
    */
   public int getEncodedBufferSize()
   {
-
     return BUFFER_SIZE;
   }
 
@@ -282,7 +274,6 @@ public class NullConnectionSecurityProvider
    */
   public boolean readData()
   {
-
     clearBuffer.clear();
     while (true)
     {
@@ -366,7 +357,6 @@ public class NullConnectionSecurityProvider
    */
   public boolean writeData(ByteBuffer clearData)
   {
-
     int position = clearData.position();
     int limit    = clearData.limit();
 

@@ -145,7 +145,6 @@ public class TraditionalWorkQueueMonitor
   public void initializeMonitorProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     maxBacklog   = 0;
     totalBacklog = 0;
     numPolls     = 0;
@@ -161,7 +160,6 @@ public class TraditionalWorkQueueMonitor
    */
   public String getMonitorInstanceName()
   {
-
     return "Work Queue";
   }
 
@@ -178,8 +176,6 @@ public class TraditionalWorkQueueMonitor
    */
   public long getUpdateInterval()
   {
-
-
     // We will poll the work queue every 10 seconds.
     return 10000;
   }
@@ -195,7 +191,6 @@ public class TraditionalWorkQueueMonitor
    */
   public void updateMonitorData()
   {
-
     int backlog = workQueue.size();
     totalBacklog += backlog;
     numPolls++;
@@ -218,7 +213,6 @@ public class TraditionalWorkQueueMonitor
    */
   public ArrayList<Attribute> getMonitorData()
   {
-
     int backlog = workQueue.size();
     totalBacklog += backlog;
     numPolls++;

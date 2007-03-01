@@ -409,7 +409,6 @@ public class BindOperation
    */
   public final AuthenticationType getAuthenticationType()
   {
-
     return authType;
   }
 
@@ -425,7 +424,6 @@ public class BindOperation
    */
   public final ByteString getRawBindDN()
   {
-
     return rawBindDN;
   }
 
@@ -439,7 +437,6 @@ public class BindOperation
    */
   public final void setRawBindDN(ByteString rawBindDN)
   {
-
     if (rawBindDN == null)
     {
       this.rawBindDN = new ASN1OctetString();
@@ -465,7 +462,6 @@ public class BindOperation
    */
   public final DN getBindDN()
   {
-
     return bindDN;
   }
 
@@ -478,7 +474,6 @@ public class BindOperation
    */
   public final ByteString getSimplePassword()
   {
-
     return simplePassword;
   }
 
@@ -492,7 +487,6 @@ public class BindOperation
    */
   public final void setSimplePassword(ByteString simplePassword)
   {
-
     if (simplePassword == null)
     {
       this.simplePassword = new ASN1OctetString();
@@ -517,7 +511,6 @@ public class BindOperation
    */
   public final String getSASLMechanism()
   {
-
     return  saslMechanism;
   }
 
@@ -531,7 +524,6 @@ public class BindOperation
    */
   public final ASN1OctetString getSASLCredentials()
   {
-
     return saslCredentials;
   }
 
@@ -547,7 +539,6 @@ public class BindOperation
   public final void setSASLCredentials(String saslMechanism,
                                        ASN1OctetString saslCredentials)
   {
-
     this.saslMechanism   = saslMechanism;
     this.saslCredentials = saslCredentials;
 
@@ -566,7 +557,6 @@ public class BindOperation
    */
   public final ASN1OctetString getServerSASLCredentials()
   {
-
     return serverSASLCredentials;
   }
 
@@ -582,7 +572,6 @@ public class BindOperation
   public final void setServerSASLCredentials(ASN1OctetString
                                                   serverSASLCredentials)
   {
-
     this.serverSASLCredentials = serverSASLCredentials;
   }
 
@@ -600,7 +589,6 @@ public class BindOperation
    */
   public final Entry getSASLAuthUserEntry()
   {
-
     return saslAuthUserEntry;
   }
 
@@ -617,7 +605,6 @@ public class BindOperation
    */
   public final void setSASLAuthUserEntry(Entry saslAuthUserEntry)
   {
-
     this.saslAuthUserEntry = saslAuthUserEntry;
   }
 
@@ -632,7 +619,6 @@ public class BindOperation
    */
   public final String getAuthFailureReason()
   {
-
     return authFailureReason;
   }
 
@@ -647,7 +633,6 @@ public class BindOperation
    */
   public final int getAuthFailureID()
   {
-
     return authFailureID;
   }
 
@@ -663,7 +648,6 @@ public class BindOperation
    */
   public final void setAuthFailureReason(int id, String reason)
   {
-
     if (id < 0)
     {
       authFailureID = 0;
@@ -689,7 +673,6 @@ public class BindOperation
    */
   public final DN getUserEntryDN()
   {
-
     return userEntryDN;
   }
 
@@ -704,7 +687,6 @@ public class BindOperation
    */
   public final AuthenticationInfo getAuthenticationInfo()
   {
-
     return authInfo;
   }
 
@@ -720,7 +702,6 @@ public class BindOperation
    */
   public final void setAuthenticationInfo(AuthenticationInfo authInfo)
   {
-
     this.authInfo = authInfo;
   }
 
@@ -732,7 +713,6 @@ public class BindOperation
   @Override()
   public final long getProcessingStartTime()
   {
-
     return processingStartTime;
   }
 
@@ -744,7 +724,6 @@ public class BindOperation
   @Override()
   public final long getProcessingStopTime()
   {
-
     return processingStopTime;
   }
 
@@ -756,7 +735,6 @@ public class BindOperation
   @Override()
   public final long getProcessingTime()
   {
-
     return (processingStopTime - processingStartTime);
   }
 
@@ -895,7 +873,6 @@ public class BindOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-
     return responseControls;
   }
 
@@ -929,8 +906,6 @@ public class BindOperation
   @Override()
   public final void run()
   {
-
-
     // Start the processing timer and initially set the result to indicate that
     // the result is unknown.
     processingStartTime = System.currentTimeMillis();
@@ -2286,7 +2261,6 @@ bindProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-
     cancelRequest.addResponseMessage(getMessage(MSGID_CANNOT_CANCEL_BIND));
     return CancelResult.CANNOT_CANCEL;
   }
@@ -2299,7 +2273,6 @@ bindProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-
     return null;
   }
 
@@ -2311,7 +2284,6 @@ bindProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-
     // Bind operations cannot be canceled.
     return false;
   }
@@ -2324,7 +2296,6 @@ bindProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-
     buffer.append("BindOperation(connID=");
     buffer.append(clientConnection.getConnectionID());
     buffer.append(", opID=");

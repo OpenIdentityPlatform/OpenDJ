@@ -92,7 +92,6 @@ public class JebException
    */
   public int getMessageID()
   {
-
     return messageID;
   }
 

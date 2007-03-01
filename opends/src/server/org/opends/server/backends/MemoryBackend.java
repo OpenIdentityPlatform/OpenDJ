@@ -148,8 +148,6 @@ public class MemoryBackend
                                              DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-
-
     // We won't support anything other than exactly one base DN in this
     // implementation.  If we were to add such support in the future, we would
     // likely want to separate the data for each base DN into a separate entry
@@ -217,7 +215,6 @@ public class MemoryBackend
    */
   public synchronized void finalizeBackend()
   {
-
     clearMemoryBackend();
 
     for (DN dn : baseDNs)
@@ -243,7 +240,6 @@ public class MemoryBackend
    */
   public DN[] getBaseDNs()
   {
-
     return baseDNs;
   }
 
@@ -254,7 +250,6 @@ public class MemoryBackend
    */
   public synchronized long getEntryCount()
   {
-
     if (entryMap != null)
     {
       return entryMap.size();
@@ -270,7 +265,6 @@ public class MemoryBackend
    */
   public boolean isLocal()
   {
-
     // For the purposes of this method, this is a local backend.
     return true;
   }
@@ -282,7 +276,6 @@ public class MemoryBackend
    */
   public synchronized Entry getEntry(DN entryDN)
   {
-
     return entryMap.get(entryDN);
   }
 
@@ -293,7 +286,6 @@ public class MemoryBackend
    */
   public synchronized boolean entryExists(DN entryDN)
   {
-
     return entryMap.containsKey(entryDN);
   }
 
@@ -305,8 +297,6 @@ public class MemoryBackend
   public synchronized void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-
-
     // See if the target entry already exists.  If so, then fail.
     DN entryDN = entry.getDN();
     if (entryMap.containsKey(entryDN))
@@ -362,8 +352,6 @@ public class MemoryBackend
                                        DeleteOperation deleteOperation)
          throws DirectoryException
   {
-
-
     // Make sure the entry exists.  If not, then throw an exception.
     if (! entryMap.containsKey(entryDN))
     {
@@ -453,8 +441,6 @@ public class MemoryBackend
                                         ModifyOperation modifyOperation)
          throws DirectoryException
   {
-
-
     // Make sure the entry exists.  If not, then throw an exception.
     DN entryDN = entry.getDN();
     if (! entryMap.containsKey(entryDN))
@@ -478,8 +464,6 @@ public class MemoryBackend
                                        ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-
-
     // Make sure that the target entry exists.
     if (! entryMap.containsKey(currentDN))
     {
@@ -561,8 +545,6 @@ public class MemoryBackend
   public synchronized void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-
-
     // Get the base DN, scope, and filter for the search.
     DN           baseDN = searchOperation.getBaseDN();
     SearchScope  scope  = searchOperation.getScope();
@@ -606,7 +588,6 @@ public class MemoryBackend
    */
   public HashSet<String> getSupportedControls()
   {
-
     return supportedControls;
   }
 
@@ -617,7 +598,6 @@ public class MemoryBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-
     return supportedFeatures;
   }
 
@@ -628,7 +608,6 @@ public class MemoryBackend
    */
   public boolean supportsLDIFExport()
   {
-
     return true;
   }
 
@@ -641,8 +620,6 @@ public class MemoryBackend
                                       LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-
-
     // Create the LDIF writer.
     LDIFWriter ldifWriter;
     try
@@ -704,7 +681,6 @@ public class MemoryBackend
    */
   public boolean supportsLDIFImport()
   {
-
     return true;
   }
 
@@ -717,8 +693,6 @@ public class MemoryBackend
                                       LDIFImportConfig importConfig)
          throws DirectoryException
   {
-
-
     clearMemoryBackend();
 
     LDIFReader reader;
@@ -798,7 +772,6 @@ public class MemoryBackend
    */
   public boolean supportsBackup()
   {
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -811,8 +784,6 @@ public class MemoryBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -825,8 +796,6 @@ public class MemoryBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-
-
     int    msgID   = MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -842,8 +811,6 @@ public class MemoryBackend
                            String backupID)
          throws DirectoryException
   {
-
-
     int    msgID   = MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -857,8 +824,6 @@ public class MemoryBackend
    */
   public boolean supportsRestore()
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -872,8 +837,6 @@ public class MemoryBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-
-
     int    msgID   = MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,

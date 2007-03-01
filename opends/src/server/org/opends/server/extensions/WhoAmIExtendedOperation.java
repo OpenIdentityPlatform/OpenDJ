@@ -88,7 +88,6 @@ public class WhoAmIExtendedOperation
   public void initializeExtendedOperationHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No special configuration is required.
 
     DirectoryServer.registerSupportedExtension(OID_WHO_AM_I_REQUEST, this);
@@ -102,7 +101,6 @@ public class WhoAmIExtendedOperation
    */
   public void finalizeExtendedOperationHandler()
   {
-
     DirectoryServer.deregisterSupportedExtension(OID_WHO_AM_I_REQUEST);
   }
 
@@ -115,8 +113,6 @@ public class WhoAmIExtendedOperation
    */
   public void processExtendedOperation(ExtendedOperation operation)
   {
-
-
     // Get the client connection and determine the DN of the user associated
     // with it.
     ClientConnection clientConnection = operation.getClientConnection();

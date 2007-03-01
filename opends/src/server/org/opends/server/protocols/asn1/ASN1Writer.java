@@ -66,7 +66,6 @@ public class ASN1Writer
   public ASN1Writer(Socket socket)
          throws IOException
   {
-
     this.socket  = socket;
     outputStream = socket.getOutputStream();
   }
@@ -81,7 +80,6 @@ public class ASN1Writer
    */
   public ASN1Writer(OutputStream outputStream)
   {
-
     this.outputStream = outputStream;
     socket            = null;
   }
@@ -102,7 +100,6 @@ public class ASN1Writer
   public int writeElement(ASN1Element element)
          throws IOException
   {
-
     byte[] elementBytes = element.encode();
     outputStream.write(elementBytes);
     outputStream.flush();

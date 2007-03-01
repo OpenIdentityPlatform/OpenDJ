@@ -91,7 +91,6 @@ public class CaseExactOrderingMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -105,7 +104,6 @@ public class CaseExactOrderingMatchingRule
    */
   public String getName()
   {
-
     return OMR_CASE_EXACT_NAME;
   }
 
@@ -118,7 +116,6 @@ public class CaseExactOrderingMatchingRule
    */
   public String getOID()
   {
-
     return OMR_CASE_EXACT_OID;
   }
 
@@ -132,7 +129,6 @@ public class CaseExactOrderingMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -147,7 +143,6 @@ public class CaseExactOrderingMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_DIRECTORY_STRING_OID;
   }
 
@@ -167,7 +162,6 @@ public class CaseExactOrderingMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append(value.stringValue().trim());
 
@@ -220,7 +214,6 @@ public class CaseExactOrderingMatchingRule
    */
   public int compareValues(ByteString value1, ByteString value2)
   {
-
     return compare(value1.value(), value2.value());
   }
 
@@ -241,7 +234,6 @@ public class CaseExactOrderingMatchingRule
    */
   public int compare(byte[] b1, byte[] b2)
   {
-
     int minLength = Math.min(b1.length, b2.length);
 
     for (int i=0; i < minLength; i++)

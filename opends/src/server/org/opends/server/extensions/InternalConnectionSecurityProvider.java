@@ -83,7 +83,6 @@ public class InternalConnectionSecurityProvider
    */
   public String getSecurityMechanismName()
   {
-
     return "INTERNAL";
   }
 
@@ -94,7 +93,6 @@ public class InternalConnectionSecurityProvider
    */
   public boolean isSecure()
   {
-
     // Internal connections are inherently secure.
     return true;
   }
@@ -122,7 +120,6 @@ public class InternalConnectionSecurityProvider
                                                 SocketChannel socketChannel)
          throws DirectoryException
   {
-
     return new InternalConnectionSecurityProvider(clientConnection,
                                                   socketChannel);
   }

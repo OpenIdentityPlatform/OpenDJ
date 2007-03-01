@@ -115,7 +115,6 @@ public class GroupManager
    */
   public GroupManager()
   {
-
     configHandler        = DirectoryServer.getConfigHandler();
     groupImplementations = new ConcurrentHashMap<DN,Group>();
     groupInstances       = new ConcurrentHashMap<DN,Group>();
@@ -141,8 +140,6 @@ public class GroupManager
   public void initializeGroupImplementations()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the configuration base entry.
     ConfigEntry baseEntry;
     try
@@ -249,7 +246,6 @@ public class GroupManager
    */
   public void finalizeGroupManager()
   {
-
     deregisterAllGroups();
 
     for (Group groupImplementation : groupImplementations.values())
@@ -271,7 +267,6 @@ public class GroupManager
    */
   public Iterable<Group> getGroupImplementations()
   {
-
     return groupImplementations.values();
   }
 
@@ -286,7 +281,6 @@ public class GroupManager
    */
   public Iterable<Group> getGroupInstances()
   {
-
     return groupInstances.values();
   }
 
@@ -303,7 +297,6 @@ public class GroupManager
    */
   public Group getGroupInstance(DN entryDN)
   {
-
     Group group = groupInstances.get(entryDN);
     if (group == null)
     {
@@ -332,8 +325,6 @@ public class GroupManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for an extended
     // operation handler.
     if (! configEntry.hasObjectClass(OC_GROUP_IMPLEMENTATION))
@@ -471,8 +462,6 @@ public class GroupManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -709,8 +698,6 @@ public class GroupManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (groupImplementations.containsKey(configEntryDN))
@@ -888,8 +875,6 @@ public class GroupManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -1051,8 +1036,6 @@ public class GroupManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -1069,8 +1052,6 @@ public class GroupManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;
@@ -1108,7 +1089,6 @@ public class GroupManager
    */
   public void performBackendInitializationProcessing(Backend backend)
   {
-
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
@@ -1203,7 +1183,6 @@ public class GroupManager
    */
   public void performBackendFinalizationProcessing(Backend backend)
   {
-
     Iterator<Map.Entry<DN,Group>> iterator =
          groupInstances.entrySet().iterator();
     while (iterator.hasNext())
@@ -1227,7 +1206,6 @@ public class GroupManager
   public void handleAddOperation(PostResponseAddOperation addOperation,
                                  Entry entry)
   {
-
     List<Control> requestControls = addOperation.getRequestControls();
     if (requestControls != null)
     {
@@ -1252,7 +1230,6 @@ public class GroupManager
   public void handleDeleteOperation(PostResponseDeleteOperation deleteOperation,
                                     Entry entry)
   {
-
     List<Control> requestControls = deleteOperation.getRequestControls();
     if (requestControls != null)
     {
@@ -1278,7 +1255,6 @@ public class GroupManager
   public void handleModifyOperation(PostResponseModifyOperation modifyOperation,
                                     Entry oldEntry, Entry newEntry)
   {
-
     List<Control> requestControls = modifyOperation.getRequestControls();
     if (requestControls != null)
     {
@@ -1319,7 +1295,6 @@ public class GroupManager
                    PostResponseModifyDNOperation modifyDNOperation,
                    Entry oldEntry, Entry newEntry)
   {
-
     List<Control> requestControls = modifyDNOperation.getRequestControls();
     if (requestControls != null)
     {
@@ -1353,7 +1328,6 @@ public class GroupManager
    */
   private void createAndRegisterGroup(Entry entry)
   {
-
     for (Group groupImplementation : groupImplementations.values())
     {
       try

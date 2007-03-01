@@ -84,8 +84,6 @@ public final class LDAPADListPlugin
                                      ConfigEntry configEntry)
          throws ConfigException
   {
-
-
     // The set of plugin types must contain only the pre-parse search element.
     if (pluginTypes.isEmpty())
     {
@@ -122,8 +120,6 @@ public final class LDAPADListPlugin
   public final PreParsePluginResult
        doPreParse(PreParseSearchOperation searchOperation)
   {
-
-
     // Iterate through the requested attributes to see if any of them start with
     // an "@" symbol.  If not, then we don't need to do anything.  If so, then
     // keep track of them.

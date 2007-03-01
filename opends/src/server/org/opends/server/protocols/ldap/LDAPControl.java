@@ -68,7 +68,6 @@ public class LDAPControl
    */
   public LDAPControl(Control control)
   {
-
     this.control = control;
   }
 
@@ -82,7 +81,6 @@ public class LDAPControl
    */
   public LDAPControl(String oid)
   {
-
     control = new Control(oid, false);
   }
 
@@ -98,7 +96,6 @@ public class LDAPControl
    */
   public LDAPControl(String oid, boolean isCritical)
   {
-
     control = new Control(oid, isCritical);
   }
 
@@ -114,7 +111,6 @@ public class LDAPControl
    */
   public LDAPControl(String oid, boolean isCritical, ASN1OctetString value)
   {
-
     control = new Control(oid, isCritical, value);
   }
 
@@ -127,7 +123,6 @@ public class LDAPControl
    */
   public Control getControl()
   {
-
     return control;
   }
 
@@ -140,7 +135,6 @@ public class LDAPControl
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(3);
     elements.add(new ASN1OctetString(control.getOID()));
 
@@ -169,7 +163,6 @@ public class LDAPControl
    */
   public static ASN1Element encodeControls(ArrayList<LDAPControl> controls)
   {
-
     ArrayList<ASN1Element> elements =
          new ArrayList<ASN1Element>(controls.size());
     for (LDAPControl c : controls)
@@ -195,7 +188,6 @@ public class LDAPControl
   public static LDAPControl decode(ASN1Element element)
          throws LDAPException
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_LDAP_CONTROL_DECODE_NULL;
@@ -362,7 +354,6 @@ public class LDAPControl
   public static ArrayList<LDAPControl> decodeControls(ASN1Element element)
          throws LDAPException
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_LDAP_CONTROL_DECODE_CONTROLS_NULL;
@@ -403,7 +394,6 @@ public class LDAPControl
    */
   public String getOID()
   {
-
     return control.getOID();
   }
 
@@ -417,7 +407,6 @@ public class LDAPControl
    */
   public boolean isCritical()
   {
-
     return control.isCritical();
   }
 
@@ -430,7 +419,6 @@ public class LDAPControl
    */
   public ASN1OctetString getValue()
   {
-
     return control.getValue();
   }
 
@@ -443,7 +431,6 @@ public class LDAPControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -459,7 +446,6 @@ public class LDAPControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("LDAPControl(oid=");
     buffer.append(control.getOID());
     buffer.append(", criticality=");
@@ -486,7 +472,6 @@ public class LDAPControl
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

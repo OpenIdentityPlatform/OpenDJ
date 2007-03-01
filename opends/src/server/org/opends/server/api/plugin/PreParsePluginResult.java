@@ -98,7 +98,6 @@ public class PreParsePluginResult
                               boolean continuePluginProcessing,
                               boolean sendResponseImmediately)
   {
-
     this.connectionTerminated     = connectionTerminated;
     this.continuePluginProcessing = continuePluginProcessing;
     this.sendResponseImmediately  = sendResponseImmediately;
@@ -115,7 +114,6 @@ public class PreParsePluginResult
    */
   public boolean connectionTerminated()
   {
-
     return connectionTerminated;
   }
 
@@ -131,7 +129,6 @@ public class PreParsePluginResult
    */
   public boolean continuePluginProcessing()
   {
-
     return continuePluginProcessing;
   }
 
@@ -149,7 +146,6 @@ public class PreParsePluginResult
    */
   public boolean sendResponseImmediately()
   {
-
     return sendResponseImmediately;
   }
 
@@ -164,7 +160,6 @@ public class PreParsePluginResult
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -181,7 +176,6 @@ public class PreParsePluginResult
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("PostResponsePluginResult(connectionTerminated=");
     buffer.append(connectionTerminated);
     buffer.append(", continuePluginProcessing=");

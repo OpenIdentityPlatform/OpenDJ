@@ -90,7 +90,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -104,7 +103,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_OID_FIRST_COMPONENT_NAME;
   }
 
@@ -117,7 +115,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_OID_FIRST_COMPONENT_OID;
   }
 
@@ -131,7 +128,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -146,7 +142,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_OID_OID;
   }
 
@@ -166,7 +161,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value.value(), buffer, true);
 
@@ -216,8 +210,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
-
     // For this purpose, the first value will be considered the attribute value,
     // and the second the assertion value.  The attribute value must start with
     // an open parenthesis, followed by one or more spaces.
@@ -374,7 +366,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    * @return  The hash code generated for the provided attribute value.*/
   public int generateHashCode(AttributeValue attributeValue)
   {
-
     // In this case, we'll always return the same value because the matching
     // isn't based on the entire value.
     return 1;

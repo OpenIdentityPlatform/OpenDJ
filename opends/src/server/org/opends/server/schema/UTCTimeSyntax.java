@@ -143,7 +143,6 @@ public class UTCTimeSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_GENERALIZED_TIME_OID);
     if (defaultEqualityMatchingRule == null)
@@ -181,7 +180,6 @@ public class UTCTimeSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_UTC_TIME_NAME;
   }
 
@@ -194,7 +192,6 @@ public class UTCTimeSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_UTC_TIME_OID;
   }
 
@@ -207,7 +204,6 @@ public class UTCTimeSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_UTC_TIME_DESCRIPTION;
   }
 
@@ -223,7 +219,6 @@ public class UTCTimeSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -239,7 +234,6 @@ public class UTCTimeSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -255,7 +249,6 @@ public class UTCTimeSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -271,7 +264,6 @@ public class UTCTimeSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // Approximate matching will not be allowed by default.
     return null;
   }
@@ -293,8 +285,6 @@ public class UTCTimeSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Get the value as a string and verify that it is at least long enough for
     // "YYYYMMDDhhmmZ", which is the shortest allowed value.
     String valueString = value.stringValue().toUpperCase();
@@ -755,8 +745,6 @@ public class UTCTimeSyntax
   private boolean hasValidOffset(String value, int startPos,
                                  StringBuilder invalidReason)
   {
-
-
     int offsetLength = value.length() - startPos;
     if (offsetLength < 2)
     {
@@ -882,7 +870,6 @@ public class UTCTimeSyntax
    */
   public static AttributeValue createUTCTimeValue(Date d)
   {
-
     String valueString;
 
     dateFormatLock.lock();
@@ -928,7 +915,6 @@ public class UTCTimeSyntax
   public static Date decodeUTCTimeValue(ByteString normalizedValue)
          throws DirectoryException
   {
-
     String valueString = normalizedValue.stringValue();
     try
     {

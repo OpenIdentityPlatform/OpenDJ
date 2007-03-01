@@ -91,8 +91,6 @@ public class BitStringSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_BIT_STRING_OID);
     if (defaultEqualityMatchingRule == null)
@@ -112,7 +110,6 @@ public class BitStringSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_BIT_STRING_NAME;
   }
 
@@ -125,7 +122,6 @@ public class BitStringSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_BIT_STRING_OID;
   }
 
@@ -138,7 +134,6 @@ public class BitStringSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_BIT_STRING_DESCRIPTION;
   }
 
@@ -154,7 +149,6 @@ public class BitStringSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -170,7 +164,6 @@ public class BitStringSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     // Ordering matches are not allowed by default.
     return null;
   }
@@ -187,7 +180,6 @@ public class BitStringSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     // Substring matches are not allowed by default.
     return null;
   }
@@ -204,7 +196,6 @@ public class BitStringSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // Approximate matches are not allowed by default.
     return null;
   }
@@ -226,7 +217,6 @@ public class BitStringSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     String valueString = value.stringValue().toUpperCase();
 
     int length = valueString.length();

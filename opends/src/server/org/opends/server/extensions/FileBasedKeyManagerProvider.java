@@ -106,7 +106,6 @@ public class FileBasedKeyManagerProvider
    */
   public FileBasedKeyManagerProvider()
   {
-
     // No implementation is required.
   }
 
@@ -130,8 +129,6 @@ public class FileBasedKeyManagerProvider
   public void initializeKeyManagerProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     // Store the DN of the configuration entry.
     configEntryDN = configEntry.getDN();
 
@@ -492,8 +489,6 @@ pinSelection:
    */
   public void finalizeKeyManagerProvider()
   {
-
-
     DirectoryServer.deregisterConfigurableComponent(this);
   }
 
@@ -512,8 +507,6 @@ pinSelection:
   public KeyManager[] getKeyManagers()
          throws DirectoryException
   {
-
-
     KeyStore keyStore;
     try
     {
@@ -573,7 +566,6 @@ pinSelection:
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -588,7 +580,6 @@ pinSelection:
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
 
@@ -669,8 +660,6 @@ pinSelection:
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     DN configEntryDN = configEntry.getDN();
 
 
@@ -1004,7 +993,6 @@ pinSelection:
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

@@ -89,7 +89,6 @@ public class NumericStringEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -103,7 +102,6 @@ public class NumericStringEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_NUMERIC_STRING_NAME;
   }
 
@@ -116,7 +114,6 @@ public class NumericStringEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_NUMERIC_STRING_OID;
   }
 
@@ -130,7 +127,6 @@ public class NumericStringEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -145,7 +141,6 @@ public class NumericStringEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_NUMERIC_STRING_OID;
   }
 
@@ -165,7 +160,6 @@ public class NumericStringEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     String        valueString = value.stringValue();
     int           valueLength = valueString.length();
     StringBuilder valueBuffer = new StringBuilder(valueLength);
@@ -217,7 +211,6 @@ public class NumericStringEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.
     return Arrays.equals(value1.value(), value2.value());

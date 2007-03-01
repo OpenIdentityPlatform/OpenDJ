@@ -84,7 +84,6 @@ public class PasswordPolicyConfig
    */
   public PasswordPolicyConfig(PasswordPolicy policy)
   {
-
     this.currentPolicy = policy;
     DirectoryServer.registerConfigurableComponent(this);
   }
@@ -96,7 +95,6 @@ public class PasswordPolicyConfig
    */
   public void finalizePasswordPolicyConfig()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
   }
 
@@ -111,7 +109,6 @@ public class PasswordPolicyConfig
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return currentPolicy.getConfigEntryDN();
   }
 
@@ -126,8 +123,6 @@ public class PasswordPolicyConfig
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     // Create a list of units and values that we can use to represent time
     // periods.
     LinkedHashMap<String,Double> timeUnits = new LinkedHashMap<String,Double>();
@@ -402,7 +397,6 @@ public class PasswordPolicyConfig
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
     assert configEntry.getDN().equals(this.currentPolicy.getConfigEntryDN() )
             : "Internal Error: mismatch between DN of configuration entry and"
               + "DN of current password policy." ;
@@ -457,7 +451,6 @@ public class PasswordPolicyConfig
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
     assert configEntry.getDN().equals(this.currentPolicy.getConfigEntryDN() )
             : "Internal Error: mismatch between DN of configuration entry and"
               + "DN of current password policy." ;

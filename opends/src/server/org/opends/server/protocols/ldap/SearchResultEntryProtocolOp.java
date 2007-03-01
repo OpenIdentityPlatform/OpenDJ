@@ -87,7 +87,6 @@ public class SearchResultEntryProtocolOp
    */
   public SearchResultEntryProtocolOp(DN dn)
   {
-
     this.dn         = dn;
     this.attributes = new LinkedList<LDAPAttribute>();
   }
@@ -104,7 +103,6 @@ public class SearchResultEntryProtocolOp
   public SearchResultEntryProtocolOp(DN dn,
                                      LinkedList<LDAPAttribute> attributes)
   {
-
     this.dn = dn;
 
     if (attributes == null)
@@ -128,7 +126,6 @@ public class SearchResultEntryProtocolOp
    */
   public SearchResultEntryProtocolOp(SearchResultEntry searchEntry)
   {
-
     this.dn = searchEntry.getDN();
 
     attributes = new LinkedList<LDAPAttribute>();
@@ -167,7 +164,6 @@ public class SearchResultEntryProtocolOp
    */
   public DN getDN()
   {
-
     return dn;
   }
 
@@ -180,7 +176,6 @@ public class SearchResultEntryProtocolOp
    */
   public void setDN(DN dn)
   {
-
     this.dn = dn;
   }
 
@@ -194,7 +189,6 @@ public class SearchResultEntryProtocolOp
    */
   public LinkedList<LDAPAttribute> getAttributes()
   {
-
     return attributes;
   }
 
@@ -207,7 +201,6 @@ public class SearchResultEntryProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_SEARCH_RESULT_ENTRY;
   }
 
@@ -220,7 +213,6 @@ public class SearchResultEntryProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Search Result Entry";
   }
 
@@ -234,7 +226,6 @@ public class SearchResultEntryProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1OctetString(dn.toString()));
 
@@ -269,7 +260,6 @@ public class SearchResultEntryProtocolOp
                                                                    element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -353,7 +343,6 @@ public class SearchResultEntryProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("SearchResultEntry(dn=");
     dn.toString(buffer);
     buffer.append(", attrs={");
@@ -385,7 +374,6 @@ public class SearchResultEntryProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {
@@ -420,8 +408,6 @@ public class SearchResultEntryProtocolOp
    */
   public void toLDIF(StringBuilder buffer, int wrapColumn)
   {
-
-
     // Add the DN to the buffer.
     String dnString = dn.toString();
     int    colsRemaining;
@@ -546,7 +532,6 @@ public class SearchResultEntryProtocolOp
   public SearchResultEntry toSearchResultEntry()
          throws LDAPException
   {
-
     HashMap<ObjectClass,String> objectClasses =
          new HashMap<ObjectClass,String>();
     HashMap<AttributeType,List<Attribute>> userAttributes =

@@ -109,7 +109,6 @@ public class SchemaConfigManager
    */
   public SchemaConfigManager()
   {
-
     configHandler = DirectoryServer.getConfigHandler();
 
     schema = new Schema();
@@ -124,7 +123,6 @@ public class SchemaConfigManager
    */
   public static String getSchemaDirectoryPath()
   {
-
     String schemaDirPath = System.getProperty(PROPERTY_SCHEMA_DIRECTORY);
     if ((schemaDirPath == null) || (schemaDirPath.length() == 0))
     {
@@ -150,7 +148,6 @@ public class SchemaConfigManager
    */
   public Schema getSchema()
   {
-
     return schema;
   }
 
@@ -170,8 +167,6 @@ public class SchemaConfigManager
   public void initializeMatchingRules()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the matching rule configuration base entry.
     ConfigEntry matchingRuleBaseEntry;
     try
@@ -418,8 +413,6 @@ public class SchemaConfigManager
   public void initializeAttributeSyntaxes()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the attribute syntax configuration base entry.
     ConfigEntry syntaxBaseEntry;
     try
@@ -669,8 +662,6 @@ public class SchemaConfigManager
   public void initializeSchemaFromFiles()
          throws ConfigException, InitializationException
   {
-
-
     // Construct the path to the directory that should contain the schema files
     // and make sure that it exists and is a directory.  Get a list of the files
     // in that directory sorted in alphabetic order.
@@ -790,7 +781,6 @@ public class SchemaConfigManager
   public static void loadSchemaFile(Schema schema, String schemaFile)
          throws ConfigException, InitializationException
   {
-
     loadSchemaFile(schema, schemaFile, true);
   }
 
@@ -821,8 +811,6 @@ public class SchemaConfigManager
                                      boolean failOnError)
          throws ConfigException, InitializationException
   {
-
-
     // Create an LDIF reader to use when reading the files.
     String schemaDirPath = getSchemaDirectoryPath();
     LDIFReader reader;
@@ -1734,8 +1722,6 @@ public class SchemaConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // NYI
 
     // If we've gotten here then the monitor entry appears to be acceptable.
@@ -1756,8 +1742,6 @@ public class SchemaConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -1790,8 +1774,6 @@ public class SchemaConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // NYI
 
     // If we've gotten here then the monitor entry appears to be acceptable.
@@ -1811,8 +1793,6 @@ public class SchemaConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -1841,8 +1821,6 @@ public class SchemaConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // NYI -- Should we allow deletes of elements with this as superior?
 
     return true;
@@ -1860,8 +1838,6 @@ public class SchemaConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

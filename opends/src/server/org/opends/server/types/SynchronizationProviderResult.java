@@ -52,7 +52,6 @@ public class SynchronizationProviderResult
   public SynchronizationProviderResult(
               boolean continueOperationProcessing)
   {
-
     this.continueOperationProcessing = continueOperationProcessing;
   }
 
@@ -68,7 +67,6 @@ public class SynchronizationProviderResult
    */
   public boolean continueOperationProcessing()
   {
-
     return continueOperationProcessing;
   }
 
@@ -85,7 +83,6 @@ public class SynchronizationProviderResult
   public void setContinueOperationProcessing(
                    boolean continueOperationProcessing)
   {
-
     this.continueOperationProcessing = continueOperationProcessing;
   }
 
@@ -100,7 +97,6 @@ public class SynchronizationProviderResult
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -117,7 +113,6 @@ public class SynchronizationProviderResult
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("SynchronizationProviderResult(" +
                   "continueOperationProcessing=");
     buffer.append(continueOperationProcessing);

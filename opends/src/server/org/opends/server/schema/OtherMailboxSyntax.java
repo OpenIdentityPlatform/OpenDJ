@@ -94,7 +94,6 @@ public class OtherMailboxSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_LIST_OID);
     if (defaultEqualityMatchingRule == null)
@@ -123,7 +122,6 @@ public class OtherMailboxSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_OTHER_MAILBOX_NAME;
   }
 
@@ -136,7 +134,6 @@ public class OtherMailboxSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_OTHER_MAILBOX_OID;
   }
 
@@ -149,7 +146,6 @@ public class OtherMailboxSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_OTHER_MAILBOX_DESCRIPTION;
   }
 
@@ -165,7 +161,6 @@ public class OtherMailboxSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -181,7 +176,6 @@ public class OtherMailboxSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     // Ordering matching is not allowed by default.
     return null;
   }
@@ -198,7 +192,6 @@ public class OtherMailboxSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -214,7 +207,6 @@ public class OtherMailboxSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // Approximate matching is not allowed by default.
     return null;
   }
@@ -236,8 +228,6 @@ public class OtherMailboxSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Check to see if the provided value was null.  If so, then that's not
     // acceptable.
     if (value == null)

@@ -166,7 +166,6 @@ public class IpBitsNetworkCriteria {
 
   public boolean match (InetAddress theSourceAddress)
   {
-
     byte[] addr = theSourceAddress.getAddress();
 
     if ((addr.length * 8) < _bits) {

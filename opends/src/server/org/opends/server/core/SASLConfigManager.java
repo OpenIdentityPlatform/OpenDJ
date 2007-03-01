@@ -90,7 +90,6 @@ public class SASLConfigManager
    */
   public SASLConfigManager()
   {
-
     configHandler = DirectoryServer.getConfigHandler();
     handlers      = new ConcurrentHashMap<DN,SASLMechanismHandler>();
   }
@@ -112,8 +111,6 @@ public class SASLConfigManager
   public void initializeSASLMechanismHandlers()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the configuration base entry.
     ConfigEntry baseEntry;
     try
@@ -229,8 +226,6 @@ public class SASLConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for a SASL
     // mechanism handler.
     if (! configEntry.hasObjectClass(OC_SASL_MECHANISM_HANDLER))
@@ -369,8 +364,6 @@ public class SASLConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -591,8 +584,6 @@ public class SASLConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (handlers.containsKey(configEntryDN))
@@ -770,8 +761,6 @@ public class SASLConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -933,8 +922,6 @@ public class SASLConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -951,8 +938,6 @@ public class SASLConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

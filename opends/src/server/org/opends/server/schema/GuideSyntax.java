@@ -97,7 +97,6 @@ public class GuideSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null)
@@ -135,7 +134,6 @@ public class GuideSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_GUIDE_NAME;
   }
 
@@ -148,7 +146,6 @@ public class GuideSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_GUIDE_OID;
   }
 
@@ -161,7 +158,6 @@ public class GuideSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_GUIDE_DESCRIPTION;
   }
 
@@ -177,7 +173,6 @@ public class GuideSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -193,7 +188,6 @@ public class GuideSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -209,7 +203,6 @@ public class GuideSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -225,7 +218,6 @@ public class GuideSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -247,8 +239,6 @@ public class GuideSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Get a lowercase string version of the provided value.
     String valueStr = toLowerCase(value.stringValue());
 
@@ -301,8 +291,6 @@ public class GuideSyntax
   public static boolean criteriaIsValid(String criteria, String valueStr,
                                         StringBuilder invalidReason)
   {
-
-
     // See if the criteria starts with a '!'.  If so, then just evaluate
     // everything after that as a criteria.
     char c = criteria.charAt(0);

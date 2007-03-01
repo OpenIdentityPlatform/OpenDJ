@@ -99,7 +99,6 @@ public class PresentationAddressSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultApproximateMatchingRule =
          DirectoryServer.getApproximateMatchingRule(AMR_DOUBLE_METAPHONE_OID);
     if (defaultApproximateMatchingRule == null)
@@ -146,7 +145,6 @@ public class PresentationAddressSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_PRESENTATION_ADDRESS_NAME;
   }
 
@@ -159,7 +157,6 @@ public class PresentationAddressSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_PRESENTATION_ADDRESS_OID;
   }
 
@@ -172,7 +169,6 @@ public class PresentationAddressSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_PRESENTATION_ADDRESS_DESCRIPTION;
   }
 
@@ -188,7 +184,6 @@ public class PresentationAddressSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -204,7 +199,6 @@ public class PresentationAddressSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -220,7 +214,6 @@ public class PresentationAddressSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -236,7 +229,6 @@ public class PresentationAddressSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     return defaultApproximateMatchingRule;
   }
 
@@ -257,7 +249,6 @@ public class PresentationAddressSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     // We will accept any value for this syntax.
     return true;
   }

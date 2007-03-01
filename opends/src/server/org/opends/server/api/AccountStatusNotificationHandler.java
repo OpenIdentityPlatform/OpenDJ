@@ -80,7 +80,6 @@ public abstract class AccountStatusNotificationHandler
    */
   public void finalizeStatusNotificationHandler()
   {
-
     // No action is required by default.
   }
 
@@ -115,7 +114,6 @@ public abstract class AccountStatusNotificationHandler
   public void handleStatusNotification(
                    AccountStatusNotification notification)
   {
-
     handleStatusNotification(notification.getNotificationType(),
                              notification.getUserDN(),
                              notification.getMessageID(),

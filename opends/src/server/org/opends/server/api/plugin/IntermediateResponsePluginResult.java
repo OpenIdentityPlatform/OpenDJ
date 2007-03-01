@@ -107,7 +107,6 @@ public class IntermediateResponsePluginResult
               boolean sendIntermediateResponse,
               boolean continueOperation)
   {
-
     this.connectionTerminated     = connectionTerminated;
     this.continuePluginProcessing = continuePluginProcessing;
     this.sendIntermediateResponse = sendIntermediateResponse;
@@ -126,7 +125,6 @@ public class IntermediateResponsePluginResult
    */
   public boolean connectionTerminated()
   {
-
     return connectionTerminated;
   }
 
@@ -142,7 +140,6 @@ public class IntermediateResponsePluginResult
    */
   public boolean continuePluginProcessing()
   {
-
     return continuePluginProcessing;
   }
 
@@ -158,7 +155,6 @@ public class IntermediateResponsePluginResult
    */
   public boolean sendIntermediateResponse()
   {
-
     return sendIntermediateResponse;
   }
 
@@ -173,7 +169,6 @@ public class IntermediateResponsePluginResult
    */
   public boolean continueOperation()
   {
-
     return continueOperation;
   }
 
@@ -188,7 +183,6 @@ public class IntermediateResponsePluginResult
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -205,7 +199,6 @@ public class IntermediateResponsePluginResult
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("IntermediateResponsePluginResult(" +
                   "connectionTerminated=");
     buffer.append(connectionTerminated);

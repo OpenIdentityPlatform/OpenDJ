@@ -88,7 +88,6 @@ public class RDN
   public RDN(AttributeType attributeType,
              AttributeValue attributeValue)
   {
-
     attributeTypes  = new AttributeType[] { attributeType };
     attributeNames  = new String[] { attributeType.getPrimaryName() };
     attributeValues = new AttributeValue[] { attributeValue };
@@ -113,7 +112,6 @@ public class RDN
   public RDN(AttributeType attributeType, String attributeName,
              AttributeValue attributeValue)
   {
-
     attributeTypes  = new AttributeType[] { attributeType };
     attributeNames  = new String[] { attributeName };
     attributeValues = new AttributeValue[] { attributeValue };
@@ -143,7 +141,6 @@ public class RDN
              List<String> attributeNames,
              List<AttributeValue> attributeValues)
   {
-
     this.attributeTypes  = new AttributeType[attributeTypes.size()];
     this.attributeNames  = new String[attributeNames.size()];
     this.attributeValues = new AttributeValue[attributeValues.size()];
@@ -176,7 +173,6 @@ public class RDN
   public RDN(AttributeType[] attributeTypes, String[] attributeNames,
              AttributeValue[] attributeValues)
   {
-
     this.numValues       = attributeTypes.length;
     this.attributeTypes  = attributeTypes;
     this.attributeNames  = attributeNames;
@@ -201,7 +197,6 @@ public class RDN
   public static RDN create(AttributeType attributeType,
                            AttributeValue attributeValue)
   {
-
     return new RDN(attributeType, attributeValue);
   }
 
@@ -216,7 +211,6 @@ public class RDN
    */
   public int getNumValues()
   {
-
     return numValues;
   }
 
@@ -233,7 +227,6 @@ public class RDN
    */
   public boolean hasAttributeType(AttributeType attributeType)
   {
-
     for (AttributeType t : attributeTypes)
     {
       if (t.equals(attributeType))
@@ -259,7 +252,6 @@ public class RDN
    */
   public boolean hasAttributeType(String lowerName)
   {
-
     for (AttributeType t : attributeTypes)
     {
       if (t.hasNameOrOID(lowerName))
@@ -292,7 +284,6 @@ public class RDN
    */
   public AttributeType getAttributeType(int pos)
   {
-
     return attributeTypes[pos];
   }
 
@@ -310,7 +301,6 @@ public class RDN
    */
   public String getAttributeName(int pos)
   {
-
     return attributeNames[pos];
   }
 
@@ -329,7 +319,6 @@ public class RDN
    */
   public AttributeValue getAttributeValue(AttributeType attributeType)
   {
-
     for (int i=0; i < numValues; i++)
     {
       if (attributeTypes[i].equals(attributeType))
@@ -355,7 +344,6 @@ public class RDN
    */
   public AttributeValue getAttributeValue(int pos)
   {
-
     return attributeValues[pos];
   }
 
@@ -369,7 +357,6 @@ public class RDN
    */
   public boolean isMultiValued()
   {
-
     return (numValues > 1);
   }
 
@@ -388,7 +375,6 @@ public class RDN
    */
   public boolean hasValue(AttributeType type, AttributeValue value)
   {
-
     for (int i=0; i < numValues; i++)
     {
       if (attributeTypes[i].equals(type) &&
@@ -418,7 +404,6 @@ public class RDN
   boolean addValue(AttributeType type, String name,
                    AttributeValue value)
   {
-
     for (int i=0; i < numValues; i++)
     {
       if (attributeTypes[i].equals(type) &&
@@ -469,8 +454,6 @@ public class RDN
   public static RDN decode(String rdnString)
          throws DirectoryException
   {
-
-
     // A null or empty RDN is not acceptable.
     if (rdnString == null)
     {
@@ -847,7 +830,6 @@ public class RDN
    */
   public RDN duplicate()
   {
-
     AttributeType[] newTypes = new AttributeType[numValues];
     System.arraycopy(attributeTypes, 0, newTypes, 0, numValues);
 
@@ -876,7 +858,6 @@ public class RDN
    */
   public boolean equals(Object o)
   {
-
     if (this == o)
     {
       return true;
@@ -901,7 +882,6 @@ public class RDN
    */
   public int hashCode()
   {
-
     return toNormalizedString().hashCode();
   }
 
@@ -947,7 +927,6 @@ public class RDN
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append(toString());
   }
 
@@ -979,7 +958,6 @@ public class RDN
    */
   public void toNormalizedString(StringBuilder buffer)
   {
-
     if (normalizedRDN != null)
     {
       buffer.append(normalizedRDN);
@@ -1066,7 +1044,6 @@ public class RDN
    */
   public int compareTo(RDN rdn)
   {
-
     if ((attributeTypes.length == 1) &&
         (rdn.attributeTypes.length == 1))
     {

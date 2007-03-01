@@ -49,7 +49,6 @@ public class FileNumberRetentionPolicy implements RetentionPolicy
    */
   public FileNumberRetentionPolicy(String dir, String prefix, int numFiles)
   {
-
     this.numFiles = numFiles;
     this.directory = new File(dir);
     this.prefix = prefix;
@@ -63,7 +62,6 @@ public class FileNumberRetentionPolicy implements RetentionPolicy
    */
   public int deleteFiles()
   {
-
     int count = 0;
 
     File[] selectedFiles = directory.listFiles(new LogFileFilter(prefix));

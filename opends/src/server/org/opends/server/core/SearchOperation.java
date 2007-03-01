@@ -386,7 +386,6 @@ public class SearchOperation
    */
   public final ByteString getRawBaseDN()
   {
-
     return rawBaseDN;
   }
 
@@ -401,7 +400,6 @@ public class SearchOperation
    */
   public final void setRawBaseDN(ByteString rawBaseDN)
   {
-
     this.rawBaseDN = rawBaseDN;
 
     baseDN = null;
@@ -419,7 +417,6 @@ public class SearchOperation
    */
   public final DN getBaseDN()
   {
-
     return baseDN;
   }
 
@@ -433,7 +430,6 @@ public class SearchOperation
    */
   public final void setBaseDN(DN baseDN)
   {
-
     this.baseDN = baseDN;
   }
 
@@ -446,7 +442,6 @@ public class SearchOperation
    */
   public final SearchScope getScope()
   {
-
     return scope;
   }
 
@@ -460,7 +455,6 @@ public class SearchOperation
    */
   public final void setScope(SearchScope scope)
   {
-
     this.scope = scope;
   }
 
@@ -473,7 +467,6 @@ public class SearchOperation
    */
   public final DereferencePolicy getDerefPolicy()
   {
-
     return derefPolicy;
   }
 
@@ -488,7 +481,6 @@ public class SearchOperation
    */
   public final void setDerefPolicy(DereferencePolicy derefPolicy)
   {
-
     this.derefPolicy = derefPolicy;
   }
 
@@ -501,7 +493,6 @@ public class SearchOperation
    */
   public final int getSizeLimit()
   {
-
     return sizeLimit;
   }
 
@@ -515,7 +506,6 @@ public class SearchOperation
    */
   public final void setSizeLimit(int sizeLimit)
   {
-
     this.sizeLimit = sizeLimit;
   }
 
@@ -528,7 +518,6 @@ public class SearchOperation
    */
   public final int getTimeLimit()
   {
-
     return timeLimit;
   }
 
@@ -542,7 +531,6 @@ public class SearchOperation
    */
   public final void setTimeLimit(int timeLimit)
   {
-
     this.timeLimit = timeLimit;
   }
 
@@ -555,7 +543,6 @@ public class SearchOperation
    */
   public final boolean getTypesOnly()
   {
-
     return typesOnly;
   }
 
@@ -569,7 +556,6 @@ public class SearchOperation
    */
   public final void setTypesOnly(boolean typesOnly)
   {
-
     this.typesOnly = typesOnly;
   }
 
@@ -586,7 +572,6 @@ public class SearchOperation
    */
   public final LDAPFilter getRawFilter()
   {
-
     return rawFilter;
   }
 
@@ -601,7 +586,6 @@ public class SearchOperation
    */
   public final void setRawFilter(LDAPFilter rawFilter)
   {
-
     this.rawFilter = rawFilter;
 
     filter = null;
@@ -619,7 +603,6 @@ public class SearchOperation
    */
   public final SearchFilter getFilter()
   {
-
     return filter;
   }
 
@@ -633,7 +616,6 @@ public class SearchOperation
    */
   public final LinkedHashSet<String> getAttributes()
   {
-
     return attributes;
   }
 
@@ -648,7 +630,6 @@ public class SearchOperation
    */
   public final void setAttributes(LinkedHashSet<String> attributes)
   {
-
     if (attributes == null)
     {
       this.attributes.clear();
@@ -670,7 +651,6 @@ public class SearchOperation
    */
   public final int getEntriesSent()
   {
-
     return entriesSent;
   }
 
@@ -685,7 +665,6 @@ public class SearchOperation
    */
   public final int getReferencesSent()
   {
-
     return referencesSent;
   }
 
@@ -697,7 +676,6 @@ public class SearchOperation
   @Override()
   public final long getProcessingStartTime()
   {
-
     return processingStartTime;
   }
 
@@ -709,7 +687,6 @@ public class SearchOperation
   @Override()
   public final long getProcessingStopTime()
   {
-
     return processingStopTime;
   }
 
@@ -721,7 +698,6 @@ public class SearchOperation
   @Override()
   public final long getProcessingTime()
   {
-
     return (processingStopTime - processingStartTime);
   }
 
@@ -744,8 +720,6 @@ public class SearchOperation
    */
   public final boolean returnEntry(Entry entry, List<Control> controls)
   {
-
-
     // See if the operation has been abandoned.  If so, then don't send the
     // entry and indicate that the search should end.
     if (cancelRequest != null)
@@ -1169,7 +1143,6 @@ public class SearchOperation
    */
   public final boolean returnReference(SearchResultReference reference)
   {
-
     // See if the operation has been abandoned.  If so, then don't send the
     // reference and indicate that the search should end.
     if (cancelRequest != null)
@@ -1260,8 +1233,6 @@ public class SearchOperation
    */
   public final void sendSearchResultDone()
   {
-
-
     // Send the search result done message to the client.  We want to make sure
     // that this only gets sent once, and it's possible that this could be
     // multithreaded in the event of a persistent search, so do it safely.
@@ -1435,7 +1406,6 @@ public class SearchOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-
     return responseControls;
   }
 
@@ -1469,7 +1439,6 @@ public class SearchOperation
   @Override()
   public final void run()
   {
-
     setResultCode(ResultCode.UNDEFINED);
     boolean sendResponse = true;
 
@@ -2128,8 +2097,6 @@ searchProcessing:
   private final void searchBackend(Backend backend)
           throws DirectoryException, CancelledOperationException
   {
-
-
     // Check for and handle a request to cancel this operation.
     if (cancelRequest != null)
     {
@@ -2168,7 +2135,6 @@ searchProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
 
     if (persistentSearch != null)
@@ -2217,7 +2183,6 @@ searchProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-
     return cancelRequest;
   }
 
@@ -2229,7 +2194,6 @@ searchProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
     return true;
   }
@@ -2242,7 +2206,6 @@ searchProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-
     buffer.append("SearchOperation(connID=");
     buffer.append(clientConnection.getConnectionID());
     buffer.append(", opID=");

@@ -131,7 +131,6 @@ public class ASN1Long
    */
   public long longValue()
   {
-
     return longValue;
   }
 
@@ -144,7 +143,6 @@ public class ASN1Long
    */
   public void setValue(long longValue)
   {
-
     this.longValue = longValue;
     setValueInternal(encodeLongValue(longValue));
   }
@@ -162,7 +160,6 @@ public class ASN1Long
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-
     if (value == null)
     {
       int    msgID   = MSGID_ASN1_INTEGER_SET_VALUE_NULL;
@@ -201,7 +198,6 @@ public class ASN1Long
   public static ASN1Long decodeAsLong(ASN1Element element)
          throws ASN1Exception
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_ASN1_INTEGER_DECODE_ELEMENT_NULL;
@@ -241,7 +237,6 @@ public class ASN1Long
   public static ASN1Long decodeAsLong(byte[] encodedElement)
          throws ASN1Exception
   {
-
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 long element.
     if (encodedElement == null)
@@ -332,7 +327,6 @@ public class ASN1Long
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ASN1Long(type=");
     buffer.append(byteToHex(getType()));
     buffer.append(", value=");
@@ -353,7 +347,6 @@ public class ASN1Long
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

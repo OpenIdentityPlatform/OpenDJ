@@ -56,7 +56,6 @@ public class FreeDiskSpaceRetentionPolicy implements RetentionPolicy
   public FreeDiskSpaceRetentionPolicy(String dir, String prefix,
                                  long freeDiskSpace)
   {
-
     this.directory = new File(dir);
     this.freeDiskSpace = freeDiskSpace;
     this.prefix = prefix;
@@ -70,7 +69,6 @@ public class FreeDiskSpaceRetentionPolicy implements RetentionPolicy
    */
   public int deleteFiles()
   {
-
     int count = 0;
     long freeSpace = 0;
     try

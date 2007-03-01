@@ -99,7 +99,6 @@ public class ConfigException
    */
   public int getMessageID()
   {
-
     return messageID;
   }
 }

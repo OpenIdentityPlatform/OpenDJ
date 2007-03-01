@@ -89,7 +89,6 @@ public class ConnectionHandlerConfigManager
    */
   public ConnectionHandlerConfigManager()
   {
-
     // No implementation is required.
   }
 
@@ -111,8 +110,6 @@ public class ConnectionHandlerConfigManager
   public void initializeConnectionHandlerConfig()
          throws ConfigException, InitializationException
   {
-
-
     connectionHandlers = new ConcurrentHashMap<DN,ConnectionHandler>();
 
 
@@ -359,7 +356,6 @@ public class ConnectionHandlerConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
     DN connectionHandlerDN = configEntry.getDN();
 
 
@@ -524,7 +520,6 @@ public class ConnectionHandlerConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
     DN connectionHandlerDN = configEntry.getDN();
     ConnectionHandler connectionHandler =
          connectionHandlers.get(connectionHandlerDN);
@@ -748,8 +743,6 @@ public class ConnectionHandlerConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     DN connectionHandlerDN = configEntry.getDN();
 
 
@@ -944,8 +937,6 @@ public class ConnectionHandlerConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -1140,8 +1131,6 @@ public class ConnectionHandlerConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -1158,8 +1147,6 @@ public class ConnectionHandlerConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

@@ -121,7 +121,6 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
    */
   public ChangeOperationType getChangeOperationType()
   {
-
     return ChangeOperationType.MODIFY_DN;
   }
 }

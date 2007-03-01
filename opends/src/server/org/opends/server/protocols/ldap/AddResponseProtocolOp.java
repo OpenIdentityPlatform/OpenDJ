@@ -81,7 +81,6 @@ public class AddResponseProtocolOp
    */
   public AddResponseProtocolOp(int resultCode)
   {
-
     this.resultCode = resultCode;
 
     errorMessage = null;
@@ -100,7 +99,6 @@ public class AddResponseProtocolOp
    */
   public AddResponseProtocolOp(int resultCode, String errorMessage)
   {
-
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
 
@@ -121,7 +119,6 @@ public class AddResponseProtocolOp
   public AddResponseProtocolOp(int resultCode, String errorMessage,
                                DN matchedDN, List<String> referralURLs)
   {
-
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
     this.matchedDN    = matchedDN;
@@ -137,7 +134,6 @@ public class AddResponseProtocolOp
    */
   public int getResultCode()
   {
-
     return resultCode;
   }
 
@@ -150,7 +146,6 @@ public class AddResponseProtocolOp
    */
   public void setResultCode(int resultCode)
   {
-
     this.resultCode = resultCode;
   }
 
@@ -164,7 +159,6 @@ public class AddResponseProtocolOp
    */
   public String getErrorMessage()
   {
-
     return errorMessage;
   }
 
@@ -177,7 +171,6 @@ public class AddResponseProtocolOp
    */
   public void setErrorMessage(String errorMessage)
   {
-
     this.errorMessage = errorMessage;
   }
 
@@ -191,7 +184,6 @@ public class AddResponseProtocolOp
    */
   public DN getMatchedDN()
   {
-
     return matchedDN;
   }
 
@@ -204,7 +196,6 @@ public class AddResponseProtocolOp
    */
   public void setMatchedDN(DN matchedDN)
   {
-
     this.matchedDN = matchedDN;
   }
 
@@ -218,7 +209,6 @@ public class AddResponseProtocolOp
    */
   public List<String> getReferralURLs()
   {
-
     return referralURLs;
   }
 
@@ -231,7 +221,6 @@ public class AddResponseProtocolOp
    */
   public void setReferralURLs(List<String> referralURLs)
   {
-
     this.referralURLs = referralURLs;
   }
 
@@ -244,7 +233,6 @@ public class AddResponseProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_ADD_RESPONSE;
   }
 
@@ -257,7 +245,6 @@ public class AddResponseProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Add Response";
   }
 
@@ -271,7 +258,6 @@ public class AddResponseProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(4);
     elements.add(new ASN1Enumerated(resultCode));
 
@@ -317,7 +303,6 @@ public class AddResponseProtocolOp
   public static AddResponseProtocolOp decodeAddResponse(ASN1Element element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -457,7 +442,6 @@ public class AddResponseProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("AddResponse(resultCode=");
     buffer.append(resultCode);
 
@@ -504,7 +488,6 @@ public class AddResponseProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

@@ -99,7 +99,6 @@ public class RootDNConfigManager
    */
   public RootDNConfigManager()
   {
-
     bindMappings = new ConcurrentHashMap<DN,List<DN>>();
   }
 
@@ -119,8 +118,6 @@ public class RootDNConfigManager
   public void initializeRootDNs()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the base configuration entry for the root DNs.
     ConfigHandler configHandler = DirectoryServer.getConfigHandler();
     ConfigEntry   baseEntry;
@@ -281,7 +278,6 @@ public class RootDNConfigManager
    */
   public Set<Privilege> getRootPrivileges()
   {
-
     return rootPrivileges;
   }
 
@@ -303,8 +299,6 @@ public class RootDNConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for a root DN.
     if (! configEntry.hasObjectClass(OC_ROOT_DN))
     {
@@ -378,8 +372,6 @@ public class RootDNConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -488,8 +480,6 @@ public class RootDNConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN, and that
     // there is no other root user with a conflicting alternate bind DN.
     DN configEntryDN = configEntry.getDN();
@@ -576,8 +566,6 @@ public class RootDNConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -687,8 +675,6 @@ public class RootDNConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -705,8 +691,6 @@ public class RootDNConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;
@@ -791,8 +775,6 @@ public class RootDNConfigManager
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     int msgID = MSGID_CONFIG_ROOTDN_DESCRIPTION_ROOT_PRIVILEGE;
     MultiChoiceConfigAttribute rootPrivStub =
          new MultiChoiceConfigAttribute(ATTR_DEFAULT_ROOT_PRIVILEGE_NAME,
@@ -864,8 +846,6 @@ public class RootDNConfigManager
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     ArrayList<String> messages            = new ArrayList<String>();
     boolean           adminActionRequired = false;

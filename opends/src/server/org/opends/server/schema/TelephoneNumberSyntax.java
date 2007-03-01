@@ -118,7 +118,6 @@ public class TelephoneNumberSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_TELEPHONE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -185,7 +184,6 @@ public class TelephoneNumberSyntax
    */
   public void finalizeSyntax()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
   }
 
@@ -198,7 +196,6 @@ public class TelephoneNumberSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_TELEPHONE_NAME;
   }
 
@@ -211,7 +208,6 @@ public class TelephoneNumberSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_TELEPHONE_OID;
   }
 
@@ -224,7 +220,6 @@ public class TelephoneNumberSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_TELEPHONE_DESCRIPTION;
   }
 
@@ -240,7 +235,6 @@ public class TelephoneNumberSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -256,7 +250,6 @@ public class TelephoneNumberSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     // There is no ordering matching rule by default.
     return null;
   }
@@ -273,7 +266,6 @@ public class TelephoneNumberSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -289,7 +281,6 @@ public class TelephoneNumberSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -311,8 +302,6 @@ public class TelephoneNumberSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // No matter what, the value can't be empty or null.
     String valueStr;
     if ((value == null) ||
@@ -403,7 +392,6 @@ public class TelephoneNumberSyntax
    */
   private boolean isSeparator(char c)
   {
-
     switch (c)
     {
       case ' ':
@@ -425,7 +413,6 @@ public class TelephoneNumberSyntax
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -440,8 +427,6 @@ public class TelephoneNumberSyntax
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_ATTR_SYNTAX_TELEPHONE_DESCRIPTION_STRICT_MODE;
@@ -471,8 +456,6 @@ public class TelephoneNumberSyntax
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     boolean configIsAcceptable = true;
 
 
@@ -529,8 +512,6 @@ public class TelephoneNumberSyntax
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

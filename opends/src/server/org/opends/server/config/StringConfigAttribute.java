@@ -241,7 +241,6 @@ public class StringConfigAttribute
    */
   public String getDataType()
   {
-
     return "String";
   }
 
@@ -254,7 +253,6 @@ public class StringConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-
     return DirectoryServer.getDefaultStringSyntax();
   }
 
@@ -272,7 +270,6 @@ public class StringConfigAttribute
   public String activeValue()
          throws ConfigException
   {
-
     if ((activeValues == null) || activeValues.isEmpty())
     {
       int    msgID   = MSGID_CONFIG_ATTR_NO_STRING_VALUE;
@@ -299,7 +296,6 @@ public class StringConfigAttribute
    */
   public List<String> activeValues()
   {
-
     return activeValues;
   }
 
@@ -319,7 +315,6 @@ public class StringConfigAttribute
   public String pendingValue()
          throws ConfigException
   {
-
     if (! hasPendingValues())
     {
       return activeValue();
@@ -353,7 +348,6 @@ public class StringConfigAttribute
    */
   public List<String> pendingValues()
   {
-
     if (! hasPendingValues())
     {
       return activeValues;
@@ -374,7 +368,6 @@ public class StringConfigAttribute
   public void setValue(String value)
          throws ConfigException
   {
-
     if ((value == null) || (value.length() == 0))
     {
       int    msgID   = MSGID_CONFIG_ATTR_EMPTY_STRING_VALUE;
@@ -410,8 +403,6 @@ public class StringConfigAttribute
   public void setValues(List<String> values)
          throws ConfigException
   {
-
-
     // First check if the set is empty and if that is allowed.
     if ((values == null) || (values.isEmpty()))
     {
@@ -500,7 +491,6 @@ public class StringConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(String value)
   {
-
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
 
@@ -521,7 +511,6 @@ public class StringConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(List<String> values)
   {
-
     if (values == null)
     {
       return null;
@@ -548,7 +537,6 @@ public class StringConfigAttribute
    */
   public void applyPendingValues()
   {
-
     if (! hasPendingValues())
     {
       return;
@@ -575,8 +563,6 @@ public class StringConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-
-
     // The only requirement is that the value is not null or empty.
     if ((value == null) || (value.getStringValue().length() == 0))
     {
@@ -615,7 +601,6 @@ public class StringConfigAttribute
                               boolean allowFailures)
          throws ConfigException
   {
-
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
       if (isRequired())
@@ -694,7 +679,6 @@ public class StringConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-
     return activeValues;
   }
 
@@ -713,7 +697,6 @@ public class StringConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-
     if (hasPendingValues())
     {
       return pendingValues;
@@ -750,8 +733,6 @@ public class StringConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-
-
     ArrayList<String> activeValues  = null;
     ArrayList<String> pendingValues = null;
 
@@ -968,7 +949,6 @@ public class StringConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-
     if (activeValues.size() > 0)
     {
       if (isMultiValued())
@@ -1034,8 +1014,6 @@ public class StringConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-
-
     if (isMultiValued())
     {
       attributeInfoList.add(new MBeanAttributeInfo(getName(),
@@ -1084,7 +1062,6 @@ public class StringConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-
     if (isMultiValued())
     {
       return new MBeanParameterInfo(getName(), JMX_TYPE_STRING_ARRAY,
@@ -1113,7 +1090,6 @@ public class StringConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-
     Object value = jmxAttribute.getValue();
     if (value instanceof String)
     {
@@ -1184,7 +1160,6 @@ public class StringConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-
     return new StringConfigAttribute(getName(), getDescription(), isRequired(),
                                      isMultiValued(), requiresAdminAction(),
                                      activeValues, pendingValues);

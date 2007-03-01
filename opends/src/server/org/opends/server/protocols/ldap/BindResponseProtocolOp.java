@@ -84,7 +84,6 @@ public class BindResponseProtocolOp
    */
   public BindResponseProtocolOp(int resultCode)
   {
-
     this.resultCode = resultCode;
 
     errorMessage          = null;
@@ -104,7 +103,6 @@ public class BindResponseProtocolOp
    */
   public BindResponseProtocolOp(int resultCode, String errorMessage)
   {
-
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
 
@@ -126,7 +124,6 @@ public class BindResponseProtocolOp
   public BindResponseProtocolOp(int resultCode, String errorMessage,
                                 DN matchedDN, List<String> referralURLs)
   {
-
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
     this.matchedDN    = matchedDN;
@@ -151,7 +148,6 @@ public class BindResponseProtocolOp
                                 DN matchedDN, List<String> referralURLs,
                                 ASN1OctetString serverSASLCredentials)
   {
-
     this.resultCode            = resultCode;
     this.errorMessage          = errorMessage;
     this.matchedDN             = matchedDN;
@@ -168,7 +164,6 @@ public class BindResponseProtocolOp
    */
   public int getResultCode()
   {
-
     return resultCode;
   }
 
@@ -181,7 +176,6 @@ public class BindResponseProtocolOp
    */
   public void setResultCode(int resultCode)
   {
-
     this.resultCode = resultCode;
   }
 
@@ -195,7 +189,6 @@ public class BindResponseProtocolOp
    */
   public String getErrorMessage()
   {
-
     return errorMessage;
   }
 
@@ -208,7 +201,6 @@ public class BindResponseProtocolOp
    */
   public void setErrorMessage(String errorMessage)
   {
-
     this.errorMessage = errorMessage;
   }
 
@@ -222,7 +214,6 @@ public class BindResponseProtocolOp
    */
   public DN getMatchedDN()
   {
-
     return matchedDN;
   }
 
@@ -235,7 +226,6 @@ public class BindResponseProtocolOp
    */
   public void setMatchedDN(DN matchedDN)
   {
-
     this.matchedDN = matchedDN;
   }
 
@@ -249,7 +239,6 @@ public class BindResponseProtocolOp
    */
   public List<String> getReferralURLs()
   {
-
     return referralURLs;
   }
 
@@ -262,7 +251,6 @@ public class BindResponseProtocolOp
    */
   public void setReferralURLs(List<String> referralURLs)
   {
-
     this.referralURLs = referralURLs;
   }
 
@@ -276,7 +264,6 @@ public class BindResponseProtocolOp
    */
   public ASN1OctetString getServerSASLCredentials()
   {
-
     return serverSASLCredentials;
   }
 
@@ -290,7 +277,6 @@ public class BindResponseProtocolOp
    */
   public void setServerSASLCredentials(ASN1OctetString serverSASLCredentials)
   {
-
     this.serverSASLCredentials = serverSASLCredentials;
   }
 
@@ -303,7 +289,6 @@ public class BindResponseProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_BIND_RESPONSE;
   }
 
@@ -316,7 +301,6 @@ public class BindResponseProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Bind Response";
   }
 
@@ -330,7 +314,6 @@ public class BindResponseProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(5);
     elements.add(new ASN1Enumerated(resultCode));
 
@@ -382,7 +365,6 @@ public class BindResponseProtocolOp
   public static BindResponseProtocolOp decodeBindResponse(ASN1Element element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -599,7 +581,6 @@ public class BindResponseProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("BindResponse(resultCode=");
     buffer.append(resultCode);
 
@@ -652,7 +633,6 @@ public class BindResponseProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {
