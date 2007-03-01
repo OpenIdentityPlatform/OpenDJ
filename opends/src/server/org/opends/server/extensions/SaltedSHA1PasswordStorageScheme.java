@@ -47,7 +47,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -126,7 +126,7 @@ public class SaltedSHA1PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST;
@@ -183,7 +183,7 @@ public class SaltedSHA1PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
@@ -246,7 +246,7 @@ public class SaltedSHA1PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
@@ -298,7 +298,7 @@ public class SaltedSHA1PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD;
@@ -329,7 +329,7 @@ public class SaltedSHA1PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return false;
@@ -398,7 +398,7 @@ public class SaltedSHA1PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
@@ -445,7 +445,7 @@ public class SaltedSHA1PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return false;

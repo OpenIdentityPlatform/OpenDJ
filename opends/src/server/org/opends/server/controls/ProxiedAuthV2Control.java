@@ -44,7 +44,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
@@ -163,7 +163,7 @@ public class ProxiedAuthV2Control
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ae);
+          debugCaught(DebugLogLevel.ERROR, ae);
         }
 
         int    msgID   = MSGID_PROXYAUTH2_CANNOT_DECODE_VALUE;
@@ -176,7 +176,7 @@ public class ProxiedAuthV2Control
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_PROXYAUTH2_CANNOT_DECODE_VALUE;

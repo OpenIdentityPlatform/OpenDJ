@@ -41,7 +41,7 @@ import org.opends.server.types.CancelResult;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -148,7 +148,7 @@ public class CancelExtendedOperation
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         operation.setResultCode(ResultCode.PROTOCOL_ERROR);

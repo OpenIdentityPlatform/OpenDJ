@@ -37,7 +37,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.util.Base64;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
@@ -213,7 +213,7 @@ public class AddRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_ADD_REQUEST_DECODE_SEQUENCE;
@@ -240,7 +240,7 @@ public class AddRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_ADD_REQUEST_DECODE_DN;
@@ -265,7 +265,7 @@ public class AddRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_ADD_REQUEST_DECODE_ATTRS;

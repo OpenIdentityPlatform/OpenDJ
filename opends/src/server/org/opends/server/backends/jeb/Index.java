@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.JebMessages.
@@ -328,7 +328,7 @@ public class Index
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       return new EntryIDSet();
     }
@@ -475,7 +475,7 @@ public class Index
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       return new EntryIDSet();
     }
@@ -520,7 +520,7 @@ public class Index
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       int msgID = MSGID_JEB_DATABASE_EXCEPTION;
       String message = getMessage(msgID, e.getMessage());

@@ -27,7 +27,7 @@
 package org.opends.server.protocols.jmx;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.logError;
@@ -519,7 +519,7 @@ public class JmxConnectionHandler
       configValid = false;
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       int msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME;
       unacceptableReasons.add(getMessage(
@@ -615,7 +615,7 @@ public class JmxConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       int msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME;
       messages.add(getMessage(
@@ -668,7 +668,7 @@ public class JmxConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       int msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
       messages.add(getMessage(
@@ -894,7 +894,7 @@ public class JmxConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       throw ce;
@@ -903,7 +903,7 @@ public class JmxConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_CONNHANDLER_NO_ENABLED_ATTR;
@@ -957,7 +957,7 @@ public class JmxConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       throw ce;
@@ -966,7 +966,7 @@ public class JmxConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_LISTEN_PORT;
@@ -1014,7 +1014,7 @@ public class JmxConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL;
@@ -1060,7 +1060,7 @@ public class JmxConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME;
@@ -1098,7 +1098,7 @@ public class JmxConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;

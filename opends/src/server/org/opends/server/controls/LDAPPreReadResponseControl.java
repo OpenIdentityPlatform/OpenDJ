@@ -38,7 +38,7 @@ import org.opends.server.types.Control;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -161,7 +161,7 @@ public class LDAPPreReadResponseControl
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ae);
+        debugCaught(DebugLogLevel.ERROR, ae);
       }
 
       int    msgID   = MSGID_PREREADRESP_CANNOT_DECODE_VALUE;
@@ -173,7 +173,7 @@ public class LDAPPreReadResponseControl
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, le);
+        debugCaught(DebugLogLevel.ERROR, le);
       }
 
       int    msgID   = MSGID_PREREADRESP_CANNOT_DECODE_VALUE;

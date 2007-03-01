@@ -30,7 +30,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 
@@ -83,7 +83,7 @@ public class FreeDiskSpaceRetentionPolicy implements RetentionPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       return 0;
     }

@@ -101,7 +101,7 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -214,7 +214,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       throw ie;
@@ -223,7 +223,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE;
@@ -249,7 +249,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES;
@@ -274,7 +274,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_CANNOT_OPEN_FOR_READ;
@@ -293,7 +293,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, le);
+        debugCaught(DebugLogLevel.ERROR, le);
       }
 
       try
@@ -304,7 +304,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -317,7 +317,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -328,7 +328,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e2);
+          debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
 
@@ -349,7 +349,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -375,7 +375,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       try
@@ -386,7 +386,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -396,7 +396,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -407,7 +407,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e2);
+          debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
 
@@ -438,7 +438,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, le);
+          debugCaught(DebugLogLevel.ERROR, le);
         }
 
         try
@@ -449,7 +449,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -462,7 +462,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         try
@@ -473,7 +473,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e2);
+            debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
 
@@ -495,7 +495,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -515,7 +515,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -539,7 +539,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -561,7 +561,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -586,7 +586,7 @@ public class ConfigFileHandler
         // This should not happen.
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         try
@@ -597,7 +597,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e2);
+            debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
 
@@ -629,7 +629,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_CANNOT_DETERMINE_SERVER_ROOT;
@@ -661,7 +661,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ie);
+          debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         throw ie;
@@ -670,7 +670,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_CANNOT_DETERMINE_SERVER_ROOT;
@@ -697,7 +697,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_CANNOT_REGISTER_AS_PRIVATE_SUFFIX;
@@ -824,7 +824,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -1133,7 +1133,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ce);
+          debugCaught(DebugLogLevel.ERROR, ce);
         }
 
         int    msgID   = MSGID_CONFIG_FILE_ADD_FAILED;
@@ -1280,7 +1280,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ce);
+          debugCaught(DebugLogLevel.ERROR, ce);
         }
 
         int    msgID   = MSGID_CONFIG_FILE_DELETE_FAILED;
@@ -1747,7 +1747,7 @@ writeConfigArchive:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR;
@@ -1790,7 +1790,7 @@ writeConfigArchive:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
@@ -1826,7 +1826,7 @@ writeConfigArchive:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
@@ -1869,7 +1869,7 @@ writeConfigArchive:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG;
@@ -1896,7 +1896,7 @@ writeConfigArchive:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_RENAME_NEW_CONFIG;
@@ -1983,7 +1983,7 @@ writeConfigArchive:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LDIF_WRITE_ERROR;
@@ -2000,7 +2000,7 @@ writeConfigArchive:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_CLOSE_ERROR;
@@ -2036,7 +2036,7 @@ writeConfigArchive:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_WRITE_ERROR;
@@ -2199,7 +2199,7 @@ writeConfigArchive:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_MAC;
@@ -2223,7 +2223,7 @@ writeConfigArchive:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_DIGEST;
@@ -2276,7 +2276,7 @@ writeConfigArchive:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_CREATE_ARCHIVE_FILE;
@@ -2304,7 +2304,7 @@ writeConfigArchive:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_CIPHER;
@@ -2350,7 +2350,7 @@ writeConfigArchive:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID   = MSGID_CONFIG_BACKUP_CANNOT_DETERMINE_CONFIG_FILE_LOCATION;
@@ -2401,7 +2401,7 @@ writeConfigArchive:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -2467,7 +2467,7 @@ writeConfigArchive:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -2497,7 +2497,7 @@ writeConfigArchive:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID   = MSGID_CONFIG_BACKUP_CANNOT_CLOSE_ZIP_STREAM;
@@ -2541,7 +2541,7 @@ writeConfigArchive:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;

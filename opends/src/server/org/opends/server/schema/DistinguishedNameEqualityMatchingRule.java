@@ -42,7 +42,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
@@ -172,7 +172,7 @@ public class DistinguishedNameEqualityMatchingRule
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // See if we should try to proceed anyway with a bare-bones normalization.
@@ -188,7 +188,7 @@ public class DistinguishedNameEqualityMatchingRule
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (DirectoryServer.getSyntaxEnforcementPolicy() ==

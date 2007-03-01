@@ -26,7 +26,7 @@
  */
 package org.opends.server.tasks;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.messages.ToolMessages.*;
@@ -413,7 +413,7 @@ public class TaskUtils
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }

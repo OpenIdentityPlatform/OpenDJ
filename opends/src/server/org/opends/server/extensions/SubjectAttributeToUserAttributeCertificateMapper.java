@@ -59,7 +59,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -199,7 +199,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SATUACM_CANNOT_GET_ATTR_MAP;
@@ -230,7 +230,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SATUACM_CANNOT_GET_BASE_DN;
@@ -280,7 +280,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SATUACM_PEER_CERT_NOT_X509;
@@ -553,7 +553,7 @@ mapLoop:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SATUACM_CANNOT_GET_ATTR_MAP;
@@ -585,7 +585,7 @@ mapLoop:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SATUACM_CANNOT_GET_BASE_DN;
@@ -741,7 +741,7 @@ mapLoop:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (resultCode == ResultCode.SUCCESS)
@@ -776,7 +776,7 @@ mapLoop:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (resultCode == ResultCode.SUCCESS)

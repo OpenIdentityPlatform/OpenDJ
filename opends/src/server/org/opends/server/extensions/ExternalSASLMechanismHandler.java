@@ -59,7 +59,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -170,7 +170,7 @@ public class ExternalSASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLEXTERNAL_CANNOT_GET_VALIDATION_POLICY;
@@ -201,7 +201,7 @@ public class ExternalSASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLEXTERNAL_CANNOT_GET_CERT_ATTR;
@@ -371,7 +371,7 @@ public class ExternalSASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       bindOperation.setResponseData(de);
@@ -450,7 +450,7 @@ public class ExternalSASLMechanismHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -500,7 +500,7 @@ public class ExternalSASLMechanismHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -618,7 +618,7 @@ public class ExternalSASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLEXTERNAL_CANNOT_GET_VALIDATION_POLICY;
@@ -648,7 +648,7 @@ public class ExternalSASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLEXTERNAL_CANNOT_GET_CERT_ATTR;
@@ -768,7 +768,7 @@ public class ExternalSASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
@@ -799,7 +799,7 @@ public class ExternalSASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLEXTERNAL_CANNOT_GET_CERT_ATTR;

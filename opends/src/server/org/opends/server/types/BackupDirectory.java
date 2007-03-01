@@ -40,7 +40,7 @@ import java.util.LinkedList;
 import org.opends.server.config.ConfigException;
 
 import static
-    org.opends.server.loggers.debug.DebugLogger.debugCought;
+    org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.CoreMessages.*;
@@ -324,7 +324,7 @@ public class BackupDirectory
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY;
@@ -398,7 +398,7 @@ public class BackupDirectory
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID =
@@ -419,7 +419,7 @@ public class BackupDirectory
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID =
@@ -442,7 +442,7 @@ public class BackupDirectory
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_BACKUPDIRECTORY_CANNOT_RENAME_NEW_DESCRIPTOR;

@@ -69,7 +69,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.logError;
@@ -156,7 +156,7 @@ public class BackupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -202,7 +202,7 @@ public class BackupManager
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_MAC;
@@ -225,7 +225,7 @@ public class BackupManager
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_DIGEST;
@@ -351,7 +351,7 @@ public class BackupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_JEB_BACKUP_CANNOT_CREATE_ARCHIVE_FILE;
@@ -379,7 +379,7 @@ public class BackupManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_CIPHER;
@@ -446,7 +446,7 @@ public class BackupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID   = MSGID_JEB_BACKUP_CANNOT_LIST_LOG_FILES;
@@ -469,7 +469,7 @@ public class BackupManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         msgID   = MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE;
         message = getMessage(msgID, ZIPENTRY_EMPTY_PLACEHOLDER,
@@ -551,7 +551,7 @@ public class BackupManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
             msgID   = MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE;
             message = getMessage(msgID, zipEntryName,
@@ -583,7 +583,7 @@ public class BackupManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             // A log file has been deleted by the cleaner since we started.
@@ -593,7 +593,7 @@ public class BackupManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
             msgID   = MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE;
             message = getMessage(msgID, logFile.getName(),
@@ -633,7 +633,7 @@ public class BackupManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             msgID   = MSGID_JEB_BACKUP_CANNOT_LIST_LOG_FILES;
@@ -668,7 +668,7 @@ public class BackupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -687,7 +687,7 @@ public class BackupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID   = MSGID_JEB_BACKUP_CANNOT_CLOSE_ZIP_STREAM;
@@ -732,7 +732,7 @@ public class BackupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;
@@ -773,7 +773,7 @@ public class BackupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -807,7 +807,7 @@ public class BackupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       int msgID = MSGID_JEB_BACKUP_CANNOT_RESTORE;
       String message = getMessage(msgID, backupInfo.getBackupID(),
@@ -828,7 +828,7 @@ public class BackupManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         int msgID = MSGID_JEB_BACKUP_CANNOT_RESTORE;
         String message = getMessage(msgID, dependent.getBackupID(),
@@ -847,7 +847,7 @@ public class BackupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       int msgID = MSGID_JEB_BACKUP_CANNOT_RESTORE;
       String message = getMessage(msgID, backupInfo.getBackupID(),
@@ -910,7 +910,7 @@ public class BackupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -925,7 +925,7 @@ public class BackupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;
@@ -999,7 +999,7 @@ public class BackupManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_MAC;
@@ -1022,7 +1022,7 @@ public class BackupManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_DIGEST;
@@ -1050,7 +1050,7 @@ public class BackupManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_CIPHER;
@@ -1394,7 +1394,7 @@ public class BackupManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_CIPHER;

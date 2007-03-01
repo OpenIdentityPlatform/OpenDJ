@@ -41,7 +41,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.Base64;
 
 import static
-    org.opends.server.loggers.debug.DebugLogger.debugCought;
+    org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.util.ServerConstants.*;
@@ -484,7 +484,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // The substring couldn't be normalized.  We have to return
@@ -514,7 +514,7 @@ public class Attribute
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // The substring couldn't be normalized.  We have to return
@@ -541,7 +541,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // The substring couldn't be normalized.  We have to return
@@ -569,7 +569,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // The value couldn't be normalized.  If we can't find a
@@ -612,7 +612,7 @@ public class Attribute
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We couldn't normalize the provided value.  We should return
@@ -637,7 +637,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // We couldn't normalize one of the attribute values.  If we
@@ -681,7 +681,7 @@ public class Attribute
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We couldn't normalize the provided value.  We should return
@@ -706,7 +706,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // We couldn't normalize one of the attribute values.  If we
@@ -750,7 +750,7 @@ public class Attribute
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We couldn't normalize the provided value.  We should return
@@ -773,7 +773,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // We couldn't normalize one of the attribute values.  If we

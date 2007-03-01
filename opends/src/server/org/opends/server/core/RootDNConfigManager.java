@@ -56,7 +56,7 @@ import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -130,7 +130,7 @@ public class RootDNConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_ROOTDN_CANNOT_GET_BASE;
@@ -189,7 +189,7 @@ public class RootDNConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_ROOTDN_ERROR_DETERMINING_ROOT_PRIVILEGES;
@@ -343,7 +343,7 @@ public class RootDNConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_ROOTDN_CANNOT_PARSE_ALTERNATE_BIND_DNS;
@@ -397,7 +397,7 @@ public class RootDNConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_ROOTDN_CANNOT_PARSE_ALTERNATE_BIND_DNS;
@@ -439,7 +439,7 @@ public class RootDNConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             msgID = MSGID_CONFIG_ROOTDN_CANNOT_REGISTER_ALTERNATE_BIND_DN;
@@ -539,7 +539,7 @@ public class RootDNConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_ROOTDN_CANNOT_PARSE_ALTERNATE_BIND_DNS;
@@ -591,7 +591,7 @@ public class RootDNConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_ROOTDN_CANNOT_PARSE_ALTERNATE_BIND_DNS;
@@ -633,7 +633,7 @@ public class RootDNConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             msgID = MSGID_CONFIG_ROOTDN_CANNOT_REGISTER_ALTERNATE_BIND_DN;
@@ -807,7 +807,7 @@ public class RootDNConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_ROOTDN_ERROR_DETERMINING_ROOT_PRIVILEGES;
@@ -896,7 +896,7 @@ public class RootDNConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (resultCode == ResultCode.SUCCESS)

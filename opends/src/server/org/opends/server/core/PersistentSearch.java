@@ -40,7 +40,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 
@@ -233,7 +233,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // FIXME -- Do we need to do anything here?
@@ -267,7 +267,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       DirectoryServer.deregisterPersistentSearch(this);
@@ -280,7 +280,7 @@ public class PersistentSearch
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e2);
+          debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
     }
@@ -348,7 +348,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // FIXME -- Do we need to do anything here?
@@ -382,7 +382,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       DirectoryServer.deregisterPersistentSearch(this);
@@ -395,7 +395,7 @@ public class PersistentSearch
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e2);
+          debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
     }
@@ -466,7 +466,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // FIXME -- Do we need to do anything here?
@@ -500,7 +500,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       DirectoryServer.deregisterPersistentSearch(this);
@@ -513,7 +513,7 @@ public class PersistentSearch
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e2);
+          debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
     }
@@ -606,7 +606,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // FIXME -- Do we need to do anything here?
@@ -641,7 +641,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       DirectoryServer.deregisterPersistentSearch(this);
@@ -654,7 +654,7 @@ public class PersistentSearch
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e2);
+          debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
     }

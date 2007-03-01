@@ -38,7 +38,7 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -185,7 +185,7 @@ public class SearchResultReferenceProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_SEARCH_REFERENCE_DECODE_SEQUENCE;
@@ -206,7 +206,7 @@ public class SearchResultReferenceProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_SEARCH_REFERENCE_DECODE_URLS;

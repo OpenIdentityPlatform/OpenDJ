@@ -62,7 +62,7 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static
-    org.opends.server.loggers.debug.DebugLogger.debugCought;
+    org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
@@ -194,7 +194,7 @@ public abstract class ClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }

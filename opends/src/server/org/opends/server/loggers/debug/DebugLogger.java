@@ -269,13 +269,13 @@ public class DebugLogger extends Logger
 
 
   /**
-   * Stub method for logging a cought exception in a method.
+   * Stub method for logging a caught exception in a method.
    * Implementation provided by AspectJ.
    *
    * @param level The level of the message being logged.
-   * @param t     The exception cought.
+   * @param t     The exception caught.
    */
-  public static void debugCought(LogLevel level, Throwable t)
+  public static void debugCaught(LogLevel level, Throwable t)
   {}
 
   /**

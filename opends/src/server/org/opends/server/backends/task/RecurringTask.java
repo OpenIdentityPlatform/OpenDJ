@@ -43,7 +43,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
@@ -213,7 +213,7 @@ public class RecurringTask
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_RECURRINGTASK_CANNOT_LOAD_CLASS;
@@ -235,7 +235,7 @@ public class RecurringTask
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_RECURRINGTASK_CANNOT_INSTANTIATE_CLASS_AS_TASK;
@@ -256,7 +256,7 @@ public class RecurringTask
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       int    msgID   = MSGID_RECURRINGTASK_CANNOT_INITIALIZE_INTERNAL;

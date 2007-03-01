@@ -40,7 +40,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -188,7 +188,7 @@ public class MatchedValuesControl
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE;
@@ -257,7 +257,7 @@ public class MatchedValuesControl
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }

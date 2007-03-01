@@ -36,7 +36,7 @@ import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.logError;
 import org.opends.server.types.*;
@@ -173,7 +173,7 @@ public class AciListenerManager
         } catch (Exception e) {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
           //TODO log message
           continue;
@@ -192,7 +192,7 @@ public class AciListenerManager
         } catch (Exception e) {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
           //TODO log message
           continue;

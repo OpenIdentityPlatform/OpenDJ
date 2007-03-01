@@ -56,7 +56,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -163,7 +163,7 @@ public class FileBasedKeyManagerProvider
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       throw ce;
@@ -172,7 +172,7 @@ public class FileBasedKeyManagerProvider
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       throw ie;
@@ -181,7 +181,7 @@ public class FileBasedKeyManagerProvider
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE;
@@ -215,7 +215,7 @@ public class FileBasedKeyManagerProvider
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, kse);
+            debugCaught(DebugLogLevel.ERROR, kse);
           }
 
           msgID = MSGID_FILE_KEYMANAGER_INVALID_TYPE;
@@ -230,7 +230,7 @@ public class FileBasedKeyManagerProvider
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       throw ie;
@@ -239,7 +239,7 @@ public class FileBasedKeyManagerProvider
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_TYPE;
@@ -295,7 +295,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ie);
+          debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         throw ie;
@@ -304,7 +304,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
@@ -345,7 +345,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ie);
+          debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         throw ie;
@@ -354,7 +354,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
@@ -423,7 +423,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ie);
+          debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         throw ie;
@@ -432,7 +432,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FILE;
@@ -460,7 +460,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
@@ -521,7 +521,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_FILE_KEYMANAGER_CANNOT_LOAD;
@@ -544,7 +544,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_FILE_KEYMANAGER_CANNOT_CREATE_FACTORY;
@@ -696,7 +696,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       unacceptableReasons.add(ce.getMessage());
@@ -706,7 +706,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE;
@@ -740,7 +740,7 @@ pinSelection:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, kse);
+            debugCaught(DebugLogLevel.ERROR, kse);
           }
 
           msgID = MSGID_FILE_KEYMANAGER_INVALID_TYPE;
@@ -756,7 +756,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_TYPE;
@@ -805,7 +805,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
@@ -847,7 +847,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
@@ -919,7 +919,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FILE;
@@ -948,7 +948,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
@@ -1033,7 +1033,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       if (resultCode == ResultCode.SUCCESS)
@@ -1045,7 +1045,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE;
@@ -1083,7 +1083,7 @@ pinSelection:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, kse);
+            debugCaught(DebugLogLevel.ERROR, kse);
           }
 
           msgID = MSGID_FILE_KEYMANAGER_INVALID_TYPE;
@@ -1102,7 +1102,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_TYPE;
@@ -1163,7 +1163,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
@@ -1216,7 +1216,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
@@ -1309,7 +1309,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FILE;
@@ -1343,7 +1343,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;

@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 
@@ -122,7 +122,7 @@ public class ASN1Writer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -137,7 +137,7 @@ public class ASN1Writer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }

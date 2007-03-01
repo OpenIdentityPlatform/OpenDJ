@@ -39,7 +39,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.server.api.DirectoryThread;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.ServerConstants.*;
@@ -172,7 +172,7 @@ public final class TimeThread
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }

@@ -47,7 +47,7 @@ import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -161,7 +161,7 @@ public class IndexMergeThread extends DirectoryThread
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -306,7 +306,7 @@ public class IndexMergeThread extends DirectoryThread
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       throw e;
     }

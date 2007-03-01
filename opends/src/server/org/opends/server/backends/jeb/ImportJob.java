@@ -55,7 +55,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.JebMessages.
      MSGID_JEB_IMPORT_ENTRY_EXISTS;
@@ -425,7 +425,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -527,7 +527,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
               // Update stats.
               rejectedCount++;
@@ -536,7 +536,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
               // Update stats.
               rejectedCount++;
@@ -641,7 +641,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
           }
         }
@@ -724,7 +724,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }

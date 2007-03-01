@@ -43,7 +43,7 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.protocols.internal.InternalSearchListener;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.AuthenticationInfo;
@@ -145,7 +145,7 @@ public class JmxClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -815,7 +815,7 @@ public class JmxClientConnection
       // TODO print a message ?
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -831,7 +831,7 @@ public class JmxClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }

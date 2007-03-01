@@ -49,7 +49,7 @@ import org.opends.server.types.NameForm;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
@@ -222,7 +222,7 @@ public class DITStructureRuleSyntax
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       invalidReason.append(de.getErrorMessage());

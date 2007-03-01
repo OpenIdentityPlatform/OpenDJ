@@ -78,7 +78,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.util.LDIFWriter;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -265,7 +265,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
@@ -295,7 +295,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_ROOTDSE_CANNOT_DETERMINE_ALL_USER_ATTRIBUTES;
@@ -1108,7 +1108,7 @@ public class RootDSEBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           throw de;
@@ -1117,7 +1117,7 @@ public class RootDSEBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_ROOTDSE_UNEXPECTED_SEARCH_FAILURE;
@@ -1211,7 +1211,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER;
@@ -1231,7 +1231,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_ROOTDSE_UNABLE_TO_EXPORT_DSE;
@@ -1249,7 +1249,7 @@ public class RootDSEBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -1530,7 +1530,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
@@ -1553,7 +1553,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_ROOTDSE_CANNOT_DETERMINE_ALL_USER_ATTRIBUTES;
@@ -1638,7 +1638,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
@@ -1672,7 +1672,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ROOTDSE_CANNOT_DETERMINE_ALL_USER_ATTRIBUTES;

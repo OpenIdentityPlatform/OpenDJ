@@ -44,7 +44,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.DN;
 import org.opends.server.types.AuthenticationInfo;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
 import org.opends.server.types.DebugLogLevel;
@@ -177,7 +177,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       SecurityException se = new SecurityException();
       se.initCause(e);

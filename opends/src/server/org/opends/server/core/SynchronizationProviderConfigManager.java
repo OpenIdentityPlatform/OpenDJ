@@ -48,7 +48,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -122,7 +122,7 @@ public class SynchronizationProviderConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_SYNCH_CANNOT_GET_CONFIG_BASE;
@@ -181,7 +181,7 @@ public class SynchronizationProviderConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_SYNCH_CANNOT_CHECK_FOR_PROVIDER_CONFIG_OC;
@@ -222,7 +222,7 @@ public class SynchronizationProviderConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_ENABLED_STATE;
@@ -260,7 +260,7 @@ public class SynchronizationProviderConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_CLASS;
@@ -281,7 +281,7 @@ public class SynchronizationProviderConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS;
@@ -303,7 +303,7 @@ public class SynchronizationProviderConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER;
@@ -395,7 +395,7 @@ public class SynchronizationProviderConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SYNCH_CANNOT_CHECK_FOR_PROVIDER_CONFIG_OC;
@@ -427,7 +427,7 @@ public class SynchronizationProviderConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_ENABLED_STATE;
@@ -465,7 +465,7 @@ public class SynchronizationProviderConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_CLASS;
@@ -492,7 +492,7 @@ public class SynchronizationProviderConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS;
@@ -511,7 +511,7 @@ public class SynchronizationProviderConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER;
@@ -574,7 +574,7 @@ public class SynchronizationProviderConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SYNCH_CANNOT_CHECK_FOR_PROVIDER_CONFIG_OC;
@@ -618,7 +618,7 @@ public class SynchronizationProviderConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_ENABLED_STATE;
@@ -662,7 +662,7 @@ public class SynchronizationProviderConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_CLASS;
@@ -694,7 +694,7 @@ public class SynchronizationProviderConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS;
@@ -719,7 +719,7 @@ public class SynchronizationProviderConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER;
@@ -753,7 +753,7 @@ public class SynchronizationProviderConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             msgID = MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER;

@@ -51,7 +51,7 @@ import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
@@ -226,7 +226,7 @@ public final class LastModPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // This should never happen.
@@ -253,7 +253,7 @@ public final class LastModPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // This should never happen.

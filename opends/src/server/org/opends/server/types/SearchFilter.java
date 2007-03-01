@@ -42,7 +42,7 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static
@@ -604,7 +604,7 @@ public class SearchFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       throw de;
@@ -613,7 +613,7 @@ public class SearchFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SEARCH_FILTER_UNCAUGHT_EXCEPTION;
@@ -3107,7 +3107,7 @@ public class SearchFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We can't normalize the assertion value, so the result must be
@@ -3160,7 +3160,7 @@ public class SearchFilter
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               // We couldn't normalize one of the values.  If we don't
@@ -3210,7 +3210,7 @@ public class SearchFilter
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               // We couldn't normalize one of the values.  If we don't
@@ -3253,7 +3253,7 @@ public class SearchFilter
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // We couldn't normalize one of the values.  If we don't
@@ -3303,7 +3303,7 @@ public class SearchFilter
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               // We couldn't normalize one of the values.  If we don't
@@ -3367,7 +3367,7 @@ public class SearchFilter
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             // We couldn't normalize one of the values.  If we don't

@@ -66,7 +66,7 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import org.opends.server.types.DebugLogLevel;
@@ -558,7 +558,7 @@ public class TaskScheduler
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, de);
+                debugCaught(DebugLogLevel.ERROR, de);
               }
 
               int msgID = MSGID_TASKSCHED_ERROR_SCHEDULING_RECURRING_ITERATION;
@@ -641,7 +641,7 @@ public class TaskScheduler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -653,7 +653,7 @@ public class TaskScheduler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -714,7 +714,7 @@ public class TaskScheduler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -733,7 +733,7 @@ public class TaskScheduler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -945,7 +945,7 @@ public class TaskScheduler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, le);
+            debugCaught(DebugLogLevel.ERROR, le);
           }
 
           if (le.canContinueReading())
@@ -968,7 +968,7 @@ public class TaskScheduler
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
             }
 
@@ -1019,7 +1019,7 @@ public class TaskScheduler
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, de);
+                debugCaught(DebugLogLevel.ERROR, de);
               }
 
               int msgID =
@@ -1048,7 +1048,7 @@ public class TaskScheduler
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, de);
+                debugCaught(DebugLogLevel.ERROR, de);
               }
 
               int    msgID   = MSGID_TASKSCHED_CANNOT_SCHEDULE_TASK_FROM_ENTRY;
@@ -1075,7 +1075,7 @@ public class TaskScheduler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ioe);
+        debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
       int msgID = MSGID_TASKSCHED_ERROR_READING_TASK_BACKING_FILE;
@@ -1132,7 +1132,7 @@ public class TaskScheduler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ioe);
+        debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_CREATE_BACKING_FILE;
@@ -1144,7 +1144,7 @@ public class TaskScheduler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, le);
+        debugCaught(DebugLogLevel.ERROR, le);
       }
 
 
@@ -1215,7 +1215,7 @@ public class TaskScheduler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -1233,7 +1233,7 @@ public class TaskScheduler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_TASKSCHED_CANNOT_RENAME_CURRENT_BACKING_FILE;
@@ -1259,7 +1259,7 @@ public class TaskScheduler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_TASKSCHED_CANNOT_RENAME_NEW_BACKING_FILE;
@@ -1278,7 +1278,7 @@ public class TaskScheduler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ioe);
+        debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_WRITE_BACKING_FILE;
@@ -1294,7 +1294,7 @@ public class TaskScheduler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, le);
+        debugCaught(DebugLogLevel.ERROR, le);
       }
 
 
@@ -1310,7 +1310,7 @@ public class TaskScheduler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_WRITE_BACKING_FILE;
@@ -1837,7 +1837,7 @@ public class TaskScheduler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_LOAD_CLASS;
@@ -1859,7 +1859,7 @@ public class TaskScheduler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_INSTANTIATE_CLASS_AS_TASK;
@@ -1878,7 +1878,7 @@ public class TaskScheduler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       int    msgID   = MSGID_TASKSCHED_CANNOT_INITIALIZE_INTERNAL;

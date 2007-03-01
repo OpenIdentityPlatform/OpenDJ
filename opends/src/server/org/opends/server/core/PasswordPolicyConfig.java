@@ -48,7 +48,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
@@ -409,7 +409,7 @@ public class PasswordPolicyConfig
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       unacceptableReasons.add(ce.getMessage());
@@ -419,7 +419,7 @@ public class PasswordPolicyConfig
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       unacceptableReasons.add(ie.getMessage());
@@ -465,7 +465,7 @@ public class PasswordPolicyConfig
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
       ArrayList<String> messages = new ArrayList<String>();
       messages.add(ce.getMessage());
@@ -477,7 +477,7 @@ public class PasswordPolicyConfig
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
       ArrayList<String> messages = new ArrayList<String>();
       messages.add(ie.getMessage());

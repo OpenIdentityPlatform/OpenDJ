@@ -31,7 +31,7 @@ package org.opends.server.interop;
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.StaticUtils.*;
@@ -327,7 +327,7 @@ public class LazyDN
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         throw new RuntimeException(stackTraceToSingleLineString(e));

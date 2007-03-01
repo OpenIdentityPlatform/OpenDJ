@@ -39,7 +39,7 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -374,7 +374,7 @@ public class BindResponseProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_SEQUENCE;
@@ -401,7 +401,7 @@ public class BindResponseProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_RESULT_CODE;
@@ -427,7 +427,7 @@ public class BindResponseProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_MATCHED_DN;
@@ -449,7 +449,7 @@ public class BindResponseProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_ERROR_MESSAGE;
@@ -484,7 +484,7 @@ public class BindResponseProtocolOp
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               int msgID = MSGID_LDAP_RESULT_DECODE_REFERRALS;
@@ -504,7 +504,7 @@ public class BindResponseProtocolOp
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               int msgID = MSGID_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS;
@@ -535,7 +535,7 @@ public class BindResponseProtocolOp
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_LDAP_RESULT_DECODE_REFERRALS;
@@ -551,7 +551,7 @@ public class BindResponseProtocolOp
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS;

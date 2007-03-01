@@ -79,7 +79,7 @@ import org.opends.server.types.SSLClientAuthPolicy;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -322,7 +322,7 @@ public class LDAPConnectionHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, uhe);
+              debugCaught(DebugLogLevel.ERROR, uhe);
             }
 
             msgID = MSGID_LDAP_CONNHANDLER_UNKNOWN_LISTEN_ADDRESS;
@@ -337,7 +337,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       throw ce;
@@ -346,7 +346,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_LISTEN_ADDRESS;
@@ -379,7 +379,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       throw ce;
@@ -388,7 +388,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_LISTEN_PORT;
@@ -422,7 +422,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_BACKLOG;
@@ -457,7 +457,7 @@ public class LDAPConnectionHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, ce);
+              debugCaught(DebugLogLevel.ERROR, ce);
             }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
@@ -474,7 +474,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOWED_CLIENTS;
@@ -509,7 +509,7 @@ public class LDAPConnectionHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, ce);
+              debugCaught(DebugLogLevel.ERROR, ce);
             }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
@@ -526,7 +526,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_DENIED_CLIENTS;
@@ -561,7 +561,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_LDAPV2;
@@ -596,7 +596,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEEP_STATS;
@@ -631,7 +631,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_NUM_REQUEST_HANDLERS;
@@ -665,7 +665,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SEND_REJECTION_NOTICE;
@@ -699,7 +699,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_KEEPALIVE;
@@ -733,7 +733,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_NODELAY;
@@ -767,7 +767,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_REUSE_ADDRESS;
@@ -803,7 +803,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_MAX_REQUEST_SIZE;
@@ -836,7 +836,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_SSL;
@@ -883,7 +883,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_STARTTLS;
@@ -930,7 +930,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       throw ce;
@@ -939,7 +939,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CLIENT_AUTH_POLICY;
@@ -973,7 +973,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME;
@@ -1003,7 +1003,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_PROTOCOLS;
@@ -1033,7 +1033,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CIPHERS;
@@ -1075,7 +1075,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
@@ -1117,7 +1117,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_TRUSTMANAGER_DN;
@@ -1158,7 +1158,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_OPEN_SELECTOR_FAILED;
@@ -1245,7 +1245,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -1398,7 +1398,7 @@ public class LDAPConnectionHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             logError(ErrorLogCategory.CONNECTION_HANDLING,
@@ -1538,7 +1538,7 @@ public class LDAPConnectionHandler
                   {
                     if (debugEnabled())
                     {
-                      debugCought(DebugLogLevel.ERROR, e);
+                      debugCaught(DebugLogLevel.ERROR, e);
                     }
 
                     int msgID =
@@ -1581,7 +1581,7 @@ public class LDAPConnectionHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             logError(ErrorLogCategory.CONNECTION_HANDLING,
@@ -1626,7 +1626,7 @@ public class LDAPConnectionHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // This is very bad because we failed outside the loop.  The only
@@ -1676,7 +1676,7 @@ public class LDAPConnectionHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -1688,7 +1688,7 @@ public class LDAPConnectionHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -1697,7 +1697,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -2171,7 +2171,7 @@ public class LDAPConnectionHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, uhe);
+              debugCaught(DebugLogLevel.ERROR, uhe);
             }
 
             msgID = MSGID_LDAP_CONNHANDLER_UNKNOWN_LISTEN_ADDRESS;
@@ -2186,7 +2186,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_LISTEN_ADDRESS;
@@ -2218,7 +2218,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_LISTEN_PORT;
@@ -2243,7 +2243,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_BACKLOG;
@@ -2275,7 +2275,7 @@ public class LDAPConnectionHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, ce);
+              debugCaught(DebugLogLevel.ERROR, ce);
             }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
@@ -2291,7 +2291,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOWED_CLIENTS;
@@ -2323,7 +2323,7 @@ public class LDAPConnectionHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, ce);
+              debugCaught(DebugLogLevel.ERROR, ce);
             }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
@@ -2339,7 +2339,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_DENIED_CLIENTS;
@@ -2364,7 +2364,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_LDAPV2;
@@ -2389,7 +2389,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEEP_STATS;
@@ -2415,7 +2415,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_NUM_REQUEST_HANDLERS;
@@ -2440,7 +2440,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SEND_REJECTION_NOTICE;
@@ -2465,7 +2465,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_KEEPALIVE;
@@ -2490,7 +2490,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_NODELAY;
@@ -2515,7 +2515,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_REUSE_ADDRESS;
@@ -2542,7 +2542,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_MAX_REQUEST_SIZE;
@@ -2575,7 +2575,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_SSL;
@@ -2622,7 +2622,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_STARTTLS;
@@ -2669,7 +2669,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CLIENT_AUTH_POLICY;
@@ -2694,7 +2694,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME;
@@ -2721,7 +2721,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_PROTOCOLS;
@@ -2748,7 +2748,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CIPHERS;
@@ -2786,7 +2786,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN;
@@ -2825,7 +2825,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_TRUSTMANAGER_DN;
@@ -2898,7 +2898,7 @@ public class LDAPConnectionHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, ce);
+              debugCaught(DebugLogLevel.ERROR, ce);
             }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
@@ -2917,7 +2917,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOWED_CLIENTS;
@@ -2984,7 +2984,7 @@ public class LDAPConnectionHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, ce);
+              debugCaught(DebugLogLevel.ERROR, ce);
             }
 
             msgID = MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK;
@@ -3003,7 +3003,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_DENIED_CLIENTS;
@@ -3069,7 +3069,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_LDAPV2;
@@ -3108,7 +3108,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEEP_STATS;
@@ -3151,7 +3151,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SEND_REJECTION_NOTICE;
@@ -3190,7 +3190,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_KEEPALIVE;
@@ -3229,7 +3229,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_NODELAY;
@@ -3274,7 +3274,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_MAX_REQUEST_SIZE;
@@ -3318,7 +3318,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_STARTTLS;
@@ -3362,7 +3362,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_PROTOCOLS;
@@ -3403,7 +3403,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CIPHERS;
@@ -3450,7 +3450,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (resultCode == ResultCode.SUCCESS)
@@ -3496,7 +3496,7 @@ public class LDAPConnectionHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (resultCode == ResultCode.SUCCESS)

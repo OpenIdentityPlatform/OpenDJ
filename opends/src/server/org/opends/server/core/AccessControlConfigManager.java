@@ -27,7 +27,7 @@
 package org.opends.server.core;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -140,7 +140,7 @@ public final class AccessControlConfigManager
     } catch (Exception e) {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_AUTHZ_CANNOT_GET_ENTRY;
@@ -233,7 +233,7 @@ public final class AccessControlConfigManager
       } catch (Exception e) {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER;
@@ -512,7 +512,7 @@ public final class AccessControlConfigManager
         } catch (ClassNotFoundException e) {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_LOAD_CLASS;
@@ -523,7 +523,7 @@ public final class AccessControlConfigManager
         } catch (ClassCastException e) {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_CONFIG_AUTHZ_BAD_CLASS;

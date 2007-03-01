@@ -46,7 +46,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static
-    org.opends.server.loggers.debug.DebugLogger.debugCought;
+    org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
@@ -2176,7 +2176,7 @@ public class DN
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
@@ -2226,7 +2226,7 @@ public class DN
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // This should never happen.  Just in case, work around it by
@@ -2302,7 +2302,7 @@ public class DN
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // This should never happen.  Just in case, work around it by
@@ -2444,7 +2444,7 @@ public class DN
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
@@ -2676,7 +2676,7 @@ public class DN
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
@@ -2724,7 +2724,7 @@ public class DN
       // conditions.
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return false;

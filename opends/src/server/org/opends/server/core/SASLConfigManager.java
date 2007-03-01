@@ -52,7 +52,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -122,7 +122,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_SASL_CANNOT_GET_BASE;
@@ -260,7 +260,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_SASL_INVALID_CLASS_NAME;
@@ -280,7 +280,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_SASL_INVALID_CLASS_NAME;
@@ -299,7 +299,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_SASL_INVALID_CLASS;
@@ -334,7 +334,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SASL_INVALID_ENABLED_VALUE;
@@ -440,7 +440,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SASL_INVALID_ENABLED_VALUE;
@@ -478,7 +478,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SASL_INVALID_CLASS_NAME;
@@ -523,7 +523,7 @@ public class SASLConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_SASL_INVALID_CLASS;
@@ -543,7 +543,7 @@ public class SASLConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_SASL_INITIALIZATION_FAILED;
@@ -629,7 +629,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SASL_INVALID_CLASS_NAME;
@@ -649,7 +649,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SASL_INVALID_CLASS_NAME;
@@ -668,7 +668,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SASL_INVALID_CLASS;
@@ -733,7 +733,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SASL_INVALID_ENABLED_VALUE;
@@ -810,7 +810,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SASL_INVALID_ENABLED_VALUE;
@@ -847,7 +847,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SASL_INVALID_CLASS_NAME;
@@ -871,7 +871,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SASL_INVALID_CLASS;
@@ -889,7 +889,7 @@ public class SASLConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_SASL_INITIALIZATION_FAILED;

@@ -52,7 +52,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.SSLClientAuthPolicy;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -208,7 +208,7 @@ public class TLSConnectionSecurityProvider
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_TLS_SECURITY_PROVIDER_CANNOT_INITIALIZE;
@@ -454,7 +454,7 @@ public class TLSConnectionSecurityProvider
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -641,7 +641,7 @@ handshakeLoop:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ioe);
+          debugCaught(DebugLogLevel.ERROR, ioe);
         }
 
         // An error occurred while trying to communicate with the client.
@@ -653,7 +653,7 @@ handshakeLoop:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // An unexpected error occurred while trying to process the data read.
@@ -941,7 +941,7 @@ handshakeStatusLoop:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ioe);
+        debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
       // An error occurred while trying to communicate with the client.
@@ -953,7 +953,7 @@ handshakeStatusLoop:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An unexpected error occurred while trying to process the data read.
@@ -1075,7 +1075,7 @@ handshakeStatusLoop:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return null;

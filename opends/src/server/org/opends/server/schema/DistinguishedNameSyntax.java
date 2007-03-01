@@ -44,7 +44,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import org.opends.server.types.DebugLogLevel;
@@ -261,7 +261,7 @@ public class DistinguishedNameSyntax
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       invalidReason.append(de.getErrorMessage());
@@ -271,7 +271,7 @@ public class DistinguishedNameSyntax
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ATTR_SYNTAX_DN_INVALID;

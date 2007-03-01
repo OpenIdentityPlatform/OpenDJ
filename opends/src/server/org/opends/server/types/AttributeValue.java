@@ -32,7 +32,7 @@ import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import static
-    org.opends.server.loggers.debug.DebugLogger.debugCought;
+    org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.util.StaticUtils.*;
@@ -407,7 +407,7 @@ public class AttributeValue
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         return value.equals(attrValue.getValue());
@@ -450,7 +450,7 @@ public class AttributeValue
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return value.hashCode();

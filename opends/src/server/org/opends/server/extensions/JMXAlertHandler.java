@@ -58,7 +58,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -155,7 +155,7 @@ public class JMXAlertHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_JMX_ALERT_HANDLER_CANNOT_REGISTER;

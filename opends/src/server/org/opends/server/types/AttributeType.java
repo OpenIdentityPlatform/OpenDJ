@@ -41,7 +41,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.AttributeTypeSyntax;
 
 import static
-    org.opends.server.loggers.debug.DebugLogger.debugCought;
+    org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.CoreMessages.*;
@@ -682,7 +682,7 @@ public final class AttributeType
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -693,7 +693,7 @@ public final class AttributeType
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e2);
+          debugCaught(DebugLogLevel.ERROR, e2);
         }
 
         return 0;

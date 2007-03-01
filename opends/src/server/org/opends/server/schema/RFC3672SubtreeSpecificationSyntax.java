@@ -26,7 +26,7 @@
  */
 package org.opends.server.schema;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.logError;
 import org.opends.server.types.DebugLogLevel;
@@ -268,7 +268,7 @@ public final class RFC3672SubtreeSpecificationSyntax extends
     } catch (DirectoryException e) {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       invalidReason.append(e.getErrorMessage());

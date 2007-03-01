@@ -42,7 +42,7 @@ import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -218,7 +218,7 @@ public class UserPasswordEqualityMatchingRule
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return ConditionResult.FALSE;

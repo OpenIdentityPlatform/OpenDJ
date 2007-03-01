@@ -119,7 +119,7 @@ import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Error.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -367,7 +367,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
@@ -391,7 +391,7 @@ public class SchemaBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
@@ -451,7 +451,7 @@ public class SchemaBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -1023,7 +1023,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
@@ -1051,7 +1051,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
@@ -1079,7 +1079,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
@@ -1107,7 +1107,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DCR;
@@ -1135,7 +1135,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
@@ -1163,7 +1163,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE;
@@ -1212,7 +1212,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
@@ -1241,7 +1241,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
@@ -1269,7 +1269,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
@@ -1297,7 +1297,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DCR;
@@ -1326,7 +1326,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
@@ -1355,7 +1355,7 @@ public class SchemaBackend
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE;
@@ -1419,7 +1419,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       throw de;
@@ -1428,7 +1428,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA;
@@ -1695,7 +1695,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
@@ -2045,7 +2045,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
@@ -2375,7 +2375,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
@@ -2948,7 +2948,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
@@ -3662,7 +3662,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       boolean allCleaned = true;
@@ -3682,7 +3682,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e2);
+            debugCaught(DebugLogLevel.ERROR, e2);
           }
 
           allCleaned = false;
@@ -3726,7 +3726,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       for (File f : installedFileList)
@@ -3742,7 +3742,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e2);
+            debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
       }
@@ -3767,7 +3767,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e2);
+            debugCaught(DebugLogLevel.ERROR, e2);
           }
 
           allRestored = false;
@@ -3812,7 +3812,7 @@ public class SchemaBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -3830,7 +3830,7 @@ public class SchemaBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -3876,7 +3876,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -3917,7 +3917,7 @@ public class SchemaBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -4076,7 +4076,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SCHEMA_UNABLE_TO_CREATE_LDIF_WRITER;
@@ -4096,7 +4096,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SCHEMA_UNABLE_TO_EXPORT_BASE;
@@ -4114,7 +4114,7 @@ public class SchemaBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -4264,7 +4264,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_GET_MAC;
@@ -4288,7 +4288,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_GET_DIGEST;
@@ -4341,7 +4341,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_CREATE_ARCHIVE_FILE;
@@ -4369,7 +4369,7 @@ public class SchemaBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_GET_CIPHER;
@@ -4414,7 +4414,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID   = MSGID_SCHEMA_BACKUP_CANNOT_LIST_SCHEMA_FILES;
@@ -4490,7 +4490,7 @@ public class SchemaBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         try
@@ -4521,7 +4521,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID   = MSGID_SCHEMA_BACKUP_CANNOT_CLOSE_ZIP_STREAM;
@@ -4565,7 +4565,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SCHEMA_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;
@@ -5215,7 +5215,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN;
@@ -5240,7 +5240,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
@@ -5313,7 +5313,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN;
@@ -5344,7 +5344,7 @@ public class SchemaBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
@@ -5416,7 +5416,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           msgID = MSGID_SCHEMA_CANNOT_DEREGISTER_BASE_DN;
@@ -5442,7 +5442,7 @@ public class SchemaBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           msgID = MSGID_SCHEMA_CANNOT_REGISTER_BASE_DN;

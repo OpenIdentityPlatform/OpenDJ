@@ -48,7 +48,7 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.CoreMessages.
@@ -175,7 +175,7 @@ public class LDAPConnection
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ex);
+          debugCaught(DebugLogLevel.ERROR, ex);
         }
         throw new LDAPConnectionException(ex.getMessage(), ex);
       }
@@ -196,7 +196,7 @@ public class LDAPConnection
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ex1);
+          debugCaught(DebugLogLevel.ERROR, ex1);
         }
         throw new LDAPConnectionException(ex1.getMessage(), ex1);
       }
@@ -247,7 +247,7 @@ public class LDAPConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ex2);
+        debugCaught(DebugLogLevel.ERROR, ex2);
       }
       throw new LDAPConnectionException(ex2.getMessage(), ex2);
     }
@@ -262,7 +262,7 @@ public class LDAPConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       // It doesn't matter too much if this throws, so ignore it.
     }
@@ -403,14 +403,14 @@ public class LDAPConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
       throw new LDAPConnectionException(ce.getMessage(), ce.getExitCode(), ce);
     } catch(Exception ex)
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ex);
+        debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new LDAPConnectionException(ex.getMessage(), ex);
     }

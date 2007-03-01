@@ -56,7 +56,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -161,7 +161,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER;
@@ -196,7 +196,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN;
@@ -227,7 +227,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_KDC_ADDRESS;
@@ -258,7 +258,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_REALM;
@@ -288,7 +288,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_KEYTAB_FILE;
@@ -405,7 +405,7 @@ public class GSSAPISASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ie);
+          debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         bindOperation.setAuthFailureReason(ie.getMessageID(), ie.getMessage());
@@ -442,7 +442,7 @@ public class GSSAPISASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -587,7 +587,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER;
@@ -615,7 +615,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN;
@@ -639,7 +639,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_KDC_ADDRESS;
@@ -663,7 +663,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_REALM;
@@ -746,7 +746,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER;
@@ -784,7 +784,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN;
@@ -817,7 +817,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_KDC_ADDRESS;
@@ -850,7 +850,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLGSSAPI_CANNOT_GET_REALM;

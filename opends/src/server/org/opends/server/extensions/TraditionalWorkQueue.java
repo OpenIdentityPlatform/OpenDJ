@@ -56,7 +56,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -188,7 +188,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_NUM_WORKER_THREADS;
@@ -237,7 +237,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_QUEUE_CAPACITY;
@@ -291,7 +291,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR;
@@ -327,7 +327,7 @@ public class TraditionalWorkQueue
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
@@ -348,7 +348,7 @@ public class TraditionalWorkQueue
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
@@ -475,7 +475,7 @@ public class TraditionalWorkQueue
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
       finally
@@ -538,7 +538,7 @@ public class TraditionalWorkQueue
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
             }
             finally
@@ -577,7 +577,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This should not happen.  The only recourse we have is to log a message
@@ -756,7 +756,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_NUM_WORKER_THREADS;
@@ -803,7 +803,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_QUEUE_CAPACITY;
@@ -882,7 +882,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_NUM_WORKER_THREADS;
@@ -930,7 +930,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_QUEUE_CAPACITY;
@@ -988,7 +988,7 @@ public class TraditionalWorkQueue
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
       finally
@@ -1047,7 +1047,7 @@ public class TraditionalWorkQueue
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, ie);
+                debugCaught(DebugLogLevel.ERROR, ie);
               }
             }
           }
@@ -1066,7 +1066,7 @@ public class TraditionalWorkQueue
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
       finally

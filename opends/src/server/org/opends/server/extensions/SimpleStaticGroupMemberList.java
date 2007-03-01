@@ -39,7 +39,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -147,7 +147,7 @@ public class SimpleStaticGroupMemberList
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         int    msgID   = MSGID_STATICMEMBERS_CANNOT_GET_ENTRY;

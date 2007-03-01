@@ -72,7 +72,7 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
@@ -204,7 +204,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN;
@@ -244,7 +244,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
@@ -279,7 +279,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -982,7 +982,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER;
@@ -1001,7 +1001,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -1012,7 +1012,7 @@ public class MonitorBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e2);
+          debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
 
@@ -1035,7 +1035,7 @@ public class MonitorBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         try
@@ -1046,7 +1046,7 @@ public class MonitorBackend
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e2);
+            debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
 
@@ -1069,7 +1069,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }

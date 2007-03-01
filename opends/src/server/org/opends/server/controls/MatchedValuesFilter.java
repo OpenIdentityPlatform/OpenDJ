@@ -49,7 +49,7 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.util.Validator;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
@@ -779,7 +779,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_AVA;
@@ -881,7 +881,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_SUBSTRINGS;
@@ -904,7 +904,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_PRESENT_TYPE;
@@ -1001,7 +1001,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_EXTENSIBLE_MATCH;
@@ -1247,7 +1247,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -1325,7 +1325,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           normalizedSubAny = null;
@@ -1388,7 +1388,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -1622,7 +1622,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1651,7 +1651,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1678,7 +1678,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1705,7 +1705,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1740,7 +1740,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1780,7 +1780,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1803,7 +1803,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;

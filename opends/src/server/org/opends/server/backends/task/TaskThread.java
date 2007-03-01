@@ -31,7 +31,7 @@ package org.opends.server.backends.task;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
@@ -146,7 +146,7 @@ public class TaskThread
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -180,7 +180,7 @@ public class TaskThread
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, ie);
+            debugCaught(DebugLogLevel.ERROR, ie);
           }
         }
 
@@ -196,7 +196,7 @@ public class TaskThread
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_TASK_EXECUTE_FAILED;

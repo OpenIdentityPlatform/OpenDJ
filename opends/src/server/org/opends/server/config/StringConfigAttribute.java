@@ -46,7 +46,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
@@ -1117,7 +1117,7 @@ public class StringConfigAttribute
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, ce);
+            debugCaught(DebugLogLevel.ERROR, ce);
           }
 
           throw ce;
@@ -1126,7 +1126,7 @@ public class StringConfigAttribute
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_CONFIG_ATTR_INVALID_STRING_VALUE;

@@ -29,7 +29,7 @@ package org.opends.server.tasks;
 import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.logError;
@@ -483,7 +483,7 @@ public class ImportTask extends Task
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -513,7 +513,7 @@ public class ImportTask extends Task
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOCK_BACKEND;
@@ -534,7 +534,7 @@ public class ImportTask extends Task
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         int    msgID   = MSGID_LDIFIMPORT_ERROR_DURING_IMPORT;
@@ -547,7 +547,7 @@ public class ImportTask extends Task
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIFIMPORT_ERROR_DURING_IMPORT;
@@ -577,7 +577,7 @@ public class ImportTask extends Task
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_LDIFIMPORT_CANNOT_UNLOCK_BACKEND;
@@ -601,7 +601,7 @@ public class ImportTask extends Task
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
