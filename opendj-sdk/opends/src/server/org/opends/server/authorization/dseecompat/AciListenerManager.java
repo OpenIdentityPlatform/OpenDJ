@@ -39,20 +39,12 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import static org.opends.server.loggers.debug.DebugLogger.debugCought;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.logError;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 
 /**
  * The AciListenerManager updates an ACI list after each
@@ -113,7 +105,7 @@ public class AciListenerManager
      * @param entry   The entry being added.
      */
     public void handleAddOperation(PostResponseAddOperation addOperation,
-            Entry entry) {
+                                   Entry entry) {
         if(entry.hasOperationalAttribute(AciHandler.aciType))
         {
             aciList.addAci(entry);
@@ -129,9 +121,25 @@ public class AciListenerManager
      * @param newEntry  The new entry to examine.
      */
     public void handleModifyOperation(PostResponseModifyOperation modOperation,
-            Entry oldEntry, Entry newEntry)
+                                      Entry oldEntry, Entry newEntry)
     {
+      // A change to the ACI list is expensive so let's first make sure that
+      // the modification included changes to the ACI.
+      boolean hasAciMod = false;
+      List<Modification> mods = modOperation.getModifications();
+      for (Modification mod : mods)
+      {
+        if (mod.getAttribute().getAttributeType().equals(AciHandler.aciType))
+        {
+          hasAciMod = true;
+          break;
+        }
+      }
+
+      if (hasAciMod)
+      {
         aciList.modAciOldNewEntry(oldEntry, newEntry);
+      }
     }
 
     /**
@@ -155,58 +163,56 @@ public class AciListenerManager
      * ACI list.
      */
     public void performBackendInitializationProcessing(Backend backend) {
-        InternalClientConnection conn =
-                InternalClientConnection.getRootConnection();
-        for (DN baseDN : backend.getBaseDNs()) {
-            try {
-                if (! backend.entryExists(baseDN))  {
-                    continue;
-                }
-            } catch (Exception e) {
-              if (debugEnabled())
-              {
-                debugCought(DebugLogLevel.ERROR, e);
-              }
-                //TODO log message
-                continue;
-            }
-            InternalSearchOperation internalSearch =
-                    new InternalSearchOperation(conn,
-                            InternalClientConnection.nextOperationID(),
-                            InternalClientConnection.nextMessageID(),
-                            null, baseDN, SearchScope.WHOLE_SUBTREE,
-                            DereferencePolicy.NEVER_DEREF_ALIASES,
-                            0, 0, false, aciFilter, attrs, null);
-            try
-            {
-                backend.search(internalSearch);
-            } catch (Exception e) {
-              if (debugEnabled())
-              {
-                debugCought(DebugLogLevel.ERROR, e);
-              }
-                //TODO log message
-                continue;
-            }
-            if(internalSearch.getSearchEntries().isEmpty()) {
-                int    msgID  = MSGID_ACI_ADD_LIST_NO_ACIS;
-                String message = getMessage(msgID, String.valueOf(baseDN));
-                logError(ErrorLogCategory.ACCESS_CONTROL,
-                        ErrorLogSeverity.NOTICE, message, msgID);
-            } else {
-                int validAcis=0;
-                for (SearchResultEntry entry :
-                        internalSearch.getSearchEntries()) {
-                    validAcis += aciList.addAci(entry);
-                }
-                int    msgID  = MSGID_ACI_ADD_LIST_ACIS;
-                String message = getMessage(msgID, Integer.toString(validAcis),
-                        String.valueOf(baseDN));
-                logError(ErrorLogCategory.ACCESS_CONTROL,
-                        ErrorLogSeverity.NOTICE,
-                        message, msgID);
-            }
+      InternalClientConnection conn =
+           InternalClientConnection.getRootConnection();
+      for (DN baseDN : backend.getBaseDNs()) {
+        try {
+          if (! backend.entryExists(baseDN))  {
+            continue;
+          }
+        } catch (Exception e) {
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
+          //TODO log message
+          continue;
         }
+        InternalSearchOperation internalSearch =
+             new InternalSearchOperation(
+                  conn,
+                  InternalClientConnection.nextOperationID(),
+                  InternalClientConnection.nextMessageID(),
+                  null, baseDN, SearchScope.WHOLE_SUBTREE,
+                  DereferencePolicy.NEVER_DEREF_ALIASES,
+                  0, 0, false, aciFilter, attrs, null);
+        try
+        {
+          backend.search(internalSearch);
+        } catch (Exception e) {
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
+          //TODO log message
+          continue;
+        }
+        if(internalSearch.getSearchEntries().isEmpty()) {
+          int    msgID  = MSGID_ACI_ADD_LIST_NO_ACIS;
+          String message = getMessage(msgID, String.valueOf(baseDN));
+          logError(ErrorLogCategory.ACCESS_CONTROL,
+                   ErrorLogSeverity.NOTICE, message, msgID);
+        } else {
+          int validAcis = aciList.addAci(
+               internalSearch.getSearchEntries());
+          int    msgID  = MSGID_ACI_ADD_LIST_ACIS;
+          String message = getMessage(msgID, Integer.toString(validAcis),
+                                      String.valueOf(baseDN));
+          logError(ErrorLogCategory.ACCESS_CONTROL,
+                   ErrorLogSeverity.NOTICE,
+                   message, msgID);
+        }
+      }
     }
 
     /**
