@@ -16,13 +16,13 @@ rem When distributing Covered Code, include this CDDL HEADER in each
 rem file and include the License file at
 rem trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
 rem add the following below this CDDL HEADER, with the fields enclosed
-rem by brackets "[]" replaced with your own identifying * information:
+rem by brackets "[]" replaced with your own identifying information:
 rem      Portions Copyright [yyyy] [name of copyright owner]
 rem
 rem CDDL HEADER END
 rem
 rem
-rem      Portions Copyright 2006 Sun Microsystems, Inc.
+rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
 set CLASSPATHCOMPONENT=%1
 if ""%1""=="""" goto gotAllArgs
