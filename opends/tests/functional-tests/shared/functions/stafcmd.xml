@@ -26,11 +26,23 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-  <function name="copyfile">
+  <function name="copyFile">
     <function-prolog>
       This function copies a source file to destination file to host
     </function-prolog>
     <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="remotehost" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          The name of remote host (default localhost)
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
       <function-arg-def name="srcfile" type="required">
         <function-arg-description>
           The name of the source fule
@@ -43,16 +55,10 @@
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
-      <function-arg-def name="remotehost" type="optional" default="localhost">
-        <function-arg-description>
-          The name of remote host (default localhost)
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
     </function-map-args>
     <sequence>
       <stafcmd name="'STAF Command: Copy File'">
-        <location>'%s' % (STAF_LOCAL_HOSTNAME)</location>
+        <location>'%s' % location</location>
         <service>'fs'</service>
         <request>'COPY FILE %s TOFILE %s TOMACHINE %s' % (srcfile,destfile,remotehost) </request>
       </stafcmd>
@@ -73,39 +79,36 @@
       Copies files by extension from a source to destination folder on host
     </function-prolog>
     <function-map-args>
+     <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
       <function-arg-def name="srcfolder" type="required">
         <function-arg-description>
           The name of the source folder
         </function-arg-description>
         <function-arg-property name="type" value="foldername"/>
       </function-arg-def>
-
       <function-arg-def name="destfolder" type="required">
         <function-arg-description>
           The name of the destination fule
         </function-arg-description>
         <function-arg-property name="type" value="foldername"/>
       </function-arg-def>
-
       <function-arg-def name="extension" type="optional" default="'txt'">
         <function-arg-description>
-          The name of host (default txt)
+          The name of the file extension (default txt)
         </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-        
-      <function-arg-def name="hostname" type="optional" default="'localhost'">
-        <function-arg-description>
-          The name of remote host (default localhost)
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
+        <function-arg-property name="type" value="file extension"/>
       </function-arg-def>
     </function-map-args>
     <sequence>
       <stafcmd name="'STAF Command: Copy all %s Files.' % (extension)">
-        <location>'%s' % (STAF_LOCAL_HOSTNAME)</location>
+        <location>'%s' % location</location>
         <service>'fs'</service>
-        <request>'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s EXT %s RECURSE' % (srcfolder,destfolder,hostname,extension) </request>
+        <request>'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s EXT %s RECURSE' % (srcfolder,destfolder,location,extension) </request>
       </stafcmd>
       <script>
         cmdRC=RC
@@ -119,28 +122,45 @@
     </sequence>
   </function>
   
-  <function name="zipfile">
+  <function name="zipUpFile">
     <function-prolog>
-      This function zips a folder on remote machine
+      This function zips up a folder
     </function-prolog>
 
     <function-map-args>
-      <function-required-arg name="zipfilename">
-        name of zip file
-      </function-required-arg>
-      <function-required-arg name="foldername">
-        name of destination folder to place zip file contents
-      </function-required-arg>
-      <function-required-arg name="relativeto">
-        folder that the zip archive is relative to
-      </function-required-arg>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="zipfile" type="required">
+        <function-arg-description>
+          Name of the file to place zip file contents
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>      
+      <function-arg-def name="folder" type="required">
+        <function-arg-description>
+          Name of destination folder to place zip file contents
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def> 
+      <function-arg-def name="relativeto" type="required">
+        <function-arg-description>
+          Folder that the zip archive is relative to
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>    
     </function-map-args>
+    
     <sequence>
+      
       <stafcmd name="'STAF Command: Zip Up Folder'">
-        <location>'%s' % (STAF_LOCAL_HOSTNAME)</location>
+        <location>'%s' % location</location>
         <service>'zip'</service>
         <request>
-            'ADD ZIPFILE %s DIRECTORY %s RECURSE RELATIVETO %s' % (zipfilename,foldername,relativeto)
+            'ADD ZIPFILE %s DIRECTORY %s RECURSE RELATIVETO %s' % (zipfile,folder,relativeto)
         </request>
       </stafcmd>
     
@@ -157,25 +177,34 @@
     </sequence>
   </function>
 
-  <function name="unzipfile">
+  <function name="unZipFile">
     <function-prolog>
-      This function unzips a compressed zip archive on remote machine
+      This function unzips a compressed zip archive
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="zipfile">
-        name of source zip file
-      </function-required-arg>
-      <function-required-arg name="unzipdir">
-        name of destination folder to place zip file contents
-      </function-required-arg>
-      <function-optional-arg name="ziphost" default="'localhost'">
-        name of host on which to unzip (default localhost)
-      </function-optional-arg>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="zipfile" type="required">
+        <function-arg-description>
+          Name of the file to place zip file contents
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="unzipdir" type="required">
+        <function-arg-description>
+          Name of destination folder to place zip file contents
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
     </function-map-args>
 
     <sequence>
       <stafcmd name="'STAF Command: Unzip File'">
-        <location>'%s' % (ziphost)</location>
+        <location>'%s' % location</location>
         <service>'zip'</service>
         <request>
             'UNZIP ZIPFILE %s TODIRECTORY %s RESTOREPERMISSION REPLACE' % (zipfile,unzipdir)
@@ -193,21 +222,29 @@
     </sequence>
   </function>
 
-  <function name="deletefile">
+  <function name="deleteFile">
     <function-prolog>
-      This function recursively deletes a folder
+      This function deletes a file
     </function-prolog>
+    
     <function-map-args>
-      <function-required-arg name="filename">
-        name of file to be deleted
-      </function-required-arg>
-      <function-required-arg name="hostname">
-        name of target host
-      </function-required-arg>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="filename" type="required">
+        <function-arg-description>
+          Name of file to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>      
     </function-map-args>
+    
     <sequence>
       <stafcmd name="'STAF Command: Delete Existing File'">
-        <location>'%s' % (hostname)</location>
+        <location>'%s' % location</location>
         <service>'fs'</service>
         <request>
           'GET ENTRY %s TYPE' % (filename)
@@ -231,10 +268,10 @@
       </if>
 
       <stafcmd name="'STAF Command: Delete Existing File'">
-        <location>'%s' % (hostname)</location>
+        <location>'%s' % location</location>
         <service>'fs'</service>
         <request>
-          'DELETE ENTRY %s CONFIRM' % (filename)
+          'DELETE ENTRY %s CONFIRM' % filename
         </request>
       </stafcmd>
 
@@ -251,25 +288,32 @@
     </sequence>
   </function>
 
-  <function name="deletefolder">
+  <function name="deleteFolder">
     <function-prolog>
         This function recursively deletes a folder
     </function-prolog>
+    
     <function-map-args>
-      <function-required-arg name="foldername">
-        name of folder to be deleted
-      </function-required-arg>
-      <function-required-arg name="hostname">
-        name of target host
-      </function-required-arg>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="foldername" type="required">
+        <function-arg-description>
+          Name of folder to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
     </function-map-args>
 
     <sequence>
 
       <stafcmd name="'STAF Command: Get Folder Attributes'">
-        <location>'%s' % (hostname)</location>
+        <location>'%s' % location</location>
         <service>'fs'</service>
-        <request>'GET ENTRY %s TYPE' % (foldername)</request>
+        <request>'GET ENTRY %s TYPE' % foldername</request>
       </stafcmd>
   
       <if expr="RC == 48">
@@ -288,7 +332,7 @@
         </else>
       </if>
       <stafcmd name="'STAF Command: Recursively Delete Folder'">
-        <location>'%s' % (hostname)</location>
+        <location>'%s' % location</location>
         <service>'fs'</service>
         <request>
           'DELETE ENTRY %s RECURSE IGNOREERRORS CONFIRM' % (foldername)
@@ -311,25 +355,31 @@
 
     </function>
     
-    <function name="CreateFolder">
+    <function name="createFolder">
 
     <function-prolog>
         This function creates a folder
     </function-prolog>
 
     <function-map-args>
-      <function-required-arg name="hostname">
-          name of target host
-      </function-required-arg>
-      <function-required-arg name="foldername">
-          name of folder to be deleted
-      </function-required-arg>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="foldername" type="required">
+        <function-arg-description>
+          Name of file to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
     </function-map-args>
 
       <sequence>
 
         <stafcmd name="'STAF Command: Create Folder'">
-          <location>'%s' % (hostname)</location>
+          <location>'%s' % location</location>
           <service>'fs'</service>
           <request>
             'CREATE DIRECTORY %s FULLPATH' % foldername
@@ -360,26 +410,38 @@
     </function-prolog>
 
     <function-map-args>
-        <function-required-arg name="hostname">
-            name of target host
-        </function-required-arg>
-        <function-required-arg name="logname">
-            name of log to query
-        </function-required-arg>
-        <function-required-arg name="startfrom">
-            timestamp to start logging
-        </function-required-arg>
-        <function-required-arg name="endat">
-            timestamp to end logging
-        </function-required-arg>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="logname" type="required">
+        <function-arg-description>
+          Name of file to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="startfrom" type="required">
+        <function-arg-description>
+          Name of file to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="timestamp"/>
+      </function-arg-def>
+      <function-arg-def name="endat" type="required">
+        <function-arg-description>
+          Name of file to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="timestamp"/>
+      </function-arg-def> 
     </function-map-args>
 
       <sequence>
         
         <stafcmd name="'STAF Command: Log Query for Test Case Log.'">
-          <location>'%s' % (hostname)</location>
+          <location>'%s' % location</location>
           <service>'log'</service>
-          <request>'QUERY ALL MACHINE %s LOGNAME %s FROM %s TO %s' % (hostname,logname,startfrom,endat)</request>
+          <request>'QUERY ALL MACHINE %s LOGNAME %s FROM %s TO %s' % (location,logname,startfrom,endat)</request>
         </stafcmd>
         
       </sequence>

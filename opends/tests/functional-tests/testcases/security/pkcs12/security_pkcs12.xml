@@ -50,8 +50,8 @@
             </message>
     
             <!--- Start DS -->
-            <call function="'startDS'">
-              { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
+            <call function="'StartDsWithScript'">
+             { 'location'  : STAF_REMOTE_HOSTNAME }
             </call>
     
             <call function="'checkRC'">
@@ -92,8 +92,12 @@
                'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
             </message>
   
-            <call function="'stopDS'">
-              { 'dsInstancePort' : '%s' % (DIRECTORY_INSTANCE_PORT) }
+            <call function="'StopDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME,
+                  'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                  'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                  'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
             </call>
   
             <call function="'checkRC'">

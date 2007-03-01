@@ -46,9 +46,9 @@
               'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
            </message>
   
-           <call function="'startDS'">
-             { 'dsbinpath' : '%s' % (OPENDS_BINPATH) }
-           </call>
+            <call function="'StartDsWithScript'">
+             { 'location'  : STAF_REMOTE_HOSTNAME }
+            </call>
  
            <call function="'checkRC'">
                { 'returncode' : RC ,
