@@ -77,7 +77,6 @@ public class ClearPasswordStorageScheme
   public void initializePasswordStorageScheme(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -89,7 +88,6 @@ public class ClearPasswordStorageScheme
   @Override()
   public String getStorageSchemeName()
   {
-
     return STORAGE_SCHEME_NAME_CLEAR;
   }
 
@@ -102,7 +100,6 @@ public class ClearPasswordStorageScheme
   public ByteString encodePassword(ByteString plaintext)
          throws DirectoryException
   {
-
     return plaintext.duplicate();
   }
 
@@ -115,7 +112,6 @@ public class ClearPasswordStorageScheme
   public ByteString encodePasswordWithScheme(ByteString plaintext)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append('{');
     buffer.append(STORAGE_SCHEME_NAME_CLEAR);
@@ -134,7 +130,6 @@ public class ClearPasswordStorageScheme
   public boolean passwordMatches(ByteString plaintextPassword,
                                  ByteString storedPassword)
   {
-
     return Arrays.equals(plaintextPassword.value(), storedPassword.value());
   }
 
@@ -146,7 +141,6 @@ public class ClearPasswordStorageScheme
   @Override()
   public boolean isReversible()
   {
-
     return true;
   }
 
@@ -159,7 +153,6 @@ public class ClearPasswordStorageScheme
   public ByteString getPlaintextValue(ByteString storedPassword)
          throws DirectoryException
   {
-
     return storedPassword.duplicate();
   }
 
@@ -171,7 +164,6 @@ public class ClearPasswordStorageScheme
   @Override()
   public boolean supportsAuthPasswordSyntax()
   {
-
     // This storage scheme does not support the authentication password syntax.
     return false;
   }
@@ -185,8 +177,6 @@ public class ClearPasswordStorageScheme
   public ByteString encodeAuthPassword(ByteString plaintext)
          throws DirectoryException
   {
-
-
     int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
     String message = getMessage(msgID, getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -202,8 +192,6 @@ public class ClearPasswordStorageScheme
   public boolean authPasswordMatches(ByteString plaintextPassword,
                                      String authInfo, String authValue)
   {
-
-
     // This storage scheme does not support the authentication password syntax.
     return false;
   }
@@ -218,7 +206,6 @@ public class ClearPasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
     String message = getMessage(msgID, getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -233,7 +220,6 @@ public class ClearPasswordStorageScheme
   @Override()
   public boolean isStorageSchemeSecure()
   {
-
     // Clear-text passwords are not obscured in any way.
     return false;
   }

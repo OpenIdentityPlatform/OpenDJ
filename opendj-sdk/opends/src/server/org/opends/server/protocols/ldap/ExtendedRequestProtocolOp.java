@@ -71,7 +71,6 @@ public class ExtendedRequestProtocolOp
    */
   public ExtendedRequestProtocolOp(String oid)
   {
-
     this.oid   = oid;
     this.value = null;
   }
@@ -87,7 +86,6 @@ public class ExtendedRequestProtocolOp
    */
   public ExtendedRequestProtocolOp(String oid, ASN1OctetString value)
   {
-
     this.oid   = oid;
     this.value = value;
   }
@@ -101,7 +99,6 @@ public class ExtendedRequestProtocolOp
    */
   public String getOID()
   {
-
     return oid;
   }
 
@@ -114,7 +111,6 @@ public class ExtendedRequestProtocolOp
    */
   public void setOID(String oid)
   {
-
     this.oid = oid;
   }
 
@@ -128,7 +124,6 @@ public class ExtendedRequestProtocolOp
    */
   public ASN1OctetString getValue()
   {
-
     return value;
   }
 
@@ -141,7 +136,6 @@ public class ExtendedRequestProtocolOp
    */
   public void setValue(ASN1OctetString value)
   {
-
     this.value = value;
   }
 
@@ -154,7 +148,6 @@ public class ExtendedRequestProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_EXTENDED_REQUEST;
   }
 
@@ -167,7 +160,6 @@ public class ExtendedRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Extended Request";
   }
 
@@ -181,7 +173,6 @@ public class ExtendedRequestProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1OctetString(TYPE_EXTENDED_REQUEST_OID, oid));
 
@@ -211,7 +202,6 @@ public class ExtendedRequestProtocolOp
                                                                      element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -295,7 +285,6 @@ public class ExtendedRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ExtendedRequest(oid=");
     buffer.append(oid);
 
@@ -320,7 +309,6 @@ public class ExtendedRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

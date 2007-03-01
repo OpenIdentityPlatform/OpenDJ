@@ -231,7 +231,6 @@ public class ConfigFromFile
    */
   private void updateConfig(Entry entry)
   {
-
    if (entry.hasObjectClass(connectionHandlerOc))
    {
      updateConfigWithConnectionHandler(entry);

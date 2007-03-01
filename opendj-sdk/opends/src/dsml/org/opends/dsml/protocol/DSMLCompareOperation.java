@@ -82,7 +82,6 @@ public class DSMLCompareOperation
         CompareRequest compareRequest)
     throws IOException, LDAPException, ASN1Exception
   {
-
     LDAPResult compareResponse = objFactory.createLDAPResult();
 
     String requestID = compareRequest.getRequestID();

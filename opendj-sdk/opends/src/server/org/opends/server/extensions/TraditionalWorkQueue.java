@@ -132,7 +132,6 @@ public class TraditionalWorkQueue
    */
   public TraditionalWorkQueue()
   {
-
     // No implementation should be performed here.
   }
 
@@ -144,8 +143,6 @@ public class TraditionalWorkQueue
   public void initializeWorkQueue(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     shutdownRequested = false;
     killThreads       = false;
     opsSubmitted      = new AtomicLong(0);
@@ -312,7 +309,6 @@ public class TraditionalWorkQueue
    */
   public void finalizeWorkQueue(String reason)
   {
-
     shutdownRequested = true;
 
 
@@ -372,7 +368,6 @@ public class TraditionalWorkQueue
    */
   public boolean shutdownRequested()
   {
-
     return shutdownRequested;
   }
 
@@ -392,7 +387,6 @@ public class TraditionalWorkQueue
   public void submitOperation(Operation operation)
          throws DirectoryException
   {
-
     if (shutdownRequested)
     {
       int    messageID = MSGID_OP_REJECTED_BY_SHUTDOWN;
@@ -427,7 +421,6 @@ public class TraditionalWorkQueue
    */
   public Operation nextOperation(TraditionalWorkerThread workerThread)
   {
-
     return retryNextOperation(workerThread, 0);
   }
 
@@ -452,8 +445,6 @@ public class TraditionalWorkQueue
   private Operation retryNextOperation(TraditionalWorkerThread workerThread,
                                        int numFailures)
   {
-
-
     // See if we should kill off this thread.  This could be necessary if the
     // number of worker threads has been decreased with the server online.  If
     // so, then return null and the thread will exit.
@@ -611,7 +602,6 @@ public class TraditionalWorkQueue
    */
   public boolean removeOperation(Operation operation)
   {
-
     return opQueue.remove(operation);
   }
 
@@ -628,7 +618,6 @@ public class TraditionalWorkQueue
    */
   public long getOpsSubmitted()
   {
-
     return opsSubmitted.longValue();
   }
 
@@ -643,7 +632,6 @@ public class TraditionalWorkQueue
    */
   public long getOpsRejectedDueToQueueFull()
   {
-
     return queueFullRejects.longValue();
   }
 
@@ -660,7 +648,6 @@ public class TraditionalWorkQueue
    */
   public int size()
   {
-
     return opQueue.size();
   }
 
@@ -675,7 +662,6 @@ public class TraditionalWorkQueue
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -690,7 +676,6 @@ public class TraditionalWorkQueue
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
 
@@ -732,8 +717,6 @@ public class TraditionalWorkQueue
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     boolean configIsAcceptable = true;
 
 
@@ -855,8 +838,6 @@ public class TraditionalWorkQueue
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ArrayList<String> resultMessages = new ArrayList<String>();
     int newNumThreads;
     int newMaxCapacity;
@@ -1105,7 +1086,6 @@ public class TraditionalWorkQueue
    */
   public boolean isIdle()
   {
-
     if (opQueue.size() > 0)
     {
       return false;

@@ -116,7 +116,6 @@ public class SearchResultEntry
    */
   public List<Control> getControls()
   {
-
     return controls;
   }
 }

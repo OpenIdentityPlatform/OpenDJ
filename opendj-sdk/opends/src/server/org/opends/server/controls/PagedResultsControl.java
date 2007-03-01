@@ -185,7 +185,6 @@ public class PagedResultsControl extends Control
    */
   public ASN1OctetString encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1Integer(size));
     elements.add(cookie);

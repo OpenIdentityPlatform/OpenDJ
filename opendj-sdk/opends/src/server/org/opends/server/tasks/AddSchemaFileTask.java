@@ -83,8 +83,6 @@ public class AddSchemaFileTask
   public void initializeTask()
          throws DirectoryException
   {
-
-
     // If the client connection is available, then make sure the associated
     // client has the UPDATE_SCHEMA privilege.
     Operation operation = getOperation();
@@ -189,8 +187,6 @@ public class AddSchemaFileTask
    */
   protected TaskState runTask()
   {
-
-
     // Obtain a write lock on the server schema so that we can be sure nothing
     // else tries to write to it at the same time.
     DN schemaDN = DirectoryServer.getSchemaDN();

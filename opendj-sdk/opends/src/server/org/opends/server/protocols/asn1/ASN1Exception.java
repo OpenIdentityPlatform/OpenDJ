@@ -99,7 +99,6 @@ public class ASN1Exception
    */
   public int getMessageID()
   {
-
     return messageID;
   }
 }

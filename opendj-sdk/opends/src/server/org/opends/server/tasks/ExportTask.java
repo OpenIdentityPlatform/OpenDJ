@@ -86,8 +86,6 @@ public class ExportTask extends Task
    */
   @Override public void initializeTask() throws DirectoryException
   {
-
-
     // If the client connection is available, then make sure the associated
     // client has the LDIF_EXPORT privilege.
     Operation operation = getOperation();
@@ -197,7 +195,6 @@ public class ExportTask extends Task
    */
   protected TaskState runTask()
   {
-
     // See if there were any user-defined sets of include/exclude attributes or
     // filters.  If so, then process them.
     HashSet<AttributeType> excludeAttributes;

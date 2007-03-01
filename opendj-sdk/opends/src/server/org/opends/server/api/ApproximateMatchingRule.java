@@ -84,7 +84,6 @@ public abstract class ApproximateMatchingRule
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)
   {
-
     if (approximatelyMatch(attributeValue, assertionValue))
     {
       return ConditionResult.TRUE;

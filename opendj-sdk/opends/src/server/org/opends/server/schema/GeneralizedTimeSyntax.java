@@ -142,7 +142,6 @@ public class GeneralizedTimeSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_GENERALIZED_TIME_OID);
     if (defaultEqualityMatchingRule == null)
@@ -180,7 +179,6 @@ public class GeneralizedTimeSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_GENERALIZED_TIME_NAME;
   }
 
@@ -193,7 +191,6 @@ public class GeneralizedTimeSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_GENERALIZED_TIME_OID;
   }
 
@@ -206,7 +203,6 @@ public class GeneralizedTimeSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_GENERALIZED_TIME_DESCRIPTION;
   }
 
@@ -222,7 +218,6 @@ public class GeneralizedTimeSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -238,7 +233,6 @@ public class GeneralizedTimeSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -254,7 +248,6 @@ public class GeneralizedTimeSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -270,7 +263,6 @@ public class GeneralizedTimeSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // Approximate matching will not be allowed by default.
     return null;
   }
@@ -292,8 +284,6 @@ public class GeneralizedTimeSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Get the value as a string and verify that it is at least long enough for
     // "YYYYMMDDhhZ", which is the shortest allowed value.
     String valueString = value.stringValue().toUpperCase();
@@ -891,8 +881,6 @@ public class GeneralizedTimeSyntax
   private boolean hasValidOffset(String value, int startPos,
                                  StringBuilder invalidReason)
   {
-
-
     int offsetLength = value.length() - startPos;
     if (offsetLength < 2)
     {
@@ -1017,7 +1005,6 @@ public class GeneralizedTimeSyntax
    */
   public static String format(Date d)
   {
-
     dateFormatLock.lock();
 
     try
@@ -1041,7 +1028,6 @@ public class GeneralizedTimeSyntax
    */
   public static String format(long t)
   {
-
     dateFormatLock.lock();
 
     try
@@ -1067,7 +1053,6 @@ public class GeneralizedTimeSyntax
    */
   public static AttributeValue createGeneralizedTimeValue(long time)
   {
-
     String valueString;
 
     dateFormatLock.lock();
@@ -1112,7 +1097,6 @@ public class GeneralizedTimeSyntax
   public static long decodeGeneralizedTimeValue(ByteString normalizedValue)
          throws DirectoryException
   {
-
     String valueString = normalizedValue.stringValue();
     try
     {

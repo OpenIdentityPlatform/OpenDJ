@@ -98,7 +98,6 @@ public class EnhancedGuideSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null)
@@ -136,7 +135,6 @@ public class EnhancedGuideSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_ENHANCED_GUIDE_NAME;
   }
 
@@ -149,7 +147,6 @@ public class EnhancedGuideSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_ENHANCED_GUIDE_OID;
   }
 
@@ -162,7 +159,6 @@ public class EnhancedGuideSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_ENHANCED_GUIDE_DESCRIPTION;
   }
 
@@ -178,7 +174,6 @@ public class EnhancedGuideSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -194,7 +189,6 @@ public class EnhancedGuideSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -210,7 +204,6 @@ public class EnhancedGuideSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -226,7 +219,6 @@ public class EnhancedGuideSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -248,8 +240,6 @@ public class EnhancedGuideSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Get a lowercase string version of the provided value.
     String valueStr = toLowerCase(value.stringValue());
 

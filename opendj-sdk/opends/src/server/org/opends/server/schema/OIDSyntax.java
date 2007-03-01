@@ -93,7 +93,6 @@ public class OIDSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_OID_OID);
     if (defaultEqualityMatchingRule == null)
@@ -122,7 +121,6 @@ public class OIDSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_OID_NAME;
   }
 
@@ -135,7 +133,6 @@ public class OIDSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_OID_OID;
   }
 
@@ -148,7 +145,6 @@ public class OIDSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_OID_DESCRIPTION;
   }
 
@@ -164,7 +160,6 @@ public class OIDSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -180,7 +175,6 @@ public class OIDSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     // There is no ordering matching rule by default.
     return null;
   }
@@ -197,7 +191,6 @@ public class OIDSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -213,7 +206,6 @@ public class OIDSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -235,7 +227,6 @@ public class OIDSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     String lowerValue = toLowerCase(value.stringValue());
     return isValidSchemaElement(lowerValue, 0, lowerValue.length(),
                                 invalidReason);

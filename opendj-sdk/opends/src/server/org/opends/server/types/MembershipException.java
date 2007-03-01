@@ -128,7 +128,6 @@ public class MembershipException
    */
   public final int getErrorMessageID()
   {
-
     return errorMessageID;
   }
 
@@ -141,7 +140,6 @@ public class MembershipException
    */
   public final String getErrorMessage()
   {
-
     return errorMessage;
   }
 
@@ -157,7 +155,6 @@ public class MembershipException
    */
   public final boolean continueIterating()
   {
-
     return continueIterating;
   }
 }

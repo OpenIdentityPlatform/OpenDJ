@@ -194,9 +194,6 @@ class UninstallCli
   private UserUninstallData getUserUninstallData(String[] args,
       CurrentInstallStatus installStatus) throws UserUninstallDataException
   {
-
-
-
     UserUninstallData userData = new UserUninstallData();
 
     boolean silentUninstall = false;

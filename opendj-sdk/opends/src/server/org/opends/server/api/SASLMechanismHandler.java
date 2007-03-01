@@ -77,7 +77,6 @@ public abstract class SASLMechanismHandler
    */
   public void finalizeSASLMechanismHandler()
   {
-
     // No implementation is required by default.
   }
 

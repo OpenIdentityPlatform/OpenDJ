@@ -90,7 +90,6 @@ public class IntegerFirstComponentEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -104,7 +103,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_INTEGER_FIRST_COMPONENT_NAME;
   }
 
@@ -117,7 +115,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_INTEGER_FIRST_COMPONENT_OID;
   }
 
@@ -131,7 +128,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -146,7 +142,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_INTEGER_OID;
   }
 
@@ -166,7 +161,6 @@ public class IntegerFirstComponentEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value.value(), buffer, true);
 
@@ -216,8 +210,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
-
     try
     {
       int intValue1 = extractIntValue(value1.stringValue());
@@ -254,7 +246,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public int generateHashCode(AttributeValue attributeValue)
   {
-
     // In this case, we'll always return the same value because the matching
     // isn't based on the entire value.
     return 1;
@@ -276,8 +267,6 @@ public class IntegerFirstComponentEqualityMatchingRule
   private static int extractIntValue(String valueString)
           throws DirectoryException
   {
-
-
     int valueLength = valueString.length();
 
     if ((valueLength == 0) || (valueString.charAt(0) != '('))

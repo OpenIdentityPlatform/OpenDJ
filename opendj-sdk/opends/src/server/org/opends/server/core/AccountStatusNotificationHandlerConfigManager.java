@@ -92,7 +92,6 @@ public class AccountStatusNotificationHandlerConfigManager
    */
   public AccountStatusNotificationHandlerConfigManager()
   {
-
     configHandler = DirectoryServer.getConfigHandler();
     notificationHandlers =
          new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
@@ -117,8 +116,6 @@ public class AccountStatusNotificationHandlerConfigManager
   public void initializeNotificationHandlers()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the configuration base entry.
     ConfigEntry baseEntry;
     try
@@ -234,8 +231,6 @@ public class AccountStatusNotificationHandlerConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for an account
     // status notification handler.
     if (! configEntry.hasObjectClass(OC_ACCT_NOTIFICATION_HANDLER))
@@ -374,8 +369,6 @@ public class AccountStatusNotificationHandlerConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -604,8 +597,6 @@ public class AccountStatusNotificationHandlerConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (notificationHandlers.containsKey(configEntryDN))
@@ -784,8 +775,6 @@ public class AccountStatusNotificationHandlerConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -949,8 +938,6 @@ public class AccountStatusNotificationHandlerConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -967,8 +954,6 @@ public class AccountStatusNotificationHandlerConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

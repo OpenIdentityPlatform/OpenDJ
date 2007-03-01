@@ -63,7 +63,6 @@ public class DeleteRequestProtocolOp
    */
   public DeleteRequestProtocolOp(ASN1OctetString dn)
   {
-
     this.dn = dn;
   }
 
@@ -76,7 +75,6 @@ public class DeleteRequestProtocolOp
    */
   public ASN1OctetString getDN()
   {
-
     return dn;
   }
 
@@ -89,7 +87,6 @@ public class DeleteRequestProtocolOp
    */
   public void setDN(ASN1OctetString dn)
   {
-
     this.dn = dn;
   }
 
@@ -102,7 +99,6 @@ public class DeleteRequestProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_DELETE_REQUEST;
   }
 
@@ -115,7 +111,6 @@ public class DeleteRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Delete Request";
   }
 
@@ -129,7 +124,6 @@ public class DeleteRequestProtocolOp
    */
   public ASN1Element encode()
   {
-
     dn.setType(OP_TYPE_DELETE_REQUEST);
     return dn;
   }
@@ -149,7 +143,6 @@ public class DeleteRequestProtocolOp
   public static DeleteRequestProtocolOp decodeDeleteRequest(ASN1Element element)
          throws LDAPException
   {
-
     try
     {
       return new DeleteRequestProtocolOp(element.decodeAsOctetString());
@@ -177,7 +170,6 @@ public class DeleteRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("DeleteRequest(dn=");
     dn.toString(buffer);
     buffer.append(")");
@@ -195,7 +187,6 @@ public class DeleteRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

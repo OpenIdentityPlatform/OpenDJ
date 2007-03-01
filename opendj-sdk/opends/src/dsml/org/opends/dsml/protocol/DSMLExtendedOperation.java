@@ -82,7 +82,6 @@ public class DSMLExtendedOperation
               ExtendedRequest extendedRequest)
     throws IOException, LDAPException, ASN1Exception
   {
-
     ExtendedResponse extendedResponse = objFactory.createExtendedResponse();
 
     String requestID = extendedRequest.getRequestID();

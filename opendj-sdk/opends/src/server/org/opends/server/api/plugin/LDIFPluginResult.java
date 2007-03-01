@@ -86,7 +86,6 @@ public class LDIFPluginResult
   public LDIFPluginResult(boolean continuePluginProcessing,
                           boolean continueEntryProcessing)
   {
-
     this.continuePluginProcessing = continuePluginProcessing;
     this.continueEntryProcessing  = continueEntryProcessing;
   }
@@ -103,7 +102,6 @@ public class LDIFPluginResult
    */
   public boolean continuePluginProcessing()
   {
-
     return continuePluginProcessing;
   }
 
@@ -118,7 +116,6 @@ public class LDIFPluginResult
    */
   public boolean continueEntryProcessing()
   {
-
     return continueEntryProcessing;
   }
 
@@ -133,7 +130,6 @@ public class LDIFPluginResult
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -150,7 +146,6 @@ public class LDIFPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("LDIFPluginResult(continuePluginProcessing=");
     buffer.append(continuePluginProcessing);
     buffer.append(", continueEntryProcessing=");

@@ -87,7 +87,6 @@ public final class LDIFWriter
   public LDIFWriter(LDIFExportConfig exportConfig)
          throws IOException
   {
-
     ensureNotNull(exportConfig);
     this.exportConfig = exportConfig;
 
@@ -123,7 +122,6 @@ public final class LDIFWriter
   public void writeComment(String comment, int wrapColumn)
          throws IOException
   {
-
     ensureNotNull(comment);
 
 
@@ -245,7 +243,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public boolean writeEntry(Entry entry)
          throws IOException, LDIFException
   {
-
     ensureNotNull(entry);
     return entry.toLDIF(exportConfig);
   }
@@ -265,7 +262,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public void writeAddChangeRecord(Entry entry)
          throws IOException
   {
-
     ensureNotNull(entry);
 
 
@@ -343,7 +339,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public void writeDeleteChangeRecord(Entry entry, boolean commentEntry)
          throws IOException
   {
-
     ensureNotNull(entry);
 
     // Get the information necessary to write the LDIF.
@@ -422,7 +417,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public void writeModifyChangeRecord(DN dn, List<Modification> modifications)
          throws IOException
   {
-
     ensureNotNull(dn, modifications);
 
     // If there aren't any modifications, then there's nothing to do.
@@ -533,7 +527,6 @@ public boolean writeEntries(Collection <Entry> entries)
                                         DN newSuperior)
          throws IOException
   {
-
     ensureNotNull(dn, newRDN);
 
 
@@ -602,7 +595,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public void flush()
          throws IOException
   {
-
     writer.flush();
   }
 
@@ -616,7 +608,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public void close()
          throws IOException
   {
-
     writer.flush();
     writer.close();
   }
@@ -638,7 +629,6 @@ public boolean writeEntries(Collection <Entry> entries)
   public static void appendLDIFSeparatorAndValue(StringBuilder buffer,
                                                  byte[] valueBytes)
   {
-
     ensureNotNull(buffer, valueBytes);
 
 
@@ -694,7 +684,6 @@ public boolean writeEntries(Collection <Entry> entries)
                                    boolean wrapLines, int wrapColumn)
           throws IOException
   {
-
     ensureNotNull(line, writer);
 
     int length = line.length();

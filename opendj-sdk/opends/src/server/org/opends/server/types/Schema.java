@@ -193,7 +193,6 @@ public class Schema
    */
   public Schema()
   {
-
     attributeTypes = new ConcurrentHashMap<String,AttributeType>();
     objectClasses = new ConcurrentHashMap<String,ObjectClass>();
     syntaxes = new ConcurrentHashMap<String,AttributeSyntax>();
@@ -248,7 +247,6 @@ public class Schema
   public final ConcurrentHashMap<String,AttributeType>
                     getAttributeTypes()
   {
-
     return attributeTypes;
   }
 
@@ -261,7 +259,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getAttributeTypeSet()
   {
-
     return attributeTypeSet;
   }
 
@@ -280,7 +277,6 @@ public class Schema
    */
   public boolean hasAttributeType(String lowerName)
   {
-
     return attributeTypes.containsKey(lowerName);
   }
 
@@ -299,7 +295,6 @@ public class Schema
    */
   public final AttributeType getAttributeType(String lowerName)
   {
-
     return attributeTypes.get(lowerName);
   }
 
@@ -324,7 +319,6 @@ public class Schema
                                           boolean overwriteExisting)
          throws DirectoryException
   {
-
     synchronized (attributeTypes)
     {
       if (! overwriteExisting)
@@ -398,7 +392,6 @@ public class Schema
   public final void deregisterAttributeType(
                          AttributeType attributeType)
   {
-
     synchronized (attributeTypes)
     {
       attributeTypes.remove(toLowerCase(attributeType.getOID()),
@@ -444,7 +437,6 @@ public class Schema
                           AttributeType attributeType,
                           AttributeType superiorType)
   {
-
     List<AttributeType> subTypes = subordinateTypes.get(superiorType);
     if (subTypes == null)
     {
@@ -482,7 +474,6 @@ public class Schema
                           AttributeType attributeType,
                           AttributeType superiorType)
   {
-
     List<AttributeType> subTypes = subordinateTypes.get(superiorType);
     if (subTypes != null)
     {
@@ -513,7 +504,6 @@ public class Schema
   public final Iterable<AttributeType>
                     getSubTypes(AttributeType attributeType)
   {
-
     List<AttributeType> subTypes =
          subordinateTypes.get(attributeType);
     if (subTypes == null)
@@ -540,7 +530,6 @@ public class Schema
   public final ConcurrentHashMap<String,ObjectClass>
                     getObjectClasses()
   {
-
     return objectClasses;
   }
 
@@ -553,7 +542,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getObjectClassSet()
   {
-
     return objectClassSet;
   }
 
@@ -572,7 +560,6 @@ public class Schema
    */
   public boolean hasObjectClass(String lowerName)
   {
-
     return objectClasses.containsKey(lowerName);
   }
 
@@ -591,7 +578,6 @@ public class Schema
    */
   public final ObjectClass getObjectClass(String lowerName)
   {
-
     return objectClasses.get(lowerName);
   }
 
@@ -615,7 +601,6 @@ public class Schema
                                         boolean overwriteExisting)
          throws DirectoryException
   {
-
     synchronized (objectClasses)
     {
       if (! overwriteExisting)
@@ -681,7 +666,6 @@ public class Schema
    */
   public final void deregisterObjectClass(ObjectClass objectClass)
   {
-
     synchronized (objectClasses)
     {
       objectClasses.remove(toLowerCase(objectClass.getOID()),
@@ -718,7 +702,6 @@ public class Schema
    */
   public final ConcurrentHashMap<String,AttributeSyntax> getSyntaxes()
   {
-
     return syntaxes;
   }
 
@@ -731,7 +714,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getSyntaxSet()
   {
-
     return syntaxSet;
   }
 
@@ -750,7 +732,6 @@ public class Schema
    */
   public boolean hasSyntax(String lowerName)
   {
-
     return syntaxes.containsKey(lowerName);
   }
 
@@ -767,7 +748,6 @@ public class Schema
    */
   public final AttributeSyntax getSyntax(String lowerName)
   {
-
     return syntaxes.get(lowerName);
   }
 
@@ -792,7 +772,6 @@ public class Schema
                                    boolean overwriteExisting)
          throws DirectoryException
   {
-
     synchronized (syntaxes)
     {
       if (! overwriteExisting)
@@ -837,7 +816,6 @@ public class Schema
    */
   public final void deregisterSyntax(AttributeSyntax syntax)
   {
-
     synchronized (syntaxes)
     {
       syntaxes.remove(toLowerCase(syntax.getOID()), syntax);
@@ -870,7 +848,6 @@ public class Schema
   public final ConcurrentHashMap<String,MatchingRule>
                     getMatchingRules()
   {
-
     return matchingRules;
   }
 
@@ -883,7 +860,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getMatchingRuleSet()
   {
-
     return matchingRuleSet;
   }
 
@@ -902,7 +878,6 @@ public class Schema
    */
   public boolean hasMatchingRule(String lowerName)
   {
-
     return matchingRules.containsKey(lowerName);
   }
 
@@ -921,7 +896,6 @@ public class Schema
    */
   public final MatchingRule getMatchingRule(String lowerName)
   {
-
     return matchingRules.get(lowerName);
   }
 
@@ -946,7 +920,6 @@ public class Schema
                                          boolean overwriteExisting)
          throws DirectoryException
   {
-
     if (matchingRule instanceof ApproximateMatchingRule)
     {
       registerApproximateMatchingRule(
@@ -1039,7 +1012,6 @@ public class Schema
    */
   public final void deregisterMatchingRule(MatchingRule matchingRule)
   {
-
     if (matchingRule instanceof ApproximateMatchingRule)
     {
       deregisterApproximateMatchingRule(
@@ -1104,7 +1076,6 @@ public class Schema
   public final ConcurrentHashMap<String,ApproximateMatchingRule>
                     getApproximateMatchingRules()
   {
-
     return approximateMatchingRules;
   }
 
@@ -1125,7 +1096,6 @@ public class Schema
   public final ApproximateMatchingRule
                     getApproximateMatchingRule(String lowerName)
   {
-
     return approximateMatchingRules.get(lowerName);
   }
 
@@ -1151,8 +1121,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-
-
     synchronized (matchingRules)
     {
       if (! overwriteExisting)
@@ -1226,7 +1194,6 @@ public class Schema
   public final void deregisterApproximateMatchingRule(
                          ApproximateMatchingRule matchingRule)
   {
-
     synchronized (matchingRules)
     {
       String oid = matchingRule.getOID();
@@ -1268,7 +1235,6 @@ public class Schema
   public final ConcurrentHashMap<String,EqualityMatchingRule>
                     getEqualityMatchingRules()
   {
-
     return equalityMatchingRules;
   }
 
@@ -1289,7 +1255,6 @@ public class Schema
   public final EqualityMatchingRule getEqualityMatchingRule(
                                          String lowerName)
   {
-
     return equalityMatchingRules.get(lowerName);
   }
 
@@ -1314,8 +1279,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-
-
     synchronized (matchingRules)
     {
       if (! overwriteExisting)
@@ -1389,7 +1352,6 @@ public class Schema
   public final void deregisterEqualityMatchingRule(
                          EqualityMatchingRule matchingRule)
   {
-
     synchronized (matchingRules)
     {
       String oid = matchingRule.getOID();
@@ -1432,7 +1394,6 @@ public class Schema
   public final ConcurrentHashMap<String,OrderingMatchingRule>
                     getOrderingMatchingRules()
   {
-
     return orderingMatchingRules;
   }
 
@@ -1453,7 +1414,6 @@ public class Schema
   public final OrderingMatchingRule getOrderingMatchingRule(
                                          String lowerName)
   {
-
     return orderingMatchingRules.get(lowerName);
   }
 
@@ -1478,8 +1438,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-
-
     synchronized (matchingRules)
     {
       if (! overwriteExisting)
@@ -1553,7 +1511,6 @@ public class Schema
   public final void deregisterOrderingMatchingRule(
                          OrderingMatchingRule matchingRule)
   {
-
     synchronized (matchingRules)
     {
       String oid = matchingRule.getOID();
@@ -1595,7 +1552,6 @@ public class Schema
   public final ConcurrentHashMap<String,SubstringMatchingRule>
                     getSubstringMatchingRules()
   {
-
     return substringMatchingRules;
   }
 
@@ -1616,7 +1572,6 @@ public class Schema
   public final SubstringMatchingRule getSubstringMatchingRule(
                                           String lowerName)
   {
-
     return substringMatchingRules.get(lowerName);
   }
 
@@ -1641,8 +1596,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-
-
     synchronized (matchingRules)
     {
       if (! overwriteExisting)
@@ -1716,7 +1669,6 @@ public class Schema
   public final void deregisterSubstringMatchingRule(
                          SubstringMatchingRule matchingRule)
   {
-
     synchronized (matchingRules)
     {
       String oid = matchingRule.getOID();
@@ -1758,7 +1710,6 @@ public class Schema
   public final ConcurrentHashMap<MatchingRule,MatchingRuleUse>
                     getMatchingRuleUses()
   {
-
     return matchingRuleUses;
   }
 
@@ -1771,7 +1722,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getMatchingRuleUseSet()
   {
-
     return matchingRuleUseSet;
   }
 
@@ -1789,7 +1739,6 @@ public class Schema
    */
   public boolean hasMatchingRuleUse(MatchingRule matchingRule)
   {
-
     return matchingRuleUses.containsKey(matchingRule);
   }
 
@@ -1808,7 +1757,6 @@ public class Schema
   public final MatchingRuleUse getMatchingRuleUse(
                                     MatchingRule matchingRule)
   {
-
     return matchingRuleUses.get(matchingRule);
   }
 
@@ -1834,7 +1782,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-
     synchronized (matchingRuleUses)
     {
       MatchingRule matchingRule = matchingRuleUse.getMatchingRule();
@@ -1883,7 +1830,6 @@ public class Schema
   public final void deregisterMatchingRuleUse(
                          MatchingRuleUse matchingRuleUse)
   {
-
     synchronized (matchingRuleUses)
     {
       matchingRuleUses.remove(matchingRuleUse.getMatchingRule(),
@@ -1916,7 +1862,6 @@ public class Schema
   public final ConcurrentHashMap<ObjectClass,DITContentRule>
                     getDITContentRules()
   {
-
     return ditContentRules;
   }
 
@@ -1929,7 +1874,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getDITContentRuleSet()
   {
-
     return ditContentRuleSet;
   }
 
@@ -1947,7 +1891,6 @@ public class Schema
    */
   public boolean hasDITContentRule(ObjectClass objectClass)
   {
-
     return ditContentRules.containsKey(objectClass);
   }
 
@@ -1967,7 +1910,6 @@ public class Schema
   public final DITContentRule getDITContentRule(
                                    ObjectClass objectClass)
   {
-
     return ditContentRules.get(objectClass);
   }
 
@@ -1992,7 +1934,6 @@ public class Schema
                           boolean overwriteExisting)
          throws DirectoryException
   {
-
     synchronized (ditContentRules)
     {
       ObjectClass objectClass = ditContentRule.getStructuralClass();
@@ -2040,7 +1981,6 @@ public class Schema
   public final void deregisterDITContentRule(
                          DITContentRule ditContentRule)
   {
-
     synchronized (ditContentRules)
     {
       ditContentRules.remove(ditContentRule.getStructuralClass(),
@@ -2068,7 +2008,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getDITStructureRuleSet()
   {
-
     return ditStructureRuleSet;
   }
 
@@ -2086,7 +2025,6 @@ public class Schema
   public final ConcurrentHashMap<Integer,DITStructureRule>
                     getDITStructureRulesByID()
   {
-
     return ditStructureRulesByID;
   }
 
@@ -2104,7 +2042,6 @@ public class Schema
   public final ConcurrentHashMap<NameForm,DITStructureRule>
                     getDITStructureRulesByNameForm()
   {
-
     return ditStructureRulesByNameForm;
   }
 
@@ -2121,7 +2058,6 @@ public class Schema
    */
   public boolean hasDITStructureRule(int ruleID)
   {
-
     return ditStructureRulesByID.containsKey(ruleID);
   }
 
@@ -2140,7 +2076,6 @@ public class Schema
    */
   public boolean hasDITStructureRule(NameForm nameForm)
   {
-
     return ditStructureRulesByNameForm.containsKey(nameForm);
   }
 
@@ -2159,7 +2094,6 @@ public class Schema
    */
   public final DITStructureRule getDITStructureRule(int ruleID)
   {
-
     return ditStructureRulesByID.get(ruleID);
   }
 
@@ -2178,7 +2112,6 @@ public class Schema
    */
   public final DITStructureRule getDITStructureRule(NameForm nameForm)
   {
-
     return ditStructureRulesByNameForm.get(nameForm);
   }
 
@@ -2203,7 +2136,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-
     synchronized (ditStructureRulesByNameForm)
     {
       NameForm nameForm = ditStructureRule.getNameForm();
@@ -2270,7 +2202,6 @@ public class Schema
   public final void deregisterDITStructureRule(
                          DITStructureRule ditStructureRule)
   {
-
     synchronized (ditStructureRulesByNameForm)
     {
       ditStructureRulesByNameForm.remove(
@@ -2300,7 +2231,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getNameFormSet()
   {
-
     return nameFormSet;
   }
 
@@ -2318,7 +2248,6 @@ public class Schema
   public final ConcurrentHashMap<ObjectClass,NameForm>
                     getNameFormsByObjectClass()
   {
-
     return nameFormsByOC;
   }
 
@@ -2336,7 +2265,6 @@ public class Schema
   public final ConcurrentHashMap<String,NameForm>
                     getNameFormsByNameOrOID()
   {
-
     return nameFormsByName;
   }
 
@@ -2354,7 +2282,6 @@ public class Schema
    */
   public boolean hasNameForm(ObjectClass objectClass)
   {
-
     return nameFormsByOC.containsKey(objectClass);
   }
 
@@ -2373,7 +2300,6 @@ public class Schema
    */
   public boolean hasNameForm(String lowerName)
   {
-
     return nameFormsByName.containsKey(lowerName);
   }
 
@@ -2390,7 +2316,6 @@ public class Schema
    */
   public final NameForm getNameForm(ObjectClass objectClass)
   {
-
     return nameFormsByOC.get(objectClass);
   }
 
@@ -2407,7 +2332,6 @@ public class Schema
    */
   public final NameForm getNameForm(String lowerName)
   {
-
     return nameFormsByName.get(lowerName);
   }
 
@@ -2430,7 +2354,6 @@ public class Schema
                                      boolean overwriteExisting)
          throws DirectoryException
   {
-
     synchronized (nameFormsByOC)
     {
       ObjectClass objectClass = nameForm.getStructuralClass();
@@ -2512,7 +2435,6 @@ public class Schema
    */
   public final void deregisterNameForm(NameForm nameForm)
   {
-
     synchronized (nameFormsByOC)
     {
       nameFormsByOC.remove(nameForm.getStructuralClass(), nameForm);
@@ -2548,7 +2470,6 @@ public class Schema
    */
   public long getOldestModificationTime()
   {
-
     return oldestModificationTime;
   }
 
@@ -2564,7 +2485,6 @@ public class Schema
    */
   public void setOldestModificationTime(long oldestModificationTime)
   {
-
     this.oldestModificationTime = oldestModificationTime;
   }
 
@@ -2580,7 +2500,6 @@ public class Schema
    */
   public long getYoungestModificationTime()
   {
-
     return youngestModificationTime;
   }
 
@@ -2597,7 +2516,6 @@ public class Schema
   public void setYoungestModificationTime(
                    long youngestModificationTime)
   {
-
     this.youngestModificationTime = youngestModificationTime;
   }
 
@@ -2648,7 +2566,6 @@ public class Schema
                          SchemaFileElement element)
          throws DirectoryException
   {
-
     try
     {
       rebuildDependentElements(element, 0);
@@ -2692,7 +2609,6 @@ public class Schema
                           SchemaFileElement element, int depth)
           throws DirectoryException
   {
-
     if (depth > 20)
     {
       // FIXME -- Is this an appropriate maximum depth for detecting
@@ -2847,7 +2763,6 @@ public class Schema
    */
   public final Schema duplicate()
   {
-
     Schema dupSchema = new Schema();
 
     dupSchema.attributeTypes.putAll(attributeTypes);

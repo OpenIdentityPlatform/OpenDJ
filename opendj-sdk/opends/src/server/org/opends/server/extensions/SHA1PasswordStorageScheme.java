@@ -104,7 +104,6 @@ public class SHA1PasswordStorageScheme
   public void initializePasswordStorageScheme(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     try
     {
       messageDigest = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_1);
@@ -133,7 +132,6 @@ public class SHA1PasswordStorageScheme
   @Override()
   public String getStorageSchemeName()
   {
-
     return STORAGE_SCHEME_NAME_SHA_1;
   }
 
@@ -146,7 +144,6 @@ public class SHA1PasswordStorageScheme
   public ByteString encodePassword(ByteString plaintext)
          throws DirectoryException
   {
-
     byte[] digestBytes;
 
     digestLock.lock();
@@ -186,7 +183,6 @@ public class SHA1PasswordStorageScheme
   public ByteString encodePasswordWithScheme(ByteString plaintext)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append('{');
     buffer.append(STORAGE_SCHEME_NAME_SHA_1);
@@ -233,7 +229,6 @@ public class SHA1PasswordStorageScheme
   public boolean passwordMatches(ByteString plaintextPassword,
                                  ByteString storedPassword)
   {
-
     byte[] userPWDigestBytes;
 
     digestLock.lock();
@@ -286,7 +281,6 @@ public class SHA1PasswordStorageScheme
   @Override()
   public boolean supportsAuthPasswordSyntax()
   {
-
     // This storage scheme does not support the authentication password syntax.
     return false;
   }
@@ -300,8 +294,6 @@ public class SHA1PasswordStorageScheme
   public ByteString encodeAuthPassword(ByteString plaintext)
          throws DirectoryException
   {
-
-
     int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
     String message = getMessage(msgID, getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -317,8 +309,6 @@ public class SHA1PasswordStorageScheme
   public boolean authPasswordMatches(ByteString plaintextPassword,
                                      String authInfo, String authValue)
   {
-
-
     // This storage scheme does not support the authentication password syntax.
     return false;
   }
@@ -331,7 +321,6 @@ public class SHA1PasswordStorageScheme
   @Override()
   public boolean isReversible()
   {
-
     return false;
   }
 
@@ -344,7 +333,6 @@ public class SHA1PasswordStorageScheme
   public ByteString getPlaintextValue(ByteString storedPassword)
          throws DirectoryException
   {
-
     int msgID = MSGID_PWSCHEME_NOT_REVERSIBLE;
     String message = getMessage(msgID, STORAGE_SCHEME_NAME_SHA_1);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
@@ -361,7 +349,6 @@ public class SHA1PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
     String message = getMessage(msgID, getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -376,7 +363,6 @@ public class SHA1PasswordStorageScheme
   @Override()
   public boolean isStorageSchemeSecure()
   {
-
     // SHA-1 should be considered secure.
     return true;
   }

@@ -205,7 +205,6 @@ public class VerifyJob
   public void verifyBackend(RootContainer rootContainer, Entry statEntry) throws
       DatabaseException, JebException
   {
-
     this.rootContainer = rootContainer;
     EntryContainer entryContainer =
         rootContainer.getEntryContainer(verifyConfig.getBaseDN());
@@ -1582,7 +1581,6 @@ public class VerifyJob
    */
   class ProgressTask extends TimerTask
   {
-
     /**
      * The number of records that had been processed at the time of the
      * previous progress report.

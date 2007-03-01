@@ -49,7 +49,6 @@ public final class ByteStringFactory
    */
   public static ByteString create()
   {
-
     return new ASN1OctetString();
   }
 
@@ -67,7 +66,6 @@ public final class ByteStringFactory
    */
   public static ByteString create(byte[] value)
   {
-
     return new ASN1OctetString(value);
   }
 
@@ -85,7 +83,6 @@ public final class ByteStringFactory
    */
   public static ByteString create(String value)
   {
-
     return new ASN1OctetString(value);
   }
 }

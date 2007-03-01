@@ -153,7 +153,6 @@ public final class LDIFException
    */
   public int getMessageID()
   {
-
     return messageID;
   }
 
@@ -166,7 +165,6 @@ public final class LDIFException
    */
   public long getLineNumber()
   {
-
     return lineNumber;
   }
 
@@ -184,7 +182,6 @@ public final class LDIFException
    */
   public boolean canContinueReading()
   {
-
     return canContinueReading;
   }
 }

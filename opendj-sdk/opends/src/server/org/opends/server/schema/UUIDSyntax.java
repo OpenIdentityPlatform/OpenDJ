@@ -92,7 +92,6 @@ public class UUIDSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_UUID_OID);
     if (defaultEqualityMatchingRule == null)
@@ -121,7 +120,6 @@ public class UUIDSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_UUID_NAME;
   }
 
@@ -134,7 +132,6 @@ public class UUIDSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_UUID_OID;
   }
 
@@ -147,7 +144,6 @@ public class UUIDSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_UUID_DESCRIPTION;
   }
 
@@ -163,7 +159,6 @@ public class UUIDSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -179,7 +174,6 @@ public class UUIDSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -195,7 +189,6 @@ public class UUIDSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     // There is no substring matching rule by default.
     return null;
   }
@@ -212,7 +205,6 @@ public class UUIDSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -234,8 +226,6 @@ public class UUIDSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // We will only accept values that look like valid UUIDs.  This means that
     // all values must be in the form HHHHHHHH-HHHH-HHHH-HHHH-HHHHHHHHHHHH,
     // where "H" represents a hexadecimal digit.  First, make sure that the

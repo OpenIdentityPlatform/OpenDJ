@@ -95,7 +95,6 @@ public class PostalAddressSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -124,7 +123,6 @@ public class PostalAddressSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_POSTAL_ADDRESS_NAME;
   }
 
@@ -137,7 +135,6 @@ public class PostalAddressSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_POSTAL_ADDRESS_OID;
   }
 
@@ -150,7 +147,6 @@ public class PostalAddressSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_POSTAL_ADDRESS_DESCRIPTION;
   }
 
@@ -166,7 +162,6 @@ public class PostalAddressSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -182,7 +177,6 @@ public class PostalAddressSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     // Ordering matching will not be allowed by default.
     return null;
   }
@@ -199,7 +193,6 @@ public class PostalAddressSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -215,7 +208,6 @@ public class PostalAddressSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // Approximate matching will not be allowed by default.
     return null;
   }
@@ -237,7 +229,6 @@ public class PostalAddressSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     // We'll allow any value.
     return true;
   }

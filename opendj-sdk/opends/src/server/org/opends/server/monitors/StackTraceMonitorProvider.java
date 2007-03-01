@@ -86,7 +86,6 @@ public class StackTraceMonitorProvider
   public void initializeMonitorProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -100,7 +99,6 @@ public class StackTraceMonitorProvider
    */
   public String getMonitorInstanceName()
   {
-
     return "JVM Stack Trace";
   }
 
@@ -117,7 +115,6 @@ public class StackTraceMonitorProvider
    */
   public long getUpdateInterval()
   {
-
     // This monitor does not need to run periodically.
     return 0;
   }
@@ -133,7 +130,6 @@ public class StackTraceMonitorProvider
    */
   public void updateMonitorData()
   {
-
     // This monitor does not need to run periodically.
     return;
   }
@@ -150,8 +146,6 @@ public class StackTraceMonitorProvider
    */
   public ArrayList<Attribute> getMonitorData()
   {
-
-
     Map<Thread,StackTraceElement[]> threadStacks = Thread.getAllStackTraces();
 
 

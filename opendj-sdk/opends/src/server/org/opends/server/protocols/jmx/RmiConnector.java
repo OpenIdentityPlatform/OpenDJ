@@ -283,7 +283,6 @@ public class RmiConnector
    */
   private void startConnectorNoClientCertificate() throws Exception
   {
-
     try
     {
       //

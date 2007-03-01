@@ -139,7 +139,6 @@ public class StaticGroup
   public void initializeGroupImplementation(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No additional initialization is required.
   }
 
@@ -153,7 +152,6 @@ public class StaticGroup
   public StaticGroup newInstance(Entry groupEntry)
          throws DirectoryException
   {
-
     ensureNotNull(groupEntry);
 
 
@@ -240,7 +238,6 @@ public class StaticGroup
   public SearchFilter getGroupDefinitionFilter()
          throws DirectoryException
   {
-
     // FIXME -- This needs to exclude enhanced groups once we have support for
     // them.
     String filterString =
@@ -291,7 +288,6 @@ public class StaticGroup
   @Override()
   public DN getGroupDN()
   {
-
     return groupEntryDN;
   }
 
@@ -303,7 +299,6 @@ public class StaticGroup
   @Override()
   public boolean supportsNestedGroups()
   {
-
     // FIXME -- We should add support for nested groups.
     return false;
   }
@@ -316,7 +311,6 @@ public class StaticGroup
   @Override()
   public List<DN> getNestedGroupDNs()
   {
-
     // FIXME -- We should add support for nested groups.
     return Collections.<DN>emptyList();
   }
@@ -330,7 +324,6 @@ public class StaticGroup
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-
     // FIXME -- We should add support for nested groups.
     throw new UnsupportedOperationException();
   }
@@ -344,7 +337,6 @@ public class StaticGroup
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-
     // FIXME -- We should add support for nested groups.
     throw new UnsupportedOperationException();
   }
@@ -358,7 +350,6 @@ public class StaticGroup
   public boolean isMember(DN userDN)
          throws DirectoryException
   {
-
     return memberDNs.contains(userDN);
   }
 
@@ -371,7 +362,6 @@ public class StaticGroup
   public boolean isMember(Entry userEntry)
          throws DirectoryException
   {
-
     return memberDNs.contains(userEntry.getDN());
   }
 
@@ -384,7 +374,6 @@ public class StaticGroup
   public MemberList getMembers()
          throws DirectoryException
   {
-
     return new SimpleStaticGroupMemberList(groupEntryDN, memberDNs);
   }
 
@@ -398,7 +387,6 @@ public class StaticGroup
                                SearchFilter filter)
          throws DirectoryException
   {
-
     if ((baseDN == null) && (filter == null))
     {
       return new SimpleStaticGroupMemberList(groupEntryDN, memberDNs);
@@ -418,7 +406,6 @@ public class StaticGroup
   @Override()
   public boolean mayAlterMemberList()
   {
-
     return true;
   }
 
@@ -431,7 +418,6 @@ public class StaticGroup
   public void addMember(Entry userEntry)
          throws UnsupportedOperationException, DirectoryException
   {
-
     ensureNotNull(userEntry);
 
     synchronized (this)
@@ -496,7 +482,6 @@ public class StaticGroup
   public void removeMember(DN userDN)
          throws UnsupportedOperationException, DirectoryException
   {
-
     ensureNotNull(userDN);
 
     synchronized (this)
@@ -558,7 +543,6 @@ public class StaticGroup
   @Override()
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("StaticGroup(");
     buffer.append(groupEntryDN);
     buffer.append(")");

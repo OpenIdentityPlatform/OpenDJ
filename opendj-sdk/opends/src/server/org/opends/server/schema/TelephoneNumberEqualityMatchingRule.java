@@ -82,7 +82,6 @@ public class TelephoneNumberEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -96,7 +95,6 @@ public class TelephoneNumberEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_TELEPHONE_NAME;
   }
 
@@ -109,7 +107,6 @@ public class TelephoneNumberEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_TELEPHONE_OID;
   }
 
@@ -123,7 +120,6 @@ public class TelephoneNumberEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -138,7 +134,6 @@ public class TelephoneNumberEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_TELEPHONE_OID;
   }
 
@@ -158,7 +153,6 @@ public class TelephoneNumberEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     String valueString = value.stringValue();
     int    valueLength = valueString.length();
     StringBuilder buffer = new StringBuilder(valueLength);
@@ -193,7 +187,6 @@ public class TelephoneNumberEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.
     return Arrays.equals(value1.value(), value2.value());

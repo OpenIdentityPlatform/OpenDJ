@@ -66,7 +66,6 @@ public class UnbindRequestProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_UNBIND_REQUEST;
   }
 
@@ -79,7 +78,6 @@ public class UnbindRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Unbind Request";
   }
 
@@ -93,7 +91,6 @@ public class UnbindRequestProtocolOp
    */
   public ASN1Element encode()
   {
-
     return new ASN1Null(OP_TYPE_UNBIND_REQUEST);
   }
 
@@ -112,7 +109,6 @@ public class UnbindRequestProtocolOp
   public static UnbindRequestProtocolOp decodeUnbindRequest(ASN1Element element)
          throws LDAPException
   {
-
     try
     {
       element.decodeAsNull();
@@ -141,7 +137,6 @@ public class UnbindRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("UnbindRequest()");
   }
 
@@ -157,7 +152,6 @@ public class UnbindRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     for (int i=0; i < indent; i++)
     {
       buffer.append(' ');

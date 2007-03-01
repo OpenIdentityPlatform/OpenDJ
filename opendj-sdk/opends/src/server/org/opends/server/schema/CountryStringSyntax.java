@@ -102,7 +102,6 @@ public class CountryStringSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultApproximateMatchingRule =
          DirectoryServer.getApproximateMatchingRule(AMR_DOUBLE_METAPHONE_OID);
     if (defaultApproximateMatchingRule == null)
@@ -149,7 +148,6 @@ public class CountryStringSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_COUNTRY_STRING_NAME;
   }
 
@@ -162,7 +160,6 @@ public class CountryStringSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_COUNTRY_STRING_OID;
   }
 
@@ -175,7 +172,6 @@ public class CountryStringSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_COUNTRY_STRING_DESCRIPTION;
   }
 
@@ -191,7 +187,6 @@ public class CountryStringSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -207,7 +202,6 @@ public class CountryStringSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -223,7 +217,6 @@ public class CountryStringSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -239,7 +232,6 @@ public class CountryStringSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     return defaultApproximateMatchingRule;
   }
 
@@ -260,7 +252,6 @@ public class CountryStringSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     String stringValue = toLowerCase(value.stringValue());
     if (stringValue.length() != 2)
     {

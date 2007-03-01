@@ -116,8 +116,6 @@ public class RandomPasswordGenerator
   public void initializePasswordGenerator(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     this.configEntryDN = configEntry.getDN();
     generatorLock = new ReentrantLock();
 
@@ -283,7 +281,6 @@ public class RandomPasswordGenerator
    */
   public void finalizePasswordGenerator()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
   }
 
@@ -304,8 +301,6 @@ public class RandomPasswordGenerator
   public ByteString generatePassword(Entry userEntry)
          throws DirectoryException
   {
-
-
     StringBuilder buffer = new StringBuilder(totalLength);
 
     generatorLock.lock();
@@ -336,8 +331,6 @@ public class RandomPasswordGenerator
    */
   public DN getConfigurableComponentEntryDN()
   {
-
-
     return configEntryDN;
   }
 
@@ -352,8 +345,6 @@ public class RandomPasswordGenerator
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     ArrayList<String> charsetValues = new ArrayList<String>();
@@ -400,8 +391,6 @@ public class RandomPasswordGenerator
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // Get the character sets for use in generating the password.  At least one
     // must have been provided.
     HashMap<String,NamedCharacterSet> charsets =
@@ -559,8 +548,6 @@ public class RandomPasswordGenerator
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

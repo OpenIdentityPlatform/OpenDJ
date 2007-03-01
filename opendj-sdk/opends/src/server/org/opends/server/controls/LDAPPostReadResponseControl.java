@@ -140,7 +140,6 @@ public class LDAPPostReadResponseControl
   public static LDAPPostReadResponseControl decodeControl(Control control)
          throws LDAPException
   {
-
     if (! control.hasValue())
     {
       int    msgID   = MSGID_POSTREADRESP_NO_CONTROL_VALUE;
@@ -199,8 +198,6 @@ public class LDAPPostReadResponseControl
    */
   private static ASN1OctetString encodeEntry(SearchResultEntry searchEntry)
   {
-
-
     SearchResultEntryProtocolOp protocolOp =
          new SearchResultEntryProtocolOp(searchEntry);
     return new ASN1OctetString(protocolOp.encode().encode());
@@ -217,7 +214,6 @@ public class LDAPPostReadResponseControl
    */
   public SearchResultEntry getSearchEntry()
   {
-
     return searchEntry;
   }
 
@@ -232,7 +228,6 @@ public class LDAPPostReadResponseControl
    */
   public void setSearchEntry(SearchResultEntry searchEntry)
   {
-
     this.searchEntry = searchEntry;
     setValue(encodeEntry(searchEntry));
   }
@@ -246,7 +241,6 @@ public class LDAPPostReadResponseControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -262,7 +256,6 @@ public class LDAPPostReadResponseControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("LDAPPostReadResponseControl(criticality=");
     buffer.append(isCritical());
     buffer.append(",entry=");

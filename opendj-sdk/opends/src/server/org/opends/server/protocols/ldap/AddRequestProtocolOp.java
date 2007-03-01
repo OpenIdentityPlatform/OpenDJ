@@ -74,7 +74,6 @@ public class AddRequestProtocolOp
    */
   public AddRequestProtocolOp(ASN1OctetString dn)
   {
-
     this.dn         = dn;
     this.attributes = new ArrayList<LDAPAttribute>();
   }
@@ -91,7 +90,6 @@ public class AddRequestProtocolOp
   public AddRequestProtocolOp(ASN1OctetString dn,
                               ArrayList<LDAPAttribute> attributes)
   {
-
     this.dn = dn;
 
     if (attributes == null)
@@ -113,7 +111,6 @@ public class AddRequestProtocolOp
    */
   public ASN1OctetString getDN()
   {
-
     return dn;
   }
 
@@ -126,7 +123,6 @@ public class AddRequestProtocolOp
    */
   public void setDN(ASN1OctetString dn)
   {
-
     this.dn = dn;
   }
 
@@ -140,7 +136,6 @@ public class AddRequestProtocolOp
    */
   public List<LDAPAttribute> getAttributes()
   {
-
     return attributes;
   }
 
@@ -153,7 +148,6 @@ public class AddRequestProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_ADD_REQUEST;
   }
 
@@ -166,7 +160,6 @@ public class AddRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Add Request";
   }
 
@@ -180,7 +173,6 @@ public class AddRequestProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(dn);
 
@@ -212,7 +204,6 @@ public class AddRequestProtocolOp
   public static AddRequestProtocolOp decodeAddRequest(ASN1Element element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -296,7 +287,6 @@ public class AddRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("AddRequest(dn=");
     dn.toString(buffer);
     buffer.append(", attrs={");
@@ -328,7 +318,6 @@ public class AddRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {
@@ -363,8 +352,6 @@ public class AddRequestProtocolOp
    */
   public void toLDIF(StringBuilder buffer, int wrapColumn)
   {
-
-
     // Add the DN to the buffer.
     String dnString;
     int    colsRemaining;

@@ -115,8 +115,6 @@ public class ExactMatchIdentityMapper
   public void initializeIdentityMapper(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     configEntryDN = configEntry.getDN();
 
 
@@ -250,8 +248,6 @@ public class ExactMatchIdentityMapper
    */
   public void finalizeIdentityMapper()
   {
-
-
     // Deregister with the server as a configurable component.
     DirectoryServer.deregisterConfigurableComponent(this);
   }
@@ -276,8 +272,6 @@ public class ExactMatchIdentityMapper
   public Entry getEntryForID(String id)
          throws DirectoryException
   {
-
-
     // Get the attribute type and base DN arrays as local variables to protect
     // against concurrent modifications.
     String[]          matchAttrs = rawMatchAttributes;
@@ -404,7 +398,6 @@ public class ExactMatchIdentityMapper
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -419,8 +412,6 @@ public class ExactMatchIdentityMapper
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     String[] attrs = rawMatchAttributes;
@@ -481,8 +472,6 @@ public class ExactMatchIdentityMapper
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     boolean configAcceptable = true;
 
 
@@ -590,8 +579,6 @@ public class ExactMatchIdentityMapper
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

@@ -80,8 +80,6 @@ public class AnonymousSASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     // No real implementation is required.  Simply register with the Directory
     // Server for the ANONYMOUS mechanism.
     DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_ANONYMOUS,
@@ -96,7 +94,6 @@ public class AnonymousSASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_ANONYMOUS);
   }
 
@@ -109,8 +106,6 @@ public class AnonymousSASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-
-
     // See if the client provided SASL credentials including trace information.
     // If so, then log it to the error log.
     ByteString saslCredentials = bindOperation.getSASLCredentials();
@@ -143,7 +138,6 @@ public class AnonymousSASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-
     // This is not a password-based mechanism.
     return false;
   }
@@ -156,7 +150,6 @@ public class AnonymousSASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-
     // This is not a secure mechanism.
     return false;
   }

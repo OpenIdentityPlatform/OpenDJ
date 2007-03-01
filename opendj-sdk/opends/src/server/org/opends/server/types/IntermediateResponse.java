@@ -78,7 +78,6 @@ public class IntermediateResponse
                               ASN1OctetString value,
                               List<Control> controls)
   {
-
     this.operation = operation;
     this.oid       = oid;
     this.value     = value;
@@ -104,7 +103,6 @@ public class IntermediateResponse
    */
   public Operation getOperation()
   {
-
     return operation;
   }
 
@@ -118,7 +116,6 @@ public class IntermediateResponse
    */
   public String getOID()
   {
-
     return oid;
   }
 
@@ -131,7 +128,6 @@ public class IntermediateResponse
    */
   public void setOID(String oid)
   {
-
     this.oid = oid;
   }
 
@@ -145,7 +141,6 @@ public class IntermediateResponse
    */
   public ASN1OctetString getValue()
   {
-
     return value;
   }
 
@@ -158,7 +153,6 @@ public class IntermediateResponse
    */
   public void setValue(ASN1OctetString value)
   {
-
     this.value = value;
   }
 
@@ -173,7 +167,6 @@ public class IntermediateResponse
    */
   public List<Control> getControls()
   {
-
     return controls;
   }
 
@@ -186,7 +179,6 @@ public class IntermediateResponse
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -203,7 +195,6 @@ public class IntermediateResponse
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("IntermediateResponse(operation=");
     operation.toString(buffer);
     buffer.append(",oid=");

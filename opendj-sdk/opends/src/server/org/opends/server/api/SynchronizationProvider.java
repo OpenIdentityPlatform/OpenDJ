@@ -85,7 +85,6 @@ public abstract class SynchronizationProvider
    */
   public void finalizeSynchronizationProvider()
   {
-
     // No implementation is required by default.
   }
 
@@ -113,7 +112,6 @@ public abstract class SynchronizationProvider
               handleConflictResolution(AddOperation addOperation)
          throws DirectoryException
   {
-
     // No processing is required by default.
     return new SynchronizationProviderResult(true);
   }
@@ -182,7 +180,6 @@ public abstract class SynchronizationProvider
        handleConflictResolution(DeleteOperation deleteOperation)
          throws DirectoryException
   {
-
     // No processing is required by default.
     return new SynchronizationProviderResult(true);
   }
@@ -253,7 +250,6 @@ public abstract class SynchronizationProvider
                                             modifyOperation)
          throws DirectoryException
   {
-
     // No processing is required by default.
     return new SynchronizationProviderResult(true);
   }
@@ -325,7 +321,6 @@ public abstract class SynchronizationProvider
                                             modifyDNOperation)
          throws DirectoryException
   {
-
     // No processing is required by default.
     return new SynchronizationProviderResult(true);
   }

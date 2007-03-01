@@ -47,7 +47,6 @@ public class SizeBasedRotationPolicy implements RotationPolicy
    */
   public SizeBasedRotationPolicy(long size)
   {
-
     sizeLimit = size;
   }
 
@@ -79,7 +78,6 @@ public class SizeBasedRotationPolicy implements RotationPolicy
   */
   public boolean rotateFile()
   {
-
     if (fileHandler.getFileSize() >= sizeLimit)
     {
       if (debugEnabled())

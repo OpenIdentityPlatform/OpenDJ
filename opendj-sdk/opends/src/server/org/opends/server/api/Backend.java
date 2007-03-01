@@ -100,7 +100,6 @@ public abstract class Backend
    */
   protected Backend()
   {
-
     backendID           = null;
     parentBackend       = null;
     subordinateBackends = new Backend[0];
@@ -214,7 +213,6 @@ public abstract class Backend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-
     Lock lock = null;
     for (int i=0; i < 3; i++)
     {
@@ -402,7 +400,6 @@ public abstract class Backend
    */
   public final boolean supportsControl(String controlOID)
   {
-
     Set<String> supportedControls = getSupportedControls();
     return ((supportedControls != null) &&
             supportedControls.contains(controlOID));
@@ -432,7 +429,6 @@ public abstract class Backend
    */
   public final boolean supportsFeature(String featureOID)
   {
-
     Set<String> supportedFeatures = getSupportedFeatures();
     return ((supportedFeatures != null) &&
             supportedFeatures.contains(featureOID));
@@ -621,7 +617,6 @@ public abstract class Backend
    */
   public String getBackendID()
   {
-
     return backendID;
   }
 
@@ -634,7 +629,6 @@ public abstract class Backend
    */
   public void setBackendID(String backendID)
   {
-
     this.backendID = backendID;
   }
 
@@ -648,7 +642,6 @@ public abstract class Backend
    */
   public boolean isPrivateBackend()
   {
-
     return isPrivateBackend;
   }
 
@@ -674,7 +667,6 @@ public abstract class Backend
    */
   public WritabilityMode getWritabilityMode()
   {
-
     return writabilityMode;
   }
 
@@ -687,7 +679,6 @@ public abstract class Backend
    */
   public void setWritabilityMode(WritabilityMode writabilityMode)
   {
-
     if (writabilityMode == null)
     {
       this.writabilityMode = WritabilityMode.ENABLED;
@@ -709,7 +700,6 @@ public abstract class Backend
    */
   public BackendMonitor getBackendMonitor()
   {
-
     return backendMonitor;
   }
 
@@ -722,7 +712,6 @@ public abstract class Backend
    */
   public void setBackendMonitor(BackendMonitor backendMonitor)
   {
-
     this.backendMonitor = backendMonitor;
   }
 
@@ -747,7 +736,6 @@ public abstract class Backend
    */
   public Backend getParentBackend()
   {
-
     return parentBackend;
   }
 
@@ -760,7 +748,6 @@ public abstract class Backend
    */
   public void setParentBackend(Backend parentBackend)
   {
-
     synchronized (this)
     {
       this.parentBackend = parentBackend;
@@ -777,7 +764,6 @@ public abstract class Backend
    */
   public Backend[] getSubordinateBackends()
   {
-
     return subordinateBackends;
   }
 
@@ -791,7 +777,6 @@ public abstract class Backend
    */
   public void setSubordinateBackends(Backend[] subordinateBackends)
   {
-
     synchronized (this)
     {
       this.subordinateBackends = subordinateBackends;
@@ -814,7 +799,6 @@ public abstract class Backend
    */
   public boolean hasSubSuffix(DN subSuffixDN)
   {
-
     Backend[] subBackends = subordinateBackends;
     for (Backend b : subBackends)
     {
@@ -854,7 +838,6 @@ public abstract class Backend
   public void removeSubSuffix(DN subSuffixDN, DN parentDN)
          throws ConfigException
   {
-
     synchronized (this)
     {
       boolean matchFound = false;
@@ -918,7 +901,6 @@ public abstract class Backend
    */
   public void addSubordinateBackend(Backend subordinateBackend)
   {
-
     synchronized (this)
     {
       LinkedHashSet<Backend> backendSet =
@@ -951,7 +933,6 @@ public abstract class Backend
    */
   public void removeSubordinateBackend(Backend subordinateBackend)
   {
-
     synchronized (this)
     {
       ArrayList<Backend> backendList =
@@ -995,7 +976,6 @@ public abstract class Backend
    */
   public boolean handlesEntry(DN entryDN)
   {
-
     DN[] baseDNs = getBaseDNs();
     for (int i=0; i < baseDNs.length; i++)
     {
@@ -1037,7 +1017,6 @@ public abstract class Backend
                                            List<DN> baseDNs,
                                            List<DN> excludeDNs)
   {
-
     for (DN baseDN : baseDNs)
     {
       if (entryDN.isDescendantOf(baseDN))

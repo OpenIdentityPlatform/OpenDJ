@@ -111,7 +111,6 @@ public final class DITStructureRule
                           Set<DITStructureRule> superiorRules,
                           Map<String,List<String>> extraProperties)
   {
-
     ensureNotNull(definition);
 
     this.definition  = definition;
@@ -162,7 +161,6 @@ public final class DITStructureRule
    */
   public String getDefinition()
   {
-
     return definition;
   }
 
@@ -209,7 +207,6 @@ public final class DITStructureRule
    */
   public Map<String,String> getNames()
   {
-
     return names;
   }
 
@@ -226,7 +223,6 @@ public final class DITStructureRule
    */
   public boolean hasName(String lowerName)
   {
-
     return names.containsKey(lowerName);
   }
 
@@ -239,7 +235,6 @@ public final class DITStructureRule
    */
   public int getRuleID()
   {
-
     return ruleID;
   }
 
@@ -254,7 +249,6 @@ public final class DITStructureRule
    */
   public String getNameOrRuleID()
   {
-
     if (names.isEmpty())
     {
       return String.valueOf(ruleID);
@@ -277,7 +271,6 @@ public final class DITStructureRule
    */
   public String getSchemaFile()
   {
-
     List<String> values =
          extraProperties.get(SCHEMA_PROPERTY_FILENAME);
     if ((values == null) || values.isEmpty())
@@ -299,7 +292,6 @@ public final class DITStructureRule
    */
   public void setSchemaFile(String schemaFile)
   {
-
     setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
@@ -312,7 +304,6 @@ public final class DITStructureRule
    */
   public String getDescription()
   {
-
     return description;
   }
 
@@ -325,7 +316,6 @@ public final class DITStructureRule
    */
   public NameForm getNameForm()
   {
-
     return nameForm;
   }
 
@@ -340,7 +330,6 @@ public final class DITStructureRule
    */
   public ObjectClass getStructuralClass()
   {
-
     return nameForm.getStructuralClass();
   }
 
@@ -353,7 +342,6 @@ public final class DITStructureRule
    */
   public Set<DITStructureRule> getSuperiorRules()
   {
-
     return superiorRules;
   }
 
@@ -368,7 +356,6 @@ public final class DITStructureRule
    */
   public boolean hasSuperiorRules()
   {
-
     return ((superiorRules != null) && (! superiorRules.isEmpty()));
   }
 
@@ -382,7 +369,6 @@ public final class DITStructureRule
    */
   public boolean isObsolete()
   {
-
     return isObsolete;
   }
 
@@ -399,7 +385,6 @@ public final class DITStructureRule
    */
   public Map<String,List<String>> getExtraProperties()
   {
-
     return extraProperties;
   }
 
@@ -418,7 +403,6 @@ public final class DITStructureRule
    */
   public List<String> getExtraProperty(String propertyName)
   {
-
     return extraProperties.get(propertyName);
   }
 
@@ -435,7 +419,6 @@ public final class DITStructureRule
    */
   public void setExtraProperty(String name, String value)
   {
-
     ensureNotNull(name);
 
     if (value == null)
@@ -464,7 +447,6 @@ public final class DITStructureRule
    */
   public void setExtraProperty(String name, List<String> values)
   {
-
     ensureNotNull(name);
 
     if ((values == null) || values.isEmpty())
@@ -492,7 +474,6 @@ public final class DITStructureRule
    */
   public boolean equals(Object o)
   {
-
     if (this == o)
     {
       return true;
@@ -516,7 +497,6 @@ public final class DITStructureRule
    */
   public int hashCode()
   {
-
     return ruleID;
   }
 
@@ -531,7 +511,6 @@ public final class DITStructureRule
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer, true);
     return buffer.toString();
@@ -553,7 +532,6 @@ public final class DITStructureRule
   public void toString(StringBuilder buffer,
                        boolean includeFileElement)
   {
-
     buffer.append("( ");
     buffer.append(ruleID);
 

@@ -89,7 +89,6 @@ public class IdentityMapperConfigManager
    */
   public IdentityMapperConfigManager()
   {
-
     configHandler   = DirectoryServer.getConfigHandler();
     identityMappers = new ConcurrentHashMap<DN,IdentityMapper>();
   }
@@ -110,8 +109,6 @@ public class IdentityMapperConfigManager
   public void initializeIdentityMappers()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the configuration base entry.
     ConfigEntry baseEntry;
     try
@@ -244,8 +241,6 @@ public class IdentityMapperConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for an identity
     // mapper.
     if (! configEntry.hasObjectClass(OC_IDENTITY_MAPPER))
@@ -384,8 +379,6 @@ public class IdentityMapperConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -609,8 +602,6 @@ public class IdentityMapperConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (identityMappers.containsKey(configEntryDN))
@@ -789,8 +780,6 @@ public class IdentityMapperConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -953,8 +942,6 @@ public class IdentityMapperConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -971,8 +958,6 @@ public class IdentityMapperConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

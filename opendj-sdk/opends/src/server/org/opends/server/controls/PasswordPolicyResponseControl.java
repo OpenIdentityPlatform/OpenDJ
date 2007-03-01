@@ -215,7 +215,6 @@ public class PasswordPolicyResponseControl
                                       int warningValue,
                                       PasswordPolicyErrorType errorType)
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
 
     if (warningType != null)
@@ -254,8 +253,6 @@ public class PasswordPolicyResponseControl
   public static PasswordPolicyResponseControl decodeControl(Control control)
          throws LDAPException
   {
-
-
     ASN1OctetString controlValue = control.getValue();
     if (controlValue == null)
     {
@@ -356,7 +353,6 @@ public class PasswordPolicyResponseControl
    */
   public PasswordPolicyWarningType getWarningType()
   {
-
     return warningType;
   }
 
@@ -370,7 +366,6 @@ public class PasswordPolicyResponseControl
    */
   public int getWarningValue()
   {
-
     return warningValue;
   }
 
@@ -384,7 +379,6 @@ public class PasswordPolicyResponseControl
    */
   public PasswordPolicyErrorType getErrorType()
   {
-
     return errorType;
   }
 
@@ -397,7 +391,6 @@ public class PasswordPolicyResponseControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -413,7 +406,6 @@ public class PasswordPolicyResponseControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("PasswordPolicyResponseControl(");
 
     if (warningType != null)

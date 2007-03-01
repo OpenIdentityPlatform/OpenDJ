@@ -101,7 +101,6 @@ public class DirectoryErrorLogger extends ErrorLogger
   public void initializeErrorLogger(ConfigEntry configEntry)
          throws ConfigException
   {
-
     configDN = configEntry.getDN();
     defaultSeverities = new HashSet<ErrorLogSeverity>();
 

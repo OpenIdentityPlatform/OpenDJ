@@ -83,8 +83,6 @@ public class ShutdownTask
   public void initializeTask()
          throws DirectoryException
   {
-
-
     // See if the entry contains a shutdown message.  If so, then use it.
     // Otherwise, use a default message.
     Entry taskEntry = getTaskEntry();
@@ -170,8 +168,6 @@ public class ShutdownTask
    */
   public TaskState runTask()
   {
-
-
     // This is a unique case in that the shutdown cannot finish until this task
     // is finished, but this task can't really be finished until the shutdown is
     // complete.  To work around this catch-22, we'll spawn a separate thread

@@ -76,7 +76,6 @@ public class RestoreConfig
   public RestoreConfig(BackupDirectory backupDirectory,
                        String backupID, boolean verifyOnly)
   {
-
     this.backupDirectory = backupDirectory;
     this.backupID        = backupID;
     this.verifyOnly      = verifyOnly;
@@ -93,7 +92,6 @@ public class RestoreConfig
    */
   public BackupDirectory getBackupDirectory()
   {
-
     return backupDirectory;
   }
 
@@ -108,7 +106,6 @@ public class RestoreConfig
    */
   public String getBackupID()
   {
-
     return backupID;
   }
 
@@ -131,7 +128,6 @@ public class RestoreConfig
    */
   public boolean verifyOnly()
   {
-
     return verifyOnly;
   }
 }

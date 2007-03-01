@@ -137,8 +137,6 @@ public class Entry
                Map<AttributeType,List<Attribute>>
                     operationalAttributes)
   {
-
-
     attachment = null;
     schema     = DirectoryServer.getSchema();
 
@@ -191,7 +189,6 @@ public class Entry
    */
   public DN getDN()
   {
-
     return dn;
   }
 
@@ -204,7 +201,6 @@ public class Entry
    */
   public void setDN(DN dn)
   {
-
     if (dn == null)
     {
       this.dn = DN.nullDN();
@@ -228,7 +224,6 @@ public class Entry
    */
   public Map<ObjectClass,String> getObjectClasses()
   {
-
     return objectClasses;
   }
 
@@ -245,7 +240,6 @@ public class Entry
    */
   public boolean hasObjectClass(ObjectClass objectClass)
   {
-
     return objectClasses.containsKey(objectClass);
   }
 
@@ -261,7 +255,6 @@ public class Entry
    */
   public ObjectClass getStructuralObjectClass()
   {
-
     ObjectClass structuralClass = null;
 
     for (ObjectClass oc : objectClasses.keySet())
@@ -301,7 +294,6 @@ public class Entry
                    Collection<AttributeValue> objectClassNames)
          throws DirectoryException
   {
-
     attachment = null;
 
     // Iterate through all the provided objectclass names and make
@@ -360,7 +352,6 @@ public class Entry
   public void addObjectClass(AttributeValue objectClassName)
          throws DirectoryException
   {
-
     attachment = null;
 
     String name = objectClassName.getStringValue();
@@ -406,7 +397,6 @@ public class Entry
   public void addObjectClass(ObjectClass oc)
          throws DirectoryException
   {
-
     attachment = null;
 
     if (objectClasses.containsKey(oc))
@@ -439,7 +429,6 @@ public class Entry
                    Collection<AttributeValue> objectClassNames)
          throws DirectoryException
   {
-
     attachment = null;
 
 
@@ -521,7 +510,6 @@ public class Entry
    */
   public List<Attribute> getAttributes()
   {
-
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     for (List<Attribute> list : userAttributes.values())
@@ -555,7 +543,6 @@ public class Entry
    */
   public Map<AttributeType,List<Attribute>> getUserAttributes()
   {
-
     return userAttributes;
   }
 
@@ -571,7 +558,6 @@ public class Entry
    */
   public Map<AttributeType,List<Attribute>> getOperationalAttributes()
   {
-
     return operationalAttributes;
   }
 
@@ -587,7 +573,6 @@ public class Entry
    */
   public Attribute getObjectClassAttribute()
   {
-
     if ((objectClasses == null) || objectClasses.isEmpty())
     {
       return null;
@@ -619,7 +604,6 @@ public class Entry
    */
   public boolean hasAttribute(AttributeType attributeType)
   {
-
     if (userAttributes.containsKey(attributeType) ||
         operationalAttributes.containsKey(attributeType))
     {
@@ -659,7 +643,6 @@ public class Entry
   public boolean hasAttribute(AttributeType attributeType,
                               Set<String> attributeOptions)
   {
-
     List<Attribute> attributes;
     if (attributeType.mayHaveSubordinateTypes())
     {
@@ -743,7 +726,6 @@ public class Entry
    */
   public List<Attribute> getAttribute(AttributeType attributeType)
   {
-
     if (attributeType.mayHaveSubordinateTypes())
     {
       List<Attribute> attributes = new LinkedList<Attribute>();
@@ -840,7 +822,6 @@ public class Entry
    */
   public List<Attribute> getAttribute(String lowerName)
   {
-
     for (AttributeType attr : userAttributes.keySet())
     {
       if (attr.hasNameOrOID(lowerName))
@@ -888,7 +869,6 @@ public class Entry
   public List<Attribute> getAttribute(AttributeType attributeType,
                                       Set<String> options)
   {
-
     List<Attribute> attributes = new LinkedList<Attribute>();
     if (attributeType.mayHaveSubordinateTypes())
     {
@@ -998,7 +978,6 @@ public class Entry
   public List<Attribute> getAttribute(String lowerName,
                                       Set<String> options)
   {
-
     for (AttributeType attr : userAttributes.keySet())
     {
       if (attr.hasNameOrOID(lowerName))
@@ -1058,7 +1037,6 @@ public class Entry
   public final <T> T getAttributeValue(AttributeType attributeType,
       AttributeValueDecoder<T> decoder) throws DirectoryException
   {
-
     List<Attribute> attributes = getAttribute(attributeType);
     AttributeValueIterable values =
          new AttributeValueIterable(attributes);
@@ -1106,7 +1084,6 @@ public class Entry
       Collection<T> collection)
       throws DirectoryException
   {
-
     List<Attribute> attributes = getAttribute(attributeType);
     AttributeValueIterable values =
          new AttributeValueIterable(attributes);
@@ -1132,7 +1109,6 @@ public class Entry
    */
   public boolean hasUserAttribute(AttributeType attributeType)
   {
-
     if (userAttributes.containsKey(attributeType))
     {
       return true;
@@ -1168,7 +1144,6 @@ public class Entry
    */
   public List<Attribute> getUserAttribute(AttributeType attributeType)
   {
-
     if (attributeType.mayHaveSubordinateTypes())
     {
       LinkedList<Attribute> attributes = new LinkedList<Attribute>();
@@ -1222,7 +1197,6 @@ public class Entry
   public List<Attribute> getUserAttribute(AttributeType attributeType,
                                           Set<String> options)
   {
-
     LinkedList<Attribute> attributes = new LinkedList<Attribute>();
     List<Attribute> attrs = userAttributes.get(attributeType);
     if (attrs != null)
@@ -1277,7 +1251,6 @@ public class Entry
   public List<Attribute> duplicateUserAttribute(
                              AttributeType attributeType)
   {
-
     LinkedList<Attribute> attributes = new LinkedList<Attribute>();
 
     List<Attribute> attrs = userAttributes.get(attributeType);
@@ -1334,7 +1307,6 @@ public class Entry
        Set<String> options,
        boolean omitValues)
   {
-
     if (attrList == null)
     {
       return null;
@@ -1384,7 +1356,6 @@ public class Entry
        Set<String> options,
        boolean omitValues)
   {
-
     List<Attribute> currentList = getUserAttribute(attributeType);
     return duplicateAttribute(currentList, options, omitValues);
   }
@@ -1413,7 +1384,6 @@ public class Entry
        Set<String> options,
        boolean omitValues)
   {
-
     List<Attribute> currentList =
          getOperationalAttribute(attributeType);
     return duplicateAttribute(currentList, options, omitValues);
@@ -1432,7 +1402,6 @@ public class Entry
    */
   public boolean hasOperationalAttribute(AttributeType attributeType)
   {
-
     if (operationalAttributes.containsKey(attributeType))
     {
       return true;
@@ -1469,7 +1438,6 @@ public class Entry
   public List<Attribute> getOperationalAttribute(
                               AttributeType attributeType)
   {
-
     if (attributeType.mayHaveSubordinateTypes())
     {
       LinkedList<Attribute> attributes = new LinkedList<Attribute>();
@@ -1525,7 +1493,6 @@ public class Entry
                               AttributeType attributeType,
                               Set<String> options)
   {
-
     LinkedList<Attribute> attributes = new LinkedList<Attribute>();
     List<Attribute> attrs = operationalAttributes.get(attributeType);
     if (attrs != null)
@@ -1581,7 +1548,6 @@ public class Entry
   public List<Attribute> duplicateOperationalAttribute(
                               AttributeType attributeType)
   {
-
     LinkedList<Attribute> attributes = new LinkedList<Attribute>();
 
     List<Attribute> attrs = operationalAttributes.get(attributeType);
@@ -1633,8 +1599,6 @@ public class Entry
   public void putAttribute(AttributeType attributeType,
                            List<Attribute> attributeList)
   {
-
-
     attachment = null;
 
 
@@ -1681,7 +1645,6 @@ public class Entry
   public void addAttribute(Attribute attribute,
                            List<AttributeValue> duplicateValues)
   {
-
     attachment = null;
 
     List<Attribute> attrList =
@@ -1756,7 +1719,6 @@ public class Entry
    */
   public boolean removeAttribute(AttributeType attributeType)
   {
-
     attachment = null;
 
     if (attributeType.isObjectClassType())
@@ -1794,7 +1756,6 @@ public class Entry
   public boolean removeAttribute(AttributeType attributeType,
                                  Set<String> options)
   {
-
     attachment = null;
 
     if ((options == null) || options.isEmpty())
@@ -1864,8 +1825,6 @@ public class Entry
   public boolean removeAttribute(Attribute attribute,
                                  List<AttributeValue> missingValues)
   {
-
-
     attachment = null;
 
 
@@ -2022,7 +1981,6 @@ public class Entry
    */
   public boolean allowsAttribute(AttributeType attributeType)
   {
-
     for (ObjectClass o : objectClasses.keySet())
     {
       if (o.isRequiredOrOptional(attributeType))
@@ -2049,7 +2007,6 @@ public class Entry
    */
   public boolean requiresAttribute(AttributeType attributeType)
   {
-
     for (ObjectClass o : objectClasses.keySet())
     {
       if (o.isRequired(attributeType))
@@ -2077,7 +2034,6 @@ public class Entry
   public boolean hasValue(AttributeType attributeType,
                           Set<String> options, AttributeValue value)
   {
-
     List<Attribute> attrList = getAttribute(attributeType);
     if ((attrList == null) || attrList.isEmpty())
     {
@@ -2112,7 +2068,6 @@ public class Entry
   public void applyModification(Modification mod)
          throws DirectoryException
   {
-
     Attribute     a = mod.getAttribute();
     AttributeType t = a.getAttributeType();
 
@@ -2325,7 +2280,6 @@ public class Entry
   public void applyModifications(List<Modification> mods)
          throws DirectoryException
   {
-
     for (Modification m : mods)
     {
       applyModification(m);
@@ -2390,8 +2344,6 @@ public class Entry
                                   boolean validateStructureRules,
                                   StringBuilder invalidReason)
   {
-
-
     // Get the structural objectclass for the entry.  If there isn't
     // one, or if there's more than one, then see if that's OK.
     AcceptRejectWarn structuralPolicy =
@@ -3118,7 +3070,6 @@ public class Entry
    */
   public Object getAttachment()
   {
-
     return attachment;
   }
 
@@ -3134,7 +3085,6 @@ public class Entry
    */
   public void setAttachment(Object attachment)
   {
-
     this.attachment = attachment;
   }
 
@@ -3149,7 +3099,6 @@ public class Entry
    */
   public Entry duplicate()
   {
-
     HashMap<ObjectClass,String> objectClassesCopy =
          new HashMap<ObjectClass,String>(objectClasses);
 
@@ -3184,7 +3133,6 @@ public class Entry
   public Entry duplicateWithoutOperationalAttributes(
                     boolean typesOnly)
   {
-
     HashMap<ObjectClass,String> objectClassesCopy;
     if (typesOnly)
     {
@@ -3265,7 +3213,6 @@ public class Entry
    */
   public Entry duplicateWithoutAttributes()
   {
-
     HashMap<ObjectClass,String> objectClassesCopy =
          new HashMap<ObjectClass,String>(objectClasses.size());
 
@@ -3293,7 +3240,6 @@ public class Entry
    */
   public boolean isReferral()
   {
-
     ObjectClass referralOC =
          DirectoryServer.getObjectClass(OC_REFERRAL);
     if (referralOC == null)
@@ -3355,7 +3301,6 @@ public class Entry
    */
   public LinkedHashSet<String> getReferralURLs()
   {
-
     AttributeType referralType =
          DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
     if (referralType == null)
@@ -3405,7 +3350,6 @@ public class Entry
    */
   public boolean isAlias()
   {
-
     ObjectClass aliasOC = DirectoryServer.getObjectClass(OC_ALIAS);
     if (aliasOC == null)
     {
@@ -3470,7 +3414,6 @@ public class Entry
   public DN getAliasedDN()
          throws DirectoryException
   {
-
     AttributeType aliasType =
          DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
     if (aliasType == null)
@@ -3534,7 +3477,6 @@ public class Entry
    */
   public boolean isLDAPSubentry()
   {
-
     ObjectClass ldapSubentryOC =
          DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC);
     if (ldapSubentryOC == null)
@@ -3580,7 +3522,6 @@ public class Entry
    */
   public boolean matchesBaseAndScope(DN baseDN, SearchScope scope)
   {
-
     switch (scope)
     {
       case BASE_OBJECT:
@@ -3616,7 +3557,6 @@ public class Entry
    */
   public List<StringBuilder> toLDIF()
   {
-
     LinkedList<StringBuilder> ldifLines =
          new LinkedList<StringBuilder>();
 
@@ -3708,8 +3648,6 @@ public class Entry
   public boolean toLDIF(LDIFExportConfig exportConfig)
          throws IOException, LDIFException
   {
-
-
     // See if this entry should be included in the export at all.
     try
     {
@@ -3934,7 +3872,6 @@ public class Entry
    */
   public String getProtocolElementName()
   {
-
     return "Entry";
   }
 
@@ -3947,7 +3884,6 @@ public class Entry
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -3964,7 +3900,6 @@ public class Entry
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("Entry(dn=\"");
     dn.toString(buffer);
 
@@ -4025,7 +3960,6 @@ public class Entry
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {
@@ -4049,7 +3983,6 @@ public class Entry
    */
   public String toSingleLineString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toSingleLineString(buffer);
     return buffer.toString();
@@ -4066,7 +3999,6 @@ public class Entry
    */
   public void toSingleLineString(StringBuilder buffer)
   {
-
     buffer.append("Entry(dn=\"");
     dn.toString(buffer);
     buffer.append("\",objectClasses={");

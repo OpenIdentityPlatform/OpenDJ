@@ -74,7 +74,6 @@ public class IntermediateResponseProtocolOp
    */
   public IntermediateResponseProtocolOp(String oid)
   {
-
     this.oid   = oid;
     this.value = null;
   }
@@ -90,7 +89,6 @@ public class IntermediateResponseProtocolOp
    */
   public IntermediateResponseProtocolOp(String oid, ASN1OctetString value)
   {
-
     this.oid   = oid;
     this.value = value;
   }
@@ -105,7 +103,6 @@ public class IntermediateResponseProtocolOp
    */
   public String getOID()
   {
-
     return oid;
   }
 
@@ -118,7 +115,6 @@ public class IntermediateResponseProtocolOp
    */
   public void setOID(String oid)
   {
-
     this.oid = oid;
   }
 
@@ -132,7 +128,6 @@ public class IntermediateResponseProtocolOp
    */
   public ASN1OctetString getValue()
   {
-
     return value;
   }
 
@@ -145,7 +140,6 @@ public class IntermediateResponseProtocolOp
    */
   public void setValue(ASN1OctetString value)
   {
-
     this.value = value;
   }
 
@@ -158,7 +152,6 @@ public class IntermediateResponseProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_INTERMEDIATE_RESPONSE;
   }
 
@@ -171,7 +164,6 @@ public class IntermediateResponseProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Intermediate Response";
   }
 
@@ -185,7 +177,6 @@ public class IntermediateResponseProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
 
     if (oid != null)
@@ -220,7 +211,6 @@ public class IntermediateResponseProtocolOp
                      decodeIntermediateResponse(ASN1Element element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -346,7 +336,6 @@ public class IntermediateResponseProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("IntermediateResponse(oid=");
     buffer.append(String.valueOf(oid));
 
@@ -371,7 +360,6 @@ public class IntermediateResponseProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

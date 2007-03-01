@@ -249,7 +249,6 @@ public class MultimasterSynchronization extends SynchronizationProvider
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
       StringBuilder unacceptableReason)
   {
-
     // TODO Auto-generated method stub
     return true;
   }

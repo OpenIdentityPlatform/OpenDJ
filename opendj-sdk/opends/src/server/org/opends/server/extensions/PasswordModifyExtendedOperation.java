@@ -148,7 +148,6 @@ public class PasswordModifyExtendedOperation
   public void initializeExtendedOperationHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     configEntryDN = configEntry.getDN();
 
     int msgID = MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER;
@@ -210,7 +209,6 @@ public class PasswordModifyExtendedOperation
    */
   public void finalizeExtendedOperationHandler()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
 
     DirectoryServer.deregisterSupportedExtension(OID_PASSWORD_MODIFY_REQUEST);
@@ -225,7 +223,6 @@ public class PasswordModifyExtendedOperation
    */
   public void processExtendedOperation(ExtendedOperation operation)
   {
-
     // Initialize the variables associated with components that may be included
     // in the request.
     ByteString userIdentity = null;
@@ -1219,7 +1216,6 @@ public class PasswordModifyExtendedOperation
    */
   private Entry getEntryByDN(ExtendedOperation operation, DN entryDN)
   {
-
     // Retrieve the user's entry from the directory.  If it does not exist, then
     // fail.
     try
@@ -1286,7 +1282,6 @@ public class PasswordModifyExtendedOperation
    */
   public Set<String> getSupportedControls()
   {
-
     return supportedControlOIDs;
   }
 
@@ -1301,7 +1296,6 @@ public class PasswordModifyExtendedOperation
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -1316,7 +1310,6 @@ public class PasswordModifyExtendedOperation
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     List<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER;
@@ -1345,8 +1338,6 @@ public class PasswordModifyExtendedOperation
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                       List<String> unacceptableReasons)
   {
-
-
     // Make sure that the specified identity mapper is OK.
     int msgID = MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER;
     DNConfigAttribute mapperStub =

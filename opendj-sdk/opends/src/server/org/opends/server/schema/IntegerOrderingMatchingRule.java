@@ -96,7 +96,6 @@ public class IntegerOrderingMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -110,7 +109,6 @@ public class IntegerOrderingMatchingRule
    */
   public String getName()
   {
-
     return OMR_INTEGER_NAME;
   }
 
@@ -123,7 +121,6 @@ public class IntegerOrderingMatchingRule
    */
   public String getOID()
   {
-
     return OMR_INTEGER_OID;
   }
 
@@ -137,7 +134,6 @@ public class IntegerOrderingMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -152,7 +148,6 @@ public class IntegerOrderingMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_INTEGER_OID;
   }
 
@@ -172,7 +167,6 @@ public class IntegerOrderingMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     byte[] valueBytes = value.value();
 
     int length = valueBytes.length;
@@ -400,7 +394,6 @@ public class IntegerOrderingMatchingRule
    */
   public int compareValues(ByteString value1, ByteString value2)
   {
-
     return compare(value1.value(), value2.value());
   }
 
@@ -421,7 +414,6 @@ public class IntegerOrderingMatchingRule
    */
   public int compare(byte[] b1, byte[] b2)
   {
-
     int b1Length = b1.length;
     int b2Length = b2.length;
 

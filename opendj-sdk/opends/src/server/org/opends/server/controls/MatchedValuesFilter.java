@@ -195,8 +195,6 @@ public class MatchedValuesFilter
                               List<ASN1OctetString> subAny,
                               ASN1OctetString subFinal, String matchingRuleID)
   {
-
-
     this.matchType         = matchType;
     this.rawAttributeType  = rawAttributeType;
     this.rawAssertionValue = rawAssertionValue;
@@ -232,7 +230,6 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ASN1OctetString rawAssertionValue)
   {
-
     Validator.ensureNotNull(rawAttributeType,rawAssertionValue);
 
     return new MatchedValuesFilter(EQUALITY_MATCH_TYPE, rawAttributeType,
@@ -253,8 +250,6 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-
-
     Validator.ensureNotNull(attributeType, assertionValue);
     String rawAttributeType = attributeType.getNameOrOID();
     ASN1OctetString rawAssertionValue = assertionValue.getValue()
@@ -287,8 +282,6 @@ public class MatchedValuesFilter
                                          List<ASN1OctetString> subAny,
                                          ASN1OctetString subFinal)
   {
-
-
     Validator.ensureNotNull(rawAttributeType);
     return new MatchedValuesFilter(SUBSTRINGS_TYPE, rawAttributeType, null,
                                    subInitial, subAny, subFinal, null);
@@ -312,8 +305,6 @@ public class MatchedValuesFilter
                                          List<ASN1OctetString> subAny,
                                          ASN1OctetString subFinal)
   {
-
-
     Validator.ensureNotNull(attributeType);
     String rawAttributeType = attributeType.getNameOrOID();
 
@@ -339,7 +330,6 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ASN1OctetString rawAssertionValue)
   {
-
    Validator.ensureNotNull(rawAttributeType, rawAssertionValue);
 
     return new MatchedValuesFilter(GREATER_OR_EQUAL_TYPE, rawAttributeType,
@@ -360,7 +350,6 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-
     Validator.ensureNotNull(attributeType, assertionValue);
 
     String          rawAttributeType  = attributeType.getNameOrOID();
@@ -390,8 +379,6 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ASN1OctetString rawAssertionValue)
   {
-
-
     Validator.ensureNotNull(rawAttributeType, rawAssertionValue);
     return new MatchedValuesFilter(LESS_OR_EQUAL_TYPE, rawAttributeType,
                                    rawAssertionValue, null, null, null, null);
@@ -411,7 +398,6 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-
     Validator.ensureNotNull(attributeType, assertionValue);
 
     String          rawAttributeType = attributeType.getNameOrOID();
@@ -438,7 +424,6 @@ public class MatchedValuesFilter
    */
   public static MatchedValuesFilter createPresentFilter(String rawAttributeType)
   {
-
     Validator.ensureNotNull(rawAttributeType) ;
     return new MatchedValuesFilter(PRESENT_TYPE, rawAttributeType, null, null,
                                    null, null, null);
@@ -456,7 +441,6 @@ public class MatchedValuesFilter
   public static MatchedValuesFilter createPresentFilter(
                                          AttributeType attributeType)
   {
-
     Validator.ensureNotNull(attributeType);
     String rawAttributeType = attributeType.getNameOrOID();
 
@@ -482,7 +466,6 @@ public class MatchedValuesFilter
                                          String rawAttributeType,
                                          ASN1OctetString rawAssertionValue)
   {
-
     Validator.ensureNotNull(rawAttributeType,rawAssertionValue);
 
     return new MatchedValuesFilter(APPROXIMATE_MATCH_TYPE, rawAttributeType,
@@ -503,8 +486,6 @@ public class MatchedValuesFilter
                                          AttributeType attributeType,
                                          AttributeValue assertionValue)
   {
-
-
     Validator.ensureNotNull(attributeType,assertionValue);
     String          rawAttributeType  = attributeType.getNameOrOID();
     ASN1OctetString rawAssertionValue =
@@ -535,7 +516,6 @@ public class MatchedValuesFilter
                                          String matchingRuleID,
                                          ASN1OctetString rawAssertionValue)
   {
-
     Validator
         .ensureNotNull(rawAttributeType, matchingRuleID, rawAssertionValue);
     return new MatchedValuesFilter(EXTENSIBLE_MATCH_TYPE, rawAttributeType,
@@ -559,8 +539,6 @@ public class MatchedValuesFilter
                                          MatchingRule matchingRule,
                                          AttributeValue assertionValue)
   {
-
-
     Validator.ensureNotNull(attributeType, matchingRule, assertionValue);
     String rawAttributeType = attributeType.getNameOrOID();
     String matchingRuleID = matchingRule.getOID();
@@ -593,7 +571,6 @@ public class MatchedValuesFilter
   public static MatchedValuesFilter createFromLDAPFilter(LDAPFilter filter)
          throws LDAPException
   {
-
     switch (filter.getFilterType())
     {
       case AND:
@@ -682,8 +659,6 @@ public class MatchedValuesFilter
    */
   public ASN1Element encode()
   {
-
-
     switch (matchType)
     {
       case EQUALITY_MATCH_TYPE:
@@ -769,8 +744,6 @@ public class MatchedValuesFilter
   public static MatchedValuesFilter decode(ASN1Element element)
          throws LDAPException
   {
-
-
     switch (element.getType())
     {
       case EQUALITY_MATCH_TYPE:
@@ -1054,7 +1027,6 @@ public class MatchedValuesFilter
    */
   public byte getMatchType()
   {
-
     return matchType;
   }
 
@@ -1069,7 +1041,6 @@ public class MatchedValuesFilter
    */
   public String getRawAttributeType()
   {
-
     return rawAttributeType;
   }
 
@@ -1084,7 +1055,6 @@ public class MatchedValuesFilter
    */
   public void setRawAttributeType(String rawAttributeType)
   {
-
     this.rawAttributeType = rawAttributeType;
 
     decoded                 = false;
@@ -1105,7 +1075,6 @@ public class MatchedValuesFilter
    */
   public AttributeType getAttributeType()
   {
-
     if (attributeType == null)
     {
       if (rawAttributeType != null)
@@ -1132,7 +1101,6 @@ public class MatchedValuesFilter
    */
   public void setAttributeType(AttributeType attributeType)
   {
-
     this.attributeType = attributeType;
 
     if (attributeType == null)
@@ -1162,7 +1130,6 @@ public class MatchedValuesFilter
    */
   public ASN1OctetString getRawAssertionValue()
   {
-
     return rawAssertionValue;
   }
 
@@ -1177,7 +1144,6 @@ public class MatchedValuesFilter
    */
   public void setRawAssertionValue(ASN1OctetString rawAssertionValue)
   {
-
     this.rawAssertionValue = rawAssertionValue;
 
     decoded        = false;
@@ -1194,7 +1160,6 @@ public class MatchedValuesFilter
    */
   public AttributeValue getAssertionValue()
   {
-
     if (assertionValue == null)
     {
       if (rawAssertionValue != null)
@@ -1216,7 +1181,6 @@ public class MatchedValuesFilter
    */
   public void setAssertionValue(AttributeValue assertionValue)
   {
-
     this.assertionValue = assertionValue;
 
     if (assertionValue == null)
@@ -1241,7 +1205,6 @@ public class MatchedValuesFilter
    */
   public ASN1OctetString getSubInitialElement()
   {
-
     return subInitial;
   }
 
@@ -1254,7 +1217,6 @@ public class MatchedValuesFilter
    */
   public void setSubInitialElement(ASN1OctetString subInitial)
   {
-
     this.subInitial = subInitial;
 
     decoded              = false;
@@ -1271,7 +1233,6 @@ public class MatchedValuesFilter
    */
   public ASN1OctetString getNormalizedSubInitialElement()
   {
-
     if (normalizedSubInitial == null)
     {
       if ((subInitial != null) && (getSubstringMatchingRule() != null))
@@ -1306,7 +1267,6 @@ public class MatchedValuesFilter
    */
   public List<ASN1OctetString> getSubAnyElements()
   {
-
     return subAny;
   }
 
@@ -1319,7 +1279,6 @@ public class MatchedValuesFilter
    */
   public void setSubAnyElements(List<ASN1OctetString> subAny)
   {
-
     this.subAny = subAny;
 
     decoded          = false;
@@ -1339,7 +1298,6 @@ public class MatchedValuesFilter
    */
   public List<ASN1OctetString> getNormalizedSubAnyElements()
   {
-
     if (normalizedSubAny == null)
     {
       if ((subAny == null) || (subAny.isEmpty()))
@@ -1388,7 +1346,6 @@ public class MatchedValuesFilter
    */
   public ASN1OctetString getSubFinalElement()
   {
-
     return subFinal;
   }
 
@@ -1401,7 +1358,6 @@ public class MatchedValuesFilter
    */
   public void setSubFinalElement(ASN1OctetString subFinal)
   {
-
     this.subFinal = subFinal;
 
     decoded            = false;
@@ -1418,7 +1374,6 @@ public class MatchedValuesFilter
    */
   public ASN1OctetString getNormalizedSubFinalElement()
   {
-
     if (normalizedSubFinal == null)
     {
       if ((subFinal != null) && (getSubstringMatchingRule() != null))
@@ -1452,7 +1407,6 @@ public class MatchedValuesFilter
    */
   public String getMatchingRuleID()
   {
-
     return matchingRuleID;
   }
 
@@ -1466,7 +1420,6 @@ public class MatchedValuesFilter
    */
   public void setMatchingRuleID(String matchingRuleID)
   {
-
     this.matchingRuleID = matchingRuleID;
 
     decoded      = false;
@@ -1483,7 +1436,6 @@ public class MatchedValuesFilter
    */
   public MatchingRule getMatchingRule()
   {
-
     if (matchingRule == null)
     {
       if (matchingRuleID != null)
@@ -1505,7 +1457,6 @@ public class MatchedValuesFilter
    */
   public void setMatchingRule(MatchingRule matchingRule)
   {
-
     this.matchingRule = matchingRule;
 
     if (matchingRule == null)
@@ -1531,7 +1482,6 @@ public class MatchedValuesFilter
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     if (approximateMatchingRule == null)
     {
       AttributeType attrType = getAttributeType();
@@ -1555,7 +1505,6 @@ public class MatchedValuesFilter
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     if (equalityMatchingRule == null)
     {
       AttributeType attrType = getAttributeType();
@@ -1579,7 +1528,6 @@ public class MatchedValuesFilter
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     if (orderingMatchingRule == null)
     {
       AttributeType attrType = getAttributeType();
@@ -1603,7 +1551,6 @@ public class MatchedValuesFilter
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     if (substringMatchingRule == null)
     {
       AttributeType attrType = getAttributeType();
@@ -1656,8 +1603,6 @@ public class MatchedValuesFilter
    */
   public boolean valueMatches(AttributeType type, AttributeValue value)
   {
-
-
     fullyDecode();
 
     switch (matchType)
@@ -1881,7 +1826,6 @@ public class MatchedValuesFilter
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -1897,7 +1841,6 @@ public class MatchedValuesFilter
    */
   public void toString(StringBuilder buffer)
   {
-
     switch (matchType)
     {
       case EQUALITY_MATCH_TYPE:

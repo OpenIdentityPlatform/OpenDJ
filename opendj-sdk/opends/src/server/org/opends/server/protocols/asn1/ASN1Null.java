@@ -90,7 +90,6 @@ public class ASN1Null
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-
     if ((value != null) && (value.length != 0))
     {
       int    msgID   = MSGID_ASN1_NULL_SET_VALUE_INVALID_LENGTH;
@@ -114,7 +113,6 @@ public class ASN1Null
   public static ASN1Null decodeAsNull(ASN1Element element)
          throws ASN1Exception
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_ASN1_NULL_DECODE_ELEMENT_NULL;
@@ -148,7 +146,6 @@ public class ASN1Null
   public static ASN1Null decodeAsNull(byte[] encodedElement)
          throws ASN1Exception
   {
-
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 null element.
     if (encodedElement == null)
@@ -230,7 +227,6 @@ public class ASN1Null
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ASN1Null(type=");
     buffer.append(byteToHex(getType()));
     buffer.append(")");
@@ -249,7 +245,6 @@ public class ASN1Null
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

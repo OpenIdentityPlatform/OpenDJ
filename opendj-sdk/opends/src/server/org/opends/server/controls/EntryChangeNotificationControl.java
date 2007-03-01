@@ -197,8 +197,6 @@ public class EntryChangeNotificationControl
                                                   changeType,
                                              DN previousDN, long changeNumber)
   {
-
-
     ArrayList<ASN1Element> elements =
          new ArrayList<ASN1Element>(3);
     elements.add(new ASN1Enumerated(changeType.intValue()));
@@ -235,8 +233,6 @@ public class EntryChangeNotificationControl
   public static EntryChangeNotificationControl decodeControl(Control control)
          throws LDAPException
   {
-
-
     if (! control.hasValue())
     {
       int    msgID   = MSGID_ECN_NO_CONTROL_VALUE;
@@ -338,7 +334,6 @@ public class EntryChangeNotificationControl
    */
   public PersistentSearchChangeType getChangeType()
   {
-
     return changeType;
   }
 
@@ -352,7 +347,6 @@ public class EntryChangeNotificationControl
    */
   public void setChangeType(PersistentSearchChangeType changeType)
   {
-
     this.changeType = changeType;
 
     setValue(encodeValue(changeType, previousDN, changeNumber));
@@ -368,7 +362,6 @@ public class EntryChangeNotificationControl
    */
   public DN getPreviousDN()
   {
-
     return previousDN;
   }
 
@@ -382,7 +375,6 @@ public class EntryChangeNotificationControl
    */
   public void setPreviousDN(DN previousDN)
   {
-
     this.previousDN = previousDN;
 
     setValue(encodeValue(changeType, previousDN, changeNumber));
@@ -398,7 +390,6 @@ public class EntryChangeNotificationControl
    */
   public long getChangeNumber()
   {
-
     return changeNumber;
   }
 
@@ -412,7 +403,6 @@ public class EntryChangeNotificationControl
    */
   public void setChangeNumber(long changeNumber)
   {
-
     this.changeNumber = changeNumber;
 
     setValue(encodeValue(changeType, previousDN, changeNumber));
@@ -428,7 +418,6 @@ public class EntryChangeNotificationControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -444,7 +433,6 @@ public class EntryChangeNotificationControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("EntryChangeNotificationControl(changeType=");
     buffer.append(changeType.toString());
 

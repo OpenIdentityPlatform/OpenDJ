@@ -222,7 +222,6 @@ public class JmxConnectionHandler
   public void initializeConnectionHandler(ConfigEntry configEntry)
       throws ConfigException, InitializationException
   {
-
     //
     // If the initializeConnectionHandler method is called,
     // it means that the "enabled" attribure was true.
@@ -321,7 +320,6 @@ public class JmxConnectionHandler
   public void finalizeConnectionHandler(
       String finalizeReason, boolean closeConnections)
   {
-
     // We should also close the RMI registry.
     rmiConnector.finalizeConnectionHandler(closeConnections, true);
   }
@@ -331,7 +329,6 @@ public class JmxConnectionHandler
    */
   public String getConnectionHandlerName()
   {
-
     return connectionHandlerName;
   }
 
@@ -340,7 +337,6 @@ public class JmxConnectionHandler
    */
   public String getProtocol()
   {
-
     return protocol;
   }
 
@@ -349,7 +345,6 @@ public class JmxConnectionHandler
    */
   public Collection<HostPort> getListeners()
   {
-
     return listeners;
   }
 
@@ -380,7 +375,6 @@ public class JmxConnectionHandler
    */
   public String getShutdownListenerName()
   {
-
     return handlerName;
   }
 
@@ -408,7 +402,6 @@ public class JmxConnectionHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -421,7 +414,6 @@ public class JmxConnectionHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     return configAttrs;
 
   }
@@ -445,7 +437,6 @@ public class JmxConnectionHandler
   public boolean hasAcceptableConfiguration(
       ConfigEntry configEntry, List<String> unacceptableReasons)
   {
-
     boolean configValid = true;
 
     //
@@ -562,7 +553,6 @@ public class JmxConnectionHandler
   public ConfigChangeResult applyNewConfiguration(
       ConfigEntry configEntry, boolean detailedResults)
   {
-
     //
     // Create variables to include in the response.
     ResultCode resultCode = ResultCode.SUCCESS;
@@ -822,7 +812,6 @@ public class JmxConnectionHandler
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append(handlerName);
   }
 
@@ -835,7 +824,6 @@ public class JmxConnectionHandler
    */
   public DN getComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -848,7 +836,6 @@ public class JmxConnectionHandler
    */
   public String getClassName()
   {
-
     return CLASS_NAME;
   }
 
@@ -864,7 +851,6 @@ public class JmxConnectionHandler
    */
   public LinkedHashMap<String, String> getAlerts()
   {
-
     LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
 
     return alerts;
@@ -887,7 +873,6 @@ public class JmxConnectionHandler
   private BooleanConfigAttribute getEnabledAtt(ConfigEntry configEntry)
       throws InitializationException, ConfigException
   {
-
     int msgID = MSGID_CONFIG_CONNHANDLER_ATTR_DESCRIPTION_ENABLED;
     BooleanConfigAttribute enabledStub =
          new BooleanConfigAttribute(ATTR_CONNECTION_HANDLER_ENABLED,
@@ -951,7 +936,6 @@ public class JmxConnectionHandler
   private IntegerConfigAttribute getListenPort(ConfigEntry configEntry)
       throws InitializationException, ConfigException
   {
-
     int msgID = MSGID_JMX_CONNHANDLER_DESCRIPTION_LISTEN_PORT;
     IntegerConfigAttribute portStub = new IntegerConfigAttribute(
         ATTR_LISTEN_PORT, getMessage(msgID), true, false, false, true, 1,

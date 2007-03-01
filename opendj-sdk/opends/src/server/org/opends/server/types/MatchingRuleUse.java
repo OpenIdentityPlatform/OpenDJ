@@ -111,7 +111,6 @@ public final class MatchingRuleUse
                          Set<AttributeType> attributes,
                          Map<String,List<String>> extraProperties)
   {
-
     ensureNotNull(definition, matchingRule);
 
     this.definition   = definition;
@@ -160,7 +159,6 @@ public final class MatchingRuleUse
    */
   public String getDefinition()
   {
-
     return definition;
   }
 
@@ -203,7 +201,6 @@ public final class MatchingRuleUse
    */
   public MatchingRule getMatchingRule()
   {
-
     return matchingRule;
   }
 
@@ -218,7 +215,6 @@ public final class MatchingRuleUse
    */
   public Map<String,String> getNames()
   {
-
     return names;
   }
 
@@ -233,7 +229,6 @@ public final class MatchingRuleUse
    */
   public String getName()
   {
-
     if (names.isEmpty())
     {
       return null;
@@ -257,7 +252,6 @@ public final class MatchingRuleUse
    */
   public boolean hasName(String lowerName)
   {
-
     return names.containsKey(lowerName);
   }
 
@@ -273,7 +267,6 @@ public final class MatchingRuleUse
    */
   public String getSchemaFile()
   {
-
     List<String> values =
          extraProperties.get(SCHEMA_PROPERTY_FILENAME);
     if ((values == null) || values.isEmpty())
@@ -295,7 +288,6 @@ public final class MatchingRuleUse
    */
   public void setSchemaFile(String schemaFile)
   {
-
     setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
@@ -309,7 +301,6 @@ public final class MatchingRuleUse
    */
   public String getDescription()
   {
-
     return description;
   }
 
@@ -323,7 +314,6 @@ public final class MatchingRuleUse
    */
   public boolean isObsolete()
   {
-
     return isObsolete;
   }
 
@@ -338,7 +328,6 @@ public final class MatchingRuleUse
    */
   public Set<AttributeType> getAttributes()
   {
-
     return attributes;
   }
 
@@ -357,7 +346,6 @@ public final class MatchingRuleUse
    */
   public boolean appliesToAttribute(AttributeType attributeType)
   {
-
     return attributes.contains(attributeType);
   }
 
@@ -374,7 +362,6 @@ public final class MatchingRuleUse
    */
   public Map<String,List<String>> getExtraProperties()
   {
-
     return extraProperties;
   }
 
@@ -393,7 +380,6 @@ public final class MatchingRuleUse
    */
   public List<String> getExtraProperty(String propertyName)
   {
-
     return extraProperties.get(propertyName);
   }
 
@@ -410,7 +396,6 @@ public final class MatchingRuleUse
    */
   public void setExtraProperty(String name, String value)
   {
-
     ensureNotNull(name);
 
     if (value == null)
@@ -439,7 +424,6 @@ public final class MatchingRuleUse
    */
   public void setExtraProperty(String name, List<String> values)
   {
-
     ensureNotNull(name);
 
     if ((values == null) || values.isEmpty())
@@ -467,7 +451,6 @@ public final class MatchingRuleUse
    */
   public boolean equals(Object o)
   {
-
     if (this == o)
     {
       return true;
@@ -491,7 +474,6 @@ public final class MatchingRuleUse
    */
   public int hashCode()
   {
-
     return matchingRule.hashCode();
   }
 
@@ -506,7 +488,6 @@ public final class MatchingRuleUse
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer, true);
     return buffer.toString();
@@ -528,7 +509,6 @@ public final class MatchingRuleUse
   public void toString(StringBuilder buffer,
                        boolean includeFileElement)
   {
-
     buffer.append("( ");
     buffer.append(matchingRule.getOID());
 

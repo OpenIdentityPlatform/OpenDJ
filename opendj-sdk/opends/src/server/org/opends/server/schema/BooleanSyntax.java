@@ -115,8 +115,6 @@ public class BooleanSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_BOOLEAN_OID);
     if (defaultEqualityMatchingRule == null)
@@ -136,7 +134,6 @@ public class BooleanSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_BOOLEAN_NAME;
   }
 
@@ -149,7 +146,6 @@ public class BooleanSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_BOOLEAN_OID;
   }
 
@@ -162,7 +158,6 @@ public class BooleanSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_BOOLEAN_DESCRIPTION;
   }
 
@@ -178,7 +173,6 @@ public class BooleanSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -194,7 +188,6 @@ public class BooleanSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     // Ordering matches are not allowed by default.
     return null;
   }
@@ -211,7 +204,6 @@ public class BooleanSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     // Substring matches are not allowed by default.
     return null;
   }
@@ -228,7 +220,6 @@ public class BooleanSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // Approximate matches are not allowed by default.
     return null;
   }
@@ -250,7 +241,6 @@ public class BooleanSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     String valueString = value.stringValue().toUpperCase();
 
     boolean returnValue = (valueString.equals("TRUE") ||
@@ -283,7 +273,6 @@ public class BooleanSyntax
    */
   public static AttributeValue createBooleanValue(boolean b)
   {
-
     if (b)
     {
       return new AttributeValue(new ASN1OctetString("TRUE"),
@@ -311,7 +300,6 @@ public class BooleanSyntax
   public static boolean decodeBooleanValue(ByteString normalizedValue)
          throws DirectoryException
   {
-
     String valueString = normalizedValue.stringValue();
     if (valueString.equals("TRUE"))
     {

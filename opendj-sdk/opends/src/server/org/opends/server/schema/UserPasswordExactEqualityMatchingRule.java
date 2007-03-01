@@ -81,7 +81,6 @@ public class UserPasswordExactEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -95,7 +94,6 @@ public class UserPasswordExactEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_USER_PASSWORD_EXACT_NAME;
   }
 
@@ -108,7 +106,6 @@ public class UserPasswordExactEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_USER_PASSWORD_EXACT_OID;
   }
 
@@ -122,7 +119,6 @@ public class UserPasswordExactEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return EMR_USER_PASSWORD_EXACT_DESCRIPTION;
   }
@@ -137,7 +133,6 @@ public class UserPasswordExactEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_USER_PASSWORD_OID;
   }
 
@@ -157,8 +152,6 @@ public class UserPasswordExactEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
-
     // The normalized form of this matching rule is exactly equal to the
     // non-normalized form, except that the scheme needs to be converted to
     // lowercase (if there is one).
@@ -274,7 +267,6 @@ schemeLoop:
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.
     return Arrays.equals(value1.value(), value2.value());

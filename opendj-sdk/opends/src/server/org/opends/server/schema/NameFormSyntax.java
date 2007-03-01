@@ -103,7 +103,6 @@ public class NameFormSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -142,7 +141,6 @@ public class NameFormSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_NAME_FORM_NAME;
   }
 
@@ -153,7 +151,6 @@ public class NameFormSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_NAME_FORM_OID;
   }
 
@@ -164,7 +161,6 @@ public class NameFormSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_NAME_FORM_DESCRIPTION;
   }
 
@@ -175,7 +171,6 @@ public class NameFormSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -186,7 +181,6 @@ public class NameFormSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -197,7 +191,6 @@ public class NameFormSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -208,7 +201,6 @@ public class NameFormSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -221,8 +213,6 @@ public class NameFormSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // We'll use the decodeNameForm method to determine if the value is
     // acceptable.
     try
@@ -271,8 +261,6 @@ public class NameFormSyntax
                                         boolean allowUnknownElements)
          throws DirectoryException
   {
-
-
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
     String valueStr = value.stringValue();
@@ -792,8 +780,6 @@ public class NameFormSyntax
                                    int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -853,8 +839,6 @@ public class NameFormSyntax
                                       StringBuilder valueBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -942,8 +926,6 @@ public class NameFormSyntax
                                       StringBuilder lowerBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -1025,10 +1007,6 @@ public class NameFormSyntax
                               int startPos)
           throws DirectoryException
   {
-
-
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -1181,8 +1159,6 @@ public class NameFormSyntax
                           List<String> valueList, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = valueStr.charAt(startPos++);

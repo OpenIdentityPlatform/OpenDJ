@@ -239,7 +239,6 @@ public class DNConfigAttribute
    */
   public String getDataType()
   {
-
     return "DN";
   }
 
@@ -252,7 +251,6 @@ public class DNConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-
     return DirectoryServer.getDefaultStringSyntax();
   }
 
@@ -270,7 +268,6 @@ public class DNConfigAttribute
   public DN activeValue()
          throws ConfigException
   {
-
     if ((activeValues == null) || activeValues.isEmpty())
     {
       int    msgID   = MSGID_CONFIG_ATTR_NO_STRING_VALUE;
@@ -297,7 +294,6 @@ public class DNConfigAttribute
    */
   public List<DN> activeValues()
   {
-
     return activeValues;
   }
 
@@ -317,7 +313,6 @@ public class DNConfigAttribute
   public DN pendingValue()
          throws ConfigException
   {
-
     if (! hasPendingValues())
     {
       return activeValue();
@@ -351,7 +346,6 @@ public class DNConfigAttribute
    */
   public List<DN> pendingValues()
   {
-
     if (! hasPendingValues())
     {
       return activeValues;
@@ -372,7 +366,6 @@ public class DNConfigAttribute
   public void setValue(DN value)
          throws ConfigException
   {
-
     if (value == null)
     {
       int    msgID   = MSGID_CONFIG_ATTR_DN_NULL;
@@ -408,8 +401,6 @@ public class DNConfigAttribute
   public void setValues(List<DN> values)
          throws ConfigException
   {
-
-
     // First check if the set is empty and if that is allowed.
     if ((values == null) || (values.isEmpty()))
     {
@@ -498,7 +489,6 @@ public class DNConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(DN value)
   {
-
     LinkedHashSet<AttributeValue> valueSet;
     if (value == null)
     {
@@ -525,7 +515,6 @@ public class DNConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(List<DN> values)
   {
-
     if (values == null)
     {
       return null;
@@ -552,7 +541,6 @@ public class DNConfigAttribute
    */
   public void applyPendingValues()
   {
-
     if (! hasPendingValues())
     {
       return;
@@ -579,8 +567,6 @@ public class DNConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-
-
     // Make sure that the value is not null.
     if (value == null)
     {
@@ -637,7 +623,6 @@ public class DNConfigAttribute
                               boolean allowFailures)
          throws ConfigException
   {
-
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
       if (isRequired())
@@ -746,7 +731,6 @@ public class DNConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-
     ArrayList<String> valueStrings = new ArrayList<String>(activeValues.size());
     for (DN dn : activeValues)
     {
@@ -771,7 +755,6 @@ public class DNConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-
     if (hasPendingValues())
     {
       ArrayList<String> valueStrings =
@@ -815,8 +798,6 @@ public class DNConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-
-
     ArrayList<DN> activeValues  = null;
     ArrayList<DN> pendingValues = null;
 
@@ -996,7 +977,6 @@ public class DNConfigAttribute
    */
   private javax.management.Attribute _toJMXAttribute(boolean pending)
   {
-
     List<DN> requestedValues ;
     String name ;
     if (pending)
@@ -1072,7 +1052,6 @@ public class DNConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-
     if (activeValues.size() > 0)
     {
       if (isMultiValued())
@@ -1144,8 +1123,6 @@ public class DNConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-
-
     if (isMultiValued())
     {
       attributeInfoList.add(new MBeanAttributeInfo(getName(),
@@ -1194,7 +1171,6 @@ public class DNConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-
     if (isMultiValued())
     {
       return new MBeanParameterInfo(getName(), JMX_TYPE_STRING_ARRAY,
@@ -1223,7 +1199,6 @@ public class DNConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-
     Object value = jmxAttribute.getValue();
     if (value == null)
     {
@@ -1352,7 +1327,6 @@ public class DNConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-
     return new DNConfigAttribute(getName(), getDescription(), isRequired(),
                                  isMultiValued(), requiresAdminAction(),
                                  activeValues, pendingValues);

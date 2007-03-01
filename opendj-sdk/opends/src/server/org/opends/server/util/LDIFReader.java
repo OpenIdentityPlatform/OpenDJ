@@ -135,7 +135,6 @@ public final class LDIFReader
   public LDIFReader(LDIFImportConfig importConfig)
          throws IOException
   {
-
     ensureNotNull(importConfig);
     this.importConfig = importConfig;
 
@@ -167,7 +166,6 @@ public final class LDIFReader
   public Entry readEntry()
          throws IOException, LDIFException
   {
-
     return readEntry(importConfig.validateSchema());
   }
 
@@ -194,8 +192,6 @@ public final class LDIFReader
   public Entry readEntry(boolean checkSchema)
          throws IOException, LDIFException
   {
-
-
     while (true)
     {
       // Read the set of lines that make up the next entry.
@@ -343,7 +339,6 @@ public final class LDIFReader
   public ChangeRecordEntry readChangeRecord(boolean defaultAdd)
          throws IOException, LDIFException
   {
-
     while (true)
     {
       // Read the set of lines that make up the next entry.
@@ -427,7 +422,6 @@ public final class LDIFReader
   private LinkedList<StringBuilder> readEntryLines()
           throws IOException, LDIFException
   {
-
     // Read the entry lines into a buffer.
     LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
     int lastLine = -1;
@@ -530,7 +524,6 @@ public final class LDIFReader
   private DN readDN(LinkedList<StringBuilder> lines)
           throws LDIFException
   {
-
     if (lines.isEmpty())
     {
       // This is possible if the contents of the first "entry" were just
@@ -713,7 +706,6 @@ public final class LDIFReader
   private String readChangeType(LinkedList<StringBuilder> lines)
           throws LDIFException
   {
-
     if (lines.isEmpty())
     {
       // Error. There must be other entries.
@@ -833,7 +825,6 @@ public final class LDIFReader
        HashMap<AttributeType,List<Attribute>> operationalAttributes)
           throws LDIFException
   {
-
     // Parse the attribute type description.
     int colonPos = parseColonPosition(lines, line);
     String attrDescr = line.substring(0, colonPos);
@@ -1000,7 +991,6 @@ public final class LDIFReader
        LinkedList<StringBuilder> lines, StringBuilder line, DN entryDN,
        String attributeName) throws LDIFException
   {
-
     // Parse the attribute type description.
     int colonPos = parseColonPosition(lines, line);
     String attrDescr = line.substring(0, colonPos);
@@ -1040,7 +1030,6 @@ public final class LDIFReader
    */
   public long getLastEntryLineNumber()
   {
-
     return lastEntryLineNumber;
   }
 
@@ -1057,7 +1046,6 @@ public final class LDIFReader
    */
   public void rejectLastEntry(String message)
   {
-
     entriesRejected++;
 
     BufferedWriter rejectWriter = importConfig.getRejectWriter();
@@ -1103,7 +1091,6 @@ public final class LDIFReader
    */
   public void close()
   {
-
     importConfig.close();
   }
 
@@ -1117,7 +1104,6 @@ public final class LDIFReader
    */
   private static Attribute parseAttrDescription(String attrDescr)
   {
-
     String attrName;
     String lowerName;
     LinkedHashSet<String> options;
@@ -1170,7 +1156,6 @@ public final class LDIFReader
    */
   public long getEntriesRead()
   {
-
     return entriesRead;
   }
 
@@ -1184,7 +1169,6 @@ public final class LDIFReader
    */
   public long getEntriesIgnored()
   {
-
     return entriesIgnored;
   }
 
@@ -1201,7 +1185,6 @@ public final class LDIFReader
    */
   public long getEntriesRejected()
   {
-
     return entriesRejected;
   }
 
@@ -1352,7 +1335,6 @@ public final class LDIFReader
                                    DN entryDN,
                                    String attributeName) throws LDIFException
   {
-
     Attribute attr =
       readSingleValueAttribute(lines, line, entryDN, attributeName);
     LinkedHashSet<AttributeValue> values = attr.getValues();

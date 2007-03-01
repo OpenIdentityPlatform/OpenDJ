@@ -55,7 +55,6 @@ public class FixedTimeRotationPolicy implements RotationPolicy
 
   public FixedTimeRotationPolicy(int[] timeOfDays)
   {
-
     Calendar cal = new GregorianCalendar();
     cal.set( Calendar.MILLISECOND, 0 );
     cal.set( Calendar.SECOND, 0 );
@@ -87,7 +86,6 @@ public class FixedTimeRotationPolicy implements RotationPolicy
    */
   public boolean rotateFile()
   {
-
     long currTime = TimeThread.getTime();
     if (debugEnabled())
     {

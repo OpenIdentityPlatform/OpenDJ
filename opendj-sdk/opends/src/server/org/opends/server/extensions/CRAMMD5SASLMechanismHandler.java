@@ -139,8 +139,6 @@ public class CRAMMD5SASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     this.configEntryDN = configEntry.getDN();
 
 
@@ -230,7 +228,6 @@ public class CRAMMD5SASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_CRAM_MD5);
   }
@@ -244,8 +241,6 @@ public class CRAMMD5SASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-
-
     // The CRAM-MD5 bind process uses two stages.  See if the client provided
     // any credentials.  If not, then we're in the first stage so we'll send the
     // challenge to the client.
@@ -575,8 +570,6 @@ public class CRAMMD5SASLMechanismHandler
    */
   private byte[] generateDigest(ByteString password, ByteString challenge)
   {
-
-
     // Get the byte arrays backing the password and challenge.
     byte[] p = password.value();
     byte[] c = challenge.value();
@@ -639,7 +632,6 @@ public class CRAMMD5SASLMechanismHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -655,8 +647,6 @@ public class CRAMMD5SASLMechanismHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_SASLCRAMMD5_DESCRIPTION_IDENTITY_MAPPER_DN;
@@ -685,8 +675,6 @@ public class CRAMMD5SASLMechanismHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // Look at the identity mapper configuration.
     int msgID = MSGID_SASLCRAMMD5_DESCRIPTION_IDENTITY_MAPPER_DN;
     DNConfigAttribute mapperStub =
@@ -756,8 +744,6 @@ public class CRAMMD5SASLMechanismHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -843,7 +829,6 @@ public class CRAMMD5SASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-
     // This is a password-based mechanism.
     return true;
   }
@@ -856,7 +841,6 @@ public class CRAMMD5SASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-
     // This may be considered a secure mechanism.
     return true;
   }

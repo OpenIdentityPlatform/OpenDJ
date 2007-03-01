@@ -63,7 +63,6 @@ public class Control
    */
   public Control(String oid, boolean isCritical)
   {
-
     this.oid        = oid;
     this.isCritical = isCritical;
     this.value      = null;
@@ -83,7 +82,6 @@ public class Control
   public Control(String oid, boolean isCritical,
   ASN1OctetString value)
   {
-
     this.oid        = oid;
     this.isCritical = isCritical;
     this.value      = value;
@@ -98,7 +96,6 @@ public class Control
    */
   public String getOID()
   {
-
     return oid;
   }
 
@@ -111,7 +108,6 @@ public class Control
    */
   public void setOID(String oid)
   {
-
     this.oid = oid;
   }
 
@@ -126,7 +122,6 @@ public class Control
    */
   public boolean isCritical()
   {
-
     return isCritical;
   }
 
@@ -142,7 +137,6 @@ public class Control
    */
   public void setCritical(boolean isCritical)
   {
-
     this.isCritical = isCritical;
   }
 
@@ -156,7 +150,6 @@ public class Control
    */
   public ASN1OctetString getValue()
   {
-
     return value;
   }
 
@@ -170,7 +163,6 @@ public class Control
    */
   public boolean hasValue()
   {
-
     return (value != null);
   }
 
@@ -183,7 +175,6 @@ public class Control
    */
   public void setValue(ASN1OctetString value)
   {
-
     this.value = value;
   }
 
@@ -196,7 +187,6 @@ public class Control
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -213,7 +203,6 @@ public class Control
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("Control(oid=");
     buffer.append(oid);
     buffer.append(",isCritical=");

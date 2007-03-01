@@ -85,8 +85,6 @@ public class PasswordPolicyConfigManager
   public void initializePasswordPolicies()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the configuration base entry.
     ConfigEntry baseEntry;
     try
@@ -203,8 +201,6 @@ public class PasswordPolicyConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // See if we can create a password policy from the provided configuration
     // entry.  If so, then it's acceptable.
     try
@@ -254,8 +250,6 @@ public class PasswordPolicyConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ArrayList<String> messages            = new ArrayList<String>();
 
@@ -315,8 +309,6 @@ public class PasswordPolicyConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // We'll allow the policy to be removed as long as it isn't the default.
     // FIXME: something like a referential integrity check is needed to ensure
     //  a policy is not removed when referenced by a user entry (either
@@ -348,8 +340,6 @@ public class PasswordPolicyConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     // We'll allow the policy to be removed as long as it isn't the default.
     // FIXME: something like a referential integrity check is needed to ensure
     //  a policy is not removed when referenced by a user entry (either

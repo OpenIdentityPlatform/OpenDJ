@@ -154,8 +154,6 @@ public class MonitorBackend
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-
-
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
     if (configEntry == null)
@@ -271,7 +269,6 @@ public class MonitorBackend
    */
   public void finalizeBackend()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
 
     try
@@ -300,7 +297,6 @@ public class MonitorBackend
    */
   private boolean isMonitorConfigAttribute(Attribute attribute)
   {
-
     AttributeType attrType = attribute.getAttributeType();
     if (attrType.hasName(ATTR_COMMON_NAME) ||
         attrType.hasName(ATTR_BACKEND_ENABLED.toLowerCase()) ||
@@ -324,7 +320,6 @@ public class MonitorBackend
    */
   public DN[] getBaseDNs()
   {
-
     return baseDNs;
   }
 
@@ -335,7 +330,6 @@ public class MonitorBackend
    */
   public long getEntryCount()
   {
-
     return DirectoryServer.getMonitorProviders().size() + 1;
   }
 
@@ -352,7 +346,6 @@ public class MonitorBackend
    */
   public boolean isLocal()
   {
-
     // For the purposes of this method, this is a local backend.
     return true;
   }
@@ -373,8 +366,6 @@ public class MonitorBackend
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-
-
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
@@ -464,7 +455,6 @@ public class MonitorBackend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-
     if (entryDN.equals(baseMonitorDN))
     {
       return true;
@@ -497,8 +487,6 @@ public class MonitorBackend
    */
   public Entry getBaseMonitorEntry()
   {
-
-
     HashMap<ObjectClass,String> monitorClasses =
          new LinkedHashMap<ObjectClass,String>(3);
     monitorClasses.putAll(monitorObjectClasses);
@@ -671,7 +659,6 @@ public class MonitorBackend
    */
   private Entry getMonitorEntry(DN entryDN, MonitorProvider monitorProvider)
   {
-
     HashMap<ObjectClass,String> monitorClasses =
          new LinkedHashMap<ObjectClass,String>(3);
     monitorClasses.putAll(monitorObjectClasses);
@@ -738,7 +725,6 @@ public class MonitorBackend
   private Attribute createAttribute(String name, String lowerName,
                                     String value)
   {
-
     AttributeType type = DirectoryServer.getAttributeType(lowerName);
     if (type == null)
     {
@@ -770,7 +756,6 @@ public class MonitorBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_MONITOR_ADD_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entry.getDN()));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -796,7 +781,6 @@ public class MonitorBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_MONITOR_DELETE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entryDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -822,7 +806,6 @@ public class MonitorBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_MONITOR_MODIFY_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entry.getDN()),
                                 String.valueOf(configEntryDN));
@@ -851,7 +834,6 @@ public class MonitorBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-
     int    msgID   = MSGID_MONITOR_MODIFY_DN_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(currentDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
@@ -873,8 +855,6 @@ public class MonitorBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-
-
     // Get the base entry for the search, if possible.  If it doesn't exist,
     // then this will throw an exception.
     DN    baseDN    = searchOperation.getBaseDN();
@@ -943,7 +923,6 @@ public class MonitorBackend
    */
   public HashSet<String> getSupportedControls()
   {
-
     return supportedControls;
   }
 
@@ -956,7 +935,6 @@ public class MonitorBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-
     return supportedFeatures;
   }
 
@@ -971,7 +949,6 @@ public class MonitorBackend
    */
   public boolean supportsLDIFExport()
   {
-
     // We can export all the monitor entries as a point-in-time snapshot.
     return true;
   }
@@ -995,8 +972,6 @@ public class MonitorBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-
-
     // Create the LDIF writer.
     LDIFWriter ldifWriter;
     try
@@ -1110,7 +1085,6 @@ public class MonitorBackend
    */
   public boolean supportsLDIFImport()
   {
-
     // This backend does not support LDIF imports.
     return false;
   }
@@ -1134,8 +1108,6 @@ public class MonitorBackend
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-
-
     // This backend does not support LDIF imports.
     int    msgID   = MSGID_MONITOR_IMPORT_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1158,7 +1130,6 @@ public class MonitorBackend
    */
   public boolean supportsBackup()
   {
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -1183,8 +1154,6 @@ public class MonitorBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -1207,8 +1176,6 @@ public class MonitorBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     int    msgID   = MSGID_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1234,8 +1201,6 @@ public class MonitorBackend
                            String backupID)
          throws DirectoryException
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     int    msgID   = MSGID_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1253,8 +1218,6 @@ public class MonitorBackend
    */
   public boolean supportsRestore()
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     return false;
   }
@@ -1278,8 +1241,6 @@ public class MonitorBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-
-
     // This backend does not provide a backup/restore mechanism.
     int    msgID   = MSGID_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED;
     String message = getMessage(msgID);
@@ -1298,7 +1259,6 @@ public class MonitorBackend
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -1313,7 +1273,6 @@ public class MonitorBackend
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     // There are no configurable attributes that will be explicitly advertised.
     return new LinkedList<ConfigAttribute>();
   }
@@ -1337,8 +1296,6 @@ public class MonitorBackend
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // We'll pretty much accept anything here as long as it isn't one of our
     // private attributes.
     return true;
@@ -1365,8 +1322,6 @@ public class MonitorBackend
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

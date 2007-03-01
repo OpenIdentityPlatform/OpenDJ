@@ -179,7 +179,6 @@ public abstract class ConnectionHandler
    */
   public ConnectionHandlerMonitor getConnectionHandlerMonitor()
   {
-
     return monitor;
   }
 
@@ -194,7 +193,6 @@ public abstract class ConnectionHandler
   public void setConnectionHandlerMonitor(
                    ConnectionHandlerMonitor monitor)
   {
-
     this.monitor = monitor;
   }
 
@@ -207,7 +205,6 @@ public abstract class ConnectionHandler
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();

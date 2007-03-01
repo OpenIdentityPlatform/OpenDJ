@@ -87,7 +87,6 @@ public class LockFileManager
   public static boolean acquireSharedLock(String lockFile,
                                           StringBuilder failureReason)
   {
-
     mapLock.lock();
 
     try
@@ -215,7 +214,6 @@ public class LockFileManager
   public static boolean acquireExclusiveLock(String lockFile,
                                              StringBuilder failureReason)
   {
-
     mapLock.lock();
 
     try
@@ -346,7 +344,6 @@ public class LockFileManager
   public static boolean releaseLock(String lockFile,
                                     StringBuilder failureReason)
   {
-
     mapLock.lock();
 
     try
@@ -469,7 +466,6 @@ public class LockFileManager
    */
   public static String getLockDirectoryPath()
   {
-
     String lockDirectory = System.getProperty(PROPERTY_LOCK_DIRECTORY);
     if ((lockDirectory == null) || (lockDirectory.length() == 0))
     {
@@ -491,7 +487,6 @@ public class LockFileManager
    */
   public static String getServerLockFileName()
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append(getLockDirectoryPath());
     buffer.append(File.separator);
@@ -515,7 +510,6 @@ public class LockFileManager
    */
   public static String getBackendLockFileName(Backend backend)
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append(getLockDirectoryPath());
     buffer.append(File.separator);

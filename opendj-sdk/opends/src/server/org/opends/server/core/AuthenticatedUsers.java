@@ -74,7 +74,6 @@ public class AuthenticatedUsers
    */
   public AuthenticatedUsers()
   {
-
     userMap = new ConcurrentHashMap<DN,CopyOnWriteArraySet<ClientConnection>>();
 
     DirectoryServer.registerChangeNotificationListener(this);
@@ -92,7 +91,6 @@ public class AuthenticatedUsers
    */
   public synchronized void put(DN userDN, ClientConnection clientConnection)
   {
-
     CopyOnWriteArraySet<ClientConnection> connectionSet = userMap.get(userDN);
     if (connectionSet == null)
     {
@@ -118,7 +116,6 @@ public class AuthenticatedUsers
    */
   public synchronized void remove(DN userDN, ClientConnection clientConnection)
   {
-
     CopyOnWriteArraySet<ClientConnection> connectionSet = userMap.get(userDN);
     if (connectionSet != null)
     {

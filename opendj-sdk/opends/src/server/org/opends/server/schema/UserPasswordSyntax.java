@@ -101,7 +101,6 @@ public class UserPasswordSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_USER_PASSWORD_EXACT_OID);
     if (defaultEqualityMatchingRule == null)
@@ -121,7 +120,6 @@ public class UserPasswordSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_USER_PASSWORD_NAME;
   }
 
@@ -134,7 +132,6 @@ public class UserPasswordSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_USER_PASSWORD_OID;
   }
 
@@ -147,7 +144,6 @@ public class UserPasswordSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_USER_PASSWORD_DESCRIPTION;
   }
 
@@ -163,7 +159,6 @@ public class UserPasswordSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -179,7 +174,6 @@ public class UserPasswordSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     // There is no ordering matching rule by default.
     return null;
   }
@@ -196,7 +190,6 @@ public class UserPasswordSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     // There is no substring matching rule by default.
     return null;
   }
@@ -213,7 +206,6 @@ public class UserPasswordSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -235,8 +227,6 @@ public class UserPasswordSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // We have to accept any value here because in many cases the value will not
     // have been encoded by the time this method is called.
     return true;
@@ -259,8 +249,6 @@ public class UserPasswordSyntax
   public static String[] decodeUserPassword(String userPasswordValue)
          throws DirectoryException
   {
-
-
     // Make sure that there actually is a value to decode.
     if ((userPasswordValue == null) || (userPasswordValue.length() == 0))
     {
@@ -321,8 +309,6 @@ public class UserPasswordSyntax
    */
   public static boolean isEncoded(ByteString value)
   {
-
-
     // If the value is null or empty, then it's not.
     byte[] valueBytes;
     if ((value == null) || ((valueBytes = value.value()).length == 0))

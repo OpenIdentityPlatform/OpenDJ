@@ -83,7 +83,6 @@ public class ProtocolInformationEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -97,7 +96,6 @@ public class ProtocolInformationEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_PROTOCOL_INFORMATION_NAME;
   }
 
@@ -110,7 +108,6 @@ public class ProtocolInformationEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_PROTOCOL_INFORMATION_OID;
   }
 
@@ -124,7 +121,6 @@ public class ProtocolInformationEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -139,7 +135,6 @@ public class ProtocolInformationEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_PROTOCOL_INFORMATION_OID;
   }
 
@@ -159,7 +154,6 @@ public class ProtocolInformationEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value.value(), buffer, true);
 
@@ -209,7 +203,6 @@ public class ProtocolInformationEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.
     return Arrays.equals(value1.value(), value2.value());

@@ -196,7 +196,6 @@ public class FIFOEntryCache
   public void initializeEntryCache(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     configEntryDN = configEntry.getDN();
 
 
@@ -468,8 +467,6 @@ public class FIFOEntryCache
    */
   public void finalizeEntryCache()
   {
-
-
     // Release all memory currently in use by this cache.
     cacheLock.lock();
 
@@ -506,7 +503,6 @@ public class FIFOEntryCache
    */
   public boolean containsEntry(DN entryDN)
   {
-
     // Indicate whether the DN map contains the specified DN.
     return dnMap.containsKey(entryDN);
   }
@@ -525,8 +521,6 @@ public class FIFOEntryCache
    */
   public Entry getEntry(DN entryDN)
   {
-
-
     // Simply return the entry from the DN map.
     CacheEntry e = dnMap.get(entryDN);
     if (e == null)
@@ -553,7 +547,6 @@ public class FIFOEntryCache
    */
   public long getEntryID(DN entryDN)
   {
-
     // Simply return the ID from the DN map.
     CacheEntry e = dnMap.get(entryDN);
     if (e == null)
@@ -586,8 +579,6 @@ public class FIFOEntryCache
    */
   public Entry getEntry(DN entryDN, LockType lockType, List<Lock> lockList)
   {
-
-
     // Get the entry from the DN map if it is present.  If not, then return
     // null.
     CacheEntry entry = dnMap.get(entryDN);
@@ -713,7 +704,6 @@ public class FIFOEntryCache
   public Entry getEntry(Backend backend, long entryID, LockType lockType,
                         List<Lock> lockList)
   {
-
     // Get the hash map for the provided backend.  If it isn't present, then
     // return null.
     HashMap<Long,CacheEntry> map = idMap.get(backend);
@@ -841,8 +831,6 @@ public class FIFOEntryCache
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-
-
     // If there is a set of exclude filters, then make sure that the provided
     // entry doesn't match any of them.
     if (! excludeFilters.isEmpty())
@@ -1030,8 +1018,6 @@ public class FIFOEntryCache
    */
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
-
-
     // If there is a set of exclude filters, then make sure that the provided
     // entry doesn't match any of them.
     if (! excludeFilters.isEmpty())
@@ -1221,8 +1207,6 @@ public class FIFOEntryCache
    */
   public void removeEntry(DN entryDN)
   {
-
-
     // Acquire the lock on the cache.  We should not return until the entry is
     // removed, so we will block until we can obtain the lock.
     // FIXME -- An alternate approach could be to block for a maximum length of
@@ -1278,7 +1262,6 @@ public class FIFOEntryCache
    */
   public void clear()
   {
-
     // Acquire a lock on the cache.  We should not return until the cache has
     // been cleared, so we will block until we can obtain the lock.
     cacheLock.lock();
@@ -1319,7 +1302,6 @@ public class FIFOEntryCache
    */
   public void clearBackend(Backend backend)
   {
-
     // Acquire a lock on the cache.  We should not return until the cache has
     // been cleared, so we will block until we can obtain the lock.
     cacheLock.lock();
@@ -1383,8 +1365,6 @@ public class FIFOEntryCache
    */
   public void clearSubtree(DN baseDN)
   {
-
-
     // Determine which backend should be used for the provided base DN.  If
     // there is none, then we don't need to do anything.
     Backend backend = DirectoryServer.getBackend(baseDN);
@@ -1431,8 +1411,6 @@ public class FIFOEntryCache
    */
   private void clearSubtree(DN baseDN, Backend backend)
   {
-
-
     // See if there are any entries for the provided backend in the cache.  If
     // not, then return.
     HashMap<Long,CacheEntry> map = idMap.get(backend);
@@ -1503,8 +1481,6 @@ public class FIFOEntryCache
    */
   public void handleLowMemory()
   {
-
-
     // Grab the lock on the cache and wait until we have it.
     cacheLock.lock();
 
@@ -1566,7 +1542,6 @@ public class FIFOEntryCache
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -1581,7 +1556,6 @@ public class FIFOEntryCache
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
 
@@ -1660,8 +1634,6 @@ public class FIFOEntryCache
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // Start out assuming that the configuration is valid.
     boolean configIsAcceptable = true;
 
@@ -1898,8 +1870,6 @@ public class FIFOEntryCache
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     // Create a set of variables to use for the result.
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;

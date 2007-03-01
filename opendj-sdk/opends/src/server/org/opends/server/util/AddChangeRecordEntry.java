@@ -92,7 +92,6 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
    */
   public ChangeOperationType getChangeOperationType()
   {
-
     return ChangeOperationType.ADD;
   }
 
@@ -107,7 +106,6 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
    */
   public List<Attribute> getAttributes()
   {
-
     return Collections.unmodifiableList(attributes);
   }
 

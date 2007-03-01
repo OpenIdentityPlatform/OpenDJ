@@ -85,7 +85,6 @@ public class JebFormat
   static public byte[] decodeDatabaseEntry(byte[] bytes)
        throws ASN1Exception,DataFormatException
   {
-
     // FIXME: This array copy could be very costly on performance. We need to
     // FIXME: find a faster way to implement this versioning feature.
     // Remove version number from the encoded bytes
@@ -157,7 +156,6 @@ public class JebFormat
   static public Entry entryFromDatabase(byte[] bytes)
        throws DirectoryException,ASN1Exception,LDAPException,DataFormatException
   {
-
     byte[] uncompressedBytes = decodeDatabaseEntry(bytes);
     return decodeDirectoryServerEntry(uncompressedBytes);
   }
@@ -176,7 +174,6 @@ public class JebFormat
   static private Entry decodeDirectoryServerEntry(byte[] bytes)
        throws DirectoryException,ASN1Exception,LDAPException
   {
-
     HashMap<ObjectClass, String> objectClasses;
     HashMap<AttributeType, List<Attribute>> userAttributes =
          new HashMap<AttributeType, List<Attribute>>();
@@ -261,7 +258,6 @@ public class JebFormat
    */
   static public byte[] encodeDatabaseEntry(byte[] bytes, DataConfig dataConfig)
   {
-
     int uncompressedSize = 0;
 
     // Do optional compression.
@@ -312,7 +308,6 @@ public class JebFormat
    */
   static public byte[] entryToDatabase(Entry entry, DataConfig dataConfig)
   {
-
     byte[] uncompressedBytes = encodeDirectoryServerEntry(entry);
     return encodeDatabaseEntry(uncompressedBytes, dataConfig);
   }
@@ -325,7 +320,6 @@ public class JebFormat
    */
   static public byte[] entryToDatabase(Entry entry)
   {
-
     return entryToDatabase(entry, new DataConfig());
   }
 
@@ -337,7 +331,6 @@ public class JebFormat
    */
   static private byte[] encodeDirectoryServerEntry(Entry entry)
   {
-
     // Encode the DN (LDAPDN).
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(4);
     elements.add(new ASN1OctetString(entry.getDN().toString()));

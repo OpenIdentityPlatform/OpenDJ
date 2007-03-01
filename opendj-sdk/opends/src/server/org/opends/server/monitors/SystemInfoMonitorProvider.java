@@ -88,7 +88,6 @@ public class SystemInfoMonitorProvider
   public void initializeMonitorProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -102,7 +101,6 @@ public class SystemInfoMonitorProvider
    */
   public String getMonitorInstanceName()
   {
-
     return "System Information";
   }
 
@@ -119,7 +117,6 @@ public class SystemInfoMonitorProvider
    */
   public long getUpdateInterval()
   {
-
     // This monitor does not need to run periodically.
     return 0;
   }
@@ -135,7 +132,6 @@ public class SystemInfoMonitorProvider
    */
   public void updateMonitorData()
   {
-
     // This monitor does not need to run periodically.
     return;
   }
@@ -152,8 +148,6 @@ public class SystemInfoMonitorProvider
    */
   public ArrayList<Attribute> getMonitorData()
   {
-
-
     ArrayList<Attribute> attrs = new ArrayList<Attribute>(12);
 
     attrs.add(createAttribute("javaVersion",
@@ -216,7 +210,6 @@ public class SystemInfoMonitorProvider
    */
   private Attribute createAttribute(String name, String value)
   {
-
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
 
     ASN1OctetString encodedValue = new ASN1OctetString(value);

@@ -87,7 +87,6 @@ public class LazyDN
    */
   public LazyDN(String dnString)
   {
-
     this.dnString  = dnString;
     this.decodedDN = null;
   }
@@ -101,7 +100,6 @@ public class LazyDN
   public boolean isNullDN()
          throws RuntimeException
   {
-
     return getDecodedDN().isNullDN();
   }
 
@@ -114,7 +112,6 @@ public class LazyDN
   public int getNumComponents()
          throws RuntimeException
   {
-
     return getDecodedDN().getNumComponents();
   }
 
@@ -139,7 +136,6 @@ public class LazyDN
   public RDN getRDN(int pos)
          throws RuntimeException
   {
-
     return getDecodedDN().getRDN(pos);
   }
 
@@ -152,7 +148,6 @@ public class LazyDN
   public DN getParent()
          throws RuntimeException
   {
-
     return getDecodedDN().getParent();
   }
 
@@ -165,7 +160,6 @@ public class LazyDN
   public DN getParentDNInSuffix()
          throws RuntimeException
   {
-
     return getDecodedDN().getParentDNInSuffix();
   }
 
@@ -178,7 +172,6 @@ public class LazyDN
   public DN concat(RDN rdn)
          throws RuntimeException
   {
-
     return getDecodedDN().concat(rdn);
   }
 
@@ -191,7 +184,6 @@ public class LazyDN
   public DN concat(RDN[] rdnComponents)
          throws RuntimeException
   {
-
     return getDecodedDN().concat(rdnComponents);
   }
 
@@ -204,7 +196,6 @@ public class LazyDN
   public DN concat(DN relativeBaseDN)
          throws RuntimeException
   {
-
     return getDecodedDN().concat(relativeBaseDN);
   }
 
@@ -217,7 +208,6 @@ public class LazyDN
   public boolean isDescendantOf(DN dn)
          throws RuntimeException
   {
-
     return getDecodedDN().isDescendantOf(dn);
   }
 
@@ -230,7 +220,6 @@ public class LazyDN
   public boolean isAncestorOf(DN dn)
          throws RuntimeException
   {
-
     return getDecodedDN().isAncestorOf(dn);
   }
 
@@ -243,7 +232,6 @@ public class LazyDN
   public boolean equals(Object o)
          throws RuntimeException
   {
-
     return getDecodedDN().equals(o);
   }
 
@@ -256,7 +244,6 @@ public class LazyDN
   public int hashCode()
          throws RuntimeException
   {
-
     return getDecodedDN().hashCode();
   }
 
@@ -268,7 +255,6 @@ public class LazyDN
   @Override()
   public String toString()
   {
-
     return dnString;
   }
 
@@ -280,7 +266,6 @@ public class LazyDN
   @Override()
   public void toString(StringBuilder buffer)
   {
-
     buffer.append(dnString);
   }
 
@@ -293,7 +278,6 @@ public class LazyDN
   public String toNormalizedString()
          throws RuntimeException
   {
-
     return getDecodedDN().toNormalizedString();
   }
 
@@ -306,7 +290,6 @@ public class LazyDN
   public void toNormalizedString(StringBuilder buffer)
          throws RuntimeException
   {
-
     getDecodedDN().toNormalizedString(buffer);
   }
 
@@ -319,7 +302,6 @@ public class LazyDN
   public int compareTo(DN dn)
          throws RuntimeException
   {
-
     return getDecodedDN().compareTo(dn);
   }
 
@@ -335,7 +317,6 @@ public class LazyDN
   private DN getDecodedDN()
           throws RuntimeException
   {
-
     if (decodedDN == null)
     {
       try

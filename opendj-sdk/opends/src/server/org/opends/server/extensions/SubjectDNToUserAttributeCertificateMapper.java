@@ -110,7 +110,6 @@ public class SubjectDNToUserAttributeCertificateMapper
   public void initializeCertificateMapper(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     this.configEntryDN = configEntry.getDN();
 
     // Get the attribute type that will be used to hold the certificate subject.
@@ -202,7 +201,6 @@ public class SubjectDNToUserAttributeCertificateMapper
    */
   public void finalizeCertificateMapper()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
   }
 
@@ -214,8 +212,6 @@ public class SubjectDNToUserAttributeCertificateMapper
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
-
-
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
     {
@@ -310,7 +306,6 @@ public class SubjectDNToUserAttributeCertificateMapper
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -325,7 +320,6 @@ public class SubjectDNToUserAttributeCertificateMapper
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_SDTUACM_DESCRIPTION_SUBJECT_ATTR;
@@ -372,7 +366,6 @@ public class SubjectDNToUserAttributeCertificateMapper
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
     DN configEntryDN = configEntry.getDN();
     boolean configAcceptable = true;
 
@@ -478,7 +471,6 @@ public class SubjectDNToUserAttributeCertificateMapper
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     ArrayList<String> messages            = new ArrayList<String>();

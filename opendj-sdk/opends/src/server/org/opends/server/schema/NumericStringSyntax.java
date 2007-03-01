@@ -97,7 +97,6 @@ public class NumericStringSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_NUMERIC_STRING_OID);
     if (defaultEqualityMatchingRule == null)
@@ -135,7 +134,6 @@ public class NumericStringSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_NUMERIC_STRING_NAME;
   }
 
@@ -148,7 +146,6 @@ public class NumericStringSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_NUMERIC_STRING_OID;
   }
 
@@ -161,7 +158,6 @@ public class NumericStringSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_NUMERIC_STRING_DESCRIPTION;
   }
 
@@ -177,7 +173,6 @@ public class NumericStringSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -193,7 +188,6 @@ public class NumericStringSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -209,7 +203,6 @@ public class NumericStringSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -225,7 +218,6 @@ public class NumericStringSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -247,7 +239,6 @@ public class NumericStringSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     String valueString = value.stringValue();
     int    length      = valueString.length();
 

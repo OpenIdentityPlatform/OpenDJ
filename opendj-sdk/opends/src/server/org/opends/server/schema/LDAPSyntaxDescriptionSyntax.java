@@ -102,7 +102,6 @@ public class LDAPSyntaxDescriptionSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -140,7 +139,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_LDAP_SYNTAX_NAME;
   }
 
@@ -153,7 +151,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_LDAP_SYNTAX_OID;
   }
 
@@ -166,7 +163,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_LDAP_SYNTAX_DESCRIPTION;
   }
 
@@ -182,7 +178,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -198,7 +193,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -214,7 +208,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -230,7 +223,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -252,8 +244,6 @@ public class LDAPSyntaxDescriptionSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
     String valueStr = value.stringValue();
@@ -524,8 +514,6 @@ public class LDAPSyntaxDescriptionSyntax
                                    int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -585,8 +573,6 @@ public class LDAPSyntaxDescriptionSyntax
                                       StringBuilder valueBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();

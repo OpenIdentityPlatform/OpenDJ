@@ -190,7 +190,6 @@ public class DeleteOperation
    */
   public final ByteString getRawEntryDN()
   {
-
     return rawEntryDN;
   }
 
@@ -206,7 +205,6 @@ public class DeleteOperation
    */
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
-
     this.rawEntryDN = rawEntryDN;
 
     entryDN = null;
@@ -224,7 +222,6 @@ public class DeleteOperation
    */
   public final DN getEntryDN()
   {
-
     return entryDN;
   }
 
@@ -239,7 +236,6 @@ public class DeleteOperation
    */
   public final Entry getEntryToDelete()
   {
-
     return entry;
   }
 
@@ -251,7 +247,6 @@ public class DeleteOperation
   @Override()
   public final long getProcessingStartTime()
   {
-
     return processingStartTime;
   }
 
@@ -263,7 +258,6 @@ public class DeleteOperation
   @Override()
   public final long getProcessingStopTime()
   {
-
     return processingStopTime;
   }
 
@@ -275,7 +269,6 @@ public class DeleteOperation
   @Override()
   public final long getProcessingTime()
   {
-
     return (processingStopTime - processingStartTime);
   }
 
@@ -290,7 +283,6 @@ public class DeleteOperation
    */
   public final long getChangeNumber()
   {
-
     return changeNumber;
   }
 
@@ -305,7 +297,6 @@ public class DeleteOperation
    */
   public final void setChangeNumber(long changeNumber)
   {
-
     this.changeNumber = changeNumber;
   }
 
@@ -436,7 +427,6 @@ public class DeleteOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-
     return responseControls;
   }
 
@@ -470,7 +460,6 @@ public class DeleteOperation
   @Override()
   public final void run()
   {
-
     setResultCode(ResultCode.UNDEFINED);
 
 
@@ -1316,7 +1305,6 @@ deleteProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
 
     CancelResult cancelResult = getCancelResult();
@@ -1359,7 +1347,6 @@ deleteProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-
     return cancelRequest;
   }
 
@@ -1371,7 +1358,6 @@ deleteProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
     return true;
   }
@@ -1384,7 +1370,6 @@ deleteProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-
     buffer.append("DeleteOperation(connID=");
     buffer.append(clientConnection.getConnectionID());
     buffer.append(", opID=");

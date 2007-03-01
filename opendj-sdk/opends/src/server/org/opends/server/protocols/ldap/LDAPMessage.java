@@ -76,7 +76,6 @@ public class LDAPMessage
    */
   public LDAPMessage(int messageID, ProtocolOp protocolOp)
   {
-
     this.messageID  = messageID;
     this.protocolOp = protocolOp;
 
@@ -96,7 +95,6 @@ public class LDAPMessage
   public LDAPMessage(int messageID, ProtocolOp protocolOp,
                      ArrayList<LDAPControl> controls)
   {
-
     this.messageID  = messageID;
     this.protocolOp = protocolOp;
 
@@ -119,7 +117,6 @@ public class LDAPMessage
    */
   public int getMessageID()
   {
-
     return messageID;
   }
 
@@ -132,7 +129,6 @@ public class LDAPMessage
    */
   public void setMessageID(int messageID)
   {
-
     this.messageID = messageID;
   }
 
@@ -145,7 +141,6 @@ public class LDAPMessage
    */
   public ProtocolOp getProtocolOp()
   {
-
     return protocolOp;
   }
 
@@ -158,7 +153,6 @@ public class LDAPMessage
    */
   public byte getProtocolOpType()
   {
-
     return protocolOp.getType();
   }
 
@@ -171,7 +165,6 @@ public class LDAPMessage
    */
   public String getProtocolOpName()
   {
-
     return protocolOp.getProtocolOpName();
   }
 
@@ -190,7 +183,6 @@ public class LDAPMessage
   public AbandonRequestProtocolOp getAbandonRequestProtocolOp()
          throws ClassCastException
   {
-
     return (AbandonRequestProtocolOp) protocolOp;
   }
 
@@ -209,7 +201,6 @@ public class LDAPMessage
   public AddRequestProtocolOp getAddRequestProtocolOp()
          throws ClassCastException
   {
-
     return (AddRequestProtocolOp) protocolOp;
   }
 
@@ -228,7 +219,6 @@ public class LDAPMessage
   public AddResponseProtocolOp getAddResponseProtocolOp()
          throws ClassCastException
   {
-
     return (AddResponseProtocolOp) protocolOp;
   }
 
@@ -247,7 +237,6 @@ public class LDAPMessage
   public BindRequestProtocolOp getBindRequestProtocolOp()
          throws ClassCastException
   {
-
     return (BindRequestProtocolOp) protocolOp;
   }
 
@@ -266,7 +255,6 @@ public class LDAPMessage
   public BindResponseProtocolOp getBindResponseProtocolOp()
          throws ClassCastException
   {
-
     return (BindResponseProtocolOp) protocolOp;
   }
 
@@ -285,7 +273,6 @@ public class LDAPMessage
   public CompareRequestProtocolOp getCompareRequestProtocolOp()
          throws ClassCastException
   {
-
     return (CompareRequestProtocolOp) protocolOp;
   }
 
@@ -304,7 +291,6 @@ public class LDAPMessage
   public CompareResponseProtocolOp getCompareResponseProtocolOp()
          throws ClassCastException
   {
-
     return (CompareResponseProtocolOp) protocolOp;
   }
 
@@ -323,7 +309,6 @@ public class LDAPMessage
   public DeleteRequestProtocolOp getDeleteRequestProtocolOp()
          throws ClassCastException
   {
-
     return (DeleteRequestProtocolOp) protocolOp;
   }
 
@@ -342,7 +327,6 @@ public class LDAPMessage
   public DeleteResponseProtocolOp getDeleteResponseProtocolOp()
          throws ClassCastException
   {
-
     return (DeleteResponseProtocolOp) protocolOp;
   }
 
@@ -361,7 +345,6 @@ public class LDAPMessage
   public ExtendedRequestProtocolOp getExtendedRequestProtocolOp()
          throws ClassCastException
   {
-
     return (ExtendedRequestProtocolOp) protocolOp;
   }
 
@@ -380,7 +363,6 @@ public class LDAPMessage
   public ExtendedResponseProtocolOp getExtendedResponseProtocolOp()
          throws ClassCastException
   {
-
     return (ExtendedResponseProtocolOp) protocolOp;
   }
 
@@ -399,7 +381,6 @@ public class LDAPMessage
   public ModifyRequestProtocolOp getModifyRequestProtocolOp()
          throws ClassCastException
   {
-
     return (ModifyRequestProtocolOp) protocolOp;
   }
 
@@ -418,7 +399,6 @@ public class LDAPMessage
   public ModifyResponseProtocolOp getModifyResponseProtocolOp()
          throws ClassCastException
   {
-
     return (ModifyResponseProtocolOp) protocolOp;
   }
 
@@ -437,7 +417,6 @@ public class LDAPMessage
   public ModifyDNRequestProtocolOp getModifyDNRequestProtocolOp()
          throws ClassCastException
   {
-
     return (ModifyDNRequestProtocolOp) protocolOp;
   }
 
@@ -456,7 +435,6 @@ public class LDAPMessage
   public ModifyDNResponseProtocolOp getModifyDNResponseProtocolOp()
          throws ClassCastException
   {
-
     return (ModifyDNResponseProtocolOp) protocolOp;
   }
 
@@ -475,7 +453,6 @@ public class LDAPMessage
   public SearchRequestProtocolOp getSearchRequestProtocolOp()
          throws ClassCastException
   {
-
     return (SearchRequestProtocolOp) protocolOp;
   }
 
@@ -494,7 +471,6 @@ public class LDAPMessage
   public SearchResultDoneProtocolOp getSearchResultDoneProtocolOp()
          throws ClassCastException
   {
-
     return (SearchResultDoneProtocolOp) protocolOp;
   }
 
@@ -513,7 +489,6 @@ public class LDAPMessage
   public SearchResultEntryProtocolOp getSearchResultEntryProtocolOp()
          throws ClassCastException
   {
-
     return (SearchResultEntryProtocolOp) protocolOp;
   }
 
@@ -532,7 +507,6 @@ public class LDAPMessage
   public SearchResultReferenceProtocolOp getSearchResultReferenceProtocolOp()
          throws ClassCastException
   {
-
     return (SearchResultReferenceProtocolOp) protocolOp;
   }
 
@@ -551,7 +525,6 @@ public class LDAPMessage
   public UnbindRequestProtocolOp getUnbindRequestProtocolOp()
          throws ClassCastException
   {
-
     return (UnbindRequestProtocolOp) protocolOp;
   }
 
@@ -564,7 +537,6 @@ public class LDAPMessage
    */
   public void setProtocolOp(ProtocolOp protocolOp)
   {
-
     this.protocolOp = protocolOp;
   }
 
@@ -578,7 +550,6 @@ public class LDAPMessage
    */
   public ArrayList<LDAPControl> getControls()
   {
-
     return controls;
   }
 
@@ -591,7 +562,6 @@ public class LDAPMessage
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> messageElements = new ArrayList<ASN1Element>(3);
     messageElements.add(new ASN1Integer(messageID));
     messageElements.add(protocolOp.encode());
@@ -619,7 +589,6 @@ public class LDAPMessage
   public static LDAPMessage decode(ASN1Sequence messageSequence)
          throws LDAPException
   {
-
     if (messageSequence == null)
     {
       int    msgID   = MSGID_LDAP_MESSAGE_DECODE_NULL;
@@ -710,7 +679,6 @@ public class LDAPMessage
    */
   public String getProtocolElementName()
   {
-
     return "LDAP";
   }
 
@@ -723,7 +691,6 @@ public class LDAPMessage
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -740,7 +707,6 @@ public class LDAPMessage
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("LDAPMessage(msgID=");
     buffer.append(messageID);
     buffer.append(", protocolOp=");
@@ -778,7 +744,6 @@ public class LDAPMessage
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

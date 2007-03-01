@@ -198,7 +198,6 @@ public class LDAPPreReadRequestControl
   public static LDAPPreReadRequestControl decodeControl(Control control)
          throws LDAPException
   {
-
     if (! control.hasValue())
     {
       int    msgID   = MSGID_PREREADREQ_NO_CONTROL_VALUE;
@@ -249,7 +248,6 @@ public class LDAPPreReadRequestControl
   private static ASN1OctetString encodeAttributes(LinkedHashSet<String>
                                                        rawAttributes)
   {
-
     if (rawAttributes == null)
     {
       return new ASN1OctetString(new ASN1Sequence().encode());
@@ -276,7 +274,6 @@ public class LDAPPreReadRequestControl
    */
   public LinkedHashSet<String> getRawAttributes()
   {
-
     return rawAttributes;
   }
 
@@ -290,7 +287,6 @@ public class LDAPPreReadRequestControl
    */
   public void setRawAttributes(LinkedHashSet<String> rawAttributes)
   {
-
     if (rawAttributes == null)
     {
       this.rawAttributes = new LinkedHashSet<String>();
@@ -315,7 +311,6 @@ public class LDAPPreReadRequestControl
    */
   public LinkedHashSet<AttributeType> getRequestedAttributes()
   {
-
     if (requestedAttributes == null)
     {
       returnAllOperationalAttrs = false;
@@ -374,7 +369,6 @@ public class LDAPPreReadRequestControl
    */
   public boolean returnAllUserAttributes()
   {
-
     if (requestedAttributes == null)
     {
       getRequestedAttributes();
@@ -397,7 +391,6 @@ public class LDAPPreReadRequestControl
    */
   public boolean returnAllOperationalAttributes()
   {
-
     if (requestedAttributes == null)
     {
       getRequestedAttributes();
@@ -420,7 +413,6 @@ public class LDAPPreReadRequestControl
    */
   public boolean allowsAttribute(AttributeType attrType)
   {
-
     if (requestedAttributes == null)
     {
       getRequestedAttributes();
@@ -450,7 +442,6 @@ public class LDAPPreReadRequestControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -466,7 +457,6 @@ public class LDAPPreReadRequestControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("LDAPPreReadRequestControl(criticality=");
     buffer.append(isCritical());
     buffer.append(",attrs=\"");

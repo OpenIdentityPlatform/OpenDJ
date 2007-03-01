@@ -103,7 +103,6 @@ public class ConnectionHandlerMonitor
    */
   public void initializeMonitorProvider(ConfigEntry configEntry)
   {
-
     monitorName = connectionHandler.getConnectionHandlerName();
 
     connectionsType =
@@ -130,7 +129,6 @@ public class ConnectionHandlerMonitor
    */
   public String getMonitorInstanceName()
   {
-
     return monitorName;
   }
 
@@ -145,7 +143,6 @@ public class ConnectionHandlerMonitor
    */
   public ObjectClass getMonitorObjectClass()
   {
-
     return DirectoryConfig.getObjectClass(OC_MONITOR_CONNHANDLER, true);
   }
 
@@ -156,7 +153,6 @@ public class ConnectionHandlerMonitor
    */
   public long getUpdateInterval()
   {
-
     // We don't need do anything on a periodic basis.
     return 0;
   }
@@ -168,7 +164,6 @@ public class ConnectionHandlerMonitor
    */
   public void updateMonitorData()
   {
-
     // No implementaiton is required.
   }
 
@@ -179,7 +174,6 @@ public class ConnectionHandlerMonitor
    */
   public List<Attribute> getMonitorData()
   {
-
     LinkedList<Attribute> attrs = new LinkedList<Attribute>();
 
     int numConnections = 0;

@@ -118,7 +118,6 @@ public class ASN1Integer
    */
   public int intValue()
   {
-
     return intValue;
   }
 
@@ -131,7 +130,6 @@ public class ASN1Integer
    */
   public void setValue(int intValue)
   {
-
     this.intValue = intValue;
     setValueInternal(encodeValue(intValue));
   }
@@ -149,7 +147,6 @@ public class ASN1Integer
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-
     if (value == null)
     {
       int    msgID   = MSGID_ASN1_INTEGER_SET_VALUE_NULL;
@@ -188,7 +185,6 @@ public class ASN1Integer
   public static ASN1Integer decodeAsInteger(ASN1Element element)
          throws ASN1Exception
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_ASN1_INTEGER_DECODE_ELEMENT_NULL;
@@ -229,7 +225,6 @@ public class ASN1Integer
   public static ASN1Integer decodeAsInteger(byte[] encodedElement)
          throws ASN1Exception
   {
-
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 integer element.
     if (encodedElement == null)
@@ -320,7 +315,6 @@ public class ASN1Integer
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ASN1Integer(type=");
     buffer.append(byteToHex(getType()));
     buffer.append(", value=");
@@ -341,7 +335,6 @@ public class ASN1Integer
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

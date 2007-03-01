@@ -83,7 +83,6 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
    */
   public List<LDAPModification> getModifications()
   {
-
     return Collections.unmodifiableList(modifications);
   }
 
@@ -96,7 +95,6 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
    */
   public ChangeOperationType getChangeOperationType()
   {
-
     return ChangeOperationType.MODIFY;
   }
 }

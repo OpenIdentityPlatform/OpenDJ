@@ -137,7 +137,6 @@ public abstract class WorkQueue
    */
   public boolean waitUntilIdle(long timeLimit)
   {
-
     long stopWaitingTime;
     if (timeLimit <= 0)
     {

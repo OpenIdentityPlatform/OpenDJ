@@ -232,7 +232,6 @@ public final class AbsoluteSubtreeSpecificationSyntax extends
   public boolean valueIsAcceptable(ByteString value,
                                   StringBuilder invalidReason)
   {
-
     // Use the subtree specification code to make this determination.
     try {
       AbsoluteSubtreeSpecification.valueOf(value.stringValue());

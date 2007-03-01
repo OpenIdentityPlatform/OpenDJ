@@ -115,7 +115,6 @@ public class GSSAPIStateInfo
                          BindOperation bindOperation, String serverFQDN)
          throws InitializationException
   {
-
     this.gssapiHandler = gssapiHandler;
     this.bindOperation = bindOperation;
     this.serverFQDN    = serverFQDN;
@@ -177,7 +176,6 @@ public class GSSAPIStateInfo
    */
   public void setBindOperation(BindOperation bindOperation)
   {
-
     this.bindOperation = bindOperation;
   }
 
@@ -193,7 +191,6 @@ public class GSSAPIStateInfo
    */
   public Entry getUserEntry()
   {
-
     return userEntry;
   }
 
@@ -228,7 +225,6 @@ public class GSSAPIStateInfo
    */
   public void processAuthenticationStage()
   {
-
     try
     {
       Subject.doAs(loginContext.getSubject(), this);
@@ -256,8 +252,6 @@ public class GSSAPIStateInfo
    */
   public Boolean run()
   {
-
-
     if (saslServer == null)
     {
       // Create the SASL server instance for use with this authentication
@@ -493,8 +487,6 @@ public class GSSAPIStateInfo
   public void handle(Callback[] callbacks)
          throws UnsupportedCallbackException
   {
-
-
     for (Callback callback : callbacks)
     {
       if (callback instanceof NameCallback)

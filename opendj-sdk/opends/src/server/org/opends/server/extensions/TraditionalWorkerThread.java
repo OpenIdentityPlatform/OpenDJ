@@ -112,7 +112,6 @@ public class TraditionalWorkerThread
    */
   public void setStoppedByReducedThreadNumber()
   {
-
     stoppedByReducedThreadNumber = true;
   }
 
@@ -129,7 +128,6 @@ public class TraditionalWorkerThread
    */
   public boolean isActive()
   {
-
     return (isAlive() && (operation != null));
   }
 
@@ -141,7 +139,6 @@ public class TraditionalWorkerThread
    */
   public void run()
   {
-
     workerThread = currentThread();
 
     while (! shutdownRequested)
@@ -265,7 +262,6 @@ public class TraditionalWorkerThread
    */
   public void shutDown()
   {
-
     if (debugEnabled())
     {
       debugInfo(getName() + " being signaled to shut down.");

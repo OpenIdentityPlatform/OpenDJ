@@ -109,7 +109,6 @@ public class FilteredStaticGroupMemberList
   public FilteredStaticGroupMemberList(DN groupDN, Set<DN> memberDNs, DN baseDN,
                                        SearchScope scope, SearchFilter filter)
   {
-
     ensureNotNull(groupDN, memberDNs);
 
     this.groupDN   = groupDN;
@@ -252,7 +251,6 @@ public class FilteredStaticGroupMemberList
   @Override()
   public boolean hasMoreMembers()
   {
-
     if (! memberDNIterator.hasNext())
     {
       return false;
@@ -270,7 +268,6 @@ public class FilteredStaticGroupMemberList
   public DN nextMemberDN()
          throws MembershipException
   {
-
     if (! memberDNIterator.hasNext())
     {
       return null;
@@ -296,7 +293,6 @@ public class FilteredStaticGroupMemberList
   public Entry nextMemberEntry()
          throws MembershipException
   {
-
     if (! memberDNIterator.hasNext())
     {
       return null;
@@ -326,7 +322,6 @@ public class FilteredStaticGroupMemberList
   @Override()
   public void close()
   {
-
     // No implementation is required.
   }
 }

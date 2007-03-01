@@ -79,7 +79,6 @@ public class ASN1Element
    */
   public ASN1Element(byte type)
   {
-
     this.type  = type;
     this.value = NO_VALUE;
   }
@@ -94,7 +93,6 @@ public class ASN1Element
    */
   public ASN1Element(byte type, byte[] value)
   {
-
     this.type  = type;
 
     if (value == null)
@@ -116,7 +114,6 @@ public class ASN1Element
    */
   public byte getType()
   {
-
     return type;
   }
 
@@ -129,7 +126,6 @@ public class ASN1Element
    */
   public void setType(byte type)
   {
-
     this.type = type;
   }
 
@@ -143,7 +139,6 @@ public class ASN1Element
    */
   public boolean isUniversal()
   {
-
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_UNIVERSAL);
   }
 
@@ -157,7 +152,6 @@ public class ASN1Element
    */
   public boolean isApplicationSpecific()
   {
-
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_APPLICATION);
   }
 
@@ -171,7 +165,6 @@ public class ASN1Element
    */
   public boolean isContextSpecific()
   {
-
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_CONTEXT);
   }
 
@@ -185,7 +178,6 @@ public class ASN1Element
    */
   public boolean isPrivate()
   {
-
     return ((type & TYPE_MASK_ALL_BUT_CLASS) == TYPE_MASK_PRIVATE);
   }
 
@@ -199,7 +191,6 @@ public class ASN1Element
    */
   public boolean isPrimitive()
   {
-
     return ((type & TYPE_MASK_ALL_BUT_PC) == TYPE_MASK_PRIMITIVE);
   }
 
@@ -213,7 +204,6 @@ public class ASN1Element
    */
   public boolean isConstructed()
   {
-
     return ((type & TYPE_MASK_ALL_BUT_PC) == TYPE_MASK_CONSTRUCTED);
   }
 
@@ -226,7 +216,6 @@ public class ASN1Element
    */
   public byte[] value()
   {
-
     return value;
   }
 
@@ -243,7 +232,6 @@ public class ASN1Element
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-
     if (value == null)
     {
       this.value = NO_VALUE;
@@ -266,7 +254,6 @@ public class ASN1Element
    */
   protected final void setValueInternal(byte[] value)
   {
-
     this.value = value;
   }
 
@@ -281,7 +268,6 @@ public class ASN1Element
    */
   public static byte[] encodeLength(int length)
   {
-
     if (length < 128)
     {
       return new byte[] { (byte) length };
@@ -336,7 +322,6 @@ public class ASN1Element
    */
   public byte[] encode()
   {
-
     if (value.length == 0)
     {
       return new byte[] { type, 0x00 };
@@ -379,7 +364,6 @@ public class ASN1Element
    */
   public static byte[] encodeValue(boolean booleanValue)
   {
-
     return (booleanValue ? BOOLEAN_VALUE_TRUE : BOOLEAN_VALUE_FALSE);
   }
 
@@ -396,7 +380,6 @@ public class ASN1Element
    */
   public static byte[] encodeValue(int intValue)
   {
-
     if ((intValue & 0x0000007F) == intValue)
     {
       return new byte[]
@@ -446,7 +429,6 @@ public class ASN1Element
    */
   public static byte[] encodeLongValue(long longValue)
   {
-
     if ((longValue & 0x000000000000007FL) == longValue)
     {
       return new byte[]
@@ -546,7 +528,6 @@ public class ASN1Element
    */
   public static byte[] encodeValue(ArrayList<ASN1Element> elements)
   {
-
     if (elements == null)
     {
       return NO_VALUE;
@@ -588,8 +569,6 @@ public class ASN1Element
   public static ASN1Element decode(byte[] encodedElement)
          throws ASN1Exception
   {
-
-
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 element.
     if (encodedElement == null)
@@ -675,8 +654,6 @@ public class ASN1Element
                                    int length)
          throws ASN1Exception
   {
-
-
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 element.
     if (encodedElement == null)
@@ -754,7 +731,6 @@ public class ASN1Element
   public ASN1Boolean decodeAsBoolean()
          throws ASN1Exception
   {
-
     return ASN1Boolean.decodeAsBoolean(this);
   }
 
@@ -771,7 +747,6 @@ public class ASN1Element
   public ASN1Enumerated decodeAsEnumerated()
          throws ASN1Exception
   {
-
     return ASN1Enumerated.decodeAsEnumerated(this);
   }
 
@@ -788,7 +763,6 @@ public class ASN1Element
   public ASN1Integer decodeAsInteger()
          throws ASN1Exception
   {
-
     return ASN1Integer.decodeAsInteger(this);
   }
 
@@ -805,7 +779,6 @@ public class ASN1Element
   public ASN1Long decodeAsLong()
          throws ASN1Exception
   {
-
     return ASN1Long.decodeAsLong(this);
   }
 
@@ -822,7 +795,6 @@ public class ASN1Element
   public ASN1Null decodeAsNull()
          throws ASN1Exception
   {
-
     return ASN1Null.decodeAsNull(this);
   }
 
@@ -839,7 +811,6 @@ public class ASN1Element
   public ASN1OctetString decodeAsOctetString()
          throws ASN1Exception
   {
-
     return ASN1OctetString.decodeAsOctetString(this);
   }
 
@@ -856,7 +827,6 @@ public class ASN1Element
   public ASN1Sequence decodeAsSequence()
          throws ASN1Exception
   {
-
     return ASN1Sequence.decodeAsSequence(this);
   }
 
@@ -873,7 +843,6 @@ public class ASN1Element
   public ASN1Set decodeAsSet()
          throws ASN1Exception
   {
-
     return ASN1Set.decodeAsSet(this);
   }
 
@@ -893,8 +862,6 @@ public class ASN1Element
   public static ArrayList<ASN1Element> decodeElements(byte[] encodedElements)
          throws ASN1Exception
   {
-
-
     // Make sure that the element array is not null.
     if (encodedElements == null)
     {
@@ -976,7 +943,6 @@ public class ASN1Element
    */
   public String getProtocolElementName()
   {
-
     return "ASN.1";
   }
 
@@ -994,7 +960,6 @@ public class ASN1Element
    */
   public boolean equals(Object o)
   {
-
     if (this == o)
     {
       return true;
@@ -1023,7 +988,6 @@ public class ASN1Element
    */
   public boolean equalsIgnoreType(ASN1Element element)
   {
-
     return Arrays.equals(value, element.value);
   }
 
@@ -1041,7 +1005,6 @@ public class ASN1Element
    */
   public boolean equalsIgnoreType(ByteString byteString)
   {
-
     return Arrays.equals(value, byteString.value());
   }
 
@@ -1058,7 +1021,6 @@ public class ASN1Element
    */
   public boolean equalsElement(ASN1Element e)
   {
-
     if (this == e)
     {
       return true;
@@ -1082,7 +1044,6 @@ public class ASN1Element
    */
   public int hashCode()
   {
-
     int hashCode = type;
     int length = Math.min(20, value.length);
     for (int i=0; i < length; i++)
@@ -1102,7 +1063,6 @@ public class ASN1Element
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -1118,7 +1078,6 @@ public class ASN1Element
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ASN1Element(type=");
     buffer.append(byteToHex(type));
     buffer.append(", length=");
@@ -1139,7 +1098,6 @@ public class ASN1Element
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

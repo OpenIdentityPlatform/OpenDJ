@@ -198,7 +198,6 @@ public class LDAPPostReadRequestControl
   public static LDAPPostReadRequestControl decodeControl(Control control)
          throws LDAPException
   {
-
     if (! control.hasValue())
     {
       int    msgID   = MSGID_POSTREADREQ_NO_CONTROL_VALUE;
@@ -250,7 +249,6 @@ public class LDAPPostReadRequestControl
   private static ASN1OctetString encodeAttributes(LinkedHashSet<String>
                                                        rawAttributes)
   {
-
     if (rawAttributes == null)
     {
       return new ASN1OctetString(new ASN1Sequence().encode());
@@ -277,7 +275,6 @@ public class LDAPPostReadRequestControl
    */
   public LinkedHashSet<String> getRawAttributes()
   {
-
     return rawAttributes;
   }
 
@@ -291,7 +288,6 @@ public class LDAPPostReadRequestControl
    */
   public void setRawAttributes(LinkedHashSet<String> rawAttributes)
   {
-
     if (rawAttributes == null)
     {
       this.rawAttributes = new LinkedHashSet<String>();
@@ -316,7 +312,6 @@ public class LDAPPostReadRequestControl
    */
   public LinkedHashSet<AttributeType> getRequestedAttributes()
   {
-
     if (requestedAttributes == null)
     {
       returnAllOperationalAttrs = false;
@@ -375,7 +370,6 @@ public class LDAPPostReadRequestControl
    */
   public boolean returnAllUserAttributes()
   {
-
     if (requestedAttributes == null)
     {
       getRequestedAttributes();
@@ -398,7 +392,6 @@ public class LDAPPostReadRequestControl
    */
   public boolean returnAllOperationalAttributes()
   {
-
     if (requestedAttributes == null)
     {
       getRequestedAttributes();
@@ -421,7 +414,6 @@ public class LDAPPostReadRequestControl
    */
   public boolean allowsAttribute(AttributeType attrType)
   {
-
     if (requestedAttributes == null)
     {
       getRequestedAttributes();
@@ -451,7 +443,6 @@ public class LDAPPostReadRequestControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -467,7 +458,6 @@ public class LDAPPostReadRequestControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("LDAPPostReadRequestControl(criticality=");
     buffer.append(isCritical());
     buffer.append(",attrs=\"");

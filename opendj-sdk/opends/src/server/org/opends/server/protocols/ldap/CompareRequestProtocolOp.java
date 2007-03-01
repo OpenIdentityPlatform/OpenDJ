@@ -76,7 +76,6 @@ public class CompareRequestProtocolOp
   public CompareRequestProtocolOp(ASN1OctetString dn, String attributeType,
                                   ASN1OctetString assertionValue)
   {
-
     this.dn             = dn;
     this.attributeType  = attributeType;
     this.assertionValue = assertionValue;
@@ -91,7 +90,6 @@ public class CompareRequestProtocolOp
    */
   public ASN1OctetString getDN()
   {
-
     return dn;
   }
 
@@ -104,7 +102,6 @@ public class CompareRequestProtocolOp
    */
   public void setDN(ASN1OctetString dn)
   {
-
     this.dn = dn;
   }
 
@@ -117,7 +114,6 @@ public class CompareRequestProtocolOp
    */
   public String getAttributeType()
   {
-
     return attributeType;
   }
 
@@ -130,7 +126,6 @@ public class CompareRequestProtocolOp
    */
   public void setAttributeType(String attributeType)
   {
-
     this.attributeType = attributeType;
   }
 
@@ -143,7 +138,6 @@ public class CompareRequestProtocolOp
    */
   public ASN1OctetString getAssertionValue()
   {
-
     return assertionValue;
   }
 
@@ -156,7 +150,6 @@ public class CompareRequestProtocolOp
    */
   public void setAssertionValue(ASN1OctetString assertionValue)
   {
-
     this.assertionValue = assertionValue;
   }
 
@@ -169,7 +162,6 @@ public class CompareRequestProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_COMPARE_REQUEST;
   }
 
@@ -182,7 +174,6 @@ public class CompareRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Compare Request";
   }
 
@@ -196,7 +187,6 @@ public class CompareRequestProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(dn);
 
@@ -224,7 +214,6 @@ public class CompareRequestProtocolOp
                                                                    element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -346,7 +335,6 @@ public class CompareRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("CompareRequest(dn=");
     dn.toString(buffer);
     buffer.append(", attribute=");
@@ -368,7 +356,6 @@ public class CompareRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

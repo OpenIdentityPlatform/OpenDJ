@@ -211,7 +211,6 @@ public class RootContainer
                    boolean isLocking,
                    boolean runCheckPointer) throws DatabaseException
   {
-
     EnvironmentConfig envConfig;
     if(config.getEnvironmentConfig() != null)
     {
@@ -365,7 +364,6 @@ public class RootContainer
    */
   public void preload()
   {
-
     long timeLimit = config.getPreloadTimeLimit();
 
     if (timeLimit > 0)
@@ -442,7 +440,6 @@ public class RootContainer
   private void cleanDatabase()
        throws DatabaseException
   {
-
     int msgID;
     String message;
 

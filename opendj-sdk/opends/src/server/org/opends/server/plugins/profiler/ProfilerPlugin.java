@@ -178,8 +178,6 @@ public final class ProfilerPlugin
                                      ConfigEntry configEntry)
          throws ConfigException
   {
-
-
     // Initialize the set of profiler actions.
     profilerActions = new LinkedHashSet<String>(4);
     profilerActions.add(PROFILE_ACTION_NONE);
@@ -332,8 +330,6 @@ public final class ProfilerPlugin
   @Override()
   public final void finalizePlugin()
   {
-
-
     // If the profiler thread is still active, then cause it to dump the
     // information it has captured and exit.
     synchronized (this)
@@ -377,7 +373,6 @@ public final class ProfilerPlugin
   @Override()
   public final StartupPluginResult doStartup()
   {
-
     // If the profiler should be started automatically, then do so now.
     if (autoStart)
     {
@@ -395,7 +390,6 @@ public final class ProfilerPlugin
    */
   public final DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -406,7 +400,6 @@ public final class ProfilerPlugin
    */
   public final List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
 
@@ -460,8 +453,6 @@ public final class ProfilerPlugin
   public final boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                             List<String> unacceptableReasons)
   {
-
-
     // See if there is an acceptable value for the sample interval.
     int msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_INTERVAL;
     IntegerWithUnitConfigAttribute intervalStub =
@@ -589,8 +580,6 @@ public final class ProfilerPlugin
   public final ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                         boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

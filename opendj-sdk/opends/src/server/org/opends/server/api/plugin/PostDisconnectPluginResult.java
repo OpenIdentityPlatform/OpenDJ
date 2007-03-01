@@ -77,7 +77,6 @@ public class PostDisconnectPluginResult
    */
   public PostDisconnectPluginResult(boolean continuePluginProcessing)
   {
-
     this.continuePluginProcessing = continuePluginProcessing;
   }
 
@@ -93,7 +92,6 @@ public class PostDisconnectPluginResult
    */
   public boolean continuePluginProcessing()
   {
-
     return continuePluginProcessing;
   }
 
@@ -108,7 +106,6 @@ public class PostDisconnectPluginResult
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -125,7 +122,6 @@ public class PostDisconnectPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("PostDisconnectPluginResult(" +
                   "continuePluginProcessing=");
     buffer.append(continuePluginProcessing);

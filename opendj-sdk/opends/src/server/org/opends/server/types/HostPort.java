@@ -52,7 +52,6 @@ public final class HostPort
    */
   public HostPort(int port)
   {
-
     this.host = null;
     this.port = port;
   }
@@ -69,7 +68,6 @@ public final class HostPort
    */
   public HostPort(String host, int port)
   {
-
     this.host = host;
     this.port = port;
   }
@@ -84,7 +82,6 @@ public final class HostPort
    */
   public String getHost()
   {
-
     return host;
   }
 
@@ -97,7 +94,6 @@ public final class HostPort
    */
   public int getPort()
   {
-
     return port;
   }
 
@@ -112,7 +108,6 @@ public final class HostPort
    */
   public String toString()
   {
-
     if (host ==  null)
     {
       return ":" + port;

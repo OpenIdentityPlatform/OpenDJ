@@ -144,8 +144,6 @@ public class DirectoryStringSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
-
     defaultApproximateMatchingRule =
          DirectoryServer.getApproximateMatchingRule(AMR_DOUBLE_METAPHONE_OID);
     if (defaultApproximateMatchingRule == null)
@@ -234,7 +232,6 @@ public class DirectoryStringSyntax
    */
   public void finalizeSyntax()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
   }
 
@@ -247,7 +244,6 @@ public class DirectoryStringSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_DIRECTORY_STRING_NAME;
   }
 
@@ -260,7 +256,6 @@ public class DirectoryStringSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_DIRECTORY_STRING_OID;
   }
 
@@ -273,7 +268,6 @@ public class DirectoryStringSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_DIRECTORY_STRING_DESCRIPTION;
   }
 
@@ -289,7 +283,6 @@ public class DirectoryStringSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -305,7 +298,6 @@ public class DirectoryStringSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -321,7 +313,6 @@ public class DirectoryStringSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -337,7 +328,6 @@ public class DirectoryStringSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     return defaultApproximateMatchingRule;
   }
 
@@ -358,7 +348,6 @@ public class DirectoryStringSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     if (allowZeroLengthValues || (value.value().length > 0))
     {
       return true;
@@ -385,7 +374,6 @@ public class DirectoryStringSyntax
    */
   public boolean allowZeroLengthValues()
   {
-
     return allowZeroLengthValues;
   }
 
@@ -400,7 +388,6 @@ public class DirectoryStringSyntax
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -415,7 +402,6 @@ public class DirectoryStringSyntax
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> configAttrs = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_DESCRIPTION_ALLOW_ZEROLENGTH;
@@ -445,8 +431,6 @@ public class DirectoryStringSyntax
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     boolean configValid = true;
 
 
@@ -500,8 +484,6 @@ public class DirectoryStringSyntax
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

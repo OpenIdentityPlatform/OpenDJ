@@ -102,7 +102,6 @@ public class MatchingRuleUseSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -141,7 +140,6 @@ public class MatchingRuleUseSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_MATCHING_RULE_USE_NAME;
   }
 
@@ -152,7 +150,6 @@ public class MatchingRuleUseSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_MATCHING_RULE_USE_OID;
   }
 
@@ -163,7 +160,6 @@ public class MatchingRuleUseSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_MATCHING_RULE_USE_DESCRIPTION;
   }
 
@@ -174,7 +170,6 @@ public class MatchingRuleUseSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -185,7 +180,6 @@ public class MatchingRuleUseSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -196,7 +190,6 @@ public class MatchingRuleUseSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -207,7 +200,6 @@ public class MatchingRuleUseSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -220,8 +212,6 @@ public class MatchingRuleUseSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // We'll use the decodeMatchingRuleUse method to determine if the value is
     // acceptable.
     try
@@ -271,8 +261,6 @@ public class MatchingRuleUseSyntax
                                      boolean allowUnknownElements)
          throws DirectoryException
   {
-
-
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
     String valueStr = value.stringValue();
@@ -675,8 +663,6 @@ public class MatchingRuleUseSyntax
                                    int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -736,8 +722,6 @@ public class MatchingRuleUseSyntax
                                       StringBuilder valueBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -825,8 +809,6 @@ public class MatchingRuleUseSyntax
                                       StringBuilder lowerBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -908,10 +890,6 @@ public class MatchingRuleUseSyntax
                               int startPos)
           throws DirectoryException
   {
-
-
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -1063,8 +1041,6 @@ public class MatchingRuleUseSyntax
                           List<String> valueList, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = valueStr.charAt(startPos++);

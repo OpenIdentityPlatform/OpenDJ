@@ -64,7 +64,6 @@ public class CancelRequest
   public CancelRequest(boolean notifyOriginalRequestor,
                        String cancelReason)
   {
-
     this.notifyOriginalRequestor = notifyOriginalRequestor;
     this.cancelReason            = cancelReason;
     this.responseMessage         = new StringBuilder();
@@ -90,7 +89,6 @@ public class CancelRequest
                        String cancelReason,
                        StringBuilder responseMessage)
   {
-
     this.notifyOriginalRequestor = notifyOriginalRequestor;
     this.cancelReason            = cancelReason;
     this.responseMessage         = responseMessage;
@@ -108,7 +106,6 @@ public class CancelRequest
    */
   public final boolean notifyOriginalRequestor()
   {
-
     return notifyOriginalRequestor;
   }
 
@@ -123,7 +120,6 @@ public class CancelRequest
    */
   public final String getCancelReason()
   {
-
     return cancelReason;
   }
 
@@ -140,7 +136,6 @@ public class CancelRequest
    */
   public final StringBuilder getResponseMessage()
   {
-
     return responseMessage;
   }
 
@@ -155,7 +150,6 @@ public class CancelRequest
    */
   public final void addResponseMessage(String message)
   {
-
     responseMessage.append(message);
   }
 }

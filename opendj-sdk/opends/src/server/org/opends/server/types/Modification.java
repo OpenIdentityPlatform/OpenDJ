@@ -64,7 +64,6 @@ public class Modification
   public Modification(ModificationType modificationType,
                       Attribute attribute)
   {
-
     this.modificationType = modificationType;
     this.attribute        = attribute;
 
@@ -87,7 +86,6 @@ public class Modification
   public Modification(ModificationType modificationType,
                       Attribute attribute, boolean isInternal)
   {
-
     this.modificationType = modificationType;
     this.attribute        = attribute;
     this.isInternal       = isInternal;
@@ -102,7 +100,6 @@ public class Modification
    */
   public ModificationType getModificationType()
   {
-
     return modificationType;
   }
 
@@ -116,7 +113,6 @@ public class Modification
    */
   public void setModificationType(ModificationType modificationType)
   {
-
     this.modificationType = modificationType;
   }
 
@@ -129,7 +125,6 @@ public class Modification
    */
   public Attribute getAttribute()
   {
-
     return attribute;
   }
 
@@ -142,7 +137,6 @@ public class Modification
    */
   public void setAttribute(Attribute attribute)
   {
-
     this.attribute = attribute;
   }
 
@@ -158,7 +152,6 @@ public class Modification
    */
   public boolean isInternal()
   {
-
     return isInternal;
   }
 
@@ -176,7 +169,6 @@ public class Modification
    */
   public void setInternal(boolean isInternal)
   {
-
     this.isInternal = isInternal;
   }
 
@@ -196,7 +188,6 @@ public class Modification
    */
   public boolean equals(Object o)
   {
-
     if (this == o)
     {
       return true;
@@ -227,7 +218,6 @@ public class Modification
    */
   public int hashCode()
   {
-
     return attribute.hashCode();
   }
 
@@ -240,7 +230,6 @@ public class Modification
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -257,7 +246,6 @@ public class Modification
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("Modification(");
     buffer.append(modificationType.toString());
     buffer.append(", ");
@@ -275,7 +263,6 @@ public class Modification
    */
   public String toLDIF()
   {
-
     StringBuilder buffer = new StringBuilder();
     toLDIF(buffer);
     return buffer.toString();
@@ -292,7 +279,6 @@ public class Modification
    */
   public void toLDIF(StringBuilder buffer)
   {
-
     buffer.append(modificationType.toString());
     buffer.append(": ");
     buffer.append(attribute.getName());

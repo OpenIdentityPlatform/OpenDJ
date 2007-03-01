@@ -80,7 +80,6 @@ public class Attribute
    */
   public Attribute(AttributeType attributeType)
   {
-
     this.attributeType = attributeType;
     this.name          = attributeType.getPrimaryName();
     this.options       = new LinkedHashSet<String>(0);
@@ -98,7 +97,6 @@ public class Attribute
    */
   public Attribute(AttributeType attributeType, String name)
   {
-
     this.attributeType = attributeType;
     this.name          = name;
     this.options       = new LinkedHashSet<String>(0);
@@ -118,7 +116,6 @@ public class Attribute
   public Attribute(AttributeType attributeType, String name,
                    LinkedHashSet<AttributeValue> values)
   {
-
     this.attributeType = attributeType;
     this.name          = name;
     this.options       = new LinkedHashSet<String>(0);
@@ -170,7 +167,6 @@ public class Attribute
                    LinkedHashSet<String> options,
                    LinkedHashSet<AttributeValue> values)
   {
-
     this.attributeType = attributeType;
     this.name          = name;
 
@@ -202,7 +198,6 @@ public class Attribute
    */
   public AttributeType getAttributeType()
   {
-
     return attributeType;
   }
 
@@ -215,7 +210,6 @@ public class Attribute
    */
   public String getName()
   {
-
     return name;
   }
 
@@ -228,7 +222,6 @@ public class Attribute
    */
   public LinkedHashSet<String> getOptions()
   {
-
     return options;
   }
 
@@ -244,7 +237,6 @@ public class Attribute
    */
   public boolean hasOption(String option)
   {
-
     return options.contains(option);
   }
 
@@ -258,7 +250,6 @@ public class Attribute
    */
   public boolean hasOptions()
   {
-
     return ((options != null) && (! options.isEmpty()));
   }
 
@@ -277,7 +268,6 @@ public class Attribute
    */
   public boolean hasOptions(Collection<String> options)
   {
-
     if (options == null)
     {
       return true;
@@ -309,7 +299,6 @@ public class Attribute
    */
   public boolean optionsEqual(Set<String> options)
   {
-
     if (options == null)
     {
       return this.options == null || this.options.isEmpty();
@@ -346,7 +335,6 @@ public class Attribute
    */
   public LinkedHashSet<AttributeValue> getValues()
   {
-
     return values;
   }
 
@@ -359,7 +347,6 @@ public class Attribute
    */
   public void setValues(LinkedHashSet<AttributeValue> values)
   {
-
     if (values == null)
     {
       this.values = new LinkedHashSet<AttributeValue>();
@@ -380,7 +367,6 @@ public class Attribute
    */
   public boolean hasValue()
   {
-
     return (! values.isEmpty());
   }
 
@@ -396,7 +382,6 @@ public class Attribute
    */
   public boolean hasValue(AttributeValue value)
   {
-
     return values.contains(value);
   }
 
@@ -415,7 +400,6 @@ public class Attribute
    */
   public boolean hasAllValues(Collection<AttributeValue> values)
   {
-
     for (AttributeValue value : values)
     {
       if (! this.values.contains(value))
@@ -443,7 +427,6 @@ public class Attribute
    */
   public boolean hasAnyValue(Collection<AttributeValue> values)
   {
-
     for (AttributeValue value : values)
     {
       if (this.values.contains(value))
@@ -477,8 +460,6 @@ public class Attribute
                                           List<ByteString> subAny,
                                           ByteString subFinal)
   {
-
-
     SubstringMatchingRule matchingRule =
          attributeType.getSubstringMatchingRule();
     if (matchingRule == null)
@@ -615,8 +596,6 @@ public class Attribute
    */
   public ConditionResult greaterThanOrEqualTo(AttributeValue value)
   {
-
-
     OrderingMatchingRule matchingRule =
          attributeType.getOrderingMatchingRule();
     if (matchingRule == null)
@@ -686,8 +665,6 @@ public class Attribute
    */
   public ConditionResult lessThanOrEqualTo(AttributeValue value)
   {
-
-
     OrderingMatchingRule matchingRule =
          attributeType.getOrderingMatchingRule();
     if (matchingRule == null)
@@ -757,8 +734,6 @@ public class Attribute
    */
   public ConditionResult approximatelyEqualTo(AttributeValue value)
   {
-
-
     ApproximateMatchingRule matchingRule =
          attributeType.getApproximateMatchingRule();
     if (matchingRule == null)
@@ -822,7 +797,6 @@ public class Attribute
    */
   public Attribute duplicate()
   {
-
     return duplicate(false);
   }
 
@@ -839,7 +813,6 @@ public class Attribute
    */
   public Attribute duplicate(boolean omitValues)
   {
-
     LinkedHashSet<String> optionsCopy =
          new LinkedHashSet<String>(options.size());
     for (String s : options)
@@ -879,7 +852,6 @@ public class Attribute
    */
   public boolean equals(Object o)
   {
-
     if (this == o)
     {
       return true;
@@ -920,7 +892,6 @@ public class Attribute
    */
   public int hashCode()
   {
-
     int hashCode = attributeType.hashCode();
     for (AttributeValue value : values)
     {
@@ -939,7 +910,6 @@ public class Attribute
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -956,7 +926,6 @@ public class Attribute
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("Attribute(");
     buffer.append(name);
     buffer.append(", {");
@@ -985,7 +954,6 @@ public class Attribute
    */
   public String toLDIF()
   {
-
     StringBuilder buffer = new StringBuilder();
     toLDIF(buffer);
     return buffer.toString();
@@ -1002,7 +970,6 @@ public class Attribute
    */
   public void toLDIF(StringBuilder buffer)
   {
-
     for (AttributeValue value : values)
     {
       buffer.append(name);

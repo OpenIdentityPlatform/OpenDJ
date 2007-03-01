@@ -101,8 +101,6 @@ public class LengthBasedPasswordValidator
   public void initializePasswordValidator(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     configEntryDN = configEntry.getDN();
 
 
@@ -186,7 +184,6 @@ public class LengthBasedPasswordValidator
   @Override()
   public void finalizePasswordValidator()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
   }
 
@@ -201,8 +198,6 @@ public class LengthBasedPasswordValidator
                                       Operation operation, Entry userEntry,
                                       StringBuilder invalidReason)
   {
-
-
     int numChars = newPassword.stringValue().length();
 
     if ((minLength > 0) && (numChars < minLength))
@@ -229,7 +224,6 @@ public class LengthBasedPasswordValidator
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -240,8 +234,6 @@ public class LengthBasedPasswordValidator
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     LinkedList<ConfigAttribute> attrs = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_PWLENGTHVALIDATOR_DESCRIPTION_MIN_LENGTH;
@@ -265,8 +257,6 @@ public class LengthBasedPasswordValidator
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // Get the configured minimum length.
     int newMinLength = 0;
     int msgID = MSGID_PWLENGTHVALIDATOR_DESCRIPTION_MIN_LENGTH;
@@ -349,8 +339,6 @@ public class LengthBasedPasswordValidator
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

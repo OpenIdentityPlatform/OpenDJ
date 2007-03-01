@@ -173,7 +173,6 @@ public class ASN1Set
    */
   public ArrayList<ASN1Element> elements()
   {
-
     return elements;
   }
 
@@ -186,7 +185,6 @@ public class ASN1Set
    */
   public void setElements(ArrayList<ASN1Element> elements)
   {
-
     if (elements == null)
     {
       this.elements.clear();
@@ -212,7 +210,6 @@ public class ASN1Set
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-
     if (value == null)
     {
       int    msgID   = MSGID_ASN1_SET_SET_VALUE_NULL;
@@ -239,7 +236,6 @@ public class ASN1Set
   public static ASN1Set decodeAsSet(ASN1Element element)
          throws ASN1Exception
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_ASN1_SET_DECODE_ELEMENT_NULL;
@@ -267,7 +263,6 @@ public class ASN1Set
   public static ASN1Set decodeAsSet(byte[] encodedElement)
          throws ASN1Exception
   {
-
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 set element.
     if (encodedElement == null)
@@ -344,7 +339,6 @@ public class ASN1Set
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ASN1Set(type=");
     buffer.append(byteToHex(getType()));
     buffer.append(", values={ ");
@@ -378,7 +372,6 @@ public class ASN1Set
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

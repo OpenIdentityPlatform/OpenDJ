@@ -129,7 +129,6 @@ public class FaxNumberSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -167,7 +166,6 @@ public class FaxNumberSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_FAXNUMBER_NAME;
   }
 
@@ -180,7 +178,6 @@ public class FaxNumberSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_FAXNUMBER_OID;
   }
 
@@ -193,7 +190,6 @@ public class FaxNumberSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_FAXNUMBER_DESCRIPTION;
   }
 
@@ -209,7 +205,6 @@ public class FaxNumberSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -225,7 +220,6 @@ public class FaxNumberSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -241,7 +235,6 @@ public class FaxNumberSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -257,7 +250,6 @@ public class FaxNumberSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -279,8 +271,6 @@ public class FaxNumberSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Get a lowercase string representation of the value and find its length.
     String valueString = toLowerCase(value.stringValue());
     int    valueLength = valueString.length();

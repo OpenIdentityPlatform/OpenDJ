@@ -122,8 +122,6 @@ public class GSSAPISASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     this.configEntryDN = configEntry.getDN();
 
 
@@ -364,7 +362,6 @@ public class GSSAPISASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_GSSAPI);
   }
@@ -378,8 +375,6 @@ public class GSSAPISASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-
-
     // GSSAPI binds use multiple stages, so we need to determine whether this is
     // the first stage or a subsequent one.  To do that, see if we have SASL
     // state information in the client connection.
@@ -488,7 +483,6 @@ public class GSSAPISASLMechanismHandler
   public Entry getUserForAuthzID(BindOperation bindOperation, String authzID)
          throws DirectoryException
   {
-
     return identityMapper.getEntryForID(authzID);
   }
 
@@ -503,7 +497,6 @@ public class GSSAPISASLMechanismHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -519,8 +512,6 @@ public class GSSAPISASLMechanismHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_SASLGSSAPI_DESCRIPTION_IDENTITY_MAPPER_DN;
@@ -561,8 +552,6 @@ public class GSSAPISASLMechanismHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // Look at the identity mapper configuration
     int msgID = MSGID_SASLGSSAPI_DESCRIPTION_IDENTITY_MAPPER_DN;
     DNConfigAttribute mapperStub =
@@ -709,8 +698,6 @@ public class GSSAPISASLMechanismHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -1027,7 +1014,6 @@ public class GSSAPISASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-
     // This is not a password-based mechanism.
     return false;
   }
@@ -1040,7 +1026,6 @@ public class GSSAPISASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-
     // This may be considered a secure mechanism.
     return true;
   }

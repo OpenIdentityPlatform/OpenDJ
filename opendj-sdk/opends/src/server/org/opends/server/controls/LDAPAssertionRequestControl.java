@@ -153,7 +153,6 @@ public class LDAPAssertionRequestControl
   public static LDAPAssertionRequestControl decodeControl(Control control)
          throws LDAPException
   {
-
     if (! control.hasValue())
     {
       int    msgID   = MSGID_LDAPASSERT_NO_CONTROL_VALUE;
@@ -196,7 +195,6 @@ public class LDAPAssertionRequestControl
    */
   public LDAPFilter getRawFilter()
   {
-
     return rawFilter;
   }
 
@@ -210,7 +208,6 @@ public class LDAPAssertionRequestControl
    */
   public void setRawFilter(LDAPFilter rawFilter)
   {
-
     this.rawFilter = rawFilter;
     this.filter    = null;
 
@@ -230,7 +227,6 @@ public class LDAPAssertionRequestControl
   public SearchFilter getSearchFilter()
          throws DirectoryException
   {
-
     if (filter == null)
     {
       filter = rawFilter.toSearchFilter();
@@ -248,7 +244,6 @@ public class LDAPAssertionRequestControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -264,7 +259,6 @@ public class LDAPAssertionRequestControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("LDAPAssertionRequestControl(criticality=");
     buffer.append(isCritical());
     buffer.append(",filter=\"");

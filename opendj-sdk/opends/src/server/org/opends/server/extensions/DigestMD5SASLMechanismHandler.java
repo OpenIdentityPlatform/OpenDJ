@@ -147,8 +147,6 @@ public class DigestMD5SASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     this.configEntryDN = configEntry.getDN();
 
 
@@ -261,7 +259,6 @@ public class DigestMD5SASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_DIGEST_MD5);
   }
@@ -275,8 +272,6 @@ public class DigestMD5SASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-
-
     // The DIGEST-MD5 bind process uses two stages.  See if the client provided
     // any credentials.  If not, then this is an initial authentication so we
     // will send a challenge to the client.
@@ -1229,7 +1224,6 @@ public class DigestMD5SASLMechanismHandler
    */
   private String generateNonce()
   {
-
     byte[] nonceBytes = new byte[16];
 
     digestLock.lock();
@@ -1271,8 +1265,6 @@ public class DigestMD5SASLMechanismHandler
                         StringBuilder token)
           throws DirectoryException
   {
-
-
     // If the position is greater than or equal to the length, then we shouldn't
     // do anything.
     if (startPos >= length)
@@ -1429,7 +1421,6 @@ public class DigestMD5SASLMechanismHandler
                                        String qop, String charset)
          throws UnsupportedEncodingException
   {
-
     digestLock.lock();
 
     try
@@ -1536,7 +1527,6 @@ public class DigestMD5SASLMechanismHandler
                                            String qop, String charset)
          throws UnsupportedEncodingException
   {
-
     digestLock.lock();
 
     try
@@ -1626,7 +1616,6 @@ public class DigestMD5SASLMechanismHandler
    */
   private String getHexString(byte[] byteArray)
   {
-
     StringBuilder buffer = new StringBuilder(2*byteArray.length);
     for (byte b : byteArray)
     {
@@ -1647,7 +1636,6 @@ public class DigestMD5SASLMechanismHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -1663,8 +1651,6 @@ public class DigestMD5SASLMechanismHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_SASLDIGESTMD5_DESCRIPTION_IDENTITY_MAPPER_DN;
@@ -1698,8 +1684,6 @@ public class DigestMD5SASLMechanismHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // Look at the identity mapper configuration.
     int msgID = MSGID_SASLDIGESTMD5_DESCRIPTION_IDENTITY_MAPPER_DN;
     DNConfigAttribute mapperStub =
@@ -1793,8 +1777,6 @@ public class DigestMD5SASLMechanismHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -1952,7 +1934,6 @@ public class DigestMD5SASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-
     // This is a password-based mechanism.
     return true;
   }
@@ -1965,7 +1946,6 @@ public class DigestMD5SASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-
     // This may be considered a secure mechanism.
     return true;
   }

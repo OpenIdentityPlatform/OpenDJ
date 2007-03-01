@@ -53,7 +53,6 @@ public class PrintableString
    */
   public static boolean isPrintableCharacter(char c)
   {
-
     switch (c)
     {
       case 'a':
@@ -148,7 +147,6 @@ public class PrintableString
    */
   public static boolean isPrintableString(String s)
   {
-
     if (s == null)
     {
       return false;

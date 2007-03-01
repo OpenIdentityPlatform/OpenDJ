@@ -127,7 +127,6 @@ public class TeletexTerminalIdentifierSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -165,7 +164,6 @@ public class TeletexTerminalIdentifierSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_TELETEX_TERM_ID_NAME;
   }
 
@@ -178,7 +176,6 @@ public class TeletexTerminalIdentifierSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_TELETEX_TERM_ID_OID;
   }
 
@@ -191,7 +188,6 @@ public class TeletexTerminalIdentifierSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_TELETEX_TERM_ID_DESCRIPTION;
   }
 
@@ -207,7 +203,6 @@ public class TeletexTerminalIdentifierSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -223,7 +218,6 @@ public class TeletexTerminalIdentifierSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -239,7 +233,6 @@ public class TeletexTerminalIdentifierSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -255,7 +248,6 @@ public class TeletexTerminalIdentifierSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -277,8 +269,6 @@ public class TeletexTerminalIdentifierSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Get a lowercase string representation of the value and find its length.
     String valueString = value.stringValue();
     int    valueLength = valueString.length();

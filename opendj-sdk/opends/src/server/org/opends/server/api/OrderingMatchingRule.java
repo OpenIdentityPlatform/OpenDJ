@@ -107,7 +107,6 @@ public abstract class OrderingMatchingRule
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)
   {
-
     return ConditionResult.UNDEFINED;
   }
 }

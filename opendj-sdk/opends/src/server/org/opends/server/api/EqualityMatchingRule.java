@@ -89,7 +89,6 @@ public abstract class EqualityMatchingRule
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)
   {
-
     if (areEqual(attributeValue, assertionValue))
     {
       return ConditionResult.TRUE;
@@ -121,7 +120,6 @@ public abstract class EqualityMatchingRule
    */
   public int generateHashCode(AttributeValue attributeValue)
   {
-
     try
     {
       return attributeValue.getNormalizedValue().hashCode();

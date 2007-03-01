@@ -116,8 +116,6 @@ public class PlainSASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
-
     this.configEntryDN = configEntry.getDN();
 
 
@@ -179,7 +177,6 @@ public class PlainSASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_PLAIN);
   }
@@ -193,8 +190,6 @@ public class PlainSASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-
-
     // Get the SASL credentials provided by the user and decode them.
     String authzID  = null;
     String authcID  = null;
@@ -614,7 +609,6 @@ public class PlainSASLMechanismHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -630,8 +624,6 @@ public class PlainSASLMechanismHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     int msgID = MSGID_SASLPLAIN_DESCRIPTION_IDENTITY_MAPPER_DN;
@@ -660,8 +652,6 @@ public class PlainSASLMechanismHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // Look at the identity mapper configuration.
     int msgID = MSGID_SASLPLAIN_DESCRIPTION_IDENTITY_MAPPER_DN;
     DNConfigAttribute mapperStub =
@@ -731,8 +721,6 @@ public class PlainSASLMechanismHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -818,7 +806,6 @@ public class PlainSASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-
     // This is a password-based mechanism.
     return true;
   }
@@ -831,7 +818,6 @@ public class PlainSASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-
     // This is not a secure mechanism.
     return false;
   }

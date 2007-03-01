@@ -85,7 +85,6 @@ public class SynchronizationProviderConfigManager
    */
   public SynchronizationProviderConfigManager()
   {
-
     // No implementation is required.
   }
 
@@ -108,8 +107,6 @@ public class SynchronizationProviderConfigManager
   public void initializeSynchronizationProviders()
          throws ConfigException, InitializationException
   {
-
-
     registeredProviders = new ConcurrentHashMap<DN,SynchronizationProvider>();
 
 
@@ -374,8 +371,6 @@ public class SynchronizationProviderConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     DN providerDN = configEntry.getDN();
     SynchronizationProvider provider = registeredProviders.get(providerDN);
 
@@ -549,8 +544,6 @@ public class SynchronizationProviderConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN providerDN = configEntry.getDN();
     SynchronizationProvider provider = registeredProviders.get(providerDN);
     ResultCode resultCode = ResultCode.SUCCESS;
@@ -819,8 +812,6 @@ public class SynchronizationProviderConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // NYI
     return true;
   }
@@ -838,8 +829,6 @@ public class SynchronizationProviderConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     // NYI
     return null;
   }
@@ -862,8 +851,6 @@ public class SynchronizationProviderConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // NYI
     return true;
   }
@@ -880,8 +867,6 @@ public class SynchronizationProviderConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     // NYI
     return null;
   }

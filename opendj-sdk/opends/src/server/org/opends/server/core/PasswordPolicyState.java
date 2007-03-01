@@ -206,8 +206,6 @@ public class PasswordPolicyState
                              boolean debug)
          throws DirectoryException
   {
-
-
     this.userEntry   = userEntry;
     this.updateEntry = updateEntry;
     this.debug       = debug;
@@ -290,8 +288,6 @@ public class PasswordPolicyState
   private PasswordPolicy getPasswordPolicyInternal()
           throws DirectoryException
   {
-
-
     // See if the user entry contains the ds-pwp-password-policy-dn attribute to
     // select a custom objectclass (whether real or virtual).
     AttributeType type =
@@ -406,7 +402,6 @@ public class PasswordPolicyState
    */
   private String getValue(AttributeType attributeType)
   {
-
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
     if ((attrList == null) || attrList.isEmpty())
     {
@@ -462,7 +457,6 @@ public class PasswordPolicyState
   private long getGeneralizedTime(AttributeType attributeType)
           throws DirectoryException
   {
-
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
     if ((attrList == null) || attrList.isEmpty())
     {
@@ -547,8 +541,6 @@ public class PasswordPolicyState
   private List<Long> getGeneralizedTimes(AttributeType attributeType)
           throws DirectoryException
   {
-
-
     ArrayList<Long> timeValues = new ArrayList<Long>();
 
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
@@ -626,7 +618,6 @@ public class PasswordPolicyState
   private boolean getBoolean(AttributeType attributeType, boolean defaultValue)
           throws DirectoryException
   {
-
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
     if ((attrList == null) || attrList.isEmpty())
     {
@@ -723,7 +714,6 @@ public class PasswordPolicyState
    */
   public PasswordPolicy getPolicy()
   {
-
     return passwordPolicy;
   }
 
@@ -739,7 +729,6 @@ public class PasswordPolicyState
    */
   public LinkedList<Modification> getModifications()
   {
-
     return modifications;
   }
 
@@ -752,7 +741,6 @@ public class PasswordPolicyState
    */
   public LinkedHashSet<AttributeValue> getPasswordValues()
   {
-
     List<Attribute> attrList =
          userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
     for (Attribute a : attrList)
@@ -775,7 +763,6 @@ public class PasswordPolicyState
    */
   public boolean requireSecureAuthentication()
   {
-
     return passwordPolicy.requireSecureAuthentication();
   }
 
@@ -788,7 +775,6 @@ public class PasswordPolicyState
    */
   public long getCurrentTime()
   {
-
     return currentTime;
   }
 
@@ -803,7 +789,6 @@ public class PasswordPolicyState
    */
   public String getCurrentGeneralizedTime()
   {
-
     return currentGeneralizedTime;
   }
 
@@ -814,7 +799,6 @@ public class PasswordPolicyState
    */
   public void setPasswordChangedTime()
   {
-
     if (debug)
     {
       if (debugEnabled())
@@ -866,7 +850,6 @@ public class PasswordPolicyState
    */
   public boolean isDisabled()
   {
-
     if ((isDisabled == null) || (isDisabled == ConditionResult.UNDEFINED))
     {
       AttributeType type =
@@ -961,7 +944,6 @@ public class PasswordPolicyState
    */
   public void setDisabled(boolean isDisabled)
   {
-
     if (debug)
     {
       if (debugEnabled())
@@ -1033,7 +1015,6 @@ public class PasswordPolicyState
    */
   public boolean isAccountExpired()
   {
-
     if ((isAccountExpired == null) ||
         (isAccountExpired == ConditionResult.UNDEFINED))
     {
@@ -1150,7 +1131,6 @@ public class PasswordPolicyState
    */
   public List<Long> getAuthFailureTimes()
   {
-
     if (authFailureTimes == null)
     {
       AttributeType type =
@@ -1296,7 +1276,6 @@ public class PasswordPolicyState
    */
   public void updateAuthFailureTimes()
   {
-
     if (debug)
     {
       if (debugEnabled())
@@ -1368,7 +1347,6 @@ public class PasswordPolicyState
    */
   public void clearAuthFailureTimes()
   {
-
     if (debug)
     {
       if (debugEnabled())
@@ -1415,8 +1393,6 @@ public class PasswordPolicyState
    */
   public boolean lockedDueToFailures()
   {
-
-
     int maxFailures = passwordPolicy.getLockoutFailureCount();
     if (maxFailures <= 0)
     {
@@ -1579,7 +1555,6 @@ public class PasswordPolicyState
    */
   public int getSecondsUntilUnlock()
   {
-
     if (secondsUntilUnlock < 0)
     {
       return -1;
@@ -1598,7 +1573,6 @@ public class PasswordPolicyState
    */
   public void lockDueToFailures()
   {
-
     if (debug)
     {
       if (debugEnabled())
@@ -1643,7 +1617,6 @@ public class PasswordPolicyState
    */
   public void clearFailureLockout()
   {
-
     if (debug)
     {
       if (debugEnabled())
@@ -1687,7 +1660,6 @@ public class PasswordPolicyState
    */
   public long getLastLoginTime()
   {
-
     if (lastLoginTime == Long.MIN_VALUE)
     {
       AttributeType type   = passwordPolicy.getLastLoginTimeAttribute();
@@ -1834,7 +1806,6 @@ public class PasswordPolicyState
    */
   public void setLastLoginTime()
   {
-
     AttributeType type = passwordPolicy.getLastLoginTimeAttribute();
     String format = passwordPolicy.getLastLoginTimeFormat();
 
@@ -1921,7 +1892,6 @@ public class PasswordPolicyState
    */
   public boolean lockedDueToIdleInterval()
   {
-
     if ((isIdleLocked == null) || (isIdleLocked == ConditionResult.UNDEFINED))
     {
       if (passwordPolicy.getIdleLockoutInterval() <= 0)
@@ -2066,7 +2036,6 @@ public class PasswordPolicyState
    */
   public boolean mustChangePassword()
   {
-
     // If the password policy doesn't use force change on add or force change on
     // reset, or if it forbits the user from changing their password, then this
     // must return false.
@@ -2183,7 +2152,6 @@ public class PasswordPolicyState
    */
   public void setMustChangePassword(boolean mustChangePassword)
   {
-
     if (debug)
     {
       if (debugEnabled())
@@ -2254,7 +2222,6 @@ public class PasswordPolicyState
    */
   public boolean lockedDueToMaximumResetAge()
   {
-
     if (passwordPolicy.getMaximumPasswordResetAge() <= 0)
     {
       if (debug)
@@ -2315,7 +2282,6 @@ public class PasswordPolicyState
    */
   public long getPasswordExpirationTime()
   {
-
     if (expirationTime == Long.MIN_VALUE)
     {
       expirationTime = Long.MAX_VALUE;
@@ -2506,7 +2472,6 @@ public class PasswordPolicyState
    */
   public boolean isPasswordExpired()
   {
-
     if ((isPasswordExpired == null) ||
         (isPasswordExpired == ConditionResult.UNDEFINED))
     {
@@ -2535,7 +2500,6 @@ public class PasswordPolicyState
    */
   public boolean isWithinMinimumAge()
   {
-
     int minAge = passwordPolicy.getMinimumPasswordAge();
     if (minAge <= 0)
     {
@@ -2605,7 +2569,6 @@ public class PasswordPolicyState
    */
   public boolean mayUseGraceLogin()
   {
-
     if ((mayUseGraceLogin == null) ||
         (mayUseGraceLogin == ConditionResult.UNDEFINED))
     {
@@ -2634,7 +2597,6 @@ public class PasswordPolicyState
    */
   public boolean shouldWarn()
   {
-
     if ((shouldWarn == null) || (shouldWarn == ConditionResult.UNDEFINED))
     {
       getPasswordExpirationTime();
@@ -2661,7 +2623,6 @@ public class PasswordPolicyState
    */
   public boolean isFirstWarning()
   {
-
     if ((isFirstWarning == null) ||
         (isFirstWarning == ConditionResult.UNDEFINED))
     {
@@ -2689,7 +2650,6 @@ public class PasswordPolicyState
    */
   public int getSecondsUntilExpiration()
   {
-
     long expirationTime = getPasswordExpirationTime();
     if (expirationTime < 0)
     {
@@ -2717,7 +2677,6 @@ public class PasswordPolicyState
    */
   public long getRequiredChangeTime()
   {
-
     if (requiredChangeTime == Long.MIN_VALUE)
     {
       AttributeType type = DirectoryServer.getAttributeType(
@@ -2768,7 +2727,6 @@ public class PasswordPolicyState
    */
   public void setRequiredChangeTime()
   {
-
     if (debug)
     {
       if (debugEnabled())
@@ -2820,8 +2778,6 @@ public class PasswordPolicyState
    */
   public long getWarnedTime()
   {
-
-
     if (warnedTime == Long.MIN_VALUE)
     {
       AttributeType type =
@@ -2869,7 +2825,6 @@ public class PasswordPolicyState
    */
   public void setWarnedTime()
   {
-
     long warnTime = getWarnedTime();
     if (warnTime == currentTime)
     {
@@ -2921,7 +2876,6 @@ public class PasswordPolicyState
    */
   public void clearWarnedTime()
   {
-
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME, true);
     if (updateEntry)
@@ -2954,8 +2908,6 @@ public class PasswordPolicyState
    */
   public List<Long> getGraceLoginTimes()
   {
-
-
     if (graceLoginTimes == null)
     {
       AttributeType type = DirectoryServer.getAttributeType(
@@ -3021,7 +2973,6 @@ public class PasswordPolicyState
    */
   public int getGraceLoginsRemaining()
   {
-
     int maxGraceLogins = passwordPolicy.getGraceLoginCount();
     if (maxGraceLogins <= 0)
     {
@@ -3040,7 +2991,6 @@ public class PasswordPolicyState
    */
   public void updateGraceLoginTimes()
   {
-
     if (debug)
     {
       if (debugEnabled())
@@ -3111,7 +3061,6 @@ public class PasswordPolicyState
    */
   public void clearGraceLoginTimes()
   {
-
     if (debug)
     {
       if (debugEnabled())
@@ -3282,8 +3231,6 @@ public class PasswordPolicyState
    */
   public boolean passwordMatches(ByteString password)
   {
-
-
     List<Attribute> attrList =
          userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
     if ((attrList == null) || attrList.isEmpty())
@@ -3449,7 +3396,6 @@ public class PasswordPolicyState
    */
   public boolean passwordIsPreEncoded(ByteString passwordValue)
   {
-
     if (passwordPolicy.usesAuthPasswordSyntax())
     {
       return AuthPasswordSyntax.isEncoded(passwordValue);
@@ -3476,7 +3422,6 @@ public class PasswordPolicyState
   public List<ByteString> encodePassword(ByteString password)
          throws DirectoryException
   {
-
     List<PasswordStorageScheme> schemes =
          passwordPolicy.getDefaultStorageSchemes();
     List<ByteString> encodedPasswords =
@@ -3524,7 +3469,6 @@ public class PasswordPolicyState
                                       Set<ByteString> currentPasswords,
                                       StringBuilder invalidReason)
   {
-
     for (DN validatorDN : passwordPolicy.getPasswordValidators().keySet())
     {
       PasswordValidator validator =
@@ -3571,7 +3515,6 @@ public class PasswordPolicyState
    */
   public void handleDeprecatedStorageSchemes(ByteString password)
   {
-
     if (passwordPolicy.getDefaultStorageSchemes().isEmpty())
     {
       if (debug)
@@ -3976,7 +3919,6 @@ public class PasswordPolicyState
   public ByteString generatePassword()
       throws DirectoryException
   {
-
     PasswordGenerator generator = passwordPolicy.getPasswordGenerator();
     if (generator == null)
     {
@@ -4010,8 +3952,6 @@ public class PasswordPolicyState
                    AccountStatusNotificationType notificationType,
                    DN userDN, int messageID, String message)
   {
-
-
     Collection<AccountStatusNotificationHandler> handlers =
          passwordPolicy.getAccountStatusNotificationHandlers().values();
     if ((handlers == null) || handlers.isEmpty())
@@ -4037,8 +3977,6 @@ public class PasswordPolicyState
   public void generateAccountStatusNotification(
                    AccountStatusNotification notification)
   {
-
-
     Collection<AccountStatusNotificationHandler> handlers =
          passwordPolicy.getAccountStatusNotificationHandlers().values();
     if ((handlers == null) || handlers.isEmpty())
@@ -4064,8 +4002,6 @@ public class PasswordPolicyState
   public void updateUserEntry()
          throws DirectoryException
   {
-
-
     // If there are no modifications, then there's nothing to do.
     if (modifications.isEmpty())
     {

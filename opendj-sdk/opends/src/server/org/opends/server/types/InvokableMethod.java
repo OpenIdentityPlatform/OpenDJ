@@ -97,7 +97,6 @@ public class InvokableMethod
                          boolean retrievesComponentInfo,
                          boolean updatesComponentInfo)
   {
-
     this.name                     = name;
     this.description              = description;
     this.returnType               = returnType;
@@ -123,7 +122,6 @@ public class InvokableMethod
    */
   public String getName()
   {
-
     return name;
   }
 
@@ -136,7 +134,6 @@ public class InvokableMethod
    */
   public String getDescription()
   {
-
     return description;
   }
 
@@ -149,7 +146,6 @@ public class InvokableMethod
    */
   public ConfigAttribute[] getArguments()
   {
-
     return arguments;
   }
 
@@ -162,7 +158,6 @@ public class InvokableMethod
    */
   public String getReturnType()
   {
-
     return returnType;
   }
 
@@ -178,7 +173,6 @@ public class InvokableMethod
    */
   public boolean retrievesComponentInfo()
   {
-
     return retrievesComponentInfo;
   }
 
@@ -194,7 +188,6 @@ public class InvokableMethod
    */
   public boolean updatesComponentInfo()
   {
-
     return updatesComponentInfo;
   }
 
@@ -209,8 +202,6 @@ public class InvokableMethod
    */
   public MBeanOperationInfo toOperationInfo()
   {
-
-
     MBeanParameterInfo[] signature =
          new MBeanParameterInfo[arguments.length];
     for (int i=0; i < arguments.length; i++)
@@ -263,7 +254,6 @@ public class InvokableMethod
   public boolean hasSignature(String methodName,
                               String[] argumentTypes)
   {
-
     if (! methodName.equals(name))
     {
       return false;
@@ -308,7 +298,6 @@ public class InvokableMethod
                        Object[] parameters)
          throws MBeanException
   {
-
     try
     {
       ConfigAttribute[] methodArguments =

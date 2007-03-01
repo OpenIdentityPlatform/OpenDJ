@@ -87,7 +87,6 @@ public class ExtendedResponseProtocolOp
    */
   public ExtendedResponseProtocolOp(int resultCode)
   {
-
     this.resultCode = resultCode;
 
     errorMessage = null;
@@ -108,7 +107,6 @@ public class ExtendedResponseProtocolOp
    */
   public ExtendedResponseProtocolOp(int resultCode, String errorMessage)
   {
-
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
 
@@ -131,7 +129,6 @@ public class ExtendedResponseProtocolOp
   public ExtendedResponseProtocolOp(int resultCode, String errorMessage,
                                     DN matchedDN, List<String> referralURLs)
   {
-
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
     this.matchedDN    = matchedDN;
@@ -157,7 +154,6 @@ public class ExtendedResponseProtocolOp
                                     DN matchedDN, List<String> referralURLs,
                                     String oid, ASN1OctetString value)
   {
-
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
     this.matchedDN    = matchedDN;
@@ -175,7 +171,6 @@ public class ExtendedResponseProtocolOp
    */
   public int getResultCode()
   {
-
     return resultCode;
   }
 
@@ -188,7 +183,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setResultCode(int resultCode)
   {
-
     this.resultCode = resultCode;
   }
 
@@ -202,7 +196,6 @@ public class ExtendedResponseProtocolOp
    */
   public String getErrorMessage()
   {
-
     return errorMessage;
   }
 
@@ -215,7 +208,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setErrorMessage(String errorMessage)
   {
-
     this.errorMessage = errorMessage;
   }
 
@@ -229,7 +221,6 @@ public class ExtendedResponseProtocolOp
    */
   public DN getMatchedDN()
   {
-
     return matchedDN;
   }
 
@@ -242,7 +233,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setMatchedDN(DN matchedDN)
   {
-
     this.matchedDN = matchedDN;
   }
 
@@ -256,7 +246,6 @@ public class ExtendedResponseProtocolOp
    */
   public List<String> getReferralURLs()
   {
-
     return referralURLs;
   }
 
@@ -269,7 +258,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setReferralURLs(List<String> referralURLs)
   {
-
     this.referralURLs = referralURLs;
   }
 
@@ -283,7 +271,6 @@ public class ExtendedResponseProtocolOp
    */
   public String getOID()
   {
-
     return oid;
   }
 
@@ -296,7 +283,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setOID(String oid)
   {
-
     this.oid = oid;
   }
 
@@ -310,7 +296,6 @@ public class ExtendedResponseProtocolOp
    */
   public ASN1OctetString getValue()
   {
-
     return value;
   }
 
@@ -323,7 +308,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setValue(ASN1OctetString value)
   {
-
     this.value = value;
   }
 
@@ -336,7 +320,6 @@ public class ExtendedResponseProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_EXTENDED_RESPONSE;
   }
 
@@ -349,7 +332,6 @@ public class ExtendedResponseProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Extended Response";
   }
 
@@ -363,7 +345,6 @@ public class ExtendedResponseProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(6);
     elements.add(new ASN1Enumerated(resultCode));
 
@@ -421,7 +402,6 @@ public class ExtendedResponseProtocolOp
                                                                        element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -606,7 +586,6 @@ public class ExtendedResponseProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("ExtendedResponse(resultCode=");
     buffer.append(resultCode);
 
@@ -665,7 +644,6 @@ public class ExtendedResponseProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

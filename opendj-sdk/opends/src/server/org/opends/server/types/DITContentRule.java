@@ -131,7 +131,6 @@ public final class DITContentRule
                         boolean isObsolete,
                         Map<String,List<String>> extraProperties)
   {
-
     ensureNotNull(definition, structuralClass);
 
     this.definition      = definition;
@@ -212,7 +211,6 @@ public final class DITContentRule
    */
   public String getDefinition()
   {
-
     return definition;
   }
 
@@ -255,7 +253,6 @@ public final class DITContentRule
    */
   public ObjectClass getStructuralClass()
   {
-
     return structuralClass;
   }
 
@@ -272,7 +269,6 @@ public final class DITContentRule
    */
   public Map<String,String> getNames()
   {
-
     return names;
   }
 
@@ -287,7 +283,6 @@ public final class DITContentRule
    */
   public String getName()
   {
-
     if (names.isEmpty())
     {
       return null;
@@ -313,7 +308,6 @@ public final class DITContentRule
    */
   public boolean hasName(String lowerName)
   {
-
     return names.containsKey(lowerName);
   }
 
@@ -329,7 +323,6 @@ public final class DITContentRule
    */
   public String getSchemaFile()
   {
-
     List<String> values =
          extraProperties.get(SCHEMA_PROPERTY_FILENAME);
     if ((values == null) || values.isEmpty())
@@ -351,7 +344,6 @@ public final class DITContentRule
    */
   public void setSchemaFile(String schemaFile)
   {
-
     setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
@@ -365,7 +357,6 @@ public final class DITContentRule
    */
   public String getDescription()
   {
-
     return description;
   }
 
@@ -380,7 +371,6 @@ public final class DITContentRule
    */
   public Set<ObjectClass> getAuxiliaryClasses()
   {
-
     return auxiliaryClasses;
   }
 
@@ -399,7 +389,6 @@ public final class DITContentRule
    */
   public boolean isAllowedAuxiliaryClass(ObjectClass auxiliaryClass)
   {
-
     return auxiliaryClasses.contains(auxiliaryClass);
   }
 
@@ -414,7 +403,6 @@ public final class DITContentRule
    */
   public Set<AttributeType> getRequiredAttributes()
   {
-
     return requiredAttributes;
   }
 
@@ -432,7 +420,6 @@ public final class DITContentRule
    */
   public boolean isRequired(AttributeType attributeType)
   {
-
     return requiredAttributes.contains(attributeType);
   }
 
@@ -447,7 +434,6 @@ public final class DITContentRule
    */
   public Set<AttributeType> getOptionalAttributes()
   {
-
     return optionalAttributes;
   }
 
@@ -465,7 +451,6 @@ public final class DITContentRule
    */
   public boolean isOptional(AttributeType attributeType)
   {
-
     return optionalAttributes.contains(attributeType);
   }
 
@@ -484,7 +469,6 @@ public final class DITContentRule
    */
   public boolean isRequiredOrOptional(AttributeType attributeType)
   {
-
     return (requiredAttributes.contains(attributeType) ||
             optionalAttributes.contains(attributeType));
   }
@@ -510,7 +494,6 @@ public final class DITContentRule
   public boolean isRequiredOrOptional(AttributeType attributeType,
                                       boolean acceptEmpty)
   {
-
     if (acceptEmpty &&
         (requiredAttributes.isEmpty() ||
          optionalAttributes.isEmpty()))
@@ -533,7 +516,6 @@ public final class DITContentRule
    */
   public Set<AttributeType> getProhibitedAttributes()
   {
-
     return prohibitedAttributes;
   }
 
@@ -552,7 +534,6 @@ public final class DITContentRule
    */
   public boolean isProhibited(AttributeType attributeType)
   {
-
     return prohibitedAttributes.contains(attributeType);
   }
 
@@ -566,7 +547,6 @@ public final class DITContentRule
    */
   public boolean isObsolete()
   {
-
     return isObsolete;
   }
 
@@ -583,7 +563,6 @@ public final class DITContentRule
    */
   public Map<String,List<String>> getExtraProperties()
   {
-
     return extraProperties;
   }
 
@@ -602,7 +581,6 @@ public final class DITContentRule
    */
   public List<String> getExtraProperty(String propertyName)
   {
-
     return extraProperties.get(propertyName);
   }
 
@@ -619,7 +597,6 @@ public final class DITContentRule
    */
   public void setExtraProperty(String name, String value)
   {
-
     ensureNotNull(name);
 
     if (value == null)
@@ -648,7 +625,6 @@ public final class DITContentRule
    */
   public void setExtraProperty(String name, List<String> values)
   {
-
     ensureNotNull(name);
 
     if ((values == null) || values.isEmpty())
@@ -680,7 +656,6 @@ public final class DITContentRule
    */
   public boolean equals(Object o)
   {
-
     if (this == o)
     {
       return true;
@@ -724,7 +699,6 @@ public final class DITContentRule
    */
   public int hashCode()
   {
-
     return structuralClass.hashCode();
   }
 
@@ -739,7 +713,6 @@ public final class DITContentRule
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer, true);
     return buffer.toString();
@@ -761,7 +734,6 @@ public final class DITContentRule
   public void toString(StringBuilder buffer,
   boolean includeFileElement)
   {
-
     buffer.append("( ");
     buffer.append(structuralClass.getOID());
 

@@ -161,7 +161,6 @@ public class JmxClientConnection
    */
   public void handleNotification(Notification notif, Object handback)
   {
-
     JMXConnectionNotification jcn ;
 
     //
@@ -208,7 +207,6 @@ public class JmxClientConnection
    */
   public long nextOperationID()
   {
-
     long opID = nextOperationID.getAndIncrement();
     if (opID < 0)
     {
@@ -240,7 +238,6 @@ public class JmxClientConnection
    */
   public int nextMessageID()
   {
-
     int msgID = nextMessageID.getAndIncrement();
     if (msgID < 0)
     {
@@ -270,7 +267,6 @@ public class JmxClientConnection
    */
   public long getConnectionID()
   {
-
     return connectionID;
   }
 
@@ -281,7 +277,6 @@ public class JmxClientConnection
    */
   public ConnectionHandler getConnectionHandler()
   {
-
     return jmxConnectionHandler;
   }
 
@@ -294,7 +289,6 @@ public class JmxClientConnection
    */
   public String getProtocol()
   {
-
     return "jmx";
   }
 
@@ -307,7 +301,6 @@ public class JmxClientConnection
    */
   public String getClientAddress()
   {
-
     return "jmx";
   }
 
@@ -322,7 +315,6 @@ public class JmxClientConnection
    */
   public String getServerAddress()
   {
-
     return "jmx";
   }
 
@@ -338,7 +330,6 @@ public class JmxClientConnection
    */
   public InetAddress getRemoteAddress()
   {
-
     return null;
   }
 
@@ -355,7 +346,6 @@ public class JmxClientConnection
    */
   public InetAddress getLocalAddress()
   {
-
     return null;
   }
 
@@ -374,7 +364,6 @@ public class JmxClientConnection
    */
   public boolean isSecure()
   {
-
     return securityProvider.isSecure();
   }
 
@@ -387,7 +376,6 @@ public class JmxClientConnection
    */
   public ConnectionSecurityProvider getConnectionSecurityProvider()
   {
-
     return securityProvider;
   }
 
@@ -402,7 +390,6 @@ public class JmxClientConnection
   public void setConnectionSecurityProvider(ConnectionSecurityProvider
                                                  securityProvider)
   {
-
     this.securityProvider = securityProvider;
   }
 
@@ -418,7 +405,6 @@ public class JmxClientConnection
    */
   public String getSecurityMechanism()
   {
-
     return securityProvider.getSecurityMechanismName();
   }
 
@@ -442,7 +428,6 @@ public class JmxClientConnection
    */
   public boolean processDataRead(ByteBuffer buffer)
   {
-
     // This method will not do anything with the data because there is no
     // actual "connection" from which information can be read, nor any protocol
     // to use to read it.
@@ -459,7 +444,6 @@ public class JmxClientConnection
    */
   public void sendResponse(Operation operation)
   {
-
     // There will not be any response sent by this method, since there is not an
     // actual connection.
   }
@@ -479,7 +463,6 @@ public class JmxClientConnection
   public AddOperation processAdd(ASN1OctetString rawEntryDN,
                                  ArrayList<LDAPAttribute> rawAttributes)
   {
-
     AddOperation addOperation =
          new AddOperation(this, nextOperationID(), nextMessageID(),
                           new ArrayList<Control>(0), rawEntryDN, rawAttributes);
@@ -504,7 +487,6 @@ public class JmxClientConnection
                                         String attributeType,
                                         ASN1OctetString assertionValue)
   {
-
     CompareOperation compareOperation =
          new CompareOperation(this, nextOperationID(), nextMessageID(),
                               new ArrayList<Control>(0), rawEntryDN,
@@ -526,7 +508,6 @@ public class JmxClientConnection
    */
   public DeleteOperation processDelete(ASN1OctetString rawEntryDN)
   {
-
     DeleteOperation deleteOperation =
          new DeleteOperation(this, nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(0), rawEntryDN);
@@ -550,7 +531,6 @@ public class JmxClientConnection
   public ExtendedOperation processExtendedOperation(String requestOID,
                                 ASN1OctetString requestValue)
   {
-
     ExtendedOperation extendedOperation =
          new ExtendedOperation(this, nextOperationID(), nextMessageID(),
                                new ArrayList<Control>(0), requestOID,
@@ -575,7 +555,6 @@ public class JmxClientConnection
   public ModifyOperation processModify(ASN1OctetString rawEntryDN,
                               ArrayList<LDAPModification> rawModifications)
   {
-
     ModifyOperation modifyOperation =
          new ModifyOperation(this, nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(0), rawEntryDN,
@@ -602,7 +581,6 @@ public class JmxClientConnection
                                            ASN1OctetString rawNewRDN,
                                            boolean deleteOldRDN)
   {
-
     return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN, null);
   }
 
@@ -627,7 +605,6 @@ public class JmxClientConnection
                                            boolean deleteOldRDN,
                                            ASN1OctetString rawNewSuperior)
   {
-
     ModifyDNOperation modifyDNOperation =
          new ModifyDNOperation(this, nextOperationID(), nextMessageID(),
                                new ArrayList<Control>(0), rawEntryDN, rawNewRDN,
@@ -655,7 +632,6 @@ public class JmxClientConnection
   public InternalSearchOperation processSearch(ASN1OctetString rawBaseDN,
                                       SearchScope scope, LDAPFilter filter)
   {
-
     return processSearch(rawBaseDN, scope,
                          DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                          filter, new LinkedHashSet<String>(0));
@@ -686,7 +662,6 @@ public class JmxClientConnection
                                       boolean typesOnly, LDAPFilter filter,
                                       LinkedHashSet<String> attributes)
   {
-
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(), nextMessageID(),
                                      new ArrayList<Control>(0), rawBaseDN,
@@ -724,7 +699,6 @@ public class JmxClientConnection
                                       LinkedHashSet<String> attributes,
                                       InternalSearchListener searchListener)
   {
-
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(), nextMessageID(),
                                      new ArrayList<Control>(0), rawBaseDN,
@@ -750,7 +724,6 @@ public class JmxClientConnection
   public void sendSearchEntry(SearchOperation searchOperation,
                               SearchResultEntry searchEntry)
   {
-
     ((InternalSearchOperation) searchOperation).addSearchEntry(searchEntry);
   }
 
@@ -772,8 +745,6 @@ public class JmxClientConnection
   public boolean sendSearchReference(SearchOperation searchOperation,
                                      SearchResultReference searchReference)
   {
-
-
     ((InternalSearchOperation)
      searchOperation).addSearchReference(searchReference);
     return true;
@@ -793,8 +764,6 @@ public class JmxClientConnection
   protected boolean sendIntermediateResponseMessage(
                          IntermediateResponse intermediateResponse)
   {
-
-
     // FIXME -- Do we need to support Jmx intermediate responses?  If so,
     // then implement this.
     return false;
@@ -824,7 +793,6 @@ public class JmxClientConnection
                          boolean sendNotification, String message,
                          int messageID)
   {
-
     // we are already performing a disconnect
     if (disconnectStarted)
     {
@@ -880,7 +848,6 @@ public class JmxClientConnection
    */
   public boolean bindInProgress()
   {
-
     // For Jmx operations, we don't care if there are any binds in
     // progress.
     return false;
@@ -898,7 +865,6 @@ public class JmxClientConnection
    */
   public void setBindInProgress(boolean bindInProgress)
   {
-
     // No implementation is required.
   }
 
@@ -912,7 +878,6 @@ public class JmxClientConnection
    */
   public Collection<Operation> getOperationsInProgress()
   {
-
     return operationList;
   }
 
@@ -928,7 +893,6 @@ public class JmxClientConnection
    */
   public Operation getOperationInProgress(int messageID)
   {
-
     // Jmx operations will not be tracked.
     return null;
   }
@@ -948,7 +912,6 @@ public class JmxClientConnection
    */
   public boolean removeOperationInProgress(int messageID)
   {
-
     // No implementation is required, since Jmx operations will not be
     // tracked.
     return false;
@@ -969,7 +932,6 @@ public class JmxClientConnection
   public CancelResult cancelOperation(int messageID,
                                       CancelRequest cancelRequest)
   {
-
     // Jmx operations cannot be cancelled.
     return CancelResult.CANNOT_CANCEL;
   }
@@ -984,7 +946,6 @@ public class JmxClientConnection
    */
   public void cancelAllOperations(CancelRequest cancelRequest)
   {
-
     // No implementation is required since Jmx operations cannot be
     // cancelled.
   }
@@ -1003,7 +964,6 @@ public class JmxClientConnection
   public void cancelAllOperationsExcept(CancelRequest cancelRequest,
                                         int messageID)
   {
-
     // No implementation is required since Jmx operations cannot be
     // cancelled.
   }
@@ -1015,7 +975,6 @@ public class JmxClientConnection
    */
   public String getMonitorSummary()
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append("connID=\"");
     buffer.append(connectionID);

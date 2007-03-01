@@ -101,7 +101,6 @@ public class CryptoManager
   public CryptoManager()
          throws ConfigException, InitializationException
   {
-
     // FIXME -- Get the defaults from the configuration rather than
     // hard-coding them.
     preferredDigestAlgorithm = "SHA-1";
@@ -179,7 +178,6 @@ public class CryptoManager
    */
   public SecureRandom getSecureRandom()
   {
-
     // FIXME -- Is this threadsafe?  Can we share a single instance
     // among all threads?
     return new SecureRandom();
@@ -194,7 +192,6 @@ public class CryptoManager
    */
   public String getPreferredMessageDigestAlgorithm()
   {
-
     return preferredDigestAlgorithm;
   }
 
@@ -214,7 +211,6 @@ public class CryptoManager
   public MessageDigest getPreferredMessageDigest()
          throws NoSuchAlgorithmException
   {
-
     return MessageDigest.getInstance(preferredDigestAlgorithm);
   }
 
@@ -237,7 +233,6 @@ public class CryptoManager
   public MessageDigest getMessageDigest(String digestAlgorithm)
          throws NoSuchAlgorithmException
   {
-
     return MessageDigest.getInstance(digestAlgorithm);
   }
 
@@ -258,7 +253,6 @@ public class CryptoManager
   public byte[] digest(byte[] data)
          throws NoSuchAlgorithmException
   {
-
     return MessageDigest.getInstance(preferredDigestAlgorithm).
                 digest(data);
   }
@@ -282,7 +276,6 @@ public class CryptoManager
   public byte[] digest(String digestAlgorithm, byte[] data)
          throws NoSuchAlgorithmException
   {
-
     return MessageDigest.getInstance(digestAlgorithm).digest(data);
   }
 
@@ -309,7 +302,6 @@ public class CryptoManager
   public byte[] digest(InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
   {
-
     MessageDigest digest =
          MessageDigest.getInstance(preferredDigestAlgorithm);
 
@@ -354,7 +346,6 @@ public class CryptoManager
                        InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
   {
-
     MessageDigest digest = MessageDigest.getInstance(digestAlgorithm);
 
     byte[] buffer = new byte[8192];
@@ -381,7 +372,6 @@ public class CryptoManager
    */
   public String getPreferredMACAlgorithm()
   {
-
     return preferredMACAlgorithm;
   }
 
@@ -403,7 +393,6 @@ public class CryptoManager
   public Mac getPreferredMACProvider()
          throws NoSuchAlgorithmException, InvalidKeyException
   {
-
     Mac mac = Mac.getInstance(preferredMACAlgorithm);
     mac.init(secretKey);
 
@@ -430,7 +419,6 @@ public class CryptoManager
   public Mac getMACProvider(String macAlgorithm)
          throws NoSuchAlgorithmException, InvalidKeyException
   {
-
     Mac mac = Mac.getInstance(macAlgorithm);
     mac.init(secretKey);
 
@@ -454,7 +442,6 @@ public class CryptoManager
   public byte[] mac(byte[] data)
          throws NoSuchAlgorithmException
   {
-
     return Mac.getInstance(preferredMACAlgorithm).doFinal(data);
   }
 
@@ -476,7 +463,6 @@ public class CryptoManager
   public byte[] mac(String macAlgorithm, byte[] data)
          throws NoSuchAlgorithmException
   {
-
     return Mac.getInstance(macAlgorithm).doFinal(data);
   }
 
@@ -503,7 +489,6 @@ public class CryptoManager
   public byte[] mac(InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
   {
-
     Mac mac = Mac.getInstance(preferredMACAlgorithm);
 
     byte[] buffer = new byte[8192];
@@ -545,7 +530,6 @@ public class CryptoManager
   public byte[] mac(String macAlgorithm, InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
   {
-
     Mac mac = Mac.getInstance(macAlgorithm);
 
     byte[] buffer = new byte[8192];
@@ -572,7 +556,6 @@ public class CryptoManager
    */
   public String getPreferredCipherAlgorithm()
   {
-
     return preferredCipher;
   }
 
@@ -609,7 +592,6 @@ public class CryptoManager
                 InvalidKeyException,
                 InvalidAlgorithmParameterException
   {
-
     Cipher cipher = Cipher.getInstance(preferredCipher);
 
     // FIXME -- This needs to be more secure.
@@ -654,7 +636,6 @@ public class CryptoManager
                 InvalidKeyException,
                 InvalidAlgorithmParameterException
   {
-
     Cipher cipher = Cipher.getInstance(cipherAlgorithm);
 
     // FIXME -- This needs to be more secure.
@@ -683,7 +664,6 @@ public class CryptoManager
   public byte[] encrypt(byte[] data)
          throws GeneralSecurityException
   {
-
     Cipher cipher = Cipher.getInstance(preferredCipher);
 
     // FIXME -- This needs to be more secure.
@@ -711,7 +691,6 @@ public class CryptoManager
   public byte[] decrypt(byte[] data)
          throws GeneralSecurityException
   {
-
     Cipher cipher = Cipher.getInstance(preferredCipher);
 
     // FIXME -- This needs to be more secure.
@@ -741,7 +720,6 @@ public class CryptoManager
   public byte[] encrypt(String cipherAlgorithm, byte[] data)
          throws GeneralSecurityException
   {
-
     Cipher cipher = Cipher.getInstance(cipherAlgorithm);
 
     // FIXME -- This needs to be more secure.
@@ -771,7 +749,6 @@ public class CryptoManager
   public byte[] decrypt(String cipherAlgorithm, byte[] data)
          throws GeneralSecurityException
   {
-
     Cipher cipher = Cipher.getInstance(cipherAlgorithm);
 
     // FIXME -- This needs to be more secure.

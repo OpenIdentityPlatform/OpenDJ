@@ -88,7 +88,6 @@ public class NumericStringSubstringMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -102,7 +101,6 @@ public class NumericStringSubstringMatchingRule
    */
   public String getName()
   {
-
     return SMR_NUMERIC_STRING_NAME;
   }
 
@@ -115,7 +113,6 @@ public class NumericStringSubstringMatchingRule
    */
   public String getOID()
   {
-
     return SMR_NUMERIC_STRING_OID;
   }
 
@@ -129,7 +126,6 @@ public class NumericStringSubstringMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -144,7 +140,6 @@ public class NumericStringSubstringMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_SUBSTRING_ASSERTION_OID;
   }
 
@@ -164,7 +159,6 @@ public class NumericStringSubstringMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     String        valueString = value.stringValue();
     int           valueLength = valueString.length();
     StringBuilder valueBuffer = new StringBuilder(valueLength);
@@ -218,7 +212,6 @@ public class NumericStringSubstringMatchingRule
   public ByteString normalizeSubstring(ByteString substring)
          throws DirectoryException
   {
-
     String        valueString = substring.stringValue();
     int           valueLength = valueString.length();
     StringBuilder valueBuffer = new StringBuilder(valueLength);
@@ -279,8 +272,6 @@ public class NumericStringSubstringMatchingRule
                                        List<ByteString> subAnyElements,
                                        ByteString subFinal)
   {
-
-
     byte[] valueBytes = value.value();
     int valueLength = valueBytes.length;
 

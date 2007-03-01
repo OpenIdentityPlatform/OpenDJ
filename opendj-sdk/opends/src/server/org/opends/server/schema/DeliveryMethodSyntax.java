@@ -140,7 +140,6 @@ public class DeliveryMethodSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     allowedValues = new HashSet<String>(ALLOWED_VALUES.length);
     for (String s : ALLOWED_VALUES)
     {
@@ -193,7 +192,6 @@ public class DeliveryMethodSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_DELIVERY_METHOD_NAME;
   }
 
@@ -206,7 +204,6 @@ public class DeliveryMethodSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_DELIVERY_METHOD_OID;
   }
 
@@ -219,7 +216,6 @@ public class DeliveryMethodSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_DELIVERY_METHOD_DESCRIPTION;
   }
 
@@ -235,7 +231,6 @@ public class DeliveryMethodSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -251,7 +246,6 @@ public class DeliveryMethodSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -267,7 +261,6 @@ public class DeliveryMethodSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -283,7 +276,6 @@ public class DeliveryMethodSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     return defaultApproximateMatchingRule;
   }
 
@@ -304,7 +296,6 @@ public class DeliveryMethodSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     String stringValue = toLowerCase(value.stringValue());
     StringTokenizer tokenizer = new StringTokenizer(stringValue, " $");
     if (! tokenizer.hasMoreTokens())

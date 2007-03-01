@@ -2016,7 +2016,6 @@ public final class StaticUtils
    */
   public static boolean needsBase64Encoding(byte[] valueBytes)
   {
-
     int length;
     if ((valueBytes == null) || ((length = valueBytes.length) == 0))
     {
@@ -2079,7 +2078,6 @@ public final class StaticUtils
    */
   public static boolean needsBase64Encoding(String valueString)
   {
-
     int length;
     if ((valueString == null) || ((length = valueString.length()) == 0))
     {
@@ -2134,7 +2132,6 @@ public final class StaticUtils
    */
   public static boolean mayUseExec()
   {
-
     String s = System.getProperty(PROPERTY_DISABLE_EXEC);
     if (s == null)
     {
@@ -2178,8 +2175,6 @@ public final class StaticUtils
                          Map<String,String> environment, List<String> output)
          throws IOException, SecurityException
   {
-
-
     // See whether we'll allow the use of exec on this system.  If not, then
     // throw an exception.
     if (! mayUseExec())
@@ -2333,8 +2328,6 @@ public final class StaticUtils
                                              int endPos,
                                              StringBuilder invalidReason)
   {
-
-
     if ((element == null) || (startPos >= endPos))
     {
       int msgID = MSGID_SCHEMANAME_EMPTY_VALUE;
@@ -2471,7 +2464,6 @@ public final class StaticUtils
    */
   public static String toLowerCase(String s)
   {
-
     if (s == null)
     {
       return null;
@@ -2498,7 +2490,6 @@ public final class StaticUtils
    */
   public static void toLowerCase(String s, StringBuilder buffer)
   {
-
     if (s == null)
     {
       return;
@@ -2620,7 +2611,6 @@ public final class StaticUtils
    */
   public static void toLowerCase(byte[] b, StringBuilder buffer, boolean trim)
   {
-
     if (b == null)
     {
       return;
@@ -2775,7 +2765,6 @@ public final class StaticUtils
    */
   public static String toUpperCase(String s)
   {
-
     if (s == null)
     {
       return null;
@@ -2802,7 +2791,6 @@ public final class StaticUtils
    */
   public static void toUpperCase(String s, StringBuilder buffer)
   {
-
     if (s == null)
     {
       return;
@@ -2924,7 +2912,6 @@ public final class StaticUtils
    */
   public static void toUpperCase(byte[] b, StringBuilder buffer, boolean trim)
   {
-
     if (b == null)
     {
       return;
@@ -3095,7 +3082,6 @@ public final class StaticUtils
   public static StringBuilder toRFC3641StringValue(StringBuilder builder,
       String string)
   {
-
     // Initial double-quote.
     builder.append('"');
 
@@ -3128,7 +3114,6 @@ public final class StaticUtils
    */
   public static String[] listToArray(List<String> stringList)
   {
-
     if (stringList == null)
     {
       return null;
@@ -3150,7 +3135,6 @@ public final class StaticUtils
    */
   public static ArrayList<String> arrayToList(String[] stringArray)
   {
-
     if (stringArray == null)
     {
       return null;
@@ -3179,7 +3163,6 @@ public final class StaticUtils
    */
   public static boolean recursiveDelete(File file)
   {
-
     boolean successful = true;
     if (file.isDirectory())
     {
@@ -3277,7 +3260,6 @@ public final class StaticUtils
    */
   public static boolean isRelativePath(String path)
   {
-
     File f = new File(path);
     return (! f.isAbsolute());
   }
@@ -3296,7 +3278,6 @@ public final class StaticUtils
    */
   public static File getFileForPath(String path)
   {
-
     File f = new File (path);
 
     if (f.isAbsolute())
@@ -3337,8 +3318,6 @@ public final class StaticUtils
    */
   public static Entry createEntry(DN dn)
   {
-
-
     // If the provided DN was null or empty, then return null because we don't
     // support it.
     if ((dn == null) || dn.isNullDN())

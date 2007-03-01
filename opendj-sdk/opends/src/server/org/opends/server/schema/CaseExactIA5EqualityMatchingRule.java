@@ -87,7 +87,6 @@ public class CaseExactIA5EqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -101,7 +100,6 @@ public class CaseExactIA5EqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_CASE_EXACT_IA5_NAME;
   }
 
@@ -114,7 +112,6 @@ public class CaseExactIA5EqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_CASE_EXACT_IA5_OID;
   }
 
@@ -128,7 +125,6 @@ public class CaseExactIA5EqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -143,7 +139,6 @@ public class CaseExactIA5EqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_IA5_STRING_OID;
   }
 
@@ -163,7 +158,6 @@ public class CaseExactIA5EqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append(value.stringValue().trim());
 
@@ -245,7 +239,6 @@ public class CaseExactIA5EqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.
     return Arrays.equals(value1.value(), value2.value());

@@ -96,7 +96,6 @@ public class BackupConfig
   public BackupConfig(BackupDirectory backupDirectory,
                       String backupID, boolean isIncremental)
   {
-
     this.backupDirectory = backupDirectory;
     this.backupID        = backupID;
     this.isIncremental   = isIncremental;
@@ -113,7 +112,6 @@ public class BackupConfig
    */
   public BackupDirectory getBackupDirectory()
   {
-
     return backupDirectory;
   }
 
@@ -130,7 +128,6 @@ public class BackupConfig
    */
   public String getBackupID()
   {
-
     return backupID;
   }
 
@@ -147,7 +144,6 @@ public class BackupConfig
    */
   public boolean isIncremental()
   {
-
     return isIncremental;
   }
 
@@ -165,7 +161,6 @@ public class BackupConfig
    */
   public String getIncrementalBaseID()
   {
-
     return incrementalBaseID;
   }
 
@@ -181,7 +176,6 @@ public class BackupConfig
    */
   public void setIncrementalBaseID(String incrementalBaseID)
   {
-
     this.incrementalBaseID = incrementalBaseID;
   }
 
@@ -197,7 +191,6 @@ public class BackupConfig
    */
   public boolean compressData()
   {
-
     return compressData;
   }
 
@@ -212,7 +205,6 @@ public class BackupConfig
    */
   public void setCompressData(boolean compressData)
   {
-
     this.compressData = compressData;
   }
 
@@ -228,7 +220,6 @@ public class BackupConfig
    */
   public boolean encryptData()
   {
-
     return encryptData;
   }
 
@@ -243,7 +234,6 @@ public class BackupConfig
    */
   public void setEncryptData(boolean encryptData)
   {
-
     this.encryptData = encryptData;
   }
 
@@ -260,7 +250,6 @@ public class BackupConfig
    */
   public boolean hashData()
   {
-
     return hashData;
   }
 
@@ -275,7 +264,6 @@ public class BackupConfig
    */
   public void setHashData(boolean hashData)
   {
-
     this.hashData = hashData;
   }
 
@@ -293,7 +281,6 @@ public class BackupConfig
    */
   public boolean signHash()
   {
-
     return signHash;
   }
 
@@ -308,7 +295,6 @@ public class BackupConfig
    */
   public void setSignHash(boolean signHash)
   {
-
     this.signHash = signHash;
   }
 }

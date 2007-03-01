@@ -116,7 +116,6 @@ public class DistinguishedNameSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_DN_OID);
     if (defaultEqualityMatchingRule == null)
@@ -145,7 +144,6 @@ public class DistinguishedNameSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_DN_NAME;
   }
 
@@ -158,7 +156,6 @@ public class DistinguishedNameSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_DN_OID;
   }
 
@@ -171,7 +168,6 @@ public class DistinguishedNameSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_DN_DESCRIPTION;
   }
 
@@ -187,7 +183,6 @@ public class DistinguishedNameSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -203,7 +198,6 @@ public class DistinguishedNameSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     // There is no ordering matching rule by default.
     return null;
   }
@@ -220,7 +214,6 @@ public class DistinguishedNameSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -236,7 +229,6 @@ public class DistinguishedNameSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -258,7 +250,6 @@ public class DistinguishedNameSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     // Use the DN code to make this determination.
     try
     {

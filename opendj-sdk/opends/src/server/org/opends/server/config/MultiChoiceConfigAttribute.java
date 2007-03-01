@@ -276,7 +276,6 @@ public class MultiChoiceConfigAttribute
    */
   public String getDataType()
   {
-
     return "MultiChoice";
   }
 
@@ -289,7 +288,6 @@ public class MultiChoiceConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-
     return DirectoryServer.getDefaultStringSyntax();
   }
 
@@ -307,7 +305,6 @@ public class MultiChoiceConfigAttribute
   public String activeValue()
          throws ConfigException
   {
-
     if ((activeValues == null) || activeValues.isEmpty())
     {
       int    msgID   = MSGID_CONFIG_ATTR_NO_STRING_VALUE;
@@ -334,7 +331,6 @@ public class MultiChoiceConfigAttribute
    */
   public List<String> activeValues()
   {
-
     return activeValues;
   }
 
@@ -354,7 +350,6 @@ public class MultiChoiceConfigAttribute
   public String pendingValue()
          throws ConfigException
   {
-
     if (! hasPendingValues())
     {
       return activeValue();
@@ -388,7 +383,6 @@ public class MultiChoiceConfigAttribute
    */
   public List<String> pendingValues()
   {
-
     if (! hasPendingValues())
     {
       return activeValues;
@@ -408,7 +402,6 @@ public class MultiChoiceConfigAttribute
    */
   public Set<String> allowedValues()
   {
-
     return allowedValues;
   }
 
@@ -424,7 +417,6 @@ public class MultiChoiceConfigAttribute
   public void setValue(String value)
          throws ConfigException
   {
-
     if ((value == null) || (value.length() == 0))
     {
       int    msgID   = MSGID_CONFIG_ATTR_EMPTY_STRING_VALUE;
@@ -467,8 +459,6 @@ public class MultiChoiceConfigAttribute
   public void setValues(List<String> values)
          throws ConfigException
   {
-
-
     // First check if the set is empty and if that is allowed.
     if ((values == null) || (values.isEmpty()))
     {
@@ -565,7 +555,6 @@ public class MultiChoiceConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(String value)
   {
-
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
 
@@ -586,7 +575,6 @@ public class MultiChoiceConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(List<String> values)
   {
-
     if (values == null)
     {
       return null;
@@ -613,7 +601,6 @@ public class MultiChoiceConfigAttribute
    */
   public void applyPendingValues()
   {
-
     if (! hasPendingValues())
     {
       return;
@@ -640,8 +627,6 @@ public class MultiChoiceConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-
-
     // Make sure that the value is non-empty.
     String stringValue;
     if ((value == null) ||
@@ -691,7 +676,6 @@ public class MultiChoiceConfigAttribute
                               boolean allowFailures)
          throws ConfigException
   {
-
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
       if (isRequired())
@@ -787,7 +771,6 @@ public class MultiChoiceConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-
     return activeValues;
   }
 
@@ -806,7 +789,6 @@ public class MultiChoiceConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-
     if (hasPendingValues())
     {
       return pendingValues;
@@ -843,8 +825,6 @@ public class MultiChoiceConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-
-
     ArrayList<String> activeValues  = null;
     ArrayList<String> pendingValues = null;
 
@@ -1009,7 +989,6 @@ public class MultiChoiceConfigAttribute
    */
   private javax.management.Attribute _toJMXAttribute(boolean pending)
   {
-
     List<String> requestedValues ;
     String name ;
     if (pending)
@@ -1066,7 +1045,6 @@ public class MultiChoiceConfigAttribute
    */
   public javax.management.Attribute toJMXAttributePending()
   {
-
     return _toJMXAttribute(true) ;
   }
 
@@ -1084,7 +1062,6 @@ public class MultiChoiceConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-
     if (activeValues.size() > 0)
     {
       if (isMultiValued())
@@ -1150,8 +1127,6 @@ public class MultiChoiceConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-
-
     if (isMultiValued())
     {
       attributeInfoList.add(new MBeanAttributeInfo(getName(),
@@ -1200,7 +1175,6 @@ public class MultiChoiceConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-
     if (isMultiValued())
     {
       return new MBeanParameterInfo(getName(), JMX_TYPE_STRING_ARRAY,
@@ -1229,7 +1203,6 @@ public class MultiChoiceConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-
     Object value = jmxAttribute.getValue();
     if (value instanceof String)
     {
@@ -1300,7 +1273,6 @@ public class MultiChoiceConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-
     return new MultiChoiceConfigAttribute(getName(), getDescription(),
                                           isRequired(), isMultiValued(),
                                           requiresAdminAction(), allowedValues,

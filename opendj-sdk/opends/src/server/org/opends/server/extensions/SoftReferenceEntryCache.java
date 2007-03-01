@@ -175,7 +175,6 @@ public class SoftReferenceEntryCache
   public void initializeEntryCache(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     dnMap.clear();
     idMap.clear();
 
@@ -369,7 +368,6 @@ public class SoftReferenceEntryCache
    */
   public void finalizeEntryCache()
   {
-
     dnMap.clear();
     idMap.clear();
   }
@@ -388,7 +386,6 @@ public class SoftReferenceEntryCache
    */
   public boolean containsEntry(DN entryDN)
   {
-
     // Indicate whether the DN map contains the specified DN.
     return dnMap.containsKey(entryDN);
   }
@@ -407,7 +404,6 @@ public class SoftReferenceEntryCache
    */
   public Entry getEntry(DN entryDN)
   {
-
     SoftReference<CacheEntry> ref = dnMap.get(entryDN);
     if (ref == null)
     {
@@ -441,7 +437,6 @@ public class SoftReferenceEntryCache
    */
   public long getEntryID(DN entryDN)
   {
-
     SoftReference<CacheEntry> ref = dnMap.get(entryDN);
     if (ref == null)
     {
@@ -482,7 +477,6 @@ public class SoftReferenceEntryCache
   public Entry getEntry(DN entryDN, LockType lockType,
                         List<Lock> lockList)
   {
-
     SoftReference<CacheEntry> ref = dnMap.get(entryDN);
     if (ref == null)
     {
@@ -616,7 +610,6 @@ public class SoftReferenceEntryCache
   public Entry getEntry(Backend backend, long entryID,
                         LockType lockType, List<Lock> lockList)
   {
-
     ConcurrentHashMap<Long,SoftReference<CacheEntry>> map = idMap.get(backend);
     if (map == null)
     {
@@ -743,8 +736,6 @@ public class SoftReferenceEntryCache
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-
-
     // If there is a set of exclude filters, then make sure that the provided
     // entry doesn't match any of them.
     if (! excludeFilters.isEmpty())
@@ -856,8 +847,6 @@ public class SoftReferenceEntryCache
   public boolean putEntryIfAbsent(Entry entry, Backend backend,
                                   long entryID)
   {
-
-
     // If there is a set of exclude filters, then make sure that the provided
     // entry doesn't match any of them.
     if (! excludeFilters.isEmpty())
@@ -957,8 +946,6 @@ public class SoftReferenceEntryCache
    */
   public void removeEntry(DN entryDN)
   {
-
-
     SoftReference<CacheEntry> ref = dnMap.remove(entryDN);
     if (ref != null)
     {
@@ -991,7 +978,6 @@ public class SoftReferenceEntryCache
    */
   public void clear()
   {
-
     dnMap.clear();
     idMap.clear();
   }
@@ -1006,8 +992,6 @@ public class SoftReferenceEntryCache
    */
   public void clearBackend(Backend backend)
   {
-
-
     // FIXME -- Would it be better just to dump everything?
     ConcurrentHashMap<Long,SoftReference<CacheEntry>> map =
          idMap.remove(backend);
@@ -1037,8 +1021,6 @@ public class SoftReferenceEntryCache
    */
   public void clearSubtree(DN baseDN)
   {
-
-
     // Determine the backend used to hold the specified base DN and clear it.
     Backend backend = DirectoryServer.getBackend(baseDN);
     if (backend == null)
@@ -1062,8 +1044,6 @@ public class SoftReferenceEntryCache
    */
   public void handleLowMemory()
   {
-
-
     // This function should automatically be taken care of by the nature of the
     // soft references used in this cache.
     // FIXME -- Do we need to do anything at all here?
@@ -1080,7 +1060,6 @@ public class SoftReferenceEntryCache
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -1095,7 +1074,6 @@ public class SoftReferenceEntryCache
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
 
@@ -1158,8 +1136,6 @@ public class SoftReferenceEntryCache
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
-
     // Start out assuming that the configuration is valid.
     boolean configIsAcceptable = true;
 
@@ -1341,8 +1317,6 @@ public class SoftReferenceEntryCache
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     // Create a set of variables to use for the result.
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;

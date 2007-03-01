@@ -98,7 +98,6 @@ public class DoubleMetaphoneApproximateMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -112,7 +111,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   public String getName()
   {
-
     return AMR_DOUBLE_METAPHONE_NAME;
   }
 
@@ -125,7 +123,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   public String getOID()
   {
-
     return AMR_DOUBLE_METAPHONE_OID;
   }
 
@@ -139,7 +136,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return AMR_DOUBLE_METAPHONE_DESCRIPTION;
   }
@@ -154,7 +150,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   public String getSyntaxOID()
   {
-
     // Approximate matching is really only appropriate for DirectoryString
     // values.
     return SYNTAX_DIRECTORY_STRING_OID;
@@ -176,7 +171,6 @@ public class DoubleMetaphoneApproximateMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     String valueString = value.stringValue();
     int length = valueString.length();
     if (length == 0)
@@ -1177,7 +1171,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   public boolean approximatelyMatch(ByteString value1, ByteString value2)
   {
-
     // If the values have been normalized, then we just need to compare their
     // byte arrays.
     return Arrays.equals(value1.value(), value2.value());
@@ -1202,7 +1195,6 @@ public class DoubleMetaphoneApproximateMatchingRule
   private boolean hasSubstring(String value, int start,
                                String substring)
   {
-
     try
     {
       // This can happen since a lot of the rules "look behind" and
@@ -1252,7 +1244,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   private boolean isVowel(char c)
   {
-
     switch (c)
     {
       case 'A':
@@ -1280,7 +1271,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   private boolean isSlavoGermanic(String s)
   {
-
     return (s.contains("W") || s.contains("K") || s.contains("CZ") ||
             s.contains("WITZ"));
   }
@@ -1298,7 +1288,6 @@ public class DoubleMetaphoneApproximateMatchingRule
    */
   private boolean isGermanic(String s)
   {
-
     return (s.startsWith("VAN ") || s.startsWith("VON ") ||
             s.startsWith("SCH"));
   }

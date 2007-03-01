@@ -82,7 +82,6 @@ public class SimpleStaticGroupMemberList
    */
   public SimpleStaticGroupMemberList(DN groupDN, Set<DN> memberDNs)
   {
-
     ensureNotNull(groupDN, memberDNs);
 
     this.groupDN   = groupDN;
@@ -98,7 +97,6 @@ public class SimpleStaticGroupMemberList
   @Override()
   public boolean hasMoreMembers()
   {
-
     return memberDNIterator.hasNext();
   }
 
@@ -111,7 +109,6 @@ public class SimpleStaticGroupMemberList
   public DN nextMemberDN()
          throws MembershipException
   {
-
     if (memberDNIterator.hasNext())
     {
       return memberDNIterator.next();
@@ -129,7 +126,6 @@ public class SimpleStaticGroupMemberList
   public Entry nextMemberEntry()
          throws MembershipException
   {
-
     if (memberDNIterator.hasNext())
     {
       DN memberDN = memberDNIterator.next();
@@ -173,7 +169,6 @@ public class SimpleStaticGroupMemberList
   @Override()
   public void close()
   {
-
     // No implementation is required.
   }
 }

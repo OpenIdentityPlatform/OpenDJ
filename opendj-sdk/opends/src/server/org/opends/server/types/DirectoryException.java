@@ -190,7 +190,6 @@ public class DirectoryException
    */
   public final ResultCode getResultCode()
   {
-
     return resultCode;
   }
 
@@ -203,7 +202,6 @@ public class DirectoryException
    */
   public final String getErrorMessage()
   {
-
     return errorMessage;
   }
 
@@ -218,7 +216,6 @@ public class DirectoryException
    */
   public final int getErrorMessageID()
   {
-
     return errorMessageID;
   }
 
@@ -232,7 +229,6 @@ public class DirectoryException
    */
   public final DN getMatchedDN()
   {
-
     return matchedDN;
   }
 
@@ -246,7 +242,6 @@ public class DirectoryException
    */
   public final List<String> getReferralURLs()
   {
-
     return referralURLs;
   }
 }

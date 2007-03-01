@@ -63,7 +63,6 @@ public class KeywordEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_KEYWORD_NAME;
   }
 
@@ -76,7 +75,6 @@ public class KeywordEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_KEYWORD_OID;
   }
 }

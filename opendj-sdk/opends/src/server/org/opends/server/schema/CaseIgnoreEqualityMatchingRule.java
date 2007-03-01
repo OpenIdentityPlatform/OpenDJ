@@ -79,7 +79,6 @@ public class CaseIgnoreEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -93,7 +92,6 @@ public class CaseIgnoreEqualityMatchingRule
    */
   public String getName()
   {
-
     return EMR_CASE_IGNORE_NAME;
   }
 
@@ -106,7 +104,6 @@ public class CaseIgnoreEqualityMatchingRule
    */
   public String getOID()
   {
-
     return EMR_CASE_IGNORE_OID;
   }
 
@@ -120,7 +117,6 @@ public class CaseIgnoreEqualityMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -135,7 +131,6 @@ public class CaseIgnoreEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_DIRECTORY_STRING_OID;
   }
 
@@ -155,7 +150,6 @@ public class CaseIgnoreEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     byte[]        valueBytes  = value.value();
     int           valueLength = valueBytes.length;
 
@@ -379,7 +373,6 @@ public class CaseIgnoreEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-
     byte[] b1 = value1.value();
     byte[] b2 = value2.value();
 

@@ -78,7 +78,6 @@ public class ShutdownTaskThread
    */
   public void run()
   {
-
     DirectoryServer.shutDown(CLASS_NAME, shutdownMessage);
   }
 }

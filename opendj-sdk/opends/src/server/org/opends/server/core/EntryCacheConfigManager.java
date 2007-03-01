@@ -72,7 +72,6 @@ public class EntryCacheConfigManager
    */
   public EntryCacheConfigManager()
   {
-
     // No implementation is required.
   }
 
@@ -90,8 +89,6 @@ public class EntryCacheConfigManager
   public void initializeEntryCache()
          throws InitializationException
   {
-
-
     // First, install a default entry cache so that there will be one even if
     // we encounter a problem later.
     try
@@ -351,8 +348,6 @@ public class EntryCacheConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // NYI
 
 
@@ -376,7 +371,6 @@ public class EntryCacheConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -406,8 +400,6 @@ public class EntryCacheConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // NYI
 
 
@@ -430,7 +422,6 @@ public class EntryCacheConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -460,8 +451,6 @@ public class EntryCacheConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // NYI
 
 
@@ -483,7 +472,6 @@ public class EntryCacheConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();

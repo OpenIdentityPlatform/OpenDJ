@@ -128,7 +128,6 @@ public abstract class ClientConnection
    */
   protected ClientConnection()
   {
-
     connectTime        = TimeThread.getTime();
     connectTimeString  = TimeThread.getUTCTime();
     authenticationInfo = new AuthenticationInfo();
@@ -227,7 +226,6 @@ public abstract class ClientConnection
    */
   public long getConnectTime()
   {
-
     return connectTime;
   }
 
@@ -242,7 +240,6 @@ public abstract class ClientConnection
    */
   public String getConnectTimeString()
   {
-
     return connectTimeString;
   }
 
@@ -460,8 +457,6 @@ public abstract class ClientConnection
   public final boolean sendIntermediateResponse(
                             IntermediateResponse intermediateResponse)
   {
-
-
     // Invoke the intermediate response plugins for the response
     // message.
     PluginConfigManager pluginConfigManager =
@@ -522,7 +517,6 @@ public abstract class ClientConnection
                                boolean sendNotification,
                                int messageID, Object... arguments)
   {
-
     String message = getMessage(messageID, arguments);
     disconnect(disconnectReason, sendNotification, message,
                messageID);
@@ -572,7 +566,6 @@ public abstract class ClientConnection
    */
   public boolean bindInProgress()
   {
-
     return bindInProgress;
   }
 
@@ -588,7 +581,6 @@ public abstract class ClientConnection
    */
   public void setBindInProgress(boolean bindInProgress)
   {
-
     this.bindInProgress = bindInProgress;
   }
 
@@ -606,7 +598,6 @@ public abstract class ClientConnection
    */
   public boolean mustChangePassword()
   {
-
     if (authenticationInfo == null)
     {
       return false;
@@ -631,7 +622,6 @@ public abstract class ClientConnection
    */
   public void setMustChangePassword(boolean mustChangePassword)
   {
-
     if (authenticationInfo == null)
     {
       authenticationInfo = new AuthenticationInfo();
@@ -694,7 +684,6 @@ public abstract class ClientConnection
   public CopyOnWriteArrayList<PersistentSearch>
               getPersistentSearches()
   {
-
     return persistentSearches;
   }
 
@@ -712,7 +701,6 @@ public abstract class ClientConnection
   public void registerPersistentSearch(PersistentSearch
                                             persistentSearch)
   {
-
     persistentSearches.add(persistentSearch);
   }
 
@@ -730,7 +718,6 @@ public abstract class ClientConnection
   public void deregisterPersistentSearch(PersistentSearch
                                               persistentSearch)
   {
-
     persistentSearches.remove(persistentSearch);
   }
 
@@ -786,7 +773,6 @@ public abstract class ClientConnection
    */
   public AuthenticationInfo getAuthenticationInfo()
   {
-
     return authenticationInfo;
   }
 
@@ -804,7 +790,6 @@ public abstract class ClientConnection
   public void setAuthenticationInfo(AuthenticationInfo
                                          authenticationInfo)
   {
-
     if (this.authenticationInfo != null)
     {
       Entry authNEntry =
@@ -893,7 +878,6 @@ public abstract class ClientConnection
    */
   public void updateAuthenticationInfo(Entry oldEntry, Entry newEntry)
   {
-
     Entry authNEntry = authenticationInfo.getAuthenticationEntry();
     Entry authZEntry = authenticationInfo.getAuthorizationEntry();
 
@@ -932,7 +916,6 @@ public abstract class ClientConnection
    */
   public void setUnauthenticated()
   {
-
     this.authenticationInfo = new AuthenticationInfo();
     this.sizeLimit          = DirectoryServer.getSizeLimit();
     this.timeLimit          = DirectoryServer.getTimeLimit();
@@ -957,7 +940,6 @@ public abstract class ClientConnection
   public boolean hasPrivilege(Privilege privilege,
                               Operation operation)
   {
-
     boolean result = privileges.contains(privilege);
     if (operation == null)
     {
@@ -1005,7 +987,6 @@ public abstract class ClientConnection
   public boolean hasAllPrivileges(Privilege[] privileges,
                                   Operation operation)
   {
-
     HashSet<Privilege> privSet = this.privileges;
     boolean result = true;
     StringBuilder buffer = new StringBuilder();
@@ -1070,7 +1051,6 @@ public abstract class ClientConnection
    */
   private void updatePrivileges(Entry entry, boolean isRoot)
   {
-
     HashSet<Privilege> newPrivileges = new HashSet<Privilege>();
     HashSet<Privilege> removePrivileges = new HashSet<Privilege>();
 
@@ -1148,7 +1128,6 @@ public abstract class ClientConnection
    */
   public final Object getSASLAuthStateInfo()
   {
-
     return saslAuthState;
   }
 
@@ -1164,7 +1143,6 @@ public abstract class ClientConnection
    */
   public final void setSASLAuthStateInfo(Object saslAuthState)
   {
-
     this.saslAuthState = saslAuthState;
   }
 
@@ -1179,7 +1157,6 @@ public abstract class ClientConnection
    */
   public final int getSizeLimit()
   {
-
     return sizeLimit;
   }
 
@@ -1195,7 +1172,6 @@ public abstract class ClientConnection
    */
   public final void setSizeLimit(int sizeLimit)
   {
-
     this.sizeLimit = sizeLimit;
   }
 
@@ -1210,7 +1186,6 @@ public abstract class ClientConnection
    */
   public final int getLookthroughLimit()
   {
-
     return lookthroughLimit;
   }
 
@@ -1226,7 +1201,6 @@ public abstract class ClientConnection
    */
   public final void setLookthroughLimit(int lookthroughLimit)
   {
-
     this.lookthroughLimit = lookthroughLimit;
   }
 
@@ -1241,7 +1215,6 @@ public abstract class ClientConnection
    */
   public final int getTimeLimit()
   {
-
     return timeLimit;
   }
 
@@ -1257,7 +1230,6 @@ public abstract class ClientConnection
    */
   public final void setTimeLimit(int timeLimit)
   {
-
     this.timeLimit = timeLimit;
   }
 
@@ -1305,7 +1277,6 @@ public abstract class ClientConnection
   public boolean isMemberOf(Group group, Operation operation)
          throws DirectoryException
   {
-
     if (operation == null)
     {
       return group.isMember(authenticationInfo.getAuthorizationDN());
@@ -1343,8 +1314,6 @@ public abstract class ClientConnection
   public Set<Group> getGroups(Operation operation)
          throws DirectoryException
   {
-
-
     // FIXME -- This probably isn't the most efficient implementation.
     DN authzDN;
     if (operation == null)
@@ -1405,7 +1374,6 @@ public abstract class ClientConnection
    */
   public DN getKeyManagerProviderDN()
   {
-
     // In the default implementation, we'll return null.
     return null;
   }
@@ -1427,7 +1395,6 @@ public abstract class ClientConnection
    */
   public DN getTrustManagerProviderDN()
   {
-
     // In the default implementation, we'll return null.
     return null;
   }
@@ -1459,7 +1426,6 @@ public abstract class ClientConnection
    */
   public final String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();

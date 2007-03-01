@@ -136,7 +136,6 @@ public class LDIFExportConfig
   public LDIFExportConfig(String ldifFile,
                           ExistingFileBehavior existingFileBehavior)
   {
-
     this.ldifFile                = ldifFile;
     this.existingFileBehavior    = existingFileBehavior;
     ldifOutputStream             = null;
@@ -170,7 +169,6 @@ public class LDIFExportConfig
    */
   public LDIFExportConfig(OutputStream ldifOutputStream)
   {
-
     this.ldifOutputStream        = ldifOutputStream;
     ldifFile                     = null;
     existingFileBehavior         = ExistingFileBehavior.FAIL;
@@ -208,7 +206,6 @@ public class LDIFExportConfig
   public BufferedWriter getWriter()
          throws IOException
   {
-
     if (writer == null)
     {
       if (ldifOutputStream == null)
@@ -277,7 +274,6 @@ public class LDIFExportConfig
    */
   public boolean invokeExportPlugins()
   {
-
     return invokeExportPlugins;
   }
 
@@ -293,7 +289,6 @@ public class LDIFExportConfig
    */
   public void setInvokeExportPlugins(boolean invokeExportPlugins)
   {
-
     this.invokeExportPlugins = invokeExportPlugins;
   }
 
@@ -308,7 +303,6 @@ public class LDIFExportConfig
    */
   public boolean compressData()
   {
-
     return compressData;
   }
 
@@ -324,7 +318,6 @@ public class LDIFExportConfig
    */
   public void setCompressData(boolean compressData)
   {
-
     this.compressData = compressData;
   }
 
@@ -339,7 +332,6 @@ public class LDIFExportConfig
    */
   public boolean encryptData()
   {
-
     return encryptData;
   }
 
@@ -355,7 +347,6 @@ public class LDIFExportConfig
    */
   public void setEncryptData(boolean encryptData)
   {
-
     this.encryptData = encryptData;
   }
 
@@ -370,7 +361,6 @@ public class LDIFExportConfig
    */
   public boolean hashData()
   {
-
     return hashData;
   }
 
@@ -386,7 +376,6 @@ public class LDIFExportConfig
    */
   public void setHashData(boolean hashData)
   {
-
     this.hashData = hashData;
   }
 
@@ -401,7 +390,6 @@ public class LDIFExportConfig
    */
   public boolean signHash()
   {
-
     return signHash;
   }
 
@@ -420,7 +408,6 @@ public class LDIFExportConfig
    */
   public void setSignHash(boolean signHash)
   {
-
     this.signHash = signHash;
   }
 
@@ -437,7 +424,6 @@ public class LDIFExportConfig
    */
   public boolean typesOnly()
   {
-
     return typesOnly;
   }
 
@@ -454,7 +440,6 @@ public class LDIFExportConfig
    */
   public void setTypesOnly(boolean typesOnly)
   {
-
     this.typesOnly = typesOnly;
   }
 
@@ -469,7 +454,6 @@ public class LDIFExportConfig
    */
   public int getWrapColumn()
   {
-
     return wrapColumn;
   }
 
@@ -485,7 +469,6 @@ public class LDIFExportConfig
    */
   public void setWrapColumn(int wrapColumn)
   {
-
     this.wrapColumn = wrapColumn;
   }
 
@@ -501,7 +484,6 @@ public class LDIFExportConfig
    */
   public List<DN> getExcludeBranches()
   {
-
     return excludeBranches;
   }
 
@@ -516,7 +498,6 @@ public class LDIFExportConfig
    */
   public void setExcludeBranches(List<DN> excludeBranches)
   {
-
     if (excludeBranches == null)
     {
       this.excludeBranches = new ArrayList<DN>(0);
@@ -539,7 +520,6 @@ public class LDIFExportConfig
    */
   public List<DN> getIncludeBranches()
   {
-
     return includeBranches;
   }
 
@@ -554,7 +534,6 @@ public class LDIFExportConfig
    */
   public void setIncludeBranches(List<DN> includeBranches)
   {
-
     if (includeBranches == null)
     {
       this.includeBranches = new ArrayList<DN>(0);
@@ -577,7 +556,6 @@ public class LDIFExportConfig
    */
   public boolean includeObjectClasses()
   {
-
     return includeObjectClasses;
   }
 
@@ -592,7 +570,6 @@ public class LDIFExportConfig
    */
   public boolean includeOperationalAttributes()
   {
-
     return includeOperationalAttributes;
   }
 
@@ -610,7 +587,6 @@ public class LDIFExportConfig
   public void setIncludeOperationalAttributes(
                    boolean includeOperationalAttributes)
   {
-
     this.includeOperationalAttributes = includeOperationalAttributes;
   }
 
@@ -626,7 +602,6 @@ public class LDIFExportConfig
    */
   public Set<AttributeType> getExcludeAttributes()
   {
-
     return excludeAttributes;
   }
 
@@ -643,7 +618,6 @@ public class LDIFExportConfig
   public void setExcludeAttributes(
                    Set<AttributeType> excludeAttributes)
   {
-
     if (excludeAttributes == null)
     {
       this.excludeAttributes = new HashSet<AttributeType>(0);
@@ -666,7 +640,6 @@ public class LDIFExportConfig
    */
   public Set<AttributeType> getIncludeAttributes()
   {
-
     return includeAttributes;
   }
 
@@ -683,7 +656,6 @@ public class LDIFExportConfig
   public void setIncludeAttributes(
                    Set<AttributeType> includeAttributes)
   {
-
     if (includeAttributes == null)
     {
       this.includeAttributes = new HashSet<AttributeType>(0);
@@ -709,7 +681,6 @@ public class LDIFExportConfig
    */
   public boolean includeAttribute(AttributeType attributeType)
   {
-
     if ((! excludeAttributes.isEmpty()) &&
         excludeAttributes.contains(attributeType))
     {
@@ -736,7 +707,6 @@ public class LDIFExportConfig
    */
   public List<SearchFilter> getExcludeFilters()
   {
-
     return excludeFilters;
   }
 
@@ -752,7 +722,6 @@ public class LDIFExportConfig
    */
   public void setExcludeFilters(List<SearchFilter> excludeFilters)
   {
-
     if (excludeFilters == null)
     {
       this.excludeFilters = new ArrayList<SearchFilter>(0);
@@ -775,7 +744,6 @@ public class LDIFExportConfig
    */
   public List<SearchFilter> getIncludeFilters()
   {
-
     return includeFilters;
   }
 
@@ -791,7 +759,6 @@ public class LDIFExportConfig
    */
   public void setIncludeFilters(List<SearchFilter> includeFilters)
   {
-
     if (includeFilters == null)
     {
       this.includeFilters = new ArrayList<SearchFilter>(0);
@@ -821,7 +788,6 @@ public class LDIFExportConfig
   public boolean includeEntry(Entry entry)
          throws DirectoryException
   {
-
     DN dn = entry.getDN();
     if (! excludeBranches.isEmpty())
     {
@@ -881,8 +847,6 @@ public class LDIFExportConfig
    */
   public void close()
   {
-
-
     // FIXME -- Need to add code to generate a signed hash of the LDIF
     //          content.
 

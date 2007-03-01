@@ -101,7 +101,6 @@ public class InitializationException
    */
   public final int getMessageID()
   {
-
     return messageID;
   }
 }

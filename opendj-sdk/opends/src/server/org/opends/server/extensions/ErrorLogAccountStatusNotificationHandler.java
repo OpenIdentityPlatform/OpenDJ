@@ -119,8 +119,6 @@ public class ErrorLogAccountStatusNotificationHandler
   public void initializeStatusNotificationHandler(ConfigEntry configEntry)
        throws ConfigException, InitializationException
   {
-
-
     configEntryDN = configEntry.getDN();
 
 
@@ -188,7 +186,6 @@ public class ErrorLogAccountStatusNotificationHandler
                                             notificationType,
                                        DN userDN, int messageID, String message)
   {
-
     if (notificationTypes.contains(notificationType))
     {
       int msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION;
@@ -209,7 +206,6 @@ public class ErrorLogAccountStatusNotificationHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -224,8 +220,6 @@ public class ErrorLogAccountStatusNotificationHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     LinkedList<String> typeNames = new LinkedList<String>();
@@ -265,8 +259,6 @@ public class ErrorLogAccountStatusNotificationHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                       List<String> unacceptableReasons)
   {
-
-
     // Initialize the set of notification types that should generate log
     // messages.
     int msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_DESCRIPTION_NOTIFICATION_TYPES;
@@ -342,8 +334,6 @@ public class ErrorLogAccountStatusNotificationHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
-
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
     ArrayList<String> messages = new ArrayList<String>();

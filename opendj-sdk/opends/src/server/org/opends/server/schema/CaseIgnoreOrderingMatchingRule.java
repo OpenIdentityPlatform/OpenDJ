@@ -89,7 +89,6 @@ public class CaseIgnoreOrderingMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -103,7 +102,6 @@ public class CaseIgnoreOrderingMatchingRule
    */
   public String getName()
   {
-
     return OMR_CASE_IGNORE_NAME;
   }
 
@@ -116,7 +114,6 @@ public class CaseIgnoreOrderingMatchingRule
    */
   public String getOID()
   {
-
     return OMR_CASE_IGNORE_OID;
   }
 
@@ -130,7 +127,6 @@ public class CaseIgnoreOrderingMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -145,7 +141,6 @@ public class CaseIgnoreOrderingMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_DIRECTORY_STRING_OID;
   }
 
@@ -165,7 +160,6 @@ public class CaseIgnoreOrderingMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value.value(), buffer, true);
 
@@ -218,7 +212,6 @@ public class CaseIgnoreOrderingMatchingRule
    */
   public int compareValues(ByteString value1, ByteString value2)
   {
-
     return compare(value1.value(),value2.value());
   }
 
@@ -239,7 +232,6 @@ public class CaseIgnoreOrderingMatchingRule
    */
   public int compare(byte[] b1, byte[] b2)
   {
-
     int minLength = Math.min(b1.length, b2.length);
 
     for (int i=0; i < minLength; i++)

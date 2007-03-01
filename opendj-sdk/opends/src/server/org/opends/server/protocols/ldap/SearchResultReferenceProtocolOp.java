@@ -72,7 +72,6 @@ public class SearchResultReferenceProtocolOp
    */
   public SearchResultReferenceProtocolOp(List<String> referralURLs)
   {
-
     if (referralURLs == null)
     {
       this.referralURLs = new ArrayList<String>();
@@ -94,7 +93,6 @@ public class SearchResultReferenceProtocolOp
    */
   public SearchResultReferenceProtocolOp(SearchResultReference searchReference)
   {
-
     referralURLs = searchReference.getReferralURLs();
     if (referralURLs == null)
     {
@@ -113,7 +111,6 @@ public class SearchResultReferenceProtocolOp
    */
   public List<String> getReferralURLs()
   {
-
     return referralURLs;
   }
 
@@ -126,7 +123,6 @@ public class SearchResultReferenceProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_SEARCH_RESULT_REFERENCE;
   }
 
@@ -139,7 +135,6 @@ public class SearchResultReferenceProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Search Result Reference";
   }
 
@@ -153,7 +148,6 @@ public class SearchResultReferenceProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements =
          new ArrayList<ASN1Element>(referralURLs.size());
     for (String url : referralURLs)
@@ -182,7 +176,6 @@ public class SearchResultReferenceProtocolOp
                      decodeSearchReference(ASN1Element element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -235,7 +228,6 @@ public class SearchResultReferenceProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("SearchReference(referralURLs={");
 
     if (! referralURLs.isEmpty())
@@ -265,7 +257,6 @@ public class SearchResultReferenceProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

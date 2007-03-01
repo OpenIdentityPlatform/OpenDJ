@@ -151,7 +151,6 @@ public class LDIFImportConfig
    */
   public LDIFImportConfig(String ldifFile)
   {
-
     ldifFiles = new ArrayList<String>(1);
     ldifFiles.add(ldifFile);
     ldifFileIterator = ldifFiles.iterator();
@@ -187,7 +186,6 @@ public class LDIFImportConfig
    */
   public LDIFImportConfig(List<String> ldifFiles)
   {
-
     this.ldifFiles = ldifFiles;
     ldifFileIterator = ldifFiles.iterator();
 
@@ -221,7 +219,6 @@ public class LDIFImportConfig
    */
   public LDIFImportConfig(InputStream ldifInputStream)
   {
-
     this.ldifInputStream   = ldifInputStream;
     bufferSize             = DEFAULT_BUFFER_SIZE;
     ldifFiles              = null;
@@ -252,7 +249,6 @@ public class LDIFImportConfig
    */
   public LDIFImportConfig(Reader ldifInputReader)
   {
-
     ldifInputStream        = null;
     bufferSize             = DEFAULT_BUFFER_SIZE;
     ldifFiles              = null;
@@ -319,7 +315,6 @@ public class LDIFImportConfig
   public BufferedReader getReader()
          throws IOException
   {
-
     if (reader == null)
     {
       InputStream inputStream;
@@ -366,7 +361,6 @@ public class LDIFImportConfig
   public BufferedReader nextReader()
          throws IOException
   {
-
     if ((ldifFileIterator == null) || (! ldifFileIterator.hasNext()))
     {
       return null;
@@ -406,7 +400,6 @@ public class LDIFImportConfig
    */
   public BufferedWriter getRejectWriter()
   {
-
     return rejectWriter;
   }
 
@@ -432,7 +425,6 @@ public class LDIFImportConfig
                    ExistingFileBehavior existingFileBehavior)
          throws IOException
   {
-
     if (rejectFile == null)
     {
       if (rejectWriter != null)
@@ -488,7 +480,6 @@ public class LDIFImportConfig
    */
   public void writeRejectedEntries(OutputStream outputStream)
   {
-
     if (outputStream == null)
     {
       if (rejectWriter != null)
@@ -519,7 +510,6 @@ public class LDIFImportConfig
    */
   public boolean appendToExistingData()
   {
-
     return appendToExistingData;
   }
 
@@ -535,7 +525,6 @@ public class LDIFImportConfig
    */
   public void setAppendToExistingData(boolean appendToExistingData)
   {
-
     this.appendToExistingData = appendToExistingData;
   }
 
@@ -553,7 +542,6 @@ public class LDIFImportConfig
    */
   public boolean replaceExistingEntries()
   {
-
     return replaceExistingEntries;
   }
 
@@ -571,7 +559,6 @@ public class LDIFImportConfig
   public void setReplaceExistingEntries(
                    boolean replaceExistingEntries)
   {
-
     this.replaceExistingEntries = replaceExistingEntries;
   }
 
@@ -587,7 +574,6 @@ public class LDIFImportConfig
    */
   public boolean invokeImportPlugins()
   {
-
     return invokeImportPlugins;
   }
 
@@ -604,7 +590,6 @@ public class LDIFImportConfig
    */
   public void setInvokeImportPlugins(boolean invokeImportPlugins)
   {
-
     this.invokeImportPlugins = invokeImportPlugins;
   }
 
@@ -619,7 +604,6 @@ public class LDIFImportConfig
    */
   public boolean isCompressed()
   {
-
     return isCompressed;
   }
 
@@ -635,7 +619,6 @@ public class LDIFImportConfig
    */
   public void setCompressed(boolean isCompressed)
   {
-
     this.isCompressed = isCompressed;
   }
 
@@ -650,7 +633,6 @@ public class LDIFImportConfig
    */
   public boolean isEncrypted()
   {
-
     return isEncrypted;
   }
 
@@ -666,7 +648,6 @@ public class LDIFImportConfig
    */
   public void setEncrypted(boolean isEncrypted)
   {
-
     this.isEncrypted = isEncrypted;
   }
 
@@ -682,7 +663,6 @@ public class LDIFImportConfig
    */
   public boolean validateSchema()
   {
-
     return validateSchema;
   }
 
@@ -697,7 +677,6 @@ public class LDIFImportConfig
    */
   public void setValidateSchema(boolean validateSchema)
   {
-
     this.validateSchema = validateSchema;
   }
 
@@ -713,7 +692,6 @@ public class LDIFImportConfig
    */
   public List<DN> getExcludeBranches()
   {
-
     return excludeBranches;
   }
 
@@ -728,7 +706,6 @@ public class LDIFImportConfig
    */
   public void setExcludeBranches(List<DN> excludeBranches)
   {
-
     if (excludeBranches == null)
     {
       this.excludeBranches = new ArrayList<DN>(0);
@@ -751,7 +728,6 @@ public class LDIFImportConfig
    */
   public List<DN> getIncludeBranches()
   {
-
     return includeBranches;
   }
 
@@ -766,7 +742,6 @@ public class LDIFImportConfig
    */
   public void setIncludeBranches(List<DN> includeBranches)
   {
-
     if (includeBranches == null)
     {
       this.includeBranches = new ArrayList<DN>(0);
@@ -792,7 +767,6 @@ public class LDIFImportConfig
    */
   public boolean includeEntry(DN dn)
   {
-
     if (! excludeBranches.isEmpty())
     {
       for (DN excludeBranch : excludeBranches)
@@ -832,7 +806,6 @@ public class LDIFImportConfig
    */
   public boolean includeObjectClasses()
   {
-
     return includeObjectClasses;
   }
 
@@ -848,7 +821,6 @@ public class LDIFImportConfig
    */
   public void setIncludeObjectClasses(boolean includeObjectClasses)
   {
-
     this.includeObjectClasses = includeObjectClasses;
   }
 
@@ -864,7 +836,6 @@ public class LDIFImportConfig
    */
   public Set<AttributeType> getExcludeAttributes()
   {
-
     return excludeAttributes;
   }
 
@@ -881,7 +852,6 @@ public class LDIFImportConfig
   public void setExcludeAttributes(
                    Set<AttributeType> excludeAttributes)
   {
-
     if (excludeAttributes == null)
     {
       this.excludeAttributes = new HashSet<AttributeType>(0);
@@ -904,7 +874,6 @@ public class LDIFImportConfig
    */
   public Set<AttributeType> getIncludeAttributes()
   {
-
     return includeAttributes;
   }
 
@@ -921,7 +890,6 @@ public class LDIFImportConfig
   public void setIncludeAttributes(
                    Set<AttributeType> includeAttributes)
   {
-
     if (includeAttributes == null)
     {
       this.includeAttributes = new HashSet<AttributeType>(0);
@@ -947,7 +915,6 @@ public class LDIFImportConfig
    */
   public boolean includeAttribute(AttributeType attributeType)
   {
-
     if ((! excludeAttributes.isEmpty()) &&
         excludeAttributes.contains(attributeType))
     {
@@ -974,7 +941,6 @@ public class LDIFImportConfig
    */
   public List<SearchFilter> getExcludeFilters()
   {
-
     return excludeFilters;
   }
 
@@ -990,7 +956,6 @@ public class LDIFImportConfig
    */
   public void setExcludeFilters(List<SearchFilter> excludeFilters)
   {
-
     if (excludeFilters == null)
     {
       this.excludeFilters = new ArrayList<SearchFilter>(0);
@@ -1013,7 +978,6 @@ public class LDIFImportConfig
    */
   public List<SearchFilter> getIncludeFilters()
   {
-
     return includeFilters;
   }
 
@@ -1029,7 +993,6 @@ public class LDIFImportConfig
    */
   public void setIncludeFilters(List<SearchFilter> includeFilters)
   {
-
     if (includeFilters == null)
     {
       this.includeFilters = new ArrayList<SearchFilter>(0);
@@ -1059,7 +1022,6 @@ public class LDIFImportConfig
   public boolean includeEntry(Entry entry)
          throws DirectoryException
   {
-
     if (! excludeFilters.isEmpty())
     {
       for (SearchFilter filter : excludeFilters)
@@ -1098,7 +1060,6 @@ public class LDIFImportConfig
    */
   public int getBufferSize()
   {
-
     return bufferSize;
   }
 
@@ -1113,7 +1074,6 @@ public class LDIFImportConfig
    */
   public void setBufferSize(int bufferSize)
   {
-
     this.bufferSize = bufferSize;
   }
 
@@ -1124,7 +1084,6 @@ public class LDIFImportConfig
    */
   public void close()
   {
-
     try
     {
       reader.close();

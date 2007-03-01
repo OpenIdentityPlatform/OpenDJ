@@ -90,7 +90,6 @@ public class CaseExactIA5SubstringMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No initialization is required.
   }
 
@@ -104,7 +103,6 @@ public class CaseExactIA5SubstringMatchingRule
    */
   public String getName()
   {
-
     return SMR_CASE_EXACT_IA5_NAME;
   }
 
@@ -117,7 +115,6 @@ public class CaseExactIA5SubstringMatchingRule
    */
   public String getOID()
   {
-
     return SMR_CASE_EXACT_IA5_OID;
   }
 
@@ -131,7 +128,6 @@ public class CaseExactIA5SubstringMatchingRule
    */
   public String getDescription()
   {
-
     // There is no standard description for this matching rule.
     return null;
   }
@@ -146,7 +142,6 @@ public class CaseExactIA5SubstringMatchingRule
    */
   public String getSyntaxOID()
   {
-
     return SYNTAX_SUBSTRING_ASSERTION_OID;
   }
 
@@ -166,7 +161,6 @@ public class CaseExactIA5SubstringMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-
     StringBuilder buffer = new StringBuilder();
     buffer.append(value.stringValue().trim());
 
@@ -250,7 +244,6 @@ public class CaseExactIA5SubstringMatchingRule
   public ByteString normalizeSubstring(ByteString substring)
          throws DirectoryException
   {
-
     // In this case, the process for normalizing a substring is the same as
     // normalizing a full value with the exception that it may include an
     // opening or trailing space.
@@ -344,8 +337,6 @@ public class CaseExactIA5SubstringMatchingRule
                                        List<ByteString> subAnyElements,
                                        ByteString subFinal)
   {
-
-
     byte[] valueBytes = value.value();
     int valueLength = valueBytes.length;
 

@@ -191,8 +191,6 @@ public class AuthorizationIdentityResponseControl
    */
   private static ASN1OctetString encodeValue(String authorizationID)
   {
-
-
     return new ASN1OctetString(authorizationID);
   }
 
@@ -209,8 +207,6 @@ public class AuthorizationIdentityResponseControl
    */
   private static ASN1OctetString encodeValue(DN authorizationDN)
   {
-
-
     if (authorizationDN == null)
     {
       return new ASN1OctetString("dn:");
@@ -240,8 +236,6 @@ public class AuthorizationIdentityResponseControl
                                                           Control control)
          throws LDAPException
   {
-
-
     if (! control.hasValue())
     {
       int    msgID   = MSGID_AUTHZIDRESP_NO_CONTROL_VALUE;
@@ -265,7 +259,6 @@ public class AuthorizationIdentityResponseControl
    */
   public String getAuthorizationID()
   {
-
     return authorizationID;
   }
 
@@ -280,7 +273,6 @@ public class AuthorizationIdentityResponseControl
    */
   public void setAuthorizationID(String authorizationID)
   {
-
     this.authorizationID = authorizationID;
     setValue(encodeValue(authorizationID));
   }
@@ -296,7 +288,6 @@ public class AuthorizationIdentityResponseControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -312,7 +303,6 @@ public class AuthorizationIdentityResponseControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("AuthorizationIdentityResponseControl(authzID=\"");
     buffer.append(authorizationID);
     buffer.append("\")");

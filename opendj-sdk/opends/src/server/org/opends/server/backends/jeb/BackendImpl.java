@@ -165,7 +165,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   private void readerBegin()
   {
-
     threadTotalCount.getAndIncrement();
   }
 
@@ -176,7 +175,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   private void readerEnd()
   {
-
     threadTotalCount.getAndDecrement();
   }
 
@@ -187,7 +185,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   private void writerBegin()
   {
-
     threadTotalCount.getAndIncrement();
     threadWriteCount.getAndIncrement();
   }
@@ -199,7 +196,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   private void writerEnd()
   {
-
     threadWriteCount.getAndDecrement();
     threadTotalCount.getAndDecrement();
   }
@@ -213,7 +209,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   private void waitUntilQuiescent()
   {
-
     while (threadTotalCount.get() > 0)
     {
       // Still have threads in the database so sleep a little
@@ -241,7 +236,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public static String getContainerName(DN dn)
   {
-
     String normStr = dn.toNormalizedString();
     StringBuilder builder = new StringBuilder(normStr.length());
     for (int i = 0; i < normStr.length(); i++)
@@ -280,7 +274,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
        throws ConfigException, InitializationException
   {
-
     configDN = configEntry.getDN();
 
     // Initialize a config object
@@ -400,7 +393,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public void finalizeBackend()
   {
-
     // Deregister our configurable components.
     // TODO: configurableEnv is always null and will not be deregistered.
     if (configurableEnv != null)
@@ -478,7 +470,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public boolean isLocal()
   {
-
     return true;
   }
 
@@ -493,7 +484,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public boolean supportsLDIFExport()
   {
-
     return true;
   }
 
@@ -508,7 +498,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public boolean supportsLDIFImport()
   {
-
     return true;
   }
 
@@ -527,7 +516,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public boolean supportsBackup()
   {
-
     return true;
   }
 
@@ -550,7 +538,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-
     return true;
   }
 
@@ -564,7 +551,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public boolean supportsRestore()
   {
-
     return true;
   }
 
@@ -577,7 +563,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public HashSet<String> getSupportedFeatures()
   {
-
     return new HashSet<String>();  //NYI
   }
 
@@ -590,7 +575,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public HashSet<String> getSupportedControls()
   {
-
     return supportedControls;
   }
 
@@ -603,7 +587,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public DN[] getBaseDNs()
   {
-
     return config.getBaseDNs();
   }
 
@@ -614,7 +597,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public long getEntryCount()
   {
-
     if (rootContainer != null)
     {
       try
@@ -647,7 +629,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
-
     readerBegin();
     try
     {
@@ -704,7 +685,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void addEntry(Entry entry, AddOperation addOperation)
        throws DirectoryException
   {
-
     writerBegin();
     try
     {
@@ -761,7 +741,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
        throws DirectoryException
   {
-
     writerBegin();
     try
     {
@@ -816,7 +795,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
        throws DirectoryException
   {
-
     writerBegin();
     try
     {
@@ -879,7 +857,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                           ModifyDNOperation modifyDNOperation)
        throws DirectoryException, CancelledOperationException
   {
-
     writerBegin();
     try
     {
@@ -939,7 +916,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void search(SearchOperation searchOperation)
        throws DirectoryException
   {
-
     readerBegin();
     try
     {
@@ -981,7 +957,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                          LDIFExportConfig exportConfig)
        throws DirectoryException
   {
-
     // Initialize a config object.
     config = new Config();
 
@@ -1101,7 +1076,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                          LDIFImportConfig importConfig)
        throws DirectoryException
   {
-
     // Initialize a config object.
     config = new Config();
 
@@ -1179,7 +1153,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                             DN[] baseDNs, Entry statEntry)
        throws InitializationException, ConfigException, DirectoryException
   {
-
     // Initialize a config object.
     config = new Config();
     config.initializeConfig(configEntry, baseDNs);
@@ -1263,7 +1236,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
        throws DirectoryException
   {
-
     BackupManager backupManager =
          new BackupManager(getBackendID());
     backupManager.createBackup(configEntry, backupConfig);
@@ -1285,7 +1257,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
        throws DirectoryException
   {
-
     BackupManager backupManager =
          new BackupManager(getBackendID());
     backupManager.removeBackup(backupDirectory, backupID);
@@ -1308,7 +1279,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                             RestoreConfig restoreConfig)
        throws DirectoryException
   {
-
     BackupManager backupManager =
          new BackupManager(getBackendID());
     backupManager.restoreBackup(configEntry, restoreConfig);
@@ -1325,7 +1295,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configDN;
   }
 
@@ -1340,7 +1309,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     return configAttrs;
   }
 
@@ -1362,7 +1330,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
     DN[] baseDNs = null;
     boolean acceptable = true;
 
@@ -1422,7 +1389,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
     ConfigChangeResult ccr;
     ResultCode resultCode = ResultCode.SUCCESS;
     ArrayList<String> messages = new ArrayList<String>();

@@ -88,7 +88,6 @@ public class KeyManagerProviderConfigManager
    */
   public KeyManagerProviderConfigManager()
   {
-
     configHandler = DirectoryServer.getConfigHandler();
     providers     = new ConcurrentHashMap<DN,KeyManagerProvider>();
   }
@@ -110,8 +109,6 @@ public class KeyManagerProviderConfigManager
   public void initializeKeyManagerProviders()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the configuration base entry.
     ConfigEntry baseEntry;
     try
@@ -227,8 +224,6 @@ public class KeyManagerProviderConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for a key manager
     // provider.
     if (! configEntry.hasObjectClass(OC_KEY_MANAGER_PROVIDER))
@@ -367,8 +362,6 @@ public class KeyManagerProviderConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -592,8 +585,6 @@ public class KeyManagerProviderConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (providers.containsKey(configEntryDN))
@@ -777,8 +768,6 @@ public class KeyManagerProviderConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -941,8 +930,6 @@ public class KeyManagerProviderConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -959,8 +946,6 @@ public class KeyManagerProviderConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

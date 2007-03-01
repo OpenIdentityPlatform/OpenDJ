@@ -95,7 +95,6 @@ public class InternalConnectionHandler
    */
   public static InternalConnectionHandler getInstance()
   {
-
     return handlerInstance;
   }
 
@@ -143,7 +142,6 @@ public class InternalConnectionHandler
   public void finalizeConnectionHandler(String finalizeReason,
                                         boolean closeConnections)
   {
-
     // No implementation is required.
   }
 
@@ -154,7 +152,6 @@ public class InternalConnectionHandler
    */
   public String getConnectionHandlerName()
   {
-
     return "Internal Connection Handler";
   }
 
@@ -165,7 +162,6 @@ public class InternalConnectionHandler
    */
   public String getProtocol()
   {
-
     return protocol;
   }
 
@@ -176,7 +172,6 @@ public class InternalConnectionHandler
    */
   public Collection<HostPort> getListeners()
   {
-
     return listeners;
   }
 
@@ -191,7 +186,6 @@ public class InternalConnectionHandler
    */
   public Collection<ClientConnection> getClientConnections()
   {
-
     return connectionList;
   }
 
@@ -203,7 +197,6 @@ public class InternalConnectionHandler
    */
   public void run()
   {
-
     // No implementation is required since this connection handler
     // won't actually accept connections.
     return;
@@ -218,7 +211,6 @@ public class InternalConnectionHandler
    */
   public String toString()
   {
-
     return "Internal Connection Handler";
   }
 
@@ -233,7 +225,6 @@ public class InternalConnectionHandler
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("Internal Connection Handler");
   }
 }

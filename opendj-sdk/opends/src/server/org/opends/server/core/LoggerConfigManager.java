@@ -100,7 +100,6 @@ public class LoggerConfigManager
    */
   public LoggerConfigManager()
   {
-
     configHandler = DirectoryServer.getConfigHandler();
 
     activeAccessLoggers = new ConcurrentHashMap<DN,AccessLogger>();
@@ -123,8 +122,6 @@ public class LoggerConfigManager
   public void initializeLoggers()
          throws ConfigException, InitializationException
   {
-
-
     // First, get the logger configuration base entry.
     ConfigEntry loggerBaseEntry;
     try
@@ -259,7 +256,6 @@ public class LoggerConfigManager
    */
   public void stopLoggers()
   {
-
     StartupErrorLogger errorLogger = new StartupErrorLogger();
     errorLogger.initializeErrorLogger(null);
 
@@ -286,8 +282,6 @@ public class LoggerConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // Make sure that the entry has an appropriate objectclass for an access,
     // error, or debug logger.
     boolean isAccessLogger = false;
@@ -465,8 +459,6 @@ public class LoggerConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -791,8 +783,6 @@ public class LoggerConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-
-
     // Make sure that no entry already exists with the specified DN.
     DN configEntryDN = configEntry.getDN();
     if (activeAccessLoggers.containsKey(configEntryDN) ||
@@ -1013,8 +1003,6 @@ public class LoggerConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -1260,8 +1248,6 @@ public class LoggerConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-
-
     // A delete should always be acceptable, so just return true.
     return true;
   }
@@ -1278,8 +1264,6 @@ public class LoggerConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-
-
     DN         configEntryDN       = configEntry.getDN();
     ResultCode resultCode          = ResultCode.SUCCESS;
     boolean    adminActionRequired = false;

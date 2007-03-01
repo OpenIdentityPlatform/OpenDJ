@@ -87,7 +87,6 @@ public abstract class ProtocolOp
   public static ProtocolOp decode(ASN1Element element)
          throws LDAPException
   {
-
     if (element == null)
     {
       int    msgID   = MSGID_LDAP_PROTOCOL_OP_DECODE_NULL;
@@ -212,7 +211,6 @@ public abstract class ProtocolOp
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();

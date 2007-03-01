@@ -209,7 +209,6 @@ public class TaskScheduler
                                boolean scheduleIteration)
          throws DirectoryException
   {
-
     schedulerLock.lock();
 
     try
@@ -260,7 +259,6 @@ public class TaskScheduler
   public RecurringTask removeRecurringTask(String recurringTaskID)
          throws DirectoryException
   {
-
     schedulerLock.lock();
 
     try
@@ -311,7 +309,6 @@ public class TaskScheduler
   public void scheduleTask(Task task, boolean writeState)
          throws DirectoryException
   {
-
     schedulerLock.lock();
 
 
@@ -381,7 +378,6 @@ public class TaskScheduler
    */
   public Task cancelTask(String taskID)
   {
-
     schedulerLock.lock();
 
     try
@@ -424,7 +420,6 @@ public class TaskScheduler
   public Task removePendingTask(String taskID)
          throws DirectoryException
   {
-
     schedulerLock.lock();
 
     try
@@ -472,7 +467,6 @@ public class TaskScheduler
   public Task removeCompletedTask(String taskID)
          throws DirectoryException
   {
-
     schedulerLock.lock();
 
     try
@@ -517,7 +511,6 @@ public class TaskScheduler
    */
   public boolean threadDone(TaskThread taskThread, Task completedTask)
   {
-
     schedulerLock.lock();
 
     try
@@ -613,7 +606,6 @@ public class TaskScheduler
    */
   public void addCompletedTask(Task completedTask)
   {
-
     // The scheduler lock is reentrant, so even if we already hold it, we can
     // acquire it again.
     schedulerLock.lock();
@@ -639,7 +631,6 @@ public class TaskScheduler
    */
   public void stopScheduler()
   {
-
     stopRequested = true;
 
     try
@@ -695,8 +686,6 @@ public class TaskScheduler
   public void interruptRunningTasks(TaskState interruptState,
                                     String interruptReason, boolean waitForStop)
   {
-
-
     // Grab a copy of the running threads so that we can operate on them without
     // holding the lock.
     LinkedList<TaskThread> threadList = new LinkedList<TaskThread>();
@@ -759,7 +748,6 @@ public class TaskScheduler
    */
   public void run()
   {
-
     isRunning       = true;
     schedulerThread = currentThread();
 
@@ -886,7 +874,6 @@ public class TaskScheduler
    */
   private TaskState shouldStart(Task task)
   {
-
     if (! isRunning)
     {
       return TaskState.UNSCHEDULED;
@@ -927,7 +914,6 @@ public class TaskScheduler
   private void initializeTasksFromBackingFile()
           throws InitializationException
   {
-
     String backingFilePath = taskBackend.getTaskBackingFile();
 
     try
@@ -1112,7 +1098,6 @@ public class TaskScheduler
   private void createNewTaskBackingFile()
           throws InitializationException
   {
-
     String backingFile = taskBackend.getTaskBackingFile();
     LDIFExportConfig exportConfig =
          new LDIFExportConfig(backingFile, ExistingFileBehavior.OVERWRITE);
@@ -1176,8 +1161,6 @@ public class TaskScheduler
    */
   public void writeState()
   {
-
-
     String backingFilePath = taskBackend.getTaskBackingFile();
     String tmpFilePath     = backingFilePath + ".tmp";
     LDIFExportConfig exportConfig =
@@ -1354,7 +1337,6 @@ public class TaskScheduler
    */
   public long getEntryCount()
   {
-
     schedulerLock.lock();
 
     try
@@ -1378,7 +1360,6 @@ public class TaskScheduler
    */
   public Entry getTaskRootEntry()
   {
-
     return taskRootEntry;
   }
 
@@ -1393,7 +1374,6 @@ public class TaskScheduler
    */
   public Entry getScheduledTaskParentEntry()
   {
-
     return scheduledTaskParentEntry;
   }
 
@@ -1408,7 +1388,6 @@ public class TaskScheduler
    */
   public Entry getRecurringTaskParentEntry()
   {
-
     return recurringTaskParentEntry;
   }
 
@@ -1424,7 +1403,6 @@ public class TaskScheduler
    */
   public Task getScheduledTask(String taskID)
   {
-
     schedulerLock.lock();
 
     try
@@ -1450,7 +1428,6 @@ public class TaskScheduler
    */
   public Task getScheduledTask(DN taskEntryDN)
   {
-
     schedulerLock.lock();
 
     try
@@ -1483,7 +1460,6 @@ public class TaskScheduler
    */
   Lock writeLockEntry(DN entryDN)
   {
-
     Lock lock = LockManager.lockWrite(entryDN);
     while (lock == null)
     {
@@ -1508,7 +1484,6 @@ public class TaskScheduler
   Lock readLockEntry(DN entryDN)
        throws DirectoryException
   {
-
     Lock lock = LockManager.lockRead(entryDN);
     for (int i=0; ((lock == null) && (i < 4)); i++)
     {
@@ -1538,7 +1513,6 @@ public class TaskScheduler
    */
   void unlockEntry(DN entryDN, Lock lock)
   {
-
     LockManager.unlock(entryDN, lock);
   }
 
@@ -1556,8 +1530,6 @@ public class TaskScheduler
    */
   public Entry getScheduledTaskEntry(DN scheduledTaskEntryDN)
   {
-
-
     schedulerLock.lock();
 
     try
@@ -1601,7 +1573,6 @@ public class TaskScheduler
   public boolean searchScheduledTasks(SearchOperation searchOperation)
          throws DirectoryException
   {
-
     SearchFilter filter = searchOperation.getFilter();
 
     schedulerLock.lock();
@@ -1651,7 +1622,6 @@ public class TaskScheduler
    */
   public RecurringTask getRecurringTask(String recurringTaskID)
   {
-
     schedulerLock.lock();
 
     try
@@ -1677,7 +1647,6 @@ public class TaskScheduler
    */
   public RecurringTask getRecurringTask(DN recurringTaskEntryDN)
   {
-
     schedulerLock.lock();
 
     try
@@ -1712,8 +1681,6 @@ public class TaskScheduler
    */
   public Entry getRecurringTaskEntry(DN recurringTaskEntryDN)
   {
-
-
     schedulerLock.lock();
 
     try
@@ -1757,7 +1724,6 @@ public class TaskScheduler
   public boolean searchRecurringTasks(SearchOperation searchOperation)
          throws DirectoryException
   {
-
     SearchFilter filter = searchOperation.getFilter();
 
     schedulerLock.lock();
@@ -1812,8 +1778,6 @@ public class TaskScheduler
   public Task entryToScheduledTask(Entry entry, Operation operation)
          throws DirectoryException
   {
-
-
     // Get the name of the class that implements the task logic.
     AttributeType attrType =
          DirectoryServer.getAttributeType(ATTR_TASK_CLASS.toLowerCase());
@@ -1955,7 +1919,6 @@ public class TaskScheduler
   public RecurringTask entryToRecurringTask(Entry entry)
          throws DirectoryException
   {
-
     return new RecurringTask(this, entry);
   }
 
@@ -1970,7 +1933,6 @@ public class TaskScheduler
    */
   public DN getComponentEntryDN()
   {
-
     return taskBackend.getConfigEntryDN();
   }
 
@@ -1985,7 +1947,6 @@ public class TaskScheduler
    */
   public String getClassName()
   {
-
     return CLASS_NAME;
   }
 
@@ -2003,7 +1964,6 @@ public class TaskScheduler
    */
   public LinkedHashMap<String,String> getAlerts()
   {
-
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 
     alerts.put(ALERT_TYPE_CANNOT_FIND_RECURRING_TASK,

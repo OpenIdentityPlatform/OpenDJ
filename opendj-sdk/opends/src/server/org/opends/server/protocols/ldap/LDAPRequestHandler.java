@@ -171,8 +171,6 @@ public class LDAPRequestHandler
    */
   public void run()
   {
-
-
     // Operate in a loop until the server shuts down.  Each time through the
     // loop, check for new requests, then check for new connections.
     while (! shutdownRequested)
@@ -334,7 +332,6 @@ public class LDAPRequestHandler
    */
   public boolean registerClient(LDAPClientConnection clientConnection)
   {
-
     // FIXME -- Need to check if the maximum client limit has been reached.
 
 
@@ -375,7 +372,6 @@ public class LDAPRequestHandler
    */
   public void deregisterClient(LDAPClientConnection clientConnection)
   {
-
     SelectionKey[] keyArray = selector.keys().toArray(new SelectionKey[0]);
     for (SelectionKey key : keyArray)
     {
@@ -416,7 +412,6 @@ public class LDAPRequestHandler
    */
   public void deregisterAllClients()
   {
-
     SelectionKey[] keyArray = selector.keys().toArray(new SelectionKey[0]);
     for (SelectionKey key : keyArray)
     {
@@ -457,7 +452,6 @@ public class LDAPRequestHandler
    */
   public Collection<LDAPClientConnection> getClientConnections()
   {
-
     SelectionKey[] keyArray = selector.keys().toArray(new SelectionKey[0]);
 
     ArrayList<LDAPClientConnection> connList =
@@ -479,7 +473,6 @@ public class LDAPRequestHandler
    */
   public String getShutdownListenerName()
   {
-
     return handlerName;
   }
 
@@ -493,7 +486,6 @@ public class LDAPRequestHandler
    */
   public void registerShutdownListener()
   {
-
     DirectoryServer.registerShutdownListener(this);
   }
 
@@ -508,7 +500,6 @@ public class LDAPRequestHandler
    */
   public void processServerShutdown(String reason)
   {
-
     shutdownRequested = true;
 
     Collection<LDAPClientConnection> clientConnections = getClientConnections();

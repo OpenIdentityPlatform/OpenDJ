@@ -80,8 +80,6 @@ public abstract class PasswordValidator
    */
   public void finalizePasswordValidator()
   {
-
-
     // No action is required by default.
   }
 

@@ -269,7 +269,6 @@ public class AddOperation
    */
   public final ByteString getRawEntryDN()
   {
-
     return rawEntryDN;
   }
 
@@ -286,7 +285,6 @@ public class AddOperation
    */
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
-
     this.rawEntryDN = rawEntryDN;
 
     entryDN = null;
@@ -304,7 +302,6 @@ public class AddOperation
    */
   public final DN getEntryDN()
   {
-
     return entryDN;
   }
 
@@ -321,7 +318,6 @@ public class AddOperation
    */
   public final List<LDAPAttribute> getRawAttributes()
   {
-
     return rawAttributes;
   }
 
@@ -336,7 +332,6 @@ public class AddOperation
    */
   public final void addRawAttribute(LDAPAttribute rawAttribute)
   {
-
     rawAttributes.add(rawAttribute);
 
     objectClasses         = null;
@@ -354,7 +349,6 @@ public class AddOperation
    */
   public final void setRawAttributes(List<LDAPAttribute> rawAttributes)
   {
-
     this.rawAttributes = rawAttributes;
 
     objectClasses         = null;
@@ -375,7 +369,6 @@ public class AddOperation
    */
   public final Map<ObjectClass,String> getObjectClasses()
   {
-
     return objectClasses;
   }
 
@@ -393,7 +386,6 @@ public class AddOperation
    */
   public final void addObjectClass(ObjectClass objectClass, String name)
   {
-
     objectClasses.put(objectClass, name);
   }
 
@@ -410,7 +402,6 @@ public class AddOperation
    */
   public final void removeObjectClass(ObjectClass objectClass)
   {
-
     objectClasses.remove(objectClass);
   }
 
@@ -427,7 +418,6 @@ public class AddOperation
    */
   public final Map<AttributeType,List<Attribute>> getUserAttributes()
   {
-
     return userAttributes;
   }
 
@@ -444,7 +434,6 @@ public class AddOperation
    */
   public final Map<AttributeType,List<Attribute>> getOperationalAttributes()
   {
-
     return operationalAttributes;
   }
 
@@ -464,7 +453,6 @@ public class AddOperation
   public final void setAttribute(AttributeType attributeType,
                                  List<Attribute> attributeList)
   {
-
     if (attributeType.isOperational())
     {
       if ((attributeList == null) || (attributeList.isEmpty()))
@@ -502,7 +490,6 @@ public class AddOperation
    */
   public final void removeAttribute(AttributeType attributeType)
   {
-
     if (attributeType.isOperational())
     {
       operationalAttributes.remove(attributeType);
@@ -525,7 +512,6 @@ public class AddOperation
    */
   public final Entry getEntryToAdd()
   {
-
     return entry;
   }
 
@@ -537,7 +523,6 @@ public class AddOperation
   @Override()
   public final long getProcessingStartTime()
   {
-
     return processingStartTime;
   }
 
@@ -549,7 +534,6 @@ public class AddOperation
   @Override()
   public final long getProcessingStopTime()
   {
-
     return processingStopTime;
   }
 
@@ -561,7 +545,6 @@ public class AddOperation
   @Override()
   public final long getProcessingTime()
   {
-
     return (processingStopTime - processingStartTime);
   }
 
@@ -576,7 +559,6 @@ public class AddOperation
    */
   public final long getChangeNumber()
   {
-
     return changeNumber;
   }
 
@@ -591,7 +573,6 @@ public class AddOperation
    */
   public final void setChangeNumber(long changeNumber)
   {
-
     this.changeNumber = changeNumber;
   }
 
@@ -722,7 +703,6 @@ public class AddOperation
   @Override()
   public final ArrayList<Control> getResponseControls()
   {
-
     return responseControls;
   }
 
@@ -756,8 +736,6 @@ public class AddOperation
   @Override()
   public final void run()
   {
-
-
     // Start the processing timer.
     processingStartTime = System.currentTimeMillis();
     setResultCode(ResultCode.UNDEFINED);
@@ -2272,7 +2250,6 @@ addProcessing:
    */
   private final void addObjectClassChain(ObjectClass objectClass)
   {
-
     if (! objectClasses.containsKey(objectClass))
     {
       objectClasses.put(objectClass, objectClass.getNameOrOID());
@@ -2303,8 +2280,6 @@ addProcessing:
                                           Entry userEntry)
          throws DirectoryException
   {
-
-
     // See if a password was specified.
     AttributeType passwordAttribute = passwordPolicy.getPasswordAttribute();
     List<Attribute> attrList = userEntry.getAttribute(passwordAttribute);
@@ -2497,7 +2472,6 @@ addProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
 
     CancelResult cancelResult = getCancelResult();
@@ -2540,7 +2514,6 @@ addProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-
     return cancelRequest;
   }
 
@@ -2552,7 +2525,6 @@ addProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
     return true;
   }
@@ -2565,7 +2537,6 @@ addProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-
     buffer.append("AddOperation(connID=");
     buffer.append(clientConnection.getConnectionID());
     buffer.append(", opID=");

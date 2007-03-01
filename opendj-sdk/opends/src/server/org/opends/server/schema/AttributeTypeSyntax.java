@@ -102,7 +102,6 @@ public class AttributeTypeSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -141,7 +140,6 @@ public class AttributeTypeSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_ATTRIBUTE_TYPE_NAME;
   }
 
@@ -152,7 +150,6 @@ public class AttributeTypeSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_ATTRIBUTE_TYPE_OID;
   }
 
@@ -163,7 +160,6 @@ public class AttributeTypeSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_ATTRIBUTE_TYPE_DESCRIPTION;
   }
 
@@ -174,7 +170,6 @@ public class AttributeTypeSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -185,7 +180,6 @@ public class AttributeTypeSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -196,7 +190,6 @@ public class AttributeTypeSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -207,7 +200,6 @@ public class AttributeTypeSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -220,8 +212,6 @@ public class AttributeTypeSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // We'll use the decodeAttributeType method to determine if the value is
     // acceptable.
     try
@@ -271,8 +261,6 @@ public class AttributeTypeSyntax
                                                   boolean allowUnknownElements)
          throws DirectoryException
   {
-
-
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
     String valueStr = value.stringValue();
@@ -963,8 +951,6 @@ public class AttributeTypeSyntax
                                    int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -1024,8 +1010,6 @@ public class AttributeTypeSyntax
                                       StringBuilder valueBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -1113,8 +1097,6 @@ public class AttributeTypeSyntax
                                       StringBuilder lowerBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -1196,10 +1178,6 @@ public class AttributeTypeSyntax
                               int startPos)
           throws DirectoryException
   {
-
-
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -1351,8 +1329,6 @@ public class AttributeTypeSyntax
                           List<String> valueList, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = valueStr.charAt(startPos++);

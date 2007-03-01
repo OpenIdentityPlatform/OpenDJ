@@ -113,7 +113,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   public void initializeCertificateMapper(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     this.configEntryDN = configEntry.getDN();
 
     // Get the attribute that will be used to map subject attributes to user
@@ -250,7 +249,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
    */
   public void finalizeCertificateMapper()
   {
-
     DirectoryServer.deregisterConfigurableComponent(this);
   }
 
@@ -262,8 +260,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
-
-
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
     {
@@ -393,7 +389,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
    */
   public DN getConfigurableComponentEntryDN()
   {
-
     return configEntryDN;
   }
 
@@ -408,7 +403,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
     LinkedList<String> mapValues = new LinkedList<String>();
@@ -462,7 +456,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-
     DN configEntryDN = configEntry.getDN();
     boolean configAcceptable = true;
 
@@ -631,7 +624,6 @@ mapLoop:
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     ArrayList<String> messages            = new ArrayList<String>();

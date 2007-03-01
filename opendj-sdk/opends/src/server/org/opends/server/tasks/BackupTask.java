@@ -100,8 +100,6 @@ public class BackupTask extends Task
    */
   @Override public void initializeTask() throws DirectoryException
   {
-
-
     // If the client connection is available, then make sure the associated
     // client has the BACKEND_BACKUP privilege.
     Operation operation = getOperation();
@@ -534,7 +532,6 @@ public class BackupTask extends Task
    */
   protected TaskState runTask()
   {
-
     if (!argumentsAreValid())
     {
       return TaskState.STOPPED_BY_ERROR;

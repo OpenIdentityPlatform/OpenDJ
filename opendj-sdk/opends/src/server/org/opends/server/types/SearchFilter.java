@@ -139,7 +139,6 @@ public class SearchFilter
                       ByteString subFinalElement,
                       String matchingRuleID, boolean dnAttributes)
   {
-
     // This used to happen in getSubAnyElements, but we do it here
     // so that we can make this.subAnyElements final.
     if (subAnyElements == null) {
@@ -178,7 +177,6 @@ public class SearchFilter
   public static SearchFilter createANDFilter(List<SearchFilter>
                                                   filterComponents)
   {
-
     return new SearchFilter(FilterType.AND, filterComponents, null,
                             null, null, null, null, null, null, null,
                             false);
@@ -197,7 +195,6 @@ public class SearchFilter
   public static SearchFilter createORFilter(List<SearchFilter>
                                                  filterComponents)
   {
-
     return new SearchFilter(FilterType.OR, filterComponents, null,
                             null, null, null, null, null, null, null,
                             false);
@@ -215,7 +212,6 @@ public class SearchFilter
   public static SearchFilter createNOTFilter(
                                   SearchFilter notComponent)
   {
-
     return new SearchFilter(FilterType.NOT, null, notComponent, null,
                             null, null, null, null, null, null,
                             false);
@@ -238,7 +234,6 @@ public class SearchFilter
                                   AttributeType attributeType,
                                   AttributeValue assertionValue)
   {
-
     return new SearchFilter(FilterType.EQUALITY, null, null,
                             attributeType, null, assertionValue, null,
                             null, null, null, false);
@@ -264,7 +259,6 @@ public class SearchFilter
                                   Set<String> attributeOptions,
                                   AttributeValue assertionValue)
   {
-
     return new SearchFilter(FilterType.EQUALITY, null, null,
                             attributeType, attributeOptions,
                             assertionValue, null, null, null, null,
@@ -293,7 +287,6 @@ public class SearchFilter
                              List<ByteString> subAnyElements,
                              ByteString subFinalElement)
   {
-
     return new SearchFilter(FilterType.SUBSTRING, null, null,
                             attributeType, null, null,
                             subInitialElement, subAnyElements,
@@ -325,7 +318,6 @@ public class SearchFilter
                              List<ByteString> subAnyElements,
                              ByteString subFinalElement)
   {
-
     return new SearchFilter(FilterType.SUBSTRING, null, null,
                             attributeType, attributeOptions, null,
                             subInitialElement, subAnyElements,
@@ -349,7 +341,6 @@ public class SearchFilter
                                   AttributeType attributeType,
                                   AttributeValue assertionValue)
   {
-
     return new SearchFilter(FilterType.GREATER_OR_EQUAL, null, null,
                             attributeType, null, assertionValue, null,
                             null, null, null, false);
@@ -375,7 +366,6 @@ public class SearchFilter
                                   Set<String> attributeOptions,
                                   AttributeValue assertionValue)
   {
-
     return new SearchFilter(FilterType.GREATER_OR_EQUAL, null, null,
                             attributeType, attributeOptions,
                             assertionValue, null, null, null, null,
@@ -399,7 +389,6 @@ public class SearchFilter
                                   AttributeType attributeType,
                                   AttributeValue assertionValue)
   {
-
     return new SearchFilter(FilterType.LESS_OR_EQUAL, null, null,
                             attributeType, null, assertionValue, null,
                             null, null, null, false);
@@ -425,7 +414,6 @@ public class SearchFilter
                                   Set<String> attributeOptions,
                                   AttributeValue assertionValue)
   {
-
     return new SearchFilter(FilterType.LESS_OR_EQUAL, null, null,
                             attributeType, attributeOptions,
                             assertionValue, null, null, null, null,
@@ -445,7 +433,6 @@ public class SearchFilter
   public static SearchFilter createPresenceFilter(
                                   AttributeType attributeType)
   {
-
     return new SearchFilter(FilterType.PRESENT, null, null,
                             attributeType, null, null, null, null,
                             null, null, false);
@@ -467,7 +454,6 @@ public class SearchFilter
                                   AttributeType attributeType,
                                   Set<String> attributeOptions)
   {
-
     return new SearchFilter(FilterType.PRESENT, null, null,
                             attributeType, attributeOptions, null,
                             null, null, null, null, false);
@@ -490,7 +476,6 @@ public class SearchFilter
                                   AttributeType attributeType,
                                   AttributeValue assertionValue)
   {
-
     return new SearchFilter(FilterType.APPROXIMATE_MATCH, null, null,
                             attributeType, null, assertionValue, null,
                             null, null, null, false);
@@ -516,7 +501,6 @@ public class SearchFilter
                                   Set<String> attributeOptions,
                                   AttributeValue assertionValue)
   {
-
     return new SearchFilter(FilterType.APPROXIMATE_MATCH, null, null,
                             attributeType, attributeOptions,
                             assertionValue, null, null, null, null,
@@ -546,7 +530,6 @@ public class SearchFilter
                                   String matchingRuleID,
                                   boolean dnAttributes)
   {
-
     return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null,
                             attributeType, null, assertionValue, null,
                             null, null, matchingRuleID, dnAttributes);
@@ -579,7 +562,6 @@ public class SearchFilter
                                   String matchingRuleID,
                                   boolean dnAttributes)
   {
-
     return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null,
                             attributeType, attributeOptions,
                             assertionValue, null, null, null,
@@ -604,8 +586,6 @@ public class SearchFilter
                                   String filterString)
          throws DirectoryException
   {
-
-
     if (filterString == null)
     {
       int msgID = MSGID_SEARCH_FILTER_NULL;
@@ -669,8 +649,6 @@ public class SearchFilter
                                    int endPos)
           throws DirectoryException
   {
-
-
     // Make sure that the length is sufficient for a valid search
     // filter.
     int length = endPos - startPos;
@@ -1058,8 +1036,6 @@ public class SearchFilter
                                    int endPos)
           throws DirectoryException
   {
-
-
     // Create a list to hold the returned components.
     List<SearchFilter> filterComponents =
          new ArrayList<SearchFilter>();
@@ -1184,8 +1160,6 @@ public class SearchFilter
                                    int endPos)
           throws DirectoryException
   {
-
-
     // Get a binary representation of the value.
     byte[] valueBytes =
          getBytes(filterString.substring(equalPos+1, endPos));
@@ -1798,8 +1772,6 @@ public class SearchFilter
                                    int equalPos, int endPos)
           throws DirectoryException
   {
-
-
     AttributeType attributeType    = null;
     Set<String>   attributeOptions = new HashSet<String>();
     boolean       dnAttributes     = false;
@@ -2100,7 +2072,6 @@ public class SearchFilter
    */
   public FilterType getFilterType()
   {
-
     return filterType;
   }
 
@@ -2114,7 +2085,6 @@ public class SearchFilter
    */
   public Set<SearchFilter> getFilterComponents()
   {
-
     return filterComponents;
   }
 
@@ -2128,7 +2098,6 @@ public class SearchFilter
    */
   public SearchFilter getNotComponent()
   {
-
     return notComponent;
   }
 
@@ -2142,7 +2111,6 @@ public class SearchFilter
    */
   public AttributeType getAttributeType()
   {
-
     return attributeType;
   }
 
@@ -2156,7 +2124,6 @@ public class SearchFilter
    */
   public AttributeValue getAssertionValue()
   {
-
     return assertionValue;
   }
 
@@ -2170,7 +2137,6 @@ public class SearchFilter
    */
   public ByteString getSubInitialElement()
   {
-
     return subInitialElement;
   }
 
@@ -2184,7 +2150,6 @@ public class SearchFilter
    */
   public List<ByteString> getSubAnyElements()
   {
-
     return subAnyElements;
   }
 
@@ -2197,7 +2162,6 @@ public class SearchFilter
    */
   public ByteString getSubFinalElement()
   {
-
     return subFinalElement;
   }
 
@@ -2212,7 +2176,6 @@ public class SearchFilter
    */
   public String getMatchingRuleID()
   {
-
     return matchingRuleID;
   }
 
@@ -2227,7 +2190,6 @@ public class SearchFilter
    */
   public boolean getDNAttributes()
   {
-
     return dnAttributes;
   }
 
@@ -2247,7 +2209,6 @@ public class SearchFilter
   public boolean matchesEntry(Entry entry)
          throws DirectoryException
   {
-
     ConditionResult result = matchesEntryInternal(this, entry, 0);
     switch (result)
     {
@@ -2295,8 +2256,6 @@ public class SearchFilter
                                Entry entry, int depth)
           throws DirectoryException
   {
-
-
     switch (filterType)
     {
       case AND:
@@ -3049,8 +3008,6 @@ public class SearchFilter
                                Entry entry)
           throws DirectoryException
   {
-
-
     // We must have an assertion value for which to make the
     // determination.
     if (assertionValue == null)
@@ -3439,7 +3396,6 @@ public class SearchFilter
    */
   public boolean equals(Object o)
   {
-
     if (o == null)
     {
       return false;
@@ -3618,7 +3574,6 @@ outerComponentLoop:
    */
   public int hashCode()
   {
-
     switch (filterType)
     {
       case AND:
@@ -3703,7 +3658,6 @@ outerComponentLoop:
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -3720,7 +3674,6 @@ outerComponentLoop:
    */
   public void toString(StringBuilder buffer)
   {
-
     switch (filterType)
     {
       case AND:
@@ -3923,7 +3876,6 @@ outerComponentLoop:
   private void valueToFilterString(StringBuilder buffer,
                                    ByteString value)
   {
-
     if (value == null)
     {
       return;

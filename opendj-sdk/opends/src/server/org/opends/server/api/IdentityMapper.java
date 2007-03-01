@@ -80,7 +80,6 @@ public abstract class IdentityMapper
    */
   public void finalizeIdentityMapper()
   {
-
     // No implementation is required by default.
   }
 

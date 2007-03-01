@@ -142,7 +142,6 @@ public abstract class Task
                                            Entry taskEntry)
          throws InitializationException
   {
-
     this.taskScheduler = taskScheduler;
     this.taskEntry     = taskEntry;
     this.taskEntryDN   = taskEntry.getDN();
@@ -346,7 +345,6 @@ public abstract class Task
   private String getAttributeValue(String attributeName, boolean isRequired)
           throws InitializationException
   {
-
     List<Attribute> attrList =
          taskEntry.getAttribute(attributeName.toLowerCase());
     if ((attrList == null) || attrList.isEmpty())
@@ -418,7 +416,6 @@ public abstract class Task
   private LinkedList<String> getAttributeValues(String attributeName)
           throws InitializationException
   {
-
     LinkedList<String> valueStrings = new LinkedList<String>();
 
     List<Attribute> attrList =
@@ -453,7 +450,6 @@ public abstract class Task
    */
   public final DN getTaskEntryDN()
   {
-
     return taskEntryDN;
   }
 
@@ -466,7 +462,6 @@ public abstract class Task
    */
   public final Entry getTaskEntry()
   {
-
     return taskEntry;
   }
 
@@ -485,7 +480,6 @@ public abstract class Task
    */
   public final Operation getOperation()
   {
-
     return operation;
   }
 
@@ -498,7 +492,6 @@ public abstract class Task
    */
   public final void setOperation(Operation operation)
   {
-
     this.operation = operation;
   }
 
@@ -511,7 +504,6 @@ public abstract class Task
    */
   public final String getTaskID()
   {
-
     return taskID;
   }
 
@@ -527,7 +519,6 @@ public abstract class Task
    */
   public final String getRecurringTaskID()
   {
-
     return recurringTaskID;
   }
 
@@ -540,7 +531,6 @@ public abstract class Task
    */
   public final TaskState getTaskState()
   {
-
     return taskState;
   }
 
@@ -555,7 +545,6 @@ public abstract class Task
    */
   void setTaskState(TaskState taskState)
   {
-
     Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
     try
@@ -597,7 +586,6 @@ public abstract class Task
    */
   public final long getScheduledStartTime()
   {
-
     return scheduledStartTime;
   }
 
@@ -613,7 +601,6 @@ public abstract class Task
    */
   public final long getActualStartTime()
   {
-
     return actualStartTime;
   }
 
@@ -628,7 +615,6 @@ public abstract class Task
    */
   private void setActualStartTime(long actualStartTime)
   {
-
     Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
     try
@@ -675,7 +661,6 @@ public abstract class Task
    */
   public final long getCompletionTime()
   {
-
     return completionTime;
   }
 
@@ -690,7 +675,6 @@ public abstract class Task
    */
   private void setCompletionTime(long completionTime)
   {
-
     Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
     try
@@ -734,7 +718,6 @@ public abstract class Task
    */
   public final LinkedList<String> getDependencyIDs()
   {
-
     return dependencyIDs;
   }
 
@@ -749,7 +732,6 @@ public abstract class Task
    */
   public final FailedDependencyAction getFailedDependencyAction()
   {
-
     return failedDependencyAction;
   }
 
@@ -768,7 +750,6 @@ public abstract class Task
    */
   public final LinkedList<String> getNotifyOnCompletionAddresses()
   {
-
     return notifyOnCompletion;
   }
 
@@ -785,7 +766,6 @@ public abstract class Task
    */
   public final LinkedList<String> getNotifyOnErrorAddresses()
   {
-
     return notifyOnError;
   }
 
@@ -799,7 +779,6 @@ public abstract class Task
    */
   public final LinkedList<String> getLogMessages()
   {
-
     return logMessages;
   }
 
@@ -890,7 +869,6 @@ public abstract class Task
   void addLogMessage(ErrorLogSeverity severity, int messageID,
                      String messageString)
   {
-
     Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
     try
@@ -972,7 +950,6 @@ public abstract class Task
    */
   public final int compareTo(Task task)
   {
-
     if (completionTime > 0)
     {
       if (task.completionTime > 0)
@@ -1064,7 +1041,6 @@ public abstract class Task
    */
   public final TaskState execute()
   {
-
     setActualStartTime(TimeThread.getTime());
     setTaskState(TaskState.RUNNING);
     taskScheduler.writeState();
@@ -1114,7 +1090,6 @@ public abstract class Task
   public void initializeTask()
          throws DirectoryException
   {
-
     // No action is performed by default.
   }
 
@@ -1142,7 +1117,6 @@ public abstract class Task
    */
   public void interruptTask(TaskState interruptState, String interruptReason)
   {
-
     // No action is performed by default.
   }
 }

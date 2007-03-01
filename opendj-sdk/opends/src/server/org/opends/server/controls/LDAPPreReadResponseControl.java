@@ -140,7 +140,6 @@ public class LDAPPreReadResponseControl
   public static LDAPPreReadResponseControl decodeControl(Control control)
          throws LDAPException
   {
-
     if (! control.hasValue())
     {
       int    msgID   = MSGID_PREREADRESP_NO_CONTROL_VALUE;
@@ -199,8 +198,6 @@ public class LDAPPreReadResponseControl
    */
   private static ASN1OctetString encodeEntry(SearchResultEntry searchEntry)
   {
-
-
     SearchResultEntryProtocolOp protocolOp =
          new SearchResultEntryProtocolOp(searchEntry);
     return new ASN1OctetString(protocolOp.encode().encode());
@@ -217,7 +214,6 @@ public class LDAPPreReadResponseControl
    */
   public SearchResultEntry getSearchEntry()
   {
-
     return searchEntry;
   }
 
@@ -232,7 +228,6 @@ public class LDAPPreReadResponseControl
    */
   public void setSearchEntry(SearchResultEntry searchEntry)
   {
-
     this.searchEntry = searchEntry;
     setValue(encodeEntry(searchEntry));
   }
@@ -246,7 +241,6 @@ public class LDAPPreReadResponseControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -262,7 +256,6 @@ public class LDAPPreReadResponseControl
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("LDAPPreReadResponseControl(criticality=");
     buffer.append(isCritical());
     buffer.append(",entry=");

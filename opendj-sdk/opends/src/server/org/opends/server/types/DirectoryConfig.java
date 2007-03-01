@@ -74,7 +74,6 @@ public final class DirectoryConfig
    */
   public static final CryptoManager getCryptoManager()
   {
-
     return DirectoryServer.getCryptoManager();
   }
 
@@ -89,7 +88,6 @@ public final class DirectoryConfig
    */
   public static final OperatingSystem getOperatingSystem()
   {
-
     return DirectoryServer.getOperatingSystem();
   }
 
@@ -104,7 +102,6 @@ public final class DirectoryConfig
    */
   public static final ConfigHandler getConfigHandler()
   {
-
     return DirectoryServer.getConfigHandler();
   }
 
@@ -125,7 +122,6 @@ public final class DirectoryConfig
   public static final ConfigEntry getConfigEntry(DN entryDN)
          throws ConfigException
   {
-
     return DirectoryServer.getConfigEntry(entryDN);
   }
 
@@ -140,7 +136,6 @@ public final class DirectoryConfig
   */
   public static final String getServerRoot()
   {
-
     return DirectoryServer.getServerRoot();
   }
 
@@ -155,7 +150,6 @@ public final class DirectoryConfig
    */
   public static final long getStartTime()
   {
-
     return DirectoryServer.getStartTime();
   }
 
@@ -170,7 +164,6 @@ public final class DirectoryConfig
    */
   public static final String getStartTimeUTC()
   {
-
     return DirectoryServer.getStartTimeUTC();
   }
 
@@ -183,7 +176,6 @@ public final class DirectoryConfig
    */
   public static final Schema getSchema()
   {
-
     return DirectoryServer.getSchema();
   }
 
@@ -202,7 +194,6 @@ public final class DirectoryConfig
    */
   public static Map<String,MatchingRule> getMatchingRules()
   {
-
     return DirectoryServer.getMatchingRules();
   }
 
@@ -219,7 +210,6 @@ public final class DirectoryConfig
    */
   public static final MatchingRule getMatchingRule(String lowerName)
   {
-
     return DirectoryServer.getMatchingRule(lowerName);
   }
 
@@ -239,7 +229,6 @@ public final class DirectoryConfig
   public static final ApproximateMatchingRule
        getApproximateMatchingRule(String lowerName)
   {
-
     return DirectoryServer.getApproximateMatchingRule(lowerName);
   }
 
@@ -259,7 +248,6 @@ public final class DirectoryConfig
   public static final EqualityMatchingRule
        getEqualityMatchingRule(String lowerName)
   {
-
     return DirectoryServer.getEqualityMatchingRule(lowerName);
   }
 
@@ -279,7 +267,6 @@ public final class DirectoryConfig
   public static final OrderingMatchingRule
        getOrderingMatchingRule(String lowerName)
   {
-
     return DirectoryServer.getOrderingMatchingRule(lowerName);
   }
 
@@ -299,7 +286,6 @@ public final class DirectoryConfig
   public static final SubstringMatchingRule
        getSubstringMatchingRule(String lowerName)
   {
-
     return DirectoryServer.getSubstringMatchingRule(lowerName);
   }
 
@@ -318,7 +304,6 @@ public final class DirectoryConfig
    */
   public static final Map<String,ObjectClass> getObjectClasses()
   {
-
     return DirectoryServer.getObjectClasses();
   }
 
@@ -343,7 +328,6 @@ public final class DirectoryConfig
   public static final ObjectClass
        getObjectClass(String lowerName, boolean returnDefault)
   {
-
     return DirectoryServer.getObjectClass(lowerName, returnDefault);
   }
 
@@ -358,7 +342,6 @@ public final class DirectoryConfig
    */
   public static final ObjectClass getTopObjectClass()
   {
-
     return DirectoryServer.getTopObjectClass();
   }
 
@@ -377,7 +360,6 @@ public final class DirectoryConfig
    */
   public static final Map<String,AttributeType> getAttributeTypes()
   {
-
     return DirectoryServer.getAttributeTypes();
   }
 
@@ -402,7 +384,6 @@ public final class DirectoryConfig
   public static final AttributeType
        getAttributeType(String lowerName, boolean returnDefault)
   {
-
     return DirectoryServer.getAttributeType(lowerName, returnDefault);
   }
 
@@ -415,7 +396,6 @@ public final class DirectoryConfig
    */
   public static final AttributeType getObjectClassAttributeType()
   {
-
     return DirectoryServer.getObjectClassAttributeType();
   }
 
@@ -433,7 +413,6 @@ public final class DirectoryConfig
   public static final Map<String,AttributeSyntax>
        getAttributeSyntaxes()
   {
-
     return DirectoryServer.getAttributeSyntaxes();
   }
 
@@ -455,7 +434,6 @@ public final class DirectoryConfig
   public static final AttributeSyntax
        getAttributeSyntax(String oid, boolean allowDefault)
   {
-
     return DirectoryServer.getAttributeSyntax(oid, allowDefault);
   }
 
@@ -470,7 +448,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultAttributeSyntax()
   {
-
     return DirectoryServer.getDefaultAttributeSyntax();
   }
 
@@ -487,7 +464,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultBinarySyntax()
   {
-
     return DirectoryServer.getDefaultBinarySyntax();
   }
 
@@ -504,7 +480,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultBooleanSyntax()
   {
-
     return DirectoryServer.getDefaultBooleanSyntax();
   }
 
@@ -521,7 +496,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultDNSyntax()
   {
-
     return DirectoryServer.getDefaultDNSyntax();
   }
 
@@ -538,7 +512,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultIntegerSyntax()
   {
-
     return DirectoryServer.getDefaultIntegerSyntax();
   }
 
@@ -555,7 +528,6 @@ public final class DirectoryConfig
    */
   public static final AttributeSyntax getDefaultStringSyntax()
   {
-
     return DirectoryServer.getDefaultStringSyntax();
   }
 
@@ -573,7 +545,6 @@ public final class DirectoryConfig
   public static final Map<MatchingRule,MatchingRuleUse>
        getMatchingRuleUses()
   {
-
     return DirectoryServer.getMatchingRuleUses();
   }
 
@@ -592,7 +563,6 @@ public final class DirectoryConfig
   public static final MatchingRuleUse
        getMatchingRuleUse(MatchingRule matchingRule)
   {
-
     return DirectoryServer.getMatchingRuleUse(matchingRule);
   }
 
@@ -610,7 +580,6 @@ public final class DirectoryConfig
   public static final Map<ObjectClass,DITContentRule>
        getDITContentRules()
   {
-
     return DirectoryServer.getDITContentRules();
   }
 
@@ -629,7 +598,6 @@ public final class DirectoryConfig
   public static final DITContentRule
        getDITContentRule(ObjectClass objectClass)
   {
-
     return DirectoryServer.getDITContentRule(objectClass);
   }
 
@@ -647,7 +615,6 @@ public final class DirectoryConfig
   public static final Map<NameForm,DITStructureRule>
        getDITStructureRules()
   {
-
     return DirectoryServer.getDITStructureRules();
   }
 
@@ -665,7 +632,6 @@ public final class DirectoryConfig
    */
   public static final DITStructureRule getDITStructureRule(int ruleID)
   {
-
     return DirectoryServer.getDITStructureRule(ruleID);
   }
 
@@ -684,7 +650,6 @@ public final class DirectoryConfig
   public static final DITStructureRule
        getDITStructureRule(NameForm nameForm)
   {
-
     return DirectoryServer.getDITStructureRule(nameForm);
   }
 
@@ -700,7 +665,6 @@ public final class DirectoryConfig
    */
   public static final Map<ObjectClass,NameForm> getNameForms()
   {
-
     return DirectoryServer.getNameForms();
   }
 
@@ -718,7 +682,6 @@ public final class DirectoryConfig
    */
   public static final NameForm getNameForm(ObjectClass objectClass)
   {
-
     return DirectoryServer.getNameForm(objectClass);
   }
 
@@ -736,7 +699,6 @@ public final class DirectoryConfig
    */
   public static final NameForm getNameForm(String lowerName)
   {
-
     return DirectoryServer.getNameForm(lowerName);
   }
 
@@ -751,7 +713,6 @@ public final class DirectoryConfig
   public static final void registerConfigurableComponent(
                                 ConfigurableComponent component)
   {
-
     DirectoryServer.registerConfigurableComponent(component);
   }
 
@@ -766,7 +727,6 @@ public final class DirectoryConfig
   public static final void deregisterConfigurableComponent(
                                 ConfigurableComponent component)
   {
-
     DirectoryServer.deregisterConfigurableComponent(component);
   }
 
@@ -781,7 +741,6 @@ public final class DirectoryConfig
   public static final void registerInvokableComponent(
                                 InvokableComponent component)
   {
-
     DirectoryServer.registerInvokableComponent(component);
   }
 
@@ -796,7 +755,6 @@ public final class DirectoryConfig
   public static final void deregisterInvokableComponent(
                                 InvokableComponent component)
   {
-
     DirectoryServer.deregisterInvokableComponent(component);
   }
 
@@ -810,7 +768,6 @@ public final class DirectoryConfig
   public static final void registerAlertGenerator(
                                 AlertGenerator alertGenerator)
   {
-
     DirectoryServer.registerAlertGenerator(alertGenerator);
   }
 
@@ -825,7 +782,6 @@ public final class DirectoryConfig
   public static final void deregisterAlertGenerator(
                                 AlertGenerator alertGenerator)
   {
-
     DirectoryServer.deregisterAlertGenerator(alertGenerator);
   }
 
@@ -847,7 +803,6 @@ public final class DirectoryConfig
                              String alertType, int alertID,
                              String alertMessage)
   {
-
     DirectoryServer.sendAlertNotification(generator, alertType,
                                           alertID, alertMessage);
   }
@@ -863,7 +818,6 @@ public final class DirectoryConfig
    */
   public static final ResultCode getServerErrorResultCode()
   {
-
     return DirectoryServer.getServerErrorResultCode();
   }
 
@@ -886,7 +840,6 @@ public final class DirectoryConfig
   public static final Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-
     return DirectoryServer.getEntry(entryDN);
   }
 
@@ -909,7 +862,6 @@ public final class DirectoryConfig
   public static final boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-
     return DirectoryServer.entryExists(entryDN);
   }
 
@@ -924,7 +876,6 @@ public final class DirectoryConfig
    */
   public static final Set<String> getSupportedControls()
   {
-
     return DirectoryServer.getSupportedControls();
   }
 
@@ -943,7 +894,6 @@ public final class DirectoryConfig
    */
   public static final boolean isSupportedControl(String controlOID)
   {
-
     return DirectoryServer.isSupportedControl(controlOID);
   }
 
@@ -959,7 +909,6 @@ public final class DirectoryConfig
    */
   public static final void registerSupportedControl(String controlOID)
   {
-
     DirectoryServer.registerSupportedControl(controlOID);
   }
 
@@ -976,7 +925,6 @@ public final class DirectoryConfig
   public static final void
        deregisterSupportedControl(String controlOID)
   {
-
     DirectoryServer.deregisterSupportedControl(controlOID);
   }
 
@@ -991,7 +939,6 @@ public final class DirectoryConfig
    */
   public static final Set<String> getSupportedFeatures()
   {
-
     return DirectoryServer.getSupportedFeatures();
   }
 
@@ -1010,7 +957,6 @@ public final class DirectoryConfig
    */
   public static final boolean isSupportedFeature(String featureOID)
   {
-
     return DirectoryServer.isSupportedFeature(featureOID);
   }
 
@@ -1026,7 +972,6 @@ public final class DirectoryConfig
    */
   public static final void registerSupportedFeature(String featureOID)
   {
-
     DirectoryServer.registerSupportedFeature(featureOID);
   }
 
@@ -1043,7 +988,6 @@ public final class DirectoryConfig
   public static final void
        deregisterSupportedFeature(String featureOID)
   {
-
     DirectoryServer.deregisterSupportedFeature(featureOID);
   }
 
@@ -1062,7 +1006,6 @@ public final class DirectoryConfig
   public static final Map<String,ExtendedOperationHandler>
                      getSupportedExtensions()
   {
-
     return DirectoryServer.getSupportedExtensions();
   }
 
@@ -1080,7 +1023,6 @@ public final class DirectoryConfig
   public static final ExtendedOperationHandler
        getExtendedOperationHandler(String oid)
   {
-
     return DirectoryServer.getExtendedOperationHandler(oid);
   }
 
@@ -1097,7 +1039,6 @@ public final class DirectoryConfig
   public static final void registerSupportedExtension(String oid,
                           ExtendedOperationHandler handler)
   {
-
     DirectoryServer.registerSupportedExtension(oid, handler);
   }
 
@@ -1111,7 +1052,6 @@ public final class DirectoryConfig
    */
   public static final void deregisterSupportedExtension(String oid)
   {
-
     DirectoryServer.deregisterSupportedExtension(oid);
   }
 
@@ -1129,7 +1069,6 @@ public final class DirectoryConfig
   public static final Map<String,SASLMechanismHandler>
                      getSupportedSASLMechanisms()
   {
-
     return DirectoryServer.getSupportedSASLMechanisms();
   }
 
@@ -1146,7 +1085,6 @@ public final class DirectoryConfig
   public static final SASLMechanismHandler
        getSASLMechanismHandler(String name)
   {
-
     return DirectoryServer.getSASLMechanismHandler(name);
   }
 
@@ -1164,7 +1102,6 @@ public final class DirectoryConfig
        registerSASLMechanismHandler(String name,
                                     SASLMechanismHandler handler)
   {
-
     DirectoryServer.registerSASLMechanismHandler(name, handler);
   }
 
@@ -1178,7 +1115,6 @@ public final class DirectoryConfig
    */
   public static final void deregisterSASLMechanismHandler(String name)
   {
-
     DirectoryServer.deregisterSASLMechanismHandler(name);
   }
 
@@ -1196,7 +1132,6 @@ public final class DirectoryConfig
        registerChangeNotificationListener(
             ChangeNotificationListener changeListener)
   {
-
     DirectoryServer.registerChangeNotificationListener(
                          changeListener);
   }
@@ -1214,7 +1149,6 @@ public final class DirectoryConfig
   public static final void deregisterChangeNotificationListener(
                           ChangeNotificationListener changeListener)
   {
-
     DirectoryServer.deregisterChangeNotificationListener(
                          changeListener);
   }
@@ -1231,7 +1165,6 @@ public final class DirectoryConfig
   public static final void
        registerShutdownListener(ServerShutdownListener listener)
   {
-
     DirectoryServer.registerShutdownListener(listener);
   }
 
@@ -1247,7 +1180,6 @@ public final class DirectoryConfig
   public static final void
        deregisterShutdownListener(ServerShutdownListener listener)
   {
-
     DirectoryServer.deregisterShutdownListener(listener);
   }
 

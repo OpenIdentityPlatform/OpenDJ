@@ -88,7 +88,6 @@ public class BindRequestProtocolOp
   public BindRequestProtocolOp(ASN1OctetString dn, int protocolVersion,
                                ASN1OctetString simplePassword)
   {
-
     this.dn              = dn;
     this.protocolVersion = protocolVersion;
     this.simplePassword  = simplePassword;
@@ -111,7 +110,6 @@ public class BindRequestProtocolOp
   public BindRequestProtocolOp(ASN1OctetString dn, String saslMechanism,
                                ASN1OctetString saslCredentials)
   {
-
     this.dn              = dn;
     this.saslMechanism   = saslMechanism;
     this.saslCredentials = saslCredentials;
@@ -140,7 +138,6 @@ public class BindRequestProtocolOp
                                 String saslMechanism,
                                 ASN1OctetString saslCredentials)
   {
-
     this.dn                 = dn;
     this.protocolVersion    = protocolVersion;
     this.authenticationType = authenticationType;
@@ -158,7 +155,6 @@ public class BindRequestProtocolOp
    */
   public ASN1OctetString getDN()
   {
-
     return dn;
   }
 
@@ -171,7 +167,6 @@ public class BindRequestProtocolOp
    */
   public void setDN(ASN1OctetString dn)
   {
-
     this.dn = dn;
   }
 
@@ -184,7 +179,6 @@ public class BindRequestProtocolOp
    */
   public int getProtocolVersion()
   {
-
     return protocolVersion;
   }
 
@@ -197,7 +191,6 @@ public class BindRequestProtocolOp
    */
   public void setProtocolVersion(int protocolVersion)
   {
-
     this.protocolVersion = protocolVersion;
   }
 
@@ -210,7 +203,6 @@ public class BindRequestProtocolOp
    */
   public AuthenticationType getAuthenticationType()
   {
-
     return authenticationType;
   }
 
@@ -223,7 +215,6 @@ public class BindRequestProtocolOp
    */
   public void setAuthenticationType(AuthenticationType authenticationType)
   {
-
     this.authenticationType = authenticationType;
   }
 
@@ -237,7 +228,6 @@ public class BindRequestProtocolOp
    */
   public ASN1OctetString getSimplePassword()
   {
-
     return simplePassword;
   }
 
@@ -252,7 +242,6 @@ public class BindRequestProtocolOp
    */
   public void setSimplePassword(ASN1OctetString simplePassword)
   {
-
     this.simplePassword = simplePassword;
     authenticationType  = AuthenticationType.SIMPLE;
     saslMechanism       = null;
@@ -269,7 +258,6 @@ public class BindRequestProtocolOp
    */
   public String getSASLMechanism()
   {
-
     return saslMechanism;
   }
 
@@ -283,7 +271,6 @@ public class BindRequestProtocolOp
    */
   public ASN1OctetString getSASLCredentials()
   {
-
     return saslCredentials;
   }
 
@@ -299,7 +286,6 @@ public class BindRequestProtocolOp
   public void setSASLAuthenticationInfo(String saslMechanism,
                                         ASN1OctetString saslCredentials)
   {
-
     this.saslMechanism   = saslMechanism;
     this.saslCredentials = saslCredentials;
     authenticationType   = AuthenticationType.SASL;
@@ -316,7 +302,6 @@ public class BindRequestProtocolOp
    */
   public byte getType()
   {
-
     return OP_TYPE_BIND_REQUEST;
   }
 
@@ -329,7 +314,6 @@ public class BindRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-
     return "Bind Request";
   }
 
@@ -343,7 +327,6 @@ public class BindRequestProtocolOp
    */
   public ASN1Element encode()
   {
-
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(3);
 
     elements.add(new ASN1Integer(protocolVersion));
@@ -384,7 +367,6 @@ public class BindRequestProtocolOp
   public static BindRequestProtocolOp decodeBindRequest(ASN1Element element)
          throws LDAPException
   {
-
     ArrayList<ASN1Element> elements;
     try
     {
@@ -530,7 +512,6 @@ public class BindRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("BindRequest(version=");
     buffer.append(protocolVersion);
     buffer.append(", dn=");
@@ -572,7 +553,6 @@ public class BindRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)
     {

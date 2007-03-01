@@ -128,7 +128,6 @@ public class IntegerSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_INTEGER_OID);
     if (defaultEqualityMatchingRule == null)
@@ -166,7 +165,6 @@ public class IntegerSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_INTEGER_NAME;
   }
 
@@ -179,7 +177,6 @@ public class IntegerSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_INTEGER_OID;
   }
 
@@ -192,7 +189,6 @@ public class IntegerSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_INTEGER_DESCRIPTION;
   }
 
@@ -208,7 +204,6 @@ public class IntegerSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -224,7 +219,6 @@ public class IntegerSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -240,7 +234,6 @@ public class IntegerSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -256,7 +249,6 @@ public class IntegerSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -278,7 +270,6 @@ public class IntegerSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
     String valueString = value.stringValue();
     int    length      = valueString.length();
 

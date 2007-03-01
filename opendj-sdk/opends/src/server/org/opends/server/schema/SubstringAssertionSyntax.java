@@ -97,7 +97,6 @@ public class SubstringAssertionSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -135,7 +134,6 @@ public class SubstringAssertionSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_SUBSTRING_ASSERTION_NAME;
   }
 
@@ -148,7 +146,6 @@ public class SubstringAssertionSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_SUBSTRING_ASSERTION_OID;
   }
 
@@ -161,7 +158,6 @@ public class SubstringAssertionSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_SUBSTRING_ASSERTION_DESCRIPTION;
   }
 
@@ -177,7 +173,6 @@ public class SubstringAssertionSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -193,7 +188,6 @@ public class SubstringAssertionSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -209,7 +203,6 @@ public class SubstringAssertionSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -225,7 +218,6 @@ public class SubstringAssertionSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // Approximate matching will not be allowed by default.
     return null;
   }
@@ -247,8 +239,6 @@ public class SubstringAssertionSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // Get the string representation of the value and check its length.  A
     // zero-length value is acceptable.  A one-length value is acceptable as
     // long as it is not an asterisk.  For all other lengths, just ensure that

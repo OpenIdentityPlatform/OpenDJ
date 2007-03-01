@@ -69,7 +69,6 @@ public class PromptTrustManager
    */
   private PromptTrustManager()
   {
-
     // No implementation is required.
   }
 
@@ -86,7 +85,6 @@ public class PromptTrustManager
    */
   public static TrustManager[] getTrustManagers()
   {
-
     return trustManagerArray;
   }
 
@@ -106,7 +104,6 @@ public class PromptTrustManager
   public void checkClientTrusted(X509Certificate[] chain, String authType)
          throws CertificateException
   {
-
     int    msgID   = MSGID_PROMPTTM_REJECTING_CLIENT_CERT;
     String message = getMessage(msgID);
     throw new CertificateException(message);
@@ -127,7 +124,6 @@ public class PromptTrustManager
   public void checkServerTrusted(X509Certificate[] chain, String authType)
          throws CertificateException
   {
-
     if ((chain == null) || (chain.length == 0))
     {
       System.out.println(getMessage(MSGID_PROMPTTM_NO_SERVER_CERT_CHAIN));
@@ -197,7 +193,6 @@ public class PromptTrustManager
    */
   public X509Certificate[] getAcceptedIssuers()
   {
-
     return new X509Certificate[0];
   }
 }

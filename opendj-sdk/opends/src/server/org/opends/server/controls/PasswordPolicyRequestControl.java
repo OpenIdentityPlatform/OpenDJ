@@ -92,7 +92,6 @@ public class PasswordPolicyRequestControl
   public static PasswordPolicyRequestControl decodeControl(Control control)
          throws LDAPException
   {
-
     if (control.hasValue())
     {
       int    msgID   = MSGID_PWPOLICYREQ_CONTROL_HAS_VALUE;
@@ -114,8 +113,6 @@ public class PasswordPolicyRequestControl
    */
   public String toString()
   {
-
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -131,8 +128,6 @@ public class PasswordPolicyRequestControl
    */
   public void toString(StringBuilder buffer)
   {
-
-
     buffer.append("PasswordPolicyRequestControl()");
   }
 }

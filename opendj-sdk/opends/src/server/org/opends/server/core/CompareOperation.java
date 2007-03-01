@@ -201,7 +201,6 @@ public class CompareOperation
    */
   public final ByteString getRawEntryDN()
   {
-
     return rawEntryDN;
   }
 
@@ -216,7 +215,6 @@ public class CompareOperation
    */
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
-
     this.rawEntryDN = rawEntryDN;
 
     entryDN = null;
@@ -234,7 +232,6 @@ public class CompareOperation
    */
   public final DN getEntryDN()
   {
-
     return entryDN;
   }
 
@@ -247,7 +244,6 @@ public class CompareOperation
    */
   public final String getRawAttributeType()
   {
-
     return rawAttributeType;
   }
 
@@ -262,7 +258,6 @@ public class CompareOperation
    */
   public final void setRawAttributeType(String rawAttributeType)
   {
-
     this.rawAttributeType = rawAttributeType;
 
     attributeType = null;
@@ -279,7 +274,6 @@ public class CompareOperation
    */
   public final AttributeType getAttributeType()
   {
-
     return attributeType;
   }
 
@@ -292,7 +286,6 @@ public class CompareOperation
    */
   public final ByteString getAssertionValue()
   {
-
     return assertionValue;
   }
 
@@ -306,7 +299,6 @@ public class CompareOperation
    */
   public final void setAssertionValue(ByteString assertionValue)
   {
-
     this.assertionValue = assertionValue;
   }
 
@@ -321,7 +313,6 @@ public class CompareOperation
    */
   public final Entry getEntryToCompare()
   {
-
     return entry;
   }
 
@@ -333,7 +324,6 @@ public class CompareOperation
   @Override()
   public final long getProcessingStartTime()
   {
-
     return processingStartTime;
   }
 
@@ -345,7 +335,6 @@ public class CompareOperation
   @Override()
   public final long getProcessingStopTime()
   {
-
     return processingStopTime;
   }
 
@@ -357,7 +346,6 @@ public class CompareOperation
   @Override()
   public final long getProcessingTime()
   {
-
     return (processingStopTime - processingStartTime);
   }
 
@@ -489,7 +477,6 @@ public class CompareOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-
     return responseControls;
   }
 
@@ -523,7 +510,6 @@ public class CompareOperation
   @Override()
   public final void run()
   {
-
     setResultCode(ResultCode.UNDEFINED);
 
 
@@ -1120,7 +1106,6 @@ compareProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
 
     CancelResult cancelResult = getCancelResult();
@@ -1163,7 +1148,6 @@ compareProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-
     return cancelRequest;
   }
 
@@ -1175,7 +1159,6 @@ compareProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
     return true;
   }
@@ -1188,7 +1171,6 @@ compareProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-
     buffer.append("CompareOperation(connID=");
     buffer.append(clientConnection.getConnectionID());
     buffer.append(", opID=");

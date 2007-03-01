@@ -63,7 +63,6 @@ public class BlindTrustManagerProvider
    */
   public BlindTrustManagerProvider()
   {
-
     // No implementation is required.
   }
 
@@ -87,7 +86,6 @@ public class BlindTrustManagerProvider
   public void initializeTrustManagerProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     // No implementation is required.
   }
 
@@ -99,7 +97,6 @@ public class BlindTrustManagerProvider
    */
   public void finalizeTrustManagerProvider()
   {
-
     // No implementation is required.
   }
 
@@ -118,7 +115,6 @@ public class BlindTrustManagerProvider
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
-
     return new TrustManager[] { this };
   }
 
@@ -133,7 +129,6 @@ public class BlindTrustManagerProvider
    */
   public void checkClientTrusted(X509Certificate[] chain, String authType)
   {
-
     // As long as we don't throw an exception, then the client certificate will
     // be considered trusted.
   }
@@ -149,7 +144,6 @@ public class BlindTrustManagerProvider
    */
   public void checkServerTrusted(X509Certificate[] chain, String authType)
   {
-
     // As long as we don't throw an exception, then the server certificate will
     // be considered trusted.
   }
@@ -165,7 +159,6 @@ public class BlindTrustManagerProvider
    */
   public X509Certificate[] getAcceptedIssuers()
   {
-
     return new X509Certificate[0];
   }
 }

@@ -142,8 +142,6 @@ public class MatchedValuesControl
   private static ASN1OctetString
                       encodeValue(ArrayList<MatchedValuesFilter> filters)
   {
-
-
     ArrayList<ASN1Element> elements =
          new ArrayList<ASN1Element>(filters.size());
     for (MatchedValuesFilter f : filters)
@@ -172,8 +170,6 @@ public class MatchedValuesControl
   public static MatchedValuesControl decodeControl(Control control)
          throws LDAPException
   {
-
-
     if (! control.hasValue())
     {
       int    msgID   = MSGID_MATCHEDVALUES_NO_CONTROL_VALUE;
@@ -230,7 +226,6 @@ public class MatchedValuesControl
    */
   public ArrayList<MatchedValuesFilter> getFilters()
   {
-
     return filters;
   }
 
@@ -249,7 +244,6 @@ public class MatchedValuesControl
    */
   public boolean valueMatches(AttributeType type, AttributeValue value)
   {
-
     for (MatchedValuesFilter f : filters)
     {
       try
@@ -282,7 +276,6 @@ public class MatchedValuesControl
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -298,7 +291,6 @@ public class MatchedValuesControl
    */
   public void toString(StringBuilder buffer)
   {
-
     if (filters.size() == 1)
     {
       buffer.append("MatchedValuesControl(filter=\"");

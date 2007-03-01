@@ -118,7 +118,6 @@ public abstract class MonitorProvider
    */
   public void finalizeMonitorProvider()
   {
-
     // Signal the monitor thread that it should stop.
     stopRequested = true;
 
@@ -164,7 +163,6 @@ public abstract class MonitorProvider
    */
   public ObjectClass getMonitorObjectClass()
   {
-
     return DirectoryConfig.getObjectClass(OC_EXTENSIBLE_OBJECT_LC,
                                           true);
   }
@@ -217,8 +215,6 @@ public abstract class MonitorProvider
    */
   public final void run()
   {
-
-
     monitorThread = Thread.currentThread();
 
 

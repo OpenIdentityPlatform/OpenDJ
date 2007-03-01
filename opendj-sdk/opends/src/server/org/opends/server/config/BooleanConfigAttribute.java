@@ -155,7 +155,6 @@ public class BooleanConfigAttribute
    */
   public String getDataType()
   {
-
     return "Boolean";
   }
 
@@ -168,7 +167,6 @@ public class BooleanConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-
     return DirectoryServer.getDefaultBooleanSyntax();
   }
 
@@ -181,7 +179,6 @@ public class BooleanConfigAttribute
    */
   public boolean activeValue()
   {
-
     return activeValue;
   }
 
@@ -195,7 +192,6 @@ public class BooleanConfigAttribute
    */
   public boolean pendingValue()
   {
-
     if (hasPendingValues())
     {
       return pendingValue;
@@ -215,7 +211,6 @@ public class BooleanConfigAttribute
    */
   public void setValue(boolean booleanValue)
   {
-
     if (requiresAdminAction())
     {
       pendingValue = booleanValue;
@@ -239,7 +234,6 @@ public class BooleanConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(boolean booleanValue)
   {
-
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
     if (booleanValue)
@@ -265,7 +259,6 @@ public class BooleanConfigAttribute
    */
   public void applyPendingValues()
   {
-
     if (! hasPendingValues())
     {
       return;
@@ -292,7 +285,6 @@ public class BooleanConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-
     String stringValue = value.getStringValue();
     if (stringValue.equalsIgnoreCase(CONFIG_VALUE_TRUE) ||
         stringValue.equalsIgnoreCase(CONFIG_VALUE_FALSE))
@@ -331,7 +323,6 @@ public class BooleanConfigAttribute
                               boolean allowFailures)
          throws ConfigException
   {
-
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
       int    msgID   = MSGID_CONFIG_ATTR_IS_REQUIRED;
@@ -381,7 +372,6 @@ public class BooleanConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-
     ArrayList<String> valueStrings = new ArrayList<String>(1);
     valueStrings.add(String.valueOf(activeValue));
 
@@ -403,7 +393,6 @@ public class BooleanConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-
     if (hasPendingValues())
     {
       ArrayList<String> valueStrings = new ArrayList<String>(1);
@@ -443,8 +432,6 @@ public class BooleanConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-
-
     boolean activeValue     = false;
     boolean pendingValue    = false;
     boolean activeValueSet  = false;
@@ -608,7 +595,6 @@ public class BooleanConfigAttribute
    */
   public javax.management.Attribute toJMXAttribute()
   {
-
     return new javax.management.Attribute(getName(), activeValue);
   }
 
@@ -640,7 +626,6 @@ public class BooleanConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-
     attributeList.add(new javax.management.Attribute(getName(), activeValue));
 
     if (requiresAdminAction() && (pendingValue != activeValue))
@@ -666,7 +651,6 @@ public class BooleanConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-
     attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                  Boolean.class.getName(),
                                                  getDescription(), true, true,
@@ -693,7 +677,6 @@ public class BooleanConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-
     return new MBeanParameterInfo(getName(), Boolean.TYPE.getName(),
                                   getDescription());
   }
@@ -714,7 +697,6 @@ public class BooleanConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-
     Object value = jmxAttribute.getValue();
     if (value instanceof Boolean)
     {
@@ -758,7 +740,6 @@ public class BooleanConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-
     return new BooleanConfigAttribute(getName(), getDescription(),
                                       requiresAdminAction(), activeValue,
                                       pendingValue);

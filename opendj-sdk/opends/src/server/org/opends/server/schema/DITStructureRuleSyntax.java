@@ -101,7 +101,6 @@ public class DITStructureRuleSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
@@ -140,7 +139,6 @@ public class DITStructureRuleSyntax
    */
   public String getSyntaxName()
   {
-
     return SYNTAX_DIT_STRUCTURE_RULE_NAME;
   }
 
@@ -151,7 +149,6 @@ public class DITStructureRuleSyntax
    */
   public String getOID()
   {
-
     return SYNTAX_DIT_STRUCTURE_RULE_OID;
   }
 
@@ -162,7 +159,6 @@ public class DITStructureRuleSyntax
    */
   public String getDescription()
   {
-
     return SYNTAX_DIT_STRUCTURE_RULE_DESCRIPTION;
   }
 
@@ -173,7 +169,6 @@ public class DITStructureRuleSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-
     return defaultEqualityMatchingRule;
   }
 
@@ -184,7 +179,6 @@ public class DITStructureRuleSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-
     return defaultOrderingMatchingRule;
   }
 
@@ -195,7 +189,6 @@ public class DITStructureRuleSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-
     return defaultSubstringMatchingRule;
   }
 
@@ -206,7 +199,6 @@ public class DITStructureRuleSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-
     // There is no approximate matching rule by default.
     return null;
   }
@@ -219,8 +211,6 @@ public class DITStructureRuleSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-
-
     // We'll use the decodeDITStructureRule method to determine if the value is
     // acceptable.
     try
@@ -270,8 +260,6 @@ public class DITStructureRuleSyntax
                                       boolean allowUnknownElements)
          throws DirectoryException
   {
-
-
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
     String valueStr = value.stringValue();
@@ -736,8 +724,6 @@ public class DITStructureRuleSyntax
                                    int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -797,8 +783,6 @@ public class DITStructureRuleSyntax
                                       StringBuilder valueBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
@@ -886,8 +870,6 @@ public class DITStructureRuleSyntax
                                       StringBuilder lowerBuffer, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -969,10 +951,6 @@ public class DITStructureRuleSyntax
                               int startPos)
           throws DirectoryException
   {
-
-
-
-
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
@@ -1125,8 +1103,6 @@ public class DITStructureRuleSyntax
                           List<String> valueList, int startPos)
           throws DirectoryException
   {
-
-
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = valueStr.charAt(startPos++);

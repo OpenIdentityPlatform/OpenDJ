@@ -259,7 +259,6 @@ public class ModifyDNOperation
    */
   public final ByteString getRawEntryDN()
   {
-
     return rawEntryDN;
   }
 
@@ -274,7 +273,6 @@ public class ModifyDNOperation
    */
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
-
     this.rawEntryDN = rawEntryDN;
 
     entryDN = null;
@@ -292,7 +290,6 @@ public class ModifyDNOperation
    */
   public final DN getEntryDN()
   {
-
     return entryDN;
   }
 
@@ -308,7 +305,6 @@ public class ModifyDNOperation
    */
   public final ByteString getRawNewRDN()
   {
-
     return rawNewRDN;
   }
 
@@ -324,7 +320,6 @@ public class ModifyDNOperation
    */
   public final void setRawNewRDN(ByteString rawNewRDN)
   {
-
     this.rawNewRDN = rawNewRDN;
 
     newRDN = null;
@@ -342,7 +337,6 @@ public class ModifyDNOperation
    */
   public final RDN getNewRDN()
   {
-
     return newRDN;
   }
 
@@ -356,7 +350,6 @@ public class ModifyDNOperation
    */
   public final boolean deleteOldRDN()
   {
-
     return deleteOldRDN;
   }
 
@@ -370,7 +363,6 @@ public class ModifyDNOperation
    */
   public final void setDeleteOldRDN(boolean deleteOldRDN)
   {
-
     this.deleteOldRDN = deleteOldRDN;
   }
 
@@ -386,7 +378,6 @@ public class ModifyDNOperation
    */
   public final ByteString getRawNewSuperior()
   {
-
     return rawNewSuperior;
   }
 
@@ -402,7 +393,6 @@ public class ModifyDNOperation
    */
   public final void setRawNewSuperior(ByteString rawNewSuperior)
   {
-
     this.rawNewSuperior = rawNewSuperior;
 
     newSuperior = null;
@@ -422,7 +412,6 @@ public class ModifyDNOperation
    */
   public final DN getNewSuperior()
   {
-
     return newSuperior;
   }
 
@@ -447,7 +436,6 @@ public class ModifyDNOperation
    */
   public final List<Modification> getModifications()
   {
-
     return modifications;
   }
 
@@ -463,7 +451,6 @@ public class ModifyDNOperation
    */
   public final void addModification(Modification modification)
   {
-
     modifications.add(modification);
   }
 
@@ -479,7 +466,6 @@ public class ModifyDNOperation
    */
   public final Entry getOriginalEntry()
   {
-
     return currentEntry;
   }
 
@@ -495,7 +481,6 @@ public class ModifyDNOperation
    */
   public final Entry getUpdatedEntry()
   {
-
     return newEntry;
   }
 
@@ -507,7 +492,6 @@ public class ModifyDNOperation
   @Override()
   public final long getProcessingStartTime()
   {
-
     return processingStartTime;
   }
 
@@ -519,7 +503,6 @@ public class ModifyDNOperation
   @Override()
   public final long getProcessingStopTime()
   {
-
     return processingStopTime;
   }
 
@@ -531,7 +514,6 @@ public class ModifyDNOperation
   @Override()
   public final long getProcessingTime()
   {
-
     return (processingStopTime - processingStartTime);
   }
 
@@ -546,7 +528,6 @@ public class ModifyDNOperation
    */
   public final long getChangeNumber()
   {
-
     return changeNumber;
   }
 
@@ -561,7 +542,6 @@ public class ModifyDNOperation
    */
   public final void setChangeNumber(long changeNumber)
   {
-
     this.changeNumber = changeNumber;
   }
 
@@ -705,7 +685,6 @@ public class ModifyDNOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-
     return responseControls;
   }
 
@@ -739,7 +718,6 @@ public class ModifyDNOperation
   @Override()
   public final void run()
   {
-
     setResultCode(ResultCode.UNDEFINED);
 
 
@@ -2112,7 +2090,6 @@ modifyDNProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
 
     CancelResult cancelResult = getCancelResult();
@@ -2155,7 +2132,6 @@ modifyDNProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-
     return cancelRequest;
   }
 
@@ -2167,7 +2143,6 @@ modifyDNProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
     return true;
   }
@@ -2180,7 +2155,6 @@ modifyDNProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-
     buffer.append("ModifyDNOperation(connID=");
     buffer.append(clientConnection.getConnectionID());
     buffer.append(", opID=");

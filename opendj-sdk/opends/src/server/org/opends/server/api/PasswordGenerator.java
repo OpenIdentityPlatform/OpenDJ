@@ -80,7 +80,6 @@ public abstract class PasswordGenerator
    */
   public void finalizePasswordGenerator()
   {
-
     // No action is performed by default.
   }
 

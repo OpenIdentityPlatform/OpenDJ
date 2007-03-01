@@ -90,7 +90,6 @@ public class PersistentSearch
                           Set<PersistentSearchChangeType> changeTypes,
                           boolean returnECs)
   {
-
     this.searchOperation = searchOperation;
     this.changeTypes     = changeTypes;
     this.returnECs       = returnECs;
@@ -109,7 +108,6 @@ public class PersistentSearch
    */
   public SearchOperation getSearchOperation()
   {
-
     return searchOperation;
   }
 
@@ -122,7 +120,6 @@ public class PersistentSearch
    */
   public Set<PersistentSearchChangeType> getChangeTypes()
   {
-
     return changeTypes;
   }
 
@@ -135,7 +132,6 @@ public class PersistentSearch
    */
   public boolean getReturnECs()
   {
-
     return returnECs;
   }
 
@@ -148,7 +144,6 @@ public class PersistentSearch
    */
   public DN getBaseDN()
   {
-
     return baseDN;
   }
 
@@ -161,7 +156,6 @@ public class PersistentSearch
    */
   public SearchScope getScope()
   {
-
     return scope;
   }
 
@@ -174,7 +168,6 @@ public class PersistentSearch
    */
   public SearchFilter getFilter()
   {
-
     return filter;
   }
 
@@ -188,8 +181,6 @@ public class PersistentSearch
    */
   public void processAdd(AddOperation addOperation, Entry entry)
   {
-
-
     // See if we care about add operations.
     if (! changeTypes.contains(PersistentSearchChangeType.ADD))
     {
@@ -305,8 +296,6 @@ public class PersistentSearch
    */
   public void processDelete(DeleteOperation deleteOperation, Entry entry)
   {
-
-
     // See if we care about delete operations.
     if (! changeTypes.contains(PersistentSearchChangeType.DELETE))
     {
@@ -424,8 +413,6 @@ public class PersistentSearch
   public void processModify(ModifyOperation modifyOperation, Entry oldEntry,
                             Entry newEntry)
   {
-
-
     // See if we care about modify operations.
     if (! changeTypes.contains(PersistentSearchChangeType.MODIFY))
     {
@@ -544,8 +531,6 @@ public class PersistentSearch
   public void processModifyDN(ModifyDNOperation modifyDNOperation,
                               Entry oldEntry, Entry newEntry)
   {
-
-
     // See if we care about modify DN operations.
     if (! changeTypes.contains(PersistentSearchChangeType.MODIFY_DN))
     {
@@ -684,7 +669,6 @@ public class PersistentSearch
    */
   public String toString()
   {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -700,7 +684,6 @@ public class PersistentSearch
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append("PersistentSearch(connID=");
     buffer.append(searchOperation.getConnectionID());
     buffer.append(",opID=");

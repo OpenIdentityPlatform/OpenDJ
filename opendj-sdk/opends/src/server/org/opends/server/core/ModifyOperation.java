@@ -253,7 +253,6 @@ public class ModifyOperation
    */
   public final ByteString getRawEntryDN()
   {
-
     return rawEntryDN;
   }
 
@@ -268,7 +267,6 @@ public class ModifyOperation
    */
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
-
     this.rawEntryDN = rawEntryDN;
 
     entryDN = null;
@@ -286,7 +284,6 @@ public class ModifyOperation
    */
   public final DN getEntryDN()
   {
-
     return entryDN;
   }
 
@@ -303,7 +300,6 @@ public class ModifyOperation
    */
   public final List<LDAPModification> getRawModifications()
   {
-
     return rawModifications;
   }
 
@@ -318,7 +314,6 @@ public class ModifyOperation
    */
   public final void addRawModification(LDAPModification rawModification)
   {
-
     rawModifications.add(rawModification);
 
     modifications = null;
@@ -333,7 +328,6 @@ public class ModifyOperation
    */
   public final void setRawModifications(List<LDAPModification> rawModifications)
   {
-
     this.rawModifications = rawModifications;
 
     modifications = null;
@@ -351,7 +345,6 @@ public class ModifyOperation
    */
   public final List<Modification> getModifications()
   {
-
     return modifications;
   }
 
@@ -370,7 +363,6 @@ public class ModifyOperation
   public final void addModification(Modification modification)
          throws DirectoryException
   {
-
     modifiedEntry.applyModification(modification);
     modifications.add(modification);
   }
@@ -386,7 +378,6 @@ public class ModifyOperation
    */
   public final Entry getCurrentEntry()
   {
-
     return currentEntry;
   }
 
@@ -403,7 +394,6 @@ public class ModifyOperation
    */
   public final Entry getModifiedEntry()
   {
-
     return modifiedEntry;
   }
 
@@ -422,7 +412,6 @@ public class ModifyOperation
    */
   public final List<AttributeValue> getCurrentPasswords()
   {
-
     return currentPasswords;
   }
 
@@ -440,7 +429,6 @@ public class ModifyOperation
    */
   public final List<AttributeValue> getNewPasswords()
   {
-
     return newPasswords;
   }
 
@@ -452,7 +440,6 @@ public class ModifyOperation
   @Override()
   public final long getProcessingStartTime()
   {
-
     return processingStartTime;
   }
 
@@ -464,7 +451,6 @@ public class ModifyOperation
   @Override()
   public final long getProcessingStopTime()
   {
-
     return processingStopTime;
   }
 
@@ -476,7 +462,6 @@ public class ModifyOperation
   @Override()
   public final long getProcessingTime()
   {
-
     return (processingStopTime - processingStartTime);
   }
 
@@ -491,7 +476,6 @@ public class ModifyOperation
    */
   public final long getChangeNumber()
   {
-
     return changeNumber;
   }
 
@@ -506,7 +490,6 @@ public class ModifyOperation
    */
   public final void setChangeNumber(long changeNumber)
   {
-
     this.changeNumber = changeNumber;
   }
 
@@ -637,7 +620,6 @@ public class ModifyOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-
     return responseControls;
   }
 
@@ -671,7 +653,6 @@ public class ModifyOperation
   @Override()
   public final void run()
   {
-
     setResultCode(ResultCode.UNDEFINED);
 
 
@@ -2889,7 +2870,6 @@ modifyProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
 
     CancelResult cancelResult = getCancelResult();
@@ -2932,7 +2912,6 @@ modifyProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-
     return cancelRequest;
   }
 
@@ -2944,7 +2923,6 @@ modifyProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-
     this.cancelRequest = cancelRequest;
     return true;
   }
@@ -2957,7 +2935,6 @@ modifyProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-
     buffer.append("ModifyOperation(connID=");
     buffer.append(clientConnection.getConnectionID());
     buffer.append(", opID=");

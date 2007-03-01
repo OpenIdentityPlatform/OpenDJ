@@ -194,7 +194,6 @@ public class DirectoryRMIClientSocketFactory implements
    */
   public Socket createSocket(String host, int port) throws IOException
   {
-
     //
     // gets ssl socket factory
     SSLSocketFactory sslSocketFactory = getSSLSocketFactory();
@@ -250,7 +249,6 @@ public class DirectoryRMIClientSocketFactory implements
   private synchronized String getRealServerHostname(String rmiHostname)
       throws IOException
   {
-
     if (serverHostname == null)
     {
       //

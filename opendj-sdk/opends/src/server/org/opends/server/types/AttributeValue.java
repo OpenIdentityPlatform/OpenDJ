@@ -75,7 +75,6 @@ public class AttributeValue
    */
   public AttributeValue(AttributeType attributeType, ByteString value)
   {
-
     ensureNotNull(attributeType, value);
 
     this.attributeType = attributeType;
@@ -96,7 +95,6 @@ public class AttributeValue
    */
   public AttributeValue(AttributeType attributeType, String value)
   {
-
     ensureNotNull(attributeType, value);
 
     this.attributeType = attributeType;
@@ -119,7 +117,6 @@ public class AttributeValue
    */
   public AttributeValue(ByteString value, ByteString normalizedValue)
   {
-
     ensureNotNull(value, normalizedValue);
 
     this.value           = value;
@@ -137,7 +134,6 @@ public class AttributeValue
    */
   public ByteString getValue()
   {
-
     return value;
   }
 
@@ -150,7 +146,6 @@ public class AttributeValue
    */
   public byte[] getValueBytes()
   {
-
     return value.value();
   }
 
@@ -165,7 +160,6 @@ public class AttributeValue
    */
   public String getStringValue()
   {
-
     return value.stringValue();
   }
 
@@ -184,7 +178,6 @@ public class AttributeValue
   public ByteString getNormalizedValue()
          throws DirectoryException
   {
-
     if (normalizedValue == null)
     {
       normalizedValue = attributeType.normalize(value);
@@ -210,7 +203,6 @@ public class AttributeValue
   public byte[] getNormalizedValueBytes()
          throws DirectoryException
   {
-
     return getNormalizedValue().value();
   }
 
@@ -231,7 +223,6 @@ public class AttributeValue
   public String getNormalizedStringValue()
          throws DirectoryException
   {
-
     if (normalizedValue == null)
     {
       normalizedValue = attributeType.normalize(value);
@@ -251,7 +242,6 @@ public class AttributeValue
    */
   public String getDNStringValue()
   {
-
     return getDNValue(getStringValue());
   }
 
@@ -272,7 +262,6 @@ public class AttributeValue
   public String getNormalizedDNStringValue()
          throws DirectoryException
   {
-
     return getDNValue(getNormalizedStringValue());
   }
 
@@ -289,7 +278,6 @@ public class AttributeValue
    */
   private static String getDNValue(String value)
   {
-
     if ((value == null) || (value.length() == 0))
     {
       return "";
@@ -365,7 +353,6 @@ public class AttributeValue
    */
   public boolean equals(Object o)
   {
-
     if (this == o)
     {
       return true;
@@ -441,7 +428,6 @@ public class AttributeValue
    */
   public int hashCode()
   {
-
     try
     {
       if (attributeType == null)
@@ -480,7 +466,6 @@ public class AttributeValue
    */
   public String toString()
   {
-
     if (value == null)
     {
       return "null";
@@ -502,7 +487,6 @@ public class AttributeValue
    */
   public void toString(StringBuilder buffer)
   {
-
     buffer.append(value.toString());
   }
 }

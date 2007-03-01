@@ -87,8 +87,6 @@ public class LoggerThread extends DirectoryThread
    */
   public void run()
   {
-
-
     this.loggerThread = Thread.currentThread();
 
     while (!stopRequested)
@@ -142,8 +140,6 @@ public class LoggerThread extends DirectoryThread
    */
   public String getShutdownListenerName()
   {
-
-
     return "Logger Thread " + getName();
   }
 
@@ -158,8 +154,6 @@ public class LoggerThread extends DirectoryThread
    */
   public void processServerShutdown(String reason)
   {
-
-
     stopRequested = true;
 
     try

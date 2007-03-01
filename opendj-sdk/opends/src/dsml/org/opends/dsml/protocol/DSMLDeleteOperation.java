@@ -84,7 +84,6 @@ public class DSMLDeleteOperation
         DelRequest deleteRequest)
     throws IOException, LDAPException, ASN1Exception
   {
-
     LDAPResult delResponse = objFactory.createLDAPResult();
 
     String requestID = deleteRequest.getRequestID();
