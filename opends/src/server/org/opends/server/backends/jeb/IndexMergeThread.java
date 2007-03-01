@@ -308,7 +308,6 @@ public class IndexMergeThread extends DirectoryThread
       {
         debugCought(DebugLogLevel.ERROR, e);
       }
-      e.printStackTrace();
       throw e;
     }
     finally
