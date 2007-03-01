@@ -46,14 +46,15 @@ import org.opends.server.protocols.asn1.ASN1Set;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugError;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -69,11 +70,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LDAPFilter
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.LDAPFilter";
 
 
 
@@ -132,20 +128,6 @@ public class LDAPFilter
                      ASN1OctetString subFinalElement, String matchingRuleID,
                      boolean dnAttributes)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(filterType),
-                              String.valueOf(filterComponents),
-                              String.valueOf(notComponent),
-                              String.valueOf(attributeType),
-                              String.valueOf(assertionValue),
-                              String.valueOf(subInitialElement),
-                              String.valueOf(subAnyElements),
-                              String.valueOf(subFinalElement),
-                              String.valueOf(matchingRuleID),
-                              String.valueOf(dnAttributes)
-                            });
 
     this.filterType        = filterType;
     this.filterComponents  = filterComponents;
@@ -168,7 +150,6 @@ public class LDAPFilter
    */
   public LDAPFilter(SearchFilter filter)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(filter));
 
     this.filterType = filter.getFilterType();
 
@@ -320,8 +301,6 @@ public class LDAPFilter
   public static LDAPFilter createANDFilter(ArrayList<LDAPFilter>
                                                 filterComponents)
   {
-    assert debugEnter(CLASS_NAME, "createANDFilter",
-                      String.valueOf(filterComponents));
 
     return new LDAPFilter(FilterType.AND, filterComponents, null, null, null,
                           null, null, null, null, false);
@@ -339,8 +318,6 @@ public class LDAPFilter
   public static LDAPFilter createORFilter(ArrayList<LDAPFilter>
                                                filterComponents)
   {
-    assert debugEnter(CLASS_NAME, "createORFilter",
-                      String.valueOf(filterComponents));
 
     return new LDAPFilter(FilterType.OR, filterComponents, null, null, null,
                           null, null, null, null, false);
@@ -357,8 +334,6 @@ public class LDAPFilter
    */
   public static LDAPFilter createNOTFilter(LDAPFilter notComponent)
   {
-    assert debugEnter(CLASS_NAME, "createNOTFilter",
-                      String.valueOf(notComponent));
 
     return new LDAPFilter(FilterType.NOT, null, notComponent, null, null, null,
                           null, null, null, false);
@@ -377,9 +352,6 @@ public class LDAPFilter
   public static LDAPFilter createEqualityFilter(String attributeType,
                                                 ASN1OctetString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createEqualityFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     return new LDAPFilter(FilterType.EQUALITY, null, null, attributeType,
                           assertionValue, null, null, null, null, false);
@@ -403,11 +375,6 @@ public class LDAPFilter
                                 ArrayList<ASN1OctetString> subAnyElements,
                                 ASN1OctetString subFinalElement)
   {
-    assert debugEnter(CLASS_NAME, "createSubstringFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(subInitialElement),
-                      String.valueOf(subAnyElements),
-                      String.valueOf(subFinalElement));
 
     return new LDAPFilter(FilterType.SUBSTRING, null, null, attributeType, null,
                           subInitialElement, subAnyElements, subFinalElement,
@@ -429,9 +396,6 @@ public class LDAPFilter
   public static LDAPFilter createGreaterOrEqualFilter(String attributeType,
                                 ASN1OctetString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createGreaterOrEqualFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     return new LDAPFilter(FilterType.GREATER_OR_EQUAL, null, null,
                           attributeType, assertionValue, null, null, null, null,
@@ -451,9 +415,6 @@ public class LDAPFilter
   public static LDAPFilter createLessOrEqualFilter(String attributeType,
                                 ASN1OctetString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createLessOrEqualFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     return new LDAPFilter(FilterType.LESS_OR_EQUAL, null, null, attributeType,
                           assertionValue, null, null, null, null, false);
@@ -470,8 +431,6 @@ public class LDAPFilter
    */
   public static LDAPFilter createPresenceFilter(String attributeType)
   {
-    assert debugEnter(CLASS_NAME, "createPresenceFilter",
-                      String.valueOf(attributeType));
 
     return new LDAPFilter(FilterType.PRESENT, null, null, attributeType, null,
                           null, null, null, null, false);
@@ -490,9 +449,6 @@ public class LDAPFilter
   public static LDAPFilter createApproximateFilter(String attributeType,
                                 ASN1OctetString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "createApproximateFilter",
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     return new LDAPFilter(FilterType.APPROXIMATE_MATCH, null, null,
                           attributeType, assertionValue, null, null, null, null,
@@ -517,11 +473,6 @@ public class LDAPFilter
                                 ASN1OctetString assertionValue,
                                 boolean dnAttributes)
   {
-    assert debugEnter(CLASS_NAME, "createExtensibleFilter",
-                      String.valueOf(matchingRuleID),
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue),
-                      String.valueOf(dnAttributes));
 
     return new LDAPFilter(FilterType.EXTENSIBLE_MATCH, null, null,
                           attributeType, assertionValue, null, null, null,
@@ -544,7 +495,6 @@ public class LDAPFilter
   public static LDAPFilter decode(String filterString)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(filterString));
 
 
     if (filterString == null)
@@ -561,13 +511,19 @@ public class LDAPFilter
     }
     catch (LDAPException le)
     {
-      assert debugException(CLASS_NAME, "decode", le);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, le);
+      }
 
       throw le;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_UNCAUGHT_EXCEPTION;
       String message = getMessage(msgID, filterString, String.valueOf(e));
@@ -596,9 +552,6 @@ public class LDAPFilter
                                    int endPos)
           throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "createFilterFromString",
-                      String.valueOf(filterString), String.valueOf(startPos),
-                      String.valueOf(endPos));
 
 
     // Make sure that the length is sufficient for a valid search filter.
@@ -925,9 +878,6 @@ public class LDAPFilter
                                                  int startPos, int endPos)
           throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeCompoundFilter",
-                      String.valueOf(filterType), String.valueOf(filterString),
-                      String.valueOf(startPos), String.valueOf(endPos));
 
 
     // Create a list to hold the returned components.
@@ -1036,9 +986,6 @@ public class LDAPFilter
                                                   int endPos)
           throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeSubstringFilter",
-                      String.valueOf(filterString), String.valueOf(attrType),
-                      String.valueOf(equalPos), String.valueOf(endPos));
 
 
     // Get a binary representation of the value.
@@ -1624,9 +1571,6 @@ public class LDAPFilter
                                                         int endPos)
           throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeExtensibleMatchFilter",
-                      String.valueOf(filterString), String.valueOf(startPos),
-                      String.valueOf(equalPos), String.valueOf(endPos));
 
 
     String  attributeType  = null;
@@ -1879,7 +1823,6 @@ public class LDAPFilter
    */
   public FilterType getFilterType()
   {
-    assert debugEnter(CLASS_NAME, "getFilterType");
 
     return filterType;
   }
@@ -1895,7 +1838,6 @@ public class LDAPFilter
    */
   public ArrayList<LDAPFilter> getFilterComponents()
   {
-    assert debugEnter(CLASS_NAME, "getFilterComponents");
 
     return filterComponents;
   }
@@ -1911,8 +1853,6 @@ public class LDAPFilter
    */
   public void setFilterComponents(ArrayList<LDAPFilter> filterComponents)
   {
-    assert debugEnter(CLASS_NAME, "setFilterComponents",
-                      String.valueOf(filterComponents));
 
     this.filterComponents = filterComponents;
   }
@@ -1927,7 +1867,6 @@ public class LDAPFilter
    */
   public LDAPFilter getNOTComponent()
   {
-    assert debugEnter(CLASS_NAME, "getNOTComponent");
 
     return notComponent;
   }
@@ -1942,8 +1881,6 @@ public class LDAPFilter
    */
   public void setNOTComponent(LDAPFilter notComponent)
   {
-    assert debugEnter(CLASS_NAME, "setNOTComponent",
-                      String.valueOf(notComponent));
 
     this.notComponent = notComponent;
   }
@@ -1959,7 +1896,6 @@ public class LDAPFilter
    */
   public String getAttributeType()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType");
 
     return attributeType;
   }
@@ -1974,8 +1910,6 @@ public class LDAPFilter
    */
   public void setAttributeType(String attributeType)
   {
-    assert debugEnter(CLASS_NAME, "setAttributeType",
-                      String.valueOf(attributeType));
 
     this.attributeType = attributeType;
   }
@@ -1992,7 +1926,6 @@ public class LDAPFilter
    */
   public ASN1OctetString getAssertionValue()
   {
-    assert debugEnter(CLASS_NAME, "getAssertionValue");
 
     return assertionValue;
   }
@@ -2007,8 +1940,6 @@ public class LDAPFilter
    */
   public void setAssertionValue(ASN1OctetString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "setAssertionValue",
-                      String.valueOf(assertionValue));
 
     this.assertionValue = assertionValue;
   }
@@ -2025,7 +1956,6 @@ public class LDAPFilter
    */
   public ASN1OctetString getSubInitialElement()
   {
-    assert debugEnter(CLASS_NAME, "getSubInitialElement");
 
     return subInitialElement;
   }
@@ -2041,8 +1971,6 @@ public class LDAPFilter
    */
   public void setSubInitialElement(ASN1OctetString subInitialElement)
   {
-    assert debugEnter(CLASS_NAME, "setSubInitialElement",
-                      String.valueOf(subInitialElement));
 
     this.subInitialElement = subInitialElement;
   }
@@ -2059,7 +1987,6 @@ public class LDAPFilter
    */
   public ArrayList<ASN1OctetString> getSubAnyElements()
   {
-    assert debugEnter(CLASS_NAME, "getSubAnyElements");
 
     return subAnyElements;
   }
@@ -2075,8 +2002,6 @@ public class LDAPFilter
    */
   public void setSubAnyElements(ArrayList<ASN1OctetString> subAnyElements)
   {
-    assert debugEnter(CLASS_NAME, "setSubAnyElements",
-                      String.valueOf(subAnyElements));
 
     this.subAnyElements = subAnyElements;
   }
@@ -2093,7 +2018,6 @@ public class LDAPFilter
    */
   public ASN1OctetString getSubFinalElement()
   {
-    assert debugEnter(CLASS_NAME, "getSubFinalElement");
 
     return subFinalElement;
   }
@@ -2108,8 +2032,6 @@ public class LDAPFilter
    */
   public void setSubFinalElement(ASN1OctetString subFinalElement)
   {
-    assert debugEnter(CLASS_NAME, "setSubFinalElement",
-                      String.valueOf(subFinalElement));
 
     this.subFinalElement = subFinalElement;
   }
@@ -2126,7 +2048,6 @@ public class LDAPFilter
    */
   public String getMatchingRuleID()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleID");
 
     return matchingRuleID;
   }
@@ -2142,8 +2063,6 @@ public class LDAPFilter
    */
   public void setMatchingRuleID(String matchingRuleID)
   {
-    assert debugEnter(CLASS_NAME, "setMatchingRuleID",
-                      String.valueOf(matchingRuleID));
 
     this.matchingRuleID = matchingRuleID;
   }
@@ -2160,7 +2079,6 @@ public class LDAPFilter
    */
   public boolean getDNAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getDNAttributes");
 
     return dnAttributes;
   }
@@ -2176,8 +2094,6 @@ public class LDAPFilter
    */
   public void setDNAttributes(boolean dnAttributes)
   {
-    assert debugEnter(CLASS_NAME, "setDNAttributes",
-                      String.valueOf(dnAttributes));
 
     this.dnAttributes = dnAttributes;
   }
@@ -2191,7 +2107,6 @@ public class LDAPFilter
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     switch (filterType)
     {
@@ -2269,9 +2184,10 @@ public class LDAPFilter
 
         return new ASN1Sequence(filterType.getBERType(), elements);
       default:
-        assert debugMessage(DebugLogCategory.CONNECTION_HANDLING,
-                            DebugLogSeverity.ERROR, CLASS_NAME, "encode",
-                            "Invalid search filter type:  " + filterType);
+        if (debugEnabled())
+        {
+          debugError("Invalid search filter type: %s", filterType);
+        }
         return null;
     }
   }
@@ -2291,7 +2207,6 @@ public class LDAPFilter
   public static LDAPFilter decode(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(element));
 
     if (element == null)
     {
@@ -2347,8 +2262,6 @@ public class LDAPFilter
   private static LDAPFilter decodeCompoundFilter(ASN1Element element)
           throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeCompoundFilter",
-                      String.valueOf(element));
 
 
     FilterType filterType;
@@ -2362,12 +2275,11 @@ public class LDAPFilter
         break;
       default:
         // This should never happen.
-        assert debugMessage(DebugLogCategory.CONNECTION_HANDLING,
-                            DebugLogSeverity.ERROR, CLASS_NAME,
-                            "decodeCompoundFilter",
-                            "Invalid filter type " +
-                            byteToHex(element.getType()) +
-                            " for a compound filter");
+        if (debugEnabled())
+        {
+          debugError("Invalid filter type %x for a compound filter",
+                     element.getType());
+        }
         filterType = null;
     }
 
@@ -2379,7 +2291,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeCompoundFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_LDAP_FILTER_DECODE_COMPOUND_SET;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2402,7 +2317,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeCompoundFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_LDAP_FILTER_DECODE_COMPOUND_COMPONENTS;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2429,7 +2347,6 @@ public class LDAPFilter
   private static LDAPFilter decodeNotFilter(ASN1Element element)
           throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeNotFilter", String.valueOf(element));
 
 
     ASN1Element notFilterElement;
@@ -2439,7 +2356,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeNotFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_NOT_ELEMENT;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2458,7 +2378,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeNotFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_NOT_COMPONENT;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2487,8 +2410,6 @@ public class LDAPFilter
   private static LDAPFilter decodeTypeAndValueFilter(ASN1Element element)
           throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeTypeAndValueFilter",
-                      String.valueOf(element));
 
 
     FilterType filterType;
@@ -2508,12 +2429,11 @@ public class LDAPFilter
         break;
       default:
         // This should never happen.
-        assert debugMessage(DebugLogCategory.CONNECTION_HANDLING,
-                            DebugLogSeverity.ERROR, CLASS_NAME,
-                            "decodeTypeAndValueFilter",
-                            "Invalid filter type " +
-                            byteToHex(element.getType()) +
-                            " for a type-and-value filter");
+        if (debugEnabled())
+        {
+          debugError("Invalid filter type %x for a type-and-value filter",
+                     element.getType());
+        }
         filterType = null;
     }
 
@@ -2525,7 +2445,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeTypeAndValueFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2548,7 +2471,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeTypeAndValueFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_TYPE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2563,7 +2489,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeTypeAndValueFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_VALUE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2590,8 +2519,6 @@ public class LDAPFilter
   private static LDAPFilter decodeSubstringFilter(ASN1Element element)
           throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeSubstringFilter",
-                      String.valueOf(element));
 
 
     ArrayList<ASN1Element> elements;
@@ -2601,7 +2528,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSubstringFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2624,7 +2554,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSubstringFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_TYPE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2639,7 +2572,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSubstringFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2691,7 +2627,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSubstringFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_VALUES;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2719,8 +2658,6 @@ public class LDAPFilter
   private static LDAPFilter decodePresenceFilter(ASN1Element element)
           throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodePresenceFilter",
-                      String.valueOf(element));
 
 
     String attributeType;
@@ -2730,7 +2667,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodePresenceFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_PRESENCE_TYPE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2757,8 +2697,6 @@ public class LDAPFilter
   private static LDAPFilter decodeExtensibleMatchFilter(ASN1Element element)
           throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeExtensibleMatchFilter",
-                      String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -2767,7 +2705,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSubstringFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2810,7 +2751,10 @@ public class LDAPFilter
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeSubstringFilter", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_ELEMENTS;
       String message = getMessage(msgID, String.valueOf(e));
@@ -2837,7 +2781,6 @@ public class LDAPFilter
   public SearchFilter toSearchFilter()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "toSearchFilter");
 
 
     ArrayList<SearchFilter> subComps;
@@ -2968,7 +2911,6 @@ public class LDAPFilter
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -2985,7 +2927,6 @@ public class LDAPFilter
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     switch (filterType)
     {
@@ -3112,8 +3053,6 @@ public class LDAPFilter
   public static void valueToFilterString(StringBuilder buffer,
                                          ASN1OctetString value)
   {
-    assert debugEnter(CLASS_NAME, "valueToFilterString",
-                      "java.lang.StringBuilder", String.valueOf(value));
 
     if (value == null)
     {

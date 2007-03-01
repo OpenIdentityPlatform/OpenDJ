@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -30,7 +30,6 @@ package org.opends.server.types;
 
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -40,11 +39,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public final class ByteStringFactory
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.ByteStringFactory";
 
 
 
@@ -55,7 +49,6 @@ public final class ByteStringFactory
    */
   public static ByteString create()
   {
-    assert debugEnter(CLASS_NAME, "create");
 
     return new ASN1OctetString();
   }
@@ -74,8 +67,6 @@ public final class ByteStringFactory
    */
   public static ByteString create(byte[] value)
   {
-    assert debugEnter(CLASS_NAME, "create",
-                      "byte[" + value.length + "]");
 
     return new ASN1OctetString(value);
   }
@@ -94,7 +85,6 @@ public final class ByteStringFactory
    */
   public static ByteString create(String value)
   {
-    assert debugEnter(CLASS_NAME, "create", value);
 
     return new ASN1OctetString(value);
   }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -35,7 +35,6 @@ import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -49,11 +48,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public abstract class AccountStatusNotificationHandler
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.AccountStatusNotificationHandler";
 
 
 
@@ -86,8 +80,6 @@ public abstract class AccountStatusNotificationHandler
    */
   public void finalizeStatusNotificationHandler()
   {
-    assert debugEnter(CLASS_NAME,
-                      "finalizeStatusNotificationHandler");
 
     // No action is required by default.
   }
@@ -123,8 +115,6 @@ public abstract class AccountStatusNotificationHandler
   public void handleStatusNotification(
                    AccountStatusNotification notification)
   {
-    assert debugEnter(CLASS_NAME, "handleStatusNotification",
-                      String.valueOf(notification));
 
     handleStatusNotification(notification.getNotificationType(),
                              notification.getUserDN(),

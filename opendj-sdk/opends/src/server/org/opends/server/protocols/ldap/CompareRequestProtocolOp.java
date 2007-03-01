@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -34,13 +34,14 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
-
 
 
 /**
@@ -51,11 +52,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class CompareRequestProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.CompareRequestProtocolOp";
 
 
 
@@ -80,9 +76,6 @@ public class CompareRequestProtocolOp
   public CompareRequestProtocolOp(ASN1OctetString dn, String attributeType,
                                   ASN1OctetString assertionValue)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-                            String.valueOf(attributeType),
-                            String.valueOf(assertionValue));
 
     this.dn             = dn;
     this.attributeType  = attributeType;
@@ -98,7 +91,6 @@ public class CompareRequestProtocolOp
    */
   public ASN1OctetString getDN()
   {
-    assert debugEnter(CLASS_NAME, "getDN");
 
     return dn;
   }
@@ -112,7 +104,6 @@ public class CompareRequestProtocolOp
    */
   public void setDN(ASN1OctetString dn)
   {
-    assert debugEnter(CLASS_NAME, "setDN", String.valueOf(dn));
 
     this.dn = dn;
   }
@@ -126,7 +117,6 @@ public class CompareRequestProtocolOp
    */
   public String getAttributeType()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType");
 
     return attributeType;
   }
@@ -140,8 +130,6 @@ public class CompareRequestProtocolOp
    */
   public void setAttributeType(String attributeType)
   {
-    assert debugEnter(CLASS_NAME, "setAttributeType",
-                      String.valueOf(attributeType));
 
     this.attributeType = attributeType;
   }
@@ -155,7 +143,6 @@ public class CompareRequestProtocolOp
    */
   public ASN1OctetString getAssertionValue()
   {
-    assert debugEnter(CLASS_NAME, "getAssertionValue");
 
     return assertionValue;
   }
@@ -169,8 +156,6 @@ public class CompareRequestProtocolOp
    */
   public void setAssertionValue(ASN1OctetString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "setAssertionValue",
-                      String.valueOf(assertionValue));
 
     this.assertionValue = assertionValue;
   }
@@ -184,7 +169,6 @@ public class CompareRequestProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_COMPARE_REQUEST;
   }
@@ -198,7 +182,6 @@ public class CompareRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Compare Request";
   }
@@ -213,7 +196,6 @@ public class CompareRequestProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(dn);
@@ -242,8 +224,6 @@ public class CompareRequestProtocolOp
                                                                    element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeCompareRequest",
-                      String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -252,9 +232,12 @@ public class CompareRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeCompareRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_COMPARE_REQUEST_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_COMPARE_REQUEST_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -276,9 +259,12 @@ public class CompareRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeCompareRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_COMPARE_REQUEST_DECODE_DN;
+      int msgID = MSGID_LDAP_COMPARE_REQUEST_DECODE_DN;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -291,9 +277,12 @@ public class CompareRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeCompareRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_COMPARE_REQUEST_DECODE_AVA;
+      int msgID = MSGID_LDAP_COMPARE_REQUEST_DECODE_AVA;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -315,9 +304,12 @@ public class CompareRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeCompareRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_COMPARE_REQUEST_DECODE_TYPE;
+      int msgID = MSGID_LDAP_COMPARE_REQUEST_DECODE_TYPE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -330,9 +322,12 @@ public class CompareRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeCompareRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_COMPARE_REQUEST_DECODE_VALUE;
+      int msgID = MSGID_LDAP_COMPARE_REQUEST_DECODE_VALUE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -351,7 +346,6 @@ public class CompareRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("CompareRequest(dn=");
     dn.toString(buffer);
@@ -374,8 +368,6 @@ public class CompareRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

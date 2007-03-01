@@ -39,7 +39,6 @@ import java.util.Set;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
@@ -55,11 +54,6 @@ import static org.opends.server.util.Validator.*;
 public final class MatchingRuleUse
        implements SchemaFileElement
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.MatchingRuleUse";
 
 
 
@@ -117,13 +111,6 @@ public final class MatchingRuleUse
                          Set<AttributeType> attributes,
                          Map<String,List<String>> extraProperties)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(definition),
-                            String.valueOf(matchingRule),
-                            String.valueOf(names),
-                            String.valueOf(description),
-                            String.valueOf(isObsolete),
-                            String.valueOf(attributes),
-                            String.valueOf(extraProperties));
 
     ensureNotNull(definition, matchingRule);
 
@@ -173,7 +160,6 @@ public final class MatchingRuleUse
    */
   public String getDefinition()
   {
-    assert debugEnter(CLASS_NAME, "getDefinition");
 
     return definition;
   }
@@ -217,7 +203,6 @@ public final class MatchingRuleUse
    */
   public MatchingRule getMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRule");
 
     return matchingRule;
   }
@@ -233,7 +218,6 @@ public final class MatchingRuleUse
    */
   public Map<String,String> getNames()
   {
-    assert debugEnter(CLASS_NAME, "getNames");
 
     return names;
   }
@@ -249,7 +233,6 @@ public final class MatchingRuleUse
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     if (names.isEmpty())
     {
@@ -274,8 +257,6 @@ public final class MatchingRuleUse
    */
   public boolean hasName(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "hasName",
-                      String.valueOf(lowerName));
 
     return names.containsKey(lowerName);
   }
@@ -292,7 +273,6 @@ public final class MatchingRuleUse
    */
   public String getSchemaFile()
   {
-    assert debugEnter(CLASS_NAME, "getSchemaFile");
 
     List<String> values =
          extraProperties.get(SCHEMA_PROPERTY_FILENAME);
@@ -315,8 +295,6 @@ public final class MatchingRuleUse
    */
   public void setSchemaFile(String schemaFile)
   {
-    assert debugEnter(CLASS_NAME, "setSchemaFile",
-                      String.valueOf(schemaFile));
 
     setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
@@ -331,7 +309,6 @@ public final class MatchingRuleUse
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return description;
   }
@@ -346,7 +323,6 @@ public final class MatchingRuleUse
    */
   public boolean isObsolete()
   {
-    assert debugEnter(CLASS_NAME, "isObsolete");
 
     return isObsolete;
   }
@@ -362,7 +338,6 @@ public final class MatchingRuleUse
    */
   public Set<AttributeType> getAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getAttributes");
 
     return attributes;
   }
@@ -382,8 +357,6 @@ public final class MatchingRuleUse
    */
   public boolean appliesToAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "appliesToAttribute",
-                      String.valueOf(attributeType));
 
     return attributes.contains(attributeType);
   }
@@ -401,7 +374,6 @@ public final class MatchingRuleUse
    */
   public Map<String,List<String>> getExtraProperties()
   {
-    assert debugEnter(CLASS_NAME, "getExtraProperties");
 
     return extraProperties;
   }
@@ -421,8 +393,6 @@ public final class MatchingRuleUse
    */
   public List<String> getExtraProperty(String propertyName)
   {
-    assert debugEnter(CLASS_NAME, "getExtraProperty",
-                      String.valueOf(propertyName));
 
     return extraProperties.get(propertyName);
   }
@@ -440,8 +410,6 @@ public final class MatchingRuleUse
    */
   public void setExtraProperty(String name, String value)
   {
-    assert debugEnter(CLASS_NAME, "setExtraProperty",
-                      String.valueOf(name), String.valueOf(value));
 
     ensureNotNull(name);
 
@@ -471,8 +439,6 @@ public final class MatchingRuleUse
    */
   public void setExtraProperty(String name, List<String> values)
   {
-    assert debugEnter(CLASS_NAME, "setExtraProperty",
-                      String.valueOf(name), String.valueOf(values));
 
     ensureNotNull(name);
 
@@ -501,7 +467,6 @@ public final class MatchingRuleUse
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals");
 
     if (this == o)
     {
@@ -526,7 +491,6 @@ public final class MatchingRuleUse
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     return matchingRule.hashCode();
   }
@@ -542,7 +506,6 @@ public final class MatchingRuleUse
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer, true);
@@ -565,9 +528,6 @@ public final class MatchingRuleUse
   public void toString(StringBuilder buffer,
                        boolean includeFileElement)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder",
-                      String.valueOf(includeFileElement));
 
     buffer.append("( ");
     buffer.append(matchingRule.getOID());

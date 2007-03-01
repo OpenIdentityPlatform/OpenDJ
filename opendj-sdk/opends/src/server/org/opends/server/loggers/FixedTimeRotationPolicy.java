@@ -22,18 +22,17 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.util.TimeThread;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 
 /**
  * This class implements a rotation policy based on fixed
@@ -41,8 +40,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class FixedTimeRotationPolicy implements RotationPolicy
 {
-  private static final String CLASS_NAME =
-    "org.opends.server.loggers.FixedTimeRotationPolicy";
 
   private static final long NEXT_DAY = 24 * 3600 * 1000;
 
@@ -58,7 +55,6 @@ public class FixedTimeRotationPolicy implements RotationPolicy
 
   public FixedTimeRotationPolicy(int[] timeOfDays)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(timeOfDays));
 
     Calendar cal = new GregorianCalendar();
     cal.set( Calendar.MILLISECOND, 0 );
@@ -91,18 +87,21 @@ public class FixedTimeRotationPolicy implements RotationPolicy
    */
   public boolean rotateFile()
   {
-    assert debugEnter(CLASS_NAME, "rotateFile");
 
     long currTime = TimeThread.getTime();
-    assert debugMessage(DebugLogCategory.CORE_SERVER,
-                        DebugLogSeverity.INFO, CLASS_NAME, "rotateFile",
-                        "Rotation at fixed time:" + currTime +
-                        " nextRotationTime:" + nextRotationTime);
+    if (debugEnabled())
+    {
+      debugInfo("Rotation at fixed time: %d nextRotationTime: %d",
+                currTime, nextRotationTime);
+    }
 
     if(currTime > nextRotationTime)
     {
       nextRotationTime = getNextRotationTime(currTime, nextRotationTime);
-      //System.out.println("Setting next rotation time to:" + nextRotationTime);
+      if (debugEnabled())
+      {
+        debugInfo("Setting next rotation to : %d", nextRotationTime);
+      }
       return true;
     }
     return false;

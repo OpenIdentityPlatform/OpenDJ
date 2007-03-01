@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -36,7 +36,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -48,11 +47,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public abstract class ExtendedOperationHandler
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.ExtendedOperationHandler";
 
 
 
@@ -97,7 +91,6 @@ public abstract class ExtendedOperationHandler
    */
   public void finalizeExtendedOperationHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeExtendedOperationHandler");
 
     // No implementation is required by default.
   }
@@ -125,7 +118,6 @@ public abstract class ExtendedOperationHandler
    */
   public Set<String> getSupportedControls()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return supportedControlOIDs;
   }
@@ -144,8 +136,6 @@ public abstract class ExtendedOperationHandler
    */
   public final boolean supportsControl(String controlOID)
   {
-    assert debugEnter(CLASS_NAME, "supportsControl",
-                      String.valueOf(controlOID));
 
     return getSupportedControls().contains(controlOID);
   }
@@ -161,7 +151,6 @@ public abstract class ExtendedOperationHandler
    */
   public Set<String> getSupportedFeatures()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return supportedFeatureOIDs;
   }
@@ -180,8 +169,6 @@ public abstract class ExtendedOperationHandler
    */
   public final boolean supportsFeature(String featureOID)
   {
-    assert debugEnter(CLASS_NAME, "supportsFeature",
-                      String.valueOf(featureOID));
 
     return getSupportedFeatures().contains(featureOID);
   }

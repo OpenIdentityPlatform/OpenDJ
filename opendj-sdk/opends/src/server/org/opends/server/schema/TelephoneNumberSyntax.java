@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -51,7 +51,9 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -72,11 +74,6 @@ public class TelephoneNumberSyntax
        extends AttributeSyntax
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.TelephoneNumberSyntax";
 
 
 
@@ -104,7 +101,6 @@ public class TelephoneNumberSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -122,8 +118,6 @@ public class TelephoneNumberSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_TELEPHONE_OID);
@@ -170,7 +164,10 @@ public class TelephoneNumberSyntax
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeSyntax", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -188,7 +185,6 @@ public class TelephoneNumberSyntax
    */
   public void finalizeSyntax()
   {
-    assert debugEnter(CLASS_NAME, "finalizeSyntax");
 
     DirectoryServer.deregisterConfigurableComponent(this);
   }
@@ -202,7 +198,6 @@ public class TelephoneNumberSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_TELEPHONE_NAME;
   }
@@ -216,7 +211,6 @@ public class TelephoneNumberSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_TELEPHONE_OID;
   }
@@ -230,7 +224,6 @@ public class TelephoneNumberSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_TELEPHONE_DESCRIPTION;
   }
@@ -247,7 +240,6 @@ public class TelephoneNumberSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -264,7 +256,6 @@ public class TelephoneNumberSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     // There is no ordering matching rule by default.
     return null;
@@ -282,7 +273,6 @@ public class TelephoneNumberSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return defaultSubstringMatchingRule;
   }
@@ -299,7 +289,6 @@ public class TelephoneNumberSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     // There is no approximate matching rule by default.
     return null;
@@ -322,8 +311,6 @@ public class TelephoneNumberSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
 
     // No matter what, the value can't be empty or null.
@@ -416,7 +403,6 @@ public class TelephoneNumberSyntax
    */
   private boolean isSeparator(char c)
   {
-    assert debugEnter(CLASS_NAME, "isSeparator", String.valueOf(c));
 
     switch (c)
     {
@@ -439,7 +425,6 @@ public class TelephoneNumberSyntax
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -455,7 +440,6 @@ public class TelephoneNumberSyntax
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
@@ -487,8 +471,6 @@ public class TelephoneNumberSyntax
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     boolean configIsAcceptable = true;
@@ -510,7 +492,10 @@ public class TelephoneNumberSyntax
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -544,9 +529,6 @@ public class TelephoneNumberSyntax
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -580,7 +562,10 @@ public class TelephoneNumberSyntax
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),

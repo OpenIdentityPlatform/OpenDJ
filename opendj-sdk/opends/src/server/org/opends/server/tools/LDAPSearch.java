@@ -69,8 +69,10 @@ import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultReferenceProtocolOp;
 import org.opends.server.types.DN;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -88,7 +90,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class LDAPSearch
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME = "org.opends.server.tools.LDAPSearch";
 
@@ -324,7 +326,10 @@ public class LDAPSearch
 
         } catch(ASN1Exception ae)
         {
-          assert debugException(CLASS_NAME, "executeSearch", ae);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, ae);
+          }
           throw new IOException(ae.getMessage());
         }
       }
@@ -854,7 +859,10 @@ public class LDAPSearch
         filters.add(LDAPFilter.decode(filterString));
       } catch(LDAPException le)
       {
-        assert debugException(CLASS_NAME, "main", le);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, le);
+        }
         err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
         return 1;
       }
@@ -909,7 +917,10 @@ public class LDAPSearch
       portNumber = port.getIntValue();
     } catch(ArgumentException ae)
     {
-      assert debugException(CLASS_NAME, "main", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
@@ -927,7 +938,10 @@ public class LDAPSearch
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
-      assert debugException(CLASS_NAME, "main", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
@@ -954,7 +968,10 @@ public class LDAPSearch
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
-        assert debugException(CLASS_NAME, "main", ex);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ex);
+        }
         err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
         return 1;
       }
@@ -1278,7 +1295,10 @@ public class LDAPSearch
         }
       } catch(Exception e)
       {
-        assert debugException(CLASS_NAME, "main", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
         return 1;
       }
@@ -1429,19 +1449,28 @@ public class LDAPSearch
 
     } catch(LDAPException le)
     {
-      assert debugException(CLASS_NAME, "main", le);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, le);
+      }
       err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
     {
-        assert debugException(CLASS_NAME, "main", lce);
-        err.println(wrapText(lce.getMessage(), MAX_LINE_WIDTH));
-        int code = lce.getErrorCode();
-        return code;
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, lce);
+      }
+      err.println(wrapText(lce.getMessage(), MAX_LINE_WIDTH));
+      int code = lce.getErrorCode();
+      return code;
     } catch(Exception e)
     {
-      assert debugException(CLASS_NAME, "main", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
       return 1;
     } finally

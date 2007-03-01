@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
 
@@ -43,7 +43,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -59,11 +58,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class BooleanConfigAttribute
        extends ConfigAttribute
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.config.BooleanConfigAttribute";
 
 
 
@@ -92,9 +86,6 @@ public class BooleanConfigAttribute
   {
     super(name, description, true, false, requiresAdminAction);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(name),
-                            String.valueOf(description),
-                            String.valueOf(requiresAdminAction));
   }
 
 
@@ -118,11 +109,6 @@ public class BooleanConfigAttribute
   {
     super(name, description, true, false, requiresAdminAction,
           getValueSet(value));
-
-    assert debugConstructor(CLASS_NAME, String.valueOf(name),
-                            String.valueOf(description),
-                            String.valueOf(requiresAdminAction),
-                            String.valueOf(value));
 
     activeValue  = value;
     pendingValue = value;
@@ -152,11 +138,6 @@ public class BooleanConfigAttribute
     super(name, description, true, false, requiresAdminAction,
           getValueSet(activeValue), true, getValueSet(pendingValue));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(name),
-                            String.valueOf(description),
-                            String.valueOf(requiresAdminAction),
-                            String.valueOf(activeValue),
-                            String.valueOf(pendingValue));
 
     this.activeValue  = activeValue;
     this.pendingValue = pendingValue;
@@ -174,7 +155,6 @@ public class BooleanConfigAttribute
    */
   public String getDataType()
   {
-    assert debugEnter(CLASS_NAME, "getDataType");
 
     return "Boolean";
   }
@@ -188,7 +168,6 @@ public class BooleanConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-    assert debugEnter(CLASS_NAME,"getSyntax");
 
     return DirectoryServer.getDefaultBooleanSyntax();
   }
@@ -202,7 +181,6 @@ public class BooleanConfigAttribute
    */
   public boolean activeValue()
   {
-    assert debugEnter(CLASS_NAME, "booleanValue");
 
     return activeValue;
   }
@@ -217,7 +195,6 @@ public class BooleanConfigAttribute
    */
   public boolean pendingValue()
   {
-    assert debugEnter(CLASS_NAME, "booleanValue");
 
     if (hasPendingValues())
     {
@@ -238,8 +215,6 @@ public class BooleanConfigAttribute
    */
   public void setValue(boolean booleanValue)
   {
-    assert debugEnter(CLASS_NAME, "setValue",
-                      String.valueOf(booleanValue));
 
     if (requiresAdminAction())
     {
@@ -264,7 +239,6 @@ public class BooleanConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(boolean booleanValue)
   {
-    assert debugEnter(CLASS_NAME, "getValueSet", String.valueOf(booleanValue));
 
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
@@ -291,7 +265,6 @@ public class BooleanConfigAttribute
    */
   public void applyPendingValues()
   {
-    assert debugEnter(CLASS_NAME, "applyPendingValues");
 
     if (! hasPendingValues())
     {
@@ -319,8 +292,6 @@ public class BooleanConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
     String stringValue = value.getStringValue();
     if (stringValue.equalsIgnoreCase(CONFIG_VALUE_TRUE) ||
@@ -360,9 +331,6 @@ public class BooleanConfigAttribute
                               boolean allowFailures)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "stringsToValues",
-                      String.valueOf(valueStrings),
-                      String.valueOf(allowFailures));
 
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
@@ -413,7 +381,6 @@ public class BooleanConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-    assert debugEnter(CLASS_NAME, "activeValuesToStrings");
 
     ArrayList<String> valueStrings = new ArrayList<String>(1);
     valueStrings.add(String.valueOf(activeValue));
@@ -436,7 +403,6 @@ public class BooleanConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-    assert debugEnter(CLASS_NAME, "pendingValuesToStrings");
 
     if (hasPendingValues())
     {
@@ -477,8 +443,6 @@ public class BooleanConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getConfigAttribute",
-                      String.valueOf(attributeList));
 
 
     boolean activeValue     = false;
@@ -644,7 +608,6 @@ public class BooleanConfigAttribute
    */
   public javax.management.Attribute toJMXAttribute()
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttribute");
 
     return new javax.management.Attribute(getName(), activeValue);
   }
@@ -677,8 +640,6 @@ public class BooleanConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttribute",
-                      String.valueOf(attributeList));
 
     attributeList.add(new javax.management.Attribute(getName(), activeValue));
 
@@ -705,8 +666,6 @@ public class BooleanConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttributeInfo",
-                      String.valueOf(attributeInfoList));
 
     attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                  Boolean.class.getName(),
@@ -734,7 +693,6 @@ public class BooleanConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-    assert debugEnter(CLASS_NAME, "toJMXParameterInfo");
 
     return new MBeanParameterInfo(getName(), Boolean.TYPE.getName(),
                                   getDescription());
@@ -756,7 +714,6 @@ public class BooleanConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(jmxAttribute));
 
     Object value = jmxAttribute.getValue();
     if (value instanceof Boolean)
@@ -801,7 +758,6 @@ public class BooleanConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     return new BooleanConfigAttribute(getName(), getDescription(),
                                       requiresAdminAction(), activeValue,

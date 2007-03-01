@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -40,7 +40,6 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -55,11 +54,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class UUIDSyntax
        extends AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.UUIDSyntax";
 
 
 
@@ -81,7 +75,6 @@ public class UUIDSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -99,8 +92,6 @@ public class UUIDSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_UUID_OID);
@@ -130,7 +121,6 @@ public class UUIDSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_UUID_NAME;
   }
@@ -144,7 +134,6 @@ public class UUIDSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_UUID_OID;
   }
@@ -158,7 +147,6 @@ public class UUIDSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_UUID_DESCRIPTION;
   }
@@ -175,7 +163,6 @@ public class UUIDSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -192,7 +179,6 @@ public class UUIDSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     return defaultOrderingMatchingRule;
   }
@@ -209,7 +195,6 @@ public class UUIDSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     // There is no substring matching rule by default.
     return null;
@@ -227,7 +212,6 @@ public class UUIDSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     // There is no approximate matching rule by default.
     return null;
@@ -250,8 +234,6 @@ public class UUIDSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
 
     // We will only accept values that look like valid UUIDs.  This means that
@@ -266,7 +248,6 @@ public class UUIDSyntax
                                       valueString.length()));
       return false;
     }
-
 
     // Next, iterate through each character.  Make sure that the 9th, 14th,
     // 19th, and 24th characters are dashes and the rest are hex digits.

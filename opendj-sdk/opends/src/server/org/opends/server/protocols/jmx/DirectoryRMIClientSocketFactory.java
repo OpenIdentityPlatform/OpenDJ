@@ -22,14 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
 
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
-import static org.opends.server.loggers.Debug.debugException;
-import static org.opends.server.loggers.Debug.debugMessage;
+import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 import java.io.IOException;
 
@@ -46,9 +46,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
-
 /**
  * A <code>DirectoryRMIClientSocketFactory</code> instance is used by the
  * RMI runtime in order to obtain client sockets for RMI calls via SSL.
@@ -61,11 +58,6 @@ public class DirectoryRMIClientSocketFactory implements
     RMIClientSocketFactory, Serializable
 {
 
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-    "org.opends.server.protocols.jmx.DirectoryRMIClientSocketFactory";
 
   /**
    * The serial version identifier required to satisfy the compiler because
@@ -116,7 +108,6 @@ public class DirectoryRMIClientSocketFactory implements
    */
   public DirectoryRMIClientSocketFactory(boolean wellknown)
   {
-    assert debugConstructor(CLASS_NAME);
     this.needClientCertificate = wellknown;
 
     // We don't force the initialization of the SSLSocketFactory
@@ -297,15 +288,12 @@ public class DirectoryRMIClientSocketFactory implements
   private synchronized SSLSocketFactory getSSLSocketFactory()
       throws IOException
   {
-    assert debugEnter(CLASS_NAME, "getSSLSocketFactory");
     if (sslSocketFactory == null)
     {
-      assert debugMessage(
-          DebugLogCategory.CONNECTION_HANDLING,
-          DebugLogSeverity.VERBOSE,
-          CLASS_NAME,
-          "getSSLSocketFactory",
-          "sslSocketFactory is null, get a new one");
+      if (debugEnabled())
+      {
+        debugVerbose("sslSocketFactory is null, get a new one");
+      }
 
       // socket factory not yet initialized
       // initialize the trust
@@ -318,7 +306,7 @@ public class DirectoryRMIClientSocketFactory implements
       // Env. If yes, use it for this SSL Connection
       if ((connectionEnv != null)
           && (connectionEnv
-              .containsKey(JmxConnectionHandler.TRUST_MANAGER_ARRAY_KEY)))
+          .containsKey(JmxConnectionHandler.TRUST_MANAGER_ARRAY_KEY)))
       {
         try
         {
@@ -327,7 +315,10 @@ public class DirectoryRMIClientSocketFactory implements
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "getSSLSocketFactory", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           tms = null;
         }
 
@@ -340,7 +331,7 @@ public class DirectoryRMIClientSocketFactory implements
               + JmxConnectionHandler.TRUST_MANAGER_ARRAY_KEY
               + "] in connection environment : "
               + connectionEnv
-                  .get(JmxConnectionHandler.TRUST_MANAGER_ARRAY_KEY));
+              .get(JmxConnectionHandler.TRUST_MANAGER_ARRAY_KEY));
         }
       }
 
@@ -354,7 +345,10 @@ public class DirectoryRMIClientSocketFactory implements
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "getSSLSocketFactory", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         throw new IOException("Unable to initialize SSL context : "
             + e.getMessage());
       }

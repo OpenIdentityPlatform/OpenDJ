@@ -22,12 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 
 import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
@@ -49,9 +46,6 @@ import org.opends.server.util.StaticUtils;
 public abstract class SimpleSubtreeSpecification extends
     SubtreeSpecification {
 
-  // Fully qualified class name for debugging purposes.
-  private static final String CLASS_NAME = SimpleSubtreeSpecification.class
-      .getName();
 
   // The absolute base of the subtree.
   private DN baseDN;
@@ -379,7 +373,6 @@ public abstract class SimpleSubtreeSpecification extends
    */
   protected SimpleSubtreeSpecification(DN baseDN, int minimumDepth,
       int maximumDepth, Iterable<DN> chopBefore, Iterable<DN> chopAfter) {
-    assert debugConstructor(CLASS_NAME);
 
     this.baseDN = baseDN;
     this.minimumDepth = minimumDepth;
@@ -421,7 +414,6 @@ public abstract class SimpleSubtreeSpecification extends
    *         otherwise.
    */
   protected final boolean isDNWithinScope(DN dn) {
-    assert debugEnter(CLASS_NAME, "isDNWithinScope");
 
     if (!dn.isDescendantOf(baseDN)) {
       return false;
@@ -473,7 +465,6 @@ public abstract class SimpleSubtreeSpecification extends
    * @return Returns the absolute base DN of the subtree specification.
    */
   protected final DN getBaseDN() {
-    assert debugEnter(CLASS_NAME, "getBaseDN");
     return baseDN;
   }
 
@@ -487,7 +478,6 @@ public abstract class SimpleSubtreeSpecification extends
    */
   protected final boolean commonComponentsEquals(
       SimpleSubtreeSpecification other) {
-    assert debugEnter(CLASS_NAME, "commonComponentsEquals");
 
     if (this == other) {
       return true;
@@ -526,7 +516,6 @@ public abstract class SimpleSubtreeSpecification extends
    * @return The computed hash code.
    */
   protected final int commonComponentsHashCode() {
-    assert debugEnter(CLASS_NAME, "commonComponentsHashCode");
 
     int hash = minimumDepth * 31 + maximumDepth;
 
@@ -548,7 +537,6 @@ public abstract class SimpleSubtreeSpecification extends
    *         <code>null</code> if there are not any.
    */
   public final Iterable<DN> getChopAfter() {
-    assert debugEnter(CLASS_NAME, "getChopAfter");
 
     if (chopAfter != null) {
       return chopAfter.values();
@@ -564,7 +552,6 @@ public abstract class SimpleSubtreeSpecification extends
    *         <code>null</code> if there are not any.
    */
   public final Iterable<DN> getChopBefore() {
-    assert debugEnter(CLASS_NAME, "getChopBefore");
 
     if (chopBefore != null) {
       return chopBefore.values();
@@ -579,7 +566,6 @@ public abstract class SimpleSubtreeSpecification extends
    * @return Returns the maximum depth (<0 indicates unlimited depth).
    */
   public final int getMaximumDepth() {
-    assert debugEnter(CLASS_NAME, "getMaximumDepth");
     return maximumDepth;
   }
 
@@ -589,7 +575,6 @@ public abstract class SimpleSubtreeSpecification extends
    * @return Returns the minimum depth (<=0 indicates unlimited depth).
    */
   public final int getMinimumDepth() {
-    assert debugEnter(CLASS_NAME, "getMinimumDepth");
     return minimumDepth;
   }
 }

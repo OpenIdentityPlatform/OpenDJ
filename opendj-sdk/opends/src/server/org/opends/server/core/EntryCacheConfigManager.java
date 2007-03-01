@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -46,7 +46,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -62,11 +64,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class EntryCacheConfigManager
        implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.EntryCacheConfigManager";
 
 
 
@@ -75,7 +72,6 @@ public class EntryCacheConfigManager
    */
   public EntryCacheConfigManager()
   {
-    assert debugConstructor(CLASS_NAME);
 
     // No implementation is required.
   }
@@ -94,7 +90,6 @@ public class EntryCacheConfigManager
   public void initializeEntryCache()
          throws InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeEntryCache");
 
 
     // First, install a default entry cache so that there will be one even if
@@ -107,7 +102,10 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_ENTRYCACHE_CANNOT_INSTALL_DEFAULT_CACHE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -126,7 +124,10 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_ENTRYCACHE_CANNOT_GET_CONFIG_ENTRY,
@@ -150,7 +151,10 @@ public class EntryCacheConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeEntryCache", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                  MSGID_CONFIG_ENTRYCACHE_CANNOT_REGISTER_ADD_LISTENER,
@@ -177,7 +181,10 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_WARNING,
                MSGID_CONFIG_ENTRYCACHE_CANNOT_REGISTER_DELETE_LISTENER,
@@ -215,7 +222,10 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_ENTRYCACHE_UNABLE_TO_DETERMINE_ENABLED_STATE,
@@ -247,7 +257,10 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_ENTRYCACHE_CANNOT_DETERMINE_CLASS,
@@ -265,7 +278,10 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_ENTRYCACHE_CANNOT_LOAD_CLASS,
@@ -280,7 +296,10 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_ENTRYCACHE_CANNOT_INSTANTIATE_CLASS,
@@ -296,7 +315,10 @@ public class EntryCacheConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeEntryCache", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE,
@@ -329,8 +351,6 @@ public class EntryCacheConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configChangeIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // NYI
@@ -356,8 +376,6 @@ public class EntryCacheConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationChange",
-                      String.valueOf(configEntry));
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -388,8 +406,6 @@ public class EntryCacheConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configAddIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // NYI
@@ -414,8 +430,6 @@ public class EntryCacheConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationAdd",
-                      String.valueOf(configEntry));
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -446,8 +460,6 @@ public class EntryCacheConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configDeleteIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // NYI
@@ -471,8 +483,6 @@ public class EntryCacheConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationDelete",
-                      String.valueOf(configEntry));
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;

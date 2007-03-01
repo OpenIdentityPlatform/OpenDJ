@@ -28,10 +28,9 @@
 package org.opends.server.synchronization.protocol;
 
 import org.opends.server.api.DirectoryThread;
-import static org.opends.server.loggers.Debug.debugMessage;
-import static org.opends.server.types.DebugLogCategory.SYNCHRONIZATION;
-import static org.opends.server.types.DebugLogSeverity.INFO;
-import static org.opends.server.types.DebugLogSeverity.VERBOSE;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 
 import java.io.IOException;
 
@@ -42,12 +41,6 @@ import java.io.IOException;
  */
 public class HeartbeatThread extends DirectoryThread
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.synchronization.plugin.HeartbeatThread";
-
 
   /**
    * For test purposes only to simulate loss of heartbeats.
@@ -95,25 +88,30 @@ public class HeartbeatThread extends DirectoryThread
   {
     try
     {
-      debugMessage(SYNCHRONIZATION, INFO, CLASS_NAME, "run",
-                   "Heartbeat thread is starting, interval is " +
-                        heartbeatInterval);
+      if (debugEnabled())
+      {
+        debugInfo("Heartbeat thread is starting, interval is %d",
+                  heartbeatInterval);
+      }
       HeartbeatMessage heartbeatMessage = new HeartbeatMessage();
 
       while (!shutdown)
       {
         long now = System.currentTimeMillis();
-        debugMessage(SYNCHRONIZATION, VERBOSE, CLASS_NAME, "run",
-                     "Heartbeat thread awoke at " + now +
-                          ", last message was sent at " +
-                          session.getLastPublishTime());
+        if (debugEnabled())
+        {
+          debugVerbose("Heartbeat thread awoke at %d, last message was sent " +
+              "at %d", now, session.getLastPublishTime());
+        }
 
         if (now > session.getLastPublishTime() + heartbeatInterval)
         {
           if (!heartbeatsDisabled)
           {
-            debugMessage(SYNCHRONIZATION, VERBOSE, CLASS_NAME, "run",
-                         "Heartbeat sent at " + now);
+            if (debugEnabled())
+            {
+              debugVerbose("Heartbeat sent at %d", now);
+            }
             session.publish(heartbeatMessage);
           }
         }
@@ -121,14 +119,16 @@ public class HeartbeatThread extends DirectoryThread
         try
         {
           long sleepTime = session.getLastPublishTime() +
-               heartbeatInterval - now;
+              heartbeatInterval - now;
           if (sleepTime <= 0)
           {
             sleepTime = heartbeatInterval;
           }
 
-          debugMessage(SYNCHRONIZATION, VERBOSE, CLASS_NAME, "run",
-                       "Heartbeat thread sleeping for " + sleepTime);
+          if (debugEnabled())
+          {
+            debugVerbose("Heartbeat thread sleeping for %d", sleepTime);
+          }
           Thread.sleep(sleepTime);
         }
         catch (InterruptedException e)
@@ -139,14 +139,18 @@ public class HeartbeatThread extends DirectoryThread
     }
     catch (IOException e)
     {
-      debugMessage(SYNCHRONIZATION, INFO, CLASS_NAME, "run",
-                   "Heartbeat thread could not send a heartbeat.");
+      if (debugEnabled())
+      {
+        debugInfo("Heartbeat thread could not send a heartbeat.");
+      }
       // This will be caught in another thread.
     }
     finally
     {
-      debugMessage(SYNCHRONIZATION, INFO, CLASS_NAME, "run",
-                   "Heartbeat thread is exiting.");
+      if (debugEnabled())
+      {
+        debugInfo("Heartbeat thread is exiting.");
+      }
     }
   }
 

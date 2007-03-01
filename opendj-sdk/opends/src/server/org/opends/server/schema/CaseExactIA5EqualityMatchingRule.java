@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -42,7 +42,6 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -57,11 +56,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class CaseExactIA5EqualityMatchingRule
        extends EqualityMatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.CaseExactIA5EqualityMatchingRule";
 
 
 
@@ -72,7 +66,6 @@ public class CaseExactIA5EqualityMatchingRule
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -94,8 +87,6 @@ public class CaseExactIA5EqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMatchingRule",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -110,7 +101,6 @@ public class CaseExactIA5EqualityMatchingRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return EMR_CASE_EXACT_IA5_NAME;
   }
@@ -124,7 +114,6 @@ public class CaseExactIA5EqualityMatchingRule
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return EMR_CASE_EXACT_IA5_OID;
   }
@@ -139,7 +128,6 @@ public class CaseExactIA5EqualityMatchingRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     // There is no standard description for this matching rule.
     return null;
@@ -155,7 +143,6 @@ public class CaseExactIA5EqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxOID");
 
     return SYNTAX_IA5_STRING_OID;
   }
@@ -176,7 +163,6 @@ public class CaseExactIA5EqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalizeValue", String.valueOf(value));
 
     StringBuilder buffer = new StringBuilder();
     buffer.append(value.stringValue().trim());
@@ -259,8 +245,6 @@ public class CaseExactIA5EqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-    assert debugEnter(CLASS_NAME, "areEqual", String.valueOf(value1),
-                      String.valueOf(value2));
 
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.

@@ -29,10 +29,8 @@ package org.opends.server.synchronization.plugin;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.synchronization.protocol.ProtocolSession;
-import static org.opends.server.loggers.Debug.debugMessage;
-import static org.opends.server.types.DebugLogCategory.SYNCHRONIZATION;
-import static org.opends.server.types.DebugLogSeverity.INFO;
-
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import java.io.IOException;
 
 /**
@@ -41,11 +39,6 @@ import java.io.IOException;
  */
 public class HeartbeatMonitor extends DirectoryThread
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.synchronization.plugin.HeartbeatMonitor";
 
 
   /**
@@ -97,9 +90,11 @@ public class HeartbeatMonitor extends DirectoryThread
   @Override
   public void run()
   {
-    debugMessage(SYNCHRONIZATION, INFO, CLASS_NAME, "run",
-                 "Heartbeat monitor is starting, expected interval is "
-                      + heartbeatInterval);
+    if (debugEnabled())
+    {
+      debugInfo("Heartbeat monitor is starting, expected interval is %d",
+                heartbeatInterval);
+    }
     try
     {
       while (!shutdown)
@@ -109,10 +104,11 @@ public class HeartbeatMonitor extends DirectoryThread
         if (now > lastReceiveTime + 2 * heartbeatInterval)
         {
           // Heartbeat is well overdue so the server is assumed to be dead.
-          debugMessage(SYNCHRONIZATION, INFO, CLASS_NAME, "run",
-                       "Heartbeat monitor is closing the broker " +
-                            "session because it could not detect a " +
-                            "heartbeat.");
+          if (debugEnabled())
+          {
+            debugInfo("Heartbeat monitor is closing the broker session " +
+                "because it could not detect a heartbeat.");
+          }
           session.close();
           break;
         }
@@ -132,8 +128,10 @@ public class HeartbeatMonitor extends DirectoryThread
     }
     finally
     {
-      debugMessage(SYNCHRONIZATION, INFO, CLASS_NAME, "run",
-                   "Heartbeat monitor is exiting.");
+      if (debugEnabled())
+      {
+        debugInfo("Heartbeat monitor is exiting.");
+      }
     }
   }
 }

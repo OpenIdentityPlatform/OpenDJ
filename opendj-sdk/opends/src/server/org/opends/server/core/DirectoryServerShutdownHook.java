@@ -22,16 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 
-import static org.opends.server.loggers.Debug.*;
+import org.opends.server.loggers.debug.DebugLogger;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 
@@ -47,7 +45,7 @@ public class DirectoryServerShutdownHook
        extends DirectoryThread
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
        "org.opends.server.core.DirectoryServerShutdownHook";
@@ -62,7 +60,6 @@ public class DirectoryServerShutdownHook
   {
     super("Directory Server Shutdown Hook");
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -72,10 +69,8 @@ public class DirectoryServerShutdownHook
    */
   public void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
-    assert debugMessage(DebugLogCategory.CORE_SERVER,
-                        DebugLogSeverity.INFO, CLASS_NAME, "run",
-                        "Directory Server shutdown hook has been invoked.");
+    DebugLogger.debugInfo(
+        "Directory Server shutdown hook has been invoked.");
 
     DirectoryServer.shutDown(CLASS_NAME,
                              getMessage(MSGID_SHUTDOWN_DUE_TO_SHUTDOWN_HOOK));

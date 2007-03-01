@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -39,11 +34,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class DigestMD5StateInfo
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.DigestMD5StateInfo";
 
 
 
@@ -66,8 +56,6 @@ public class DigestMD5StateInfo
    */
   public DigestMD5StateInfo(String nonce, String nonceCount)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(nonce),
-                            String.valueOf(nonceCount));
 
     this.nonce      = nonce;
     this.nonceCount = nonceCount;
@@ -83,7 +71,6 @@ public class DigestMD5StateInfo
    */
   public String getNonce()
   {
-    assert debugEnter(CLASS_NAME, "getNonce");
 
     return nonce;
   }
@@ -99,7 +86,6 @@ public class DigestMD5StateInfo
    */
   public String getNonceCount()
   {
-    assert debugEnter(CLASS_NAME, "getNonceCount");
 
     return nonceCount;
   }
@@ -115,7 +101,6 @@ public class DigestMD5StateInfo
    */
   public void setNonceCount(String nonceCount)
   {
-    assert debugEnter(CLASS_NAME, "setNonceCount", String.valueOf(nonceCount));
 
     this.nonceCount = nonceCount;
   }

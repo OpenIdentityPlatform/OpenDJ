@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
@@ -57,11 +56,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class ASN1Long
        extends ASN1Element
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.asn1.ASN1Long";
 
 
 
@@ -91,7 +85,6 @@ public class ASN1Long
   {
     super(UNIVERSAL_INTEGER_TYPE, encodeLongValue(longValue));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(longValue));
 
     this.longValue = longValue;
   }
@@ -108,8 +101,6 @@ public class ASN1Long
   {
     super(type, encodeLongValue(longValue));
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type),
-                            String.valueOf(longValue));
 
     this.longValue = longValue;
   }
@@ -127,8 +118,6 @@ public class ASN1Long
   {
     super(type, value);
 
-    assert debugConstructor(CLASS_NAME, byteToHex(type), bytesToHex(value),
-                            String.valueOf(longValue));
 
     this.longValue = longValue;
   }
@@ -142,7 +131,6 @@ public class ASN1Long
    */
   public long longValue()
   {
-    assert debugEnter(CLASS_NAME, "longValue");
 
     return longValue;
   }
@@ -156,7 +144,6 @@ public class ASN1Long
    */
   public void setValue(long longValue)
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(longValue));
 
     this.longValue = longValue;
     setValueInternal(encodeLongValue(longValue));
@@ -175,7 +162,6 @@ public class ASN1Long
   public void setValue(byte[] value)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "setValue", bytesToHex(value));
 
     if (value == null)
     {
@@ -215,7 +201,6 @@ public class ASN1Long
   public static ASN1Long decodeAsLong(ASN1Element element)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsLong", String.valueOf(element));
 
     if (element == null)
     {
@@ -256,8 +241,6 @@ public class ASN1Long
   public static ASN1Long decodeAsLong(byte[] encodedElement)
          throws ASN1Exception
   {
-    assert debugEnter(CLASS_NAME, "decodeAsLong",
-                      bytesToHex(encodedElement));
 
     // First make sure that the array is not null and long enough to contain
     // a valid ASN.1 long element.
@@ -349,7 +332,6 @@ public class ASN1Long
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ASN1Long(type=");
     buffer.append(byteToHex(getType()));
@@ -371,8 +353,6 @@ public class ASN1Long
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

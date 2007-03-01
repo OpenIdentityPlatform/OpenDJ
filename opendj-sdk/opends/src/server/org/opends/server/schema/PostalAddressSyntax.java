@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -40,7 +40,6 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -58,11 +57,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class PostalAddressSyntax
        extends AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.PostalAddressSyntax";
 
 
 
@@ -84,7 +78,6 @@ public class PostalAddressSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -102,8 +95,6 @@ public class PostalAddressSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
@@ -133,7 +124,6 @@ public class PostalAddressSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_POSTAL_ADDRESS_NAME;
   }
@@ -147,7 +137,6 @@ public class PostalAddressSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_POSTAL_ADDRESS_OID;
   }
@@ -161,7 +150,6 @@ public class PostalAddressSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_POSTAL_ADDRESS_DESCRIPTION;
   }
@@ -178,7 +166,6 @@ public class PostalAddressSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -195,7 +182,6 @@ public class PostalAddressSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     // Ordering matching will not be allowed by default.
     return null;
@@ -213,7 +199,6 @@ public class PostalAddressSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return defaultSubstringMatchingRule;
   }
@@ -230,7 +215,6 @@ public class PostalAddressSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     // Approximate matching will not be allowed by default.
     return null;
@@ -253,8 +237,6 @@ public class PostalAddressSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
     // We'll allow any value.
     return true;

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -35,8 +35,10 @@ import org.opends.server.protocols.asn1.ASN1Integer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.AuthenticationType;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -52,11 +54,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class BindRequestProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.BindRequestProtocolOp";
 
 
 
@@ -91,9 +88,6 @@ public class BindRequestProtocolOp
   public BindRequestProtocolOp(ASN1OctetString dn, int protocolVersion,
                                ASN1OctetString simplePassword)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-                            String.valueOf(protocolVersion),
-                            String.valueOf(simplePassword));
 
     this.dn              = dn;
     this.protocolVersion = protocolVersion;
@@ -117,9 +111,6 @@ public class BindRequestProtocolOp
   public BindRequestProtocolOp(ASN1OctetString dn, String saslMechanism,
                                ASN1OctetString saslCredentials)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-                            String.valueOf(saslMechanism),
-                            String.valueOf(saslCredentials));
 
     this.dn              = dn;
     this.saslMechanism   = saslMechanism;
@@ -149,16 +140,6 @@ public class BindRequestProtocolOp
                                 String saslMechanism,
                                 ASN1OctetString saslCredentials)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(dn),
-                              String.valueOf(protocolVersion),
-                              String.valueOf(authenticationType),
-                              String.valueOf(simplePassword),
-                              String.valueOf(saslMechanism),
-                              String.valueOf(saslCredentials)
-                            });
 
     this.dn                 = dn;
     this.protocolVersion    = protocolVersion;
@@ -177,7 +158,6 @@ public class BindRequestProtocolOp
    */
   public ASN1OctetString getDN()
   {
-    assert debugEnter(CLASS_NAME, "getDN");
 
     return dn;
   }
@@ -191,7 +171,6 @@ public class BindRequestProtocolOp
    */
   public void setDN(ASN1OctetString dn)
   {
-    assert debugEnter(CLASS_NAME, "setDN", String.valueOf(dn));
 
     this.dn = dn;
   }
@@ -205,7 +184,6 @@ public class BindRequestProtocolOp
    */
   public int getProtocolVersion()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolVersion");
 
     return protocolVersion;
   }
@@ -219,8 +197,6 @@ public class BindRequestProtocolOp
    */
   public void setProtocolVersion(int protocolVersion)
   {
-    assert debugEnter(CLASS_NAME, "setProtocolVersion",
-                      String.valueOf(protocolVersion));
 
     this.protocolVersion = protocolVersion;
   }
@@ -234,7 +210,6 @@ public class BindRequestProtocolOp
    */
   public AuthenticationType getAuthenticationType()
   {
-    assert debugEnter(CLASS_NAME, "getAuthenticationType");
 
     return authenticationType;
   }
@@ -248,8 +223,6 @@ public class BindRequestProtocolOp
    */
   public void setAuthenticationType(AuthenticationType authenticationType)
   {
-    assert debugEnter(CLASS_NAME, "setAuthenticationType",
-                      String.valueOf(authenticationType));
 
     this.authenticationType = authenticationType;
   }
@@ -264,7 +237,6 @@ public class BindRequestProtocolOp
    */
   public ASN1OctetString getSimplePassword()
   {
-    assert debugEnter(CLASS_NAME, "getSimplePassword");
 
     return simplePassword;
   }
@@ -280,8 +252,6 @@ public class BindRequestProtocolOp
    */
   public void setSimplePassword(ASN1OctetString simplePassword)
   {
-    assert debugEnter(CLASS_NAME, "setSimplePassword",
-                      String.valueOf(simplePassword));
 
     this.simplePassword = simplePassword;
     authenticationType  = AuthenticationType.SIMPLE;
@@ -299,7 +269,6 @@ public class BindRequestProtocolOp
    */
   public String getSASLMechanism()
   {
-    assert debugEnter(CLASS_NAME, "getSASLMechanism");
 
     return saslMechanism;
   }
@@ -314,7 +283,6 @@ public class BindRequestProtocolOp
    */
   public ASN1OctetString getSASLCredentials()
   {
-    assert debugEnter(CLASS_NAME, "getSASLCredentials");
 
     return saslCredentials;
   }
@@ -331,9 +299,6 @@ public class BindRequestProtocolOp
   public void setSASLAuthenticationInfo(String saslMechanism,
                                         ASN1OctetString saslCredentials)
   {
-    assert debugEnter(CLASS_NAME, "setSASLAuthenticationInfo",
-                      String.valueOf(saslMechanism),
-                      String.valueOf(saslCredentials));
 
     this.saslMechanism   = saslMechanism;
     this.saslCredentials = saslCredentials;
@@ -351,7 +316,6 @@ public class BindRequestProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_BIND_REQUEST;
   }
@@ -365,7 +329,6 @@ public class BindRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Bind Request";
   }
@@ -380,7 +343,6 @@ public class BindRequestProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(3);
 
@@ -422,7 +384,6 @@ public class BindRequestProtocolOp
   public static BindRequestProtocolOp decodeBindRequest(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeBindRequest", String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -431,9 +392,12 @@ public class BindRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeBindRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_BIND_REQUEST_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -455,9 +419,12 @@ public class BindRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeBindRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_BIND_REQUEST_DECODE_VERSION;
+      int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_VERSION;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -470,9 +437,12 @@ public class BindRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeBindRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_BIND_REQUEST_DECODE_DN;
+      int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_DN;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -535,9 +505,12 @@ public class BindRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeBindRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_BIND_REQUEST_DECODE_CREDENTIALS;
+      int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_CREDENTIALS;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -557,7 +530,6 @@ public class BindRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("BindRequest(version=");
     buffer.append(protocolVersion);
@@ -600,8 +572,6 @@ public class BindRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

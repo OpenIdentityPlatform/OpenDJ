@@ -22,14 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
-
-
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.util.Validator.*;
 
 import org.opends.server.types.DN;
@@ -44,11 +40,6 @@ import org.opends.server.types.RDN;
  */
 public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-      "org.opends.server.util.ModifyDNChangeRecordEntry";
 
   // The new RDN.
   private final RDN newRDN;
@@ -78,10 +69,6 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
                                    DN newSuperiorDN)
   {
     super(dn);
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-                            String.valueOf(newSuperiorDN),
-                            String.valueOf(newRDN),
-                            String.valueOf(deleteOldRDN));
 
     ensureNotNull(newRDN);
 
@@ -99,7 +86,6 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
    */
   public RDN getNewRDN()
   {
-    assert debugEnter(CLASS_NAME, "getNewRDN");
     return newRDN;
   }
 
@@ -112,7 +98,6 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
    */
   public DN getNewSuperiorDN()
   {
-    assert debugEnter(CLASS_NAME, "getNewSuperiorDN");
     return newSuperiorDN;
   }
 
@@ -125,7 +110,6 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
    */
   public boolean deleteOldRDN()
   {
-    assert debugEnter(CLASS_NAME, "deleteOldRDN");
     return deleteOldRDN;
   }
 
@@ -137,7 +121,6 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
    */
   public ChangeOperationType getChangeOperationType()
   {
-    assert debugEnter(CLASS_NAME, "getChangeOperationType");
 
     return ChangeOperationType.MODIFY_DN;
   }

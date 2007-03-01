@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -35,7 +35,6 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 

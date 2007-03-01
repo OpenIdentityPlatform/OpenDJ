@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -59,7 +59,9 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -100,11 +102,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class MemoryBackend
        extends Backend
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.MemoryBackend";
 
 
 
@@ -137,7 +134,6 @@ public class MemoryBackend
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
 
     // Perform all initialization in initializeBackend.
@@ -152,8 +148,6 @@ public class MemoryBackend
                                              DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeBackend",
-                      String.valueOf(configEntry), String.valueOf(baseDNs));
 
 
     // We won't support anything other than exactly one base DN in this
@@ -192,7 +186,10 @@ public class MemoryBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackend", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
         String message = getMessage(msgID, dn.toString(),
@@ -220,7 +217,6 @@ public class MemoryBackend
    */
   public synchronized void finalizeBackend()
   {
-    assert debugEnter(CLASS_NAME, "finalizeBackend");
 
     clearMemoryBackend();
 
@@ -232,7 +228,10 @@ public class MemoryBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "finalizeBackend", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -244,7 +243,6 @@ public class MemoryBackend
    */
   public DN[] getBaseDNs()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDNs");
 
     return baseDNs;
   }
@@ -256,7 +254,6 @@ public class MemoryBackend
    */
   public synchronized long getEntryCount()
   {
-    assert debugEnter(CLASS_NAME, "getEntryCount");
 
     if (entryMap != null)
     {
@@ -273,7 +270,6 @@ public class MemoryBackend
    */
   public boolean isLocal()
   {
-    assert debugEnter(CLASS_NAME, "isLocal");
 
     // For the purposes of this method, this is a local backend.
     return true;
@@ -286,7 +282,6 @@ public class MemoryBackend
    */
   public synchronized Entry getEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
 
     return entryMap.get(entryDN);
   }
@@ -298,7 +293,6 @@ public class MemoryBackend
    */
   public synchronized boolean entryExists(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "entryExists", String.valueOf(entryDN));
 
     return entryMap.containsKey(entryDN);
   }
@@ -311,8 +305,6 @@ public class MemoryBackend
   public synchronized void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addEntry", String.valueOf(entry),
-                      String.valueOf(addOperation));
 
 
     // See if the target entry already exists.  If so, then fail.
@@ -370,8 +362,6 @@ public class MemoryBackend
                                        DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "deleteEntry", String.valueOf(entryDN),
-                      String.valueOf(deleteOperation));
 
 
     // Make sure the entry exists.  If not, then throw an exception.
@@ -412,7 +402,10 @@ public class MemoryBackend
           {
             // This shouldn't happen, but we want the delete to continue anyway
             // so just ignore it if it does for some reason.
-            assert debugException(CLASS_NAME, "deleteEntry", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
           }
         }
       }
@@ -460,8 +453,6 @@ public class MemoryBackend
                                         ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "replaceEntry", String.valueOf(entry),
-                      String.valueOf(modifyOperation));
 
 
     // Make sure the entry exists.  If not, then throw an exception.
@@ -487,8 +478,6 @@ public class MemoryBackend
                                        ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "renameEntry", String.valueOf(currentDN),
-                      String.valueOf(entry), String.valueOf(modifyDNOperation));
 
 
     // Make sure that the target entry exists.
@@ -572,7 +561,6 @@ public class MemoryBackend
   public synchronized void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "search", String.valueOf(searchOperation));
 
 
     // Get the base DN, scope, and filter for the search.
@@ -618,7 +606,6 @@ public class MemoryBackend
    */
   public HashSet<String> getSupportedControls()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return supportedControls;
   }
@@ -630,7 +617,6 @@ public class MemoryBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return supportedFeatures;
   }
@@ -642,7 +628,6 @@ public class MemoryBackend
    */
   public boolean supportsLDIFExport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFExport");
 
     return true;
   }
@@ -656,7 +641,6 @@ public class MemoryBackend
                                       LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "exportLDIF", String.valueOf(exportConfig));
 
 
     // Create the LDIF writer.
@@ -667,9 +651,12 @@ public class MemoryBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_MEMORYBACKEND_CANNOT_CREATE_LDIF_WRITER;
+      int msgID = MSGID_MEMORYBACKEND_CANNOT_CREATE_LDIF_WRITER;
       String message = getMessage(msgID, String.valueOf(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
@@ -702,7 +689,10 @@ public class MemoryBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "exportLDIF", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -714,7 +704,6 @@ public class MemoryBackend
    */
   public boolean supportsLDIFImport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFImport");
 
     return true;
   }
@@ -728,7 +717,6 @@ public class MemoryBackend
                                       LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "importLDIF", String.valueOf(importConfig));
 
 
     clearMemoryBackend();
@@ -810,7 +798,6 @@ public class MemoryBackend
    */
   public boolean supportsBackup()
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
     // This backend does not provide a backup/restore mechanism.
     return false;
@@ -824,7 +811,6 @@ public class MemoryBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -839,7 +825,6 @@ public class MemoryBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "createBackup", String.valueOf(backupConfig));
 
 
     int    msgID   = MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED;
@@ -857,9 +842,6 @@ public class MemoryBackend
                            String backupID)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeBackup",
-                      String.valueOf(backupDirectory),
-                      String.valueOf(backupID));
 
 
     int    msgID   = MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED;
@@ -875,7 +857,6 @@ public class MemoryBackend
    */
   public boolean supportsRestore()
   {
-    assert debugEnter(CLASS_NAME, "supportsRestore");
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -891,8 +872,6 @@ public class MemoryBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "restoreBackup",
-                      String.valueOf(restoreConfig));
 
 
     int    msgID   = MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED;

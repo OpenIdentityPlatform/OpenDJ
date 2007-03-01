@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -49,11 +44,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class RestoreConfig
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.RestoreConfig";
 
 
 
@@ -86,9 +76,6 @@ public class RestoreConfig
   public RestoreConfig(BackupDirectory backupDirectory,
                        String backupID, boolean verifyOnly)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(backupDirectory),
-                            String.valueOf(backupID));
 
     this.backupDirectory = backupDirectory;
     this.backupID        = backupID;
@@ -106,7 +93,6 @@ public class RestoreConfig
    */
   public BackupDirectory getBackupDirectory()
   {
-    assert debugEnter(CLASS_NAME, "getBackupDirectory");
 
     return backupDirectory;
   }
@@ -122,7 +108,6 @@ public class RestoreConfig
    */
   public String getBackupID()
   {
-    assert debugEnter(CLASS_NAME, "getBackupID");
 
     return backupID;
   }
@@ -146,7 +131,6 @@ public class RestoreConfig
    */
   public boolean verifyOnly()
   {
-    assert debugEnter(CLASS_NAME, "verifyOnly");
 
     return verifyOnly;
   }

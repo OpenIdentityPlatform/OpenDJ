@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -35,7 +35,6 @@ import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -46,11 +45,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public abstract class MatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.MatchingRule";
 
 
 
@@ -103,7 +97,6 @@ public abstract class MatchingRule
    */
   public String getNameOrOID()
   {
-    assert debugEnter(CLASS_NAME, "getNameOrOID");
 
     String name = getName();
     if ((name == null) || (name.length() == 0))
@@ -151,7 +144,6 @@ public abstract class MatchingRule
    */
   public boolean isObsolete()
   {
-    assert debugEnter(CLASS_NAME, "isObsolete");
 
     return false;
   }
@@ -209,7 +201,6 @@ public abstract class MatchingRule
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     int hashCode = 0;
 
@@ -237,7 +228,6 @@ public abstract class MatchingRule
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (o == null)
     {
@@ -268,7 +258,6 @@ public abstract class MatchingRule
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -286,8 +275,6 @@ public abstract class MatchingRule
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("( ");
     buffer.append(getOID());

@@ -22,14 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
 import java.io.File;
 import java.util.Arrays;
-
-import static org.opends.server.loggers.Debug.*;
 
 /**
  * This class implements a retention policy based on the amount of
@@ -37,8 +35,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class SizeBasedRetentionPolicy implements RetentionPolicy
 {
-  private static final String CLASS_NAME =
-      "org.opends.server.loggers.SizeBasedRetentionPolicy";
 
   private long size = 0;
   private File directory = null;
@@ -53,8 +49,7 @@ public class SizeBasedRetentionPolicy implements RetentionPolicy
    */
   public SizeBasedRetentionPolicy(String dir, String prefix, long size)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dir),
-                            String.valueOf(prefix), String.valueOf(size));
+
     this.size = size;
     this.directory = new File(dir);
     this.prefix = prefix;
@@ -68,16 +63,16 @@ public class SizeBasedRetentionPolicy implements RetentionPolicy
    */
   public int deleteFiles()
   {
-    assert debugEnter(CLASS_NAME, "deleteFiles");
+
     int count = 0;
 
     File[] selectedFiles = directory.listFiles(new LogFileFilter(prefix));
     long totalLength = 0;
-    for(int i = 0; i < selectedFiles.length; i++)
+    for (int i = 0; i < selectedFiles.length; i++)
     {
       totalLength += selectedFiles[i].length();
     }
-    if(totalLength <= size)
+    if (totalLength <= size)
     {
       return 0;
     }
@@ -88,12 +83,12 @@ public class SizeBasedRetentionPolicy implements RetentionPolicy
     Arrays.sort(selectedFiles, new FileComparator());
 
     long freedSpace = 0;
-    for(int j = selectedFiles.length - 1; j < 1; j--)
+    for (int j = selectedFiles.length - 1; j < 1; j--)
     {
       freedSpace += selectedFiles[j].length();
       // System.out.println("Deleting log file:" + selectedFiles[j]);
       selectedFiles[j].delete();
-      if(freedSpace >= freeSpaceNeeded)
+      if (freedSpace >= freeSpaceNeeded)
       {
         break;
       }

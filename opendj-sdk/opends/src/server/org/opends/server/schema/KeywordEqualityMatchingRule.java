@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -42,11 +41,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class KeywordEqualityMatchingRule
        extends WordEqualityMatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.KeywordEqualityMatchingRule";
 
 
 
@@ -57,7 +51,6 @@ public class KeywordEqualityMatchingRule
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -70,7 +63,6 @@ public class KeywordEqualityMatchingRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return EMR_KEYWORD_NAME;
   }
@@ -84,7 +76,6 @@ public class KeywordEqualityMatchingRule
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return EMR_KEYWORD_OID;
   }

@@ -22,12 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
-import static org.opends.server.loggers.Debug.debugEnter;
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -55,11 +56,6 @@ import org.opends.server.types.ErrorLogSeverity;
  */
 public final class AbsoluteSubtreeSpecificationSyntax extends
     AttributeSyntax {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-    AbsoluteSubtreeSpecificationSyntax.class.getName();
 
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
@@ -108,8 +104,6 @@ public final class AbsoluteSubtreeSpecificationSyntax extends
    */
   public void initializeSyntax(ConfigEntry configEntry)
       throws ConfigException {
-    assert debugEnter(CLASS_NAME, "initializeSyntax", String
-        .valueOf(configEntry));
 
     defaultEqualityMatchingRule = DirectoryServer
         .getEqualityMatchingRule(EMR_OCTET_STRING_OID);
@@ -142,7 +136,6 @@ public final class AbsoluteSubtreeSpecificationSyntax extends
    * @return The common name for this attribute syntax.
    */
   public String getSyntaxName() {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_NAME;
   }
@@ -153,7 +146,6 @@ public final class AbsoluteSubtreeSpecificationSyntax extends
    * @return The OID for this attribute syntax.
    */
   public String getOID() {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_OID;
   }
@@ -164,7 +156,6 @@ public final class AbsoluteSubtreeSpecificationSyntax extends
    * @return A description for this attribute syntax.
    */
   public String getDescription() {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_DESCRIPTION;
   }
@@ -179,7 +170,6 @@ public final class AbsoluteSubtreeSpecificationSyntax extends
    *         default.
    */
   public EqualityMatchingRule getEqualityMatchingRule() {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -194,7 +184,6 @@ public final class AbsoluteSubtreeSpecificationSyntax extends
    *         default.
    */
   public OrderingMatchingRule getOrderingMatchingRule() {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     return defaultOrderingMatchingRule;
   }
@@ -209,7 +198,6 @@ public final class AbsoluteSubtreeSpecificationSyntax extends
    *         default.
    */
   public SubstringMatchingRule getSubstringMatchingRule() {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return defaultSubstringMatchingRule;
   }
@@ -224,7 +212,6 @@ public final class AbsoluteSubtreeSpecificationSyntax extends
    *         default.
    */
   public ApproximateMatchingRule getApproximateMatchingRule() {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     // There is no approximate matching rule by default.
     return null;
@@ -245,8 +232,6 @@ public final class AbsoluteSubtreeSpecificationSyntax extends
   public boolean valueIsAcceptable(ByteString value,
                                   StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String
-        .valueOf(value), "java.lang.StringBuilder");
 
     // Use the subtree specification code to make this determination.
     try {
@@ -254,7 +239,10 @@ public final class AbsoluteSubtreeSpecificationSyntax extends
 
       return true;
     } catch (DirectoryException e) {
-      assert debugException(CLASS_NAME, "valueIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       invalidReason.append(e.getErrorMessage());
       return false;

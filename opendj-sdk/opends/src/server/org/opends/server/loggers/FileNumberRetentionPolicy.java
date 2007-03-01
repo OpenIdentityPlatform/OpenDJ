@@ -22,14 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
 import java.io.File;
 import java.util.Arrays;
-
-import static org.opends.server.loggers.Debug.*;
 
 /**
  * This class implements a retention policy based on the number of files.
@@ -37,8 +35,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class FileNumberRetentionPolicy implements RetentionPolicy
 {
-  private static final String CLASS_NAME =
-      "org.opends.server.loggers.FileNumberRetentionPolicy";
 
   private int numFiles = 0;
   private File directory = null;
@@ -53,8 +49,7 @@ public class FileNumberRetentionPolicy implements RetentionPolicy
    */
   public FileNumberRetentionPolicy(String dir, String prefix, int numFiles)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dir),
-                            String.valueOf(prefix), String.valueOf(numFiles));
+
     this.numFiles = numFiles;
     this.directory = new File(dir);
     this.prefix = prefix;
@@ -68,11 +63,11 @@ public class FileNumberRetentionPolicy implements RetentionPolicy
    */
   public int deleteFiles()
   {
-    assert debugEnter(CLASS_NAME, "deleteFiles");
+
     int count = 0;
 
     File[] selectedFiles = directory.listFiles(new LogFileFilter(prefix));
-    if(selectedFiles.length <= numFiles)
+    if (selectedFiles.length <= numFiles)
     {
       return 0;
     }
@@ -80,7 +75,7 @@ public class FileNumberRetentionPolicy implements RetentionPolicy
     // Sort files based on last modified time.
     Arrays.sort(selectedFiles, new FileComparator());
 
-    for(int j = numFiles; j < selectedFiles.length; j++)
+    for (int j = numFiles; j < selectedFiles.length; j++)
     {
       // System.out.println("Deleting log file:" + selectedFiles[j]);
       selectedFiles[j].delete();

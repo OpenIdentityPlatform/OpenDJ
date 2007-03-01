@@ -26,8 +26,6 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 
 /**
  * The AciException class defines an exception that may be thrown
@@ -37,11 +35,6 @@ import static org.opends.server.loggers.Debug.debugEnter;
  */
 public class AciException extends Exception {
 
-    /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.authorization.dseecompat.AciException";
 
   /**
    * The serial version identifier required to satisfy the compiler because this
@@ -72,8 +65,6 @@ public class AciException extends Exception {
      */
     public AciException(int messageID, String message) {
       super(message);
-      assert debugConstructor(CLASS_NAME, String.valueOf(messageID),
-                              String.valueOf(message));
       this.messageID = messageID;
     }
 
@@ -89,8 +80,6 @@ public class AciException extends Exception {
     public AciException(int messageID, String message, Throwable cause) {
       super(message, cause);
 
-      assert debugConstructor(CLASS_NAME, String.valueOf(message),
-                              String.valueOf(cause));
 
       this.messageID = messageID;
     }
@@ -101,7 +90,6 @@ public class AciException extends Exception {
    * @return  The message ID for this exception.
    */
   public int getMessageID() {
-    assert debugEnter(CLASS_NAME, "getMessageID");
     return messageID;
   }
 }

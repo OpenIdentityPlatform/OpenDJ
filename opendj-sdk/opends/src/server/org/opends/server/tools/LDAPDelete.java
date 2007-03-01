@@ -49,6 +49,7 @@ import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -57,7 +58,8 @@ import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -72,7 +74,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class LDAPDelete
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME = "org.opends.server.tools.LDAPDelete";
 
@@ -192,11 +194,15 @@ public class LDAPDelete
                                ASN1Sequence.decodeAsSequence(element));
       } catch(ASN1Exception ae)
       {
-        assert debugException(CLASS_NAME, "executeDelete", ae);
-        if(!deleteOptions.continueOnError())
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ae);
+        }
+        if (!deleteOptions.continueOnError())
         {
           throw new IOException(ae.getMessage());
-        } else
+        }
+        else
         {
           msgID = MSGID_OPERATION_FAILED;
           String msg = getMessage(msgID, "DELETE", line, ae.getMessage());
@@ -524,7 +530,10 @@ public class LDAPDelete
       portNumber = port.getIntValue();
     } catch(ArgumentException ae)
     {
-      assert debugException(CLASS_NAME, "main", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
@@ -541,7 +550,10 @@ public class LDAPDelete
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
-      assert debugException(CLASS_NAME, "main", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
@@ -559,7 +571,10 @@ public class LDAPDelete
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
-        assert debugException(CLASS_NAME, "main", ex);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ex);
+        }
         err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
         return 1;
       }
@@ -726,19 +741,28 @@ public class LDAPDelete
       }
     } catch(LDAPException le)
     {
-      assert debugException(CLASS_NAME, "main", le);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, le);
+      }
       err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
     {
-      assert debugException(CLASS_NAME, "main", lce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, lce);
+      }
       err.println(wrapText(lce.getMessage(), MAX_LINE_WIDTH));
       int code = lce.getErrorCode();
       return code;
     } catch(Exception e)
     {
-      assert debugException(CLASS_NAME, "main", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
       return 1;
     } finally

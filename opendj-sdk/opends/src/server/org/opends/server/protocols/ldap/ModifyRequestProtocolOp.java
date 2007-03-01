@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -35,13 +35,14 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
-
 
 
 /**
@@ -52,11 +53,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class ModifyRequestProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.ModifyRequestProtocolOp";
 
 
 
@@ -76,7 +72,6 @@ public class ModifyRequestProtocolOp
    */
   public ModifyRequestProtocolOp(ASN1OctetString dn)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn));
 
     this.dn            = dn;
     this.modifications = new ArrayList<LDAPModification>();
@@ -94,8 +89,6 @@ public class ModifyRequestProtocolOp
   public ModifyRequestProtocolOp(ASN1OctetString dn,
                                  ArrayList<LDAPModification> modifications)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dn),
-                            String.valueOf(modifications));
 
     this.dn = dn;
 
@@ -118,7 +111,6 @@ public class ModifyRequestProtocolOp
    */
   public ASN1OctetString getDN()
   {
-    assert debugEnter(CLASS_NAME, "getDN");
 
     return dn;
   }
@@ -132,7 +124,6 @@ public class ModifyRequestProtocolOp
    */
   public void setDN(ASN1OctetString dn)
   {
-    assert debugEnter(CLASS_NAME, "setDN", String.valueOf(dn));
 
     this.dn = dn;
   }
@@ -147,7 +138,6 @@ public class ModifyRequestProtocolOp
    */
   public ArrayList<LDAPModification> getModifications()
   {
-    assert debugEnter(CLASS_NAME, "getModifications");
 
     return modifications;
   }
@@ -161,7 +151,6 @@ public class ModifyRequestProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_MODIFY_REQUEST;
   }
@@ -175,7 +164,6 @@ public class ModifyRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Modify Request";
   }
@@ -190,7 +178,6 @@ public class ModifyRequestProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(dn);
@@ -224,8 +211,6 @@ public class ModifyRequestProtocolOp
   public static ModifyRequestProtocolOp decodeModifyRequest(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeModifyRequest",
-                      String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -234,9 +219,12 @@ public class ModifyRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeModifyRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MODIFY_REQUEST_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_MODIFY_REQUEST_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -258,9 +246,12 @@ public class ModifyRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeModifyRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MODIFY_REQUEST_DECODE_DN;
+      int msgID = MSGID_LDAP_MODIFY_REQUEST_DECODE_DN;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -280,9 +271,12 @@ public class ModifyRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeModifyRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MODIFY_REQUEST_DECODE_MODS;
+      int msgID = MSGID_LDAP_MODIFY_REQUEST_DECODE_MODS;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -301,7 +295,6 @@ public class ModifyRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ModifyRequest(dn=");
     dn.toString(buffer);
@@ -334,8 +327,6 @@ public class ModifyRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

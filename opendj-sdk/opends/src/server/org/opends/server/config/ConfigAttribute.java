@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
 
@@ -39,7 +39,6 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 
@@ -52,11 +51,6 @@ import static org.opends.server.messages.MessageHandler.*;
  */
 public abstract class ConfigAttribute
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.config.ConfigAttribute";
 
 
 
@@ -109,11 +103,6 @@ public abstract class ConfigAttribute
   protected ConfigAttribute(String name, String description, boolean isRequired,
                             boolean isMultiValued, boolean requiresAdminAction)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(name),
-                            String.valueOf(description),
-                            String.valueOf(isRequired),
-                            String.valueOf(isMultiValued),
-                            String.valueOf(requiresAdminAction));
 
 
     this.name                = name;
@@ -149,16 +138,6 @@ public abstract class ConfigAttribute
                             boolean isMultiValued, boolean requiresAdminAction,
                             LinkedHashSet<AttributeValue> activeValues)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(description),
-                              String.valueOf(isRequired),
-                              String.valueOf(isMultiValued),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(activeValues)
-                            });
 
 
     this.name                = name;
@@ -212,18 +191,6 @@ public abstract class ConfigAttribute
                             boolean hasPendingValues,
                             LinkedHashSet<AttributeValue> pendingValues)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(description),
-                              String.valueOf(isRequired),
-                              String.valueOf(isMultiValued),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(activeValues),
-                              String.valueOf(hasPendingValues),
-                              String.valueOf(pendingValues)
-                            });
 
 
     this.name                = name;
@@ -268,7 +235,6 @@ public abstract class ConfigAttribute
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return name;
   }
@@ -283,7 +249,6 @@ public abstract class ConfigAttribute
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return description;
   }
@@ -320,7 +285,6 @@ public abstract class ConfigAttribute
    */
   public boolean isRequired()
   {
-    assert debugEnter(CLASS_NAME, "isRequired");
 
     return isRequired;
   }
@@ -335,7 +299,6 @@ public abstract class ConfigAttribute
    */
   public boolean isMultiValued()
   {
-    assert debugEnter(CLASS_NAME, "isMultiValued");
 
     return isMultiValued;
   }
@@ -352,7 +315,6 @@ public abstract class ConfigAttribute
    */
   public boolean requiresAdminAction()
   {
-    assert debugEnter(CLASS_NAME, "requiresAdminAction");
 
     return requiresAdminAction;
   }
@@ -367,7 +329,6 @@ public abstract class ConfigAttribute
    */
   public LinkedHashSet<AttributeValue> getActiveValues()
   {
-    assert debugEnter(CLASS_NAME, "getActiveValues");
 
     return activeValues;
   }
@@ -384,7 +345,6 @@ public abstract class ConfigAttribute
    */
   public boolean hasPendingValues()
   {
-    assert debugEnter(CLASS_NAME, "hasPendingValues");
 
     return hasPendingValues;
   }
@@ -402,7 +362,6 @@ public abstract class ConfigAttribute
    */
   public LinkedHashSet<AttributeValue> getPendingValues()
   {
-    assert debugEnter(CLASS_NAME, "getPendingValues");
 
     if (requiresAdminAction)
     {
@@ -450,7 +409,6 @@ public abstract class ConfigAttribute
   protected void setValues(LinkedHashSet<AttributeValue> values)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValues", String.valueOf(values));
 
 
     // If no values are provided, then check to see if this is a required
@@ -563,8 +521,6 @@ public abstract class ConfigAttribute
    */
   protected void setActiveValues(LinkedHashSet<AttributeValue> values)
   {
-    assert debugEnter(CLASS_NAME, "setActiveValues",
-                      String.valueOf(values));
 
     activeValues = values;
   }
@@ -580,8 +536,6 @@ public abstract class ConfigAttribute
    */
   protected void setPendingValues(LinkedHashSet<AttributeValue> values)
   {
-    assert debugEnter(CLASS_NAME, "setPendingValues",
-                      String.valueOf(values));
 
     pendingValues    = values;
     hasPendingValues = true;
@@ -604,7 +558,6 @@ public abstract class ConfigAttribute
   protected void addValues(List<AttributeValue> values)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "addValues", String.valueOf(values));
 
 
     // If there are no values provided, then do nothing.
@@ -703,7 +656,6 @@ public abstract class ConfigAttribute
   protected void removeValues(List<AttributeValue> values)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "removeValues", String.valueOf(values));
 
 
     // Create a temporary set of values that we will use for this change.  It
@@ -773,7 +725,6 @@ public abstract class ConfigAttribute
   protected void removeAllValues()
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "removeAllValues");
 
     if (isRequired)
     {
@@ -818,7 +769,6 @@ public abstract class ConfigAttribute
    */
   public void setInitialValues(LinkedHashSet<AttributeValue> values)
   {
-    assert debugEnter(CLASS_NAME, "setInitialValues");
 
     if (values == null)
     {
@@ -839,7 +789,6 @@ public abstract class ConfigAttribute
    */
   public void applyPendingValues()
   {
-    assert debugEnter(CLASS_NAME, "applyPendingValues");
 
     if (hasPendingValues)
     {

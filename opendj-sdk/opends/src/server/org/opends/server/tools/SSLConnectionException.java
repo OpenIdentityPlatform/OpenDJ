@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -39,11 +34,6 @@ import static org.opends.server.loggers.Debug.*;
 public class SSLConnectionException
        extends Exception
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tools.SSLConnectionException";
 
 
 
@@ -67,7 +57,6 @@ public class SSLConnectionException
   {
     super(message);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(message));
   }
 
 
@@ -84,8 +73,6 @@ public class SSLConnectionException
   {
     super(message, cause);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(message),
-                            String.valueOf(cause));
 
   }
 

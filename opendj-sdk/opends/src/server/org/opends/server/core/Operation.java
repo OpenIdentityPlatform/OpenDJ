@@ -49,7 +49,6 @@ import org.opends.server.types.operation.PreOperationOperation;
 import org.opends.server.types.operation.PreParseOperation;
 
 import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -63,10 +62,6 @@ public abstract class Operation
        implements PreParseOperation, PreOperationOperation,
                   PostOperationOperation, PostResponseOperation, Runnable
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME = "org.opends.server.core.Operation";
 
 
 
@@ -158,9 +153,6 @@ public abstract class Operation
   protected Operation(ClientConnection clientConnection, long operationID,
                       int messageID, List<Control> requestControls)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(clientConnection),
-                            String.valueOf(messageID),
-                            String.valueOf(requestControls));
 
     this.clientConnection = clientConnection;
     this.operationID      = operationID;
@@ -283,7 +275,6 @@ public abstract class Operation
    */
   public final ClientConnection getClientConnection()
   {
-    assert debugEnter(CLASS_NAME, "getClientConnection");
 
     return clientConnection;
   }
@@ -299,7 +290,6 @@ public abstract class Operation
    */
   public final long getConnectionID()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionID");
 
     return clientConnection.getConnectionID();
   }
@@ -313,7 +303,6 @@ public abstract class Operation
    */
   public final long getOperationID()
   {
-    assert debugEnter(CLASS_NAME, "getOperationID");
 
     return operationID;
   }
@@ -327,7 +316,6 @@ public abstract class Operation
    */
   public final int getMessageID()
   {
-    assert debugEnter(CLASS_NAME, "getMessageID");
 
     return messageID;
   }
@@ -342,7 +330,6 @@ public abstract class Operation
    */
   public final List<Control> getRequestControls()
   {
-    assert debugEnter(CLASS_NAME, "getRequestControls");
 
     return requestControls;
   }
@@ -358,7 +345,6 @@ public abstract class Operation
    */
   public final void addRequestControl(Control control)
   {
-    assert debugEnter(CLASS_NAME, "addRequestControl", String.valueOf(control));
 
     requestControls.add(control);
   }
@@ -374,8 +360,6 @@ public abstract class Operation
    */
   public final void removeRequestControl(Control control)
   {
-    assert debugEnter(CLASS_NAME, "removeRequestControl",
-                      String.valueOf(control));
 
     requestControls.remove(control);
   }
@@ -423,7 +407,6 @@ public abstract class Operation
    */
   public final ResultCode getResultCode()
   {
-    assert debugEnter(CLASS_NAME, "getResultCode");
 
     return resultCode;
   }
@@ -438,7 +421,6 @@ public abstract class Operation
    */
   public final void setResultCode(ResultCode resultCode)
   {
-    assert debugEnter(CLASS_NAME, "setResultCode", String.valueOf(resultCode));
 
     this.resultCode = resultCode;
   }
@@ -454,7 +436,6 @@ public abstract class Operation
    */
   public final StringBuilder getErrorMessage()
   {
-    assert debugEnter(CLASS_NAME, "getErrorMessage");
 
     return errorMessage;
   }
@@ -469,8 +450,6 @@ public abstract class Operation
    */
   public final void setErrorMessage(StringBuilder errorMessage)
   {
-    assert debugEnter(CLASS_NAME, "setErrorMessage",
-                      String.valueOf(errorMessage));
 
     if (errorMessage == null)
     {
@@ -493,8 +472,6 @@ public abstract class Operation
    */
   public final void appendErrorMessage(String message)
   {
-    assert debugEnter(CLASS_NAME, "appendErrorMessage",
-                      String.valueOf(message));
 
     if (errorMessage == null)
     {
@@ -523,7 +500,6 @@ public abstract class Operation
    */
   public final StringBuilder getAdditionalLogMessage()
   {
-    assert debugEnter(CLASS_NAME, "getAdditionalLogMessage");
 
     return additionalLogMessage;
   }
@@ -540,8 +516,6 @@ public abstract class Operation
    */
   public final void setAdditionalLogMessage(StringBuilder additionalLogMessage)
   {
-    assert debugEnter(CLASS_NAME, "setAdditionalLogMessage",
-                      String.valueOf(additionalLogMessage));
 
     if (additionalLogMessage == null)
     {
@@ -564,8 +538,6 @@ public abstract class Operation
    */
   public final void appendAdditionalLogMessage(String message)
   {
-    assert debugEnter(CLASS_NAME, "appendAdditionalLogMessage",
-                      String.valueOf(message));
 
     if (additionalLogMessage == null)
     {
@@ -587,7 +559,6 @@ public abstract class Operation
    */
   public final DN getMatchedDN()
   {
-    assert debugEnter(CLASS_NAME, "getMatchedDN");
 
     return matchedDN;
   }
@@ -602,7 +573,6 @@ public abstract class Operation
    */
   public final void setMatchedDN(DN matchedDN)
   {
-    assert debugEnter(CLASS_NAME, "setMatchedDN", String.valueOf(matchedDN));
 
     this.matchedDN = matchedDN;
   }
@@ -619,7 +589,6 @@ public abstract class Operation
    */
   public final List<String> getReferralURLs()
   {
-    assert debugEnter(CLASS_NAME, "getReferralURLs");
 
     return referralURLs;
   }
@@ -634,8 +603,6 @@ public abstract class Operation
    */
   public final void setReferralURLs(List<String> referralURLs)
   {
-    assert debugEnter(CLASS_NAME, "setReferralURLs",
-                      String.valueOf(referralURLs));
 
     this.referralURLs = referralURLs;
   }
@@ -652,7 +619,6 @@ public abstract class Operation
    */
   public final void setResponseData(DirectoryException directoryException)
   {
-    assert debugEnter(CLASS_NAME, "setResponseData");
 
     this.resultCode   = directoryException.getResultCode();
     this.matchedDN    = directoryException.getMatchedDN();
@@ -672,7 +638,6 @@ public abstract class Operation
    */
   public final boolean isInternalOperation()
   {
-    assert debugEnter(CLASS_NAME, "isInternalOperation");
 
     return isInternalOperation;
   }
@@ -690,8 +655,6 @@ public abstract class Operation
    */
   public final void setInternalOperation(boolean isInternalOperation)
   {
-    assert debugEnter(CLASS_NAME, "setInternalOperation",
-                      String.valueOf(isInternalOperation));
 
     this.isInternalOperation = isInternalOperation;
   }
@@ -707,7 +670,6 @@ public abstract class Operation
    */
   public final boolean isSynchronizationOperation()
   {
-    assert debugEnter(CLASS_NAME, "isSynchronizationOperation");
 
     return isSynchronizationOperation;
   }
@@ -727,8 +689,6 @@ public abstract class Operation
   public final void setSynchronizationOperation(
                          boolean isSynchronizationOperation)
   {
-    assert debugEnter(CLASS_NAME, "setSynchronizationOperation",
-                      String.valueOf(isSynchronizationOperation));
 
     this.isSynchronizationOperation = isSynchronizationOperation;
   }
@@ -744,8 +704,6 @@ public abstract class Operation
    */
   public final void setDontSynchronize(boolean dontSynchronize)
   {
-    assert debugEnter(CLASS_NAME, "setDontSynchronize",
-                      String.valueOf(dontSynchronize));
 
     this.dontSynchronizeFlag = dontSynchronize;
   }
@@ -766,7 +724,6 @@ public abstract class Operation
    */
   public final Entry getAuthorizationEntry()
   {
-    assert debugEnter(CLASS_NAME, "getAuthorizationEntry");
 
     return authorizationEntry;
   }
@@ -784,9 +741,6 @@ public abstract class Operation
    */
   public final void setAuthorizationEntry(Entry authorizationEntry)
   {
-    assert debugEnter(CLASS_NAME, "setAuthorizationEntry",
-                      String.valueOf(authorizationEntry));
-
     this.authorizationEntry = authorizationEntry;
   }
 
@@ -806,7 +760,6 @@ public abstract class Operation
    */
   public final DN getAuthorizationDN()
   {
-    assert debugEnter(CLASS_NAME, "getAuthorizationDN");
 
     if (authorizationEntry == null)
     {
@@ -828,7 +781,6 @@ public abstract class Operation
    */
   public final Map<String,Object> getAttachments()
   {
-    assert debugEnter(CLASS_NAME, "getAttachments");
 
     return attachments;
   }
@@ -846,7 +798,6 @@ public abstract class Operation
    */
   public final Object getAttachment(String name)
   {
-    assert debugEnter(CLASS_NAME, "getAttachment", String.valueOf(name));
 
     return attachments.get(name);
   }
@@ -864,7 +815,6 @@ public abstract class Operation
    */
   public final Object removeAttachment(String name)
   {
-    assert debugEnter(CLASS_NAME, "removeAttachment", String.valueOf(name));
 
     return attachments.remove(name);
   }
@@ -884,8 +834,6 @@ public abstract class Operation
    */
   public final Object setAttachment(String name, Object value)
   {
-    assert debugEnter(CLASS_NAME, "putAttachment", String.valueOf(name),
-                      String.valueOf(value));
 
     return attachments.put(name, value);
   }
@@ -940,7 +888,6 @@ public abstract class Operation
    */
   public final void operationCompleted()
   {
-    assert debugEnter(CLASS_NAME, "operationCompleted");
 
 
     // Notify the client connection that this operation is complete and that it
@@ -999,7 +946,6 @@ public abstract class Operation
    */
   public final CancelResult getCancelResult()
   {
-    assert debugEnter(CLASS_NAME, "getCancelResult");
 
     return cancelResult;
   }
@@ -1013,8 +959,6 @@ public abstract class Operation
    */
   public final void setCancelResult(CancelResult cancelResult)
   {
-    assert debugEnter(CLASS_NAME, "setCancelResult",
-                      String.valueOf(cancelResult));
 
     this.cancelResult = cancelResult;
   }
@@ -1032,8 +976,6 @@ public abstract class Operation
    */
   protected final void indicateCancelled(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "indicateCancelled",
-                      String.valueOf(cancelRequest));
 
     setCancelResult(CancelResult.CANCELED);
 
@@ -1061,7 +1003,6 @@ public abstract class Operation
    */
   public final String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -1089,8 +1030,6 @@ public abstract class Operation
    */
   public boolean dontSynchronize()
   {
-    assert debugEnter(CLASS_NAME, "dontSynchronize");
-
     return dontSynchronizeFlag;
   }
 }

@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
 
 
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.Validator.*;
@@ -46,10 +45,6 @@ import java.text.ParseException;
  */
 public final class Base64
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME = "org.opends.server.util.Base64";
 
 
 
@@ -76,7 +71,6 @@ public final class Base64
    */
   public static String encode(byte[] rawData)
   {
-    assert debugEnter(CLASS_NAME, "encode", String.valueOf(rawData));
 
     ensureNotNull(rawData);
 
@@ -132,7 +126,6 @@ public final class Base64
   public static byte[] decode(String encodedData)
          throws ParseException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(encodedData));
 
     ensureNotNull(encodedData);
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -40,7 +40,6 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -56,11 +55,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class IntegerOrderingMatchingRule
        extends OrderingMatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.IntegerOrderingMatchingRule";
 
 
 
@@ -81,7 +75,6 @@ public class IntegerOrderingMatchingRule
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -103,8 +96,6 @@ public class IntegerOrderingMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMatchingRule",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -119,7 +110,6 @@ public class IntegerOrderingMatchingRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return OMR_INTEGER_NAME;
   }
@@ -133,7 +123,6 @@ public class IntegerOrderingMatchingRule
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return OMR_INTEGER_OID;
   }
@@ -148,7 +137,6 @@ public class IntegerOrderingMatchingRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     // There is no standard description for this matching rule.
     return null;
@@ -164,7 +152,6 @@ public class IntegerOrderingMatchingRule
    */
   public String getSyntaxOID()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxOID");
 
     return SYNTAX_INTEGER_OID;
   }
@@ -185,7 +172,6 @@ public class IntegerOrderingMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalizeValue", String.valueOf(value));
 
     byte[] valueBytes = value.value();
 
@@ -414,8 +400,6 @@ public class IntegerOrderingMatchingRule
    */
   public int compareValues(ByteString value1, ByteString value2)
   {
-    assert debugEnter(CLASS_NAME, "compareValues", String.valueOf(value1),
-                      String.valueOf(value2));
 
     return compare(value1.value(), value2.value());
   }
@@ -437,8 +421,6 @@ public class IntegerOrderingMatchingRule
    */
   public int compare(byte[] b1, byte[] b2)
   {
-    assert debugEnter(CLASS_NAME, "compare", String.valueOf(b1),
-                      String.valueOf(b2));
 
     int b1Length = b1.length;
     int b2Length = b2.length;

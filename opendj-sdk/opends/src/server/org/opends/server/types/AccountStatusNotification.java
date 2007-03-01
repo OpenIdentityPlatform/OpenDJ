@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -38,11 +33,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class AccountStatusNotification
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.AccountStatusNotification";
 
 
 
@@ -77,9 +67,6 @@ public class AccountStatusNotification
               AccountStatusNotificationType notificationType,
               DN userDN, int messageID, String message)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(notificationType),
-                      String.valueOf(messageID),
-                      String.valueOf(message));
 
     this.notificationType = notificationType;
     this.userDN           = userDN;
@@ -98,7 +85,6 @@ public class AccountStatusNotification
    */
   public AccountStatusNotificationType getNotificationType()
   {
-    assert debugEnter(CLASS_NAME, "getNotificationType");
 
     return notificationType;
   }
@@ -114,7 +100,6 @@ public class AccountStatusNotification
    */
   public DN getUserDN()
   {
-    assert debugEnter(CLASS_NAME, "getUserDN");
 
     return userDN;
   }
@@ -130,7 +115,6 @@ public class AccountStatusNotification
    */
   public int getMessageID()
   {
-    assert debugEnter(CLASS_NAME, "getMessageID");
 
     return messageID;
   }
@@ -146,7 +130,6 @@ public class AccountStatusNotification
    */
   public String getMessage()
   {
-    assert debugEnter(CLASS_NAME, "getMessage");
 
     return message;
   }
@@ -162,7 +145,6 @@ public class AccountStatusNotification
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     return "AccountStatusNotification(type=" +
            notificationType.getNotificationTypeName() + ",dn=" +

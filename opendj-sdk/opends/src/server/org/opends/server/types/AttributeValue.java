@@ -31,7 +31,10 @@ package org.opends.server.types;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
-import static org.opends.server.loggers.Debug.*;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
 
@@ -48,12 +51,6 @@ import static org.opends.server.util.Validator.*;
  */
 public class AttributeValue
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.AttributeValue";
-
 
 
   // The normalized form of this value.
@@ -78,8 +75,6 @@ public class AttributeValue
    */
   public AttributeValue(AttributeType attributeType, ByteString value)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(attributeType),
-                            String.valueOf(value));
 
     ensureNotNull(attributeType, value);
 
@@ -101,8 +96,6 @@ public class AttributeValue
    */
   public AttributeValue(AttributeType attributeType, String value)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(attributeType),
-                            String.valueOf(value));
 
     ensureNotNull(attributeType, value);
 
@@ -126,8 +119,6 @@ public class AttributeValue
    */
   public AttributeValue(ByteString value, ByteString normalizedValue)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(value),
-                            String.valueOf(normalizedValue));
 
     ensureNotNull(value, normalizedValue);
 
@@ -146,7 +137,6 @@ public class AttributeValue
    */
   public ByteString getValue()
   {
-    assert debugEnter(CLASS_NAME, "getValue");
 
     return value;
   }
@@ -160,7 +150,6 @@ public class AttributeValue
    */
   public byte[] getValueBytes()
   {
-    assert debugEnter(CLASS_NAME, "getValueBytes");
 
     return value.value();
   }
@@ -176,7 +165,6 @@ public class AttributeValue
    */
   public String getStringValue()
   {
-    assert debugEnter(CLASS_NAME, "getStringValue");
 
     return value.stringValue();
   }
@@ -196,7 +184,6 @@ public class AttributeValue
   public ByteString getNormalizedValue()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getNormalizedValue");
 
     if (normalizedValue == null)
     {
@@ -223,7 +210,6 @@ public class AttributeValue
   public byte[] getNormalizedValueBytes()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getValueBytes");
 
     return getNormalizedValue().value();
   }
@@ -245,7 +231,6 @@ public class AttributeValue
   public String getNormalizedStringValue()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getNormalizedStringValue");
 
     if (normalizedValue == null)
     {
@@ -266,7 +251,6 @@ public class AttributeValue
    */
   public String getDNStringValue()
   {
-    assert debugEnter(CLASS_NAME, "getDNStringValue");
 
     return getDNValue(getStringValue());
   }
@@ -288,7 +272,6 @@ public class AttributeValue
   public String getNormalizedDNStringValue()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getNormalizedDNStringValue");
 
     return getDNValue(getNormalizedStringValue());
   }
@@ -306,8 +289,6 @@ public class AttributeValue
    */
   private static String getDNValue(String value)
   {
-    assert debugEnter(CLASS_NAME, "getDNValue",
-                      String.valueOf(value));
 
     if ((value == null) || (value.length() == 0))
     {
@@ -384,7 +365,6 @@ public class AttributeValue
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (this == o)
     {
@@ -438,7 +418,10 @@ public class AttributeValue
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "equals", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         return value.equals(attrValue.getValue());
       }
@@ -458,7 +441,6 @@ public class AttributeValue
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     try
     {
@@ -480,7 +462,10 @@ public class AttributeValue
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hashCode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return value.hashCode();
     }
@@ -495,7 +480,6 @@ public class AttributeValue
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     if (value == null)
     {
@@ -518,8 +502,6 @@ public class AttributeValue
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append(value.toString());
   }

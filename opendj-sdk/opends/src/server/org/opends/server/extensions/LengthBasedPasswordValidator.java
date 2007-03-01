@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -49,7 +49,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -64,11 +66,6 @@ public class LengthBasedPasswordValidator
        extends PasswordValidator
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.LengthBasedPasswordValidator";
 
 
 
@@ -90,7 +87,6 @@ public class LengthBasedPasswordValidator
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
     // All initialization must be done in the initializePasswordValidator
     // method.
@@ -105,8 +101,6 @@ public class LengthBasedPasswordValidator
   public void initializePasswordValidator(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializePasswordValidator",
-                      String.valueOf(configEntry));
 
 
     configEntryDN = configEntry.getDN();
@@ -130,7 +124,10 @@ public class LengthBasedPasswordValidator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordValidator", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWLENGTHVALIDATOR_CANNOT_DETERMINE_MIN_LENGTH;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -156,7 +153,10 @@ public class LengthBasedPasswordValidator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordValidator", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWLENGTHVALIDATOR_CANNOT_DETERMINE_MAX_LENGTH;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -186,7 +186,6 @@ public class LengthBasedPasswordValidator
   @Override()
   public void finalizePasswordValidator()
   {
-    assert debugEnter(CLASS_NAME, "finalizePasswordValidator");
 
     DirectoryServer.deregisterConfigurableComponent(this);
   }
@@ -202,10 +201,6 @@ public class LengthBasedPasswordValidator
                                       Operation operation, Entry userEntry,
                                       StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "passwordIsAcceptable",
-                      "ByteString", "Set<ByteString>",
-                      String.valueOf(operation), String.valueOf(userEntry),
-                      "java.lang.StringBuilder");
 
 
     int numChars = newPassword.stringValue().length();
@@ -234,7 +229,6 @@ public class LengthBasedPasswordValidator
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -246,7 +240,6 @@ public class LengthBasedPasswordValidator
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     LinkedList<ConfigAttribute> attrs = new LinkedList<ConfigAttribute>();
@@ -272,8 +265,6 @@ public class LengthBasedPasswordValidator
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // Get the configured minimum length.
@@ -294,7 +285,10 @@ public class LengthBasedPasswordValidator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWLENGTHVALIDATOR_CANNOT_DETERMINE_MIN_LENGTH;
       unacceptableReasons.add(getMessage(msgID,
@@ -320,7 +314,10 @@ public class LengthBasedPasswordValidator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PWLENGTHVALIDATOR_CANNOT_DETERMINE_MAX_LENGTH;
       unacceptableReasons.add(getMessage(msgID,
@@ -352,9 +349,6 @@ public class LengthBasedPasswordValidator
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -380,7 +374,10 @@ public class LengthBasedPasswordValidator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -410,7 +407,10 @@ public class LengthBasedPasswordValidator
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {

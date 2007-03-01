@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
@@ -32,7 +32,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class implements a post rotation action that compresses
@@ -40,11 +42,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class GZIPAction implements PostRotationAction
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-    "org.opends.server.loggers.GZIPAction";
 
   private File originalFile;
   private File newFile;
@@ -119,26 +116,37 @@ public class GZIPAction implements PostRotationAction
       return true;
     } catch(IOException ioe)
     {
-      assert debugException(CLASS_NAME, "execute", ioe);
-      if(inputStreamOpen)
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ioe);
+      }
+      if (inputStreamOpen)
       {
         try
         {
           fis.close();
-        } catch(Exception fe)
+        }
+        catch (Exception fe)
         {
-          assert debugException(CLASS_NAME, "execute", fe);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, fe);
+          }
           // Cannot do much. Ignore.
         }
       }
-      if(outputStreamOpen)
+      if (outputStreamOpen)
       {
         try
         {
           gzip.close();
-        } catch(Exception ge)
+        }
+        catch (Exception ge)
         {
-                assert debugException(CLASS_NAME, "execute", ge);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, ge);
+          }
           // Cannot do much. Ignore.
         }
       }

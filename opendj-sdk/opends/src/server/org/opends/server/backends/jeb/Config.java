@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -69,18 +69,15 @@ import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.File;
 
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class represents the configuration of a JE backend.
  */
 public class Config
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.Config";
 
   /**
    * The name of the object class which configures
@@ -545,7 +542,10 @@ public class Config
     }
     catch (DirectoryException e)
     {
-      assert debugException(CLASS_NAME, "initializeConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     ConcurrentHashMap<DN, ConfigEntry> children = configEntry.getChildren();

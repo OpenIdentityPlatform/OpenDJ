@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -47,12 +47,11 @@ import javax.mail.internet.MimeMultipart;
 
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -62,11 +61,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class EMailMessage
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.util.EMailMessage";
 
 
 
@@ -99,8 +93,6 @@ public class EMailMessage
    */
   public EMailMessage(String sender, String recipient, String subject)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(sender),
-                            String.valueOf(recipient), String.valueOf(subject));
 
     this.sender  = sender;
     this.subject = subject;
@@ -125,9 +117,6 @@ public class EMailMessage
   public EMailMessage(String sender, ArrayList<String> recipients,
                       String subject)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(sender),
-                            String.valueOf(recipients),
-                            String.valueOf(subject));
 
     this.sender     = sender;
     this.recipients = recipients;
@@ -145,7 +134,6 @@ public class EMailMessage
    */
   public String getSender()
   {
-    assert debugEnter(CLASS_NAME, "getSender");
 
     return sender;
   }
@@ -159,7 +147,6 @@ public class EMailMessage
    */
   public void setSender(String sender)
   {
-    assert debugEnter(CLASS_NAME, "setSender", String.valueOf(sender));
 
     this.sender = sender;
   }
@@ -174,7 +161,6 @@ public class EMailMessage
    */
   public ArrayList<String> getRecipients()
   {
-    assert debugEnter(CLASS_NAME, "getRecipients");
 
     return recipients;
   }
@@ -188,7 +174,6 @@ public class EMailMessage
    */
   public void setRecipients(ArrayList<String> recipients)
   {
-    assert debugEnter(CLASS_NAME, "setRecipients", String.valueOf(recipients));
 
     this.recipients = recipients;
   }
@@ -202,7 +187,6 @@ public class EMailMessage
    */
   public void addRecipient(String recipient)
   {
-    assert debugEnter(CLASS_NAME, "addRecipient", String.valueOf(recipient));
 
     recipients.add(recipient);
   }
@@ -216,7 +200,6 @@ public class EMailMessage
    */
   public String getSubject()
   {
-    assert debugEnter(CLASS_NAME, "getSubject");
 
     return subject;
   }
@@ -230,7 +213,6 @@ public class EMailMessage
    */
   public void setSubject(String subject)
   {
-    assert debugEnter(CLASS_NAME, "setSubject", String.valueOf(subject));
 
     this.subject = subject;
   }
@@ -245,7 +227,6 @@ public class EMailMessage
    */
   public StringBuilder getBody()
   {
-    assert debugEnter(CLASS_NAME, "getBody");
 
     return body;
   }
@@ -259,7 +240,6 @@ public class EMailMessage
    */
   public void setBody(StringBuilder body)
   {
-    assert debugEnter(CLASS_NAME, "setBody", String.valueOf(body));
 
     this.body = body;
   }
@@ -273,7 +253,6 @@ public class EMailMessage
    */
   public void setBody(String bodyString)
   {
-    assert debugEnter(CLASS_NAME, "setBody", String.valueOf(bodyString));
 
     body = new StringBuilder(bodyString);
   }
@@ -287,7 +266,6 @@ public class EMailMessage
    */
   public void appendToBody(String text)
   {
-    assert debugEnter(CLASS_NAME, "appendToBody", String.valueOf(text));
 
     body.append(text);
   }
@@ -302,7 +280,6 @@ public class EMailMessage
    */
   public LinkedList<MimeBodyPart> getAttachments()
   {
-    assert debugEnter(CLASS_NAME, "getAttachments");
 
     return attachments;
   }
@@ -316,7 +293,6 @@ public class EMailMessage
    */
   public void addAttachment(MimeBodyPart attachment)
   {
-    assert debugEnter(CLASS_NAME, "addAttachment", String.valueOf(attachment));
 
     attachments.add(attachment);
   }
@@ -334,8 +310,6 @@ public class EMailMessage
   public void addAttachment(String attachmentText)
          throws MessagingException
   {
-    assert debugEnter(CLASS_NAME, "addAttachment",
-                      String.valueOf(attachmentText));
 
     MimeBodyPart attachment = new MimeBodyPart();
     attachment.setText(attachmentText);
@@ -355,8 +329,6 @@ public class EMailMessage
   public void addAttachment(File attachmentFile)
          throws MessagingException
   {
-    assert debugEnter(CLASS_NAME, "addAttachment",
-                      String.valueOf(attachmentFile));
 
     MimeBodyPart attachment = new MimeBodyPart();
 
@@ -381,7 +353,6 @@ public class EMailMessage
   public void send()
          throws MessagingException
   {
-    assert debugEnter(CLASS_NAME, "send");
 
 
     // Get information about the available mail servers that we can use.
@@ -403,11 +374,14 @@ public class EMailMessage
       }
       catch (MessagingException me)
       {
-        assert debugException(CLASS_NAME, "send", me);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, me);
+        }
 
-        int    msgID = MSGID_EMAILMSG_INVALID_SENDER_ADDRESS;
-        String msg   = getMessage(msgID, String.valueOf(sender),
-                                  me.getMessage());
+        int msgID = MSGID_EMAILMSG_INVALID_SENDER_ADDRESS;
+        String msg = getMessage(msgID, String.valueOf(sender),
+                                me.getMessage());
         throw new MessagingException(msg, me);
       }
 
@@ -426,11 +400,14 @@ public class EMailMessage
         }
         catch (MessagingException me)
         {
-          assert debugException(CLASS_NAME, "send", me);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, me);
+          }
 
-          int    msgID = MSGID_EMAILMSG_INVALID_RECIPIENT_ADDRESS;
-          String msg   = getMessage(msgID, String.valueOf(recipient),
-                                    me.getMessage());
+          int msgID = MSGID_EMAILMSG_INVALID_RECIPIENT_ADDRESS;
+          String msg = getMessage(msgID, String.valueOf(recipient),
+                                  me.getMessage());
           throw new MessagingException(msg, me);
         }
       }
@@ -469,7 +446,10 @@ public class EMailMessage
       }
       catch (SendFailedException sfe)
       {
-        assert debugException(CLASS_NAME, "send", sfe);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, sfe);
+        }
 
         // We'll ignore this and hope that another server is available.  If not,
         // then at least save the exception so that we can throw it if all else

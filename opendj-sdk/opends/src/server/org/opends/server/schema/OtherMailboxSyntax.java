@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -40,7 +40,6 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -57,11 +56,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class OtherMailboxSyntax
        extends AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.OtherMailboxSyntax";
 
 
 
@@ -83,7 +77,6 @@ public class OtherMailboxSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -101,8 +94,6 @@ public class OtherMailboxSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_LIST_OID);
@@ -132,7 +123,6 @@ public class OtherMailboxSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_OTHER_MAILBOX_NAME;
   }
@@ -146,7 +136,6 @@ public class OtherMailboxSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_OTHER_MAILBOX_OID;
   }
@@ -160,7 +149,6 @@ public class OtherMailboxSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_OTHER_MAILBOX_DESCRIPTION;
   }
@@ -177,7 +165,6 @@ public class OtherMailboxSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -194,7 +181,6 @@ public class OtherMailboxSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     // Ordering matching is not allowed by default.
     return null;
@@ -212,7 +198,6 @@ public class OtherMailboxSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return defaultSubstringMatchingRule;
   }
@@ -229,7 +214,6 @@ public class OtherMailboxSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     // Approximate matching is not allowed by default.
     return null;
@@ -252,8 +236,6 @@ public class OtherMailboxSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
 
     // Check to see if the provided value was null.  If so, then that's not

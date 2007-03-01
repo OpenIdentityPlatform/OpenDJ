@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -38,11 +33,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class SynchronizationProviderResult
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-  "org.opends.server.types.SynchronizationProviderResult";
 
 
 
@@ -62,7 +52,6 @@ public class SynchronizationProviderResult
   public SynchronizationProviderResult(
               boolean continueOperationProcessing)
   {
-    assert debugConstructor(CLASS_NAME);
 
     this.continueOperationProcessing = continueOperationProcessing;
   }
@@ -79,7 +68,6 @@ public class SynchronizationProviderResult
    */
   public boolean continueOperationProcessing()
   {
-    assert debugEnter(CLASS_NAME, "continueOperationProcessing");
 
     return continueOperationProcessing;
   }
@@ -97,8 +85,6 @@ public class SynchronizationProviderResult
   public void setContinueOperationProcessing(
                    boolean continueOperationProcessing)
   {
-    assert debugEnter(CLASS_NAME, "setContinueOperationProcessing",
-                      String.valueOf(continueOperationProcessing));
 
     this.continueOperationProcessing = continueOperationProcessing;
   }
@@ -114,7 +100,6 @@ public class SynchronizationProviderResult
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -132,8 +117,6 @@ public class SynchronizationProviderResult
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("SynchronizationProviderResult(" +
                   "continueOperationProcessing=");

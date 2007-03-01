@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -37,7 +37,11 @@ import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
 
-import static org.opends.server.loggers.Debug.*;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -51,11 +55,6 @@ import static org.opends.server.util.ServerConstants.*;
 public abstract class MonitorProvider
        extends DirectoryThread
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.MonitorProvider";
 
 
 
@@ -79,7 +78,6 @@ public abstract class MonitorProvider
   {
     super(threadName);
 
-    assert debugConstructor(CLASS_NAME);
 
     stopRequested = false;
     monitorThread = null;
@@ -120,7 +118,6 @@ public abstract class MonitorProvider
    */
   public void finalizeMonitorProvider()
   {
-    assert debugEnter(CLASS_NAME, "finalizeMonitorProvider");
 
     // Signal the monitor thread that it should stop.
     stopRequested = true;
@@ -134,7 +131,10 @@ public abstract class MonitorProvider
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "finalizeMonitorProvider", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -164,7 +164,6 @@ public abstract class MonitorProvider
    */
   public ObjectClass getMonitorObjectClass()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorObjectClass");
 
     return DirectoryConfig.getObjectClass(OC_EXTENSIBLE_OBJECT_LC,
                                           true);
@@ -218,7 +217,6 @@ public abstract class MonitorProvider
    */
   public final void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
 
     monitorThread = Thread.currentThread();

@@ -42,9 +42,21 @@ import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.protocols.internal.InternalSearchListener;
-import org.opends.server.types.*;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.IntermediateResponse;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.SearchScope;
 import static org.opends.server.messages.ProtocolMessages.*;
 
 
@@ -56,11 +68,6 @@ import static org.opends.server.messages.ProtocolMessages.*;
 public class JmxClientConnection
        extends ClientConnection implements NotificationListener
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.jmx.JmxClientConnection";
 
 
   // The message ID counter to use for jmx connections.
@@ -108,7 +115,6 @@ public class JmxClientConnection
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
     nextMessageID    = new AtomicInteger(1);
     nextOperationID  = new AtomicLong(0);
@@ -137,7 +143,10 @@ public class JmxClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     //
@@ -199,7 +208,6 @@ public class JmxClientConnection
    */
   public long nextOperationID()
   {
-    assert debugEnter(CLASS_NAME, "nextOperationID");
 
     long opID = nextOperationID.getAndIncrement();
     if (opID < 0)
@@ -232,7 +240,6 @@ public class JmxClientConnection
    */
   public int nextMessageID()
   {
-    assert debugEnter(CLASS_NAME, "nextMessageID");
 
     int msgID = nextMessageID.getAndIncrement();
     if (msgID < 0)
@@ -263,7 +270,6 @@ public class JmxClientConnection
    */
   public long getConnectionID()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionID");
 
     return connectionID;
   }
@@ -275,7 +281,6 @@ public class JmxClientConnection
    */
   public ConnectionHandler getConnectionHandler()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionHandler");
 
     return jmxConnectionHandler;
   }
@@ -289,7 +294,6 @@ public class JmxClientConnection
    */
   public String getProtocol()
   {
-    assert debugEnter(CLASS_NAME, "getProtocol");
 
     return "jmx";
   }
@@ -303,7 +307,6 @@ public class JmxClientConnection
    */
   public String getClientAddress()
   {
-    assert debugEnter(CLASS_NAME, "getClientAddress");
 
     return "jmx";
   }
@@ -319,7 +322,6 @@ public class JmxClientConnection
    */
   public String getServerAddress()
   {
-    assert debugEnter(CLASS_NAME, "getServerAddress");
 
     return "jmx";
   }
@@ -336,7 +338,6 @@ public class JmxClientConnection
    */
   public InetAddress getRemoteAddress()
   {
-    assert debugEnter(CLASS_NAME, "getRemoteAddress");
 
     return null;
   }
@@ -354,7 +355,6 @@ public class JmxClientConnection
    */
   public InetAddress getLocalAddress()
   {
-    assert debugEnter(CLASS_NAME, "getLocalAddress");
 
     return null;
   }
@@ -374,7 +374,6 @@ public class JmxClientConnection
    */
   public boolean isSecure()
   {
-    assert debugEnter(CLASS_NAME, "isSecure");
 
     return securityProvider.isSecure();
   }
@@ -388,7 +387,6 @@ public class JmxClientConnection
    */
   public ConnectionSecurityProvider getConnectionSecurityProvider()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionSecurityProvider");
 
     return securityProvider;
   }
@@ -404,8 +402,6 @@ public class JmxClientConnection
   public void setConnectionSecurityProvider(ConnectionSecurityProvider
                                                  securityProvider)
   {
-    assert debugEnter(CLASS_NAME, "setConnectionSecurityProvider",
-                      String.valueOf(securityProvider));
 
     this.securityProvider = securityProvider;
   }
@@ -422,7 +418,6 @@ public class JmxClientConnection
    */
   public String getSecurityMechanism()
   {
-    assert debugEnter(CLASS_NAME, "getSecurityMechanism");
 
     return securityProvider.getSecurityMechanismName();
   }
@@ -447,7 +442,6 @@ public class JmxClientConnection
    */
   public boolean processDataRead(ByteBuffer buffer)
   {
-    assert debugEnter(CLASS_NAME, "processDataRead");
 
     // This method will not do anything with the data because there is no
     // actual "connection" from which information can be read, nor any protocol
@@ -465,7 +459,6 @@ public class JmxClientConnection
    */
   public void sendResponse(Operation operation)
   {
-    assert debugEnter(CLASS_NAME, "sendResponse", String.valueOf(operation));
 
     // There will not be any response sent by this method, since there is not an
     // actual connection.
@@ -486,8 +479,6 @@ public class JmxClientConnection
   public AddOperation processAdd(ASN1OctetString rawEntryDN,
                                  ArrayList<LDAPAttribute> rawAttributes)
   {
-    assert debugEnter(CLASS_NAME, "processAdd", String.valueOf(rawEntryDN),
-                      String.valueOf(rawAttributes));
 
     AddOperation addOperation =
          new AddOperation(this, nextOperationID(), nextMessageID(),
@@ -513,9 +504,6 @@ public class JmxClientConnection
                                         String attributeType,
                                         ASN1OctetString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "processCompare", String.valueOf(rawEntryDN),
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     CompareOperation compareOperation =
          new CompareOperation(this, nextOperationID(), nextMessageID(),
@@ -538,8 +526,6 @@ public class JmxClientConnection
    */
   public DeleteOperation processDelete(ASN1OctetString rawEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "processDelete",
-                      String.valueOf(rawEntryDN));
 
     DeleteOperation deleteOperation =
          new DeleteOperation(this, nextOperationID(), nextMessageID(),
@@ -564,9 +550,6 @@ public class JmxClientConnection
   public ExtendedOperation processExtendedOperation(String requestOID,
                                 ASN1OctetString requestValue)
   {
-    assert debugEnter(CLASS_NAME, "processExtendedOperation",
-                      String.valueOf(requestOID),
-                      String.valueOf(requestValue));
 
     ExtendedOperation extendedOperation =
          new ExtendedOperation(this, nextOperationID(), nextMessageID(),
@@ -592,8 +575,6 @@ public class JmxClientConnection
   public ModifyOperation processModify(ASN1OctetString rawEntryDN,
                               ArrayList<LDAPModification> rawModifications)
   {
-    assert debugEnter(CLASS_NAME, "processModify", String.valueOf(rawEntryDN),
-                      String.valueOf(rawModifications));
 
     ModifyOperation modifyOperation =
          new ModifyOperation(this, nextOperationID(), nextMessageID(),
@@ -621,9 +602,6 @@ public class JmxClientConnection
                                            ASN1OctetString rawNewRDN,
                                            boolean deleteOldRDN)
   {
-    assert debugEnter(CLASS_NAME, "processModifyDN",
-                      String.valueOf(rawEntryDN), String.valueOf(rawNewRDN),
-                      String.valueOf(deleteOldRDN));
 
     return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN, null);
   }
@@ -649,9 +627,6 @@ public class JmxClientConnection
                                            boolean deleteOldRDN,
                                            ASN1OctetString rawNewSuperior)
   {
-    assert debugEnter(CLASS_NAME, "processModifyDN", String.valueOf(rawEntryDN),
-                      String.valueOf(rawNewRDN), String.valueOf(deleteOldRDN),
-                      String.valueOf(rawNewSuperior));
 
     ModifyDNOperation modifyDNOperation =
          new ModifyDNOperation(this, nextOperationID(), nextMessageID(),
@@ -680,8 +655,6 @@ public class JmxClientConnection
   public InternalSearchOperation processSearch(ASN1OctetString rawBaseDN,
                                       SearchScope scope, LDAPFilter filter)
   {
-    assert debugEnter(CLASS_NAME, "processSearch", String.valueOf(rawBaseDN),
-                      String.valueOf(scope), String.valueOf(filter));
 
     return processSearch(rawBaseDN, scope,
                          DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
@@ -713,18 +686,6 @@ public class JmxClientConnection
                                       boolean typesOnly, LDAPFilter filter,
                                       LinkedHashSet<String> attributes)
   {
-    assert debugEnter(CLASS_NAME, "processSearch",
-                      new String[]
-                      {
-                        String.valueOf(rawBaseDN),
-                        String.valueOf(scope),
-                        String.valueOf(derefPolicy),
-                        String.valueOf(sizeLimit),
-                        String.valueOf(timeLimit),
-                        String.valueOf(typesOnly),
-                        String.valueOf(filter),
-                        String.valueOf(attributes)
-                      });
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(), nextMessageID(),
@@ -763,19 +724,6 @@ public class JmxClientConnection
                                       LinkedHashSet<String> attributes,
                                       InternalSearchListener searchListener)
   {
-    assert debugEnter(CLASS_NAME, "processSearch",
-                      new String[]
-                      {
-                        String.valueOf(rawBaseDN),
-                        String.valueOf(scope),
-                        String.valueOf(derefPolicy),
-                        String.valueOf(sizeLimit),
-                        String.valueOf(timeLimit),
-                        String.valueOf(typesOnly),
-                        String.valueOf(filter),
-                        String.valueOf(attributes),
-                        String.valueOf(searchListener)
-                      });
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(), nextMessageID(),
@@ -802,9 +750,6 @@ public class JmxClientConnection
   public void sendSearchEntry(SearchOperation searchOperation,
                               SearchResultEntry searchEntry)
   {
-    assert debugEnter(CLASS_NAME, "sendSearchEntry",
-                      String.valueOf(searchOperation),
-                      String.valueOf(searchEntry));
 
     ((InternalSearchOperation) searchOperation).addSearchEntry(searchEntry);
   }
@@ -827,9 +772,6 @@ public class JmxClientConnection
   public boolean sendSearchReference(SearchOperation searchOperation,
                                      SearchResultReference searchReference)
   {
-    assert debugEnter(CLASS_NAME, "sendSearchReference",
-                      String.valueOf(searchOperation),
-                      String.valueOf(searchReference));
 
 
     ((InternalSearchOperation)
@@ -851,8 +793,6 @@ public class JmxClientConnection
   protected boolean sendIntermediateResponseMessage(
                          IntermediateResponse intermediateResponse)
   {
-    assert debugEnter(CLASS_NAME, "sendIntermediateResponseMessage",
-                      String.valueOf(intermediateResponse));
 
 
     // FIXME -- Do we need to support Jmx intermediate responses?  If so,
@@ -884,10 +824,6 @@ public class JmxClientConnection
                          boolean sendNotification, String message,
                          int messageID)
   {
-    assert debugEnter(CLASS_NAME, "disconnect",
-                      String.valueOf(disconnectReason),
-                      String.valueOf(sendNotification), String.valueOf(message),
-                      String.valueOf(messageID));
 
     // we are already performing a disconnect
     if (disconnectStarted)
@@ -909,7 +845,10 @@ public class JmxClientConnection
     catch (Exception e)
     {
       // TODO print a message ?
-      assert debugException(CLASS_NAME, "disconnect", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     // Call postDisconnectPlugins
@@ -922,7 +861,10 @@ public class JmxClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "disconnect", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -938,7 +880,6 @@ public class JmxClientConnection
    */
   public boolean bindInProgress()
   {
-    assert debugEnter(CLASS_NAME, "bindInProgress");
 
     // For Jmx operations, we don't care if there are any binds in
     // progress.
@@ -957,8 +898,6 @@ public class JmxClientConnection
    */
   public void setBindInProgress(boolean bindInProgress)
   {
-    assert debugEnter(CLASS_NAME, "setBindInProgress",
-                      String.valueOf(bindInProgress));
 
     // No implementation is required.
   }
@@ -973,7 +912,6 @@ public class JmxClientConnection
    */
   public Collection<Operation> getOperationsInProgress()
   {
-    assert debugEnter(CLASS_NAME, "getOperationsInProgress");
 
     return operationList;
   }
@@ -990,8 +928,6 @@ public class JmxClientConnection
    */
   public Operation getOperationInProgress(int messageID)
   {
-    assert debugEnter(CLASS_NAME, "getOperationInProgress",
-                      String.valueOf(messageID));
 
     // Jmx operations will not be tracked.
     return null;
@@ -1012,8 +948,6 @@ public class JmxClientConnection
    */
   public boolean removeOperationInProgress(int messageID)
   {
-    assert debugEnter(CLASS_NAME, "removeOperationInProgress",
-                      String.valueOf(messageID));
 
     // No implementation is required, since Jmx operations will not be
     // tracked.
@@ -1035,9 +969,6 @@ public class JmxClientConnection
   public CancelResult cancelOperation(int messageID,
                                       CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancelOperation",
-                      String.valueOf(messageID),
-                      String.valueOf(cancelRequest));
 
     // Jmx operations cannot be cancelled.
     return CancelResult.CANNOT_CANCEL;
@@ -1053,8 +984,6 @@ public class JmxClientConnection
    */
   public void cancelAllOperations(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancelAllOperations",
-                      String.valueOf(cancelRequest));
 
     // No implementation is required since Jmx operations cannot be
     // cancelled.
@@ -1074,9 +1003,6 @@ public class JmxClientConnection
   public void cancelAllOperationsExcept(CancelRequest cancelRequest,
                                         int messageID)
   {
-    assert debugEnter(CLASS_NAME, "cancelAllOperationsExcept",
-                      String.valueOf(cancelRequest),
-                      String.valueOf(messageID));
 
     // No implementation is required since Jmx operations cannot be
     // cancelled.
@@ -1089,7 +1015,6 @@ public class JmxClientConnection
    */
   public String getMonitorSummary()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorSummary");
 
     StringBuilder buffer = new StringBuilder();
     buffer.append("connID=\"");

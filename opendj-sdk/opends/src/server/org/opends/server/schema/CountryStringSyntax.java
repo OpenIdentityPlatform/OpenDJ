@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -40,7 +40,6 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -59,11 +58,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class CountryStringSyntax
        extends AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.CountryStringSyntax";
 
 
 
@@ -91,7 +85,6 @@ public class CountryStringSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -109,8 +102,6 @@ public class CountryStringSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
     defaultApproximateMatchingRule =
          DirectoryServer.getApproximateMatchingRule(AMR_DOUBLE_METAPHONE_OID);
@@ -158,7 +149,6 @@ public class CountryStringSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_COUNTRY_STRING_NAME;
   }
@@ -172,7 +162,6 @@ public class CountryStringSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_COUNTRY_STRING_OID;
   }
@@ -186,7 +175,6 @@ public class CountryStringSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_COUNTRY_STRING_DESCRIPTION;
   }
@@ -203,7 +191,6 @@ public class CountryStringSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -220,7 +207,6 @@ public class CountryStringSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     return defaultOrderingMatchingRule;
   }
@@ -237,7 +223,6 @@ public class CountryStringSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return defaultSubstringMatchingRule;
   }
@@ -254,7 +239,6 @@ public class CountryStringSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     return defaultApproximateMatchingRule;
   }
@@ -276,8 +260,6 @@ public class CountryStringSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
     String stringValue = toLowerCase(value.stringValue());
     if (stringValue.length() != 2)

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -59,7 +59,9 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -79,11 +81,6 @@ public class ExactMatchIdentityMapper
        extends IdentityMapper
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.ExactMatchIdentityMapper";
 
 
 
@@ -118,8 +115,6 @@ public class ExactMatchIdentityMapper
   public void initializeIdentityMapper(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeIdentityMapper",
-                      String.valueOf(configEntry));
 
 
     configEntryDN = configEntry.getDN();
@@ -176,7 +171,10 @@ public class ExactMatchIdentityMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeIdentityMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_ATTR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -221,7 +219,10 @@ public class ExactMatchIdentityMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeIdentityMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_BASE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -249,7 +250,6 @@ public class ExactMatchIdentityMapper
    */
   public void finalizeIdentityMapper()
   {
-    assert debugEnter(CLASS_NAME, "finalizeIdentityMapper");
 
 
     // Deregister with the server as a configurable component.
@@ -276,7 +276,6 @@ public class ExactMatchIdentityMapper
   public Entry getEntryForID(String id)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getEntryForID", String.valueOf(id));
 
 
     // Get the attribute type and base DN arrays as local variables to protect
@@ -405,7 +404,6 @@ public class ExactMatchIdentityMapper
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -421,7 +419,6 @@ public class ExactMatchIdentityMapper
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
@@ -448,7 +445,10 @@ public class ExactMatchIdentityMapper
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "getConfigurationAttributes", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // This should never happen.
       }
@@ -481,8 +481,6 @@ public class ExactMatchIdentityMapper
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     boolean configAcceptable = true;
@@ -532,7 +530,10 @@ public class ExactMatchIdentityMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_ATTR;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -553,7 +554,10 @@ public class ExactMatchIdentityMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_BASE;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -586,9 +590,6 @@ public class ExactMatchIdentityMapper
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -658,7 +659,10 @@ public class ExactMatchIdentityMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_ATTR;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -706,7 +710,10 @@ public class ExactMatchIdentityMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_BASE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),

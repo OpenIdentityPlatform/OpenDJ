@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -38,7 +38,9 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -57,11 +59,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class IntegerFirstComponentEqualityMatchingRule
        extends EqualityMatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.IntegerFirstComponentEqualityMatchingRule";
 
 
 
@@ -72,7 +69,6 @@ public class IntegerFirstComponentEqualityMatchingRule
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -94,8 +90,6 @@ public class IntegerFirstComponentEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMatchingRule",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -110,7 +104,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return EMR_INTEGER_FIRST_COMPONENT_NAME;
   }
@@ -124,7 +117,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return EMR_INTEGER_FIRST_COMPONENT_OID;
   }
@@ -139,7 +131,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     // There is no standard description for this matching rule.
     return null;
@@ -155,7 +146,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxOID");
 
     return SYNTAX_INTEGER_OID;
   }
@@ -176,7 +166,6 @@ public class IntegerFirstComponentEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalizeValue", String.valueOf(value));
 
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value.value(), buffer, true);
@@ -227,8 +216,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-    assert debugEnter(CLASS_NAME, "areEqual", String.valueOf(value1),
-                      String.valueOf(value2));
 
 
     try
@@ -240,7 +227,10 @@ public class IntegerFirstComponentEqualityMatchingRule
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "areEqual", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return false;
     }
@@ -264,8 +254,6 @@ public class IntegerFirstComponentEqualityMatchingRule
    */
   public int generateHashCode(AttributeValue attributeValue)
   {
-    assert debugEnter(CLASS_NAME, "generateHashCode",
-                      String.valueOf(attributeValue));
 
     // In this case, we'll always return the same value because the matching
     // isn't based on the entire value.
@@ -288,8 +276,6 @@ public class IntegerFirstComponentEqualityMatchingRule
   private static int extractIntValue(String valueString)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "extractIntValue",
-                      String.valueOf(valueString));
 
 
     int valueLength = valueString.length();
@@ -304,7 +290,10 @@ public class IntegerFirstComponentEqualityMatchingRule
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "extractIntValue", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_EMR_INTFIRSTCOMP_NO_INITIAL_PARENTHESIS;
         String message = getMessage(msgID, String.valueOf(valueString));
@@ -354,7 +343,10 @@ public class IntegerFirstComponentEqualityMatchingRule
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "extractIntValue", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT;
       String message = getMessage(msgID, String.valueOf(valueString));

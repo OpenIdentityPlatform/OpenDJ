@@ -26,7 +26,6 @@
  */
 package org.opends.server.tasks;
 
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.messages.TaskMessages.*;
@@ -73,11 +72,6 @@ import java.io.File;
  */
 public class BackupTask extends Task
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tasks.BackupTask";
 
 
 
@@ -106,7 +100,6 @@ public class BackupTask extends Task
    */
   @Override public void initializeTask() throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "initializeTask");
 
 
     // If the client connection is available, then make sure the associated
@@ -541,7 +534,6 @@ public class BackupTask extends Task
    */
   protected TaskState runTask()
   {
-    assert debugEnter(CLASS_NAME, "runTask");
 
     if (!argumentsAreValid())
     {

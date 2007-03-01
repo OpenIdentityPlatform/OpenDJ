@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -40,8 +40,10 @@ import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -57,11 +59,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class EntryChangeNotificationControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.EntryChangeNotificationControl";
 
 
 
@@ -90,8 +87,6 @@ public class EntryChangeNotificationControl
     super(OID_ENTRY_CHANGE_NOTIFICATION, false,
           encodeValue(changeType, null, changeNumber));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(changeType),
-                            String.valueOf(changeNumber));
 
     this.changeType   = changeType;
     this.changeNumber = changeNumber;
@@ -118,9 +113,6 @@ public class EntryChangeNotificationControl
     super(OID_ENTRY_CHANGE_NOTIFICATION, false,
           encodeValue(changeType, previousDN, changeNumber));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(changeType),
-                            String.valueOf(previousDN),
-                            String.valueOf(changeNumber));
 
     this.changeType   = changeType;
     this.previousDN   = previousDN;
@@ -149,11 +141,6 @@ public class EntryChangeNotificationControl
   {
     super(oid, isCritical, encodeValue(changeType, previousDN, changeNumber));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(changeType),
-                            String.valueOf(previousDN),
-                            String.valueOf(changeNumber));
 
     this.changeType   = changeType;
     this.previousDN   = previousDN;
@@ -185,12 +172,6 @@ public class EntryChangeNotificationControl
   {
     super(oid, isCritical, encodedValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(changeType),
-                            String.valueOf(previousDN),
-                            String.valueOf(changeNumber),
-                            String.valueOf(encodedValue));
 
     this.changeType   = changeType;
     this.previousDN   = previousDN;
@@ -216,8 +197,6 @@ public class EntryChangeNotificationControl
                                                   changeType,
                                              DN previousDN, long changeNumber)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue", String.valueOf(changeType),
-                      String.valueOf(previousDN), String.valueOf(changeNumber));
 
 
     ArrayList<ASN1Element> elements =
@@ -256,7 +235,6 @@ public class EntryChangeNotificationControl
   public static EntryChangeNotificationControl decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
 
     if (! control.hasValue())
@@ -334,7 +312,10 @@ public class EntryChangeNotificationControl
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeControl", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_ECN_CANNOT_DECODE_VALUE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -357,7 +338,6 @@ public class EntryChangeNotificationControl
    */
   public PersistentSearchChangeType getChangeType()
   {
-    assert debugEnter(CLASS_NAME, "getChangeType");
 
     return changeType;
   }
@@ -372,7 +352,6 @@ public class EntryChangeNotificationControl
    */
   public void setChangeType(PersistentSearchChangeType changeType)
   {
-    assert debugEnter(CLASS_NAME, "setChangeType", String.valueOf(changeType));
 
     this.changeType = changeType;
 
@@ -389,7 +368,6 @@ public class EntryChangeNotificationControl
    */
   public DN getPreviousDN()
   {
-    assert debugEnter(CLASS_NAME, "getPreviousDN");
 
     return previousDN;
   }
@@ -404,7 +382,6 @@ public class EntryChangeNotificationControl
    */
   public void setPreviousDN(DN previousDN)
   {
-    assert debugEnter(CLASS_NAME, "setPreviousDN", String.valueOf(previousDN));
 
     this.previousDN = previousDN;
 
@@ -421,7 +398,6 @@ public class EntryChangeNotificationControl
    */
   public long getChangeNumber()
   {
-    assert debugEnter(CLASS_NAME, "getChangeNumber");
 
     return changeNumber;
   }
@@ -436,8 +412,6 @@ public class EntryChangeNotificationControl
    */
   public void setChangeNumber(long changeNumber)
   {
-    assert debugEnter(CLASS_NAME, "setChangeNumber",
-                      String.valueOf(changeNumber));
 
     this.changeNumber = changeNumber;
 
@@ -454,7 +428,6 @@ public class EntryChangeNotificationControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -471,7 +444,6 @@ public class EntryChangeNotificationControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("EntryChangeNotificationControl(changeType=");
     buffer.append(changeType.toString());

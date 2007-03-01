@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -38,7 +38,10 @@ import java.util.TimeZone;
 import org.opends.server.config.ConfigException;
 import org.opends.server.util.Base64;
 
-import static org.opends.server.loggers.Debug.*;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -52,11 +55,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class BackupInfo
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.BackupInfo";
 
 
 
@@ -205,20 +203,6 @@ public class BackupInfo
                     HashSet<String> dependencies,
                     HashMap<String,String> backupProperties)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(backupDirectory),
-                              String.valueOf(backupID),
-                              String.valueOf(backupDate),
-                              String.valueOf(isIncremental),
-                              String.valueOf(isCompressed),
-                              String.valueOf(isEncrypted),
-                              String.valueOf(unsignedHash),
-                              String.valueOf(signedHash),
-                              String.valueOf(dependencies),
-                              String.valueOf(backupProperties)
-                            });
 
     this.backupDirectory = backupDirectory;
     this.backupID        = backupID;
@@ -259,7 +243,6 @@ public class BackupInfo
    */
   public BackupDirectory getBackupDirectory()
   {
-    assert debugEnter(CLASS_NAME, "getBackupDirectory");
 
     return backupDirectory;
   }
@@ -273,7 +256,6 @@ public class BackupInfo
    */
   public String getBackupID()
   {
-    assert debugEnter(CLASS_NAME, "getBackupID");
 
     return backupID;
   }
@@ -300,7 +282,6 @@ public class BackupInfo
    */
   public boolean isIncremental()
   {
-    assert debugEnter(CLASS_NAME, "isIncremental");
 
     return isIncremental;
   }
@@ -315,7 +296,6 @@ public class BackupInfo
    */
   public boolean isCompressed()
   {
-    assert debugEnter(CLASS_NAME, "isCompressed");
 
     return isCompressed;
   }
@@ -330,7 +310,6 @@ public class BackupInfo
    */
   public boolean isEncrypted()
   {
-    assert debugEnter(CLASS_NAME, "isEncrypted");
 
     return isEncrypted;
   }
@@ -346,7 +325,6 @@ public class BackupInfo
    */
   public byte[] getUnsignedHash()
   {
-    assert debugEnter(CLASS_NAME, "getUnsignedHash");
 
     return unsignedHash;
   }
@@ -362,7 +340,6 @@ public class BackupInfo
    */
   public byte[] getSignedHash()
   {
-    assert debugEnter(CLASS_NAME, "getSignedHash");
 
     return signedHash;
   }
@@ -382,7 +359,6 @@ public class BackupInfo
    */
   public HashSet<String> getDependencies()
   {
-    assert debugEnter(CLASS_NAME, "getDependencies");
 
     return dependencies;
   }
@@ -402,8 +378,6 @@ public class BackupInfo
    */
   public boolean dependsOn(String backupID)
   {
-    assert debugEnter(CLASS_NAME, "dependsOn",
-                      String.valueOf(backupID));
 
     return dependencies.contains(backupID);
   }
@@ -425,7 +399,6 @@ public class BackupInfo
    */
   public HashMap<String,String> getBackupProperties()
   {
-    assert debugEnter(CLASS_NAME, "getBackupProperties");
 
     return backupProperties;
   }
@@ -443,8 +416,6 @@ public class BackupInfo
    */
   public String getBackupProperty(String name)
   {
-    assert debugEnter(CLASS_NAME, "getBackupProperty",
-                      String.valueOf(name));
 
     return backupProperties.get(name);
   }
@@ -461,7 +432,6 @@ public class BackupInfo
    */
   public LinkedList<String> encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     LinkedList<String> list       = new LinkedList<String>();
     SimpleDateFormat   dateFormat =
@@ -538,8 +508,6 @@ public class BackupInfo
                                   LinkedList<String> encodedInfo)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "decode",
-                      String.valueOf(encodedInfo));
 
     String                 backupID         = null;
     Date                   backupDate       = null;
@@ -639,9 +607,12 @@ public class BackupInfo
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_BACKUPINFO_CANNOT_DECODE;
+      int msgID = MSGID_BACKUPINFO_CANNOT_DECODE;
       String message = getMessage(msgID, backupPath,
                                   stackTraceToSingleLineString(e));
       throw new ConfigException(msgID, message, e);
@@ -682,7 +653,6 @@ public class BackupInfo
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -700,8 +670,6 @@ public class BackupInfo
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     LinkedList<String> lines = encode();
     for (String line : lines)

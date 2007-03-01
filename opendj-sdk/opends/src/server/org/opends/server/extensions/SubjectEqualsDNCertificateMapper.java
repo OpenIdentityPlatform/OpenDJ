@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -44,7 +44,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -59,11 +61,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class SubjectEqualsDNCertificateMapper
        extends CertificateMapper
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.SubjectEqualsDNCertificateMapper";
 
 
 
@@ -76,7 +73,6 @@ public class SubjectEqualsDNCertificateMapper
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -98,8 +94,6 @@ public class SubjectEqualsDNCertificateMapper
   public void initializeCertificateMapper(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeCertificateMapper",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -129,8 +123,6 @@ public class SubjectEqualsDNCertificateMapper
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "mapCertificateToUser",
-                      String.valueOf(certificateChain));
 
 
     // Make sure that a peer certificate was provided.
@@ -151,7 +143,10 @@ public class SubjectEqualsDNCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "mapCertificateToUser", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SEDCM_PEER_CERT_NOT_X509;
       String message =
@@ -170,7 +165,10 @@ public class SubjectEqualsDNCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "mapCertificateToUser", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SEDCM_CANNOT_DECODE_SUBJECT_AS_DN;
       String message = getMessage(msgID, String.valueOf(peerPrincipal),
@@ -209,7 +207,10 @@ public class SubjectEqualsDNCertificateMapper
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "mapCertificateToUser", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       int    msgID   = MSGID_SEDCM_CANNOT_GET_ENTRY;
       String message = getMessage(msgID, String.valueOf(subjectDN),
@@ -219,7 +220,10 @@ public class SubjectEqualsDNCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "mapCertificateToUser", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SEDCM_CANNOT_GET_ENTRY;
       String message = getMessage(msgID, String.valueOf(subjectDN),

@@ -22,12 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
-
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 
 /**
  * This class defines an exception that may be thrown if a problem occurs in the
@@ -36,11 +33,6 @@ import static org.opends.server.loggers.Debug.debugEnter;
 public class JebException
      extends Exception
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backend.je.JebException";
 
 
   /**
@@ -70,7 +62,6 @@ public class JebException
   {
     super(message);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(message));
 
     this.messageID = messageID;
   }
@@ -89,8 +80,6 @@ public class JebException
   {
     super(message, cause);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(message),
-                            String.valueOf(cause));
 
     this.messageID = messageID;
   }
@@ -103,7 +92,6 @@ public class JebException
    */
   public int getMessageID()
   {
-    assert debugEnter(CLASS_NAME, "getMessageID");
 
     return messageID;
   }

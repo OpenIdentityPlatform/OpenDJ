@@ -70,7 +70,9 @@ import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -92,11 +94,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class SchemaConfigManager
        implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.SchemaConfigManager";
 
 
   // The schema that has been parsed from the server configuration.
@@ -112,7 +109,6 @@ public class SchemaConfigManager
    */
   public SchemaConfigManager()
   {
-    assert debugConstructor(CLASS_NAME);
 
     configHandler = DirectoryServer.getConfigHandler();
 
@@ -128,7 +124,6 @@ public class SchemaConfigManager
    */
   public static String getSchemaDirectoryPath()
   {
-    assert debugEnter(CLASS_NAME, "getSchemaDirectoryPath");
 
     String schemaDirPath = System.getProperty(PROPERTY_SCHEMA_DIRECTORY);
     if ((schemaDirPath == null) || (schemaDirPath.length() == 0))
@@ -155,7 +150,6 @@ public class SchemaConfigManager
    */
   public Schema getSchema()
   {
-    assert debugEnter(CLASS_NAME, "getSchema");
 
     return schema;
   }
@@ -176,7 +170,6 @@ public class SchemaConfigManager
   public void initializeMatchingRules()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMatchingRules");
 
 
     // First, get the matching rule configuration base entry.
@@ -188,7 +181,10 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeMatchingRules", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_GET_MR_BASE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -280,7 +276,10 @@ public class SchemaConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeMatchingRules", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_SCHEMA_MR_UNABLE_TO_DETERMINE_ENABLED_STATE;
         String message = getMessage(msgID, String.valueOf(mrEntryDN),
@@ -322,7 +321,10 @@ public class SchemaConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeMatchingRules", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_GET_CLASS;
         String message = getMessage(msgID, String.valueOf(mrEntryDN),
@@ -341,7 +343,10 @@ public class SchemaConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeMatchingRules", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_INSTANTIATE;
         String message = getMessage(msgID, String.valueOf(className),
@@ -360,7 +365,10 @@ public class SchemaConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeMatchingRules", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_INITIALIZE;
         String message = getMessage(msgID, String.valueOf(className),
@@ -379,7 +387,10 @@ public class SchemaConfigManager
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "initializeMatchingRules", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         msgID = MSGID_CONFIG_SCHEMA_MR_CONFLICTING_MR;
         String message = getMessage(msgID, String.valueOf(mrEntryDN),
@@ -407,7 +418,6 @@ public class SchemaConfigManager
   public void initializeAttributeSyntaxes()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeAttributeSyntaxes");
 
 
     // First, get the attribute syntax configuration base entry.
@@ -419,7 +429,10 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeAttributeSyntaxes", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_GET_SYNTAX_BASE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -510,7 +523,10 @@ public class SchemaConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeAttributeSyntaxes", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_UNABLE_TO_DETERMINE_ENABLED_STATE;
         String message = getMessage(msgID, String.valueOf(syntaxEntryDN),
@@ -551,7 +567,10 @@ public class SchemaConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeAttributeSyntaxes", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_GET_CLASS;
         String message = getMessage(msgID, String.valueOf(syntaxEntryDN),
@@ -570,7 +589,10 @@ public class SchemaConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeAttributeSyntaxes", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_INSTANTIATE;
         String message = getMessage(msgID, String.valueOf(className),
@@ -589,7 +611,10 @@ public class SchemaConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeAttributeSyntaxes", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE;
         String message = getMessage(msgID, String.valueOf(className),
@@ -608,7 +633,10 @@ public class SchemaConfigManager
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "initializeAttributeSyntaxes", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX;
         String message = getMessage(msgID, String.valueOf(syntaxEntryDN),
@@ -641,7 +669,6 @@ public class SchemaConfigManager
   public void initializeSchemaFromFiles()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSchemaFromFiles");
 
 
     // Construct the path to the directory that should contain the schema files
@@ -697,13 +724,19 @@ public class SchemaConfigManager
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       throw ie;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_LIST_FILES;
       String message = getMessage(msgID, schemaDirPath,
@@ -757,8 +790,6 @@ public class SchemaConfigManager
   public static void loadSchemaFile(Schema schema, String schemaFile)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "loadSchemaFile", String.valueOf(schema),
-                      String.valueOf(schemaFile));
 
     loadSchemaFile(schema, schemaFile, true);
   }
@@ -790,8 +821,6 @@ public class SchemaConfigManager
                                      boolean failOnError)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "loadSchemaFile", String.valueOf(schema),
-                      String.valueOf(schemaFile), String.valueOf(failOnError));
 
 
     // Create an LDIF reader to use when reading the files.
@@ -804,7 +833,10 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_OPEN_FILE;
       String message = getMessage(msgID, schemaFile, schemaDirPath,
@@ -837,7 +869,10 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY;
       String message = getMessage(msgID, schemaFile, schemaDirPath,
@@ -861,7 +896,10 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
 
@@ -879,7 +917,10 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       attrTypeSyntax = new AttributeTypeSyntax();
       attrTypeSyntax.initializeSyntax(null);
@@ -910,7 +951,10 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       ocSyntax = new ObjectClassSyntax();
       ocSyntax.initializeSyntax(null);
@@ -941,7 +985,10 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       nfSyntax = new NameFormSyntax();
       nfSyntax.initializeSyntax(null);
@@ -972,7 +1019,10 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       dcrSyntax = new DITContentRuleSyntax();
       dcrSyntax.initializeSyntax(null);
@@ -1004,7 +1054,10 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       dsrSyntax = new DITStructureRuleSyntax();
       dsrSyntax.initializeSyntax(null);
@@ -1036,7 +1089,10 @@ public class SchemaConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       mruSyntax = new MatchingRuleUseSyntax();
       mruSyntax.initializeSyntax(null);
@@ -1083,8 +1139,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE;
             String message = getMessage(msgID, schemaFile,
@@ -1103,7 +1161,10 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE;
             String message = getMessage(msgID, schemaFile,
@@ -1130,8 +1191,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE;
             String message = getMessage(msgID, schemaFile,
@@ -1147,7 +1210,10 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
             }
           }
         }
@@ -1170,8 +1236,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC;
             String message = getMessage(msgID, schemaFile,
@@ -1190,7 +1258,10 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC;
             String message = getMessage(msgID, schemaFile,
@@ -1218,8 +1289,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_OC;
             String message = getMessage(msgID, schemaFile,
@@ -1234,8 +1307,10 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
             }
           }
         }
@@ -1260,8 +1335,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM;
             String message = getMessage(msgID, schemaFile,
@@ -1280,7 +1357,10 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM;
             String message = getMessage(msgID, schemaFile,
@@ -1308,8 +1388,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_NAME_FORM;
             String message = getMessage(msgID, schemaFile,
@@ -1324,8 +1406,10 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
             }
           }
         }
@@ -1350,8 +1434,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR;
             String message = getMessage(msgID, schemaFile,
@@ -1370,7 +1456,10 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR;
             String message = getMessage(msgID, schemaFile,
@@ -1398,8 +1487,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_DCR;
             String message = getMessage(msgID, schemaFile,
@@ -1414,8 +1505,10 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
             }
           }
         }
@@ -1441,8 +1534,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR;
             String message = getMessage(msgID, schemaFile,
@@ -1461,7 +1556,10 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR;
             String message = getMessage(msgID, schemaFile,
@@ -1489,8 +1587,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_DSR;
             String message = getMessage(msgID, schemaFile,
@@ -1505,8 +1605,10 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
             }
           }
         }
@@ -1532,8 +1634,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU;
             String message = getMessage(msgID, schemaFile,
@@ -1552,7 +1656,10 @@ public class SchemaConfigManager
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU;
             String message = getMessage(msgID, schemaFile,
@@ -1580,8 +1687,10 @@ public class SchemaConfigManager
           }
           catch (DirectoryException de)
           {
-            assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                  de);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, de);
+            }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_MRU;
             String message = getMessage(msgID, schemaFile,
@@ -1596,8 +1705,10 @@ public class SchemaConfigManager
             catch (Exception e)
             {
               // This should never happen.
-              assert debugException(CLASS_NAME, "initializeSchemaFromFiles",
-                                    e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
             }
           }
         }
@@ -1623,8 +1734,6 @@ public class SchemaConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configChangeIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // NYI
@@ -1647,8 +1756,6 @@ public class SchemaConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationChange",
-                      String.valueOf(configEntry));
 
 
     DN                configEntryDN       = configEntry.getDN();
@@ -1683,8 +1790,6 @@ public class SchemaConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configAddIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // NYI
@@ -1706,8 +1811,6 @@ public class SchemaConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationAdd",
-                      String.valueOf(configEntry));
 
 
     DN                configEntryDN       = configEntry.getDN();
@@ -1738,8 +1841,6 @@ public class SchemaConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configDeleteIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // NYI -- Should we allow deletes of elements with this as superior?
@@ -1759,8 +1860,6 @@ public class SchemaConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationDelete",
-                      String.valueOf(configEntry));
 
 
     DN         configEntryDN       = configEntry.getDN();

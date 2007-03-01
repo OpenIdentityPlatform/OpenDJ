@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins.profiler;
 
@@ -40,7 +40,9 @@ import org.opends.server.protocols.asn1.ASN1Long;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.asn1.ASN1Writer;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -53,11 +55,6 @@ import static org.opends.server.loggers.Debug.*;
 public class ProfilerThread
        extends DirectoryThread
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.plugins.profiler.ProfilerThread";
 
 
 
@@ -95,7 +92,6 @@ public class ProfilerThread
   {
     super("Directory Server Profiler Thread");
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(sampleInterval));
 
     this.sampleInterval = sampleInterval;
 
@@ -115,7 +111,6 @@ public class ProfilerThread
    */
   public void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
     captureThread    = currentThread();
     captureStartTime = System.currentTimeMillis();
@@ -179,7 +174,10 @@ public class ProfilerThread
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "run", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
           }
         }
       }
@@ -197,7 +195,6 @@ public class ProfilerThread
    */
   public void stopProfiling()
   {
-    assert debugEnter(CLASS_NAME, "stopProfiling");
 
     stopProfiling  = true;
 
@@ -210,7 +207,10 @@ public class ProfilerThread
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "stopProfiling", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -228,8 +228,6 @@ public class ProfilerThread
   public void writeCaptureData(String filename)
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "writeCaptureData",
-                      String.valueOf(filename));
 
 
     // Open the capture file for writing.  We'll use an ASN.1 writer to write

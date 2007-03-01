@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -52,7 +52,9 @@ import org.opends.server.types.operation.PreParseExtendedOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -68,10 +70,6 @@ public class ExtendedOperation
        implements PreParseExtendedOperation, PreOperationExtendedOperation,
                   PostOperationExtendedOperation, PostResponseExtendedOperation
 {
-  /*** The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.ExtendedOperation";
 
 
 
@@ -124,16 +122,6 @@ public class ExtendedOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(requestOID),
-                              String.valueOf(requestValue)
-                            });
 
     this.requestOID   = requestOID;
     this.requestValue = requestValue;
@@ -154,7 +142,6 @@ public class ExtendedOperation
    */
   public final String getRequestOID()
   {
-    assert debugEnter(CLASS_NAME, "getRequestOID");
 
     return requestOID;
   }
@@ -170,7 +157,6 @@ public class ExtendedOperation
    */
   public final void setRequestOID(String requestOID)
   {
-    assert debugEnter(CLASS_NAME, "setRequestOID", String.valueOf(requestOID));
 
     this.requestOID = requestOID;
   }
@@ -185,7 +171,6 @@ public class ExtendedOperation
    */
   public final ASN1OctetString getRequestValue()
   {
-    assert debugEnter(CLASS_NAME, "getRequestValue");
 
     return requestValue;
   }
@@ -201,8 +186,6 @@ public class ExtendedOperation
    */
   public final void setRequestValue(ASN1OctetString requestValue)
   {
-    assert debugEnter(CLASS_NAME, "setRequestValue",
-                      String.valueOf(requestValue));
 
     this.requestValue = requestValue;
   }
@@ -217,7 +200,6 @@ public class ExtendedOperation
    */
   public final String getResponseOID()
   {
-    assert debugEnter(CLASS_NAME, "getResponseOID");
 
     return responseOID;
   }
@@ -232,8 +214,6 @@ public class ExtendedOperation
    */
   public final void setResponseOID(String responseOID)
   {
-    assert debugEnter(CLASS_NAME, "setResponseOID",
-                      String.valueOf(responseOID));
 
     this.responseOID = responseOID;
   }
@@ -248,7 +228,6 @@ public class ExtendedOperation
    */
   public final ASN1OctetString getResponseValue()
   {
-    assert debugEnter(CLASS_NAME, "getResponseValue");
 
     return responseValue;
   }
@@ -263,8 +242,6 @@ public class ExtendedOperation
    */
   public final void setResponseValue(ASN1OctetString responseValue)
   {
-    assert debugEnter(CLASS_NAME, "setResponseValue",
-                      String.valueOf(responseValue));
 
     this.responseValue = responseValue;
   }
@@ -277,7 +254,6 @@ public class ExtendedOperation
   @Override()
   public final long getProcessingStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
     return processingStartTime;
   }
@@ -290,7 +266,6 @@ public class ExtendedOperation
   @Override()
   public final long getProcessingStopTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
     return processingStopTime;
   }
@@ -303,7 +278,6 @@ public class ExtendedOperation
   @Override()
   public final long getProcessingTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingTime");
 
     return (processingStopTime - processingStartTime);
   }
@@ -436,7 +410,6 @@ public class ExtendedOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-    assert debugEnter(CLASS_NAME, "getResponseControls");
 
     return responseControls;
   }
@@ -471,7 +444,6 @@ public class ExtendedOperation
   @Override()
   public final void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
     setResultCode(ResultCode.UNDEFINED);
 
@@ -706,7 +678,6 @@ extendedProcessing:
    */
   public final void sendExtendedResponse()
   {
-    assert debugEnter(CLASS_NAME, "sendExtendedResponse");
 
     if (! responseSent)
     {
@@ -725,8 +696,6 @@ extendedProcessing:
    */
   public final void setResponseSent()
   {
-    assert debugEnter(CLASS_NAME, "setResponseSent",
-                      String.valueOf(responseSent));
 
     this.responseSent = true;
   }
@@ -739,7 +708,6 @@ extendedProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
     this.cancelRequest = cancelRequest;
 
@@ -754,7 +722,10 @@ extendedProcessing:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "cancel", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       cancelResult = getCancelResult();
@@ -780,7 +751,6 @@ extendedProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-    assert debugEnter(CLASS_NAME, "getCancelRequest");
 
     return cancelRequest;
   }
@@ -793,8 +763,6 @@ extendedProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "setCancelRequest",
-                      String.valueOf(cancelRequest));
 
     this.cancelRequest = cancelRequest;
     return true;
@@ -808,7 +776,6 @@ extendedProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ExtendedOperation(connID=");
     buffer.append(clientConnection.getConnectionID());

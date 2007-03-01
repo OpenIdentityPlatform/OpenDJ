@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins.profiler;
 
@@ -31,8 +31,9 @@ package org.opends.server.plugins.profiler;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import static org.opends.server.loggers.Debug.*;
-
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 
 /**
@@ -45,11 +46,6 @@ import static org.opends.server.loggers.Debug.*;
 public class ProfileStackFrame
        implements Comparable
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.plugins.profiler.ProfilerThread";
 
 
 
@@ -78,8 +74,6 @@ public class ProfileStackFrame
    */
   public ProfileStackFrame(String className, String methodName)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(className),
-                            String.valueOf(methodName));
 
     this.className  = className;
     this.methodName = methodName;
@@ -97,7 +91,6 @@ public class ProfileStackFrame
    */
   public String getClassName()
   {
-    assert debugEnter(CLASS_NAME, "getClassName");
 
     return className;
   }
@@ -111,7 +104,6 @@ public class ProfileStackFrame
    */
   public String getMethodName()
   {
-    assert debugEnter(CLASS_NAME, "getMethodName");
 
     return methodName;
   }
@@ -127,7 +119,6 @@ public class ProfileStackFrame
    */
   public String getHTMLSafeMethodName()
   {
-    assert debugEnter(CLASS_NAME, "getHTMLSafeMethodName");
 
     int length = methodName.length();
     StringBuilder buffer = new StringBuilder(length + 6);
@@ -163,7 +154,6 @@ public class ProfileStackFrame
    */
   public HashMap<Integer,Long> getLineNumbers()
   {
-    assert debugEnter(CLASS_NAME, "getLineNumbers");
 
     return lineNumbers;
   }
@@ -180,9 +170,6 @@ public class ProfileStackFrame
    */
   public void updateLineNumberCount(int lineNumber, long numOccurrences)
   {
-    assert debugEnter(CLASS_NAME, "updateLineNumberCount",
-                      String.valueOf(lineNumber),
-                      String.valueOf(numOccurrences));
 
     Long existingCount = lineNumbers.get(lineNumber);
     if (existingCount == null)
@@ -206,7 +193,6 @@ public class ProfileStackFrame
    */
   public long getTotalCount()
   {
-    assert debugEnter(CLASS_NAME, "getTotalCount");
 
     long totalCount = 0;
 
@@ -230,7 +216,6 @@ public class ProfileStackFrame
    */
   public ProfileStackFrame[] getSubordinateFrames()
   {
-    assert debugEnter(CLASS_NAME, "getSubordinateFrames");
 
     ProfileStackFrame[] subFrames = new ProfileStackFrame[0];
     subFrames = subordinateFrames.values().toArray(subFrames);
@@ -250,7 +235,6 @@ public class ProfileStackFrame
    */
   public boolean hasSubFrames()
   {
-    assert debugEnter(CLASS_NAME, "hasSubFrames");
 
     return (! subordinateFrames.isEmpty());
   }
@@ -271,7 +255,6 @@ public class ProfileStackFrame
   public void recurseSubFrames(ProfileStack stack, int depth, long count,
                    HashMap<String,HashMap<ProfileStack,Long>> stacksByMethod)
   {
-    assert debugEnter(CLASS_NAME, "recurseSubFrames");
 
     if (depth < 0)
     {
@@ -316,7 +299,6 @@ public class ProfileStackFrame
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     return (className.hashCode() + methodName.hashCode());
   }
@@ -335,7 +317,6 @@ public class ProfileStackFrame
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (o == null)
     {
@@ -353,7 +334,10 @@ public class ProfileStackFrame
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "equals", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return false;
     }
@@ -380,7 +364,6 @@ public class ProfileStackFrame
   public int compareTo(Object o)
          throws ClassCastException
   {
-    assert debugEnter(CLASS_NAME, "compareTo", String.valueOf(o));
 
     ProfileStackFrame f;
     try
@@ -422,7 +405,6 @@ public class ProfileStackFrame
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     buffer.append(getTotalCount());

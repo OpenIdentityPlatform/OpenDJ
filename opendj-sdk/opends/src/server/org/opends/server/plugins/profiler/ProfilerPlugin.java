@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins.profiler;
 
@@ -57,7 +57,9 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
@@ -79,11 +81,6 @@ public final class ProfilerPlugin
        extends DirectoryServerPlugin
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.plugins.profiler.ProfilerPlugin";
 
 
 
@@ -169,7 +166,6 @@ public final class ProfilerPlugin
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -182,8 +178,6 @@ public final class ProfilerPlugin
                                      ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializePlugin",
-                      String.valueOf(pluginTypes), String.valueOf(configEntry));
 
 
     // Initialize the set of profiler actions.
@@ -244,7 +238,10 @@ public final class ProfilerPlugin
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePlugin", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_PROFILE_DIR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -275,7 +272,10 @@ public final class ProfilerPlugin
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePlugin", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_AUTOSTART;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -306,7 +306,10 @@ public final class ProfilerPlugin
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePlugin", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_INTERVAL;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -329,7 +332,6 @@ public final class ProfilerPlugin
   @Override()
   public final void finalizePlugin()
   {
-    assert debugEnter(CLASS_NAME, "finalizePlugin");
 
 
     // If the profiler thread is still active, then cause it to dump the
@@ -348,7 +350,10 @@ public final class ProfilerPlugin
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "finalizePlugin", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA;
           String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -372,7 +377,6 @@ public final class ProfilerPlugin
   @Override()
   public final StartupPluginResult doStartup()
   {
-    assert debugEnter(CLASS_NAME, "doStartup");
 
     // If the profiler should be started automatically, then do so now.
     if (autoStart)
@@ -391,7 +395,6 @@ public final class ProfilerPlugin
    */
   public final DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -403,7 +406,6 @@ public final class ProfilerPlugin
    */
   public final List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -458,8 +460,6 @@ public final class ProfilerPlugin
   public final boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.lang.List<String>");
 
 
     // See if there is an acceptable value for the sample interval.
@@ -476,7 +476,10 @@ public final class ProfilerPlugin
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_INTERVAL;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -511,7 +514,10 @@ public final class ProfilerPlugin
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_PROFILE_DIR;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -534,7 +540,10 @@ public final class ProfilerPlugin
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_AUTOSTART;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -556,7 +565,10 @@ public final class ProfilerPlugin
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_ACTION;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -577,9 +589,6 @@ public final class ProfilerPlugin
   public final ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                         boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -617,7 +626,10 @@ public final class ProfilerPlugin
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_UPDATE_INTERVAL;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -667,7 +679,10 @@ public final class ProfilerPlugin
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_UPDATE_DIRECTORY;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -763,7 +778,10 @@ public final class ProfilerPlugin
                 }
                 catch (Exception e)
                 {
-                  assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, e);
+                  }
 
                   msgID = MSGID_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA;
                   messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -825,7 +843,10 @@ public final class ProfilerPlugin
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePlugin", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_PERFORM_ACTION;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -37,7 +37,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.StaticUtils;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -50,11 +49,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class OctetStringOrderingMatchingRule
        extends OrderingMatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.OctetStringOrderingMatchingRule";
 
 
 
@@ -75,7 +69,6 @@ public class OctetStringOrderingMatchingRule
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -97,8 +90,6 @@ public class OctetStringOrderingMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMatchingRule",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -113,7 +104,6 @@ public class OctetStringOrderingMatchingRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return OMR_OCTET_STRING_NAME;
   }
@@ -127,7 +117,6 @@ public class OctetStringOrderingMatchingRule
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return OMR_OCTET_STRING_OID;
   }
@@ -142,7 +131,6 @@ public class OctetStringOrderingMatchingRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     // There is no standard description for this matching rule.
     return null;
@@ -158,7 +146,6 @@ public class OctetStringOrderingMatchingRule
    */
   public String getSyntaxOID()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxOID");
 
     return SYNTAX_OCTET_STRING_OID;
   }
@@ -179,7 +166,6 @@ public class OctetStringOrderingMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalizeValue", String.valueOf(value));
 
     return new ASN1OctetString(value.value());
   }
@@ -201,8 +187,6 @@ public class OctetStringOrderingMatchingRule
    */
   public int compareValues(ByteString value1, ByteString value2)
   {
-    assert debugEnter(CLASS_NAME, "compareValues", String.valueOf(value1),
-                      String.valueOf(value2));
 
     return compare(value1.value(), value2.value());
   }
@@ -224,8 +208,6 @@ public class OctetStringOrderingMatchingRule
    */
   public int compare(byte[] b1, byte[] b2)
   {
-    assert debugEnter(CLASS_NAME, "compareValues", String.valueOf(b1),
-                      String.valueOf(b2));
 
     return StaticUtils.compare(b1, b2);
   }

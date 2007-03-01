@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -36,7 +36,9 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -52,11 +54,6 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class LDAPModification
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.LDAPModification";
 
 
 
@@ -77,8 +74,6 @@ public class LDAPModification
   public LDAPModification(ModificationType modificationType,
                           LDAPAttribute attribute)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(modificationType),
-                            String.valueOf(attribute));
 
     this.modificationType = modificationType;
     this.attribute        = attribute;
@@ -93,7 +88,6 @@ public class LDAPModification
    */
   public ModificationType getModificationType()
   {
-    assert debugEnter(CLASS_NAME, "getModificationType");
 
     return modificationType;
   }
@@ -107,8 +101,6 @@ public class LDAPModification
    */
   public void setModificationType(ModificationType modificationType)
   {
-    assert debugEnter(CLASS_NAME, "setModificationType",
-                      String.valueOf(modificationType));
 
     this.modificationType = modificationType;
   }
@@ -122,7 +114,6 @@ public class LDAPModification
    */
   public LDAPAttribute getAttribute()
   {
-    assert debugEnter(CLASS_NAME, "getAttribute");
 
     return attribute;
   }
@@ -136,7 +127,6 @@ public class LDAPModification
    */
   public void setAttribute(LDAPAttribute attribute)
   {
-    assert debugEnter(CLASS_NAME, "setAttribute", String.valueOf(attribute));
 
     this.attribute = attribute;
   }
@@ -150,7 +140,6 @@ public class LDAPModification
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
     elements.add(new ASN1Enumerated(modificationType.intValue()));
@@ -174,7 +163,6 @@ public class LDAPModification
   public static LDAPModification decode(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -183,9 +171,12 @@ public class LDAPModification
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MODIFICATION_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_MODIFICATION_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -230,9 +221,12 @@ public class LDAPModification
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MODIFICATION_DECODE_MOD_TYPE;
+      int msgID = MSGID_LDAP_MODIFICATION_DECODE_MOD_TYPE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -245,9 +239,12 @@ public class LDAPModification
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MODIFICATION_DECODE_ATTR;
+      int msgID = MSGID_LDAP_MODIFICATION_DECODE_ATTR;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -282,7 +279,6 @@ public class LDAPModification
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -299,7 +295,6 @@ public class LDAPModification
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("LDAPModification(type=");
     buffer.append(String.valueOf(modificationType));
@@ -320,8 +315,6 @@ public class LDAPModification
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

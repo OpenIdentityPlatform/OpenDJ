@@ -43,7 +43,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -56,11 +58,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class RecurringTask
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.task.RecurringTask";
 
 
 
@@ -98,8 +95,6 @@ public class RecurringTask
   public RecurringTask(TaskScheduler taskScheduler, Entry recurringTaskEntry)
          throws DirectoryException
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(taskScheduler),
-                            String.valueOf(recurringTaskEntry));
 
     this.taskScheduler        = taskScheduler;
     this.recurringTaskEntry   = recurringTaskEntry;
@@ -217,7 +212,10 @@ public class RecurringTask
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_RECURRINGTASK_CANNOT_LOAD_CLASS;
       String message = getMessage(msgID, String.valueOf(taskClassName),
@@ -236,7 +234,10 @@ public class RecurringTask
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_RECURRINGTASK_CANNOT_INSTANTIATE_CLASS_AS_TASK;
       String message = getMessage(msgID, String.valueOf(taskClassName),
@@ -254,7 +255,10 @@ public class RecurringTask
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "<init>", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       int    msgID   = MSGID_RECURRINGTASK_CANNOT_INITIALIZE_INTERNAL;
       String message = getMessage(msgID, String.valueOf(taskClassName),
@@ -275,7 +279,6 @@ public class RecurringTask
    */
   public String getRecurringTaskID()
   {
-    assert debugEnter(CLASS_NAME, "getRecurringTaskID");
 
     return recurringTaskID;
   }
@@ -289,7 +292,6 @@ public class RecurringTask
    */
   public DN getRecurringTaskEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getRecurringTaskEntryDN");
 
     return recurringTaskEntryDN;
   }
@@ -303,7 +305,6 @@ public class RecurringTask
    */
   public Entry getRecurringTaskEntry()
   {
-    assert debugEnter(CLASS_NAME, "getRecurringTaskEntry");
 
     return recurringTaskEntry;
   }
@@ -319,7 +320,6 @@ public class RecurringTask
    */
   public String getTaskClassName()
   {
-    assert debugEnter(CLASS_NAME, "getTaskClassName");
 
     return taskClassName;
   }
@@ -333,7 +333,6 @@ public class RecurringTask
    */
   public Task scheduleNextIteration()
   {
-    assert debugEnter(CLASS_NAME, "scheduleNextIteration");
 
     // NYI
     return null;

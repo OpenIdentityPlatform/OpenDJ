@@ -22,11 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import com.sleepycat.je.Transaction;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
@@ -46,11 +48,6 @@ import java.util.Set;
  */
 public class SubstringIndexer extends Indexer
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.SubstringIndexer";
 
 
   /**
@@ -203,7 +200,10 @@ public class SubstringIndexer extends Indexer
         }
         catch (DirectoryException e)
         {
-          assert debugException(CLASS_NAME, "indexAttribute", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }

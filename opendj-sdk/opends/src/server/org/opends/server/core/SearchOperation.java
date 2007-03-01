@@ -82,7 +82,9 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -100,11 +102,6 @@ public class SearchOperation
                   PostOperationSearchOperation, PostResponseSearchOperation,
                   SearchEntrySearchOperation, SearchReferenceSearchOperation
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.SearchOperation";
 
 
 
@@ -212,22 +209,6 @@ public class SearchOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(rawBaseDN),
-                              String.valueOf(scope),
-                              String.valueOf(derefPolicy),
-                              String.valueOf(sizeLimit),
-                              String.valueOf(timeLimit),
-                              String.valueOf(typesOnly),
-                              String.valueOf(rawFilter),
-                              String.valueOf(attributes)
-                            });
 
     this.rawBaseDN   = rawBaseDN;
     this.scope       = scope;
@@ -325,22 +306,6 @@ public class SearchOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(baseDN),
-                              String.valueOf(scope),
-                              String.valueOf(derefPolicy),
-                              String.valueOf(sizeLimit),
-                              String.valueOf(timeLimit),
-                              String.valueOf(typesOnly),
-                              String.valueOf(filter),
-                              String.valueOf(attributes)
-                            });
 
     this.baseDN      = baseDN;
     this.scope       = scope;
@@ -421,7 +386,6 @@ public class SearchOperation
    */
   public final ByteString getRawBaseDN()
   {
-    assert debugEnter(CLASS_NAME, "getRawBaseDN");
 
     return rawBaseDN;
   }
@@ -437,7 +401,6 @@ public class SearchOperation
    */
   public final void setRawBaseDN(ByteString rawBaseDN)
   {
-    assert debugEnter(CLASS_NAME, "setRawBaseDN", String.valueOf(rawBaseDN));
 
     this.rawBaseDN = rawBaseDN;
 
@@ -456,7 +419,6 @@ public class SearchOperation
    */
   public final DN getBaseDN()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDN");
 
     return baseDN;
   }
@@ -471,7 +433,6 @@ public class SearchOperation
    */
   public final void setBaseDN(DN baseDN)
   {
-    assert debugEnter(CLASS_NAME, "setBaseDN", String.valueOf(baseDN));
 
     this.baseDN = baseDN;
   }
@@ -485,7 +446,6 @@ public class SearchOperation
    */
   public final SearchScope getScope()
   {
-    assert debugEnter(CLASS_NAME, "getScope");
 
     return scope;
   }
@@ -500,7 +460,6 @@ public class SearchOperation
    */
   public final void setScope(SearchScope scope)
   {
-    assert debugEnter(CLASS_NAME, "setScope", String.valueOf(scope));
 
     this.scope = scope;
   }
@@ -514,7 +473,6 @@ public class SearchOperation
    */
   public final DereferencePolicy getDerefPolicy()
   {
-    assert debugEnter(CLASS_NAME, "getDerefPolicy");
 
     return derefPolicy;
   }
@@ -530,8 +488,6 @@ public class SearchOperation
    */
   public final void setDerefPolicy(DereferencePolicy derefPolicy)
   {
-    assert debugEnter(CLASS_NAME, "setDerefPolicy",
-                      String.valueOf(derefPolicy));
 
     this.derefPolicy = derefPolicy;
   }
@@ -545,7 +501,6 @@ public class SearchOperation
    */
   public final int getSizeLimit()
   {
-    assert debugEnter(CLASS_NAME, "getSizeLimit");
 
     return sizeLimit;
   }
@@ -560,7 +515,6 @@ public class SearchOperation
    */
   public final void setSizeLimit(int sizeLimit)
   {
-    assert debugEnter(CLASS_NAME, "setSizeLimit", String.valueOf(sizeLimit));
 
     this.sizeLimit = sizeLimit;
   }
@@ -574,7 +528,6 @@ public class SearchOperation
    */
   public final int getTimeLimit()
   {
-    assert debugEnter(CLASS_NAME, "getTimeLimit");
 
     return timeLimit;
   }
@@ -589,7 +542,6 @@ public class SearchOperation
    */
   public final void setTimeLimit(int timeLimit)
   {
-    assert debugEnter(CLASS_NAME, "setTimeLimit", String.valueOf(timeLimit));
 
     this.timeLimit = timeLimit;
   }
@@ -603,7 +555,6 @@ public class SearchOperation
    */
   public final boolean getTypesOnly()
   {
-    assert debugEnter(CLASS_NAME, "getTypesOnly");
 
     return typesOnly;
   }
@@ -618,7 +569,6 @@ public class SearchOperation
    */
   public final void setTypesOnly(boolean typesOnly)
   {
-    assert debugEnter(CLASS_NAME, "setTypesOnly", String.valueOf(typesOnly));
 
     this.typesOnly = typesOnly;
   }
@@ -636,7 +586,6 @@ public class SearchOperation
    */
   public final LDAPFilter getRawFilter()
   {
-    assert debugEnter(CLASS_NAME, "getRawFilter");
 
     return rawFilter;
   }
@@ -652,7 +601,6 @@ public class SearchOperation
    */
   public final void setRawFilter(LDAPFilter rawFilter)
   {
-    assert debugEnter(CLASS_NAME, "setRawFilter", String.valueOf(rawFilter));
 
     this.rawFilter = rawFilter;
 
@@ -671,7 +619,6 @@ public class SearchOperation
    */
   public final SearchFilter getFilter()
   {
-    assert debugEnter(CLASS_NAME, "getFilter");
 
     return filter;
   }
@@ -686,7 +633,6 @@ public class SearchOperation
    */
   public final LinkedHashSet<String> getAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getAttributes");
 
     return attributes;
   }
@@ -702,8 +648,6 @@ public class SearchOperation
    */
   public final void setAttributes(LinkedHashSet<String> attributes)
   {
-    assert debugEnter(CLASS_NAME, "setAttributes",
-                      String.valueOf(attributes));
 
     if (attributes == null)
     {
@@ -726,7 +670,6 @@ public class SearchOperation
    */
   public final int getEntriesSent()
   {
-    assert debugEnter(CLASS_NAME, "getEntriesSent");
 
     return entriesSent;
   }
@@ -742,7 +685,6 @@ public class SearchOperation
    */
   public final int getReferencesSent()
   {
-    assert debugEnter(CLASS_NAME, "getReferencesSent");
 
     return referencesSent;
   }
@@ -755,7 +697,6 @@ public class SearchOperation
   @Override()
   public final long getProcessingStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
     return processingStartTime;
   }
@@ -768,7 +709,6 @@ public class SearchOperation
   @Override()
   public final long getProcessingStopTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
     return processingStopTime;
   }
@@ -781,7 +721,6 @@ public class SearchOperation
   @Override()
   public final long getProcessingTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingTime");
 
     return (processingStopTime - processingStartTime);
   }
@@ -805,7 +744,6 @@ public class SearchOperation
    */
   public final boolean returnEntry(Entry entry, List<Control> controls)
   {
-    assert debugEnter(CLASS_NAME, "returnEntry", String.valueOf(entry));
 
 
     // See if the operation has been abandoned.  If so, then don't send the
@@ -815,7 +753,6 @@ public class SearchOperation
       setResultCode(ResultCode.CANCELED);
       return false;
     }
-
 
     // See if the size limit has been exceeded.  If so, then don't send the
     // entry and indicate that the search should end.
@@ -827,7 +764,6 @@ public class SearchOperation
       return false;
     }
 
-
     // See if the time limit has expired.  If so, then don't send the entry and
     // indicate that the search should end.
     if ((timeLimit > 0) && (TimeThread.getTime() >= timeLimitExpiration))
@@ -837,7 +773,6 @@ public class SearchOperation
                                     timeLimit));
       return false;
     }
-
 
     // Determine whether the provided entry is a subentry and if so whether it
     // should be returned.
@@ -935,7 +870,10 @@ public class SearchOperation
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "returnEntry", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -1231,7 +1169,6 @@ public class SearchOperation
    */
   public final boolean returnReference(SearchResultReference reference)
   {
-    assert debugEnter(CLASS_NAME, "returnReference", String.valueOf(reference));
 
     // See if the operation has been abandoned.  If so, then don't send the
     // reference and indicate that the search should end.
@@ -1323,7 +1260,6 @@ public class SearchOperation
    */
   public final void sendSearchResultDone()
   {
-    assert debugEnter(CLASS_NAME, "sendSearchResultDone");
 
 
     // Send the search result done message to the client.  We want to make sure
@@ -1499,7 +1435,6 @@ public class SearchOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-    assert debugEnter(CLASS_NAME, "getResponseControls");
 
     return responseControls;
   }
@@ -1534,7 +1469,6 @@ public class SearchOperation
   @Override()
   public final void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
     setResultCode(ResultCode.UNDEFINED);
     boolean sendResponse = true;
@@ -1623,7 +1557,10 @@ searchProcessing:
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "run", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         setResultCode(de.getResultCode());
         appendErrorMessage(de.getErrorMessage());
@@ -1642,7 +1579,10 @@ searchProcessing:
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "run", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         setResultCode(de.getResultCode());
         appendErrorMessage(de.getErrorMessage());
@@ -1679,7 +1619,10 @@ searchProcessing:
               }
               catch (LDAPException le)
               {
-                assert debugException(CLASS_NAME, "run", le);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, le);
+                }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
                 appendErrorMessage(le.getMessage());
@@ -1700,7 +1643,10 @@ searchProcessing:
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "run", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 setResultCode(de.getResultCode());
 
@@ -1732,7 +1678,10 @@ searchProcessing:
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME, "run", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               setResultCode(ResultCode.PROTOCOL_ERROR);
 
@@ -1768,7 +1717,10 @@ searchProcessing:
               }
               catch (LDAPException le)
               {
-                assert debugException(CLASS_NAME, "run", le);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, le);
+                }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
                 appendErrorMessage(le.getMessage());
@@ -1785,7 +1737,10 @@ searchProcessing:
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME, "run", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               setResultCode(de.getResultCode());
               appendErrorMessage(de.getErrorMessage());
@@ -1822,7 +1777,10 @@ searchProcessing:
               }
               catch (LDAPException le)
               {
-                assert debugException(CLASS_NAME, "run", le);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, le);
+                }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
                 appendErrorMessage(le.getMessage());
@@ -1839,7 +1797,10 @@ searchProcessing:
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME, "run", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               setResultCode(de.getResultCode());
               appendErrorMessage(de.getErrorMessage());
@@ -1865,7 +1826,10 @@ searchProcessing:
               }
               catch (LDAPException le)
               {
-                assert debugException(CLASS_NAME, "run", le);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, le);
+                }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
                 appendErrorMessage(le.getMessage());
@@ -1903,7 +1867,10 @@ searchProcessing:
               }
               catch (LDAPException le)
               {
-                assert debugException(CLASS_NAME, "run", le);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, le);
+                }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
                 appendErrorMessage(le.getMessage());
@@ -2030,7 +1997,10 @@ searchProcessing:
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "run", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         setResultCode(de.getResultCode());
         appendErrorMessage(de.getErrorMessage());
@@ -2047,7 +2017,10 @@ searchProcessing:
       }
       catch (CancelledOperationException coe)
       {
-        assert debugException(CLASS_NAME, "run", coe);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, coe);
+        }
 
         CancelResult cancelResult = coe.getCancelResult();
 
@@ -2071,7 +2044,10 @@ searchProcessing:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         setResultCode(DirectoryServer.getServerErrorResultCode());
 
@@ -2152,7 +2128,6 @@ searchProcessing:
   private final void searchBackend(Backend backend)
           throws DirectoryException, CancelledOperationException
   {
-    assert debugEnter(CLASS_NAME, "searchBackend", String.valueOf(backend));
 
 
     // Check for and handle a request to cancel this operation.
@@ -2193,7 +2168,6 @@ searchProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
     this.cancelRequest = cancelRequest;
 
@@ -2214,7 +2188,10 @@ searchProcessing:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "cancel", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       cancelResult = getCancelResult();
@@ -2240,7 +2217,6 @@ searchProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-    assert debugEnter(CLASS_NAME, "getCancelRequest");
 
     return cancelRequest;
   }
@@ -2253,8 +2229,6 @@ searchProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "setCancelRequest",
-                      String.valueOf(cancelRequest));
 
     this.cancelRequest = cancelRequest;
     return true;
@@ -2268,7 +2242,6 @@ searchProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("SearchOperation(connID=");
     buffer.append(clientConnection.getConnectionID());

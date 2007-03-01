@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -41,11 +40,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class PrintableString
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.PrintableString";
 
 
 
@@ -59,7 +53,6 @@ public class PrintableString
    */
   public static boolean isPrintableCharacter(char c)
   {
-    assert debugEnter(CLASS_NAME, "isPrintableCharacter", String.valueOf(c));
 
     switch (c)
     {
@@ -155,7 +148,6 @@ public class PrintableString
    */
   public static boolean isPrintableString(String s)
   {
-    assert debugEnter(CLASS_NAME, "isPrintableString", String.valueOf(s));
 
     if (s == null)
     {

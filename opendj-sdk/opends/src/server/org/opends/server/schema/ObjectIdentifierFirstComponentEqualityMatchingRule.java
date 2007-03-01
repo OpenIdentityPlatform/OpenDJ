@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -43,9 +43,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -62,11 +59,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class ObjectIdentifierFirstComponentEqualityMatchingRule
        extends EqualityMatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME = "org.opends.server.schema." +
-       "ObjectIdentifierFirstComponentEqualityMatchingRule";
 
 
 
@@ -77,7 +69,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -99,8 +90,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMatchingRule",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -115,7 +104,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return EMR_OID_FIRST_COMPONENT_NAME;
   }
@@ -129,7 +117,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return EMR_OID_FIRST_COMPONENT_OID;
   }
@@ -144,7 +131,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     // There is no standard description for this matching rule.
     return null;
@@ -160,7 +146,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxOID");
 
     return SYNTAX_OID_OID;
   }
@@ -181,7 +166,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalizeValue", String.valueOf(value));
 
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value.value(), buffer, true);
@@ -232,8 +216,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-    assert debugEnter(CLASS_NAME, "areEqual", String.valueOf(value1),
-                      String.valueOf(value2));
 
 
     // For this purpose, the first value will be considered the attribute value,
@@ -392,8 +374,6 @@ public class ObjectIdentifierFirstComponentEqualityMatchingRule
    * @return  The hash code generated for the provided attribute value.*/
   public int generateHashCode(AttributeValue attributeValue)
   {
-    assert debugEnter(CLASS_NAME, "generateHashCode",
-                      String.valueOf(attributeValue));
 
     // In this case, we'll always return the same value because the matching
     // isn't based on the entire value.

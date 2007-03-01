@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -33,7 +33,6 @@ import java.util.Random;
 
 import org.opends.server.config.ConfigException;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -47,11 +46,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class NamedCharacterSet
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.NamedCharacterSet";
 
 
 
@@ -79,8 +73,6 @@ public class NamedCharacterSet
   public NamedCharacterSet(String name, char[] characters)
          throws ConfigException
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(name),
-                            String.valueOf(characters));
 
     this.name       = name;
     this.characters = characters;
@@ -124,9 +116,6 @@ public class NamedCharacterSet
                            Random random)
          throws ConfigException
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(name),
-                            String.valueOf(characters),
-                            String.valueOf(random));
 
     this.name       = name;
     this.characters = characters;
@@ -160,7 +149,6 @@ public class NamedCharacterSet
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return name;
   }
@@ -174,7 +162,6 @@ public class NamedCharacterSet
    */
   public char[] getCharacters()
   {
-    assert debugEnter(CLASS_NAME, "getCharacters");
 
     return characters;
   }
@@ -189,7 +176,6 @@ public class NamedCharacterSet
    */
   public char getRandomCharacter()
   {
-    assert debugEnter(CLASS_NAME, "getRandomCharacter");
 
     if ((characters == null) || (characters.length == 0))
     {
@@ -212,9 +198,6 @@ public class NamedCharacterSet
    */
   public void getRandomCharacters(StringBuilder buffer, int count)
   {
-    assert debugEnter(CLASS_NAME, "getRandomCharacters",
-                      "java.lang.StringBuilder",
-                      String.valueOf(count));
 
     if ((characters == null) || (characters.length == 0))
     {

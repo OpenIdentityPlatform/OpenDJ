@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -39,11 +34,6 @@ import static org.opends.server.loggers.Debug.*;
 public class InitializationException
        extends Exception
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.InitializationException";
 
 
 
@@ -76,7 +66,6 @@ public class InitializationException
   {
     super(message);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(message));
 
     this.messageID = messageID;
   }
@@ -99,8 +88,6 @@ public class InitializationException
   {
     super(message, cause);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(message),
-                            String.valueOf(cause));
 
     this.messageID = messageID;
   }
@@ -114,7 +101,6 @@ public class InitializationException
    */
   public final int getMessageID()
   {
-    assert debugEnter(CLASS_NAME, "getMessageID");
 
     return messageID;
   }

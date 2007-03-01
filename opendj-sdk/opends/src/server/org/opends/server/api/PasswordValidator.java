@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -37,7 +37,6 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -48,11 +47,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public abstract class PasswordValidator
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.PasswordValidator";
 
 
 
@@ -86,7 +80,6 @@ public abstract class PasswordValidator
    */
   public void finalizePasswordValidator()
   {
-    assert debugEnter(CLASS_NAME, "finalizePasswordValidator");
 
 
     // No action is required by default.

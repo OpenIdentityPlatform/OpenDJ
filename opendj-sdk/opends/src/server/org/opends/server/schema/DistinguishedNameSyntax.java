@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -44,8 +44,10 @@ import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -60,12 +62,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class DistinguishedNameSyntax
        extends AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.DistinguishedNameSyntax";
-
 
 
   // The default equality matching rule for this syntax.
@@ -103,7 +99,6 @@ public class DistinguishedNameSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -121,8 +116,6 @@ public class DistinguishedNameSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_DN_OID);
@@ -152,7 +145,6 @@ public class DistinguishedNameSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_DN_NAME;
   }
@@ -166,7 +158,6 @@ public class DistinguishedNameSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_DN_OID;
   }
@@ -180,7 +171,6 @@ public class DistinguishedNameSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_DN_DESCRIPTION;
   }
@@ -197,7 +187,6 @@ public class DistinguishedNameSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -214,7 +203,6 @@ public class DistinguishedNameSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     // There is no ordering matching rule by default.
     return null;
@@ -232,7 +220,6 @@ public class DistinguishedNameSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return defaultSubstringMatchingRule;
   }
@@ -249,7 +236,6 @@ public class DistinguishedNameSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     // There is no approximate matching rule by default.
     return null;
@@ -272,8 +258,6 @@ public class DistinguishedNameSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
     // Use the DN code to make this determination.
     try
@@ -284,14 +268,20 @@ public class DistinguishedNameSyntax
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "valueIsAcceptable", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       invalidReason.append(de.getErrorMessage());
       return false;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "valueIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_ATTR_SYNTAX_DN_INVALID;
       invalidReason.append(getMessage(msgID, value.stringValue(),

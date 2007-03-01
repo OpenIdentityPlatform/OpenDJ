@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -42,8 +42,10 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -59,11 +61,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class LDAPSyntaxDescriptionSyntax
        extends AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.LDAPSyntaxDescriptionSyntax";
 
 
 
@@ -88,7 +85,6 @@ public class LDAPSyntaxDescriptionSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -106,8 +102,6 @@ public class LDAPSyntaxDescriptionSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
@@ -146,7 +140,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_LDAP_SYNTAX_NAME;
   }
@@ -160,7 +153,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_LDAP_SYNTAX_OID;
   }
@@ -174,7 +166,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_LDAP_SYNTAX_DESCRIPTION;
   }
@@ -191,7 +182,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -208,7 +198,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     return defaultOrderingMatchingRule;
   }
@@ -225,7 +214,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return defaultSubstringMatchingRule;
   }
@@ -242,7 +230,6 @@ public class LDAPSyntaxDescriptionSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     // There is no approximate matching rule by default.
     return null;
@@ -265,8 +252,6 @@ public class LDAPSyntaxDescriptionSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
 
     // Get string representations of the provided value using the provided form
@@ -438,7 +423,10 @@ public class LDAPSyntaxDescriptionSyntax
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "valueIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_TOKEN;
       invalidReason.append(getMessage(msgID, valueStr, pos,
@@ -462,7 +450,10 @@ public class LDAPSyntaxDescriptionSyntax
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "valueIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_VALUE;
       invalidReason.append(getMessage(msgID, valueStr, pos,
@@ -475,7 +466,10 @@ public class LDAPSyntaxDescriptionSyntax
         try {
             pos=parseExtension(valueStr, pos);
         } catch (Exception e) {
-            assert debugException(CLASS_NAME, "valueIsAcceptable", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
             int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_INVALID_EXTENSION;
             invalidReason.append(getMessage(msgID,
                     stackTraceToSingleLineString(e)));
@@ -530,8 +524,6 @@ public class LDAPSyntaxDescriptionSyntax
                                    int startPos)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "readTokenName", String.valueOf(valueStr),
-                      "java.lang.StringBuilder", String.valueOf(startPos));
 
 
     // Skip over any spaces at the beginning of the value.
@@ -593,8 +585,6 @@ public class LDAPSyntaxDescriptionSyntax
                                       StringBuilder valueBuffer, int startPos)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "readQuotedString", String.valueOf(valueStr),
-                      "java.lang.StringBuilder", String.valueOf(startPos));
 
 
     // Skip over any spaces at the beginning of the value.

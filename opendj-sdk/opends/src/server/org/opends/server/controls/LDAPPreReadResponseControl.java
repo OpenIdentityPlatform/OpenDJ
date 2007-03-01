@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -36,8 +36,10 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.types.Control;
 import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -52,11 +54,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class LDAPPreReadResponseControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.LDAPPreReadResponseControl";
 
 
 
@@ -77,7 +74,6 @@ public class LDAPPreReadResponseControl
     super(OID_LDAP_READENTRY_PREREAD, false,
           encodeEntry(searchEntry));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(searchEntry));
 
     this.searchEntry = searchEntry;
   }
@@ -99,9 +95,6 @@ public class LDAPPreReadResponseControl
   {
     super(oid, isCritical, encodeEntry(searchEntry));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(searchEntry));
 
     this.searchEntry = searchEntry;
   }
@@ -125,10 +118,6 @@ public class LDAPPreReadResponseControl
   {
     super(oid, isCritical, encodedValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(searchEntry),
-                            String.valueOf(encodedValue));
 
     this.searchEntry = searchEntry;
   }
@@ -151,7 +140,6 @@ public class LDAPPreReadResponseControl
   public static LDAPPreReadResponseControl decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
     if (! control.hasValue())
     {
@@ -172,7 +160,10 @@ public class LDAPPreReadResponseControl
     }
     catch (ASN1Exception ae)
     {
-      assert debugException(CLASS_NAME, "decodeControl", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
 
       int    msgID   = MSGID_PREREADRESP_CANNOT_DECODE_VALUE;
       String message = getMessage(msgID, ae.getMessage());
@@ -181,7 +172,10 @@ public class LDAPPreReadResponseControl
     }
     catch (LDAPException le)
     {
-      assert debugException(CLASS_NAME, "decodeControl", le);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, le);
+      }
 
       int    msgID   = MSGID_PREREADRESP_CANNOT_DECODE_VALUE;
       String message = getMessage(msgID, le.getMessage());
@@ -205,7 +199,6 @@ public class LDAPPreReadResponseControl
    */
   private static ASN1OctetString encodeEntry(SearchResultEntry searchEntry)
   {
-    assert debugEnter(CLASS_NAME, "encodeEntry", String.valueOf(searchEntry));
 
 
     SearchResultEntryProtocolOp protocolOp =
@@ -224,7 +217,6 @@ public class LDAPPreReadResponseControl
    */
   public SearchResultEntry getSearchEntry()
   {
-    assert debugEnter(CLASS_NAME, "getSearchEntry");
 
     return searchEntry;
   }
@@ -240,8 +232,6 @@ public class LDAPPreReadResponseControl
    */
   public void setSearchEntry(SearchResultEntry searchEntry)
   {
-    assert debugEnter(CLASS_NAME, "setSearchEntry",
-                      String.valueOf(searchEntry));
 
     this.searchEntry = searchEntry;
     setValue(encodeEntry(searchEntry));
@@ -256,7 +246,6 @@ public class LDAPPreReadResponseControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -273,7 +262,6 @@ public class LDAPPreReadResponseControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("LDAPPreReadResponseControl(criticality=");
     buffer.append(isCritical());

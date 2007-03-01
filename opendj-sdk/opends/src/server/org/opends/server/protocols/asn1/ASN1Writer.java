@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
@@ -32,8 +32,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 
-import static org.opends.server.loggers.Debug.*;
-
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 
 /**
@@ -42,11 +43,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class ASN1Writer
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.asn1.ASN1Writer";
 
 
 
@@ -70,7 +66,6 @@ public class ASN1Writer
   public ASN1Writer(Socket socket)
          throws IOException
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(socket));
 
     this.socket  = socket;
     outputStream = socket.getOutputStream();
@@ -86,7 +81,6 @@ public class ASN1Writer
    */
   public ASN1Writer(OutputStream outputStream)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(outputStream));
 
     this.outputStream = outputStream;
     socket            = null;
@@ -108,7 +102,6 @@ public class ASN1Writer
   public int writeElement(ASN1Element element)
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "writeElement", String.valueOf(element));
 
     byte[] elementBytes = element.encode();
     outputStream.write(elementBytes);
@@ -130,7 +123,10 @@ public class ASN1Writer
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "close", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
 
@@ -142,7 +138,10 @@ public class ASN1Writer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "close", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }

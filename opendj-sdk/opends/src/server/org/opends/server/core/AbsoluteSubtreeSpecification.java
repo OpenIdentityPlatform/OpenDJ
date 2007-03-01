@@ -22,12 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.SchemaMessages.*;
 
@@ -94,9 +92,6 @@ import org.opends.server.util.StaticUtils;
  */
 public final class AbsoluteSubtreeSpecification extends
     SimpleSubtreeSpecification {
-  // Fully qualified class name for debugging purposes.
-  private static final String CLASS_NAME = AbsoluteSubtreeSpecification.class
-      .getName();
 
   // The optional search filter.
   private SearchFilter filter;
@@ -118,7 +113,6 @@ public final class AbsoluteSubtreeSpecification extends
    */
   public static AbsoluteSubtreeSpecification valueOf(String s)
       throws DirectoryException {
-    assert debugEnter(CLASS_NAME, "valueOf");
 
     // Default values.
     DN absoluteBaseDN = null;
@@ -254,7 +248,6 @@ public final class AbsoluteSubtreeSpecification extends
       SearchFilter filter) {
     super(absoluteBaseDN, minimumDepth, maximumDepth, chopBefore, chopAfter);
 
-    assert debugConstructor(CLASS_NAME);
 
     this.filter = filter;
   }
@@ -265,7 +258,6 @@ public final class AbsoluteSubtreeSpecification extends
    * @return Returns the absolute base DN.
    */
   public DN getAbsoluteBaseDN() {
-    assert debugEnter(CLASS_NAME, "getAbsoluteBaseDN");
     return getBaseDN();
   }
 
@@ -276,7 +268,6 @@ public final class AbsoluteSubtreeSpecification extends
    *         is no filter.
    */
   public SearchFilter getFilter() {
-    assert debugEnter(CLASS_NAME, "getFilter");
     return filter;
   }
 
@@ -285,7 +276,6 @@ public final class AbsoluteSubtreeSpecification extends
    */
   @Override
   public boolean isWithinScope(Entry entry) {
-    assert debugEnter(CLASS_NAME, "isWithinScope");
 
     if (isDNWithinScope(entry.getDN())) {
       try {
@@ -305,7 +295,6 @@ public final class AbsoluteSubtreeSpecification extends
    */
   @Override
   public StringBuilder toString(StringBuilder builder) {
-    assert debugEnter(CLASS_NAME, "toString");
 
     builder.append("{ absoluteBase ");
     StaticUtils.toRFC3641StringValue(builder, getBaseDN().toString());
@@ -371,7 +360,6 @@ public final class AbsoluteSubtreeSpecification extends
    */
   @Override
   public boolean equals(Object obj) {
-    assert debugEnter(CLASS_NAME, "equals");
 
     if (this == obj) {
       return true;
@@ -403,7 +391,6 @@ public final class AbsoluteSubtreeSpecification extends
    */
   @Override
   public int hashCode() {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     int hash = commonComponentsHashCode();
 

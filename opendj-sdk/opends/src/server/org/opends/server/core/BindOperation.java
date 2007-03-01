@@ -72,10 +72,11 @@ import org.opends.server.types.operation.PreParseBindOperation;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -99,11 +100,6 @@ public class BindOperation
              implements PreParseBindOperation, PreOperationBindOperation,
                         PostOperationBindOperation, PostResponseBindOperation
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.BindOperation";
 
 
 
@@ -211,15 +207,6 @@ public class BindOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(rawBindDN),
-                              String.valueOf(simplePassword)
-                            });
 
     this.authType        = AuthenticationType.SIMPLE;
     this.saslMechanism   = null;
@@ -283,17 +270,6 @@ public class BindOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(rawBindDN),
-                              String.valueOf(saslMechanism),
-                              String.valueOf(saslCredentials)
-                            });
 
     this.authType        = AuthenticationType.SASL;
     this.saslMechanism   = saslMechanism;
@@ -339,15 +315,6 @@ public class BindOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(bindDN),
-                              String.valueOf(simplePassword)
-                            });
 
     this.authType        = AuthenticationType.SIMPLE;
     this.bindDN          = bindDN;
@@ -409,17 +376,6 @@ public class BindOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(clientConnection),
-                              String.valueOf(operationID),
-                              String.valueOf(messageID),
-                              String.valueOf(requestControls),
-                              String.valueOf(bindDN),
-                              String.valueOf(saslMechanism),
-                              String.valueOf(saslCredentials)
-                            });
 
     this.authType        = AuthenticationType.SASL;
     this.bindDN          = bindDN;
@@ -453,7 +409,6 @@ public class BindOperation
    */
   public final AuthenticationType getAuthenticationType()
   {
-    assert debugEnter(CLASS_NAME, "getAuthenticationType");
 
     return authType;
   }
@@ -470,7 +425,6 @@ public class BindOperation
    */
   public final ByteString getRawBindDN()
   {
-    assert debugEnter(CLASS_NAME, "getRawBindDN");
 
     return rawBindDN;
   }
@@ -485,7 +439,6 @@ public class BindOperation
    */
   public final void setRawBindDN(ByteString rawBindDN)
   {
-    assert debugEnter(CLASS_NAME, "setRawBindDN", String.valueOf(rawBindDN));
 
     if (rawBindDN == null)
     {
@@ -512,7 +465,6 @@ public class BindOperation
    */
   public final DN getBindDN()
   {
-    assert debugEnter(CLASS_NAME, "getBindDN");
 
     return bindDN;
   }
@@ -526,7 +478,6 @@ public class BindOperation
    */
   public final ByteString getSimplePassword()
   {
-    assert debugEnter(CLASS_NAME, "getSimplePassword");
 
     return simplePassword;
   }
@@ -541,8 +492,6 @@ public class BindOperation
    */
   public final void setSimplePassword(ByteString simplePassword)
   {
-    assert debugEnter(CLASS_NAME, "setSimplePassword",
-                      String.valueOf(simplePassword));
 
     if (simplePassword == null)
     {
@@ -568,7 +517,6 @@ public class BindOperation
    */
   public final String getSASLMechanism()
   {
-    assert debugEnter(CLASS_NAME, "getSASLMechanism");
 
     return  saslMechanism;
   }
@@ -583,7 +531,6 @@ public class BindOperation
    */
   public final ASN1OctetString getSASLCredentials()
   {
-    assert debugEnter(CLASS_NAME, "getSASLCredentials");
 
     return saslCredentials;
   }
@@ -600,8 +547,6 @@ public class BindOperation
   public final void setSASLCredentials(String saslMechanism,
                                        ASN1OctetString saslCredentials)
   {
-    assert debugEnter(CLASS_NAME, "setSASLCredentials",
-                      String.valueOf(saslCredentials));
 
     this.saslMechanism   = saslMechanism;
     this.saslCredentials = saslCredentials;
@@ -621,7 +566,6 @@ public class BindOperation
    */
   public final ASN1OctetString getServerSASLCredentials()
   {
-    assert debugEnter(CLASS_NAME, "getServerSASLCredentials");
 
     return serverSASLCredentials;
   }
@@ -638,8 +582,6 @@ public class BindOperation
   public final void setServerSASLCredentials(ASN1OctetString
                                                   serverSASLCredentials)
   {
-    assert debugEnter(CLASS_NAME, "setServerSASLCredentials",
-                      String.valueOf(serverSASLCredentials));
 
     this.serverSASLCredentials = serverSASLCredentials;
   }
@@ -658,7 +600,6 @@ public class BindOperation
    */
   public final Entry getSASLAuthUserEntry()
   {
-    assert debugEnter(CLASS_NAME, "getSASLAuthUserEntry");
 
     return saslAuthUserEntry;
   }
@@ -676,8 +617,6 @@ public class BindOperation
    */
   public final void setSASLAuthUserEntry(Entry saslAuthUserEntry)
   {
-    assert debugEnter(CLASS_NAME, "setSASLAuthUserEntry",
-                      String.valueOf(saslAuthUserEntry));
 
     this.saslAuthUserEntry = saslAuthUserEntry;
   }
@@ -693,7 +632,6 @@ public class BindOperation
    */
   public final String getAuthFailureReason()
   {
-    assert debugEnter(CLASS_NAME, "getAuthFailureReason");
 
     return authFailureReason;
   }
@@ -709,7 +647,6 @@ public class BindOperation
    */
   public final int getAuthFailureID()
   {
-    assert debugEnter(CLASS_NAME, "getAuthFailureID");
 
     return authFailureID;
   }
@@ -726,8 +663,6 @@ public class BindOperation
    */
   public final void setAuthFailureReason(int id, String reason)
   {
-    assert debugEnter(CLASS_NAME, "setAuthFailureReason",
-                      String.valueOf(id), String.valueOf(reason));
 
     if (id < 0)
     {
@@ -754,7 +689,6 @@ public class BindOperation
    */
   public final DN getUserEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getUserEntryDN");
 
     return userEntryDN;
   }
@@ -770,7 +704,6 @@ public class BindOperation
    */
   public final AuthenticationInfo getAuthenticationInfo()
   {
-    assert debugEnter(CLASS_NAME, "getAuthenticationInfo");
 
     return authInfo;
   }
@@ -787,8 +720,6 @@ public class BindOperation
    */
   public final void setAuthenticationInfo(AuthenticationInfo authInfo)
   {
-    assert debugEnter(CLASS_NAME, "setAuthenticationInfo",
-                      String.valueOf(authInfo));
 
     this.authInfo = authInfo;
   }
@@ -801,7 +732,6 @@ public class BindOperation
   @Override()
   public final long getProcessingStartTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStartTime");
 
     return processingStartTime;
   }
@@ -814,7 +744,6 @@ public class BindOperation
   @Override()
   public final long getProcessingStopTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingStopTime");
 
     return processingStopTime;
   }
@@ -827,7 +756,6 @@ public class BindOperation
   @Override()
   public final long getProcessingTime()
   {
-    assert debugEnter(CLASS_NAME, "getProcessingTime");
 
     return (processingStopTime - processingStartTime);
   }
@@ -967,7 +895,6 @@ public class BindOperation
   @Override()
   public final List<Control> getResponseControls()
   {
-    assert debugEnter(CLASS_NAME, "getResponseControls");
 
     return responseControls;
   }
@@ -1002,7 +929,6 @@ public class BindOperation
   @Override()
   public final void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
 
     // Start the processing timer and initially set the result to indicate that
@@ -1084,7 +1010,10 @@ bindProcessing:
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "run", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         setResultCode(ResultCode.INVALID_CREDENTIALS);
         setAuthFailureReason(de.getErrorMessageID(), de.getErrorMessage());
@@ -1234,7 +1163,10 @@ bindProcessing:
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME, "run", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               setResultCode(ResultCode.INVALID_CREDENTIALS);
               setAuthFailureReason(de.getErrorMessageID(),
@@ -1524,7 +1456,10 @@ bindProcessing:
                     }
                     catch (Exception e)
                     {
-                      assert debugException(CLASS_NAME, "run", e);
+                      if (debugEnabled())
+                      {
+                        debugCought(DebugLogLevel.ERROR, e);
+                      }
 
                       int msgID = MSGID_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT;
                       String message =
@@ -1567,7 +1502,10 @@ bindProcessing:
                     }
                     catch (Exception e)
                     {
-                      assert debugException(CLASS_NAME, "run", e);
+                      if (debugEnabled())
+                      {
+                        debugCought(DebugLogLevel.ERROR, e);
+                      }
 
                       int msgID = MSGID_BIND_CANNOT_PROCESS_USER_TIME_LIMIT;
                       String message =
@@ -1610,7 +1548,10 @@ bindProcessing:
                     }
                     catch (Exception e)
                     {
-                      assert debugException(CLASS_NAME, "run", e);
+                      if (debugEnabled())
+                      {
+                        debugCought(DebugLogLevel.ERROR, e);
+                      }
 
                       int msgID =
                           MSGID_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT;
@@ -1696,7 +1637,10 @@ bindProcessing:
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "run", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             int    msgID   = MSGID_BIND_OPERATION_PASSWORD_VALIDATION_EXCEPTION;
             String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1784,7 +1728,10 @@ bindProcessing:
             }
             catch (DirectoryException de)
             {
-              assert debugException(CLASS_NAME, "run", de);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, de);
+              }
 
               setResponseData(de);
               break bindProcessing;
@@ -2035,7 +1982,10 @@ bindProcessing:
                     }
                     catch (Exception e)
                     {
-                      assert debugException(CLASS_NAME, "run", e);
+                      if (debugEnabled())
+                      {
+                        debugCought(DebugLogLevel.ERROR, e);
+                      }
 
                       int msgID = MSGID_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT;
                       String message =
@@ -2076,7 +2026,10 @@ bindProcessing:
                     }
                     catch (Exception e)
                     {
-                      assert debugException(CLASS_NAME, "run", e);
+                      if (debugEnabled())
+                      {
+                        debugCought(DebugLogLevel.ERROR, e);
+                      }
 
                       int msgID = MSGID_BIND_CANNOT_PROCESS_USER_TIME_LIMIT;
                       String message =
@@ -2117,7 +2070,10 @@ bindProcessing:
                     }
                     catch (Exception e)
                     {
-                      assert debugException(CLASS_NAME, "run", e);
+                      if (debugEnabled())
+                      {
+                        debugCought(DebugLogLevel.ERROR, e);
+                      }
 
                       int msgID =
                           MSGID_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT;
@@ -2204,7 +2160,10 @@ bindProcessing:
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "run", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       setResponseData(de);
     }
@@ -2327,7 +2286,6 @@ bindProcessing:
   @Override()
   public final CancelResult cancel(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancel", String.valueOf(cancelRequest));
 
     cancelRequest.addResponseMessage(getMessage(MSGID_CANNOT_CANCEL_BIND));
     return CancelResult.CANNOT_CANCEL;
@@ -2341,7 +2299,6 @@ bindProcessing:
   @Override()
   public final CancelRequest getCancelRequest()
   {
-    assert debugEnter(CLASS_NAME, "getCancelRequest");
 
     return null;
   }
@@ -2354,8 +2311,6 @@ bindProcessing:
   @Override()
   boolean setCancelRequest(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "setCancelRequest",
-                      String.valueOf(cancelRequest));
 
     // Bind operations cannot be canceled.
     return false;
@@ -2369,7 +2324,6 @@ bindProcessing:
   @Override()
   public final void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("BindOperation(connID=");
     buffer.append(clientConnection.getConnectionID());

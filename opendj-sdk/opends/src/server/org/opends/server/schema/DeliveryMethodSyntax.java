@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -43,7 +43,6 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -75,11 +74,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class DeliveryMethodSyntax
        extends AttributeSyntax
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.DeliveryMethodSyntax";
 
 
 
@@ -129,7 +123,6 @@ public class DeliveryMethodSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -147,8 +140,6 @@ public class DeliveryMethodSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
     allowedValues = new HashSet<String>(ALLOWED_VALUES.length);
     for (String s : ALLOWED_VALUES)
@@ -202,7 +193,6 @@ public class DeliveryMethodSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_DELIVERY_METHOD_NAME;
   }
@@ -216,7 +206,6 @@ public class DeliveryMethodSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_DELIVERY_METHOD_OID;
   }
@@ -230,7 +219,6 @@ public class DeliveryMethodSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_DELIVERY_METHOD_DESCRIPTION;
   }
@@ -247,7 +235,6 @@ public class DeliveryMethodSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -264,7 +251,6 @@ public class DeliveryMethodSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     return defaultOrderingMatchingRule;
   }
@@ -281,7 +267,6 @@ public class DeliveryMethodSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return defaultSubstringMatchingRule;
   }
@@ -298,7 +283,6 @@ public class DeliveryMethodSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     return defaultApproximateMatchingRule;
   }
@@ -320,8 +304,6 @@ public class DeliveryMethodSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
     String stringValue = toLowerCase(value.stringValue());
     StringTokenizer tokenizer = new StringTokenizer(stringValue, " $");

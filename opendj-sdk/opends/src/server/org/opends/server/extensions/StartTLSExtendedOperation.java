@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -41,7 +41,9 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -59,11 +61,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class StartTLSExtendedOperation
        extends ExtendedOperationHandler
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.StartTLSExtendedOperation";
 
 
 
@@ -76,7 +73,6 @@ public class StartTLSExtendedOperation
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -101,8 +97,6 @@ public class StartTLSExtendedOperation
   public void initializeExtendedOperationHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeExtendedOperationHandler",
-                      String.valueOf(configEntry));
 
     // FIXME -- Are there any configurable options that we should support?
     DirectoryServer.registerSupportedExtension(OID_START_TLS_REQUEST, this);
@@ -116,7 +110,6 @@ public class StartTLSExtendedOperation
    */
   public void finalizeExtendedOperationHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeExtendedOperationHandler");
 
     DirectoryServer.deregisterSupportedExtension(OID_START_TLS_REQUEST);
   }
@@ -130,8 +123,6 @@ public class StartTLSExtendedOperation
    */
   public void processExtendedOperation(ExtendedOperation operation)
   {
-    assert debugEnter(CLASS_NAME, "processExtendedOperation",
-                      String.valueOf(operation));
 
 
     // We should always include the StartTLS OID in the response (the same OID
@@ -186,7 +177,10 @@ public class StartTLSExtendedOperation
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processExtendedOperation", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.MILD_ERROR,
                MSGID_STARTTLS_ERROR_ON_ENABLE,
@@ -205,7 +199,10 @@ public class StartTLSExtendedOperation
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "processExtendedOperation", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.MILD_ERROR,
                MSGID_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE,

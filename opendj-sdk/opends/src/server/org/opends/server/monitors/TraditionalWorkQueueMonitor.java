@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -43,7 +43,6 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -54,11 +53,6 @@ import static org.opends.server.loggers.Debug.*;
 public class TraditionalWorkQueueMonitor
        extends MonitorProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.monitors.WorkQueueMonitor";
 
 
 
@@ -128,7 +122,6 @@ public class TraditionalWorkQueueMonitor
   {
     super("Work Queue Monitor Provider");
 
-    assert debugConstructor(CLASS_NAME);
 
     this.workQueue = workQueue;
   }
@@ -152,8 +145,6 @@ public class TraditionalWorkQueueMonitor
   public void initializeMonitorProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMonitorProvider",
-                      String.valueOf(configEntry));
 
     maxBacklog   = 0;
     totalBacklog = 0;
@@ -170,7 +161,6 @@ public class TraditionalWorkQueueMonitor
    */
   public String getMonitorInstanceName()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorInstanceName");
 
     return "Work Queue";
   }
@@ -188,7 +178,6 @@ public class TraditionalWorkQueueMonitor
    */
   public long getUpdateInterval()
   {
-    assert debugEnter(CLASS_NAME, "getUpdateInterval");
 
 
     // We will poll the work queue every 10 seconds.
@@ -206,7 +195,6 @@ public class TraditionalWorkQueueMonitor
    */
   public void updateMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "updateMonitorData");
 
     int backlog = workQueue.size();
     totalBacklog += backlog;
@@ -230,7 +218,6 @@ public class TraditionalWorkQueueMonitor
    */
   public ArrayList<Attribute> getMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorData");
 
     int backlog = workQueue.size();
     totalBacklog += backlog;

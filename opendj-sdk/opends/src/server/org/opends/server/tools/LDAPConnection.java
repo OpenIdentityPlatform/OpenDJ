@@ -46,8 +46,10 @@ import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.CoreMessages.
                    MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
@@ -64,11 +66,6 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
  */
 public class LDAPConnection
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tools.LDAPConnection";
 
   // The hostname to connect to.
   private String hostName = null;
@@ -176,7 +173,10 @@ public class LDAPConnection
         throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, ce);
       } catch(Exception ex)
       {
-        assert debugException(CLASS_NAME, "connectToHost", ex);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ex);
+        }
         throw new LDAPConnectionException(ex.getMessage(), ex);
       }
 
@@ -194,7 +194,10 @@ public class LDAPConnection
         msg = LDAPMessage.decode(asn1Reader.readElement().decodeAsSequence());
       } catch (Exception ex1)
       {
-        assert debugException(CLASS_NAME, "connectToHost", ex1);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ex1);
+        }
         throw new LDAPConnectionException(ex1.getMessage(), ex1);
       }
       ExtendedResponseProtocolOp res = msg.getExtendedResponseProtocolOp();
@@ -242,7 +245,10 @@ public class LDAPConnection
       throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, ce);
     } catch(Exception ex2)
     {
-      assert debugException(CLASS_NAME, "connectToHost", ex2);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ex2);
+      }
       throw new LDAPConnectionException(ex2.getMessage(), ex2);
     }
 
@@ -254,7 +260,10 @@ public class LDAPConnection
       socket.setReuseAddress(true);
     } catch(IOException e)
     {
-      assert debugException(CLASS_NAME, "connectToHost", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       // It doesn't matter too much if this throws, so ignore it.
     }
 
@@ -392,11 +401,17 @@ public class LDAPConnection
       }
     } catch(ClientException ce)
     {
-      assert debugException(CLASS_NAME, "connectToHost", ce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ce);
+      }
       throw new LDAPConnectionException(ce.getMessage(), ce.getExitCode(), ce);
     } catch(Exception ex)
     {
-      assert debugException(CLASS_NAME, "connectToHost", ex);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ex);
+      }
       throw new LDAPConnectionException(ex.getMessage(), ex);
     }
 

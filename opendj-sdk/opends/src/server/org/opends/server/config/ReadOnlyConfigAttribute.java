@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
 
@@ -42,7 +42,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -57,11 +56,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class ReadOnlyConfigAttribute
        extends ConfigAttribute
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.config.ReadOnlyConfigAttribute";
 
 
 
@@ -85,9 +79,6 @@ public class ReadOnlyConfigAttribute
   {
     super(name, description, false, isMultiValued, false);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(name),
-                            String.valueOf(description),
-                            String.valueOf(isMultiValued));
 
     values = new ArrayList<String>();
   }
@@ -106,8 +97,6 @@ public class ReadOnlyConfigAttribute
   {
     super(name, description, false, false, false, getValueSet(value));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(name),
-                            String.valueOf(description), String.valueOf(value));
 
     if (value == null)
     {
@@ -135,9 +124,6 @@ public class ReadOnlyConfigAttribute
   {
     super(name, description, false, true, false, getValueSet(values));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(name),
-                            String.valueOf(description),
-                            String.valueOf(values));
 
     if (values == null)
     {
@@ -161,7 +147,6 @@ public class ReadOnlyConfigAttribute
    */
   public String getDataType()
   {
-    assert debugEnter(CLASS_NAME, "getDataType");
 
     return "ReadOnly";
   }
@@ -175,7 +160,6 @@ public class ReadOnlyConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-    assert debugEnter(CLASS_NAME,"getSyntax");
 
     return DirectoryServer.getDefaultStringSyntax();
   }
@@ -194,7 +178,6 @@ public class ReadOnlyConfigAttribute
   public String activeValue()
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "activeValue");
 
     if ((values == null) || values.isEmpty())
     {
@@ -222,7 +205,6 @@ public class ReadOnlyConfigAttribute
    */
   public List<String> activeValues()
   {
-    assert debugEnter(CLASS_NAME, "activeValues");
 
     return values;
   }
@@ -243,7 +225,6 @@ public class ReadOnlyConfigAttribute
   public String pendingValue()
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "pendingValue");
 
     return  activeValue();
   }
@@ -259,7 +240,6 @@ public class ReadOnlyConfigAttribute
    */
   public List<String> pendingValues()
   {
-    assert debugEnter(CLASS_NAME, "pendingValues");
 
     return activeValues();
   }
@@ -276,7 +256,6 @@ public class ReadOnlyConfigAttribute
   public void setValue(String value)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(value));
 
     int    msgID   = MSGID_CONFIG_ATTR_READ_ONLY;
     String message = getMessage(msgID, getName());
@@ -296,7 +275,6 @@ public class ReadOnlyConfigAttribute
   public void setValues(List<String> values)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValues", String.valueOf(values));
 
     int    msgID   = MSGID_CONFIG_ATTR_READ_ONLY;
     String message = getMessage(msgID, getName());
@@ -314,7 +292,6 @@ public class ReadOnlyConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(String value)
   {
-    assert debugEnter(CLASS_NAME, "getValueSet", String.valueOf(value));
 
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
@@ -336,7 +313,6 @@ public class ReadOnlyConfigAttribute
    */
   private static LinkedHashSet<AttributeValue> getValueSet(List<String> values)
   {
-    assert debugEnter(CLASS_NAME, "getValueSet", String.valueOf(values));
 
     if (values == null)
     {
@@ -364,7 +340,6 @@ public class ReadOnlyConfigAttribute
    */
   public void applyPendingValues()
   {
-    assert debugEnter(CLASS_NAME, "applyPendingValues");
   }
 
 
@@ -384,8 +359,6 @@ public class ReadOnlyConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
     rejectReason.append(getMessage(MSGID_CONFIG_ATTR_READ_ONLY, getName()));
     return false;
@@ -417,9 +390,6 @@ public class ReadOnlyConfigAttribute
                               boolean allowFailures)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "stringsToValues",
-                      String.valueOf(valueStrings),
-                      String.valueOf(allowFailures));
 
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
@@ -454,7 +424,6 @@ public class ReadOnlyConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-    assert debugEnter(CLASS_NAME, "activeValuesToStrings");
 
     return values;
   }
@@ -474,7 +443,6 @@ public class ReadOnlyConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-    assert debugEnter(CLASS_NAME, "pendingValuesToStrings");
 
     return activeValuesToStrings();
   }
@@ -505,8 +473,6 @@ public class ReadOnlyConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getConfigAttribute",
-                      String.valueOf(attributeList));
 
     // The attribute won't be present in the entry, so we'll just return a
     // reference to this attribute.
@@ -525,7 +491,6 @@ public class ReadOnlyConfigAttribute
    */
   public javax.management.Attribute toJMXAttribute()
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttribute");
 
     if (isMultiValued())
     {
@@ -559,7 +524,6 @@ public class ReadOnlyConfigAttribute
     public javax.management.Attribute toJMXAttributePending()
     {
         // Should never occurs !!!
-        assert debugEnter(CLASS_NAME, "toJMXAttributePending");
         return toJMXAttribute();
     }
 
@@ -578,8 +542,6 @@ public class ReadOnlyConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttribute",
-                      String.valueOf(attributeList));
 
     javax.management.Attribute jmxAttr = toJMXAttribute();
     attributeList.add(jmxAttr);
@@ -601,8 +563,6 @@ public class ReadOnlyConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttributeInfo",
-                      String.valueOf(attributeInfoList));
 
 
     if (isMultiValued())
@@ -632,7 +592,6 @@ public class ReadOnlyConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-    assert debugEnter(CLASS_NAME, "toJMXParameterInfo");
 
     if (isMultiValued())
     {
@@ -662,7 +621,6 @@ public class ReadOnlyConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(jmxAttribute));
 
     int    msgID   = MSGID_CONFIG_ATTR_READ_ONLY;
     String message = getMessage(msgID, getName());
@@ -678,7 +636,6 @@ public class ReadOnlyConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     return new ReadOnlyConfigAttribute(getName(), getDescription(),
                                        activeValues());

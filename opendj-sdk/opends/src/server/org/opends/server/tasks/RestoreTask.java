@@ -26,15 +26,15 @@
  */
 package org.opends.server.tasks;
 
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.loggers.Error.logError;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -67,11 +67,6 @@ import java.io.File;
  */
 public class RestoreTask extends Task
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tasks.RestoreTask";
 
 
 
@@ -86,7 +81,6 @@ public class RestoreTask extends Task
    */
   @Override public void initializeTask() throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "initializeTask");
 
 
     // If the client connection is available, then make sure the associated
@@ -206,7 +200,6 @@ public class RestoreTask extends Task
    */
   protected TaskState runTask()
   {
-    assert debugEnter(CLASS_NAME, "runTask");
 
     // Open the backup directory and make sure it is valid.
     BackupDirectory backupDir;
@@ -268,7 +261,10 @@ public class RestoreTask extends Task
     }
     catch (ConfigException e)
     {
-      assert debugException(CLASS_NAME, "runTask", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       int    msgID   = MSGID_RESTOREDB_NO_BACKENDS_FOR_DN;
       String message = getMessage(msgID, backupDirectory,
                                   configEntryDN.toString());
@@ -304,7 +300,10 @@ public class RestoreTask extends Task
     }
     catch (DirectoryException e)
     {
-      assert debugException(CLASS_NAME, "runTask", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                e.getErrorMessage(), e.getErrorMessageID());
@@ -365,7 +364,10 @@ public class RestoreTask extends Task
       }
       catch (DirectoryException e)
       {
-        assert debugException(CLASS_NAME, "runTask", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  e.getErrorMessage(), e.getErrorMessageID());

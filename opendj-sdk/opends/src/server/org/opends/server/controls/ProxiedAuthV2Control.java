@@ -44,7 +44,9 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -64,11 +66,6 @@ import static org.opends.server.util.Validator.*;
 public class ProxiedAuthV2Control
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.ProxiedAuthV2Control";
 
 
 
@@ -87,7 +84,6 @@ public class ProxiedAuthV2Control
   {
     super(OID_PROXIED_AUTH_V2, true, authorizationID);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(authorizationID));
 
     ensureNotNull(authorizationID);
     this.authorizationID = authorizationID;
@@ -110,9 +106,6 @@ public class ProxiedAuthV2Control
   {
     super(oid, isCritical, authorizationID);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(isCritical),
-                            String.valueOf(authorizationID));
 
     this.authorizationID = authorizationID;
   }
@@ -136,7 +129,6 @@ public class ProxiedAuthV2Control
   public static ProxiedAuthV2Control decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
     ensureNotNull(control);
 
@@ -170,7 +162,10 @@ public class ProxiedAuthV2Control
       }
       else
       {
-        assert debugException(CLASS_NAME, "decodeControl", ae);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ae);
+        }
 
         int    msgID   = MSGID_PROXYAUTH2_CANNOT_DECODE_VALUE;
         String message = getMessage(msgID, stackTraceToSingleLineString(ae));
@@ -180,7 +175,10 @@ public class ProxiedAuthV2Control
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeControl", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_PROXYAUTH2_CANNOT_DECODE_VALUE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -200,7 +198,6 @@ public class ProxiedAuthV2Control
    */
   public ASN1OctetString getAuthorizationID()
   {
-    assert debugEnter(CLASS_NAME, "getAuthorizationID");
 
     return authorizationID;
   }
@@ -215,8 +212,6 @@ public class ProxiedAuthV2Control
    */
   public void setAuthorizationID(ASN1OctetString authorizationID)
   {
-    assert debugEnter(CLASS_NAME, "setAuthorizationID",
-                      String.valueOf(authorizationID));
 
     if (authorizationID == null)
     {
@@ -249,7 +244,6 @@ public class ProxiedAuthV2Control
   public Entry getAuthorizationEntry()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getValidatedAuthorizationDN");
 
 
     // Check for a zero-length value, which would be for an anonymous user.
@@ -405,7 +399,6 @@ public class ProxiedAuthV2Control
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -422,7 +415,6 @@ public class ProxiedAuthV2Control
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ProxiedAuthorizationV2Control(authzID=\"");
     authorizationID.toString(buffer);

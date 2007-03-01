@@ -197,195 +197,6 @@ public class CoreMessages
 
 
   /**
-   * The message ID for the string that will be used for debug messages related
-   * to access control processing.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_ACCESS_CONTROL =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 18;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to backend processing.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_BACKEND =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 19;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to configuration processing.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_CONFIG =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 20;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to connection handling.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_CONNECTION_HANDLING =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 21;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to constructor invocation.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_CONSTRUCTOR =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 22;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to core server processing.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_CORE_SERVER =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 23;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to raw data read from a client.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_DATA_READ =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 24;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to raw data written to a client.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_DATA_WRITE =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 25;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to an exception that has been caught.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_EXCEPTION =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 26;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to extended operation processing.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_EXTENDED_OPERATION =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 27;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to method invocation.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_ENTER =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 28;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to plugin processing.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_PLUGIN =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 29;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to a protocol element read from a client.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_PROTOCOL_READ =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 30;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to a protocol element written to a client.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_PROTOCOL_WRITE =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 31;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to processing a SASL bind.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_SASL_MECHANISM =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 32;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to synchronization processing.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_SYNCHRONIZATION =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 33;
-
-
-
-  /**
-   * The message ID for the string that will be used for the verbose debug
-   * severity.
-   */
-  public static final int MSGID_DEBUG_SEVERITY_VERBOSE =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 34;
-
-
-
-  /**
-   * The message ID for the string that will be used for the informational debug
-   * severity.
-   */
-  public static final int MSGID_DEBUG_SEVERITY_INFO =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 35;
-
-
-
-  /**
-   * The message ID for the string that will be used for the warning debug
-   * severity.
-   */
-  public static final int MSGID_DEBUG_SEVERITY_WARNING =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 36;
-
-
-
-  /**
-   * The message ID for the string that will be used for the error debug
-   * severity.
-   */
-  public static final int MSGID_DEBUG_SEVERITY_ERROR =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 37;
-
-
-
-  /**
-   * The message ID for the string that will be used for the debug severity
-   * level that deals with client/server communication.
-   */
-  public static final int MSGID_DEBUG_SEVERITY_COMMUNICATION =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 38;
-
-
-
-  /**
    * The message ID for the string that will be used for the error log category
    * for messages related to access control processing.
    */
@@ -499,24 +310,6 @@ public class CoreMessages
    */
   public static final int MSGID_ERROR_CATEGORY_SYNCHRONIZATION =
        CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 51;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages
-   * generated during the Directory Server shutdown process.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_SHUTDOWN =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 52;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages
-   * generated during the Directory Server startup process.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_STARTUP =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 53;
 
 
   /**
@@ -1252,15 +1045,6 @@ public class CoreMessages
 
 
   /**
-   * The message ID for the string that will be used for debug messages related
-   * to processing with schema elements.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_SCHEMA =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 128;
-
-
-
-  /**
    * The message ID for the string that will be used if an error occurs while
    * attempting to bootstrap an attribute matching rule.  This takes two
    * arguments, which are the class name of the matching rule class and a string
@@ -1325,15 +1109,6 @@ public class CoreMessages
    */
   public static final int MSGID_DIRECTORY_SERVER_STARTED =
        CATEGORY_MASK_CORE | SEVERITY_MASK_NOTICE | 135;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to processing in server extensions.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_EXTENSIONS =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 136;
 
 
 
@@ -1784,33 +1559,6 @@ public class CoreMessages
    */
   public static final int MSGID_CANNOT_CREATE_WORK_QUEUE =
        CATEGORY_MASK_CORE | SEVERITY_MASK_FATAL_ERROR | 176;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to raw data read from the database.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_DATABASE_READ =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 177;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to raw data written to the database.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_DATABASE_WRITE =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 178;
-
-
-
-  /**
-   * The message ID for the string that will be used for debug messages related
-   * to access to the database.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_DATABASE_ACCESS =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 179;
 
 
 
@@ -5282,15 +5030,6 @@ public class CoreMessages
 
 
   /**
-   * The message ID for the string that will be used for debug messages related
-   * to password policy processing.
-   */
-  public static final int MSGID_DEBUG_CATEGORY_PASSWORD_POLICY =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_DEBUG | 503;
-
-
-
-  /**
    * The message ID for the message that will be used if an error occurs while
    * attempting to decode a password policy subentry value as a DN.  This takes
    * three arguments, which are the password policy subentry value, the DN of
@@ -6293,53 +6032,6 @@ public class CoreMessages
     registerMessage(MSGID_DISCONNECT_BY_PLUGIN, "Connection Closed by Plugin");
     registerMessage(MSGID_DISCONNECT_OTHER, "Unknown Closure Reason");
     registerMessage(MSGID_DISCONNECT_DUE_TO_SERVER_ERROR, "Server Error");
-
-
-    registerMessage(MSGID_DEBUG_CATEGORY_ACCESS_CONTROL,
-                    DEBUG_CATEGORY_ACCESS_CONTROL);
-    registerMessage(MSGID_DEBUG_CATEGORY_BACKEND, DEBUG_CATEGORY_BACKEND);
-    registerMessage(MSGID_DEBUG_CATEGORY_CONFIG, DEBUG_CATEGORY_CONFIG);
-    registerMessage(MSGID_DEBUG_CATEGORY_CONNECTION_HANDLING,
-                    DEBUG_CATEGORY_CONNECTION_HANDLING);
-    registerMessage(MSGID_DEBUG_CATEGORY_CONSTRUCTOR,
-                    DEBUG_CATEGORY_CONSTRUCTOR);
-    registerMessage(MSGID_DEBUG_CATEGORY_CORE_SERVER,
-                    DEBUG_CATEGORY_CORE_SERVER);
-    registerMessage(MSGID_DEBUG_CATEGORY_DATA_READ, DEBUG_CATEGORY_DATA_READ);
-    registerMessage(MSGID_DEBUG_CATEGORY_DATA_WRITE, DEBUG_CATEGORY_DATA_WRITE);
-    registerMessage(MSGID_DEBUG_CATEGORY_EXCEPTION, DEBUG_CATEGORY_EXCEPTION);
-    registerMessage(MSGID_DEBUG_CATEGORY_EXTENDED_OPERATION,
-                    DEBUG_CATEGORY_EXTENDED_OPERATION);
-    registerMessage(MSGID_DEBUG_CATEGORY_EXTENSIONS, DEBUG_CATEGORY_EXTENSIONS);
-    registerMessage(MSGID_DEBUG_CATEGORY_ENTER, DEBUG_CATEGORY_ENTER);
-    registerMessage(MSGID_DEBUG_CATEGORY_PASSWORD_POLICY,
-                    DEBUG_CATEGORY_PASSWORD_POLICY);
-    registerMessage(MSGID_DEBUG_CATEGORY_PLUGIN, DEBUG_CATEGORY_PLUGIN);
-    registerMessage(MSGID_DEBUG_CATEGORY_PROTOCOL_READ,
-                    DEBUG_CATEGORY_PROTOCOL_READ);
-    registerMessage(MSGID_DEBUG_CATEGORY_PROTOCOL_WRITE,
-                    DEBUG_CATEGORY_PROTOCOL_WRITE);
-    registerMessage(MSGID_DEBUG_CATEGORY_SASL_MECHANISM,
-                    DEBUG_CATEGORY_SASL_MECHANISM);
-    registerMessage(MSGID_DEBUG_CATEGORY_SCHEMA, DEBUG_CATEGORY_SCHEMA);
-    registerMessage(MSGID_DEBUG_CATEGORY_SHUTDOWN, DEBUG_CATEGORY_SHUTDOWN);
-    registerMessage(MSGID_DEBUG_CATEGORY_STARTUP, DEBUG_CATEGORY_STARTUP);
-    registerMessage(MSGID_DEBUG_CATEGORY_SYNCHRONIZATION,
-                    DEBUG_CATEGORY_SYNCHRONIZATION);
-    registerMessage(MSGID_DEBUG_CATEGORY_DATABASE_READ,
-                    DEBUG_CATEGORY_DATABASE_READ);
-    registerMessage(MSGID_DEBUG_CATEGORY_DATABASE_WRITE,
-                    DEBUG_CATEGORY_DATABASE_WRITE);
-    registerMessage(MSGID_DEBUG_CATEGORY_DATABASE_ACCESS,
-                    DEBUG_CATEGORY_DATABASE_ACCESS);
-
-
-    registerMessage(MSGID_DEBUG_SEVERITY_VERBOSE, DEBUG_SEVERITY_VERBOSE);
-    registerMessage(MSGID_DEBUG_SEVERITY_INFO, DEBUG_SEVERITY_INFO);
-    registerMessage(MSGID_DEBUG_SEVERITY_WARNING, DEBUG_SEVERITY_WARNING);
-    registerMessage(MSGID_DEBUG_SEVERITY_ERROR, DEBUG_SEVERITY_ERROR);
-    registerMessage(MSGID_DEBUG_SEVERITY_COMMUNICATION,
-                    DEBUG_SEVERITY_COMMUNICATION);
 
 
     registerMessage(MSGID_ERROR_CATEGORY_ACCESS_CONTROL,

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -48,7 +48,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.opends.server.config.ConfigException;
 
-import static org.opends.server.loggers.Debug.*;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -65,11 +68,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class CryptoManager
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.CryptoManager";
 
 
 
@@ -103,7 +101,6 @@ public class CryptoManager
   public CryptoManager()
          throws ConfigException, InitializationException
   {
-    assert debugConstructor(CLASS_NAME);
 
     // FIXME -- Get the defaults from the configuration rather than
     // hard-coding them.
@@ -125,7 +122,10 @@ public class CryptoManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // FIXME -- Number this.
       throw new InitializationException(-1,
@@ -140,7 +140,10 @@ public class CryptoManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // FIXME -- Number this.
       throw new InitializationException(-1,
@@ -155,7 +158,10 @@ public class CryptoManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // FIXME -- Number this.
       throw new InitializationException(-1,
@@ -173,7 +179,6 @@ public class CryptoManager
    */
   public SecureRandom getSecureRandom()
   {
-    assert debugEnter(CLASS_NAME, "getSecureRandom");
 
     // FIXME -- Is this threadsafe?  Can we share a single instance
     // among all threads?
@@ -189,8 +194,6 @@ public class CryptoManager
    */
   public String getPreferredMessageDigestAlgorithm()
   {
-    assert debugEnter(CLASS_NAME,
-                      "getPreferredMessageDigestAlgorithm");
 
     return preferredDigestAlgorithm;
   }
@@ -211,7 +214,6 @@ public class CryptoManager
   public MessageDigest getPreferredMessageDigest()
          throws NoSuchAlgorithmException
   {
-    assert debugEnter(CLASS_NAME, "getPreferredMessageDigest");
 
     return MessageDigest.getInstance(preferredDigestAlgorithm);
   }
@@ -235,8 +237,6 @@ public class CryptoManager
   public MessageDigest getMessageDigest(String digestAlgorithm)
          throws NoSuchAlgorithmException
   {
-    assert debugEnter(CLASS_NAME, "getMessageDigest",
-                      String.valueOf(digestAlgorithm));
 
     return MessageDigest.getInstance(digestAlgorithm);
   }
@@ -258,8 +258,6 @@ public class CryptoManager
   public byte[] digest(byte[] data)
          throws NoSuchAlgorithmException
   {
-    assert debugEnter(CLASS_NAME, "digest",
-                      "byte[" + data.length + "]");
 
     return MessageDigest.getInstance(preferredDigestAlgorithm).
                 digest(data);
@@ -284,9 +282,6 @@ public class CryptoManager
   public byte[] digest(String digestAlgorithm, byte[] data)
          throws NoSuchAlgorithmException
   {
-    assert debugEnter(CLASS_NAME, "digest",
-                      String.valueOf(digestAlgorithm),
-                      "byte[" + data.length + "]");
 
     return MessageDigest.getInstance(digestAlgorithm).digest(data);
   }
@@ -314,7 +309,6 @@ public class CryptoManager
   public byte[] digest(InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
   {
-    assert debugEnter(CLASS_NAME, "digest", "java.io.InputStream");
 
     MessageDigest digest =
          MessageDigest.getInstance(preferredDigestAlgorithm);
@@ -360,7 +354,6 @@ public class CryptoManager
                        InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
   {
-    assert debugEnter(CLASS_NAME, "digest", "java.io.InputStream");
 
     MessageDigest digest = MessageDigest.getInstance(digestAlgorithm);
 
@@ -388,8 +381,6 @@ public class CryptoManager
    */
   public String getPreferredMACAlgorithm()
   {
-    assert debugEnter(CLASS_NAME,
-                      "getPreferredMessageDigestAlgorithm");
 
     return preferredMACAlgorithm;
   }
@@ -412,7 +403,6 @@ public class CryptoManager
   public Mac getPreferredMACProvider()
          throws NoSuchAlgorithmException, InvalidKeyException
   {
-    assert debugEnter(CLASS_NAME, "getPreferredMACProvider");
 
     Mac mac = Mac.getInstance(preferredMACAlgorithm);
     mac.init(secretKey);
@@ -440,8 +430,6 @@ public class CryptoManager
   public Mac getMACProvider(String macAlgorithm)
          throws NoSuchAlgorithmException, InvalidKeyException
   {
-    assert debugEnter(CLASS_NAME, "getMACProvider",
-                      String.valueOf(macAlgorithm));
 
     Mac mac = Mac.getInstance(macAlgorithm);
     mac.init(secretKey);
@@ -466,7 +454,6 @@ public class CryptoManager
   public byte[] mac(byte[] data)
          throws NoSuchAlgorithmException
   {
-    assert debugEnter(CLASS_NAME, "mac", "byte[" + data.length + "]");
 
     return Mac.getInstance(preferredMACAlgorithm).doFinal(data);
   }
@@ -489,8 +476,6 @@ public class CryptoManager
   public byte[] mac(String macAlgorithm, byte[] data)
          throws NoSuchAlgorithmException
   {
-    assert debugEnter(CLASS_NAME, "mac", String.valueOf(macAlgorithm),
-                      "byte[" + data.length + "]");
 
     return Mac.getInstance(macAlgorithm).doFinal(data);
   }
@@ -518,7 +503,6 @@ public class CryptoManager
   public byte[] mac(InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
   {
-    assert debugEnter(CLASS_NAME, "digest", "java.io.InputStream");
 
     Mac mac = Mac.getInstance(preferredMACAlgorithm);
 
@@ -561,9 +545,6 @@ public class CryptoManager
   public byte[] mac(String macAlgorithm, InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
   {
-    assert debugEnter(CLASS_NAME, "digest",
-                      String.valueOf(macAlgorithm),
-                      "java.io.InputStream");
 
     Mac mac = Mac.getInstance(macAlgorithm);
 
@@ -591,7 +572,6 @@ public class CryptoManager
    */
   public String getPreferredCipherAlgorithm()
   {
-    assert debugEnter(CLASS_NAME, "getPreferredCipherAlgorithm");
 
     return preferredCipher;
   }
@@ -629,8 +609,6 @@ public class CryptoManager
                 InvalidKeyException,
                 InvalidAlgorithmParameterException
   {
-    assert debugEnter(CLASS_NAME, "getPreferredCipher",
-                      String.valueOf(cipherMode));
 
     Cipher cipher = Cipher.getInstance(preferredCipher);
 
@@ -676,9 +654,6 @@ public class CryptoManager
                 InvalidKeyException,
                 InvalidAlgorithmParameterException
   {
-    assert debugEnter(CLASS_NAME, "getCipher",
-                      String.valueOf(cipherAlgorithm),
-                      String.valueOf(cipherMode));
 
     Cipher cipher = Cipher.getInstance(cipherAlgorithm);
 
@@ -708,8 +683,6 @@ public class CryptoManager
   public byte[] encrypt(byte[] data)
          throws GeneralSecurityException
   {
-    assert debugEnter(CLASS_NAME, "encrypt",
-                      "byte[" + data.length + "]");
 
     Cipher cipher = Cipher.getInstance(preferredCipher);
 
@@ -738,8 +711,6 @@ public class CryptoManager
   public byte[] decrypt(byte[] data)
          throws GeneralSecurityException
   {
-    assert debugEnter(CLASS_NAME, "decrypt",
-                      "byte[" + data.length + "]");
 
     Cipher cipher = Cipher.getInstance(preferredCipher);
 
@@ -770,8 +741,6 @@ public class CryptoManager
   public byte[] encrypt(String cipherAlgorithm, byte[] data)
          throws GeneralSecurityException
   {
-    assert debugEnter(CLASS_NAME, "encrypt",
-                      "byte[" + data.length + "]");
 
     Cipher cipher = Cipher.getInstance(cipherAlgorithm);
 
@@ -802,8 +771,6 @@ public class CryptoManager
   public byte[] decrypt(String cipherAlgorithm, byte[] data)
          throws GeneralSecurityException
   {
-    assert debugEnter(CLASS_NAME, "decrypt",
-                      "byte[" + data.length + "]");
 
     Cipher cipher = Cipher.getInstance(cipherAlgorithm);
 

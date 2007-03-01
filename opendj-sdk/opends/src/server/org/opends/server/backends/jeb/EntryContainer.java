@@ -38,7 +38,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.Operation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.Debug;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.controls.PagedResultsControl;
@@ -47,7 +46,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.CancelledOperationException;
 import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogCategory;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -69,11 +68,10 @@ import java.util.concurrent.locks.Lock;
 
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
-import static org.opends.server.loggers.Debug.debugException;
-import static org.opends.server.types.DebugLogSeverity.VERBOSE;
-import static org.opends.server.types.DebugLogCategory.DATABASE_ACCESS;
-import static org.opends.server.types.DebugLogCategory.DATABASE_WRITE;
-import static org.opends.server.types.DebugLogCategory.DATABASE_READ;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugJEAccess;
+import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
 import static org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
 import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
 
@@ -84,11 +82,6 @@ import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
  */
 public class EntryContainer
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.EntryContainer";
 
   /**
    * The name of the entry database.
@@ -286,7 +279,10 @@ public class EntryContainer
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "open", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       close();
       throw e;
     }
@@ -344,7 +340,10 @@ public class EntryContainer
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "open", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       close();
       throw e;
     }
@@ -399,7 +398,10 @@ public class EntryContainer
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "openReadOnly", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       close();
       throw e;
     }
@@ -562,7 +564,10 @@ public class EntryContainer
             }
             catch (LDAPException e)
             {
-              assert debugException(CLASS_NAME, "search", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                            e.getMessage(), e.getMessageID(), e);
             }
@@ -595,7 +600,10 @@ public class EntryContainer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "search", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       // The base entry must exist for a successful result.
@@ -769,7 +777,10 @@ public class EntryContainer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "search", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       // The base entry must exist for a successful result.
@@ -849,7 +860,10 @@ public class EntryContainer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "searchNotIndexed", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         int msgID = MSGID_JEB_INVALID_PAGED_RESULTS_COOKIE;
         String str = StaticUtils.bytesToHex(pageRequest.getCookie().value());
         String msg = getMessage(msgID, str);
@@ -987,11 +1001,17 @@ public class EntryContainer
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "searchNotIndexed", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     catch (JebException e)
     {
-      assert debugException(CLASS_NAME, "searchNotIndexed", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     if (pageRequest != null)
@@ -1050,7 +1070,10 @@ public class EntryContainer
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "searchIndexed", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         int msgID = MSGID_JEB_INVALID_PAGED_RESULTS_COOKIE;
         String str = StaticUtils.bytesToHex(pageRequest.getCookie().value());
         String msg = getMessage(msgID, str);
@@ -1115,7 +1138,10 @@ public class EntryContainer
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "searchIndexed", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
               continue;
             }
           }
@@ -1308,8 +1334,10 @@ public class EntryContainer
         {
           throw deadlockException;
         }
-        assert debugException(CLASS_NAME, "invokeTransactedOperation",
-                              deadlockException);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, deadlockException);
+        }
       }
       catch (DatabaseException databaseException)
       {
@@ -2072,7 +2100,10 @@ public class EntryContainer
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "entryExists", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     return id != null;
@@ -3266,7 +3297,10 @@ public class EntryContainer
     }
     catch (DatabaseNotFoundException e)
     {
-      assert debugException(CLASS_NAME, "removeContainer", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     try
     {
@@ -3274,7 +3308,10 @@ public class EntryContainer
     }
     catch (DatabaseNotFoundException e)
     {
-      assert debugException(CLASS_NAME, "removeContainer", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     try
     {
@@ -3282,7 +3319,10 @@ public class EntryContainer
     }
     catch (DatabaseNotFoundException e)
     {
-      assert debugException(CLASS_NAME, "removeContainer", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     try
     {
@@ -3290,7 +3330,10 @@ public class EntryContainer
     }
     catch (DatabaseNotFoundException e)
     {
-      assert debugException(CLASS_NAME, "removeContainer", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     for (AttributeIndex index : attrIndexMap.values())
     {
@@ -3300,7 +3343,10 @@ public class EntryContainer
       }
       catch (DatabaseNotFoundException e)
       {
-        assert debugException(CLASS_NAME, "removeContainer", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -3346,7 +3392,10 @@ public class EntryContainer
       }
       catch (DatabaseException e)
       {
-        assert debugException(CLASS_NAME, "listDatabases", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -3426,10 +3475,11 @@ public class EntryContainer
       try
       {
         database = env.openDatabase(txn, fullName, dbConfig);
-        assert Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
-                                  "openDatabase",
-                                  "open db=" + database.getDatabaseName() +
-                                  " txnid=" + txn.getId());
+        if (debugEnabled())
+        {
+          debugVerbose("open db=%s txnid=%d", database.getDatabaseName(),
+                       txn.getId());
+        }
         transactionCommit(txn);
       }
       catch (DatabaseException e)
@@ -3441,10 +3491,10 @@ public class EntryContainer
     else
     {
       database = env.openDatabase(null, fullName, dbConfig);
-      assert Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
-                                "openDatabase",
-                                "open db=" + database.getDatabaseName() +
-                                " txnid=none");
+      if (debugEnabled())
+      {
+        debugVerbose("open db=%s txnid=none", database.getDatabaseName());
+      }
     }
 
     // Insert into the list of database handles.
@@ -3466,8 +3516,10 @@ public class EntryContainer
     Transaction parentTxn = null;
     TransactionConfig txnConfig = null;
     Transaction txn = env.beginTransaction(parentTxn, txnConfig);
-    assert Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
-                       "beginTransaction", "begin txnid=" + txn.getId());
+    if (debugEnabled())
+    {
+      debugVerbose("beginTransaction", "begin txnid=" + txn.getId());
+    }
     return txn;
   }
 
@@ -3484,9 +3536,10 @@ public class EntryContainer
     if (txn != null)
     {
       txn.commit();
-      assert Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
-                                "transactionCommit", "commit txnid=" +
-                                                     txn.getId());
+      if (debugEnabled())
+      {
+        debugVerbose("commit txnid=%d", txn.getId());
+      }
     }
   }
 
@@ -3503,89 +3556,11 @@ public class EntryContainer
     if (txn != null)
     {
       txn.abort();
-      assert Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
-                                "transactionAbort", "abort txnid=" +
-                                                    txn.getId());
-    }
-  }
-
-  /**
-   * Debug log a read or write access to the database.
-   * @param operation The operation label: "read", "put", "insert".
-   * @param category The log category for raw data value logging
-   * @param status The JE return status code of the operation.
-   * @param database The JE database handle operated on.
-   * @param txn The JE transaction handle used in the operation.
-   * @param key The database key operated on.
-   * @param data The database value read or written.
-   * @return true so that the method can be used in an assertion
-   * @throws DatabaseException If an error occurs while retrieving information
-   * about the JE objects provided to the method.
-   */
-  private static boolean debugAccess(String operation,
-                             DebugLogCategory category,
-                             OperationStatus status,
-                             Database database,
-                             Transaction txn,
-                             DatabaseEntry key, DatabaseEntry data)
-       throws DatabaseException
-  {
-    // Build the string that is common to category DATABASE_ACCESS and
-    // DATABASE_READ/DATABASE_WRITE
-    StringBuilder builder = new StringBuilder();
-    builder.append(operation);
-    if(status != null)
-    {
-      if (status == OperationStatus.SUCCESS)
+      if (debugEnabled())
       {
-        builder.append(" (ok)");
-      }
-      else
-      {
-        builder.append(" (");
-        builder.append(status.toString());
-        builder.append(")");
+        debugVerbose("abort txnid=%d", txn.getId());
       }
     }
-    builder.append(" db=");
-    builder.append(database.getDatabaseName());
-    if (txn != null)
-    {
-      builder.append(" txnid=");
-      builder.append(txn.getId());
-    }
-    else
-    {
-      builder.append(" txnid=none");
-    }
-    Debug.debugMessage(DATABASE_ACCESS, VERBOSE, CLASS_NAME,
-                       "debugAccess", builder.toString());
-
-    // If the operation was successful we log the same common information
-    // plus the key and data under category DATABASE_READ or DATABASE_WRITE
-    if (status == OperationStatus.SUCCESS)
-    {
-      builder.append(" key:");
-      builder.append(ServerConstants.EOL);
-      StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 0);
-      if (data != null)
-      {
-        builder.append("data(len=");
-        builder.append(data.getSize());
-        builder.append("):");
-        builder.append(ServerConstants.EOL);
-        StaticUtils.byteArrayToHexPlusAscii(builder, data.getData(), 0);
-      }
-      Debug.debugMessage(category, VERBOSE, CLASS_NAME,
-                         "debugAccess", builder.toString());
-/*
-      if (category == DATABASE_WRITE)
-      {
-        System.out.println(builder.toString());
-      }
-*/
-    }
-    return true;
   }
 
   /**
@@ -3603,8 +3578,10 @@ public class EntryContainer
        throws DatabaseException
   {
     OperationStatus status = database.putNoOverwrite(txn, key, data);
-    assert debugAccess("insert", DATABASE_WRITE,
-                       status, database, txn, key, data);
+    if (debugEnabled())
+    {
+      debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key, data);
+    }
     return status;
   }
 
@@ -3624,8 +3601,11 @@ public class EntryContainer
        throws DatabaseException
   {
     OperationStatus status = cursor.putNoOverwrite(key, data);
-    assert debugAccess("cursorInsert", DATABASE_WRITE,
-                       status, cursor.getDatabase(), null, key, data);
+    if (debugEnabled())
+    {
+      debugJEAccess(DebugLogLevel.VERBOSE, status,
+                    cursor.getDatabase(), null, key, data);
+    }
     return status;
   }
 
@@ -3644,8 +3624,10 @@ public class EntryContainer
        throws DatabaseException
   {
     OperationStatus status = database.put(txn, key, data);
-    assert debugAccess("put", DATABASE_WRITE,
-                       status, database, txn, key, data);
+    if (debugEnabled())
+    {
+      debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key, data);
+    }
     return status;
   }
 
@@ -3665,8 +3647,11 @@ public class EntryContainer
        throws DatabaseException
   {
     OperationStatus status = cursor.put(key, data);
-    assert debugAccess("cursorPut", DATABASE_WRITE,
-                       status, cursor.getDatabase(), null, key, data);
+    if (debugEnabled())
+    {
+      debugJEAccess(DebugLogLevel.VERBOSE, status,
+                    cursor.getDatabase(), null, key, data);
+    }
     return status;
   }
 
@@ -3688,8 +3673,10 @@ public class EntryContainer
        throws DatabaseException
   {
     OperationStatus status = database.get(txn, key, data, lockMode);
-    assert debugAccess("read", DATABASE_READ,
-                       status, database, txn, key, data);
+    if (debugEnabled())
+    {
+      debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key, data);
+    }
     return status;
   }
 
@@ -3711,8 +3698,11 @@ public class EntryContainer
        throws DatabaseException
   {
     OperationStatus status = cursor.getSearchKey(key, data, lockMode);
-    assert debugAccess("cursorRead", DATABASE_READ,
-                       status, cursor.getDatabase(), null, key, data);
+    if (debugEnabled())
+    {
+      debugJEAccess(DebugLogLevel.VERBOSE, status,
+                    cursor.getDatabase(), null, key, data);
+    }
     return status;
   }
 
@@ -3730,8 +3720,10 @@ public class EntryContainer
        throws DatabaseException
   {
     OperationStatus status = database.delete(txn, key);
-    assert debugAccess("delete", DATABASE_WRITE,
-                       status, database, txn, key, null);
+    if (debugEnabled())
+    {
+      debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key, null);
+    }
     return status;
   }
 
@@ -3745,8 +3737,11 @@ public class EntryContainer
   public static long count(Database database) throws DatabaseException
   {
     long count = database.count();
-    assert debugAccess("count", DATABASE_READ, null, database,
-        null, null, null);
+    if (debugEnabled())
+    {
+      debugJEAccess(DebugLogLevel.VERBOSE, OperationStatus.SUCCESS,
+                    database, null, null, null);
+    }
     return count;
   }
 

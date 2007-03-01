@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins.profiler;
 
@@ -33,8 +33,9 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 
-import static org.opends.server.loggers.Debug.*;
-
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 
 /**
@@ -43,11 +44,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class ProfileStack
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.plugins.profiler.ProfileStack";
 
 
 
@@ -89,7 +85,6 @@ public class ProfileStack
    */
   public ProfileStack(StackTraceElement[] stackElements)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(stackElements));
 
     numFrames   = stackElements.length;
     classNames  = new String[numFrames];
@@ -128,9 +123,6 @@ public class ProfileStack
   private ProfileStack(String[] classNames, String[] methodNames,
                        int[] lineNumbers)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(classNames),
-                            String.valueOf(methodNames),
-                            String.valueOf(lineNumbers));
 
     this.numFrames   = classNames.length;
     this.classNames  = classNames;
@@ -147,7 +139,6 @@ public class ProfileStack
    */
   public int getNumFrames()
   {
-    assert debugEnter(CLASS_NAME, "getDepth");
 
     return numFrames;
   }
@@ -161,7 +152,6 @@ public class ProfileStack
    */
   public String[] getClassNames()
   {
-    assert debugEnter(CLASS_NAME, "getClassNames");
 
     return classNames;
   }
@@ -178,7 +168,6 @@ public class ProfileStack
    */
   public String getClassName(int depth)
   {
-    assert debugEnter(CLASS_NAME, "getClassName", String.valueOf(depth));
 
     return classNames[depth];
   }
@@ -192,7 +181,6 @@ public class ProfileStack
    */
   public String[] getMethodNames()
   {
-    assert debugEnter(CLASS_NAME, "getMethodNames");
 
     return methodNames;
   }
@@ -209,7 +197,6 @@ public class ProfileStack
    */
   public String getMethodName(int depth)
   {
-    assert debugEnter(CLASS_NAME, "getMethodName", String.valueOf(depth));
 
     return methodNames[depth];
   }
@@ -223,7 +210,6 @@ public class ProfileStack
    */
   public int[] getLineNumbers()
   {
-    assert debugEnter(CLASS_NAME, "getLineNumbers");
 
     return lineNumbers;
   }
@@ -240,7 +226,6 @@ public class ProfileStack
    */
   public int getLineNumber(int depth)
   {
-    assert debugEnter(CLASS_NAME, "getLineNumber", String.valueOf(depth));
 
     return lineNumbers[depth];
   }
@@ -256,7 +241,6 @@ public class ProfileStack
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     if (numFrames == 0)
     {
@@ -282,7 +266,6 @@ public class ProfileStack
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (o == null)
     {
@@ -317,7 +300,10 @@ public class ProfileStack
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "equals", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return false;
     }
@@ -333,7 +319,6 @@ public class ProfileStack
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(3*numFrames);
     for (int i=0; i < numFrames; i++)
@@ -359,7 +344,6 @@ public class ProfileStack
    */
   public static ProfileStack decode(ASN1Element stackElement)
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(stackElement));
 
     try
     {
@@ -384,7 +368,10 @@ public class ProfileStack
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return null;
     }

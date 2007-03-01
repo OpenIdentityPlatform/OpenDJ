@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -36,7 +36,9 @@ import javax.management.MBeanParameterInfo;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.config.ConfigAttribute;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 
 
 
@@ -46,11 +48,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class InvokableMethod
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.InvokableMethod";
 
 
 
@@ -100,16 +97,6 @@ public class InvokableMethod
                          boolean retrievesComponentInfo,
                          boolean updatesComponentInfo)
   {
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(description),
-                              String.valueOf(arguments),
-                              String.valueOf(returnType),
-                              String.valueOf(retrievesComponentInfo),
-                              String.valueOf(updatesComponentInfo)
-                            });
 
     this.name                     = name;
     this.description              = description;
@@ -136,7 +123,6 @@ public class InvokableMethod
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return name;
   }
@@ -150,7 +136,6 @@ public class InvokableMethod
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return description;
   }
@@ -164,7 +149,6 @@ public class InvokableMethod
    */
   public ConfigAttribute[] getArguments()
   {
-    assert debugEnter(CLASS_NAME, "getArguments");
 
     return arguments;
   }
@@ -178,7 +162,6 @@ public class InvokableMethod
    */
   public String getReturnType()
   {
-    assert debugEnter(CLASS_NAME, "getReturnType");
 
     return returnType;
   }
@@ -195,7 +178,6 @@ public class InvokableMethod
    */
   public boolean retrievesComponentInfo()
   {
-    assert debugEnter(CLASS_NAME, "retrievesComponentInfo");
 
     return retrievesComponentInfo;
   }
@@ -212,7 +194,6 @@ public class InvokableMethod
    */
   public boolean updatesComponentInfo()
   {
-    assert debugEnter(CLASS_NAME, "updatesComponentInfo");
 
     return updatesComponentInfo;
   }
@@ -228,7 +209,6 @@ public class InvokableMethod
    */
   public MBeanOperationInfo toOperationInfo()
   {
-    assert debugEnter(CLASS_NAME, "toOperationInfo");
 
 
     MBeanParameterInfo[] signature =
@@ -283,9 +263,6 @@ public class InvokableMethod
   public boolean hasSignature(String methodName,
                               String[] argumentTypes)
   {
-    assert debugEnter(CLASS_NAME, "hasSignature",
-                      String.valueOf(methodName),
-                      String.valueOf(argumentTypes));
 
     if (! methodName.equals(name))
     {
@@ -331,8 +308,6 @@ public class InvokableMethod
                        Object[] parameters)
          throws MBeanException
   {
-    assert debugEnter(CLASS_NAME, "invoke", String.valueOf(component),
-                      String.valueOf(parameters));
 
     try
     {
@@ -351,13 +326,19 @@ public class InvokableMethod
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "invoke", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       throw new MBeanException(de, de.getErrorMessage());
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "invoke", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       throw new MBeanException(e);
     }

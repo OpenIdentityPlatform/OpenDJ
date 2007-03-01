@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -30,7 +30,6 @@ package org.opends.server.protocols.ldap;
 
 import org.opends.server.protocols.asn1.ASN1Element;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -44,11 +43,6 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
  */
 public abstract class ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.ProtocolOp";
 
 
 
@@ -93,7 +87,6 @@ public abstract class ProtocolOp
   public static ProtocolOp decode(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decode", String.valueOf(element));
 
     if (element == null)
     {
@@ -219,7 +212,6 @@ public abstract class ProtocolOp
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);

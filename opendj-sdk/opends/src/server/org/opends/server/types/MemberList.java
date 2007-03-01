@@ -22,14 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import static org.opends.server.loggers.Debug.*;
-
 
 
 /**
@@ -42,11 +37,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public abstract class MemberList
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.MemberList";
 
 
 
@@ -73,7 +63,6 @@ public abstract class MemberList
   public DN nextMemberDN()
          throws MembershipException
   {
-    assert debugEnter(CLASS_NAME, "nextMemberDN");
 
     Entry e = nextMemberEntry();
     if (e == null)

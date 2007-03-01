@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -37,8 +37,10 @@ import org.opends.server.protocols.asn1.ASN1Enumerated;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -55,11 +57,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class BindResponseProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.BindResponseProtocolOp";
 
 
 
@@ -87,7 +84,6 @@ public class BindResponseProtocolOp
    */
   public BindResponseProtocolOp(int resultCode)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(resultCode));
 
     this.resultCode = resultCode;
 
@@ -108,8 +104,6 @@ public class BindResponseProtocolOp
    */
   public BindResponseProtocolOp(int resultCode, String errorMessage)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(resultCode),
-                      String.valueOf(errorMessage));
 
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
@@ -132,9 +126,6 @@ public class BindResponseProtocolOp
   public BindResponseProtocolOp(int resultCode, String errorMessage,
                                 DN matchedDN, List<String> referralURLs)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(resultCode),
-                      String.valueOf(errorMessage), String.valueOf(matchedDN),
-                      String.valueOf(referralURLs));
 
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
@@ -160,9 +151,6 @@ public class BindResponseProtocolOp
                                 DN matchedDN, List<String> referralURLs,
                                 ASN1OctetString serverSASLCredentials)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(resultCode),
-                      String.valueOf(errorMessage), String.valueOf(matchedDN),
-                      String.valueOf(referralURLs));
 
     this.resultCode            = resultCode;
     this.errorMessage          = errorMessage;
@@ -180,7 +168,6 @@ public class BindResponseProtocolOp
    */
   public int getResultCode()
   {
-    assert debugEnter(CLASS_NAME, "getResultCode");
 
     return resultCode;
   }
@@ -194,7 +181,6 @@ public class BindResponseProtocolOp
    */
   public void setResultCode(int resultCode)
   {
-    assert debugEnter(CLASS_NAME, "setResultCode", String.valueOf(resultCode));
 
     this.resultCode = resultCode;
   }
@@ -209,7 +195,6 @@ public class BindResponseProtocolOp
    */
   public String getErrorMessage()
   {
-    assert debugEnter(CLASS_NAME, "getErrorMessage");
 
     return errorMessage;
   }
@@ -223,8 +208,6 @@ public class BindResponseProtocolOp
    */
   public void setErrorMessage(String errorMessage)
   {
-    assert debugEnter(CLASS_NAME, "setErrorMessage",
-                      String.valueOf(errorMessage));
 
     this.errorMessage = errorMessage;
   }
@@ -239,7 +222,6 @@ public class BindResponseProtocolOp
    */
   public DN getMatchedDN()
   {
-    assert debugEnter(CLASS_NAME, "getMatchedDN");
 
     return matchedDN;
   }
@@ -253,7 +235,6 @@ public class BindResponseProtocolOp
    */
   public void setMatchedDN(DN matchedDN)
   {
-    assert debugEnter(CLASS_NAME, "setMatchedDN", String.valueOf(matchedDN));
 
     this.matchedDN = matchedDN;
   }
@@ -268,7 +249,6 @@ public class BindResponseProtocolOp
    */
   public List<String> getReferralURLs()
   {
-    assert debugEnter(CLASS_NAME, "getReferralURLs");
 
     return referralURLs;
   }
@@ -282,8 +262,6 @@ public class BindResponseProtocolOp
    */
   public void setReferralURLs(List<String> referralURLs)
   {
-    assert debugEnter(CLASS_NAME, "setReferralURLs",
-                      String.valueOf(referralURLs));
 
     this.referralURLs = referralURLs;
   }
@@ -298,7 +276,6 @@ public class BindResponseProtocolOp
    */
   public ASN1OctetString getServerSASLCredentials()
   {
-    assert debugEnter(CLASS_NAME, "getServerSASLCredentials");
 
     return serverSASLCredentials;
   }
@@ -313,7 +290,6 @@ public class BindResponseProtocolOp
    */
   public void setServerSASLCredentials(ASN1OctetString serverSASLCredentials)
   {
-    assert debugEnter(CLASS_NAME, "setServerSASLCredentials");
 
     this.serverSASLCredentials = serverSASLCredentials;
   }
@@ -327,7 +303,6 @@ public class BindResponseProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_BIND_RESPONSE;
   }
@@ -341,7 +316,6 @@ public class BindResponseProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Bind Response";
   }
@@ -356,7 +330,6 @@ public class BindResponseProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(5);
     elements.add(new ASN1Enumerated(resultCode));
@@ -409,8 +382,6 @@ public class BindResponseProtocolOp
   public static BindResponseProtocolOp decodeBindResponse(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeBindResponse",
-                      String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -419,9 +390,12 @@ public class BindResponseProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeBindResponse", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_RESULT_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_RESULT_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -443,9 +417,12 @@ public class BindResponseProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeBindResponse", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_RESULT_DECODE_RESULT_CODE;
+      int msgID = MSGID_LDAP_RESULT_DECODE_RESULT_CODE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -466,9 +443,12 @@ public class BindResponseProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeBindResponse", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_RESULT_DECODE_MATCHED_DN;
+      int msgID = MSGID_LDAP_RESULT_DECODE_MATCHED_DN;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -485,9 +465,12 @@ public class BindResponseProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeBindResponse", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_RESULT_DECODE_ERROR_MESSAGE;
+      int msgID = MSGID_LDAP_RESULT_DECODE_ERROR_MESSAGE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -517,9 +500,12 @@ public class BindResponseProtocolOp
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "decodeBindResponse", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
-              int    msgID   = MSGID_LDAP_RESULT_DECODE_REFERRALS;
+              int msgID = MSGID_LDAP_RESULT_DECODE_REFERRALS;
               String message = getMessage(msgID, String.valueOf(e));
               throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
             }
@@ -534,7 +520,10 @@ public class BindResponseProtocolOp
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "decodeBindResponse", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               int msgID = MSGID_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS;
               String message = getMessage(msgID, String.valueOf(e));
@@ -562,9 +551,12 @@ public class BindResponseProtocolOp
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "decodeBindResponse", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
-          int    msgID   = MSGID_LDAP_RESULT_DECODE_REFERRALS;
+          int msgID = MSGID_LDAP_RESULT_DECODE_REFERRALS;
           String message = getMessage(msgID, String.valueOf(e));
           throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
         }
@@ -575,7 +567,10 @@ public class BindResponseProtocolOp
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "decodeBindResponse", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int msgID = MSGID_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS;
           String message = getMessage(msgID, String.valueOf(e));
@@ -604,7 +599,6 @@ public class BindResponseProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("BindResponse(resultCode=");
     buffer.append(resultCode);
@@ -658,8 +652,6 @@ public class BindResponseProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

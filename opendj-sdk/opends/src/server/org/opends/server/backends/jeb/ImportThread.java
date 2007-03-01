@@ -22,11 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Entry;
@@ -46,11 +48,6 @@ import java.io.IOException;
  */
 public class ImportThread extends DirectoryThread
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.ImportThread";
 
   /**
    * The import context of this thread.
@@ -248,7 +245,10 @@ public class ImportThread extends DirectoryThread
         }
         catch (InterruptedException e)
         {
-          assert debugException(CLASS_NAME, "run", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           continue;
         }
 
@@ -301,11 +301,17 @@ public class ImportThread extends DirectoryThread
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "run", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     catch (IOException e)
     {
-      assert debugException(CLASS_NAME, "run", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 }

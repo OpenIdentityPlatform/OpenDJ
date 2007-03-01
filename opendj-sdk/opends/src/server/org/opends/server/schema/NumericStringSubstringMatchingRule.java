@@ -42,7 +42,6 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -58,11 +57,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class NumericStringSubstringMatchingRule
        extends SubstringMatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.NumericStringSubstringMatchingRule";
 
 
 
@@ -73,7 +67,6 @@ public class NumericStringSubstringMatchingRule
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -95,8 +88,6 @@ public class NumericStringSubstringMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMatchingRule",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -111,7 +102,6 @@ public class NumericStringSubstringMatchingRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return SMR_NUMERIC_STRING_NAME;
   }
@@ -125,7 +115,6 @@ public class NumericStringSubstringMatchingRule
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SMR_NUMERIC_STRING_OID;
   }
@@ -140,7 +129,6 @@ public class NumericStringSubstringMatchingRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     // There is no standard description for this matching rule.
     return null;
@@ -156,7 +144,6 @@ public class NumericStringSubstringMatchingRule
    */
   public String getSyntaxOID()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxOID");
 
     return SYNTAX_SUBSTRING_ASSERTION_OID;
   }
@@ -177,7 +164,6 @@ public class NumericStringSubstringMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalizeValue", String.valueOf(value));
 
     String        valueString = value.stringValue();
     int           valueLength = valueString.length();
@@ -232,8 +218,6 @@ public class NumericStringSubstringMatchingRule
   public ByteString normalizeSubstring(ByteString substring)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalizeSubstring",
-                      String.valueOf(substring));
 
     String        valueString = substring.stringValue();
     int           valueLength = valueString.length();
@@ -295,9 +279,6 @@ public class NumericStringSubstringMatchingRule
                                        List<ByteString> subAnyElements,
                                        ByteString subFinal)
   {
-    assert debugEnter(CLASS_NAME, "valueMatchesSubstring",
-                      String.valueOf(value), String.valueOf(subInitial),
-                      String.valueOf(subAnyElements), String.valueOf(subFinal));
 
 
     byte[] valueBytes = value.value();

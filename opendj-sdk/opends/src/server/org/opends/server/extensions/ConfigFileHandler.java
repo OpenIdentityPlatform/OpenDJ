@@ -101,7 +101,9 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -119,7 +121,7 @@ public class ConfigFileHandler
        implements AlertGenerator
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.ConfigFileHandler";
@@ -169,7 +171,6 @@ public class ConfigFileHandler
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -192,8 +193,6 @@ public class ConfigFileHandler
   public void initializeConfigHandler(String configFile, boolean checkSchema)
          throws InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeConfigHandler",
-                      String.valueOf(configFile));
 
 
     // Initialize the config lock.
@@ -215,13 +214,19 @@ public class ConfigFileHandler
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "initializeConfigHandler", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       throw ie;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE;
       String message = getMessage(msgID, configFile, String.valueOf(e));
@@ -244,7 +249,10 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES;
       String message = getMessage(msgID, changesFile.getAbsolutePath(),
@@ -266,7 +274,10 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_FILE_CANNOT_OPEN_FOR_READ;
       String message = getMessage(msgID, configFile, String.valueOf(e));
@@ -282,7 +293,10 @@ public class ConfigFileHandler
     }
     catch (LDIFException le)
     {
-      assert debugException(CLASS_NAME, "initializeConfigHandler", le);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, le);
+      }
 
       try
       {
@@ -290,7 +304,10 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       int    msgID   = MSGID_CONFIG_FILE_INVALID_LDIF_ENTRY;
@@ -300,7 +317,10 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       try
       {
@@ -308,7 +328,10 @@ public class ConfigFileHandler
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "initializeConfigHandler", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
       }
 
       int    msgID   = MSGID_CONFIG_FILE_READ_ERROR;
@@ -326,7 +349,10 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       int    msgID   = MSGID_CONFIG_FILE_EMPTY;
@@ -349,7 +375,10 @@ public class ConfigFileHandler
     }
     catch (InitializationException ie)
     {
-      assert debugException(CLASS_NAME, "initializeConfigHandler", ie);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ie);
+      }
 
       try
       {
@@ -357,14 +386,20 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       throw ie;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       try
       {
@@ -372,7 +407,10 @@ public class ConfigFileHandler
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "initializeConfigHandler", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
       }
 
       // This should not happen, so we can use a generic error here.
@@ -400,7 +438,10 @@ public class ConfigFileHandler
       }
       catch (LDIFException le)
       {
-        assert debugException(CLASS_NAME, "initializeConfigHandler", le);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, le);
+        }
 
         try
         {
@@ -408,7 +449,10 @@ public class ConfigFileHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
 
         int    msgID   = MSGID_CONFIG_FILE_INVALID_LDIF_ENTRY;
@@ -418,7 +462,10 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         try
         {
@@ -426,7 +473,10 @@ public class ConfigFileHandler
         }
         catch (Exception e2)
         {
-          assert debugException(CLASS_NAME, "initializeConfigHandler", e2);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
         }
 
         int    msgID   = MSGID_CONFIG_FILE_READ_ERROR;
@@ -445,7 +495,10 @@ public class ConfigFileHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
 
         break;
@@ -462,7 +515,10 @@ public class ConfigFileHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
 
         int    msgID   = MSGID_CONFIG_FILE_DUPLICATE_ENTRY;
@@ -483,7 +539,10 @@ public class ConfigFileHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
 
         int    msgID   = MSGID_CONFIG_FILE_UNKNOWN_PARENT;
@@ -502,7 +561,10 @@ public class ConfigFileHandler
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
 
         int    msgID   = MSGID_CONFIG_FILE_NO_PARENT;
@@ -524,7 +586,10 @@ public class ConfigFileHandler
       catch (Exception e)
       {
         // This should not happen.
-        assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         try
         {
@@ -532,7 +597,10 @@ public class ConfigFileHandler
         }
         catch (Exception e2)
         {
-          assert debugException(CLASS_NAME, "initializeConfigHandler", e2);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
         }
 
         int    msgID   = MSGID_CONFIG_FILE_GENERIC_ERROR;
@@ -561,7 +629,10 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_CONFIG_CANNOT_DETERMINE_SERVER_ROOT;
         String message = getMessage(msgID, ENV_VAR_INSTANCE_ROOT);
@@ -590,13 +661,19 @@ public class ConfigFileHandler
       }
       catch (InitializationException ie)
       {
-        assert debugException(CLASS_NAME, "initializeConfigHandler", ie);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ie);
+        }
 
         throw ie;
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_CONFIG_CANNOT_DETERMINE_SERVER_ROOT;
         String message = getMessage(msgID, ENV_VAR_INSTANCE_ROOT);
@@ -620,7 +697,10 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConfigHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_CANNOT_REGISTER_AS_PRIVATE_SUFFIX;
       String message = getMessage(msgID, configRootEntry.getDN(),
@@ -652,8 +732,6 @@ public class ConfigFileHandler
   private void applyChangesFile(File sourceFile, File changesFile)
           throws IOException, LDIFException
   {
-    assert debugEnter(CLASS_NAME, "applyChangesFile",
-                      String.valueOf(sourceFile), String.valueOf(changesFile));
 
 
     // FIXME -- Do we need to do anything special for configuration archiving?
@@ -722,7 +800,6 @@ public class ConfigFileHandler
     sourceFile.renameTo(oldSource);
     new File(tempFile).renameTo(sourceFile);
 
-
     // Move the changes file out of the way so it doesn't get applied again.
     File newChanges = new File(changesFile.getAbsolutePath() + ".applied");
     if (newChanges.exists())
@@ -743,7 +820,6 @@ public class ConfigFileHandler
    */
   public void finalizeConfigHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeConfigHandler");
 
     try
     {
@@ -751,7 +827,10 @@ public class ConfigFileHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "finalizeConfigHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -788,7 +867,6 @@ public class ConfigFileHandler
   public ConfigEntry getConfigRootEntry()
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getConfigRootEntry");
 
     return configRootEntry;
   }
@@ -809,7 +887,6 @@ public class ConfigFileHandler
   public ConfigEntry getConfigEntry(DN entryDN)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getConfigEntry", String.valueOf(entryDN));
 
     return configEntries.get(entryDN);
   }
@@ -823,7 +900,6 @@ public class ConfigFileHandler
    */
   public String getServerRoot()
   {
-    assert debugEnter(CLASS_NAME, "getServerRoot");
 
     return serverRoot;
   }
@@ -849,8 +925,6 @@ public class ConfigFileHandler
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeBackend",
-                      String.valueOf(configEntry));
 
     // No action is required, since all initialization was performed in the
     // initializeConfigHandler method.
@@ -865,7 +939,6 @@ public class ConfigFileHandler
    */
   public DN[] getBaseDNs()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDNs");
 
     return baseDNs;
   }
@@ -877,7 +950,6 @@ public class ConfigFileHandler
    */
   public long getEntryCount()
   {
-    assert debugEnter(CLASS_NAME, "getEntryCount");
 
     return configEntries.size();
   }
@@ -895,7 +967,6 @@ public class ConfigFileHandler
    */
   public boolean isLocal()
   {
-    assert debugEnter(CLASS_NAME, "isLocal");
 
     // The configuration information will always be local.
     return true;
@@ -917,7 +988,6 @@ public class ConfigFileHandler
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
 
     ConfigEntry configEntry = configEntries.get(entryDN);
     if (configEntry == null)
@@ -948,7 +1018,6 @@ public class ConfigFileHandler
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "entryExists", String.valueOf(entryDN));
 
     return configEntries.containsKey(entryDN);
   }
@@ -971,8 +1040,6 @@ public class ConfigFileHandler
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addEntry", String.valueOf(entry),
-                      String.valueOf(addOperation));
 
 
     // If there is an add operation, then make sure that the associated user has
@@ -1080,7 +1147,10 @@ public class ConfigFileHandler
       }
       catch (ConfigException ce)
       {
-        assert debugException(CLASS_NAME, "addEntry", ce);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ce);
+        }
 
         int    msgID   = MSGID_CONFIG_FILE_ADD_FAILED;
         String message = getMessage(msgID, String.valueOf(entryDN),
@@ -1123,8 +1193,6 @@ public class ConfigFileHandler
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "deleteEntry", String.valueOf(entryDN),
-                      String.valueOf(deleteOperation));
 
 
     // If there is a delete operation, then make sure that the associated user
@@ -1228,7 +1296,10 @@ public class ConfigFileHandler
       }
       catch (ConfigException ce)
       {
-        assert debugException(CLASS_NAME, "deleteEntry", ce);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ce);
+        }
 
         int    msgID   = MSGID_CONFIG_FILE_DELETE_FAILED;
         String message = getMessage(msgID, String.valueOf(entryDN),
@@ -1271,8 +1342,6 @@ public class ConfigFileHandler
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "replaceEntry", String.valueOf(entry),
-                      String.valueOf(modifyOperation));
 
 
     // If there is a modify operation, then make sure that the associated user
@@ -1463,8 +1532,6 @@ public class ConfigFileHandler
                           ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "renameEntry", String.valueOf(currentDN),
-                      String.valueOf(entry), String.valueOf(modifyDNOperation));
 
 
     // If there is a modify DN operation, then make sure that the associated
@@ -1507,7 +1574,6 @@ public class ConfigFileHandler
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "search", String.valueOf(searchOperation));
 
 
     // Make sure that the associated user has the CONFIG_READ privilege.
@@ -1633,8 +1699,6 @@ public class ConfigFileHandler
                                 SearchOperation searchOperation)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "searchSubtree", String.valueOf(baseEntry),
-                      String.valueOf(filter), String.valueOf(searchOperation));
 
     Entry e = baseEntry.getEntry();
     if (filter.matchesEntry(e))
@@ -1669,7 +1733,6 @@ public class ConfigFileHandler
   public void writeUpdatedConfig()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "writeUpdatedConfig");
 
 
     // FIXME -- This needs support for encryption.
@@ -1709,7 +1772,10 @@ writeConfigArchive:
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "writeUpdatedConfig", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR;
           String message = getMessage(msgID, archiveDirectory.getAbsolutePath(),
@@ -1749,7 +1815,10 @@ writeConfigArchive:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "writeUpdatedConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1782,7 +1851,10 @@ writeConfigArchive:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "writeUpdatedConfig", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1822,7 +1894,10 @@ writeConfigArchive:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "writeUpdatedConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG;
       String message = getMessage(msgID, String.valueOf(tempConfig),
@@ -1846,7 +1921,10 @@ writeConfigArchive:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "writeUpdatedConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_RENAME_NEW_CONFIG;
       String message = getMessage(msgID, String.valueOf(tempConfig),
@@ -1899,7 +1977,6 @@ writeConfigArchive:
    */
   public boolean supportsLDIFExport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFExport");
 
     return true;
   }
@@ -1923,7 +2000,6 @@ writeConfigArchive:
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "exportLDIF", String.valueOf(exportConfig));
 
     LDIFWriter writer;
     try
@@ -1934,7 +2010,10 @@ writeConfigArchive:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_LDIF_WRITE_ERROR;
       String message = getMessage(msgID, String.valueOf(e));
@@ -1948,7 +2027,10 @@ writeConfigArchive:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_FILE_CLOSE_ERROR;
       String message = getMessage(msgID, String.valueOf(e));
@@ -1974,8 +2056,6 @@ writeConfigArchive:
   private void writeEntryAndChildren(LDIFWriter writer, ConfigEntry configEntry)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "writeEntryAndChildren",
-                      String.valueOf(writer), String.valueOf(configEntry));
 
     try
     {
@@ -1984,7 +2064,10 @@ writeConfigArchive:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "writeEntryAndChildren", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_FILE_WRITE_ERROR;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -2016,7 +2099,6 @@ writeConfigArchive:
    */
   public boolean supportsLDIFImport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFImport");
 
     return false;
   }
@@ -2040,7 +2122,6 @@ writeConfigArchive:
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "importLDIF", String.valueOf(importConfig));
 
     int msgID     =  MSGID_CONFIG_FILE_UNWILLING_TO_IMPORT;
     String message = getMessage(msgID);
@@ -2063,7 +2144,6 @@ writeConfigArchive:
    */
   public boolean supportsBackup()
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
     // We do support an online backup mechanism for the configuration.
     return true;
@@ -2089,7 +2169,6 @@ writeConfigArchive:
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
 
     // We should support online backup for the configuration in any form.  This
@@ -2117,9 +2196,6 @@ writeConfigArchive:
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "createBackup",
-                      String.valueOf(configEntry),
-                      String.valueOf(backupConfig));
 
 
     // Get the properties to use for the backup.  We don't care whether or not
@@ -2158,7 +2234,10 @@ writeConfigArchive:
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "createBackup", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_MAC;
           String message = getMessage(msgID, macAlgorithm,
@@ -2179,7 +2258,10 @@ writeConfigArchive:
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "createBackup", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_DIGEST;
           String message = getMessage(msgID, digestAlgorithm,
@@ -2229,7 +2311,10 @@ writeConfigArchive:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_CREATE_ARCHIVE_FILE;
       String message = getMessage(msgID, String.valueOf(filename),
@@ -2254,7 +2339,10 @@ writeConfigArchive:
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "createBackup", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_CIPHER;
         String message = getMessage(msgID, cipherAlgorithm,
@@ -2297,7 +2385,10 @@ writeConfigArchive:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID   = MSGID_CONFIG_BACKUP_CANNOT_DETERMINE_CONFIG_FILE_LOCATION;
       message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -2345,7 +2436,10 @@ writeConfigArchive:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       try
       {
@@ -2408,7 +2502,10 @@ writeConfigArchive:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       try
       {
@@ -2435,7 +2532,10 @@ writeConfigArchive:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID   = MSGID_CONFIG_BACKUP_CANNOT_CLOSE_ZIP_STREAM;
       message = getMessage(msgID, filename, backupDirectory.getPath(),
@@ -2476,7 +2576,10 @@ writeConfigArchive:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;
       message = getMessage(msgID, backupDirectory.getDescriptorPath(),
@@ -2504,9 +2607,6 @@ writeConfigArchive:
                            String backupID)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeBackup",
-                      String.valueOf(backupDirectory),
-                      String.valueOf(backupID));
 
 
     // NYI
@@ -2522,7 +2622,6 @@ writeConfigArchive:
    */
   public boolean supportsRestore()
   {
-    assert debugEnter(CLASS_NAME, "supportsRestore");
 
 
     // We will provide a restore, but only for offline operations.
@@ -2548,8 +2647,6 @@ writeConfigArchive:
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "restoreBackup", String.valueOf(configEntry),
-                      String.valueOf(restoreConfig));
 
 
     // First, make sure that the requested backup exists.
@@ -3080,7 +3177,6 @@ writeConfigArchive:
    */
   public DN getComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getComponentEntryDN");
 
     return configRootEntry.getDN();
   }
@@ -3096,7 +3192,6 @@ writeConfigArchive:
    */
   public String getClassName()
   {
-    assert debugEnter(CLASS_NAME, "getClassName");
 
     return CLASS_NAME;
   }
@@ -3115,7 +3210,6 @@ writeConfigArchive:
    */
   public LinkedHashMap<String,String> getAlerts()
   {
-    assert debugEnter(CLASS_NAME, "getAlerts");
 
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 

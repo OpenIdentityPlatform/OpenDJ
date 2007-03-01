@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -39,10 +39,11 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -55,11 +56,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class NullConnectionSecurityProvider
        extends ConnectionSecurityProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.NullConnectionSecurityProvider";
 
 
 
@@ -93,7 +89,6 @@ public class NullConnectionSecurityProvider
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -112,7 +107,6 @@ public class NullConnectionSecurityProvider
   {
     super();
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(clientConnection));
 
     this.clientConnection = clientConnection;
     this.socketChannel    = socketChannel;
@@ -140,8 +134,6 @@ public class NullConnectionSecurityProvider
   public void initializeConnectionSecurityProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeConnectionSecurityProvider",
-                      String.valueOf(configEntry));
 
     clearBuffer      = null;
     clientConnection = null;
@@ -156,7 +148,6 @@ public class NullConnectionSecurityProvider
    */
   public void finalizeConnectionSecurityProvider()
   {
-    assert debugEnter(CLASS_NAME, "finalizeConnectionSecurityProvider");
 
     // No implementation is required.
   }
@@ -170,7 +161,6 @@ public class NullConnectionSecurityProvider
    */
   public String getSecurityMechanismName()
   {
-    assert debugEnter(CLASS_NAME, "getSecurityMechanismName");
 
     return "NULL";
   }
@@ -187,7 +177,6 @@ public class NullConnectionSecurityProvider
    */
   public boolean isSecure()
   {
-    assert debugEnter(CLASS_NAME, "isSecure");
 
     // This is not a secure provider.
     return false;
@@ -216,9 +205,6 @@ public class NullConnectionSecurityProvider
                                                 SocketChannel socketChannel)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "newInstance",
-                      String.valueOf(clientConnection),
-                      String.valueOf(socketChannel));
 
     return new NullConnectionSecurityProvider(clientConnection,
                                               socketChannel);
@@ -243,7 +229,6 @@ public class NullConnectionSecurityProvider
    */
   public void disconnect(boolean connectionValid)
   {
-    assert debugEnter(CLASS_NAME, "disconnect");
 
     // No implementation is required.
   }
@@ -260,7 +245,6 @@ public class NullConnectionSecurityProvider
    */
   public int getClearBufferSize()
   {
-    assert debugEnter(CLASS_NAME, "getClearBufferSize");
 
     return BUFFER_SIZE;
   }
@@ -277,7 +261,6 @@ public class NullConnectionSecurityProvider
    */
   public int getEncodedBufferSize()
   {
-    assert debugEnter(CLASS_NAME, "getEncodedBufferSize");
 
     return BUFFER_SIZE;
   }
@@ -299,7 +282,6 @@ public class NullConnectionSecurityProvider
    */
   public boolean readData()
   {
-    assert debugEnter(CLASS_NAME, "readData");
 
     clearBuffer.clear();
     while (true)
@@ -336,7 +318,10 @@ public class NullConnectionSecurityProvider
       }
       catch (IOException ioe)
       {
-        assert debugException(CLASS_NAME, "readData", ioe);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ioe);
+        }
 
         // An error occurred while trying to read data from the client.
         // Disconnect and return.
@@ -345,7 +330,10 @@ public class NullConnectionSecurityProvider
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "readData", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // An unexpected error occurred.  Disconnect and return.
         clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
@@ -378,7 +366,6 @@ public class NullConnectionSecurityProvider
    */
   public boolean writeData(ByteBuffer clearData)
   {
-    assert debugEnter(CLASS_NAME, "writeData", "java.nio.ByteBuffer");
 
     int position = clearData.position();
     int limit    = clearData.limit();
@@ -401,7 +388,10 @@ public class NullConnectionSecurityProvider
     }
     catch (IOException ioe)
     {
-      assert debugException(CLASS_NAME, "writeData", ioe);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ioe);
+      }
 
       // An error occurred while trying to write data to the client.  Disconnect
       // and return.
@@ -410,7 +400,10 @@ public class NullConnectionSecurityProvider
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "writeData", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // An unexpected error occurred.  Disconnect and return.
       clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,

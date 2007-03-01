@@ -3885,5 +3885,27 @@ public class ConfigConstants
    */
   public static final String ATTR_TASK_ADDSCHEMAFILE_FILENAME =
        NAME_PREFIX_TASK + "schema-file-name";
+
+
+  /**
+   * The name of the attribute in a debug target configuration for a debug
+   * logger that specifies the scope of the debug target.
+   */
+  public static final String ATTR_LOGGER_DEBUG_SCOPE =
+      NAME_PREFIX_TASK + "debug-scope";
+
+  /**
+   * The name of the attribute in a logger configuration that spcifies the
+   * log level.
+   */
+  public static final String ATTR_LOGGER_LEVEL =
+      NAME_PREFIX_TASK + "log-level";
+
+  /**
+   * The name of the attribute in a logger configuration that specifies
+   * whether to asyncornously writes log records to disk.
+   */
+  public static final String ATTR_LOGGER_ASYNC_WRITE =
+      NAME_PREFIX_TASK + "async-write";
 }
 

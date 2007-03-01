@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -39,9 +39,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.server.api.DirectoryThread;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.ServerConstants.*;
-
 
 
 /**
@@ -53,10 +54,6 @@ import static org.opends.server.util.ServerConstants.*;
 public final class TimeThread
        extends DirectoryThread
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME = "org.opends.server.util.TimeThread";
 
 
 
@@ -173,7 +170,10 @@ public final class TimeThread
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "run", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }

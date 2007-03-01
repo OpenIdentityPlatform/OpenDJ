@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -42,7 +42,9 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -57,11 +59,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class DistinguishedNameEqualityMatchingRule
        extends EqualityMatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.DistinguishedNameEqualityMatchingRule";
 
 
 
@@ -72,7 +69,6 @@ public class DistinguishedNameEqualityMatchingRule
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -94,8 +90,6 @@ public class DistinguishedNameEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMatchingRule",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -110,7 +104,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return EMR_DN_NAME;
   }
@@ -124,7 +117,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return EMR_DN_OID;
   }
@@ -139,7 +131,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     // There is no standard description for this matching rule.
     return null;
@@ -155,7 +146,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxOID");
 
     return SYNTAX_DN_OID;
   }
@@ -176,7 +166,6 @@ public class DistinguishedNameEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalizeValue", String.valueOf(value));
 
 
     // Since the normalization for DNs is so complex, it will be handled
@@ -188,7 +177,10 @@ public class DistinguishedNameEqualityMatchingRule
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "normalizeValue", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       // See if we should try to proceed anyway with a bare-bones normalization.
       if (DirectoryServer.getSyntaxEnforcementPolicy() ==
@@ -201,7 +193,10 @@ public class DistinguishedNameEqualityMatchingRule
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "normalizeValue", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (DirectoryServer.getSyntaxEnforcementPolicy() ==
           AcceptRejectWarn.REJECT)
@@ -234,8 +229,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   private ByteString bestEffortNormalize(String lowerString)
   {
-    assert debugEnter(CLASS_NAME, "bestEffortNormalize",
-                      String.valueOf(lowerString));
 
     int           length = lowerString.length();
     StringBuilder buffer = new StringBuilder(length);
@@ -312,8 +305,6 @@ public class DistinguishedNameEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-    assert debugEnter(CLASS_NAME, "areEqual", String.valueOf(value1),
-                      String.valueOf(value2));
 
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.

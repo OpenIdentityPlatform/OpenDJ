@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 - 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -32,11 +32,10 @@ import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.Transaction;
 
 import org.opends.server.api.Backend;
-import org.opends.server.loggers.Debug;
+import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.messages.JebMessages;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -56,7 +55,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.JebMessages.
      MSGID_JEB_IMPORT_ENTRY_EXISTS;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -70,11 +70,6 @@ import static org.opends.server.messages.JebMessages.*;
  */
 public class ImportJob implements Thread.UncaughtExceptionHandler
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.ImportJob";
 
   /**
    * The backend instance we are importing into.
@@ -207,9 +202,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
              message, msgID);
 
-    Debug.debugMessage(DebugLogCategory.BACKEND, DebugLogSeverity.INFO,
-                       CLASS_NAME, "importLDIF",
-                       rootContainer.getEnvironmentConfig().toString());
+    DebugLogger.debugInfo(
+        rootContainer.getEnvironmentConfig().toString());
 
 
     rootContainer.openEntryContainers(config.getBaseDNs());
@@ -429,7 +423,10 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       }
       catch (InterruptedException e)
       {
-        assert debugException(CLASS_NAME, "merge", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -528,13 +525,19 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
             }
             catch (LDIFException e)
             {
-              assert debugException(CLASS_NAME, "processLDIF", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
               // Update stats.
               rejectedCount++;
             }
             catch (DirectoryException e)
             {
-              assert debugException(CLASS_NAME, "processLDIF", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
               // Update stats.
               rejectedCount++;
             }
@@ -636,7 +639,10 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           }
           catch (InterruptedException e)
           {
-            assert debugException(CLASS_NAME, "processEntry", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
           }
         }
         else
@@ -716,7 +722,10 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         }
         catch (InterruptedException e)
         {
-          assert debugException(CLASS_NAME, "processEntry", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
 

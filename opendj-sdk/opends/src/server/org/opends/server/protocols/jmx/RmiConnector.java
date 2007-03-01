@@ -46,12 +46,14 @@ import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.extensions.NullKeyManagerProvider;
 
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import static org.opends.server.loggers.debug.DebugLogger.debugWarning;
+import static org.opends.server.loggers.debug.DebugLogger.debugError;
+import org.opends.server.types.DebugLogLevel;
 
 import org.opends.server.util.SelectableCertificateKeyManager;
-
-import static org.opends.server.loggers.Debug.*;
 
 /**
  * The RMI connector class starts and stops the JMX RMI connector server.
@@ -76,11 +78,6 @@ public class RmiConnector
    */
   private MBeanServer mbs = null;
 
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-    "org.opends.server.protocols.jmx.RmiConnector";
 
   /**
    * the client address to connect to the common registry. Note that a
@@ -146,7 +143,6 @@ public class RmiConnector
   public RmiConnector(MBeanServer mbs,
       JmxConnectionHandler jmxConnectionHandler)
   {
-    assert debugConstructor(CLASS_NAME);
     this.mbs = mbs;
     this.jmxConnectionHandler = jmxConnectionHandler;
 
@@ -168,7 +164,6 @@ public class RmiConnector
    */
   public void initialize()
   {
-    assert debugEnter(CLASS_NAME, "initialize");
     try
     {
       //
@@ -187,18 +182,19 @@ public class RmiConnector
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "start", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       throw new RuntimeException("Error while starting the RMI module : "
           + e.getMessage());
     }
 
-    assert debugMessage(
-        DebugLogCategory.CONNECTION_HANDLING,
-        DebugLogSeverity.VERBOSE,
-        CLASS_NAME,
-        "start",
-        "RMI module started");
+    if (debugEnabled())
+    {
+      debugVerbose("RMI module started");
+    }
   }
 
   /**
@@ -211,17 +207,14 @@ public class RmiConnector
    */
   private void startCommonRegistry() throws Exception
   {
-    assert debugEnter(CLASS_NAME, "startCommonRegistry");
     int registryPort = jmxConnectionHandler.listenPort;
 
     //
     // create our local RMI registry if it does not exist already
-    assert debugMessage(
-        DebugLogCategory.CONNECTION_HANDLING,
-        DebugLogSeverity.VERBOSE,
-        CLASS_NAME,
-        "startCommonRegistry",
-        "start or reach an RMI registry on port " + registryPort);
+    if (debugEnabled())
+    {
+      debugVerbose("start or reach an RMI registry on port %d", registryPort);
+    }
     try
     {
       //
@@ -236,12 +229,10 @@ public class RmiConnector
     {
       //
       // is the registry already created ?
-      assert debugMessage(
-          DebugLogCategory.CONNECTION_HANDLING,
-          DebugLogSeverity.WARNING,
-          CLASS_NAME,
-          "startCommonRegistry",
-          "cannot create the RMI registry -> already done ?");
+      if (debugEnabled())
+      {
+        debugWarning("cannot create the RMI registry -> already done ?");
+      }
       try
       {
         //
@@ -255,30 +246,26 @@ public class RmiConnector
       }
       catch (Exception e)
       {
-        //
-        // no 'valid' registry found on the specified port
-        assert debugMessage(
-            DebugLogCategory.CONNECTION_HANDLING,
-            DebugLogSeverity.ERROR,
-            CLASS_NAME,
-            "startCommonRegistry",
-            "exception thrown while pinging the RMI registry");
+        if (debugEnabled())
+        {
+          //
+          // no 'valid' registry found on the specified port
+          debugError("exception thrown while pinging the RMI registry");
 
-        //
-        // throw the original exception
-        assert debugException(CLASS_NAME, "startCommonRegistry", re);
+          //
+          // throw the original exception
+          debugCought(DebugLogLevel.ERROR, re);
+        }
         throw re;
       }
 
       //
       // here the registry is ok even though
       // it was not created by this call
-      assert debugMessage(
-          DebugLogCategory.CONNECTION_HANDLING,
-          DebugLogSeverity.WARNING,
-          CLASS_NAME,
-          "startCommonRegistry",
-          "RMI was registry already started");
+      if (debugEnabled())
+      {
+        debugWarning("RMI was registry already started");
+      }
     }
   }
 
@@ -296,7 +283,6 @@ public class RmiConnector
    */
   private void startConnectorNoClientCertificate() throws Exception
   {
-    assert debugEnter(CLASS_NAME, "startConnectorNoClientCertificate");
 
     try
     {
@@ -311,12 +297,10 @@ public class RmiConnector
       DirectoryRMIServerSocketFactory rmiServerSockeyFactory = null;
       if (jmxConnectionHandler.useSSL)
       {
-        assert debugMessage(
-            DebugLogCategory.CONNECTION_HANDLING,
-            DebugLogSeverity.VERBOSE,
-            CLASS_NAME,
-            "startConnectorNoClientCertificate",
-            "SSL connection");
+        if (debugEnabled())
+        {
+          debugVerbose("SSL connection");
+        }
 
         // ---------------------
         // SERVER SIDE
@@ -371,22 +355,18 @@ public class RmiConnector
       }
       else
       {
-        assert debugMessage(
-            DebugLogCategory.CONNECTION_HANDLING,
-            DebugLogSeverity.VERBOSE,
-            CLASS_NAME,
-            "startConnectorNoClientCertificate",
-            "UNSECURE CONNECTION");
+        if (debugEnabled())
+        {
+          debugVerbose("UNSECURE CONNECTION");
+        }
       }
 
       //
       // specify the rmi JMX authenticator to be used
-      assert debugMessage(
-          DebugLogCategory.CONNECTION_HANDLING,
-          DebugLogSeverity.VERBOSE,
-          CLASS_NAME,
-          "startConnectorNoClientCertificate",
-          "Add RmiAuthenticator into JMX map");
+      if (debugEnabled())
+      {
+        debugVerbose("Add RmiAuthenticator into JMX map");
+      }
       rmiAuthenticator = new RmiAuthenticator(jmxConnectionHandler);
 
       env.put(JMXConnectorServer.AUTHENTICATOR, rmiAuthenticator);
@@ -401,15 +381,13 @@ public class RmiConnector
 
       //
       // Create and start the connector
-      assert debugMessage(
-          DebugLogCategory.CONNECTION_HANDLING,
-          DebugLogSeverity.VERBOSE,
-          CLASS_NAME,
-          "startConnectorNoClientCertificate",
-          "Create and start the JMX RMI connector");
+      if (debugEnabled())
+      {
+        debugVerbose("Create and start the JMX RMI connector");
+      }
       OpendsRMIJRMPServerImpl opendsRmiConnectorServer =
-        new OpendsRMIJRMPServerImpl(
-          0, rmiClientSockeyFactory, rmiServerSockeyFactory, env);
+          new OpendsRMIJRMPServerImpl(
+              0, rmiClientSockeyFactory, rmiServerSockeyFactory, env);
       jmxRmiConnectorNoClientCertificate = new RMIConnectorServer(url, env,
           opendsRmiConnectorServer, mbs);
       jmxRmiConnectorNoClientCertificate.start();
@@ -420,17 +398,18 @@ public class RmiConnector
       ObjectName name = new ObjectName(jmxRmiConnectorNoClientCertificateName);
       mbs.registerMBean(jmxRmiConnectorNoClientCertificate, name);
 
-      assert debugMessage(
-          DebugLogCategory.CONNECTION_HANDLING,
-          DebugLogSeverity.VERBOSE,
-          CLASS_NAME,
-          "startConnectorNoClientCertificate",
-          "JMX RMI connector Started");
+      if (debugEnabled())
+      {
+        debugVerbose("JMX RMI connector Started");
+      }
 
     }
     catch (Exception e)
     {
-      debugException(CLASS_NAME, "startConnectorNoClientCertificate", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       throw e;
     }
 
@@ -499,7 +478,10 @@ public class RmiConnector
     catch (Exception e)
     {
       // TODO Log an error message
-      assert debugException(CLASS_NAME, "finalizeConnectionHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     if (stopRegistry)
@@ -513,7 +495,10 @@ public class RmiConnector
       catch (IOException e)
       {
         // TODO Log an error message
-        assert debugException(CLASS_NAME, "finalizeConnectionHandler", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
       registry = null;
     }

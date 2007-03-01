@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -54,7 +54,9 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -73,11 +75,6 @@ public class DirectoryStringSyntax
        extends AttributeSyntax
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.DirectoryStringSyntax";
 
 
 
@@ -130,7 +127,6 @@ public class DirectoryStringSyntax
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -148,8 +144,6 @@ public class DirectoryStringSyntax
   public void initializeSyntax(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeSyntax",
-                      String.valueOf(configEntry));
 
 
     defaultApproximateMatchingRule =
@@ -216,7 +210,10 @@ public class DirectoryStringSyntax
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "allowZeroLengthValues", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_CANNOT_DETERMINE_ZEROLENGTH;
       String message = getMessage(msgID, ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
@@ -237,7 +234,6 @@ public class DirectoryStringSyntax
    */
   public void finalizeSyntax()
   {
-    assert debugEnter(CLASS_NAME, "finalizeSyntax");
 
     DirectoryServer.deregisterConfigurableComponent(this);
   }
@@ -251,7 +247,6 @@ public class DirectoryStringSyntax
    */
   public String getSyntaxName()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxName");
 
     return SYNTAX_DIRECTORY_STRING_NAME;
   }
@@ -265,7 +260,6 @@ public class DirectoryStringSyntax
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return SYNTAX_DIRECTORY_STRING_OID;
   }
@@ -279,7 +273,6 @@ public class DirectoryStringSyntax
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     return SYNTAX_DIRECTORY_STRING_DESCRIPTION;
   }
@@ -296,7 +289,6 @@ public class DirectoryStringSyntax
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return defaultEqualityMatchingRule;
   }
@@ -313,7 +305,6 @@ public class DirectoryStringSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     return defaultOrderingMatchingRule;
   }
@@ -330,7 +321,6 @@ public class DirectoryStringSyntax
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return defaultSubstringMatchingRule;
   }
@@ -347,7 +337,6 @@ public class DirectoryStringSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     return defaultApproximateMatchingRule;
   }
@@ -369,8 +358,6 @@ public class DirectoryStringSyntax
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder invalidReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
     if (allowZeroLengthValues || (value.value().length > 0))
     {
@@ -398,7 +385,6 @@ public class DirectoryStringSyntax
    */
   public boolean allowZeroLengthValues()
   {
-    assert debugEnter(CLASS_NAME, "allowZeroLengthValues");
 
     return allowZeroLengthValues;
   }
@@ -414,7 +400,6 @@ public class DirectoryStringSyntax
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -430,7 +415,6 @@ public class DirectoryStringSyntax
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> configAttrs = new LinkedList<ConfigAttribute>();
 
@@ -461,8 +445,6 @@ public class DirectoryStringSyntax
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     boolean configValid = true;
@@ -480,7 +462,10 @@ public class DirectoryStringSyntax
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       configValid = false;
 
@@ -515,9 +500,6 @@ public class DirectoryStringSyntax
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -542,7 +524,10 @@ public class DirectoryStringSyntax
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       resultCode = DirectoryServer.getServerErrorResultCode();
 

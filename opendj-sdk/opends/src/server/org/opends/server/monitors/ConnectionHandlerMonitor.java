@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -44,7 +44,6 @@ import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.ObjectClass;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -57,11 +56,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class ConnectionHandlerMonitor
        extends MonitorProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.monitors.ConnectionHandlerMonitor";
 
 
 
@@ -98,7 +92,6 @@ public class ConnectionHandlerMonitor
   {
     super(connectionHandler.getConnectionHandlerName());
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(connectionHandler));
 
     this.connectionHandler = connectionHandler;
   }
@@ -110,8 +103,6 @@ public class ConnectionHandlerMonitor
    */
   public void initializeMonitorProvider(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "initializeMonitorProvider",
-                      String.valueOf(configEntry));
 
     monitorName = connectionHandler.getConnectionHandlerName();
 
@@ -139,7 +130,6 @@ public class ConnectionHandlerMonitor
    */
   public String getMonitorInstanceName()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorInstanceName");
 
     return monitorName;
   }
@@ -155,7 +145,6 @@ public class ConnectionHandlerMonitor
    */
   public ObjectClass getMonitorObjectClass()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorObjectClass");
 
     return DirectoryConfig.getObjectClass(OC_MONITOR_CONNHANDLER, true);
   }
@@ -167,7 +156,6 @@ public class ConnectionHandlerMonitor
    */
   public long getUpdateInterval()
   {
-    assert debugEnter(CLASS_NAME, "getUpdateInterval");
 
     // We don't need do anything on a periodic basis.
     return 0;
@@ -180,7 +168,6 @@ public class ConnectionHandlerMonitor
    */
   public void updateMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "updateMonitorData");
 
     // No implementaiton is required.
   }
@@ -192,7 +179,6 @@ public class ConnectionHandlerMonitor
    */
   public List<Attribute> getMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorData");
 
     LinkedList<Attribute> attrs = new LinkedList<Attribute>();
 

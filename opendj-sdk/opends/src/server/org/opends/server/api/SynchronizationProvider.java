@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -38,7 +38,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.SynchronizationProviderResult;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -52,11 +51,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public abstract class SynchronizationProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.SynchronizationProvider";
 
 
 
@@ -91,7 +85,6 @@ public abstract class SynchronizationProvider
    */
   public void finalizeSynchronizationProvider()
   {
-    assert debugEnter(CLASS_NAME, "finalizeSynchronizationProvider");
 
     // No implementation is required by default.
   }
@@ -120,8 +113,6 @@ public abstract class SynchronizationProvider
               handleConflictResolution(AddOperation addOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "handleConflictResolution",
-                      String.valueOf(addOperation));
 
     // No processing is required by default.
     return new SynchronizationProviderResult(true);
@@ -191,8 +182,6 @@ public abstract class SynchronizationProvider
        handleConflictResolution(DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "handleConflictResolution",
-                      String.valueOf(deleteOperation));
 
     // No processing is required by default.
     return new SynchronizationProviderResult(true);
@@ -264,8 +253,6 @@ public abstract class SynchronizationProvider
                                             modifyOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "handleConflictResolution",
-                      String.valueOf(modifyOperation));
 
     // No processing is required by default.
     return new SynchronizationProviderResult(true);
@@ -338,8 +325,6 @@ public abstract class SynchronizationProvider
                                             modifyDNOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "handleConflictResolution",
-                      String.valueOf(modifyDNOperation));
 
     // No processing is required by default.
     return new SynchronizationProviderResult(true);

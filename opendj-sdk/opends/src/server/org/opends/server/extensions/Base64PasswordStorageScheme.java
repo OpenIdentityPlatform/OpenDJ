@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -39,11 +39,11 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -55,11 +55,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class Base64PasswordStorageScheme
        extends PasswordStorageScheme
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.Base64PasswordStorageScheme";
 
 
 
@@ -72,7 +67,6 @@ public class Base64PasswordStorageScheme
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -84,8 +78,6 @@ public class Base64PasswordStorageScheme
   public void initializePasswordStorageScheme(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializePasswordStorageScheme",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -98,7 +90,6 @@ public class Base64PasswordStorageScheme
   @Override()
   public String getStorageSchemeName()
   {
-    assert debugEnter(CLASS_NAME, "getStorageSchemeName");
 
     return STORAGE_SCHEME_NAME_BASE64;
   }
@@ -112,7 +103,6 @@ public class Base64PasswordStorageScheme
   public ByteString encodePassword(ByteString plaintext)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "encodePassword", "ByteString");
 
     return ByteStringFactory.create(Base64.encode(plaintext.value()));
   }
@@ -126,8 +116,6 @@ public class Base64PasswordStorageScheme
   public ByteString encodePasswordWithScheme(ByteString plaintext)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "encodePasswordWithScheme",
-                      "ByteString");
 
     StringBuilder buffer = new StringBuilder();
     buffer.append('{');
@@ -147,9 +135,6 @@ public class Base64PasswordStorageScheme
   public boolean passwordMatches(ByteString plaintextPassword,
                                  ByteString storedPassword)
   {
-    assert debugEnter(CLASS_NAME, "passwordMatches",
-                      String.valueOf(plaintextPassword),
-                      String.valueOf(storedPassword));
 
 
     String userString   = Base64.encode(plaintextPassword.value());
@@ -165,7 +150,6 @@ public class Base64PasswordStorageScheme
   @Override()
   public boolean isReversible()
   {
-    assert debugEnter(CLASS_NAME, "isReversible");
 
     return true;
   }
@@ -179,8 +163,6 @@ public class Base64PasswordStorageScheme
   public ByteString getPlaintextValue(ByteString storedPassword)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getPlaintextValue",
-                      String.valueOf(storedPassword));
 
     try
     {
@@ -189,7 +171,10 @@ public class Base64PasswordStorageScheme
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getPlaintextValue", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD;
       String message = getMessage(msgID, storedPassword.stringValue(),
@@ -207,7 +192,6 @@ public class Base64PasswordStorageScheme
   @Override()
   public boolean supportsAuthPasswordSyntax()
   {
-    assert debugEnter(CLASS_NAME, "supportsAuthPasswordSyntax");
 
     // This storage scheme does not support the authentication password syntax.
     return false;
@@ -222,8 +206,6 @@ public class Base64PasswordStorageScheme
   public ByteString encodeAuthPassword(ByteString plaintext)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "encodeAuthPassword",
-                      String.valueOf(plaintext));
 
 
     int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
@@ -241,9 +223,6 @@ public class Base64PasswordStorageScheme
   public boolean authPasswordMatches(ByteString plaintextPassword,
                                      String authInfo, String authValue)
   {
-    assert debugEnter(CLASS_NAME, "authPasswordMatches",
-                      String.valueOf(plaintextPassword),
-                      String.valueOf(authInfo), String.valueOf(authValue));
 
 
     // This storage scheme does not support the authentication password syntax.
@@ -260,8 +239,6 @@ public class Base64PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getAuthPasswordPlaintextValue",
-                      String.valueOf(authInfo), String.valueOf(authValue));
 
     int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
     String message = getMessage(msgID, getStorageSchemeName());
@@ -277,7 +254,6 @@ public class Base64PasswordStorageScheme
   @Override()
   public boolean isStorageSchemeSecure()
   {
-    assert debugEnter(CLASS_NAME, "isStorageSchemeSecure");
 
     // Base64-encoded values may be easily decoded with no key or special
     // knowledge.

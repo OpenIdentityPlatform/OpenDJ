@@ -30,10 +30,20 @@ package org.opends.server.authorization.dseecompat;
 import org.opends.server.api.AccessControlHandler;
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
 import org.opends.server.core.*;
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,8 +56,6 @@ import java.util.Map;
 public class AciHandler extends AccessControlHandler
 {
 
-    private static final String CLASS_NAME =
-        "org.opends.server.authorization.dseecompat.AciHandler";
 
     /**
      * ACI_ADD is used to set the container rights for a LDAP add operation.
@@ -571,7 +579,6 @@ public class AciHandler extends AccessControlHandler
      * @return  True if access is allowed.
      */
     public boolean isAllowed(AddOperation operation) {
-        assert debugEnter(CLASS_NAME, "isAllowed");
         AciLDAPOperationContainer operationContainer =
                 new AciLDAPOperationContainer(operation, ACI_ADD);
         boolean ret=isAllowed(operationContainer,operation);
@@ -593,7 +600,6 @@ public class AciHandler extends AccessControlHandler
      * @return  True if access is allowed.
      */
    public boolean isAllowed(CompareOperation operation) {
-       assert debugEnter(CLASS_NAME, "isAllowed");
 
        AciLDAPOperationContainer operationContainer =
                new AciLDAPOperationContainer(operation, ACI_COMPARE);
@@ -623,7 +629,6 @@ public class AciHandler extends AccessControlHandler
      * @return  True if access is allowed.
      */
    public boolean isAllowed(DeleteOperation operation) {
-       assert debugEnter(CLASS_NAME, "isAllowed");
        AciLDAPOperationContainer operationContainer=
                new AciLDAPOperationContainer(operation, ACI_DELETE);
        return isAllowed(operationContainer, operation);
@@ -637,7 +642,6 @@ public class AciHandler extends AccessControlHandler
     */
 
   public boolean isAllowed(ModifyOperation operation) {
-      assert debugEnter(CLASS_NAME, "isAllowed");
       AciLDAPOperationContainer operationContainer=
               new AciLDAPOperationContainer(operation, ACI_NULL);
       return aciCheckMods(operationContainer, operation,
@@ -666,7 +670,6 @@ public class AciHandler extends AccessControlHandler
    */
   public boolean
   maySend(SearchOperation operation, SearchResultEntry entry) {
-      assert debugEnter(CLASS_NAME, "maySend");
       AciLDAPOperationContainer operationContainer =
               new AciLDAPOperationContainer(operation,
                                            (ACI_READ | ACI_SEARCH), entry);
@@ -693,7 +696,6 @@ public class AciHandler extends AccessControlHandler
   public SearchResultEntry filterEntry(SearchOperation operation,
                                        SearchResultEntry entry) {
 
-      assert debugEnter(CLASS_NAME, "filterEntry");
       AciLDAPOperationContainer operationContainer =
               new AciLDAPOperationContainer(operation,
                                             (ACI_READ | ACI_SEARCH), entry);
@@ -713,7 +715,6 @@ public class AciHandler extends AccessControlHandler
   @Override
   public boolean maySend(SearchOperation operation,
       SearchResultReference reference) {
-    assert debugEnter(CLASS_NAME, "maySend");
     //TODO: Planned to be implemented.
     return true;
   }
@@ -723,7 +724,6 @@ public class AciHandler extends AccessControlHandler
    */
   @Override
   public boolean isAllowed(ModifyDNOperation modifyDNOperation) {
-      assert debugEnter(CLASS_NAME, "isAllowed");
       // TODO: Planned to be implemented.
       return true;
   }
@@ -734,7 +734,6 @@ public class AciHandler extends AccessControlHandler
    */
   @Override
   public boolean isAllowed(BindOperation bindOperation) {
-      assert debugEnter(CLASS_NAME, "isAllowed");
       //Not planned to be implemented.
       return true;
   }
@@ -744,7 +743,6 @@ public class AciHandler extends AccessControlHandler
    */
   @Override
   public boolean isAllowed(ExtendedOperation extendedOperation) {
-      assert debugEnter(CLASS_NAME, "isAllowed");
       //Not planned to be implemented.
       return true;
   }
@@ -754,7 +752,6 @@ public class AciHandler extends AccessControlHandler
    */
   @Override
   public boolean isAllowed(SearchOperation searchOperation) {
-      assert debugEnter(CLASS_NAME, "isAllowed");
       //Not planned to be implemented.
       return true;
   }

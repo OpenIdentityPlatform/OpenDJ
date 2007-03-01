@@ -22,12 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
-
-import static org.opends.server.loggers.Debug.debugEnter;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
@@ -57,11 +55,6 @@ import java.util.zip.DataFormatException;
  */
 public class JebFormat
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.je.JebFormat";
 
   /**
    * The format version used by this class to encode and decode a DatabaseEntry.
@@ -92,7 +85,6 @@ public class JebFormat
   static public byte[] decodeDatabaseEntry(byte[] bytes)
        throws ASN1Exception,DataFormatException
   {
-    assert debugEnter(CLASS_NAME, "decodeDatabaseEntry", String.valueOf(bytes));
 
     // FIXME: This array copy could be very costly on performance. We need to
     // FIXME: find a faster way to implement this versioning feature.
@@ -165,7 +157,6 @@ public class JebFormat
   static public Entry entryFromDatabase(byte[] bytes)
        throws DirectoryException,ASN1Exception,LDAPException,DataFormatException
   {
-    assert debugEnter(CLASS_NAME, "entryFromDatabase", String.valueOf(bytes));
 
     byte[] uncompressedBytes = decodeDatabaseEntry(bytes);
     return decodeDirectoryServerEntry(uncompressedBytes);
@@ -185,8 +176,6 @@ public class JebFormat
   static private Entry decodeDirectoryServerEntry(byte[] bytes)
        throws DirectoryException,ASN1Exception,LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeDirectoryServerEntry",
-                      String.valueOf(bytes));
 
     HashMap<ObjectClass, String> objectClasses;
     HashMap<AttributeType, List<Attribute>> userAttributes =
@@ -272,8 +261,6 @@ public class JebFormat
    */
   static public byte[] encodeDatabaseEntry(byte[] bytes, DataConfig dataConfig)
   {
-    assert debugEnter(CLASS_NAME, "encodeDatabaseEntry",
-                      String.valueOf(dataConfig));
 
     int uncompressedSize = 0;
 
@@ -325,8 +312,6 @@ public class JebFormat
    */
   static public byte[] entryToDatabase(Entry entry, DataConfig dataConfig)
   {
-    assert debugEnter(CLASS_NAME, "entryToDatabase",
-                      String.valueOf(dataConfig));
 
     byte[] uncompressedBytes = encodeDirectoryServerEntry(entry);
     return encodeDatabaseEntry(uncompressedBytes, dataConfig);
@@ -340,7 +325,6 @@ public class JebFormat
    */
   static public byte[] entryToDatabase(Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "entryToDatabase");
 
     return entryToDatabase(entry, new DataConfig());
   }
@@ -353,7 +337,6 @@ public class JebFormat
    */
   static private byte[] encodeDirectoryServerEntry(Entry entry)
   {
-    assert debugEnter(CLASS_NAME, "encodeDirectoryServerEntry");
 
     // Encode the DN (LDAPDN).
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(4);

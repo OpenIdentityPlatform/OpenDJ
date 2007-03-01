@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -30,7 +30,6 @@ package org.opends.server.types;
 
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -40,11 +39,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-      "org.opends.server.types.Control";
 
 
 
@@ -69,8 +63,6 @@ public class Control
    */
   public Control(String oid, boolean isCritical)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(oid),
-                      String.valueOf(isCritical));
 
     this.oid        = oid;
     this.isCritical = isCritical;
@@ -91,9 +83,6 @@ public class Control
   public Control(String oid, boolean isCritical,
   ASN1OctetString value)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(oid),
-                      String.valueOf(isCritical),
-                      String.valueOf(value));
 
     this.oid        = oid;
     this.isCritical = isCritical;
@@ -109,7 +98,6 @@ public class Control
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return oid;
   }
@@ -123,7 +111,6 @@ public class Control
    */
   public void setOID(String oid)
   {
-    assert debugEnter(CLASS_NAME, "setOID", String.valueOf(oid));
 
     this.oid = oid;
   }
@@ -139,7 +126,6 @@ public class Control
    */
   public boolean isCritical()
   {
-    assert debugEnter(CLASS_NAME, "isCritical");
 
     return isCritical;
   }
@@ -156,8 +142,6 @@ public class Control
    */
   public void setCritical(boolean isCritical)
   {
-    assert debugEnter(CLASS_NAME, "setCritical",
-                      String.valueOf(isCritical));
 
     this.isCritical = isCritical;
   }
@@ -172,7 +156,6 @@ public class Control
    */
   public ASN1OctetString getValue()
   {
-    assert debugEnter(CLASS_NAME, "getValue");
 
     return value;
   }
@@ -187,7 +170,6 @@ public class Control
    */
   public boolean hasValue()
   {
-    assert debugEnter(CLASS_NAME, "hasValue");
 
     return (value != null);
   }
@@ -201,7 +183,6 @@ public class Control
    */
   public void setValue(ASN1OctetString value)
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(value));
 
     this.value = value;
   }
@@ -215,7 +196,6 @@ public class Control
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -233,8 +213,6 @@ public class Control
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("Control(oid=");
     buffer.append(oid);

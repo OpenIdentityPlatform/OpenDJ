@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -34,7 +34,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -49,11 +48,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public abstract class IdentityMapper
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.IdentityMapper";
 
 
 
@@ -86,7 +80,6 @@ public abstract class IdentityMapper
    */
   public void finalizeIdentityMapper()
   {
-    assert debugEnter(CLASS_NAME, "finalizeIdentityMapper");
 
     // No implementation is required by default.
   }

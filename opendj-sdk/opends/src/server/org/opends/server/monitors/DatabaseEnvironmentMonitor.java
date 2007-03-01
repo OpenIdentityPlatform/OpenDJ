@@ -22,11 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MonitorProvider;
@@ -58,11 +60,6 @@ import java.lang.reflect.Method;
  */
 public class DatabaseEnvironmentMonitor extends MonitorProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.monitors.DatabaseEnvironmentMonitor";
 
 
   /**
@@ -85,7 +82,6 @@ public class DatabaseEnvironmentMonitor extends MonitorProvider
   {
     super(name + " Monitor Provider");
 
-    assert debugConstructor(CLASS_NAME);
 
     this.name = name;
     this.environment = environment;
@@ -200,7 +196,10 @@ public class DatabaseEnvironmentMonitor extends MonitorProvider
 
           } catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "addAttributesForStatsObject", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
           }
         }
       }
@@ -229,7 +228,10 @@ public class DatabaseEnvironmentMonitor extends MonitorProvider
       transactionStats = environment.getTransactionStats(statsConfig);
     } catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "getMonitorData", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       return null;
     }
 

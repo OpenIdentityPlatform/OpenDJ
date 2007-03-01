@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -44,7 +44,6 @@ import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.ObjectClass;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -57,11 +56,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class BackendMonitor
        extends MonitorProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.monitors.BackendMonitor";
 
 
 
@@ -99,7 +93,6 @@ public class BackendMonitor
   {
     super(backend.getBackendID() + " Backend");
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(backend));
 
     this.backend = backend;
   }
@@ -111,8 +104,6 @@ public class BackendMonitor
    */
   public void initializeMonitorProvider(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "initializeMonitorProvider",
-                      String.valueOf(configEntry));
 
     monitorName = backend.getBackendID() + " Backend";
 
@@ -142,7 +133,6 @@ public class BackendMonitor
    */
   public String getMonitorInstanceName()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorInstanceName");
 
     return monitorName;
   }
@@ -158,7 +148,6 @@ public class BackendMonitor
    */
   public ObjectClass getMonitorObjectClass()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorObjectClass");
 
     return DirectoryConfig.getObjectClass(OC_MONITOR_BACKEND, true);
   }
@@ -170,7 +159,6 @@ public class BackendMonitor
    */
   public long getUpdateInterval()
   {
-    assert debugEnter(CLASS_NAME, "getUpdateInterval");
 
     // We don't need do anything on a periodic basis.
     return 0;
@@ -183,7 +171,6 @@ public class BackendMonitor
    */
   public void updateMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "updateMonitorData");
 
     // No implementaiton is required.
   }
@@ -195,7 +182,6 @@ public class BackendMonitor
    */
   public List<Attribute> getMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorData");
 
     LinkedList<Attribute> attrs = new LinkedList<Attribute>();
 

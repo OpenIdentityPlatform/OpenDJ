@@ -69,8 +69,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import static org.opends.server.loggers.Debug.debugEnter;
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
@@ -113,11 +114,6 @@ public class BackupManager
    */
   public static final String ZIPENTRY_EMPTY_PLACEHOLDER = "empty.placeholder";
 
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.BackupManager";
 
   /**
    * The backend ID.
@@ -150,7 +146,6 @@ public class BackupManager
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
        throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "createBackup", String.valueOf(backupConfig));
 
 
     // Parse our backend configuration.
@@ -161,7 +156,10 @@ public class BackupManager
     }
     catch (ConfigException e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
                                    e.getMessageID());
@@ -204,7 +202,10 @@ public class BackupManager
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "createBackup", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_MAC;
           String message = getMessage(msgID, macAlgorithm,
@@ -224,7 +225,10 @@ public class BackupManager
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "createBackup", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_DIGEST;
           String message = getMessage(msgID, digestAlgorithm,
@@ -347,7 +351,10 @@ public class BackupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_JEB_BACKUP_CANNOT_CREATE_ARCHIVE_FILE;
       String message = getMessage(msgID, String.valueOf(archiveFilename),
@@ -372,7 +379,10 @@ public class BackupManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "createBackup", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_CIPHER;
         String message = getMessage(msgID, cipherAlgorithm,
@@ -436,7 +446,10 @@ public class BackupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID   = MSGID_JEB_BACKUP_CANNOT_LIST_LOG_FILES;
       message = getMessage(msgID, backendDir.getAbsolutePath(),
@@ -456,7 +469,10 @@ public class BackupManager
       }
       catch (IOException e)
       {
-        assert debugException(CLASS_NAME, "createBackup", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         msgID   = MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE;
         message = getMessage(msgID, ZIPENTRY_EMPTY_PLACEHOLDER,
             stackTraceToSingleLineString(e));
@@ -535,7 +551,10 @@ public class BackupManager
           }
           catch (IOException e)
           {
-            assert debugException(CLASS_NAME, "createBackup", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
             msgID   = MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE;
             message = getMessage(msgID, zipEntryName,
                                  stackTraceToSingleLineString(e));
@@ -564,14 +583,20 @@ public class BackupManager
           }
           catch (FileNotFoundException e)
           {
-            assert debugException(CLASS_NAME, "createBackup", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             // A log file has been deleted by the cleaner since we started.
             deletedFiles = true;
           }
           catch (IOException e)
           {
-            assert debugException(CLASS_NAME, "createBackup", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
             msgID   = MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE;
             message = getMessage(msgID, logFile.getName(),
                                  stackTraceToSingleLineString(e));
@@ -608,7 +633,10 @@ public class BackupManager
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "createBackup", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             msgID   = MSGID_JEB_BACKUP_CANNOT_LIST_LOG_FILES;
             message = getMessage(msgID, backendDir.getAbsolutePath(),
@@ -640,7 +668,10 @@ public class BackupManager
     }
     catch (DirectoryException e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       try
       {
@@ -656,7 +687,10 @@ public class BackupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID   = MSGID_JEB_BACKUP_CANNOT_CLOSE_ZIP_STREAM;
       message = getMessage(msgID, archiveFilename, backupDir.getPath(),
@@ -698,13 +732,17 @@ public class BackupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;
       message = getMessage(msgID, backupDir.getDescriptorPath(),
                            stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e); }
+                                   message, msgID, e);
+    }
   }
 
 
@@ -735,7 +773,10 @@ public class BackupManager
     }
     catch (ConfigException e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
                                    e.getMessageID());
@@ -766,8 +807,11 @@ public class BackupManager
     }
     catch (IOException e)
     {
-      assert debugException(CLASS_NAME, "restoreBackup", e);
-      int    msgID   = MSGID_JEB_BACKUP_CANNOT_RESTORE;
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
+      int msgID = MSGID_JEB_BACKUP_CANNOT_RESTORE;
       String message = getMessage(msgID, backupInfo.getBackupID(),
                                   stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -784,8 +828,11 @@ public class BackupManager
       }
       catch (IOException e)
       {
-        assert debugException(CLASS_NAME, "restoreBackup", e);
-        int    msgID   = MSGID_JEB_BACKUP_CANNOT_RESTORE;
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
+        int msgID = MSGID_JEB_BACKUP_CANNOT_RESTORE;
         String message = getMessage(msgID, dependent.getBackupID(),
                                     stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -800,8 +847,11 @@ public class BackupManager
     }
     catch (IOException e)
     {
-      assert debugException(CLASS_NAME, "restoreBackup", e);
-      int    msgID   = MSGID_JEB_BACKUP_CANNOT_RESTORE;
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
+      int msgID = MSGID_JEB_BACKUP_CANNOT_RESTORE;
       String message = getMessage(msgID, backupInfo.getBackupID(),
                                   stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -860,7 +910,10 @@ public class BackupManager
     }
     catch (ConfigException e)
     {
-      assert debugException(CLASS_NAME, "removeBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
                                    e.getMessageID());
@@ -872,7 +925,10 @@ public class BackupManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;
       String message = getMessage(msgID, backupDir.getDescriptorPath(),
@@ -909,8 +965,6 @@ public class BackupManager
                               Set<String> includeFiles)
        throws DirectoryException,IOException
   {
-    assert debugEnter(CLASS_NAME, "restoreArchive",
-                      String.valueOf(restoreConfig));
 
 
     BackupDirectory backupDir       = restoreConfig.getBackupDirectory();
@@ -947,7 +1001,10 @@ public class BackupManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "restoreArchive", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_MAC;
         String message = getMessage(msgID, macAlgorithm,
@@ -967,7 +1024,10 @@ public class BackupManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "restoreArchive", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_DIGEST;
         String message = getMessage(msgID, digestAlgorithm,
@@ -992,7 +1052,10 @@ public class BackupManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "restoreArchive", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_CIPHER;
         String message = getMessage(msgID, cipherAlgorithm,
@@ -1333,7 +1396,10 @@ public class BackupManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "restoreArchive", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_JEB_BACKUP_CANNOT_GET_CIPHER;
         String message = getMessage(msgID, cipherAlgorithm,

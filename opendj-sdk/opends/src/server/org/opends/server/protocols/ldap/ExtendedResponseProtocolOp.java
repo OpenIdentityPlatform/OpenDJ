@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -37,8 +37,10 @@ import org.opends.server.protocols.asn1.ASN1Enumerated;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -55,11 +57,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class ExtendedResponseProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.ExtendedResponseProtocolOp";
 
 
 
@@ -90,7 +87,6 @@ public class ExtendedResponseProtocolOp
    */
   public ExtendedResponseProtocolOp(int resultCode)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(resultCode));
 
     this.resultCode = resultCode;
 
@@ -112,8 +108,6 @@ public class ExtendedResponseProtocolOp
    */
   public ExtendedResponseProtocolOp(int resultCode, String errorMessage)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(resultCode),
-                      String.valueOf(errorMessage));
 
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
@@ -137,9 +131,6 @@ public class ExtendedResponseProtocolOp
   public ExtendedResponseProtocolOp(int resultCode, String errorMessage,
                                     DN matchedDN, List<String> referralURLs)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(resultCode),
-                      String.valueOf(errorMessage), String.valueOf(matchedDN),
-                      String.valueOf(referralURLs));
 
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
@@ -166,9 +157,6 @@ public class ExtendedResponseProtocolOp
                                     DN matchedDN, List<String> referralURLs,
                                     String oid, ASN1OctetString value)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(resultCode),
-                      String.valueOf(errorMessage), String.valueOf(matchedDN),
-                      String.valueOf(referralURLs));
 
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
@@ -187,7 +175,6 @@ public class ExtendedResponseProtocolOp
    */
   public int getResultCode()
   {
-    assert debugEnter(CLASS_NAME, "getResultCode");
 
     return resultCode;
   }
@@ -201,7 +188,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setResultCode(int resultCode)
   {
-    assert debugEnter(CLASS_NAME, "setResultCode", String.valueOf(resultCode));
 
     this.resultCode = resultCode;
   }
@@ -216,7 +202,6 @@ public class ExtendedResponseProtocolOp
    */
   public String getErrorMessage()
   {
-    assert debugEnter(CLASS_NAME, "getErrorMessage");
 
     return errorMessage;
   }
@@ -230,8 +215,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setErrorMessage(String errorMessage)
   {
-    assert debugEnter(CLASS_NAME, "setErrorMessage",
-                      String.valueOf(errorMessage));
 
     this.errorMessage = errorMessage;
   }
@@ -246,7 +229,6 @@ public class ExtendedResponseProtocolOp
    */
   public DN getMatchedDN()
   {
-    assert debugEnter(CLASS_NAME, "getMatchedDN");
 
     return matchedDN;
   }
@@ -260,7 +242,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setMatchedDN(DN matchedDN)
   {
-    assert debugEnter(CLASS_NAME, "setMatchedDN", String.valueOf(matchedDN));
 
     this.matchedDN = matchedDN;
   }
@@ -275,7 +256,6 @@ public class ExtendedResponseProtocolOp
    */
   public List<String> getReferralURLs()
   {
-    assert debugEnter(CLASS_NAME, "getReferralURLs");
 
     return referralURLs;
   }
@@ -289,8 +269,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setReferralURLs(List<String> referralURLs)
   {
-    assert debugEnter(CLASS_NAME, "setReferralURLs",
-                      String.valueOf(referralURLs));
 
     this.referralURLs = referralURLs;
   }
@@ -305,7 +283,6 @@ public class ExtendedResponseProtocolOp
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return oid;
   }
@@ -319,7 +296,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setOID(String oid)
   {
-    assert debugEnter(CLASS_NAME, "setOID", String.valueOf(oid));
 
     this.oid = oid;
   }
@@ -334,7 +310,6 @@ public class ExtendedResponseProtocolOp
    */
   public ASN1OctetString getValue()
   {
-    assert debugEnter(CLASS_NAME, "getValue");
 
     return value;
   }
@@ -348,7 +323,6 @@ public class ExtendedResponseProtocolOp
    */
   public void setValue(ASN1OctetString value)
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(value));
 
     this.value = value;
   }
@@ -362,7 +336,6 @@ public class ExtendedResponseProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_EXTENDED_RESPONSE;
   }
@@ -376,7 +349,6 @@ public class ExtendedResponseProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Extended Response";
   }
@@ -391,7 +363,6 @@ public class ExtendedResponseProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(6);
     elements.add(new ASN1Enumerated(resultCode));
@@ -450,8 +421,6 @@ public class ExtendedResponseProtocolOp
                                                                        element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeExtendedResponse",
-                      String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -460,9 +429,12 @@ public class ExtendedResponseProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeExtendedResponse", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_RESULT_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_RESULT_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -484,9 +456,12 @@ public class ExtendedResponseProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeExtendedResponse", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_RESULT_DECODE_RESULT_CODE;
+      int msgID = MSGID_LDAP_RESULT_DECODE_RESULT_CODE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -507,9 +482,12 @@ public class ExtendedResponseProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeExtendedResponse", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_RESULT_DECODE_MATCHED_DN;
+      int msgID = MSGID_LDAP_RESULT_DECODE_MATCHED_DN;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -526,9 +504,12 @@ public class ExtendedResponseProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeExtendedResponse", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_RESULT_DECODE_ERROR_MESSAGE;
+      int msgID = MSGID_LDAP_RESULT_DECODE_ERROR_MESSAGE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -556,9 +537,12 @@ public class ExtendedResponseProtocolOp
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "decodeExtendedResponse", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
-            int    msgID   = MSGID_LDAP_EXTENDED_RESULT_DECODE_REFERRALS;
+            int msgID = MSGID_LDAP_EXTENDED_RESULT_DECODE_REFERRALS;
             String message = getMessage(msgID, String.valueOf(e));
             throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
           }
@@ -571,9 +555,12 @@ public class ExtendedResponseProtocolOp
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "decodeExtendedResponse", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
-            int    msgID   = MSGID_LDAP_EXTENDED_RESULT_DECODE_OID;
+            int msgID = MSGID_LDAP_EXTENDED_RESULT_DECODE_OID;
             String message = getMessage(msgID, String.valueOf(e));
             throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
           }
@@ -586,9 +573,12 @@ public class ExtendedResponseProtocolOp
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "decodeExtendedResponse", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
-            int    msgID   = MSGID_LDAP_EXTENDED_RESULT_DECODE_VALUE;
+            int msgID = MSGID_LDAP_EXTENDED_RESULT_DECODE_VALUE;
             String message = getMessage(msgID, String.valueOf(e));
             throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
           }
@@ -616,7 +606,6 @@ public class ExtendedResponseProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ExtendedResponse(resultCode=");
     buffer.append(resultCode);
@@ -676,8 +665,6 @@ public class ExtendedResponseProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

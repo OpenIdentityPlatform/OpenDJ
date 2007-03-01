@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -47,7 +47,9 @@ import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.JebMessages.*;
@@ -58,11 +60,6 @@ import static org.opends.server.messages.JebMessages.*;
  */
 public class IndexMergeThread extends DirectoryThread
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.IndexMergeThread";
 
   /**
    * The buffer size to use when reading data from disk.
@@ -162,7 +159,10 @@ public class IndexMergeThread extends DirectoryThread
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "run", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -304,7 +304,10 @@ public class IndexMergeThread extends DirectoryThread
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "run", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       e.printStackTrace();
       throw e;
     }

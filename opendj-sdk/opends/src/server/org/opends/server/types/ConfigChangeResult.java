@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -42,11 +41,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class ConfigChangeResult
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.ConfigChangeResult";
 
 
 
@@ -78,8 +72,6 @@ public class ConfigChangeResult
   public ConfigChangeResult(ResultCode resultCode,
                             boolean adminActionRequired)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(resultCode),
-                      String.valueOf(adminActionRequired));
 
     this.resultCode          = resultCode;
     this.adminActionRequired = adminActionRequired;
@@ -105,9 +97,6 @@ public class ConfigChangeResult
                             boolean adminActionRequired,
                             ArrayList<String> messages)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(resultCode),
-                      String.valueOf(adminActionRequired),
-                      String.valueOf(messages));
 
     this.resultCode          = resultCode;
     this.adminActionRequired = adminActionRequired;
@@ -123,7 +112,6 @@ public class ConfigChangeResult
    */
   public ResultCode getResultCode()
   {
-    assert debugEnter(CLASS_NAME, "getResultCode");
 
     return resultCode;
   }
@@ -138,8 +126,6 @@ public class ConfigChangeResult
    */
   public void setResultCode(ResultCode resultCode)
   {
-    assert debugEnter(CLASS_NAME, "setResultCode",
-                      String.valueOf(resultCode));
 
     this.resultCode = resultCode;
   }
@@ -156,7 +142,6 @@ public class ConfigChangeResult
    */
   public boolean adminActionRequired()
   {
-    assert debugEnter(CLASS_NAME, "adminActionRequired");
 
     return adminActionRequired;
   }
@@ -174,8 +159,6 @@ public class ConfigChangeResult
    */
   public void setAdminActionRequired(boolean adminActionRequired)
   {
-    assert debugEnter(CLASS_NAME, "setAdminActionRequired",
-                      String.valueOf(adminActionRequired));
 
     this.adminActionRequired = adminActionRequired;
   }
@@ -192,7 +175,6 @@ public class ConfigChangeResult
    */
   public List<String> getMessages()
   {
-    assert debugEnter(CLASS_NAME, "getMessages");
 
     return messages;
   }
@@ -208,8 +190,6 @@ public class ConfigChangeResult
    */
   public void addMessage(String message)
   {
-    assert debugEnter(CLASS_NAME, "addMessage",
-                      String.valueOf(message));
 
     messages.add(message);
   }
@@ -223,7 +203,6 @@ public class ConfigChangeResult
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -241,8 +220,6 @@ public class ConfigChangeResult
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("ConfigChangeResult(result=");
     buffer.append(resultCode.toString());

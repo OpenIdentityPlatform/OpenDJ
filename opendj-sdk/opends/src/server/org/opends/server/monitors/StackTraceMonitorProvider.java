@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -43,8 +43,6 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -56,11 +54,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class StackTraceMonitorProvider
        extends MonitorProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.monitors.StackTraceMonitorProvider";
 
 
 
@@ -93,8 +86,6 @@ public class StackTraceMonitorProvider
   public void initializeMonitorProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMonitorProvider",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -109,7 +100,6 @@ public class StackTraceMonitorProvider
    */
   public String getMonitorInstanceName()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorInstanceName");
 
     return "JVM Stack Trace";
   }
@@ -127,7 +117,6 @@ public class StackTraceMonitorProvider
    */
   public long getUpdateInterval()
   {
-    assert debugEnter(CLASS_NAME, "getUpdateInterval");
 
     // This monitor does not need to run periodically.
     return 0;
@@ -144,7 +133,6 @@ public class StackTraceMonitorProvider
    */
   public void updateMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "updateMonitorData");
 
     // This monitor does not need to run periodically.
     return;
@@ -162,7 +150,6 @@ public class StackTraceMonitorProvider
    */
   public ArrayList<Attribute> getMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorData");
 
 
     Map<Thread,StackTraceElement[]> threadStacks = Thread.getAllStackTraces();

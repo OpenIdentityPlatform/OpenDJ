@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -30,7 +30,6 @@ package org.opends.server.types;
 
 import java.util.List;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -41,11 +40,6 @@ import static org.opends.server.loggers.Debug.*;
 public class DirectoryException
        extends Exception
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.DirectoryException";
 
 
 
@@ -91,9 +85,6 @@ public class DirectoryException
   {
     super(errorMessage);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(resultCode),
-                            String.valueOf(errorMessage),
-                            String.valueOf(errorMessageID));
 
     this.resultCode     = resultCode;
     this.errorMessage   = errorMessage;
@@ -121,10 +112,6 @@ public class DirectoryException
   {
     super(errorMessage, cause);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(resultCode),
-                            String.valueOf(errorMessage),
-                            String.valueOf(errorMessageID),
-                            String.valueOf(cause));
 
     this.resultCode     = resultCode;
     this.errorMessage   = errorMessage;
@@ -154,11 +141,6 @@ public class DirectoryException
   {
     super(errorMessage, cause);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(resultCode),
-                            String.valueOf(errorMessage),
-                            String.valueOf(errorMessageID),
-                            String.valueOf(matchedDN),
-                            String.valueOf(cause));
 
     this.resultCode     = resultCode;
     this.errorMessage   = errorMessage;
@@ -191,16 +173,6 @@ public class DirectoryException
   {
     super(errorMessage, cause);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(resultCode),
-                              String.valueOf(errorMessage),
-                              String.valueOf(errorMessageID),
-                              String.valueOf(matchedDN),
-                              String.valueOf(referralURLs),
-                              String.valueOf(cause)
-                            });
 
     this.resultCode     = resultCode;
     this.errorMessage   = errorMessage;
@@ -218,7 +190,6 @@ public class DirectoryException
    */
   public final ResultCode getResultCode()
   {
-    assert debugEnter(CLASS_NAME, "getResultCode");
 
     return resultCode;
   }
@@ -232,7 +203,6 @@ public class DirectoryException
    */
   public final String getErrorMessage()
   {
-    assert debugEnter(CLASS_NAME, "getErrorMessage");
 
     return errorMessage;
   }
@@ -248,7 +218,6 @@ public class DirectoryException
    */
   public final int getErrorMessageID()
   {
-    assert debugEnter(CLASS_NAME, "getErrorMessageID");
 
     return errorMessageID;
   }
@@ -263,7 +232,6 @@ public class DirectoryException
    */
   public final DN getMatchedDN()
   {
-    assert debugEnter(CLASS_NAME, "getMatchedDN");
 
     return matchedDN;
   }
@@ -278,7 +246,6 @@ public class DirectoryException
    */
   public final List<String> getReferralURLs()
   {
-    assert debugEnter(CLASS_NAME, "getReferralURLs");
 
     return referralURLs;
   }

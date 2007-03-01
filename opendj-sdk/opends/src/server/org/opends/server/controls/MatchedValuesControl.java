@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -38,8 +38,10 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -56,11 +58,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class MatchedValuesControl
        extends Control
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.controls.MatchedValuesControl";
 
 
 
@@ -83,8 +80,6 @@ public class MatchedValuesControl
   {
     super(OID_MATCHED_VALUES, isCritical, encodeValue(filters));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(isCritical),
-                            String.valueOf(filters));
 
     this.filters = filters;
   }
@@ -106,8 +101,6 @@ public class MatchedValuesControl
   {
     super(oid, isCritical, encodeValue(filters));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(isCritical),
-                            String.valueOf(filters));
 
     this.filters = filters;
   }
@@ -132,8 +125,6 @@ public class MatchedValuesControl
   {
     super(oid, isCritical, encodedValue);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(isCritical),
-                            String.valueOf(filters));
 
     this.filters = filters;
   }
@@ -151,8 +142,6 @@ public class MatchedValuesControl
   private static ASN1OctetString
                       encodeValue(ArrayList<MatchedValuesFilter> filters)
   {
-    assert debugEnter(CLASS_NAME, "encodeValue",
-                      String.valueOf(filters));
 
 
     ArrayList<ASN1Element> elements =
@@ -183,7 +172,6 @@ public class MatchedValuesControl
   public static MatchedValuesControl decodeControl(Control control)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeControl", String.valueOf(control));
 
 
     if (! control.hasValue())
@@ -202,7 +190,10 @@ public class MatchedValuesControl
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeControl", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -239,7 +230,6 @@ public class MatchedValuesControl
    */
   public ArrayList<MatchedValuesFilter> getFilters()
   {
-    assert debugEnter(CLASS_NAME, "getFilters");
 
     return filters;
   }
@@ -259,8 +249,6 @@ public class MatchedValuesControl
    */
   public boolean valueMatches(AttributeType type, AttributeValue value)
   {
-    assert debugEnter(CLASS_NAME, "valueMatches", String.valueOf(type),
-                      String.valueOf(value));
 
     for (MatchedValuesFilter f : filters)
     {
@@ -273,7 +261,10 @@ public class MatchedValuesControl
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "valueMatches", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -291,7 +282,6 @@ public class MatchedValuesControl
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -308,7 +298,6 @@ public class MatchedValuesControl
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     if (filters.size() == 1)
     {

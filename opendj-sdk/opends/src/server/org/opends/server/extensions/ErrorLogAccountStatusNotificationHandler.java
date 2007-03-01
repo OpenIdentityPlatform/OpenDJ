@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -49,7 +49,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -66,11 +68,6 @@ public class ErrorLogAccountStatusNotificationHandler
        extends AccountStatusNotificationHandler
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.ErrorLogAccountStatusNotificationHandler";
 
 
 
@@ -122,8 +119,6 @@ public class ErrorLogAccountStatusNotificationHandler
   public void initializeStatusNotificationHandler(ConfigEntry configEntry)
        throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeStatusNotificationHandler",
-                      String.valueOf(configEntry));
 
 
     configEntryDN = configEntry.getDN();
@@ -160,8 +155,10 @@ public class ErrorLogAccountStatusNotificationHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeStatusNotificationHandler",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_CANNOT_GET_NOTIFICATION_TYPES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -191,9 +188,6 @@ public class ErrorLogAccountStatusNotificationHandler
                                             notificationType,
                                        DN userDN, int messageID, String message)
   {
-    assert debugEnter(CLASS_NAME, "handleStatusNotification",
-                      String.valueOf(notificationType), String.valueOf(userDN),
-                      String.valueOf(messageID), String.valueOf(message));
 
     if (notificationTypes.contains(notificationType))
     {
@@ -215,7 +209,6 @@ public class ErrorLogAccountStatusNotificationHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -231,7 +224,6 @@ public class ErrorLogAccountStatusNotificationHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
@@ -273,8 +265,6 @@ public class ErrorLogAccountStatusNotificationHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                       List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "List<String>");
 
 
     // Initialize the set of notification types that should generate log
@@ -310,7 +300,10 @@ public class ErrorLogAccountStatusNotificationHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_CANNOT_GET_NOTIFICATION_TYPES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -349,9 +342,6 @@ public class ErrorLogAccountStatusNotificationHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode resultCode = ResultCode.SUCCESS;
@@ -392,7 +382,10 @@ public class ErrorLogAccountStatusNotificationHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       resultCode = DirectoryServer.getServerErrorResultCode();
 

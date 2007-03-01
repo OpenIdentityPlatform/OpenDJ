@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 
@@ -31,7 +31,6 @@ package org.opends.server.tasks;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -44,7 +43,7 @@ public class ShutdownTaskThread
        extends DirectoryThread
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
        "org.opends.server.tasks.ShutdownTaskThread";
@@ -66,7 +65,6 @@ public class ShutdownTaskThread
   {
     super("Shutdown Task Thread");
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(shutdownMessage));
 
     this.shutdownMessage = shutdownMessage;
 
@@ -80,7 +78,6 @@ public class ShutdownTaskThread
    */
   public void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
     DirectoryServer.shutDown(CLASS_NAME, shutdownMessage);
   }

@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -38,11 +37,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class PostOperationPluginResult
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.plugin.PostOperationPluginResult";
 
 
 
@@ -93,9 +87,6 @@ public class PostOperationPluginResult
   public PostOperationPluginResult(boolean connectionTerminated,
                                    boolean continuePluginProcessing)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(connectionTerminated),
-                            String.valueOf(continuePluginProcessing));
 
     this.connectionTerminated     = connectionTerminated;
     this.continuePluginProcessing = continuePluginProcessing;
@@ -113,7 +104,6 @@ public class PostOperationPluginResult
    */
   public boolean connectionTerminated()
   {
-    assert debugEnter(CLASS_NAME, "connectionTerminated");
 
     return connectionTerminated;
   }
@@ -130,7 +120,6 @@ public class PostOperationPluginResult
    */
   public boolean continuePluginProcessing()
   {
-    assert debugEnter(CLASS_NAME, "continuePluginProcessing");
 
     return continuePluginProcessing;
   }
@@ -146,7 +135,6 @@ public class PostOperationPluginResult
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -164,8 +152,6 @@ public class PostOperationPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("PostOperationPluginResult(connectionTerminated=");
     buffer.append(connectionTerminated);

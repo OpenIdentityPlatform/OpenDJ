@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -35,7 +35,6 @@ import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -46,11 +45,6 @@ import static org.opends.server.loggers.Debug.*;
 public abstract class ConnectionHandler
        extends DirectoryThread
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.ConnectionHandler";
 
 
 
@@ -71,7 +65,6 @@ public abstract class ConnectionHandler
   {
     super(threadName);
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(threadName));
     monitor = null;
   }
 
@@ -186,7 +179,6 @@ public abstract class ConnectionHandler
    */
   public ConnectionHandlerMonitor getConnectionHandlerMonitor()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionHandlerMonitor");
 
     return monitor;
   }
@@ -202,8 +194,6 @@ public abstract class ConnectionHandler
   public void setConnectionHandlerMonitor(
                    ConnectionHandlerMonitor monitor)
   {
-    assert debugEnter(CLASS_NAME, "setConnectionHandlerMonitor",
-                      String.valueOf(monitor));
 
     this.monitor = monitor;
   }
@@ -217,7 +207,6 @@ public abstract class ConnectionHandler
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -30,8 +30,9 @@ package org.opends.server.util;
 
 import java.io.OutputStream;
 
-import static org.opends.server.loggers.Debug.*;
-
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 
 /**
@@ -42,11 +43,6 @@ import static org.opends.server.loggers.Debug.*;
 public final class MultiOutputStream
        extends OutputStream
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.util.MultiOutputStream";
 
 
 
@@ -65,7 +61,6 @@ public final class MultiOutputStream
    */
   public MultiOutputStream(OutputStream... targetStreams)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(targetStreams));
 
     Validator.ensureNotNull(targetStreams);
 
@@ -79,7 +74,6 @@ public final class MultiOutputStream
    */
   public void close()
   {
-    assert debugEnter(CLASS_NAME, "close");
 
     for (OutputStream s : targetStreams)
     {
@@ -89,7 +83,10 @@ public final class MultiOutputStream
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "close", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -101,7 +98,6 @@ public final class MultiOutputStream
    */
   public void flush()
   {
-    assert debugEnter(CLASS_NAME, "flush");
 
     for (OutputStream s : targetStreams)
     {
@@ -111,7 +107,10 @@ public final class MultiOutputStream
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "flush", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -126,7 +125,6 @@ public final class MultiOutputStream
    */
   public void write(byte[] b)
   {
-    assert debugEnter(CLASS_NAME, "write", "byte[" + b.length + "]");
 
     for (OutputStream s : targetStreams)
     {
@@ -136,7 +134,10 @@ public final class MultiOutputStream
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "write", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -153,7 +154,6 @@ public final class MultiOutputStream
    */
   public void write(byte[] b, int off, int len)
   {
-    assert debugEnter(CLASS_NAME, "write", "byte[" + b.length + "]");
 
     for (OutputStream s : targetStreams)
     {
@@ -163,7 +163,10 @@ public final class MultiOutputStream
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "write", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -177,7 +180,6 @@ public final class MultiOutputStream
    */
   public void write(int b)
   {
-    assert debugEnter(CLASS_NAME, "write", StaticUtils.byteToHex((byte) b));
 
     for (OutputStream s : targetStreams)
     {
@@ -187,7 +189,10 @@ public final class MultiOutputStream
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "write", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }

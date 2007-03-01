@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -46,11 +46,15 @@ import java.io.File;
 import java.io.FilenameFilter;
 
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
-import org.opends.server.types.*;
-import org.opends.server.loggers.Debug;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DN;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.FilePermission;
 import static org.opends.server.loggers.Error.logError;
-import static org.opends.server.loggers.Debug.debugException;
-import static org.opends.server.loggers.Debug.debugEnter;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.
     MSGID_JEB_CACHE_SIZE_AFTER_PRELOAD;
@@ -71,11 +75,6 @@ import org.opends.server.api.Backend;
  */
 public class RootContainer
 {
-    /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.RootContainer";
 
   /**
    * The JE database environment.
@@ -169,9 +168,10 @@ public class RootContainer
     env = new Environment(backendDirectory,
                           envConfig);
 
-    Debug.debugMessage(DebugLogCategory.BACKEND, DebugLogSeverity.INFO,
-                         CLASS_NAME, "initializeBackend",
-                         env.getConfig().toString());
+    if (debugEnabled())
+    {
+      debugInfo(env.getConfig().toString());
+    }
   }
 
   /**
@@ -365,7 +365,6 @@ public class RootContainer
    */
   public void preload()
   {
-    assert debugEnter(CLASS_NAME, "preload");
 
     long timeLimit = config.getPreloadTimeLimit();
 
@@ -425,7 +424,10 @@ public class RootContainer
       }
       catch (DatabaseException e)
       {
-        assert debugException(CLASS_NAME, "preload", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -440,7 +442,6 @@ public class RootContainer
   private void cleanDatabase()
        throws DatabaseException
   {
-    assert debugEnter(CLASS_NAME, "cleanDatabase");
 
     int msgID;
     String message;
@@ -611,9 +612,10 @@ public class RootContainer
 
     config = newConfig;
 
-    Debug.debugMessage(DebugLogCategory.BACKEND, DebugLogSeverity.INFO,
-                       CLASS_NAME, "applyNewConfiguration",
-                       env.getConfig().toString());
+    if (debugEnabled())
+    {
+      debugInfo(env.getConfig().toString());
+    }
   }
 
   /**

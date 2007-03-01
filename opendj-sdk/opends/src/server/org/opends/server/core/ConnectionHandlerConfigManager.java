@@ -51,7 +51,9 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.CoreMessages.*;
@@ -70,11 +72,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class ConnectionHandlerConfigManager
        implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.ConnectionHandlerConfigManager";
 
 
 
@@ -92,7 +89,6 @@ public class ConnectionHandlerConfigManager
    */
   public ConnectionHandlerConfigManager()
   {
-    assert debugConstructor(CLASS_NAME);
 
     // No implementation is required.
   }
@@ -115,7 +111,6 @@ public class ConnectionHandlerConfigManager
   public void initializeConnectionHandlerConfig()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeConnectionHandlerConfig");
 
 
     connectionHandlers = new ConcurrentHashMap<DN,ConnectionHandler>();
@@ -132,7 +127,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_CONNHANDLER_CANNOT_GET_CONFIG_BASE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -222,8 +220,10 @@ public class ConnectionHandlerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_CONNHANDLER_UNABLE_TO_DETERMINE_ENABLED_STATE;
         String message = getMessage(msgID, String.valueOf(connectionHandlerDN),
@@ -266,8 +266,10 @@ public class ConnectionHandlerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_GET_CLASS;
         String message = getMessage(msgID, String.valueOf(connectionHandlerDN),
@@ -287,8 +289,10 @@ public class ConnectionHandlerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INSTANTIATE;
         String message = getMessage(msgID, String.valueOf(className),
@@ -307,8 +311,10 @@ public class ConnectionHandlerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                              e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INITIALIZE;
         String message = getMessage(msgID, String.valueOf(className),
@@ -353,8 +359,6 @@ public class ConnectionHandlerConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configChangeIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
     DN connectionHandlerDN = configEntry.getDN();
 
@@ -384,8 +388,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID =
            MSGID_CONFIG_CONNHANDLER_ERROR_INTERACTING_WITH_CONNHANDLER_ENTRY;
@@ -419,8 +425,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_UNABLE_TO_DETERMINE_ENABLED_STATE;
       unacceptableReason.append(getMessage(msgID,
@@ -461,8 +469,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_GET_CLASS;
       unacceptableReason.append(getMessage(msgID,
@@ -480,8 +490,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INSTANTIATE;
       unacceptableReason.append(getMessage(msgID, String.valueOf(className),
@@ -512,8 +524,6 @@ public class ConnectionHandlerConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationChange",
-                      String.valueOf(configEntry));
 
     DN connectionHandlerDN = configEntry.getDN();
     ConnectionHandler connectionHandler =
@@ -598,7 +608,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_UNABLE_TO_DETERMINE_ENABLED_STATE;
       messages.add(getMessage(msgID, String.valueOf(connectionHandlerDN),
@@ -637,7 +650,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_GET_CLASS;
       messages.add(getMessage(msgID, String.valueOf(connectionHandlerDN),
@@ -692,7 +708,10 @@ public class ConnectionHandlerConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INITIALIZE;
         messages.add(getMessage(msgID, String.valueOf(className),
@@ -729,8 +748,6 @@ public class ConnectionHandlerConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configAddIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     DN connectionHandlerDN = configEntry.getDN();
@@ -761,8 +778,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID =
            MSGID_CONFIG_CONNHANDLER_ERROR_INTERACTING_WITH_CONNHANDLER_ENTRY;
@@ -796,8 +815,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_UNABLE_TO_DETERMINE_ENABLED_STATE;
       unacceptableReason.append(getMessage(msgID,
@@ -838,8 +859,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_GET_CLASS;
       unacceptableReason.append(getMessage(msgID,
@@ -858,8 +881,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INSTANTIATE;
       unacceptableReason.append(getMessage(msgID, String.valueOf(className),
@@ -919,8 +944,6 @@ public class ConnectionHandlerConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationAdd",
-                      String.valueOf(configEntry));
 
 
     DN                configEntryDN       = configEntry.getDN();
@@ -979,8 +1002,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_UNABLE_TO_DETERMINE_ENABLED_STATE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1021,8 +1046,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_GET_CLASS;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -1041,8 +1068,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INSTANTIATE;
       messages.add(getMessage(msgID, String.valueOf(className),
@@ -1060,8 +1089,10 @@ public class ConnectionHandlerConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeConnectionHandlerConfig",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_CONFIG_CONNHANDLER_CANNOT_INITIALIZE;
       messages.add(getMessage(msgID, String.valueOf(className),
@@ -1109,8 +1140,6 @@ public class ConnectionHandlerConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configDeleteIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // A delete should always be acceptable, so just return true.
@@ -1129,8 +1158,6 @@ public class ConnectionHandlerConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationDelete",
-                      String.valueOf(configEntry));
 
 
     DN         configEntryDN       = configEntry.getDN();

@@ -40,19 +40,12 @@ import java.io.File;
 
 //import org.opends.server.core.DirectoryServer;
 
-//import static org.opends.server.loggers.Debug.*;
-
 /**
  * This class implements a post rotation action that signs
  * the file.
  */
 public class SignatureAction implements PostRotationAction
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-    "org.opends.server.loggers.SignatureAction";
 
   private static final String delimiter = "---------";
   private File originalFile;

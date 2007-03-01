@@ -45,8 +45,9 @@ import org.opends.server.util.SelectableCertificateKeyManager;
 
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.loggers.Debug.*;
-
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 
 /**
@@ -54,8 +55,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class SSLConnectionFactory
 {
-  private static final String CLASS_NAME =
-       "org.opends.server.tools.SSLConnectionFactory";
 
   private SSLSocketFactory sslSocketFactory = null;
 
@@ -246,7 +245,10 @@ public class SSLConnectionFactory
 
     } catch(Exception e)
     {
-      assert debugException(CLASS_NAME, "getKeyManagers", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       int msgID = MSGID_TOOLS_CANNOT_LOAD_KEYSTORE_FILE;
       throw new SSLConnectionException(getMessage(msgID, keyStoreFile), e);
     }
@@ -261,7 +263,10 @@ public class SSLConnectionFactory
       return keyManagerFactory.getKeyManagers();
     } catch(Exception ke)
     {
-      assert debugException(CLASS_NAME, "getKeyManagers", ke);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ke);
+      }
       int msgID = MSGID_TOOLS_CANNOT_INIT_KEYMANAGER;
       throw new SSLConnectionException(getMessage(msgID, keyStoreFile), ke);
     }
@@ -332,7 +337,10 @@ public class SSLConnectionFactory
       inputStream.close();
     } catch(Exception e)
     {
-      assert debugException(CLASS_NAME, "getTrustManagers", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       int msgID = MSGID_TOOLS_CANNOT_LOAD_TRUSTSTORE_FILE;
       throw new SSLConnectionException(getMessage(msgID, trustStoreFile), e);
     }
@@ -347,7 +355,10 @@ public class SSLConnectionFactory
       return trustManagerFactory.getTrustManagers();
     } catch(Exception ke)
     {
-      assert debugException(CLASS_NAME, "getTrustManagers", ke);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ke);
+      }
       int msgID = MSGID_TOOLS_CANNOT_INIT_TRUSTMANAGER;
       throw new SSLConnectionException(getMessage(msgID, trustStoreFile), ke);
     }

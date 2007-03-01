@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -32,7 +32,11 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 
-import static org.opends.server.loggers.Debug.*;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -44,11 +48,6 @@ import static org.opends.server.loggers.Debug.*;
 public abstract class EqualityMatchingRule
        extends MatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.EqualityMatchingRule";
 
 
 
@@ -90,9 +89,6 @@ public abstract class EqualityMatchingRule
   public ConditionResult valuesMatch(ByteString attributeValue,
                                      ByteString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "valuesMatch",
-                      String.valueOf(attributeValue),
-                      String.valueOf(assertionValue));
 
     if (areEqual(attributeValue, assertionValue))
     {
@@ -125,8 +121,6 @@ public abstract class EqualityMatchingRule
    */
   public int generateHashCode(AttributeValue attributeValue)
   {
-    assert debugEnter(CLASS_NAME, "generateHashCode",
-                      String.valueOf(attributeValue));
 
     try
     {
@@ -134,7 +128,10 @@ public abstract class EqualityMatchingRule
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "generateHashCode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       try
       {
@@ -142,7 +139,10 @@ public abstract class EqualityMatchingRule
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "generateHashCode", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
 
         return 0;
       }

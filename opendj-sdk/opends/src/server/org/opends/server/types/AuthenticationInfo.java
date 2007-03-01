@@ -33,7 +33,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.util.Validator.*;
 
 
@@ -47,11 +46,6 @@ import static org.opends.server.util.Validator.*;
  */
 public class AuthenticationInfo
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.AuthenticationInfo";
 
 
 
@@ -90,7 +84,6 @@ public class AuthenticationInfo
    */
   public AuthenticationInfo()
   {
-    assert debugConstructor(CLASS_NAME);
 
     isAuthenticated     = false;
     isRoot              = false;
@@ -116,9 +109,6 @@ public class AuthenticationInfo
    */
   public AuthenticationInfo(Entry authenticationEntry, boolean isRoot)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(authenticationEntry),
-                            String.valueOf(isRoot));
 
     this.authenticationEntry = authenticationEntry;
     this.isRoot              = isRoot;
@@ -151,10 +141,6 @@ public class AuthenticationInfo
   public AuthenticationInfo(Entry authenticationEntry,
                             ByteString simplePassword, boolean isRoot)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(authenticationEntry),
-                            String.valueOf(simplePassword),
-                            String.valueOf(isRoot));
 
     ensureNotNull(authenticationEntry, simplePassword);
 
@@ -190,10 +176,6 @@ public class AuthenticationInfo
   public AuthenticationInfo(Entry authenticationEntry,
                             String saslMechanism, boolean isRoot)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(authenticationEntry),
-                            String.valueOf(saslMechanism),
-                            String.valueOf(isRoot));
 
     ensureNotNull(authenticationEntry, saslMechanism);
 
@@ -238,11 +220,6 @@ public class AuthenticationInfo
                             Entry authorizationEntry,
                             String saslMechanism, boolean isRoot)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(authenticationEntry),
-                            String.valueOf(authorizationEntry),
-                            String.valueOf(saslMechanism),
-                            String.valueOf(isRoot));
 
     ensureNotNull(authenticationEntry, saslMechanism);
 
@@ -272,7 +249,6 @@ public class AuthenticationInfo
    */
   public boolean isAuthenticated()
   {
-    assert debugEnter(CLASS_NAME, "isAuthenticated");
 
     return isAuthenticated;
   }
@@ -285,7 +261,6 @@ public class AuthenticationInfo
    */
   public void setUnauthenticated()
   {
-    assert debugEnter(CLASS_NAME, "setUnauthenticated");
 
     isAuthenticated     = false;
     isRoot              = false;
@@ -308,7 +283,6 @@ public class AuthenticationInfo
    */
   public boolean isRoot()
   {
-    assert debugEnter(CLASS_NAME, "isRoot");
 
     return isRoot;
   }
@@ -325,7 +299,6 @@ public class AuthenticationInfo
    */
   public boolean mustChangePassword()
   {
-    assert debugEnter(CLASS_NAME, "mustChangePassword");
 
     return mustChangePassword;
   }
@@ -343,8 +316,6 @@ public class AuthenticationInfo
    */
   public void setMustChangePassword(boolean mustChangePassword)
   {
-    assert debugEnter(CLASS_NAME, "setMustChangePassword",
-                      String.valueOf(mustChangePassword));
 
     this.mustChangePassword = mustChangePassword;
   }
@@ -364,8 +335,6 @@ public class AuthenticationInfo
   public boolean hasAuthenticationType(AuthenticationType
                                             authenticationType)
   {
-    assert debugEnter(CLASS_NAME, "hasAuthenticationType",
-                      String.valueOf(authenticationType));
 
     return authenticationTypes.contains(authenticationType);
   }
@@ -386,8 +355,6 @@ public class AuthenticationInfo
   public boolean hasAnyAuthenticationType(
                       Collection<AuthenticationType> types)
   {
-    assert debugEnter(CLASS_NAME, "hasAnyAuthenticationType",
-                      String.valueOf(types));
 
     for (AuthenticationType t : types)
     {
@@ -410,7 +377,6 @@ public class AuthenticationInfo
    */
   public Set<AuthenticationType> getAuthenticationTypes()
   {
-    assert debugEnter(CLASS_NAME, "getAuthenticationTypes");
 
     return authenticationTypes;
   }
@@ -429,7 +395,6 @@ public class AuthenticationInfo
   public void addAuthenticationType(AuthenticationType
                                          authenticationType)
   {
-    assert debugEnter(CLASS_NAME, "addAuthenticationType");
 
     authenticationTypes.add(authenticationType);
   }
@@ -446,7 +411,6 @@ public class AuthenticationInfo
    */
   public Entry getAuthenticationEntry()
   {
-    assert debugEnter(CLASS_NAME, "getAuthenticationEntry");
 
     return authenticationEntry;
   }
@@ -461,7 +425,6 @@ public class AuthenticationInfo
    */
   public DN getAuthenticationDN()
   {
-    assert debugEnter(CLASS_NAME, "getAuthenticationDN");
 
     if (authenticationEntry == null)
     {
@@ -486,7 +449,6 @@ public class AuthenticationInfo
    */
   public Entry getAuthorizationEntry()
   {
-    assert debugEnter(CLASS_NAME, "getAuthorizationEntry");
 
     return authorizationEntry;
   }
@@ -504,7 +466,6 @@ public class AuthenticationInfo
    */
   public DN getAuthorizationDN()
   {
-    assert debugEnter(CLASS_NAME, "getAuthorizationDN");
 
     if (authorizationEntry == null)
     {
@@ -528,7 +489,6 @@ public class AuthenticationInfo
    */
   public ByteString getSimplePassword()
   {
-    assert debugEnter(CLASS_NAME, "getSimplePassword");
 
     return simplePassword;
   }
@@ -548,8 +508,6 @@ public class AuthenticationInfo
    */
   public boolean hasSASLMechanism(String saslMechanism)
   {
-    assert debugEnter(CLASS_NAME, "hasSASLMechanism",
-                      String.valueOf(saslMechanism));
 
     return saslMechanisms.contains(saslMechanism);
   }
@@ -569,8 +527,6 @@ public class AuthenticationInfo
    */
   public boolean hasAnySASLMechanism(Collection<String> mechanisms)
   {
-    assert debugEnter(CLASS_NAME, "hasAnySASLMechanism",
-                      String.valueOf(mechanisms));
 
     for (String s : mechanisms)
     {
@@ -595,7 +551,6 @@ public class AuthenticationInfo
    */
   public Set<String> getSASLMechanisms()
   {
-    assert debugEnter(CLASS_NAME, "getSASLMechanisms");
 
     return saslMechanisms;
   }
@@ -614,8 +569,6 @@ public class AuthenticationInfo
    */
   public void addSASLMechanism(String saslMechanism)
   {
-    assert debugEnter(CLASS_NAME, "addSASLMechanism",
-                      String.valueOf(saslMechanism));
 
     saslMechanisms.add(saslMechanism);
   }
@@ -631,7 +584,6 @@ public class AuthenticationInfo
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -650,8 +602,6 @@ public class AuthenticationInfo
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("AuthenticationInfo(isAuthenticated=");
     buffer.append(isAuthenticated);
@@ -751,9 +701,6 @@ public class AuthenticationInfo
   public AuthenticationInfo duplicate(Entry newAuthenticationEntry,
                                       Entry newAuthorizationEntry)
   {
-    assert debugEnter(CLASS_NAME, "duplicate",
-                      String.valueOf(newAuthenticationEntry),
-                      String.valueOf(newAuthorizationEntry));
 
     AuthenticationInfo authInfo = new AuthenticationInfo();
 

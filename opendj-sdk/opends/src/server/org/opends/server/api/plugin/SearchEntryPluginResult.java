@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
 
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -38,11 +37,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class SearchEntryPluginResult
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.api.plugin.SearchEntryPluginResult";
 
 
 
@@ -108,11 +102,6 @@ public class SearchEntryPluginResult
                                  boolean sendEntry,
                                  boolean continueSearch)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(connectionTerminated),
-                            String.valueOf(continuePluginProcessing),
-                            String.valueOf(sendEntry),
-                            String.valueOf(continueSearch));
 
     this.connectionTerminated     = connectionTerminated;
     this.continuePluginProcessing = continuePluginProcessing;
@@ -132,7 +121,6 @@ public class SearchEntryPluginResult
    */
   public boolean connectionTerminated()
   {
-    assert debugEnter(CLASS_NAME, "connectionTerminated");
 
     return connectionTerminated;
   }
@@ -149,7 +137,6 @@ public class SearchEntryPluginResult
    */
   public boolean continuePluginProcessing()
   {
-    assert debugEnter(CLASS_NAME, "continuePluginProcessing");
 
     return continuePluginProcessing;
   }
@@ -166,7 +153,6 @@ public class SearchEntryPluginResult
    */
   public boolean sendEntry()
   {
-    assert debugEnter(CLASS_NAME, "sendEntry");
 
     return sendEntry;
   }
@@ -183,7 +169,6 @@ public class SearchEntryPluginResult
    */
   public boolean continueSearch()
   {
-    assert debugEnter(CLASS_NAME, "continueSearch");
 
     return continueSearch;
   }
@@ -199,7 +184,6 @@ public class SearchEntryPluginResult
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -217,8 +201,6 @@ public class SearchEntryPluginResult
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("SearchEntryPluginResult(connectionTerminated=");
     buffer.append(connectionTerminated);

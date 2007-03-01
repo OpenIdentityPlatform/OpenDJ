@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -40,8 +40,10 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -73,11 +75,6 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 public class LDAPStatistics
        extends MonitorProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.LDAPStatistics";
 
 
 
@@ -157,7 +154,6 @@ public class LDAPStatistics
   {
     super("LDAP Statistics Monitor Provider");
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(parent));
 
     this.instanceName = instanceName;
     this.parent       = parent;
@@ -214,7 +210,6 @@ public class LDAPStatistics
   public void initializeMonitorProvider(ConfigEntry configEntry)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "initializeMonitorProvider");
 
     // Throw an exception, because this monitor is not intended to be
     // dynamically loaded from the configuration.  Rather, it should be
@@ -235,7 +230,6 @@ public class LDAPStatistics
    */
   public String getMonitorInstanceName()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorInstanceName");
 
     return instanceName;
   }
@@ -253,7 +247,6 @@ public class LDAPStatistics
    */
   public long getUpdateInterval()
   {
-    assert debugEnter(CLASS_NAME, "getUpdateInterval");
 
 
     // This monitor should not run periodically.
@@ -271,7 +264,6 @@ public class LDAPStatistics
    */
   public void updateMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "updateMonitorData");
 
     // No implementation is required since this does not do periodic updates.
   }
@@ -288,7 +280,6 @@ public class LDAPStatistics
    */
   public ArrayList<Attribute> getMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorData");
 
     ArrayList<Attribute> attrs = new ArrayList<Attribute>(29);
 
@@ -377,7 +368,10 @@ public class LDAPStatistics
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "getMonitorData", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
 
               return attrs;
             }
@@ -388,7 +382,10 @@ public class LDAPStatistics
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "getMonitorData", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             return attrs;
           }
@@ -399,7 +396,10 @@ public class LDAPStatistics
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "getMonitorData", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           return attrs;
         }
@@ -410,7 +410,10 @@ public class LDAPStatistics
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "getMonitorData", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         return attrs;
       }
@@ -421,7 +424,10 @@ public class LDAPStatistics
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getMonitorData", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return attrs;
     }
@@ -496,7 +502,6 @@ public class LDAPStatistics
    */
   public void clearStatistics()
   {
-    assert debugEnter(CLASS_NAME, "clearStatistics");
 
 
     // Quickly grab the locks and store consistent copies of the information.
@@ -554,7 +559,10 @@ public class LDAPStatistics
             }
             catch (Exception e)
             {
-              assert debugException(CLASS_NAME, "clearStatistics", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
             }
             finally
             {
@@ -563,7 +571,10 @@ public class LDAPStatistics
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "clearStatistics", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
           }
           finally
           {
@@ -572,7 +583,10 @@ public class LDAPStatistics
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "clearStatistics", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
         finally
         {
@@ -581,7 +595,10 @@ public class LDAPStatistics
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "clearStatistics", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
       finally
       {
@@ -590,7 +607,10 @@ public class LDAPStatistics
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "clearStatistics", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     finally
     {
@@ -606,7 +626,6 @@ public class LDAPStatistics
    */
   public void updateConnect()
   {
-    assert debugEnter(CLASS_NAME, "updateConnect");
 
     connectLock.lock();
 
@@ -616,7 +635,10 @@ public class LDAPStatistics
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "updateConnect", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     finally
     {
@@ -638,7 +660,6 @@ public class LDAPStatistics
    */
   public void updateDisconnect()
   {
-    assert debugEnter(CLASS_NAME, "updateDisconnect");
 
     disconnectLock.lock();
 
@@ -648,7 +669,10 @@ public class LDAPStatistics
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "updateDisconnect", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     finally
     {
@@ -672,7 +696,6 @@ public class LDAPStatistics
    */
   public void updateBytesRead(int bytesRead)
   {
-    assert debugEnter(CLASS_NAME, "updateBytesRead", String.valueOf(bytesRead));
 
     readLock.lock();
 
@@ -682,7 +705,10 @@ public class LDAPStatistics
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "updateBytesRead", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     finally
     {
@@ -706,8 +732,6 @@ public class LDAPStatistics
    */
   public void updateMessageRead(LDAPMessage message)
   {
-    assert debugEnter(CLASS_NAME, "updateMessageRead", String.valueOf(message),
-                      String.valueOf(bytesRead));
 
     readLock.lock();
 
@@ -752,7 +776,10 @@ public class LDAPStatistics
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "updateMessagesRead", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     finally
     {
@@ -777,8 +804,6 @@ public class LDAPStatistics
    */
   public void updateMessageWritten(LDAPMessage message, int bytesWritten)
   {
-    assert debugEnter(CLASS_NAME, "updateMessageWritten",
-                      String.valueOf(message),  String.valueOf(bytesWritten));
 
     writeLock.lock();
 
@@ -837,7 +862,10 @@ public class LDAPStatistics
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "updateMessageWritten", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     finally
     {
@@ -859,7 +887,6 @@ public class LDAPStatistics
    */
   public void updateAbandonedOperation()
   {
-    assert debugEnter(CLASS_NAME, "updateAbandonedOperation");
 
     abandonLock.lock();
 
@@ -869,7 +896,10 @@ public class LDAPStatistics
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "updateAbandonedOperation", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
     finally
     {
@@ -896,8 +926,6 @@ public class LDAPStatistics
    */
   private Attribute createAttribute(String name, String value)
   {
-    assert debugEnter(CLASS_NAME, "createAttribute", String.valueOf(name),
-                      String.valueOf(value));
 
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
 
@@ -911,7 +939,10 @@ public class LDAPStatistics
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createAttribute", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       values.add(new AttributeValue(encodedValue, encodedValue));
     }
@@ -928,7 +959,6 @@ public class LDAPStatistics
    */
   public long getConnectionsEstablished()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionsEstablished");
 
     connectLock.lock();
 
@@ -951,7 +981,6 @@ public class LDAPStatistics
    */
   public long getConnectionsClosed()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionsClosed");
 
     disconnectLock.lock();
 
@@ -974,7 +1003,6 @@ public class LDAPStatistics
    */
   public long getBytesRead()
   {
-    assert debugEnter(CLASS_NAME, "getBytesRead");
 
     readLock.lock();
 
@@ -997,7 +1025,6 @@ public class LDAPStatistics
    */
   public long getBytesWritten()
   {
-    assert debugEnter(CLASS_NAME, "getBytesWritten");
 
     writeLock.lock();
 
@@ -1020,7 +1047,6 @@ public class LDAPStatistics
    */
   public long getMessagesRead()
   {
-    assert debugEnter(CLASS_NAME, "getMessagesRead");
 
     readLock.lock();
 
@@ -1043,7 +1069,6 @@ public class LDAPStatistics
    */
   public long getMessagesWritten()
   {
-    assert debugEnter(CLASS_NAME, "getMessagesWritten");
 
     writeLock.lock();
 
@@ -1066,7 +1091,6 @@ public class LDAPStatistics
    */
   public long getOperationsInitiated()
   {
-    assert debugEnter(CLASS_NAME, "getOperationsInitiated");
 
     readLock.lock();
 
@@ -1091,7 +1115,6 @@ public class LDAPStatistics
    */
   public long getOperationsCompleted()
   {
-    assert debugEnter(CLASS_NAME, "getOperationsCompleted");
 
     writeLock.lock();
 
@@ -1114,7 +1137,6 @@ public class LDAPStatistics
    */
   public long getOperationsAbandoned()
   {
-    assert debugEnter(CLASS_NAME, "getOperationsAbandoned");
 
     abandonLock.lock();
 
@@ -1137,7 +1159,6 @@ public class LDAPStatistics
    */
   public long getAbandonRequests()
   {
-    assert debugEnter(CLASS_NAME, "getAbandonRequests");
 
     readLock.lock();
 
@@ -1160,7 +1181,6 @@ public class LDAPStatistics
    */
   public long getAddRequests()
   {
-    assert debugEnter(CLASS_NAME, "getAddRequests");
 
     readLock.lock();
 
@@ -1183,7 +1203,6 @@ public class LDAPStatistics
    */
   public long getAddResponses()
   {
-    assert debugEnter(CLASS_NAME, "getAddResponses");
 
     writeLock.lock();
 
@@ -1206,7 +1225,6 @@ public class LDAPStatistics
    */
   public long getBindRequests()
   {
-    assert debugEnter(CLASS_NAME, "getBindRequests");
 
     readLock.lock();
 
@@ -1229,7 +1247,6 @@ public class LDAPStatistics
    */
   public long getBindResponses()
   {
-    assert debugEnter(CLASS_NAME, "getBindResponses");
 
     writeLock.lock();
 
@@ -1252,7 +1269,6 @@ public class LDAPStatistics
    */
   public long getCompareRequests()
   {
-    assert debugEnter(CLASS_NAME, "getCompareRequests");
 
     readLock.lock();
 
@@ -1275,7 +1291,6 @@ public class LDAPStatistics
    */
   public long getCompareResponses()
   {
-    assert debugEnter(CLASS_NAME, "getCompareResponses");
 
     writeLock.lock();
 
@@ -1298,7 +1313,6 @@ public class LDAPStatistics
    */
   public long getDeleteRequests()
   {
-    assert debugEnter(CLASS_NAME, "getDeleteRequests");
 
     readLock.lock();
 
@@ -1321,7 +1335,6 @@ public class LDAPStatistics
    */
   public long getDeleteResponses()
   {
-    assert debugEnter(CLASS_NAME, "getDeleteResponses");
 
     writeLock.lock();
 
@@ -1344,7 +1357,6 @@ public class LDAPStatistics
    */
   public long getExtendedRequests()
   {
-    assert debugEnter(CLASS_NAME, "getExtendedRequests");
 
     readLock.lock();
 
@@ -1367,7 +1379,6 @@ public class LDAPStatistics
    */
   public long getExtendedResponses()
   {
-    assert debugEnter(CLASS_NAME, "getExtendedResponses");
 
     writeLock.lock();
 
@@ -1390,7 +1401,6 @@ public class LDAPStatistics
    */
   public long getModifyRequests()
   {
-    assert debugEnter(CLASS_NAME, "getModifyRequests");
 
     readLock.lock();
 
@@ -1413,7 +1423,6 @@ public class LDAPStatistics
    */
   public long getModifyResponses()
   {
-    assert debugEnter(CLASS_NAME, "getModifyResponses");
 
     writeLock.lock();
 
@@ -1436,7 +1445,6 @@ public class LDAPStatistics
    */
   public long getModifyDNRequests()
   {
-    assert debugEnter(CLASS_NAME, "getModifyDNRequests");
 
     readLock.lock();
 
@@ -1459,7 +1467,6 @@ public class LDAPStatistics
    */
   public long getModifyDNResponses()
   {
-    assert debugEnter(CLASS_NAME, "getModifyDNResponses");
 
     writeLock.lock();
 
@@ -1482,7 +1489,6 @@ public class LDAPStatistics
    */
   public long getSearchRequests()
   {
-    assert debugEnter(CLASS_NAME, "getSearchRequests");
 
     readLock.lock();
 
@@ -1505,7 +1511,6 @@ public class LDAPStatistics
    */
   public long getSearchResultEntries()
   {
-    assert debugEnter(CLASS_NAME, "getSearchResultEntries");
 
     writeLock.lock();
 
@@ -1528,7 +1533,6 @@ public class LDAPStatistics
    */
   public long getSearchResultReferences()
   {
-    assert debugEnter(CLASS_NAME, "getSearchResultReferences");
 
     writeLock.lock();
 
@@ -1551,7 +1555,6 @@ public class LDAPStatistics
    */
   public long getSearchResultsDone()
   {
-    assert debugEnter(CLASS_NAME, "getSearchResultsDone");
 
     writeLock.lock();
 
@@ -1574,7 +1577,6 @@ public class LDAPStatistics
    */
   public long getUnbindRequests()
   {
-    assert debugEnter(CLASS_NAME, "getUnbindRequests");
 
     readLock.lock();
 
@@ -1598,7 +1600,6 @@ public class LDAPStatistics
    */
   public LDAPStatistics getParent()
   {
-    assert debugEnter(CLASS_NAME, "getParent");
 
     return parent;
   }

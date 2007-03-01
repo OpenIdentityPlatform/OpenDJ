@@ -59,7 +59,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -79,11 +81,6 @@ public class ExternalSASLMechanismHandler
        extends SASLMechanismHandler
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.ExternalSASLMechanismHandler";
 
 
 
@@ -129,7 +126,6 @@ public class ExternalSASLMechanismHandler
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -141,8 +137,6 @@ public class ExternalSASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSASLMechanismHandler",
-                      String.valueOf(configEntry));
 
 
     this.configEntryDN = configEntry.getDN();
@@ -176,7 +170,10 @@ public class ExternalSASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLEXTERNAL_CANNOT_GET_VALIDATION_POLICY;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -204,7 +201,10 @@ public class ExternalSASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLEXTERNAL_CANNOT_GET_CERT_ATTR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -276,7 +276,6 @@ public class ExternalSASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeSASLMechanismHandler");
 
     DirectoryServer.deregisterConfigurableComponent(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_EXTERNAL);
@@ -291,8 +290,6 @@ public class ExternalSASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "processSASLBind",
-                      String.valueOf(bindOperation));
 
 
     // Get the client connection used for the bind request, and get the
@@ -377,7 +374,10 @@ public class ExternalSASLMechanismHandler
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "processSASLBind", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       bindOperation.setResponseData(de);
       return;
@@ -453,7 +453,10 @@ public class ExternalSASLMechanismHandler
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "processSASLBind", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -500,7 +503,10 @@ public class ExternalSASLMechanismHandler
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "processSASLBind", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -533,7 +539,6 @@ public class ExternalSASLMechanismHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -550,7 +555,6 @@ public class ExternalSASLMechanismHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
@@ -594,8 +598,6 @@ public class ExternalSASLMechanismHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // Look at the validation policy configuration.
@@ -624,7 +626,10 @@ public class ExternalSASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLEXTERNAL_CANNOT_GET_VALIDATION_POLICY;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -651,7 +656,10 @@ public class ExternalSASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLEXTERNAL_CANNOT_GET_CERT_ATTR;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -734,9 +742,6 @@ public class ExternalSASLMechanismHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -773,7 +778,10 @@ public class ExternalSASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
 
@@ -801,7 +809,10 @@ public class ExternalSASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLEXTERNAL_CANNOT_GET_CERT_ATTR;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -927,7 +938,6 @@ public class ExternalSASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isPasswordBased", String.valueOf(mechanism));
 
     // This is not a password-based mechanism.
     return false;
@@ -941,7 +951,6 @@ public class ExternalSASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isSecure", String.valueOf(mechanism));
 
     // This may be considered a secure mechanism.
     return true;

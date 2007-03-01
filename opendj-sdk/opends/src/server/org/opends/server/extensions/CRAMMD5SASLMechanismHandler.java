@@ -61,9 +61,9 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -88,11 +88,6 @@ public class CRAMMD5SASLMechanismHandler
        extends SASLMechanismHandler
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.CRAMMD5SASLMechanismHandler";
 
 
 
@@ -133,7 +128,6 @@ public class CRAMMD5SASLMechanismHandler
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -145,8 +139,6 @@ public class CRAMMD5SASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSASLMechanismHandler",
-                      String.valueOf(configEntry));
 
 
     this.configEntryDN = configEntry.getDN();
@@ -162,9 +154,12 @@ public class CRAMMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_SASLCRAMMD5_CANNOT_GET_MESSAGE_DIGEST;
+      int msgID = MSGID_SASLCRAMMD5_CANNOT_GET_MESSAGE_DIGEST;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
       throw new InitializationException(msgID, message, e);
     }
@@ -211,7 +206,10 @@ public class CRAMMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeSASLMechanismHandler", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLCRAMMD5_CANNOT_GET_IDENTITY_MAPPER;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -232,7 +230,6 @@ public class CRAMMD5SASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeSASLMechanismHandler");
 
     DirectoryServer.deregisterConfigurableComponent(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_CRAM_MD5);
@@ -247,8 +244,6 @@ public class CRAMMD5SASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "processSASLBind",
-                      String.valueOf(bindOperation));
 
 
     // The CRAM-MD5 bind process uses two stages.  See if the client provided
@@ -352,11 +347,14 @@ public class CRAMMD5SASLMechanismHandler
     }
     catch (ParseException pe)
     {
-      assert debugException(CLASS_NAME, "processSASLBind", pe);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, pe);
+      }
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-      int    msgID   = MSGID_SASLCRAMMD5_INVALID_DIGEST_CONTENT;
+      int msgID = MSGID_SASLCRAMMD5_INVALID_DIGEST_CONTENT;
       String message = getMessage(msgID, pe.getMessage());
       bindOperation.setAuthFailureReason(msgID, message);
       return;
@@ -378,11 +376,14 @@ public class CRAMMD5SASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLCRAMMD5_CANNOT_DECODE_USERNAME_AS_DN;
+        int msgID = MSGID_SASLCRAMMD5_CANNOT_DECODE_USERNAME_AS_DN;
         String message = getMessage(msgID, userName, de.getErrorMessage());
         bindOperation.setAuthFailureReason(msgID, message);
         return;
@@ -432,11 +433,14 @@ public class CRAMMD5SASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLCRAMMD5_CANNOT_GET_ENTRY_BY_DN;
+        int msgID = MSGID_SASLCRAMMD5_CANNOT_GET_ENTRY_BY_DN;
         String message = getMessage(msgID, String.valueOf(userDN),
                                     de.getErrorMessage());
         bindOperation.setAuthFailureReason(msgID, message);
@@ -461,11 +465,14 @@ public class CRAMMD5SASLMechanismHandler
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "processSASLBind", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        int    msgID   = MSGID_SASLCRAMMD5_CANNOT_MAP_USERNAME;
+        int msgID = MSGID_SASLCRAMMD5_CANNOT_MAP_USERNAME;
         String message = getMessage(msgID, String.valueOf(userName),
                                     de.getErrorMessage());
         bindOperation.setAuthFailureReason(msgID, message);
@@ -568,8 +575,6 @@ public class CRAMMD5SASLMechanismHandler
    */
   private byte[] generateDigest(ByteString password, ByteString challenge)
   {
-    assert debugEnter(CLASS_NAME, "generateDigest",
-                      String.valueOf(password), String.valueOf(challenge));
 
 
     // Get the byte arrays backing the password and challenge.
@@ -634,7 +639,6 @@ public class CRAMMD5SASLMechanismHandler
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -651,7 +655,6 @@ public class CRAMMD5SASLMechanismHandler
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
@@ -682,8 +685,6 @@ public class CRAMMD5SASLMechanismHandler
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // Look at the identity mapper configuration.
@@ -718,7 +719,10 @@ public class CRAMMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLCRAMMD5_CANNOT_GET_IDENTITY_MAPPER;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -752,9 +756,6 @@ public class CRAMMD5SASLMechanismHandler
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -800,7 +801,10 @@ public class CRAMMD5SASLMechanismHandler
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SASLCRAMMD5_CANNOT_GET_IDENTITY_MAPPER;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -839,7 +843,6 @@ public class CRAMMD5SASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isPasswordBased", String.valueOf(mechanism));
 
     // This is a password-based mechanism.
     return true;
@@ -853,7 +856,6 @@ public class CRAMMD5SASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isSecure", String.valueOf(mechanism));
 
     // This may be considered a secure mechanism.
     return true;

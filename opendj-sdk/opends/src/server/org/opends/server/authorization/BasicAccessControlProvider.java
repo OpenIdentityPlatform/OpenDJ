@@ -22,12 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.authorization;
-
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccessControlProvider;
@@ -43,9 +40,6 @@ import org.opends.server.types.InitializationException;
  */
 public class BasicAccessControlProvider implements
     AccessControlProvider {
-  // Fully qualified class name for debugging purposes.
-  private static final String CLASS_NAME =
-    "org.opends.server.authorization.BasicAccessControlProvider";
 
   /**
    * The single handler instance.
@@ -58,7 +52,6 @@ public class BasicAccessControlProvider implements
   public BasicAccessControlProvider() {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
     // No implementation required.
   }
@@ -68,7 +61,6 @@ public class BasicAccessControlProvider implements
    */
   public void initializeAccessControlHandler(ConfigEntry configEntry)
       throws ConfigException, InitializationException {
-    assert debugEnter(CLASS_NAME, "initializeAccessControlHandler");
 
     // Avoid potential race conditions constructing the handler instance
     // and create it here.
@@ -79,7 +71,6 @@ public class BasicAccessControlProvider implements
    * {@inheritDoc}
    */
   public void finalizeAccessControlHandler() {
-    assert debugEnter(CLASS_NAME, "finalizeAccessControlHandler");
 
     // No implementation required.
   }
@@ -88,7 +79,6 @@ public class BasicAccessControlProvider implements
    * {@inheritDoc}
    */
   public AccessControlHandler getInstance() {
-    assert debugEnter(CLASS_NAME, "getInstance");
 
     if (instance == null) {
       instance = new BasicAccessControlHandler();

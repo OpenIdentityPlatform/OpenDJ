@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -38,7 +38,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 
@@ -55,11 +54,6 @@ import java.util.Arrays;
 public class ClearPasswordStorageScheme
        extends PasswordStorageScheme
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.ClearPasswordStorageScheme";
 
 
 
@@ -72,7 +66,6 @@ public class ClearPasswordStorageScheme
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -84,8 +77,6 @@ public class ClearPasswordStorageScheme
   public void initializePasswordStorageScheme(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializePasswordStorageScheme",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -98,7 +89,6 @@ public class ClearPasswordStorageScheme
   @Override()
   public String getStorageSchemeName()
   {
-    assert debugEnter(CLASS_NAME, "getStorageSchemeName");
 
     return STORAGE_SCHEME_NAME_CLEAR;
   }
@@ -112,7 +102,6 @@ public class ClearPasswordStorageScheme
   public ByteString encodePassword(ByteString plaintext)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "encodePassword", "ByteString");
 
     return plaintext.duplicate();
   }
@@ -126,7 +115,6 @@ public class ClearPasswordStorageScheme
   public ByteString encodePasswordWithScheme(ByteString plaintext)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "encodePasswordWithScheme", "ByteString");
 
     StringBuilder buffer = new StringBuilder();
     buffer.append('{');
@@ -146,9 +134,6 @@ public class ClearPasswordStorageScheme
   public boolean passwordMatches(ByteString plaintextPassword,
                                  ByteString storedPassword)
   {
-    assert debugEnter(CLASS_NAME, "passwordMatches",
-                      String.valueOf(plaintextPassword),
-                      String.valueOf(storedPassword));
 
     return Arrays.equals(plaintextPassword.value(), storedPassword.value());
   }
@@ -161,7 +146,6 @@ public class ClearPasswordStorageScheme
   @Override()
   public boolean isReversible()
   {
-    assert debugEnter(CLASS_NAME, "isReversible");
 
     return true;
   }
@@ -175,8 +159,6 @@ public class ClearPasswordStorageScheme
   public ByteString getPlaintextValue(ByteString storedPassword)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getPlaintextValue",
-                      String.valueOf(storedPassword));
 
     return storedPassword.duplicate();
   }
@@ -189,7 +171,6 @@ public class ClearPasswordStorageScheme
   @Override()
   public boolean supportsAuthPasswordSyntax()
   {
-    assert debugEnter(CLASS_NAME, "supportsAuthPasswordSyntax");
 
     // This storage scheme does not support the authentication password syntax.
     return false;
@@ -204,8 +185,6 @@ public class ClearPasswordStorageScheme
   public ByteString encodeAuthPassword(ByteString plaintext)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "encodeAuthPassword",
-                      String.valueOf(plaintext));
 
 
     int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
@@ -223,9 +202,6 @@ public class ClearPasswordStorageScheme
   public boolean authPasswordMatches(ByteString plaintextPassword,
                                      String authInfo, String authValue)
   {
-    assert debugEnter(CLASS_NAME, "authPasswordMatches",
-                      String.valueOf(plaintextPassword),
-                      String.valueOf(authInfo), String.valueOf(authValue));
 
 
     // This storage scheme does not support the authentication password syntax.
@@ -242,8 +218,6 @@ public class ClearPasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getAuthPasswordPlaintextValue",
-                      String.valueOf(authInfo), String.valueOf(authValue));
 
     int    msgID   = MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD;
     String message = getMessage(msgID, getStorageSchemeName());
@@ -259,7 +233,6 @@ public class ClearPasswordStorageScheme
   @Override()
   public boolean isStorageSchemeSecure()
   {
-    assert debugEnter(CLASS_NAME, "isStorageSchemeSecure");
 
     // Clear-text passwords are not obscured in any way.
     return false;

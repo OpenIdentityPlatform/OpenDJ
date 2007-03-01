@@ -59,7 +59,9 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -78,12 +80,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
        extends CertificateMapper
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions." +
-            "SubjectAttributeToUserAttributeCertificateMapper";
 
 
 
@@ -107,7 +103,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -118,8 +113,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   public void initializeCertificateMapper(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeCertificateMapper",
-                      String.valueOf(configEntry));
 
     this.configEntryDN = configEntry.getDN();
 
@@ -205,7 +198,10 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SATUACM_CANNOT_GET_ATTR_MAP;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -233,7 +229,10 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SATUACM_CANNOT_GET_BASE_DN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -251,7 +250,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
    */
   public void finalizeCertificateMapper()
   {
-    assert debugEnter(CLASS_NAME, "finalizeCertificateMapper");
 
     DirectoryServer.deregisterConfigurableComponent(this);
   }
@@ -264,8 +262,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "mapCertificateToUser",
-                      String.valueOf(certificateChain));
 
 
     // Make sure that a peer certificate was provided.
@@ -286,7 +282,10 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "mapCertificateToUser", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SATUACM_PEER_CERT_NOT_X509;
       String message =
@@ -394,7 +393,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -410,7 +408,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -465,8 +462,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
     DN configEntryDN = configEntry.getDN();
     boolean configAcceptable = true;
@@ -563,7 +558,10 @@ mapLoop:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SATUACM_CANNOT_GET_ATTR_MAP;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -592,7 +590,10 @@ mapLoop:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SATUACM_CANNOT_GET_BASE_DN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -630,9 +631,6 @@ mapLoop:
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -749,7 +747,10 @@ mapLoop:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -781,7 +782,10 @@ mapLoop:
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {

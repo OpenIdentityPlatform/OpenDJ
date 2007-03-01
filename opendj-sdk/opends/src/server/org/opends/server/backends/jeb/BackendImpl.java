@@ -69,7 +69,9 @@ import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_BASE_DN;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
 import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
 import static org.opends.server.util.ServerConstants.OID_MANAGE_DSAIT_CONTROL;
@@ -80,11 +82,6 @@ import static org.opends.server.util.ServerConstants.OID_MANAGE_DSAIT_CONTROL;
  */
 public class BackendImpl extends Backend implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.BackendImpl";
 
   /**
    * The DN of the configuration entry for this backend.
@@ -168,7 +165,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   private void readerBegin()
   {
-    assert debugEnter(CLASS_NAME, "readerBegin");
 
     threadTotalCount.getAndIncrement();
   }
@@ -180,7 +176,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   private void readerEnd()
   {
-    assert debugEnter(CLASS_NAME, "readerEnd");
 
     threadTotalCount.getAndDecrement();
   }
@@ -192,7 +187,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   private void writerBegin()
   {
-    assert debugEnter(CLASS_NAME, "writerBegin");
 
     threadTotalCount.getAndIncrement();
     threadWriteCount.getAndIncrement();
@@ -205,7 +199,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   private void writerEnd()
   {
-    assert debugEnter(CLASS_NAME, "writerEnd");
 
     threadWriteCount.getAndDecrement();
     threadTotalCount.getAndDecrement();
@@ -220,7 +213,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   private void waitUntilQuiescent()
   {
-    assert debugEnter(CLASS_NAME, "waitUntilQuiescent");
 
     while (threadTotalCount.get() > 0)
     {
@@ -231,7 +223,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (InterruptedException e)
       {
-        assert debugException(CLASS_NAME, "waitUntilQuiescent", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -246,7 +241,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public static String getContainerName(DN dn)
   {
-    assert debugEnter(CLASS_NAME, "getContainerName");
 
     String normStr = dn.toNormalizedString();
     StringBuilder builder = new StringBuilder(normStr.length());
@@ -286,7 +280,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
        throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeBackend");
 
     configDN = configEntry.getDN();
 
@@ -302,9 +295,12 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackend", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
-        int    msgID   = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
+        int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
         String message = getMessage(msgID, String.valueOf(dn),
                                     String.valueOf(e));
         throw new InitializationException(msgID, message, e);
@@ -327,7 +323,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       String message = getMessage(MSGID_JEB_OPEN_ENV_FAIL,
                                   e.getMessage());
       throw new InitializationException(MSGID_JEB_OPEN_ENV_FAIL, message, e);
@@ -345,8 +344,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (DatabaseException databaseException)
     {
-      assert debugException(CLASS_NAME, "initializeBackend",
-                            databaseException);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, databaseException);
+      }
       String message = getMessage(MSGID_JEB_OPEN_DATABASE_FAIL,
                                   databaseException.getMessage());
       throw new InitializationException(MSGID_JEB_OPEN_DATABASE_FAIL, message,
@@ -366,8 +367,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch(DatabaseException databaseException)
     {
-      assert debugException(CLASS_NAME, "initializeBackend",
-                            databaseException);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, databaseException);
+      }
       String message = getMessage(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
                                   databaseException.getMessage());
       throw new InitializationException(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
@@ -397,7 +400,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public void finalizeBackend()
   {
-    assert debugEnter(CLASS_NAME, "finalizeBackend");
 
     // Deregister our configurable components.
     // TODO: configurableEnv is always null and will not be deregistered.
@@ -418,7 +420,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "finalizeBackend", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -442,7 +447,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "finalizeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       int msgID = MSGID_JEB_DATABASE_EXCEPTION;
       String message = getMessage(msgID, e.getMessage());
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -470,7 +478,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public boolean isLocal()
   {
-    assert debugEnter(CLASS_NAME, "isLocal");
 
     return true;
   }
@@ -486,7 +493,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public boolean supportsLDIFExport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFExport");
 
     return true;
   }
@@ -502,7 +508,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public boolean supportsLDIFImport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFImport");
 
     return true;
   }
@@ -522,7 +527,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public boolean supportsBackup()
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
     return true;
   }
@@ -546,7 +550,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
     return true;
   }
@@ -561,7 +564,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public boolean supportsRestore()
   {
-    assert debugEnter(CLASS_NAME, "supportsRestore");
 
     return true;
   }
@@ -575,7 +577,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public HashSet<String> getSupportedFeatures()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return new HashSet<String>();  //NYI
   }
@@ -589,7 +590,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public HashSet<String> getSupportedControls()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return supportedControls;
   }
@@ -603,7 +603,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public DN[] getBaseDNs()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDNs");
 
     return config.getBaseDNs();
   }
@@ -615,7 +614,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public long getEntryCount()
   {
-    assert debugEnter(CLASS_NAME, "getEntryCount");
 
     if (rootContainer != null)
     {
@@ -625,7 +623,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "getEntryCount", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -646,7 +647,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getEntry");
 
     readerBegin();
     try
@@ -659,7 +659,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (DatabaseException e)
       {
-        assert debugException(CLASS_NAME, "getEntry", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -667,7 +670,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (JebException e)
       {
-        assert debugException(CLASS_NAME, "getEntry", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
                                      e.getMessageID());
@@ -698,7 +704,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void addEntry(Entry entry, AddOperation addOperation)
        throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addEntry");
 
     writerBegin();
     try
@@ -712,7 +717,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (DatabaseException e)
       {
-        assert debugException(CLASS_NAME, "addEntry", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -720,7 +728,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (JebException e)
       {
-        assert debugException(CLASS_NAME, "addEntry", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
                                      e.getMessageID());
@@ -750,7 +761,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
        throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "deleteEntry");
 
     writerBegin();
     try
@@ -762,7 +772,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (DatabaseException e)
       {
-        assert debugException(CLASS_NAME, "deleteEntry", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -770,7 +783,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (JebException e)
       {
-        assert debugException(CLASS_NAME, "deleteEntry", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
                                      e.getMessageID());
@@ -800,7 +816,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
        throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "replaceEntry");
 
     writerBegin();
     try
@@ -814,7 +829,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (DatabaseException e)
       {
-        assert debugException(CLASS_NAME, "replaceEntry", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -822,7 +840,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       }
       catch (JebException e)
       {
-        assert debugException(CLASS_NAME, "replaceEntry", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
                                      e.getMessageID());
@@ -858,7 +879,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                           ModifyDNOperation modifyDNOperation)
        throws DirectoryException, CancelledOperationException
   {
-    assert debugEnter(CLASS_NAME, "renameEntry");
 
     writerBegin();
     try
@@ -881,14 +901,20 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "renameEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, MSGID_JEB_DATABASE_EXCEPTION);
     }
     catch (JebException e)
     {
-      assert debugException(CLASS_NAME, "renameEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
                                    e.getMessageID());
@@ -913,7 +939,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void search(SearchOperation searchOperation)
        throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "search");
 
     readerBegin();
     try
@@ -924,7 +949,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "search", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, MSGID_JEB_DATABASE_EXCEPTION);
@@ -953,7 +981,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                          LDIFExportConfig exportConfig)
        throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "exportLDIF");
 
     // Initialize a config object.
     config = new Config();
@@ -964,7 +991,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (ConfigException e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
                                    e.getMessageID());
@@ -991,7 +1021,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (IOException ioe)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", ioe);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ioe);
+      }
       int msgID = MSGID_JEB_IO_ERROR;
       String message = getMessage(msgID, ioe.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -999,14 +1032,20 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (JebException je)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", je);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, je);
+      }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    je.getMessage(),
                                    je.getMessageID());
     }
     catch (DatabaseException de)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                   de.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -1014,7 +1053,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (LDIFException e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
                                    e.getMessageID());
@@ -1032,7 +1074,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
         }
         catch (DatabaseException e)
         {
-          assert debugException(CLASS_NAME, "exportLDIF", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -1056,7 +1101,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                          LDIFImportConfig importConfig)
        throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "importLDIF");
 
     // Initialize a config object.
     config = new Config();
@@ -1067,7 +1111,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (ConfigException e)
     {
-      assert debugException(CLASS_NAME, "importLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
                                    e.getMessageID());
@@ -1080,7 +1127,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (IOException ioe)
     {
-      assert debugException(CLASS_NAME, "importLDIF", ioe);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ioe);
+      }
       int msgID = MSGID_JEB_IO_ERROR;
       String message = getMessage(msgID, ioe.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -1088,14 +1138,20 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (JebException je)
     {
-      assert debugException(CLASS_NAME, "importLDIF", je);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, je);
+      }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    je.getMessage(),
                                    je.getMessageID());
     }
     catch (DatabaseException de)
     {
-      assert debugException(CLASS_NAME, "importLDIF", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                   de.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -1123,7 +1179,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                             DN[] baseDNs, Entry statEntry)
        throws InitializationException, ConfigException, DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "verifyBackend");
 
     // Initialize a config object.
     config = new Config();
@@ -1150,7 +1205,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (DatabaseException e)
     {
-      assert debugException(CLASS_NAME, "verifyBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                   e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -1158,7 +1216,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     }
     catch (JebException e)
     {
-      assert debugException(CLASS_NAME, "verifyBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
                                    e.getMessageID());
@@ -1176,7 +1237,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
         }
         catch (DatabaseException e)
         {
-          assert debugException(CLASS_NAME, "verifyBackend", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -1199,7 +1263,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
        throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "createBackup");
 
     BackupManager backupManager =
          new BackupManager(getBackendID());
@@ -1222,7 +1285,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
        throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeBackup");
 
     BackupManager backupManager =
          new BackupManager(getBackendID());
@@ -1246,7 +1308,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                             RestoreConfig restoreConfig)
        throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "restoreBackup");
 
     BackupManager backupManager =
          new BackupManager(getBackendID());
@@ -1264,7 +1325,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configDN;
   }
@@ -1280,7 +1340,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     return configAttrs;
   }
@@ -1303,7 +1362,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration");
 
     DN[] baseDNs = null;
     boolean acceptable = true;
@@ -1364,7 +1422,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration");
 
     ConfigChangeResult ccr;
     ResultCode resultCode = ResultCode.SUCCESS;
@@ -1418,7 +1475,10 @@ public class BackendImpl extends Backend implements ConfigurableComponent
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             resultCode = DirectoryServer.getServerErrorResultCode();
 
@@ -1457,7 +1517,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public RootContainer getRootContainer()
   {
-    assert debugEnter(CLASS_NAME, "getRootContainer");
     return rootContainer;
   }
 

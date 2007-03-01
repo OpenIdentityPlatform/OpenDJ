@@ -83,9 +83,12 @@ import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
-import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -99,12 +102,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class InternalClientConnection
        extends ClientConnection
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.internal." +
-       "InternalClientConnection";
 
 
   // The message ID counter to use for internal connections.
@@ -153,7 +150,6 @@ public class InternalClientConnection
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
     // This connection will be authenticated as a root user so that no
     // access control will be enforced.
@@ -217,7 +213,10 @@ public class InternalClientConnection
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "<init>", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       logError(ErrorLogCategory.CONNECTION_HANDLING,
                ErrorLogSeverity.SEVERE_ERROR,
@@ -235,7 +234,10 @@ public class InternalClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -252,7 +254,6 @@ public class InternalClientConnection
   {
     super();
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(authInfo));
 
     this.authenticationInfo = authInfo;
     super.setAuthenticationInfo(authInfo);
@@ -270,7 +271,10 @@ public class InternalClientConnection
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "<init>", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -285,7 +289,6 @@ public class InternalClientConnection
    */
   public static InternalClientConnection getRootConnection()
   {
-    assert debugEnter(CLASS_NAME, "getRootConnection");
 
     return rootConnection;
   }
@@ -301,7 +304,6 @@ public class InternalClientConnection
    */
   public static long nextOperationID()
   {
-    assert debugEnter(CLASS_NAME, "nextOperationID");
 
     long opID = nextOperationID.getAndIncrement();
     if (opID < 0)
@@ -334,7 +336,6 @@ public class InternalClientConnection
    */
   public static int nextMessageID()
   {
-    assert debugEnter(CLASS_NAME, "nextMessageID");
 
     int msgID = nextMessageID.getAndIncrement();
     if (msgID < 0)
@@ -367,7 +368,6 @@ public class InternalClientConnection
    */
   public long getConnectionID()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionID");
 
     return connectionID;
   }
@@ -383,7 +383,6 @@ public class InternalClientConnection
    */
   public ConnectionHandler getConnectionHandler()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionHandler");
 
     return InternalConnectionHandler.getInstance();
   }
@@ -399,7 +398,6 @@ public class InternalClientConnection
    */
   public String getProtocol()
   {
-    assert debugEnter(CLASS_NAME, "getProtocol");
 
     return "internal";
   }
@@ -413,7 +411,6 @@ public class InternalClientConnection
    */
   public String getClientAddress()
   {
-    assert debugEnter(CLASS_NAME, "getClientAddress");
 
     return "internal";
   }
@@ -429,7 +426,6 @@ public class InternalClientConnection
    */
   public String getServerAddress()
   {
-    assert debugEnter(CLASS_NAME, "getServerAddress");
 
     return "internal";
   }
@@ -447,7 +443,6 @@ public class InternalClientConnection
    */
   public InetAddress getRemoteAddress()
   {
-    assert debugEnter(CLASS_NAME, "getRemoteAddress");
 
     return null;
   }
@@ -465,7 +460,6 @@ public class InternalClientConnection
    */
   public InetAddress getLocalAddress()
   {
-    assert debugEnter(CLASS_NAME, "getLocalAddress");
 
     return null;
   }
@@ -486,7 +480,6 @@ public class InternalClientConnection
    */
   public boolean isSecure()
   {
-    assert debugEnter(CLASS_NAME, "isSecure");
 
     // Internal connections will generally be considered secure, but
     // they may be declared insecure if they are accessed through some
@@ -507,7 +500,6 @@ public class InternalClientConnection
    */
   public ConnectionSecurityProvider getConnectionSecurityProvider()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionSecurityProvider");
 
     return securityProvider;
   }
@@ -525,8 +517,6 @@ public class InternalClientConnection
   public void setConnectionSecurityProvider(ConnectionSecurityProvider
                                                  securityProvider)
   {
-    assert debugEnter(CLASS_NAME, "setConnectionSecurityProvider",
-                      String.valueOf(securityProvider));
 
     this.securityProvider = securityProvider;
   }
@@ -543,7 +533,6 @@ public class InternalClientConnection
    */
   public String getSecurityMechanism()
   {
-    assert debugEnter(CLASS_NAME, "getSecurityMechanism");
 
     return securityProvider.getSecurityMechanismName();
   }
@@ -571,7 +560,6 @@ public class InternalClientConnection
    */
   public boolean processDataRead(ByteBuffer buffer)
   {
-    assert debugEnter(CLASS_NAME, "processDataRead");
 
     // This method will not do anything with the data because there is
     // no actual "connection" from which information can be read, nor
@@ -589,8 +577,6 @@ public class InternalClientConnection
    */
   public void sendResponse(Operation operation)
   {
-    assert debugEnter(CLASS_NAME, "sendResponse",
-                      String.valueOf(operation));
 
     // There will not be any response sent by this method, since there
     // is not an actual connection.
@@ -607,7 +593,6 @@ public class InternalClientConnection
    */
   public AuthenticationInfo getAuthenticationInfo()
   {
-    assert debugEnter(CLASS_NAME, "getAuthenticationInfo");
 
     return authenticationInfo;
   }
@@ -627,8 +612,6 @@ public class InternalClientConnection
   public void setAuthenticationInfo(AuthenticationInfo
                                          authenticationInfo)
   {
-    assert debugEnter(CLASS_NAME, "setAuthenticationInfo",
-                      String.valueOf(authenticationInfo));
 
     // No implementation required.
   }
@@ -642,7 +625,6 @@ public class InternalClientConnection
    */
   public void setUnauthenticated()
   {
-    assert debugEnter(CLASS_NAME, "setUnauthenticated");
 
     // No implementation required.
   }
@@ -663,9 +645,6 @@ public class InternalClientConnection
   public AddOperation processAdd(ByteString rawEntryDN,
                                  List<LDAPAttribute> rawAttributes)
   {
-    assert debugEnter(CLASS_NAME, "processAdd",
-                      String.valueOf(rawEntryDN),
-                      String.valueOf(rawAttributes));
 
     AddOperation addOperation =
          new AddOperation(this, nextOperationID(), nextMessageID(),
@@ -702,11 +681,6 @@ public class InternalClientConnection
                            Map<AttributeType,List<Attribute>>
                                 operationalAttributes)
   {
-    assert debugEnter(CLASS_NAME, "processAdd",
-                      String.valueOf(entryDN),
-                      String.valueOf(objectClasses),
-                      String.valueOf(userAttributes),
-                      String.valueOf(operationalAttributes));
 
     AddOperation addOperation =
          new AddOperation(this, nextOperationID(), nextMessageID(),
@@ -736,8 +710,6 @@ public class InternalClientConnection
   public BindOperation processSimpleBind(ByteString rawBindDN,
                                          ByteString password)
   {
-    assert debugEnter(CLASS_NAME, "processSimpleBind",
-                      String.valueOf(rawBindDN), "ByteString");
 
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
@@ -766,8 +738,6 @@ public class InternalClientConnection
   public BindOperation processSimpleBind(DN bindDN,
                                          ByteString password)
   {
-    assert debugEnter(CLASS_NAME, "processSimpleBind",
-                      String.valueOf(bindDN), "ByteString");
 
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
@@ -798,10 +768,6 @@ public class InternalClientConnection
                             String saslMechanism,
                             ASN1OctetString saslCredentials)
   {
-    assert debugEnter(CLASS_NAME, "processSASLBind",
-                      String.valueOf(rawBindDN),
-                      String.valueOf(saslMechanism),
-                      "ASN1OctetString");
 
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
@@ -832,8 +798,6 @@ public class InternalClientConnection
                             String saslMechanism,
                             ASN1OctetString saslCredentials)
   {
-    assert debugEnter(CLASS_NAME, "processSASLBind",
-                      String.valueOf(bindDN), "ByteString");
 
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
@@ -865,10 +829,6 @@ public class InternalClientConnection
                                          String attributeType,
                                          ByteString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "processCompare",
-                      String.valueOf(rawEntryDN),
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     CompareOperation compareOperation =
          new CompareOperation(this, nextOperationID(),
@@ -901,10 +861,6 @@ public class InternalClientConnection
                                          AttributeType attributeType,
                                          ByteString assertionValue)
   {
-    assert debugEnter(CLASS_NAME, "processCompare",
-                      String.valueOf(entryDN),
-                      String.valueOf(attributeType),
-                      String.valueOf(assertionValue));
 
     CompareOperation compareOperation =
          new CompareOperation(this, nextOperationID(),
@@ -931,8 +887,6 @@ public class InternalClientConnection
    */
   public DeleteOperation processDelete(ByteString rawEntryDN)
   {
-    assert debugEnter(CLASS_NAME, "processDelete",
-                      String.valueOf(rawEntryDN));
 
     DeleteOperation deleteOperation =
          new DeleteOperation(this, nextOperationID(), nextMessageID(),
@@ -957,8 +911,6 @@ public class InternalClientConnection
    */
   public DeleteOperation processDelete(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "processDelete",
-                      String.valueOf(entryDN));
 
     DeleteOperation deleteOperation =
          new DeleteOperation(this, nextOperationID(), nextMessageID(),
@@ -987,9 +939,6 @@ public class InternalClientConnection
   public ExtendedOperation processExtendedOperation(String requestOID,
                                 ASN1OctetString requestValue)
   {
-    assert debugEnter(CLASS_NAME, "processExtendedOperation",
-                      String.valueOf(requestOID),
-                      String.valueOf(requestValue));
 
     ExtendedOperation extendedOperation =
          new ExtendedOperation(this, nextOperationID(),
@@ -1020,9 +969,6 @@ public class InternalClientConnection
   public ModifyOperation processModify(ByteString rawEntryDN,
                               List<LDAPModification> rawModifications)
   {
-    assert debugEnter(CLASS_NAME, "processModify",
-                      String.valueOf(rawEntryDN),
-                      String.valueOf(rawModifications));
 
     ModifyOperation modifyOperation =
          new ModifyOperation(this, nextOperationID(), nextMessageID(),
@@ -1051,9 +997,6 @@ public class InternalClientConnection
   public ModifyOperation processModify(DN entryDN,
                               List<Modification> modifications)
   {
-    assert debugEnter(CLASS_NAME, "processModify",
-                      String.valueOf(entryDN),
-                      String.valueOf(modifications));
 
     ModifyOperation modifyOperation =
          new ModifyOperation(this, nextOperationID(), nextMessageID(),
@@ -1084,10 +1027,6 @@ public class InternalClientConnection
                                            ByteString rawNewRDN,
                                            boolean deleteOldRDN)
   {
-    assert debugEnter(CLASS_NAME, "processModifyDN",
-                      String.valueOf(rawEntryDN),
-                      String.valueOf(rawNewRDN),
-                      String.valueOf(deleteOldRDN));
 
     return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN, null);
   }
@@ -1115,11 +1054,6 @@ public class InternalClientConnection
                                            boolean deleteOldRDN,
                                            ByteString rawNewSuperior)
   {
-    assert debugEnter(CLASS_NAME, "processModifyDN",
-                      String.valueOf(rawEntryDN),
-                      String.valueOf(rawNewRDN),
-                      String.valueOf(deleteOldRDN),
-                      String.valueOf(rawNewSuperior));
 
     ModifyDNOperation modifyDNOperation =
          new ModifyDNOperation(this, nextOperationID(),
@@ -1151,10 +1085,6 @@ public class InternalClientConnection
   public ModifyDNOperation processModifyDN(DN entryDN, RDN newRDN,
                                            boolean deleteOldRDN)
   {
-    assert debugEnter(CLASS_NAME, "processModifyDN",
-                      String.valueOf(entryDN),
-                      String.valueOf(newRDN),
-                      String.valueOf(deleteOldRDN));
 
     return processModifyDN(entryDN, newRDN, deleteOldRDN, null);
   }
@@ -1181,10 +1111,6 @@ public class InternalClientConnection
                                            boolean deleteOldRDN,
                                            DN newSuperior)
   {
-    assert debugEnter(CLASS_NAME, "processModifyDN",
-                      String.valueOf(entryDN), String.valueOf(newRDN),
-                      String.valueOf(deleteOldRDN),
-                      String.valueOf(newSuperior));
 
     ModifyDNOperation modifyDNOperation =
          new ModifyDNOperation(this, nextOperationID(),
@@ -1218,9 +1144,6 @@ public class InternalClientConnection
                                       SearchScope scope,
                                       LDAPFilter filter)
   {
-    assert debugEnter(CLASS_NAME, "processSearch",
-                      String.valueOf(rawBaseDN),
-                      String.valueOf(scope), String.valueOf(filter));
 
     return processSearch(rawBaseDN, scope,
                          DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
@@ -1257,18 +1180,6 @@ public class InternalClientConnection
                             boolean typesOnly, LDAPFilter filter,
                             LinkedHashSet<String> attributes)
   {
-    assert debugEnter(CLASS_NAME, "processSearch",
-                      new String[]
-                      {
-                        String.valueOf(rawBaseDN),
-                        String.valueOf(scope),
-                        String.valueOf(derefPolicy),
-                        String.valueOf(sizeLimit),
-                        String.valueOf(timeLimit),
-                        String.valueOf(typesOnly),
-                        String.valueOf(filter),
-                        String.valueOf(attributes)
-                      });
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
@@ -1316,19 +1227,6 @@ public class InternalClientConnection
                             LinkedHashSet<String> attributes,
                             InternalSearchListener searchListener)
   {
-    assert debugEnter(CLASS_NAME, "processSearch",
-                      new String[]
-                      {
-                        String.valueOf(rawBaseDN),
-                        String.valueOf(scope),
-                        String.valueOf(derefPolicy),
-                        String.valueOf(sizeLimit),
-                        String.valueOf(timeLimit),
-                        String.valueOf(typesOnly),
-                        String.valueOf(filter),
-                        String.valueOf(attributes),
-                        String.valueOf(searchListener)
-                      });
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
@@ -1364,9 +1262,6 @@ public class InternalClientConnection
                                       SearchScope scope,
                                       SearchFilter filter)
   {
-    assert debugEnter(CLASS_NAME, "processSearch",
-                      String.valueOf(baseDN),
-                      String.valueOf(scope), String.valueOf(filter));
 
     return processSearch(baseDN, scope,
                          DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
@@ -1402,18 +1297,6 @@ public class InternalClientConnection
                             boolean typesOnly, SearchFilter filter,
                             LinkedHashSet<String> attributes)
   {
-    assert debugEnter(CLASS_NAME, "processSearch",
-                      new String[]
-                      {
-                        String.valueOf(baseDN),
-                        String.valueOf(scope),
-                        String.valueOf(derefPolicy),
-                        String.valueOf(sizeLimit),
-                        String.valueOf(timeLimit),
-                        String.valueOf(typesOnly),
-                        String.valueOf(filter),
-                        String.valueOf(attributes)
-                      });
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
@@ -1460,19 +1343,6 @@ public class InternalClientConnection
                             LinkedHashSet<String> attributes,
                             InternalSearchListener searchListener)
   {
-    assert debugEnter(CLASS_NAME, "processSearch",
-                      new String[]
-                      {
-                        String.valueOf(baseDN),
-                        String.valueOf(scope),
-                        String.valueOf(derefPolicy),
-                        String.valueOf(sizeLimit),
-                        String.valueOf(timeLimit),
-                        String.valueOf(typesOnly),
-                        String.valueOf(filter),
-                        String.valueOf(attributes),
-                        String.valueOf(searchListener)
-                      });
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
@@ -1500,9 +1370,6 @@ public class InternalClientConnection
   public void sendSearchEntry(SearchOperation searchOperation,
                               SearchResultEntry searchEntry)
   {
-    assert debugEnter(CLASS_NAME, "sendSearchEntry",
-                      String.valueOf(searchOperation),
-                      String.valueOf(searchEntry));
 
     ((InternalSearchOperation) searchOperation).
          addSearchEntry(searchEntry);
@@ -1526,9 +1393,6 @@ public class InternalClientConnection
   public boolean sendSearchReference(SearchOperation searchOperation,
                       SearchResultReference searchReference)
   {
-    assert debugEnter(CLASS_NAME, "sendSearchReference",
-                      String.valueOf(searchOperation),
-                      String.valueOf(searchReference));
 
 
     ((InternalSearchOperation)
@@ -1551,8 +1415,6 @@ public class InternalClientConnection
   protected boolean sendIntermediateResponseMessage(
                          IntermediateResponse intermediateResponse)
   {
-    assert debugEnter(CLASS_NAME, "sendIntermediateResponseMessage",
-                      String.valueOf(intermediateResponse));
 
 
     // FIXME -- Do we need to support internal intermediate responses?
@@ -1586,11 +1448,6 @@ public class InternalClientConnection
                          boolean sendNotification, String message,
                          int messageID)
   {
-    assert debugEnter(CLASS_NAME, "disconnect",
-                      String.valueOf(disconnectReason),
-                      String.valueOf(sendNotification),
-                      String.valueOf(message),
-                      String.valueOf(messageID));
 
     // No implementation is required since there is nothing to
     // disconnect.  Further, since there is no real disconnect, we can
@@ -1611,7 +1468,6 @@ public class InternalClientConnection
    */
   public boolean bindInProgress()
   {
-    assert debugEnter(CLASS_NAME, "bindInProgress");
 
     // For internal operations, we don't care if there are any binds
     // in progress.
@@ -1630,8 +1486,6 @@ public class InternalClientConnection
    */
   public void setBindInProgress(boolean bindInProgress)
   {
-    assert debugEnter(CLASS_NAME, "setBindInProgress",
-                      String.valueOf(bindInProgress));
 
     // No implementation is required.
   }
@@ -1647,7 +1501,6 @@ public class InternalClientConnection
    */
   public Collection<Operation> getOperationsInProgress()
   {
-    assert debugEnter(CLASS_NAME, "getOperationsInProgress");
 
     return operationList;
   }
@@ -1666,8 +1519,6 @@ public class InternalClientConnection
    */
   public Operation getOperationInProgress(int messageID)
   {
-    assert debugEnter(CLASS_NAME, "getOperationInProgress",
-                      String.valueOf(messageID));
 
     // Internal operations will not be tracked.
     return null;
@@ -1690,8 +1541,6 @@ public class InternalClientConnection
    */
   public boolean removeOperationInProgress(int messageID)
   {
-    assert debugEnter(CLASS_NAME, "removeOperationInProgress",
-                      String.valueOf(messageID));
 
     // No implementation is required, since internal operations will
     // not be tracked.
@@ -1713,9 +1562,6 @@ public class InternalClientConnection
   public CancelResult cancelOperation(int messageID,
                                       CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancelOperation",
-                      String.valueOf(messageID),
-                      String.valueOf(cancelRequest));
 
     // Internal operations cannot be cancelled.
     return CancelResult.CANNOT_CANCEL;
@@ -1731,8 +1577,6 @@ public class InternalClientConnection
    */
   public void cancelAllOperations(CancelRequest cancelRequest)
   {
-    assert debugEnter(CLASS_NAME, "cancelAllOperations",
-                      String.valueOf(cancelRequest));
 
     // No implementation is required since internal operations cannot
     // be cancelled.
@@ -1752,9 +1596,6 @@ public class InternalClientConnection
   public void cancelAllOperationsExcept(CancelRequest cancelRequest,
                                         int messageID)
   {
-    assert debugEnter(CLASS_NAME, "cancelAllOperationsExcept",
-                      String.valueOf(cancelRequest),
-                      String.valueOf(messageID));
 
     // No implementation is required since internal operations cannot
     // be cancelled.
@@ -1767,7 +1608,6 @@ public class InternalClientConnection
    */
   public String getMonitorSummary()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorSummary");
 
     StringBuilder buffer = new StringBuilder();
     buffer.append("connID=\"");
@@ -1790,8 +1630,6 @@ public class InternalClientConnection
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("InternalClientConnection(connID=");
     buffer.append(connectionID);

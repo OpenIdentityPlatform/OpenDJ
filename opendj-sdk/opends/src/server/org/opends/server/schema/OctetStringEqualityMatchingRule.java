@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -38,7 +38,6 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -51,11 +50,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class OctetStringEqualityMatchingRule
        extends EqualityMatchingRule
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.schema.OctetStringEqualityMatchingRule";
 
 
 
@@ -66,7 +60,6 @@ public class OctetStringEqualityMatchingRule
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -88,8 +81,6 @@ public class OctetStringEqualityMatchingRule
   public void initializeMatchingRule(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMatchingRule",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -104,7 +95,6 @@ public class OctetStringEqualityMatchingRule
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return EMR_OCTET_STRING_NAME;
   }
@@ -118,7 +108,6 @@ public class OctetStringEqualityMatchingRule
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return EMR_OCTET_STRING_OID;
   }
@@ -133,7 +122,6 @@ public class OctetStringEqualityMatchingRule
    */
   public String getDescription()
   {
-    assert debugEnter(CLASS_NAME, "getDescription");
 
     // There is no standard description for this matching rule.
     return null;
@@ -149,7 +137,6 @@ public class OctetStringEqualityMatchingRule
    */
   public String getSyntaxOID()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxOID");
 
     return SYNTAX_OCTET_STRING_OID;
   }
@@ -170,7 +157,6 @@ public class OctetStringEqualityMatchingRule
   public ByteString normalizeValue(ByteString value)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalizeValue", String.valueOf(value));
 
     return new ASN1OctetString(value.value());
   }
@@ -189,8 +175,6 @@ public class OctetStringEqualityMatchingRule
    */
   public boolean areEqual(ByteString value1, ByteString value2)
   {
-    assert debugEnter(CLASS_NAME, "areEqual", String.valueOf(value1),
-                      String.valueOf(value2));
 
     // Since the values are already normalized, we just need to compare the
     // associated byte arrays.

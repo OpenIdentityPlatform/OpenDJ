@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
 
@@ -38,7 +38,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.HostPort;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -49,12 +48,6 @@ import static org.opends.server.loggers.Debug.*;
 public class InternalConnectionHandler
        extends ConnectionHandler
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.internal." +
-       "InternalConnectionHandler";
 
 
 
@@ -83,7 +76,6 @@ public class InternalConnectionHandler
   {
     super("Internal Connection Handler Thread");
 
-    assert debugConstructor(CLASS_NAME);
 
     // Since we can't guarantee that the initializeConnectionHandler
     // method will always be called for this method, we'll do the
@@ -103,7 +95,6 @@ public class InternalConnectionHandler
    */
   public static InternalConnectionHandler getInstance()
   {
-    assert debugEnter(CLASS_NAME, "getInstance");
 
     return handlerInstance;
   }
@@ -129,8 +120,6 @@ public class InternalConnectionHandler
   public void initializeConnectionHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeConnectionHandler",
-                      String.valueOf(configEntry));
   }
 
 
@@ -154,8 +143,6 @@ public class InternalConnectionHandler
   public void finalizeConnectionHandler(String finalizeReason,
                                         boolean closeConnections)
   {
-    assert debugEnter(CLASS_NAME, "initializeConnectionHandler",
-                      String.valueOf(closeConnections));
 
     // No implementation is required.
   }
@@ -167,7 +154,6 @@ public class InternalConnectionHandler
    */
   public String getConnectionHandlerName()
   {
-    assert debugEnter(CLASS_NAME, "getConnectionHandlerName");
 
     return "Internal Connection Handler";
   }
@@ -179,7 +165,6 @@ public class InternalConnectionHandler
    */
   public String getProtocol()
   {
-    assert debugEnter(CLASS_NAME, "getProtocol");
 
     return protocol;
   }
@@ -191,7 +176,6 @@ public class InternalConnectionHandler
    */
   public Collection<HostPort> getListeners()
   {
-    assert debugEnter(CLASS_NAME, "getProtocol");
 
     return listeners;
   }
@@ -207,7 +191,6 @@ public class InternalConnectionHandler
    */
   public Collection<ClientConnection> getClientConnections()
   {
-    assert debugEnter(CLASS_NAME, "getClientConnections");
 
     return connectionList;
   }
@@ -220,7 +203,6 @@ public class InternalConnectionHandler
    */
   public void run()
   {
-    assert debugEnter(CLASS_NAME, "run");
 
     // No implementation is required since this connection handler
     // won't actually accept connections.
@@ -236,7 +218,6 @@ public class InternalConnectionHandler
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     return "Internal Connection Handler";
   }
@@ -252,8 +233,6 @@ public class InternalConnectionHandler
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("Internal Connection Handler");
   }

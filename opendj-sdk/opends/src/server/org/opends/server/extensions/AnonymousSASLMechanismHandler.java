@@ -40,7 +40,6 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -58,11 +57,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class AnonymousSASLMechanismHandler
        extends SASLMechanismHandler
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.AnonymousSASLMechanismHandler";
 
 
 
@@ -75,7 +69,6 @@ public class AnonymousSASLMechanismHandler
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -87,8 +80,6 @@ public class AnonymousSASLMechanismHandler
   public void initializeSASLMechanismHandler(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeSASLMechanismHandler",
-                      String.valueOf(configEntry));
 
 
     // No real implementation is required.  Simply register with the Directory
@@ -105,7 +96,6 @@ public class AnonymousSASLMechanismHandler
   @Override()
   public void finalizeSASLMechanismHandler()
   {
-    assert debugEnter(CLASS_NAME, "finalizeSASLMechanismHandler");
 
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_ANONYMOUS);
   }
@@ -119,8 +109,6 @@ public class AnonymousSASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-    assert debugEnter(CLASS_NAME, "processSASLBind",
-                      String.valueOf(bindOperation));
 
 
     // See if the client provided SASL credentials including trace information.
@@ -155,7 +143,6 @@ public class AnonymousSASLMechanismHandler
   @Override()
   public boolean isPasswordBased(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isPasswordBased", String.valueOf(mechanism));
 
     // This is not a password-based mechanism.
     return false;
@@ -169,7 +156,6 @@ public class AnonymousSASLMechanismHandler
   @Override()
   public boolean isSecure(String mechanism)
   {
-    assert debugEnter(CLASS_NAME, "isSecure", String.valueOf(mechanism));
 
     // This is not a secure mechanism.
     return false;

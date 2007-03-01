@@ -61,6 +61,7 @@ import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.LDIFException;
@@ -75,7 +76,8 @@ import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -91,7 +93,7 @@ import static org.opends.server.util.StaticUtils.*;
 public class LDAPModify
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME = "org.opends.server.tools.LDAPModify";
 
@@ -161,8 +163,11 @@ public class LDAPModify
       reader = new LDIFReader(importConfig);
     } catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "readAndExecute", e);
-      int    msgID   = MSGID_LDIF_FILE_CANNOT_OPEN_FOR_READ;
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
+      int msgID = MSGID_LDIF_FILE_CANNOT_OPEN_FOR_READ;
       String message = getMessage(msgID, is, String.valueOf(e));
       throw new IOException(message);
     }
@@ -176,24 +181,32 @@ public class LDAPModify
         entry = reader.readChangeRecord(modifyOptions.getDefaultAdd());
       } catch (LDIFException le)
       {
-        assert debugException(CLASS_NAME, "readAndExecute", le);
-        if(!modifyOptions.continueOnError())
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, le);
+        }
+        if (!modifyOptions.continueOnError())
         {
           try
           {
             reader.close();
-          } catch (Exception e)
+          }
+          catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "readAndExecute", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
           }
 
-          int    msgID   = MSGID_LDIF_FILE_INVALID_LDIF_ENTRY;
+          int msgID = MSGID_LDIF_FILE_INVALID_LDIF_ENTRY;
           String message = getMessage(msgID, le.getLineNumber(), fileName,
                                       String.valueOf(le));
           throw new IOException(message);
-        } else
+        }
+        else
         {
-          int    msgID   = MSGID_LDIF_FILE_INVALID_LDIF_ENTRY;
+          int msgID = MSGID_LDIF_FILE_INVALID_LDIF_ENTRY;
           String message = getMessage(msgID, le.getLineNumber(), fileName,
                                       String.valueOf(le));
           err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -201,9 +214,12 @@ public class LDAPModify
         }
       } catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "readAndExecute", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
-        if(!modifyOptions.continueOnError())
+        if (!modifyOptions.continueOnError())
         {
           try
           {
@@ -211,15 +227,19 @@ public class LDAPModify
           }
           catch (Exception e2)
           {
-            assert debugException(CLASS_NAME, "readAndExecute", e2);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e2);
+            }
           }
 
-          int    msgID   = MSGID_LDIF_FILE_READ_ERROR;
+          int msgID = MSGID_LDIF_FILE_READ_ERROR;
           String message = getMessage(msgID, fileName, String.valueOf(e));
           throw new IOException(message);
-        } else
+        }
+        else
         {
-          int    msgID   = MSGID_LDIF_FILE_READ_ERROR;
+          int msgID = MSGID_LDIF_FILE_READ_ERROR;
           String message = getMessage(msgID, fileName, String.valueOf(e));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           continue;
@@ -235,7 +255,10 @@ public class LDAPModify
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "readAndExecute", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
 
         break;
@@ -317,12 +340,15 @@ public class LDAPModify
                LDAPMessage.decode(ASN1Sequence.decodeAsSequence(element));
         } catch(ASN1Exception ae)
         {
-          assert debugException(CLASS_NAME, "readAndExecute", ae);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, ae);
+          }
           msgID = MSGID_OPERATION_FAILED;
           String message = getMessage(msgID, operationType, asn1OctetStr,
                                       ae.getMessage());
           err.println(wrapText(message, MAX_LINE_WIDTH));
-          if(!modifyOptions.continueOnError())
+          if (!modifyOptions.continueOnError())
           {
             throw new IOException(ae.getMessage());
           }
@@ -811,7 +837,10 @@ public class LDAPModify
       portNumber = port.getIntValue();
     } catch(ArgumentException ae)
     {
-      assert debugException(CLASS_NAME, "main", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
@@ -828,7 +857,10 @@ public class LDAPModify
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
-      assert debugException(CLASS_NAME, "main", ae);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, ae);
+      }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
@@ -846,7 +878,10 @@ public class LDAPModify
         bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
-        assert debugException(CLASS_NAME, "main", ex);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ex);
+        }
         err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
         return 1;
       }
@@ -1060,19 +1095,28 @@ public class LDAPModify
       ldapModify.readAndExecute(connection, is, modifyOptions);
     } catch(LDAPException le)
     {
-      assert debugException(CLASS_NAME, "main", le);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, le);
+      }
       err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
     {
-      assert debugException(CLASS_NAME, "main", lce);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, lce);
+      }
       err.println(wrapText(lce.getMessage(), MAX_LINE_WIDTH));
       int code = lce.getErrorCode();
       return code;
     } catch(Exception e)
     {
-      assert debugException(CLASS_NAME, "main", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
       return 1;
     } finally

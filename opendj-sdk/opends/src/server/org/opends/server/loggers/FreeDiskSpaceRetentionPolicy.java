@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
@@ -30,7 +30,9 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class implements a retention policy based on the free disk
@@ -39,8 +41,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class FreeDiskSpaceRetentionPolicy implements RetentionPolicy
 {
-  private static final String CLASS_NAME =
-      "org.opends.server.loggers.FreeDiskSpaceRetentionPolicy";
 
   private long freeDiskSpace = 0;
   private File directory = null;
@@ -56,9 +56,7 @@ public class FreeDiskSpaceRetentionPolicy implements RetentionPolicy
   public FreeDiskSpaceRetentionPolicy(String dir, String prefix,
                                  long freeDiskSpace)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(dir),
-                            String.valueOf(prefix),
-                            String.valueOf(freeDiskSpace));
+
     this.directory = new File(dir);
     this.freeDiskSpace = freeDiskSpace;
     this.prefix = prefix;
@@ -72,23 +70,27 @@ public class FreeDiskSpaceRetentionPolicy implements RetentionPolicy
    */
   public int deleteFiles()
   {
-    assert debugEnter(CLASS_NAME, "deleteFiles");
+
     int count = 0;
     long freeSpace = 0;
     try
     {
       // Use reflection to see use the getFreeSpace method if available.
       // this method is only available on Java 6.
-      Method meth = java.io.File.class.getMethod("getFreeSpace", new Class[0]);
+      Method meth = File.class.getMethod("getFreeSpace", new Class[0]);
       Object value = meth.invoke(this.directory);
-      freeSpace = ((Long)value).longValue();
-    } catch(Exception e)
+      freeSpace = ((Long) value).longValue();
+    }
+    catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "deleteFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       return 0;
     }
 
-    if(freeSpace > freeDiskSpace)
+    if (freeSpace > freeDiskSpace)
     {
       // No cleaning needed.
       return 0;
@@ -101,12 +103,12 @@ public class FreeDiskSpaceRetentionPolicy implements RetentionPolicy
     Arrays.sort(selectedFiles, new FileComparator());
 
     long freedSpace = 0;
-    for(int j = selectedFiles.length - 1; j < 1; j--)
+    for (int j = selectedFiles.length - 1; j < 1; j--)
     {
       freedSpace += selectedFiles[j].length();
       // System.out.println("Deleting log file:" + selectedFiles[j]);
       selectedFiles[j].delete();
-      if(freedSpace >= freeSpaceNeeded)
+      if (freedSpace >= freeSpaceNeeded)
       {
         break;
       }

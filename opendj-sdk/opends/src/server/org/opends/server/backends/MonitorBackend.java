@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -72,7 +72,9 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -90,11 +92,6 @@ public class MonitorBackend
        extends Backend
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.MonitorBackend";
 
 
 
@@ -131,7 +128,6 @@ public class MonitorBackend
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
 
     // Perform all initialization in initializeBackend.
@@ -158,8 +154,6 @@ public class MonitorBackend
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeBackend",
-                      String.valueOf(configEntry));
 
 
     // Make sure that a configuration entry was provided.  If not, then we will
@@ -210,7 +204,10 @@ public class MonitorBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -247,7 +244,10 @@ public class MonitorBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
       String message = getMessage(msgID, baseMonitorDN.toString(),
@@ -271,7 +271,6 @@ public class MonitorBackend
    */
   public void finalizeBackend()
   {
-    assert debugEnter(CLASS_NAME, "finalizeBackend");
 
     DirectoryServer.deregisterConfigurableComponent(this);
 
@@ -281,7 +280,10 @@ public class MonitorBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "finalizeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -298,8 +300,6 @@ public class MonitorBackend
    */
   private boolean isMonitorConfigAttribute(Attribute attribute)
   {
-    assert debugEnter(CLASS_NAME, "isMonitorConfigAttribute",
-                      String.valueOf(attribute));
 
     AttributeType attrType = attribute.getAttributeType();
     if (attrType.hasName(ATTR_COMMON_NAME) ||
@@ -324,7 +324,6 @@ public class MonitorBackend
    */
   public DN[] getBaseDNs()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDNs");
 
     return baseDNs;
   }
@@ -336,7 +335,6 @@ public class MonitorBackend
    */
   public long getEntryCount()
   {
-    assert debugEnter(CLASS_NAME, "getEntryCount");
 
     return DirectoryServer.getMonitorProviders().size() + 1;
   }
@@ -354,7 +352,6 @@ public class MonitorBackend
    */
   public boolean isLocal()
   {
-    assert debugEnter(CLASS_NAME, "isLocal");
 
     // For the purposes of this method, this is a local backend.
     return true;
@@ -376,7 +373,6 @@ public class MonitorBackend
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
 
 
     // If the requested entry was null, then throw an exception.
@@ -468,7 +464,6 @@ public class MonitorBackend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "entryExists", String.valueOf(entryDN));
 
     if (entryDN.equals(baseMonitorDN))
     {
@@ -502,7 +497,6 @@ public class MonitorBackend
    */
   public Entry getBaseMonitorEntry()
   {
-    assert debugEnter(CLASS_NAME, "getBaseMonitorEntry");
 
 
     HashMap<ObjectClass,String> monitorClasses =
@@ -677,8 +671,6 @@ public class MonitorBackend
    */
   private Entry getMonitorEntry(DN entryDN, MonitorProvider monitorProvider)
   {
-    assert debugEnter(CLASS_NAME, "getMonitorEntry",
-                      String.valueOf(monitorProvider));
 
     HashMap<ObjectClass,String> monitorClasses =
          new LinkedHashMap<ObjectClass,String>(3);
@@ -746,8 +738,6 @@ public class MonitorBackend
   private Attribute createAttribute(String name, String lowerName,
                                     String value)
   {
-    assert debugEnter(CLASS_NAME, "createAttribute", String.valueOf(name),
-                      String.valueOf(lowerName), String.valueOf(value));
 
     AttributeType type = DirectoryServer.getAttributeType(lowerName);
     if (type == null)
@@ -780,8 +770,6 @@ public class MonitorBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addEntry", String.valueOf(entry),
-                      String.valueOf(addOperation));
 
     int    msgID   = MSGID_MONITOR_ADD_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entry.getDN()));
@@ -808,8 +796,6 @@ public class MonitorBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "deleteEntry", String.valueOf(entryDN),
-                      String.valueOf(deleteOperation));
 
     int    msgID   = MSGID_MONITOR_DELETE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entryDN));
@@ -836,8 +822,6 @@ public class MonitorBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "replaceEntry", String.valueOf(entry),
-                      String.valueOf(modifyOperation));
 
     int    msgID   = MSGID_MONITOR_MODIFY_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entry.getDN()),
@@ -867,8 +851,6 @@ public class MonitorBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "renameEntry", String.valueOf(currentDN),
-                      String.valueOf(entry), String.valueOf(modifyDNOperation));
 
     int    msgID   = MSGID_MONITOR_MODIFY_DN_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(currentDN));
@@ -891,7 +873,6 @@ public class MonitorBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "search", String.valueOf(searchOperation));
 
 
     // Get the base entry for the search, if possible.  If it doesn't exist,
@@ -962,7 +943,6 @@ public class MonitorBackend
    */
   public HashSet<String> getSupportedControls()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return supportedControls;
   }
@@ -976,7 +956,6 @@ public class MonitorBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return supportedFeatures;
   }
@@ -992,7 +971,6 @@ public class MonitorBackend
    */
   public boolean supportsLDIFExport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFExport");
 
     // We can export all the monitor entries as a point-in-time snapshot.
     return true;
@@ -1017,7 +995,6 @@ public class MonitorBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "exportLDIF", String.valueOf(exportConfig));
 
 
     // Create the LDIF writer.
@@ -1028,7 +1005,10 @@ public class MonitorBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1044,7 +1024,10 @@ public class MonitorBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       try
       {
@@ -1052,7 +1035,10 @@ public class MonitorBackend
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "exportLDIF", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
       }
 
       int    msgID   = MSGID_MONITOR_UNABLE_TO_EXPORT_BASE;
@@ -1072,7 +1058,10 @@ public class MonitorBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "exportLDIF", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         try
         {
@@ -1080,7 +1069,10 @@ public class MonitorBackend
         }
         catch (Exception e2)
         {
-          assert debugException(CLASS_NAME, "exportLDIF", e2);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
         }
 
         int    msgID   = MSGID_MONITOR_UNABLE_TO_EXPORT_PROVIDER_ENTRY;
@@ -1100,7 +1092,10 @@ public class MonitorBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
@@ -1115,7 +1110,6 @@ public class MonitorBackend
    */
   public boolean supportsLDIFImport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFImport");
 
     // This backend does not support LDIF imports.
     return false;
@@ -1140,7 +1134,6 @@ public class MonitorBackend
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "importLDIF", String.valueOf(importConfig));
 
 
     // This backend does not support LDIF imports.
@@ -1165,7 +1158,6 @@ public class MonitorBackend
    */
   public boolean supportsBackup()
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
     // This backend does not provide a backup/restore mechanism.
     return false;
@@ -1191,7 +1183,6 @@ public class MonitorBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1216,7 +1207,6 @@ public class MonitorBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "createBackup", String.valueOf(backupConfig));
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1244,9 +1234,6 @@ public class MonitorBackend
                            String backupID)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeBackup",
-                      String.valueOf(backupDirectory),
-                      String.valueOf(backupID));
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1266,7 +1253,6 @@ public class MonitorBackend
    */
   public boolean supportsRestore()
   {
-    assert debugEnter(CLASS_NAME, "supportsRestore");
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1292,8 +1278,6 @@ public class MonitorBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "restoreBackup",
-                      String.valueOf(restoreConfig));
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -1314,7 +1298,6 @@ public class MonitorBackend
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -1330,7 +1313,6 @@ public class MonitorBackend
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     // There are no configurable attributes that will be explicitly advertised.
     return new LinkedList<ConfigAttribute>();
@@ -1355,8 +1337,6 @@ public class MonitorBackend
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     // We'll pretty much accept anything here as long as it isn't one of our
@@ -1385,9 +1365,6 @@ public class MonitorBackend
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;

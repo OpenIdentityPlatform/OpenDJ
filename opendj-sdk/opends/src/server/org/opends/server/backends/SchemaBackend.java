@@ -115,10 +115,12 @@ import org.opends.server.types.SearchScope;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
+import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -136,7 +138,7 @@ public class SchemaBackend
        implements ConfigurableComponent, AlertGenerator
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
        "org.opends.server.backends.SchemaBackend";
@@ -237,7 +239,6 @@ public class SchemaBackend
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
 
 
     // Perform all initialization in initializeBackend.
@@ -264,8 +265,6 @@ public class SchemaBackend
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeBackend",
-                      String.valueOf(configEntry));
 
 
     // Make sure that a configuration entry was provided.  If not, then we will
@@ -368,7 +367,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -389,7 +391,10 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "initializeBackend", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
         String message = getMessage(msgID, baseDNs[i].toString(),
@@ -436,7 +441,6 @@ public class SchemaBackend
    */
   public void finalizeBackend()
   {
-    assert debugEnter(CLASS_NAME, "finalizeBackend");
 
     DirectoryServer.deregisterConfigurableComponent(this);
 
@@ -448,7 +452,10 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "finalizeBackend", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -466,8 +473,6 @@ public class SchemaBackend
    */
   private boolean isSchemaConfigAttribute(Attribute attribute)
   {
-    assert debugEnter(CLASS_NAME, "isConfigAttribute",
-                      String.valueOf(attribute));
 
     AttributeType attrType = attribute.getAttributeType();
     if (attrType.hasName(ATTR_SCHEMA_ENTRY_DN.toLowerCase()) ||
@@ -498,7 +503,6 @@ public class SchemaBackend
    */
   public DN[] getBaseDNs()
   {
-    assert debugEnter(CLASS_NAME, "getBaseDNs");
 
     return baseDNs;
   }
@@ -510,7 +514,6 @@ public class SchemaBackend
    */
   public long getEntryCount()
   {
-    assert debugEnter(CLASS_NAME, "getEntryCount");
 
     // There is always only a single entry in this backend.
     return 1;
@@ -529,7 +532,6 @@ public class SchemaBackend
    */
   public boolean isLocal()
   {
-    assert debugEnter(CLASS_NAME, "isLocal");
 
     // For the purposes of this method, this is a local backend.
     return true;
@@ -551,7 +553,6 @@ public class SchemaBackend
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
 
 
     // If the requested entry was one of the schema entries, then create and
@@ -581,7 +582,6 @@ public class SchemaBackend
    */
   public Entry getSchemaEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "getSchemaEntry", String.valueOf(entryDN));
 
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
          new LinkedHashMap<AttributeType,List<Attribute>>();
@@ -877,7 +877,6 @@ public class SchemaBackend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "entryExists", String.valueOf(entryDN));
 
 
     // The specified DN must be one of the specified schema DNs.
@@ -911,8 +910,6 @@ public class SchemaBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addEntry", String.valueOf(entry),
-                      String.valueOf(addOperation));
 
     int    msgID   = MSGID_SCHEMA_ADD_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entry.getDN()));
@@ -939,8 +936,6 @@ public class SchemaBackend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "deleteEntry", String.valueOf(entryDN),
-                      String.valueOf(deleteOperation));
 
     int    msgID   = MSGID_SCHEMA_DELETE_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(entryDN));
@@ -967,8 +962,6 @@ public class SchemaBackend
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "replaceEntry", String.valueOf(entry),
-                      String.valueOf(modifyOperation));
 
 
     // Make sure that the authenticated user has the necessary UPDATE_SCHEMA
@@ -1044,7 +1037,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1069,7 +1065,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1094,7 +1093,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1119,7 +1121,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DCR;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1144,7 +1149,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1169,7 +1177,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1215,7 +1226,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1241,7 +1255,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1266,7 +1283,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1291,7 +1311,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DCR;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1317,7 +1340,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1343,7 +1369,10 @@ public class SchemaBackend
               }
               catch (DirectoryException de)
               {
-                assert debugException(CLASS_NAME, "replaceEntry", de);
+                if (debugEnabled())
+                {
+                  debugCought(DebugLogLevel.ERROR, de);
+                }
 
                 int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE;
                 String message = getMessage(msgID, v.getStringValue(),
@@ -1404,13 +1433,19 @@ public class SchemaBackend
     }
     catch (DirectoryException de)
     {
-      assert debugException(CLASS_NAME, "replaceEntry", de);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, de);
+      }
 
       throw de;
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "replaceEntry", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -1456,9 +1491,6 @@ public class SchemaBackend
                                 Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addAttributeType",
-                      String.valueOf(attributeType), String.valueOf(schema),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // First, see if the specified attribute type already exists.  We'll check
@@ -1643,11 +1675,6 @@ public class SchemaBackend
                                    Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeAttributeType",
-                      String.valueOf(attributeType), String.valueOf(schema),
-                      String.valueOf(modifications),
-                      String.valueOf(currentPosition),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // See if the specified attribute type is actually defined in the server
@@ -1686,7 +1713,10 @@ public class SchemaBackend
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "removeAttributeType", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE;
           String message = getMessage(msgID, v.getStringValue(),
@@ -1818,9 +1848,6 @@ public class SchemaBackend
                               Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addObjectClass", String.valueOf(objectClass),
-                      String.valueOf(schema),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // First, see if the specified objectclass already exists.  We'll check the
@@ -2003,11 +2030,6 @@ public class SchemaBackend
                                  Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeObjectClass",
-                      String.valueOf(objectClass), String.valueOf(schema),
-                      String.valueOf(modifications),
-                      String.valueOf(currentPosition),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // See if the specified objectclass is actually defined in the server
@@ -2045,7 +2067,10 @@ public class SchemaBackend
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "removeObjectClass", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS;
           String message = getMessage(msgID, v.getStringValue(),
@@ -2142,9 +2167,6 @@ public class SchemaBackend
                            Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addNameForm", String.valueOf(nameForm),
-                      String.valueOf(schema),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // First, see if the specified name form already exists.  We'll check the
@@ -2342,11 +2364,6 @@ public class SchemaBackend
                               Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeNameForm",
-                      String.valueOf(nameForm), String.valueOf(schema),
-                      String.valueOf(modifications),
-                      String.valueOf(currentPosition),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // See if the specified name form is actually defined in the server schema.
@@ -2384,7 +2401,10 @@ public class SchemaBackend
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "removeNameForm", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM;
           String message = getMessage(msgID, v.getStringValue(),
@@ -2450,9 +2470,6 @@ public class SchemaBackend
                                  Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addDITContentRule",
-                      String.valueOf(ditContentRule), String.valueOf(schema),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // First, see if the specified DIT content rule already exists.  We'll check
@@ -2705,11 +2722,6 @@ public class SchemaBackend
                                     Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeDITContentRule",
-                      String.valueOf(ditContentRule), String.valueOf(schema),
-                      String.valueOf(modifications),
-                      String.valueOf(currentPosition),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // See if the specified DIT content rule is actually defined in the server
@@ -2761,9 +2773,6 @@ public class SchemaBackend
                                    Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addDITStructureRule",
-                      String.valueOf(ditStructureRule), String.valueOf(schema),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // First, see if the specified DIT structure rule already exists.  We'll
@@ -2934,11 +2943,6 @@ public class SchemaBackend
                                       Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeDITStructureRule",
-                      String.valueOf(ditStructureRule), String.valueOf(schema),
-                      String.valueOf(modifications),
-                      String.valueOf(currentPosition),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // See if the specified DIT structure rule is actually defined in the server
@@ -2978,7 +2982,10 @@ public class SchemaBackend
         }
         catch (DirectoryException de)
         {
-          assert debugException(CLASS_NAME, "removeDITStructureRule", de);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, de);
+          }
 
           int msgID = MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR;
           String message = getMessage(msgID, v.getStringValue(),
@@ -3047,9 +3054,6 @@ public class SchemaBackend
                                   Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addMatchingRuleUse",
-                      String.valueOf(matchingRuleUse), String.valueOf(schema),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // First, see if the specified matching rule use already exists.  We'll
@@ -3217,11 +3221,6 @@ public class SchemaBackend
                                      Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeMatchingRuleUse",
-                      String.valueOf(matchingRuleUse), String.valueOf(schema),
-                      String.valueOf(modifications),
-                      String.valueOf(currentPosition),
-                      String.valueOf(modifiedSchemaFiles));
 
 
     // See if the specified DIT content rule is actually defined in the server
@@ -3259,7 +3258,6 @@ public class SchemaBackend
    */
   private Entry createEmptySchemaEntry()
   {
-    assert debugEnter(CLASS_NAME, "createEmptySchemaEntry");
 
     LinkedHashMap<ObjectClass,String> objectClasses =
          new LinkedHashMap<ObjectClass,String>();
@@ -3324,8 +3322,6 @@ public class SchemaBackend
   private File writeTempSchemaFile(Schema schema, String schemaFile)
           throws DirectoryException, IOException, LDIFException
   {
-    assert debugEnter(CLASS_NAME, "writeTempSchemaFile", String.valueOf(schema),
-                      String.valueOf(schemaFile));
 
 
     // Start with an empty schema entry.
@@ -3516,10 +3512,6 @@ public class SchemaBackend
                                        int depth)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addAttrTypeToSchemaFile",
-                      String.valueOf(schema), String.valueOf(schemaFile),
-                      String.valueOf(attributeType), String.valueOf(values),
-                      String.valueOf(addedTypes), String.valueOf(depth));
 
     if (depth > 20)
     {
@@ -3573,10 +3565,6 @@ public class SchemaBackend
                                           int depth)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addObjectClassToSchemaFile",
-                      String.valueOf(schema), String.valueOf(schemaFile),
-                      String.valueOf(objectClass), String.valueOf(values),
-                      String.valueOf(addedClasses), String.valueOf(depth));
 
     if (depth > 20)
     {
@@ -3630,10 +3618,6 @@ public class SchemaBackend
                     HashSet<DITStructureRule> addedDSRs, int depth)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "addDITStructureRuleToSchemaFile",
-                      String.valueOf(schema), String.valueOf(schemaFile),
-                      String.valueOf(ditStructureRule), String.valueOf(values),
-                      String.valueOf(addedDSRs), String.valueOf(depth));
 
     if (depth > 20)
     {
@@ -3677,8 +3661,6 @@ public class SchemaBackend
   private void installSchemaFiles(HashMap<String,File> tempSchemaFiles)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "installSchemaFiles",
-                      String.valueOf(tempSchemaFiles));
 
 
     // Create lists that will hold the three types of files we'll be dealing
@@ -3726,7 +3708,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "installSchemaFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       boolean allCleaned = true;
       for (File f : origFileList)
@@ -3743,7 +3728,10 @@ public class SchemaBackend
         }
         catch (Exception e2)
         {
-          assert debugException(CLASS_NAME, "installSchemaFiles", e2);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
 
           allCleaned = false;
         }
@@ -3784,7 +3772,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "installSchemaFiles", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       for (File f : installedFileList)
       {
@@ -3797,7 +3788,10 @@ public class SchemaBackend
         }
         catch (Exception e2)
         {
-          assert debugException(CLASS_NAME, "installSchemaFiles", e2);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
         }
       }
 
@@ -3819,7 +3813,10 @@ public class SchemaBackend
         }
         catch (Exception e2)
         {
-          assert debugException(CLASS_NAME, "installSchemaFiles", e2);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e2);
+          }
 
           allRestored = false;
         }
@@ -3861,7 +3858,10 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "installSchemaFiles", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
@@ -3876,7 +3876,10 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "installSchemaFiles", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -3894,8 +3897,6 @@ public class SchemaBackend
   private void copyFile(File from, File to)
           throws IOException
   {
-    assert debugEnter(CLASS_NAME, "copyFile", String.valueOf(from),
-                      String.valueOf(to));
 
     byte[]           buffer        = new byte[4096];
     FileInputStream  inputStream   = null;
@@ -3922,7 +3923,10 @@ public class SchemaBackend
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "copyFile", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
         }
       }
 
@@ -3944,8 +3948,6 @@ public class SchemaBackend
    */
   private void cleanUpTempSchemaFiles(HashMap<String,File> tempSchemaFiles)
   {
-    assert debugEnter(CLASS_NAME, "cleanUpTempSchemaFiles",
-                      String.valueOf(tempSchemaFiles));
 
     if ((tempSchemaFiles == null) || tempSchemaFiles.isEmpty())
     {
@@ -3963,7 +3965,10 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "cleanUpTempSchemaFiles", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -3989,8 +3994,6 @@ public class SchemaBackend
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "renameEntry", String.valueOf(currentDN),
-                      String.valueOf(entry), String.valueOf(modifyDNOperation));
 
     int    msgID   = MSGID_SCHEMA_MODIFY_DN_NOT_SUPPORTED;
     String message = getMessage(msgID, String.valueOf(currentDN));
@@ -4013,7 +4016,6 @@ public class SchemaBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "search", String.valueOf(searchOperation));
 
     DN baseDN = searchOperation.getBaseDN();
 
@@ -4067,7 +4069,6 @@ public class SchemaBackend
    */
   public HashSet<String> getSupportedControls()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedControls");
 
     return supportedControls;
   }
@@ -4081,7 +4082,6 @@ public class SchemaBackend
    */
   public HashSet<String> getSupportedFeatures()
   {
-    assert debugEnter(CLASS_NAME, "getSupportedFeatures");
 
     return supportedFeatures;
   }
@@ -4097,7 +4097,6 @@ public class SchemaBackend
    */
   public boolean supportsLDIFExport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFExport");
 
     // We will only export the DSE entry itself.
     return true;
@@ -4122,7 +4121,6 @@ public class SchemaBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "exportLDIF", String.valueOf(exportConfig));
 
 
     // Create the LDIF writer.
@@ -4133,7 +4131,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SCHEMA_UNABLE_TO_CREATE_LDIF_WRITER;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -4150,7 +4151,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "exportLDIF", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SCHEMA_UNABLE_TO_EXPORT_BASE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -4165,7 +4169,10 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "exportLDIF", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
@@ -4181,7 +4188,6 @@ public class SchemaBackend
    */
   public boolean supportsLDIFImport()
   {
-    assert debugEnter(CLASS_NAME, "supportsLDIFImport");
 
     // This backend does not support LDIF imports.
     // FIXME -- Should we support them?
@@ -4207,7 +4213,6 @@ public class SchemaBackend
                          LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "importLDIF", String.valueOf(importConfig));
 
 
     // This backend does not support LDIF imports.
@@ -4232,7 +4237,6 @@ public class SchemaBackend
    */
   public boolean supportsBackup()
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
     // We do support an online backup mechanism for the schema.
     return true;
@@ -4258,7 +4262,6 @@ public class SchemaBackend
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    assert debugEnter(CLASS_NAME, "supportsBackup");
 
 
     // We should support online backup for the schema in any form.  This
@@ -4286,9 +4289,6 @@ public class SchemaBackend
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "createBackup",
-                      String.valueOf(configEntry),
-                      String.valueOf(backupConfig));
 
 
     // Get the properties to use for the backup.  We don't care whether or not
@@ -4327,7 +4327,10 @@ public class SchemaBackend
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "createBackup", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_GET_MAC;
           String message = getMessage(msgID, macAlgorithm,
@@ -4348,7 +4351,10 @@ public class SchemaBackend
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "createBackup", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_GET_DIGEST;
           String message = getMessage(msgID, digestAlgorithm,
@@ -4398,7 +4404,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_CREATE_ARCHIVE_FILE;
       String message = getMessage(msgID, String.valueOf(filename),
@@ -4423,7 +4432,10 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "createBackup", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_GET_CIPHER;
         String message = getMessage(msgID, cipherAlgorithm,
@@ -4465,7 +4477,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID   = MSGID_SCHEMA_BACKUP_CANNOT_LIST_SCHEMA_FILES;
       message = getMessage(msgID, schemaDirPath,
@@ -4538,7 +4553,10 @@ public class SchemaBackend
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "createBackup", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         try
         {
@@ -4566,7 +4584,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID   = MSGID_SCHEMA_BACKUP_CANNOT_CLOSE_ZIP_STREAM;
       message = getMessage(msgID, filename, backupDirectory.getPath(),
@@ -4607,7 +4628,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createBackup", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SCHEMA_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;
       message = getMessage(msgID, backupDirectory.getDescriptorPath(),
@@ -4635,9 +4659,6 @@ public class SchemaBackend
                            String backupID)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "removeBackup",
-                      String.valueOf(backupDirectory),
-                      String.valueOf(backupID));
 
 
     // This backend does not provide a backup/restore mechanism.
@@ -4657,7 +4678,6 @@ public class SchemaBackend
    */
   public boolean supportsRestore()
   {
-    assert debugEnter(CLASS_NAME, "supportsRestore");
 
 
     // We will provide a restore, but only for offline operations.
@@ -4683,8 +4703,6 @@ public class SchemaBackend
                             RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "restoreBackup", String.valueOf(configEntry),
-                      String.valueOf(restoreConfig));
 
 
     // First, make sure that the requested backup exists.
@@ -5195,7 +5213,6 @@ public class SchemaBackend
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -5211,7 +5228,6 @@ public class SchemaBackend
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -5255,8 +5271,6 @@ public class SchemaBackend
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
 
     boolean configIsAcceptable = true;
@@ -5274,7 +5288,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -5296,7 +5313,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeBackend", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -5330,9 +5350,6 @@ public class SchemaBackend
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
 
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -5371,7 +5388,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -5399,7 +5419,10 @@ public class SchemaBackend
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -5468,7 +5491,10 @@ public class SchemaBackend
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           msgID = MSGID_SCHEMA_CANNOT_DEREGISTER_BASE_DN;
           messages.add(getMessage(msgID, String.valueOf(dn),
@@ -5491,7 +5517,10 @@ public class SchemaBackend
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           msgID = MSGID_SCHEMA_CANNOT_REGISTER_BASE_DN;
           messages.add(getMessage(msgID, String.valueOf(dn),
@@ -5528,7 +5557,6 @@ public class SchemaBackend
    */
   boolean showAllAttributes()
   {
-    assert debugEnter(CLASS_NAME, "showAllAttributes");
 
     return showAllAttributes;
   }
@@ -5545,8 +5573,6 @@ public class SchemaBackend
    */
   void setShowAllAttributes(boolean showAllAttributes)
   {
-    assert debugEnter(CLASS_NAME, "setShowAllAttributes",
-                      String.valueOf(showAllAttributes));
 
     this.showAllAttributes = showAllAttributes;
   }
@@ -5562,7 +5588,6 @@ public class SchemaBackend
    */
   public DN getComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getComponentEntryDN");
 
     return configEntryDN;
   }
@@ -5578,7 +5603,6 @@ public class SchemaBackend
    */
   public String getClassName()
   {
-    assert debugEnter(CLASS_NAME, "getClassName");
 
     return CLASS_NAME;
   }
@@ -5597,7 +5621,6 @@ public class SchemaBackend
    */
   public LinkedHashMap<String,String> getAlerts()
   {
-    assert debugEnter(CLASS_NAME, "getAlerts");
 
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 

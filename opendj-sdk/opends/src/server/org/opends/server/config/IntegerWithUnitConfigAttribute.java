@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
 
@@ -44,9 +44,11 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -70,11 +72,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class IntegerWithUnitConfigAttribute
        extends ConfigAttribute
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.config.IntegerWithUnitConfigAttribute";
 
 
 
@@ -144,18 +141,6 @@ public class IntegerWithUnitConfigAttribute
   {
     super(name, description, true, false, requiresAdminAction);
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(description),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(units),
-                              String.valueOf(hasLowerBound),
-                              String.valueOf(lowerBound),
-                              String.valueOf(hasUpperBound),
-                              String.valueOf(upperBound)
-                            });
 
     this.units         = units;
     this.hasLowerBound = hasLowerBound;
@@ -200,20 +185,6 @@ public class IntegerWithUnitConfigAttribute
     super(name, description, true, false, requiresAdminAction,
           getValueSet(intValue, selectedUnit));
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(description),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(units),
-                              String.valueOf(hasLowerBound),
-                              String.valueOf(lowerBound),
-                              String.valueOf(hasUpperBound),
-                              String.valueOf(upperBound),
-                              String.valueOf(intValue),
-                              String.valueOf(selectedUnit),
-                            });
 
 
     this.units          = units;
@@ -280,22 +251,6 @@ public class IntegerWithUnitConfigAttribute
           (pendingSelectedUnit != null),
           getValueSet(pendingIntValue,pendingSelectedUnit));
 
-    assert debugConstructor(CLASS_NAME,
-                            new String[]
-                            {
-                              String.valueOf(name),
-                              String.valueOf(description),
-                              String.valueOf(requiresAdminAction),
-                              String.valueOf(units),
-                              String.valueOf(hasLowerBound),
-                              String.valueOf(lowerBound),
-                              String.valueOf(hasUpperBound),
-                              String.valueOf(upperBound),
-                              String.valueOf(activeIntValue),
-                              String.valueOf(activeSelectedUnit),
-                              String.valueOf(pendingIntValue),
-                              String.valueOf(pendingSelectedUnit)
-                            });
 
 
     this.units          = units;
@@ -341,7 +296,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public String getDataType()
   {
-    assert debugEnter(CLASS_NAME, "getDataType");
 
     return "IntegerWithUnit";
   }
@@ -355,7 +309,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public AttributeSyntax getSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getSyntax");
 
     return DirectoryServer.getDefaultStringSyntax();
   }
@@ -371,7 +324,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long activeIntValue()
   {
-    assert debugEnter(CLASS_NAME, "activeIntValue");
 
     return activeIntValue;
   }
@@ -385,7 +337,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public String activeUnit()
   {
-    assert debugEnter(CLASS_NAME, "activeUnit");
 
     return activeUnit;
   }
@@ -401,7 +352,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long activeCalculatedValue()
   {
-    assert debugEnter(CLASS_NAME, "activeCalculatedValue");
 
     return activeCalculatedValue;
   }
@@ -418,7 +368,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long pendingIntValue()
   {
-    assert debugEnter(CLASS_NAME, "pendingIntValue");
 
     if (hasPendingValues())
     {
@@ -441,7 +390,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public String pendingUnit()
   {
-    assert debugEnter(CLASS_NAME, "pendingUnit");
 
     if (hasPendingValues())
     {
@@ -465,7 +413,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long pendingCalculatedValue()
   {
-    assert debugEnter(CLASS_NAME, "pendingCalculatedValue");
 
     if (hasPendingValues())
     {
@@ -488,7 +435,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public HashMap<String,Double> getUnits()
   {
-    assert debugEnter(CLASS_NAME, "getUnits");
 
     return units;
   }
@@ -505,7 +451,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public boolean hasLowerBound()
   {
-    assert debugEnter(CLASS_NAME, "hasLowerBound");
 
     return hasLowerBound;
   }
@@ -521,7 +466,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long getLowerBound()
   {
-    assert debugEnter(CLASS_NAME, "getLowerBound");
 
     return lowerBound;
   }
@@ -538,7 +482,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public boolean hasUpperBound()
   {
-    assert debugEnter(CLASS_NAME, "hasUpperBound");
 
     return hasUpperBound;
   }
@@ -554,7 +497,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public long getUpperBound()
   {
-    assert debugEnter(CLASS_NAME, "getUpperBound");
 
     return upperBound;
   }
@@ -575,8 +517,6 @@ public class IntegerWithUnitConfigAttribute
   public void setValue(long intValue, String unit)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(intValue),
-                      String.valueOf(unit));
 
     if ((unit == null) || (! units.containsKey(unit)))
     {
@@ -633,7 +573,6 @@ public class IntegerWithUnitConfigAttribute
   public void setValue(String value)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(value));
 
     int spacePos = value.indexOf(' ');
     if (spacePos <= 0)
@@ -651,7 +590,10 @@ public class IntegerWithUnitConfigAttribute
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "setValue", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT;
       String message = getMessage(msgID, String.valueOf(value), getName(),
@@ -675,8 +617,6 @@ public class IntegerWithUnitConfigAttribute
   private static LinkedHashSet<AttributeValue> getValueSet(long intValue,
                                                            String unit)
   {
-    assert debugEnter(CLASS_NAME, "getValueSet", String.valueOf(intValue),
-                      String.valueOf(unit));
 
     if (unit == null)
     {
@@ -702,7 +642,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public void applyPendingValues()
   {
-    assert debugEnter(CLASS_NAME, "applyPendingValues");
 
     if (! hasPendingValues())
     {
@@ -732,8 +671,6 @@ public class IntegerWithUnitConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable", String.valueOf(value),
-                      "java.lang.StringBuilder");
 
 
     // Get a string representation of the value and convert it to lowercase.
@@ -760,8 +697,6 @@ public class IntegerWithUnitConfigAttribute
   public boolean valueIsAcceptable(String lowerValue,
                                    StringBuilder rejectReason)
   {
-    assert debugEnter(CLASS_NAME, "valueIsAcceptable",
-                      String.valueOf(lowerValue), "java.lang.StringBuilder");
 
 
     // Find the first space in the value, since it should separate the integer
@@ -783,7 +718,10 @@ public class IntegerWithUnitConfigAttribute
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "valueIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       rejectReason.append(getMessage(MSGID_CONFIG_ATTR_INT_COULD_NOT_PARSE,
                                      lowerValue, getName(), String.valueOf(e)));
@@ -854,9 +792,6 @@ public class IntegerWithUnitConfigAttribute
               stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "stringsToValues",
-                      String.valueOf(valueStrings),
-                      String.valueOf(allowFailures));
 
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
@@ -957,7 +892,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-    assert debugEnter(CLASS_NAME, "activeValuesToStrings");
 
     ArrayList<String> valueStrings = new ArrayList<String>(1);
     valueStrings.add(activeIntValue + " " + activeUnit);
@@ -980,7 +914,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public List<String> pendingValuesToStrings()
   {
-    assert debugEnter(CLASS_NAME, "pendingValuesToStrings");
 
     if (hasPendingValues())
     {
@@ -1021,8 +954,6 @@ public class IntegerWithUnitConfigAttribute
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "getConfigAttribute",
-                      String.valueOf(attributeList));
 
 
     long   activeIntValue  = 0;
@@ -1242,7 +1173,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public javax.management.Attribute toJMXAttribute()
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttribute");
 
     return new javax.management.Attribute(getName(),
                                           activeIntValue + " " + activeUnit);
@@ -1258,7 +1188,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public javax.management.Attribute toJMXAttributePending()
     {
-        assert debugEnter(CLASS_NAME, "toJMXAttributePending");
 
         return new javax.management.Attribute(getName() + ";"
                 + OPTION_PENDING_VALUES, pendingIntValue + " " + pendingUnit);
@@ -1279,8 +1208,6 @@ public class IntegerWithUnitConfigAttribute
      */
   public void toJMXAttribute(AttributeList attributeList)
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttribute",
-                      String.valueOf(attributeList));
 
     String activeValue = activeIntValue + " " + activeUnit;
     attributeList.add(new javax.management.Attribute(getName(), activeValue));
@@ -1310,8 +1237,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-    assert debugEnter(CLASS_NAME, "toJMXAttributeInfo",
-                      String.valueOf(attributeInfoList));
 
     attributeInfoList.add(new MBeanAttributeInfo(getName(),
                                                  String.class.getName(),
@@ -1339,7 +1264,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-    assert debugEnter(CLASS_NAME, "toJMXParameterInfo");
 
     return new MBeanParameterInfo(getName(), String.class.getName(),
                                   getDescription());
@@ -1361,7 +1285,6 @@ public class IntegerWithUnitConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(jmxAttribute));
 
     Object value = jmxAttribute.getValue();
     if (value instanceof String)
@@ -1386,7 +1309,6 @@ public class IntegerWithUnitConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     return new IntegerWithUnitConfigAttribute(getName(), getDescription(),
                                               requiresAdminAction(), units,

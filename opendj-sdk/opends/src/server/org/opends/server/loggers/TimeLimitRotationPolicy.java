@@ -22,13 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
 import org.opends.server.util.TimeThread;
-
-import static org.opends.server.loggers.Debug.*;
 
 /**
  * This class implements a fixed time based rotation policy.
@@ -36,8 +34,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class TimeLimitRotationPolicy implements RotationPolicy
 {
-  private static final String CLASS_NAME =
-      "org.opends.server.loggers.TimeLimitRotationPolicy";
 
   private long timeInterval = 0;
   private long lastModifiedTime = 0;
@@ -49,7 +45,7 @@ public class TimeLimitRotationPolicy implements RotationPolicy
    */
   public TimeLimitRotationPolicy(long time)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(time));
+
     timeInterval = time;
     lastModifiedTime = TimeThread.getTime();
   }
@@ -63,14 +59,15 @@ public class TimeLimitRotationPolicy implements RotationPolicy
    */
   public boolean rotateFile()
   {
-    assert debugEnter(CLASS_NAME, "rotateFile");
+
     long currTime = TimeThread.getTime();
-    if(currTime - lastModifiedTime > timeInterval)
+    if (currTime - lastModifiedTime > timeInterval)
     {
       do
       {
         lastModifiedTime += timeInterval;
-      } while (lastModifiedTime < currTime);
+      }
+      while (lastModifiedTime < currTime);
 
       // lastModifiedTime = currTime;
       return true;

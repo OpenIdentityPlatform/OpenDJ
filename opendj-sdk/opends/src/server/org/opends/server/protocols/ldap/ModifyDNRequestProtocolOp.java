@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -35,13 +35,14 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
-
 
 
 /**
@@ -52,11 +53,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class ModifyDNRequestProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp";
 
 
 
@@ -84,8 +80,6 @@ public class ModifyDNRequestProtocolOp
   public ModifyDNRequestProtocolOp(ASN1OctetString entryDN,
                                    ASN1OctetString newRDN, boolean deleteOldRDN)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(entryDN),
-                      String.valueOf(newRDN), String.valueOf(deleteOldRDN));
 
     this.entryDN      = entryDN;
     this.newRDN       = newRDN;
@@ -107,9 +101,6 @@ public class ModifyDNRequestProtocolOp
                                    ASN1OctetString newRDN, boolean deleteOldRDN,
                                    ASN1OctetString newSuperior)
   {
-    assert debugEnter(CLASS_NAME, String.valueOf(entryDN),
-                      String.valueOf(newRDN), String.valueOf(deleteOldRDN),
-                      String.valueOf(newSuperior));
 
     this.entryDN      = entryDN;
     this.newRDN       = newRDN;
@@ -126,7 +117,6 @@ public class ModifyDNRequestProtocolOp
    */
   public ASN1OctetString getEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getEntryDN");
 
     return entryDN;
   }
@@ -140,7 +130,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void setEntryDN(ASN1OctetString entryDN)
   {
-    assert debugEnter(CLASS_NAME, "setEntryDN", String.valueOf(entryDN));
 
     this.entryDN = entryDN;
   }
@@ -154,7 +143,6 @@ public class ModifyDNRequestProtocolOp
    */
   public ASN1OctetString getNewRDN()
   {
-    assert debugEnter(CLASS_NAME, "getNewRDN");
 
     return newRDN;
   }
@@ -168,7 +156,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void setNewRDN(ASN1OctetString newRDN)
   {
-    assert debugEnter(CLASS_NAME, "setNewRDN", String.valueOf(newRDN));
 
     this.newRDN = newRDN;
   }
@@ -183,7 +170,6 @@ public class ModifyDNRequestProtocolOp
    */
   public boolean deleteOldRDN()
   {
-    assert debugEnter(CLASS_NAME, "deleteOldRDN");
 
     return deleteOldRDN;
   }
@@ -198,8 +184,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void setDeleteOldRDN(boolean deleteOldRDN)
   {
-    assert debugEnter(CLASS_NAME, "setDeleteOldRDN",
-                      String.valueOf(deleteOldRDN));
 
     this.deleteOldRDN = deleteOldRDN;
   }
@@ -214,7 +198,6 @@ public class ModifyDNRequestProtocolOp
    */
   public ASN1OctetString getNewSuperior()
   {
-    assert debugEnter(CLASS_NAME, "getNewSuperior");
 
     return newSuperior;
   }
@@ -228,8 +211,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void setNewSuperior(ASN1OctetString newSuperior)
   {
-    assert debugEnter(CLASS_NAME, "setNewSuperior",
-                      String.valueOf(newSuperior));
 
     this.newSuperior = newSuperior;
   }
@@ -243,7 +224,6 @@ public class ModifyDNRequestProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_MODIFY_DN_REQUEST;
   }
@@ -257,7 +237,6 @@ public class ModifyDNRequestProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Modify DN Request";
   }
@@ -272,7 +251,6 @@ public class ModifyDNRequestProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(4);
     elements.add(entryDN);
@@ -305,8 +283,6 @@ public class ModifyDNRequestProtocolOp
                                                                      element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeModifyDNRequest",
-                      String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -315,9 +291,12 @@ public class ModifyDNRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeModifyDNRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -339,9 +318,12 @@ public class ModifyDNRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeModifyDNRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_DN;
+      int msgID = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_DN;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -354,9 +336,12 @@ public class ModifyDNRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeModifyDNRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_RDN;
+      int msgID = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_RDN;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -369,9 +354,12 @@ public class ModifyDNRequestProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeModifyDNRequest", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_DELETE_OLD_RDN;
+      int msgID = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_DELETE_OLD_RDN;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -386,9 +374,12 @@ public class ModifyDNRequestProtocolOp
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "decodeModifyDNRequest", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
-        int    msgID   = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_SUPERIOR;
+        int msgID = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_SUPERIOR;
         String message = getMessage(msgID, String.valueOf(e));
         throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
       }
@@ -413,7 +404,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("ModifyDNRequest(dn=");
     entryDN.toString(buffer);
@@ -443,8 +433,6 @@ public class ModifyDNRequestProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

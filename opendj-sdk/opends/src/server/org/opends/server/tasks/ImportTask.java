@@ -29,7 +29,9 @@ package org.opends.server.tasks;
 import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.config.ConfigConstants.*;
@@ -66,11 +68,6 @@ import java.util.List;
  */
 public class ImportTask extends Task
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tasks.ImportTask";
 
 
 
@@ -97,7 +94,6 @@ public class ImportTask extends Task
    */
   @Override public void initializeTask() throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "initializeTask");
 
 
     // If the client connection is available, then make sure the associated
@@ -221,7 +217,6 @@ public class ImportTask extends Task
    */
   protected TaskState runTask()
   {
-    assert debugEnter(CLASS_NAME, "runTask");
 
     // See if there were any user-defined sets of include/exclude attributes or
     // filters.  If so, then process them.
@@ -489,7 +484,10 @@ public class ImportTask extends Task
     }
     catch (DirectoryException e)
     {
-      assert debugException(CLASS_NAME, "runTask", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                e.getErrorMessage(), e.getErrorMessageID());
@@ -516,7 +514,10 @@ public class ImportTask extends Task
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "runTask", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOCK_BACKEND;
         String message = getMessage(msgID, backend.getBackendID(),
@@ -534,7 +535,10 @@ public class ImportTask extends Task
       }
       catch (DirectoryException de)
       {
-        assert debugException(CLASS_NAME, "runTask", de);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, de);
+        }
 
         int    msgID   = MSGID_LDIFIMPORT_ERROR_DURING_IMPORT;
         String message = getMessage(msgID, de.getErrorMessage());
@@ -544,7 +548,10 @@ public class ImportTask extends Task
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "runTask", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int    msgID   = MSGID_LDIFIMPORT_ERROR_DURING_IMPORT;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
@@ -571,7 +578,10 @@ public class ImportTask extends Task
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "runTask", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           int    msgID   = MSGID_LDIFIMPORT_CANNOT_UNLOCK_BACKEND;
           String message = getMessage(msgID, backend.getBackendID(),
@@ -592,7 +602,10 @@ public class ImportTask extends Task
       }
       catch (DirectoryException e)
       {
-        assert debugException(CLASS_NAME, "runTask", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  e.getErrorMessage(), e.getErrorMessageID());

@@ -22,11 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -36,11 +35,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class LDAPModifyOptions extends LDAPToolOptions
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tools.LDAPModifyOptions";
 
   private boolean defaultAdd = false;
 
@@ -50,7 +44,6 @@ public class LDAPModifyOptions extends LDAPToolOptions
    */
   public LDAPModifyOptions()
   {
-    assert debugConstructor(CLASS_NAME);
   }
 
   /**

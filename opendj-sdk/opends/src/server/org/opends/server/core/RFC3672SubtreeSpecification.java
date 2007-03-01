@@ -22,12 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.SchemaMessages.*;
 
@@ -53,9 +51,6 @@ import org.opends.server.util.StaticUtils;
  */
 public final class RFC3672SubtreeSpecification extends
     SimpleSubtreeSpecification {
-  // Fully qualified class name for debugging purposes.
-  private static final String CLASS_NAME = RFC3672SubtreeSpecification.class
-      .getName();
 
   // The root DN.
   private DN rootDN;
@@ -139,7 +134,6 @@ public final class RFC3672SubtreeSpecification extends
      *          The item's object class.
      */
     public ItemRefinement(String objectClass) {
-      assert debugConstructor(CLASS_NAME);
 
       this.objectClass = objectClass;
       this.normalizedObjectClass = StaticUtils.toLowerCase(objectClass
@@ -176,7 +170,6 @@ public final class RFC3672SubtreeSpecification extends
      */
     @Override
     public boolean equals(Object obj) {
-      assert debugEnter(CLASS_NAME, "equals");
 
       if (this == obj) {
         return true;
@@ -196,7 +189,6 @@ public final class RFC3672SubtreeSpecification extends
      */
     @Override
     public int hashCode() {
-      assert debugEnter(CLASS_NAME, "hashCode");
 
       return normalizedObjectClass.hashCode();
     }
@@ -218,7 +210,6 @@ public final class RFC3672SubtreeSpecification extends
      *          The refinement which must be <code>false</code>.
      */
     public NotRefinement(Refinement refinement) {
-      assert debugConstructor(CLASS_NAME);
 
       this.refinement = refinement;
     }
@@ -245,7 +236,6 @@ public final class RFC3672SubtreeSpecification extends
      */
     @Override
     public boolean equals(Object obj) {
-      assert debugEnter(CLASS_NAME, "equals");
 
       if (this == obj) {
         return true;
@@ -265,7 +255,6 @@ public final class RFC3672SubtreeSpecification extends
      */
     @Override
     public int hashCode() {
-      assert debugEnter(CLASS_NAME, "hashCode");
 
       return refinement.hashCode();
     }
@@ -288,7 +277,6 @@ public final class RFC3672SubtreeSpecification extends
      *          <code>true</code>.
      */
     public AndRefinement(Collection<Refinement> refinementSet) {
-      assert debugConstructor(CLASS_NAME);
 
       this.refinementSet = refinementSet;
     }
@@ -340,7 +328,6 @@ public final class RFC3672SubtreeSpecification extends
      */
     @Override
     public boolean equals(Object obj) {
-      assert debugEnter(CLASS_NAME, "equals");
 
       if (this == obj) {
         return true;
@@ -360,7 +347,6 @@ public final class RFC3672SubtreeSpecification extends
      */
     @Override
     public int hashCode() {
-      assert debugEnter(CLASS_NAME, "hashCode");
 
       return refinementSet.hashCode();
     }
@@ -383,7 +369,6 @@ public final class RFC3672SubtreeSpecification extends
      *          <code>true</code>.
      */
     public OrRefinement(Collection<Refinement> refinementSet) {
-      assert debugConstructor(CLASS_NAME);
 
       this.refinementSet = refinementSet;
     }
@@ -435,7 +420,6 @@ public final class RFC3672SubtreeSpecification extends
      */
     @Override
     public boolean equals(Object obj) {
-      assert debugEnter(CLASS_NAME, "equals");
 
       if (this == obj) {
         return true;
@@ -455,7 +439,6 @@ public final class RFC3672SubtreeSpecification extends
      */
     @Override
     public int hashCode() {
-      assert debugEnter(CLASS_NAME, "hashCode");
 
       return refinementSet.hashCode();
     }
@@ -476,7 +459,6 @@ public final class RFC3672SubtreeSpecification extends
    */
   public static RFC3672SubtreeSpecification valueOf(DN rootDN, String s)
       throws DirectoryException {
-    assert debugEnter(CLASS_NAME, "valueOf");
 
     // Default values.
     DN relativeBaseDN = null;
@@ -692,7 +674,6 @@ public final class RFC3672SubtreeSpecification extends
     super(relativeBaseDN == null ? rootDN : rootDN.concat(relativeBaseDN),
         minimumDepth, maximumDepth, chopBefore, chopAfter);
 
-    assert debugConstructor(CLASS_NAME);
 
     this.rootDN = rootDN;
     this.relativeBaseDN = relativeBaseDN;
@@ -705,7 +686,6 @@ public final class RFC3672SubtreeSpecification extends
    * @return Returns the root DN.
    */
   public DN getRootDN() {
-    assert debugEnter(CLASS_NAME, "getRootDN");
     return rootDN;
   }
 
@@ -716,7 +696,6 @@ public final class RFC3672SubtreeSpecification extends
    *         was specified.
    */
   public DN getRelativeBaseDN() {
-    assert debugEnter(CLASS_NAME, "getRelativeBaseDN");
     return relativeBaseDN;
   }
 
@@ -727,7 +706,6 @@ public final class RFC3672SubtreeSpecification extends
    *         <code>null</code> if none were specified.
    */
   public Refinement getRefinements() {
-    assert debugEnter(CLASS_NAME, "getRefinements");
     return refinements;
   }
 
@@ -736,7 +714,6 @@ public final class RFC3672SubtreeSpecification extends
    */
   @Override
   public boolean isWithinScope(Entry entry) {
-    assert debugEnter(CLASS_NAME, "isWithinScope");
 
     if (isDNWithinScope(entry.getDN())) {
       if (refinements != null) {
@@ -754,7 +731,6 @@ public final class RFC3672SubtreeSpecification extends
    */
   @Override
   public StringBuilder toString(StringBuilder builder) {
-    assert debugEnter(CLASS_NAME, "toString");
 
     boolean isFirstElement = true;
 
@@ -852,7 +828,6 @@ public final class RFC3672SubtreeSpecification extends
    */
   @Override
   public boolean equals(Object obj) {
-    assert debugEnter(CLASS_NAME, "equals");
 
     if (this == obj) {
       return true;
@@ -884,7 +859,6 @@ public final class RFC3672SubtreeSpecification extends
    */
   @Override
   public int hashCode() {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     int hash = commonComponentsHashCode();
 

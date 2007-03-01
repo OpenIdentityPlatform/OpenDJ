@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -35,7 +35,6 @@ import java.util.List;
 import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -46,11 +45,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class IntermediateResponse
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.IntermediateResponse";
 
 
 
@@ -84,10 +78,6 @@ public class IntermediateResponse
                               ASN1OctetString value,
                               List<Control> controls)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(operation),
-                            String.valueOf(oid),
-                            String.valueOf(value),
-                            String.valueOf(controls));
 
     this.operation = operation;
     this.oid       = oid;
@@ -114,7 +104,6 @@ public class IntermediateResponse
    */
   public Operation getOperation()
   {
-    assert debugEnter(CLASS_NAME, "getOperation");
 
     return operation;
   }
@@ -129,7 +118,6 @@ public class IntermediateResponse
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return oid;
   }
@@ -143,7 +131,6 @@ public class IntermediateResponse
    */
   public void setOID(String oid)
   {
-    assert debugEnter(CLASS_NAME, "setOID", String.valueOf(oid));
 
     this.oid = oid;
   }
@@ -158,7 +145,6 @@ public class IntermediateResponse
    */
   public ASN1OctetString getValue()
   {
-    assert debugEnter(CLASS_NAME, "getValue");
 
     return value;
   }
@@ -172,7 +158,6 @@ public class IntermediateResponse
    */
   public void setValue(ASN1OctetString value)
   {
-    assert debugEnter(CLASS_NAME, "setValue", String.valueOf(value));
 
     this.value = value;
   }
@@ -188,7 +173,6 @@ public class IntermediateResponse
    */
   public List<Control> getControls()
   {
-    assert debugEnter(CLASS_NAME, "getControls");
 
     return controls;
   }
@@ -202,7 +186,6 @@ public class IntermediateResponse
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -220,8 +203,6 @@ public class IntermediateResponse
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("IntermediateResponse(operation=");
     operation.toString(buffer);

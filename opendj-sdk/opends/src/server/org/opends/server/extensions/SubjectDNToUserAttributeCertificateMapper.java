@@ -58,7 +58,9 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -75,11 +77,6 @@ public class SubjectDNToUserAttributeCertificateMapper
        extends CertificateMapper
        implements ConfigurableComponent
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.SubjectDNToUserAttributeCertificateMapper";
 
 
 
@@ -103,7 +100,6 @@ public class SubjectDNToUserAttributeCertificateMapper
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -114,8 +110,6 @@ public class SubjectDNToUserAttributeCertificateMapper
   public void initializeCertificateMapper(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeCertificateMapper",
-                      String.valueOf(configEntry));
 
     this.configEntryDN = configEntry.getDN();
 
@@ -156,7 +150,10 @@ public class SubjectDNToUserAttributeCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SDTUACM_CANNOT_GET_SUBJECT_ATTR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -184,7 +181,10 @@ public class SubjectDNToUserAttributeCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializeCertificateMapper", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SDTUACM_CANNOT_GET_BASE_DN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -202,7 +202,6 @@ public class SubjectDNToUserAttributeCertificateMapper
    */
   public void finalizeCertificateMapper()
   {
-    assert debugEnter(CLASS_NAME, "finalizeCertificateMapper");
 
     DirectoryServer.deregisterConfigurableComponent(this);
   }
@@ -215,8 +214,6 @@ public class SubjectDNToUserAttributeCertificateMapper
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "mapCertificateToUser",
-                      String.valueOf(certificateChain));
 
 
     // Make sure that a peer certificate was provided.
@@ -237,7 +234,10 @@ public class SubjectDNToUserAttributeCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "mapCertificateToUser", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_SDTUACM_PEER_CERT_NOT_X509;
       String message =
@@ -310,7 +310,6 @@ public class SubjectDNToUserAttributeCertificateMapper
    */
   public DN getConfigurableComponentEntryDN()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponentEntryDN");
 
     return configEntryDN;
   }
@@ -326,7 +325,6 @@ public class SubjectDNToUserAttributeCertificateMapper
    */
   public List<ConfigAttribute> getConfigurationAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurationAttributes");
 
     LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
 
@@ -374,8 +372,6 @@ public class SubjectDNToUserAttributeCertificateMapper
   public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
                                             List<String> unacceptableReasons)
   {
-    assert debugEnter(CLASS_NAME, "hasAcceptableConfiguration",
-                      String.valueOf(configEntry), "java.util.List<String>");
 
     DN configEntryDN = configEntry.getDN();
     boolean configAcceptable = true;
@@ -416,7 +412,10 @@ public class SubjectDNToUserAttributeCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SDTUACM_CANNOT_GET_SUBJECT_ATTR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -438,7 +437,10 @@ public class SubjectDNToUserAttributeCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "hasAcceptableConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       msgID = MSGID_SDTUACM_CANNOT_GET_BASE_DN;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -476,9 +478,6 @@ public class SubjectDNToUserAttributeCertificateMapper
   public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
                                                   boolean detailedResults)
   {
-    assert debugEnter(CLASS_NAME, "applyNewConfiguration",
-                      String.valueOf(configEntry),
-                      String.valueOf(detailedResults));
 
     DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -527,7 +526,10 @@ public class SubjectDNToUserAttributeCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -559,7 +561,10 @@ public class SubjectDNToUserAttributeCertificateMapper
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyNewConfiguration", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       if (resultCode == ResultCode.SUCCESS)
       {

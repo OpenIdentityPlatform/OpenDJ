@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -35,7 +35,9 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -53,11 +55,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class IntermediateResponseProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The fully-qualified name of this class to use for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.protocols.ldap.IntermediateResponseProtocolOp";
 
 
 
@@ -77,7 +74,6 @@ public class IntermediateResponseProtocolOp
    */
   public IntermediateResponseProtocolOp(String oid)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid));
 
     this.oid   = oid;
     this.value = null;
@@ -94,8 +90,6 @@ public class IntermediateResponseProtocolOp
    */
   public IntermediateResponseProtocolOp(String oid, ASN1OctetString value)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(oid),
-                            String.valueOf(value));
 
     this.oid   = oid;
     this.value = value;
@@ -111,7 +105,6 @@ public class IntermediateResponseProtocolOp
    */
   public String getOID()
   {
-    assert debugEnter(CLASS_NAME, "getOID");
 
     return oid;
   }
@@ -125,7 +118,6 @@ public class IntermediateResponseProtocolOp
    */
   public void setOID(String oid)
   {
-    assert debugEnter(CLASS_NAME, "setOID", String.valueOf(oid));
 
     this.oid = oid;
   }
@@ -140,7 +132,6 @@ public class IntermediateResponseProtocolOp
    */
   public ASN1OctetString getValue()
   {
-    assert debugEnter(CLASS_NAME, "getValue");
 
     return value;
   }
@@ -154,7 +145,6 @@ public class IntermediateResponseProtocolOp
    */
   public void setValue(ASN1OctetString value)
   {
-    assert debugEnter(CLASS_NAME, "setValue");
 
     this.value = value;
   }
@@ -168,7 +158,6 @@ public class IntermediateResponseProtocolOp
    */
   public byte getType()
   {
-    assert debugEnter(CLASS_NAME, "getType");
 
     return OP_TYPE_INTERMEDIATE_RESPONSE;
   }
@@ -182,7 +171,6 @@ public class IntermediateResponseProtocolOp
    */
   public String getProtocolOpName()
   {
-    assert debugEnter(CLASS_NAME, "getProtocolOpName");
 
     return "Intermediate Response";
   }
@@ -197,7 +185,6 @@ public class IntermediateResponseProtocolOp
    */
   public ASN1Element encode()
   {
-    assert debugEnter(CLASS_NAME, "encode");
 
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
 
@@ -233,8 +220,6 @@ public class IntermediateResponseProtocolOp
                      decodeIntermediateResponse(ASN1Element element)
          throws LDAPException
   {
-    assert debugEnter(CLASS_NAME, "decodeIntermediateResponse",
-                      String.valueOf(element));
 
     ArrayList<ASN1Element> elements;
     try
@@ -243,9 +228,12 @@ public class IntermediateResponseProtocolOp
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "decodeIntermediateResponse", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
-      int    msgID   = MSGID_LDAP_INTERMEDIATE_RESPONSE_DECODE_SEQUENCE;
+      int msgID = MSGID_LDAP_INTERMEDIATE_RESPONSE_DECODE_SEQUENCE;
       String message = getMessage(msgID, String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
     }
@@ -276,7 +264,10 @@ public class IntermediateResponseProtocolOp
           }
           catch (ASN1Exception ae)
           {
-            assert debugException(CLASS_NAME, "decodeIntermediateResponse", ae);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, ae);
+            }
 
             int msgID = MSGID_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID;
             String message = getMessage(msgID, ae.getMessage());
@@ -290,7 +281,10 @@ public class IntermediateResponseProtocolOp
           }
           catch (ASN1Exception ae)
           {
-            assert debugException(CLASS_NAME, "decodeIntermediateResponse", ae);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, ae);
+            }
 
             int msgID = MSGID_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_VALUE;
             String message = getMessage(msgID, ae.getMessage());
@@ -311,7 +305,10 @@ public class IntermediateResponseProtocolOp
       }
       catch (ASN1Exception ae)
       {
-        assert debugException(CLASS_NAME, "decodeIntermediateResponse", ae);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ae);
+        }
 
         int msgID = MSGID_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID;
         String message = getMessage(msgID, ae.getMessage());
@@ -324,7 +321,10 @@ public class IntermediateResponseProtocolOp
       }
       catch (ASN1Exception ae)
       {
-        assert debugException(CLASS_NAME, "decodeIntermediateResponse", ae);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, ae);
+        }
 
         int msgID = MSGID_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID;
         String message = getMessage(msgID, ae.getMessage());
@@ -346,7 +346,6 @@ public class IntermediateResponseProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder");
 
     buffer.append("IntermediateResponse(oid=");
     buffer.append(String.valueOf(oid));
@@ -372,8 +371,6 @@ public class IntermediateResponseProtocolOp
    */
   public void toString(StringBuilder buffer, int indent)
   {
-    assert debugEnter(CLASS_NAME, "toString", "java.lang.StringBuilder",
-                      String.valueOf(indent));
 
     StringBuilder indentBuf = new StringBuilder(indent);
     for (int i=0 ; i < indent; i++)

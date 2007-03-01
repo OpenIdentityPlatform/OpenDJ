@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -42,7 +42,9 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 
 
 
@@ -54,11 +56,6 @@ import static org.opends.server.loggers.Debug.*;
 public class SystemInfoMonitorProvider
        extends MonitorProvider
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.monitors.SystemInfoMonitorProvider";
 
 
 
@@ -91,8 +88,6 @@ public class SystemInfoMonitorProvider
   public void initializeMonitorProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeMonitorProvider",
-                      String.valueOf(configEntry));
 
     // No initialization is required.
   }
@@ -107,7 +102,6 @@ public class SystemInfoMonitorProvider
    */
   public String getMonitorInstanceName()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorInstanceName");
 
     return "System Information";
   }
@@ -125,7 +119,6 @@ public class SystemInfoMonitorProvider
    */
   public long getUpdateInterval()
   {
-    assert debugEnter(CLASS_NAME, "getUpdateInterval");
 
     // This monitor does not need to run periodically.
     return 0;
@@ -142,7 +135,6 @@ public class SystemInfoMonitorProvider
    */
   public void updateMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "updateMonitorData");
 
     // This monitor does not need to run periodically.
     return;
@@ -160,7 +152,6 @@ public class SystemInfoMonitorProvider
    */
   public ArrayList<Attribute> getMonitorData()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorData");
 
 
     ArrayList<Attribute> attrs = new ArrayList<Attribute>(12);
@@ -191,7 +182,10 @@ public class SystemInfoMonitorProvider
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "getMonitorData", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
 
@@ -222,8 +216,6 @@ public class SystemInfoMonitorProvider
    */
   private Attribute createAttribute(String name, String value)
   {
-    assert debugEnter(CLASS_NAME, "createAttribute", String.valueOf(name),
-                      String.valueOf(value));
 
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
 
@@ -237,7 +229,10 @@ public class SystemInfoMonitorProvider
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "createAttribute", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       values.add(new AttributeValue(encodedValue, encodedValue));
     }

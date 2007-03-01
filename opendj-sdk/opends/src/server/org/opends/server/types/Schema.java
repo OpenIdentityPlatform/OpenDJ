@@ -42,7 +42,6 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -67,11 +66,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class Schema
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.Schema";
 
 
 
@@ -199,7 +193,6 @@ public class Schema
    */
   public Schema()
   {
-    assert debugConstructor(CLASS_NAME);
 
     attributeTypes = new ConcurrentHashMap<String,AttributeType>();
     objectClasses = new ConcurrentHashMap<String,ObjectClass>();
@@ -255,7 +248,6 @@ public class Schema
   public final ConcurrentHashMap<String,AttributeType>
                     getAttributeTypes()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeTypes");
 
     return attributeTypes;
   }
@@ -269,7 +261,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getAttributeTypeSet()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeTypeSet");
 
     return attributeTypeSet;
   }
@@ -289,8 +280,6 @@ public class Schema
    */
   public boolean hasAttributeType(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "hasAttributeType",
-                      String.valueOf(lowerName));
 
     return attributeTypes.containsKey(lowerName);
   }
@@ -310,8 +299,6 @@ public class Schema
    */
   public final AttributeType getAttributeType(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType",
-                      String.valueOf(lowerName));
 
     return attributeTypes.get(lowerName);
   }
@@ -337,9 +324,6 @@ public class Schema
                                           boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerAttributeType",
-                      String.valueOf(attributeType),
-                      String.valueOf(overwriteExisting));
 
     synchronized (attributeTypes)
     {
@@ -414,8 +398,6 @@ public class Schema
   public final void deregisterAttributeType(
                          AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "deregisterAttributeType",
-                      String.valueOf(attributeType));
 
     synchronized (attributeTypes)
     {
@@ -462,9 +444,6 @@ public class Schema
                           AttributeType attributeType,
                           AttributeType superiorType)
   {
-    assert debugEnter(CLASS_NAME, "registerSubordinateType",
-                      String.valueOf(attributeType),
-                      String.valueOf(superiorType));
 
     List<AttributeType> subTypes = subordinateTypes.get(superiorType);
     if (subTypes == null)
@@ -503,9 +482,6 @@ public class Schema
                           AttributeType attributeType,
                           AttributeType superiorType)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSubordinateType",
-                      String.valueOf(attributeType),
-                      String.valueOf(superiorType));
 
     List<AttributeType> subTypes = subordinateTypes.get(superiorType);
     if (subTypes != null)
@@ -537,8 +513,6 @@ public class Schema
   public final Iterable<AttributeType>
                     getSubTypes(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "getSubordinateTypes",
-                      String.valueOf(attributeType));
 
     List<AttributeType> subTypes =
          subordinateTypes.get(attributeType);
@@ -566,7 +540,6 @@ public class Schema
   public final ConcurrentHashMap<String,ObjectClass>
                     getObjectClasses()
   {
-    assert debugEnter(CLASS_NAME, "getObjectClasses");
 
     return objectClasses;
   }
@@ -580,7 +553,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getObjectClassSet()
   {
-    assert debugEnter(CLASS_NAME, "getObjectClassSet");
 
     return objectClassSet;
   }
@@ -600,8 +572,6 @@ public class Schema
    */
   public boolean hasObjectClass(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "hasObjectClass",
-                      String.valueOf(lowerName));
 
     return objectClasses.containsKey(lowerName);
   }
@@ -621,8 +591,6 @@ public class Schema
    */
   public final ObjectClass getObjectClass(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getObjectClass",
-                      String.valueOf(lowerName));
 
     return objectClasses.get(lowerName);
   }
@@ -647,9 +615,6 @@ public class Schema
                                         boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerObjectClass",
-                      String.valueOf(objectClass),
-                      String.valueOf(overwriteExisting));
 
     synchronized (objectClasses)
     {
@@ -716,8 +681,6 @@ public class Schema
    */
   public final void deregisterObjectClass(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "deregisterObjectClass",
-                      String.valueOf(objectClass));
 
     synchronized (objectClasses)
     {
@@ -755,7 +718,6 @@ public class Schema
    */
   public final ConcurrentHashMap<String,AttributeSyntax> getSyntaxes()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxes");
 
     return syntaxes;
   }
@@ -769,7 +731,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getSyntaxSet()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxSet");
 
     return syntaxSet;
   }
@@ -789,8 +750,6 @@ public class Schema
    */
   public boolean hasSyntax(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "hasSyntax",
-                      String.valueOf(lowerName));
 
     return syntaxes.containsKey(lowerName);
   }
@@ -808,8 +767,6 @@ public class Schema
    */
   public final AttributeSyntax getSyntax(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getSyntax",
-                      String.valueOf(lowerName));
 
     return syntaxes.get(lowerName);
   }
@@ -835,9 +792,6 @@ public class Schema
                                    boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerSyntax",
-                      String.valueOf(syntax),
-                      String.valueOf(overwriteExisting));
 
     synchronized (syntaxes)
     {
@@ -883,8 +837,6 @@ public class Schema
    */
   public final void deregisterSyntax(AttributeSyntax syntax)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSyntax",
-                      String.valueOf(syntax));
 
     synchronized (syntaxes)
     {
@@ -918,7 +870,6 @@ public class Schema
   public final ConcurrentHashMap<String,MatchingRule>
                     getMatchingRules()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRules");
 
     return matchingRules;
   }
@@ -932,7 +883,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getMatchingRuleSet()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleSet");
 
     return matchingRuleSet;
   }
@@ -952,8 +902,6 @@ public class Schema
    */
   public boolean hasMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "hasMatchingRule",
-                      String.valueOf(lowerName));
 
     return matchingRules.containsKey(lowerName);
   }
@@ -973,8 +921,6 @@ public class Schema
    */
   public final MatchingRule getMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRule",
-                      String.valueOf(lowerName));
 
     return matchingRules.get(lowerName);
   }
@@ -1000,9 +946,6 @@ public class Schema
                                          boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerMatchingRule",
-                      String.valueOf(matchingRule),
-                      String.valueOf(overwriteExisting));
 
     if (matchingRule instanceof ApproximateMatchingRule)
     {
@@ -1096,8 +1039,6 @@ public class Schema
    */
   public final void deregisterMatchingRule(MatchingRule matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterMatchingRule",
-                      String.valueOf(matchingRule));
 
     if (matchingRule instanceof ApproximateMatchingRule)
     {
@@ -1163,7 +1104,6 @@ public class Schema
   public final ConcurrentHashMap<String,ApproximateMatchingRule>
                     getApproximateMatchingRules()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRules");
 
     return approximateMatchingRules;
   }
@@ -1185,8 +1125,6 @@ public class Schema
   public final ApproximateMatchingRule
                     getApproximateMatchingRule(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule",
-                      String.valueOf(lowerName));
 
     return approximateMatchingRules.get(lowerName);
   }
@@ -1213,9 +1151,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerApproximateMatchingRule",
-                      String.valueOf(matchingRule),
-                      String.valueOf(overwriteExisting));
 
 
     synchronized (matchingRules)
@@ -1291,8 +1226,6 @@ public class Schema
   public final void deregisterApproximateMatchingRule(
                          ApproximateMatchingRule matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterApproximateMatchingRule",
-                      String.valueOf(matchingRule));
 
     synchronized (matchingRules)
     {
@@ -1335,7 +1268,6 @@ public class Schema
   public final ConcurrentHashMap<String,EqualityMatchingRule>
                     getEqualityMatchingRules()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRules");
 
     return equalityMatchingRules;
   }
@@ -1357,8 +1289,6 @@ public class Schema
   public final EqualityMatchingRule getEqualityMatchingRule(
                                          String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule",
-                      String.valueOf(lowerName));
 
     return equalityMatchingRules.get(lowerName);
   }
@@ -1384,9 +1314,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerEqualityMatchingRule",
-                      String.valueOf(matchingRule),
-                      String.valueOf(overwriteExisting));
 
 
     synchronized (matchingRules)
@@ -1462,8 +1389,6 @@ public class Schema
   public final void deregisterEqualityMatchingRule(
                          EqualityMatchingRule matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterEqualityMatchingRule",
-                      String.valueOf(matchingRule));
 
     synchronized (matchingRules)
     {
@@ -1507,7 +1432,6 @@ public class Schema
   public final ConcurrentHashMap<String,OrderingMatchingRule>
                     getOrderingMatchingRules()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRules");
 
     return orderingMatchingRules;
   }
@@ -1529,8 +1453,6 @@ public class Schema
   public final OrderingMatchingRule getOrderingMatchingRule(
                                          String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule",
-                      String.valueOf(lowerName));
 
     return orderingMatchingRules.get(lowerName);
   }
@@ -1556,9 +1478,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerOrderingMatchingRule",
-                      String.valueOf(matchingRule),
-                      String.valueOf(overwriteExisting));
 
 
     synchronized (matchingRules)
@@ -1634,8 +1553,6 @@ public class Schema
   public final void deregisterOrderingMatchingRule(
                          OrderingMatchingRule matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterOrderingMatchingRule",
-                      String.valueOf(matchingRule));
 
     synchronized (matchingRules)
     {
@@ -1678,7 +1595,6 @@ public class Schema
   public final ConcurrentHashMap<String,SubstringMatchingRule>
                     getSubstringMatchingRules()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRules");
 
     return substringMatchingRules;
   }
@@ -1700,8 +1616,6 @@ public class Schema
   public final SubstringMatchingRule getSubstringMatchingRule(
                                           String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule",
-                      String.valueOf(lowerName));
 
     return substringMatchingRules.get(lowerName);
   }
@@ -1727,9 +1641,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerSubstringMatchingRule",
-                      String.valueOf(matchingRule),
-                      String.valueOf(overwriteExisting));
 
 
     synchronized (matchingRules)
@@ -1805,8 +1716,6 @@ public class Schema
   public final void deregisterSubstringMatchingRule(
                          SubstringMatchingRule matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterSubstringMatchingRule",
-                      String.valueOf(matchingRule));
 
     synchronized (matchingRules)
     {
@@ -1849,7 +1758,6 @@ public class Schema
   public final ConcurrentHashMap<MatchingRule,MatchingRuleUse>
                     getMatchingRuleUses()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleUses");
 
     return matchingRuleUses;
   }
@@ -1863,7 +1771,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getMatchingRuleUseSet()
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleUseSet");
 
     return matchingRuleUseSet;
   }
@@ -1882,8 +1789,6 @@ public class Schema
    */
   public boolean hasMatchingRuleUse(MatchingRule matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "hasMatchingRuleUse",
-                      String.valueOf(matchingRule));
 
     return matchingRuleUses.containsKey(matchingRule);
   }
@@ -1903,8 +1808,6 @@ public class Schema
   public final MatchingRuleUse getMatchingRuleUse(
                                     MatchingRule matchingRule)
   {
-    assert debugEnter(CLASS_NAME, "getMatchingRuleUse",
-                      String.valueOf(matchingRule));
 
     return matchingRuleUses.get(matchingRule);
   }
@@ -1931,9 +1834,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerMatchingRuleUse",
-                      String.valueOf(matchingRuleUse),
-                      String.valueOf(overwriteExisting));
 
     synchronized (matchingRuleUses)
     {
@@ -1983,8 +1883,6 @@ public class Schema
   public final void deregisterMatchingRuleUse(
                          MatchingRuleUse matchingRuleUse)
   {
-    assert debugEnter(CLASS_NAME, "deregisterMatchingRuleUse",
-                      String.valueOf(matchingRuleUse));
 
     synchronized (matchingRuleUses)
     {
@@ -2018,7 +1916,6 @@ public class Schema
   public final ConcurrentHashMap<ObjectClass,DITContentRule>
                     getDITContentRules()
   {
-    assert debugEnter(CLASS_NAME, "getDITContentRules");
 
     return ditContentRules;
   }
@@ -2032,7 +1929,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getDITContentRuleSet()
   {
-    assert debugEnter(CLASS_NAME, "getDITContentRuleSet");
 
     return ditContentRuleSet;
   }
@@ -2051,8 +1947,6 @@ public class Schema
    */
   public boolean hasDITContentRule(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "hasDITContentRule",
-                      String.valueOf(objectClass));
 
     return ditContentRules.containsKey(objectClass);
   }
@@ -2073,8 +1967,6 @@ public class Schema
   public final DITContentRule getDITContentRule(
                                    ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "getDITContentRule",
-                      String.valueOf(objectClass));
 
     return ditContentRules.get(objectClass);
   }
@@ -2100,9 +1992,6 @@ public class Schema
                           boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerDITContentRule",
-                      String.valueOf(ditContentRule),
-                      String.valueOf(overwriteExisting));
 
     synchronized (ditContentRules)
     {
@@ -2151,8 +2040,6 @@ public class Schema
   public final void deregisterDITContentRule(
                          DITContentRule ditContentRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterDITContentRule",
-                      String.valueOf(ditContentRule));
 
     synchronized (ditContentRules)
     {
@@ -2181,7 +2068,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getDITStructureRuleSet()
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRuleSet");
 
     return ditStructureRuleSet;
   }
@@ -2200,7 +2086,6 @@ public class Schema
   public final ConcurrentHashMap<Integer,DITStructureRule>
                     getDITStructureRulesByID()
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRulesByID");
 
     return ditStructureRulesByID;
   }
@@ -2219,7 +2104,6 @@ public class Schema
   public final ConcurrentHashMap<NameForm,DITStructureRule>
                     getDITStructureRulesByNameForm()
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRulesByNameForm");
 
     return ditStructureRulesByNameForm;
   }
@@ -2237,8 +2121,6 @@ public class Schema
    */
   public boolean hasDITStructureRule(int ruleID)
   {
-    assert debugEnter(CLASS_NAME, "hasDITStructureRule",
-                      String.valueOf(ruleID));
 
     return ditStructureRulesByID.containsKey(ruleID);
   }
@@ -2258,8 +2140,6 @@ public class Schema
    */
   public boolean hasDITStructureRule(NameForm nameForm)
   {
-    assert debugEnter(CLASS_NAME, "hasDITStructureRule",
-                      String.valueOf(nameForm));
 
     return ditStructureRulesByNameForm.containsKey(nameForm);
   }
@@ -2279,8 +2159,6 @@ public class Schema
    */
   public final DITStructureRule getDITStructureRule(int ruleID)
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRule",
-                      String.valueOf(ruleID));
 
     return ditStructureRulesByID.get(ruleID);
   }
@@ -2300,8 +2178,6 @@ public class Schema
    */
   public final DITStructureRule getDITStructureRule(NameForm nameForm)
   {
-    assert debugEnter(CLASS_NAME, "getDITStructureRule",
-                      String.valueOf(nameForm));
 
     return ditStructureRulesByNameForm.get(nameForm);
   }
@@ -2327,9 +2203,6 @@ public class Schema
                          boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "ditStructureRule",
-                      String.valueOf(ditStructureRule),
-                      String.valueOf(overwriteExisting));
 
     synchronized (ditStructureRulesByNameForm)
     {
@@ -2377,9 +2250,9 @@ public class Schema
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
       String valueString = ditStructureRule.getDefinition();
-      ASN1OctetString rawValue  = new ASN1OctetString(valueString);
+      ASN1OctetString rawValue = new ASN1OctetString(valueString);
       ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
+          new ASN1OctetString(toLowerCase(valueString));
       ditStructureRuleSet.add(new AttributeValue(rawValue,
                                                  normValue));
     }
@@ -2397,8 +2270,6 @@ public class Schema
   public final void deregisterDITStructureRule(
                          DITStructureRule ditStructureRule)
   {
-    assert debugEnter(CLASS_NAME, "deregisterDITStructureRule",
-                      String.valueOf(ditStructureRule));
 
     synchronized (ditStructureRulesByNameForm)
     {
@@ -2429,7 +2300,6 @@ public class Schema
    */
   public final LinkedHashSet<AttributeValue> getNameFormSet()
   {
-    assert debugEnter(CLASS_NAME, "getNameFormSet");
 
     return nameFormSet;
   }
@@ -2448,7 +2318,6 @@ public class Schema
   public final ConcurrentHashMap<ObjectClass,NameForm>
                     getNameFormsByObjectClass()
   {
-    assert debugEnter(CLASS_NAME, "getNameForms");
 
     return nameFormsByOC;
   }
@@ -2467,7 +2336,6 @@ public class Schema
   public final ConcurrentHashMap<String,NameForm>
                     getNameFormsByNameOrOID()
   {
-    assert debugEnter(CLASS_NAME, "getNameForms");
 
     return nameFormsByName;
   }
@@ -2486,8 +2354,6 @@ public class Schema
    */
   public boolean hasNameForm(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "hasNameForm",
-                      String.valueOf(objectClass));
 
     return nameFormsByOC.containsKey(objectClass);
   }
@@ -2507,8 +2373,6 @@ public class Schema
    */
   public boolean hasNameForm(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "hasNameForm",
-                      String.valueOf(lowerName));
 
     return nameFormsByName.containsKey(lowerName);
   }
@@ -2526,8 +2390,6 @@ public class Schema
    */
   public final NameForm getNameForm(ObjectClass objectClass)
   {
-    assert debugEnter(CLASS_NAME, "getNameForm",
-                      String.valueOf(objectClass));
 
     return nameFormsByOC.get(objectClass);
   }
@@ -2545,8 +2407,6 @@ public class Schema
    */
   public final NameForm getNameForm(String lowerName)
   {
-    assert debugEnter(CLASS_NAME, "getNameForm",
-                      String.valueOf(lowerName));
 
     return nameFormsByName.get(lowerName);
   }
@@ -2570,9 +2430,6 @@ public class Schema
                                      boolean overwriteExisting)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "registerNameForm",
-                      String.valueOf(nameForm),
-                      String.valueOf(overwriteExisting));
 
     synchronized (nameFormsByOC)
     {
@@ -2655,8 +2512,6 @@ public class Schema
    */
   public final void deregisterNameForm(NameForm nameForm)
   {
-    assert debugEnter(CLASS_NAME, "deregisterNameForm",
-                      String.valueOf(nameForm));
 
     synchronized (nameFormsByOC)
     {
@@ -2693,7 +2548,6 @@ public class Schema
    */
   public long getOldestModificationTime()
   {
-    assert debugEnter(CLASS_NAME, "getOldestModificationTime");
 
     return oldestModificationTime;
   }
@@ -2710,8 +2564,6 @@ public class Schema
    */
   public void setOldestModificationTime(long oldestModificationTime)
   {
-    assert debugEnter(CLASS_NAME, "setOldestModificationTime",
-                      String.valueOf(oldestModificationTime));
 
     this.oldestModificationTime = oldestModificationTime;
   }
@@ -2728,7 +2580,6 @@ public class Schema
    */
   public long getYoungestModificationTime()
   {
-    assert debugEnter(CLASS_NAME, "getYoungestModificationTime");
 
     return youngestModificationTime;
   }
@@ -2746,8 +2597,6 @@ public class Schema
   public void setYoungestModificationTime(
                    long youngestModificationTime)
   {
-    assert debugEnter(CLASS_NAME, "setYoungestModificationTime",
-                      String.valueOf(youngestModificationTime));
 
     this.youngestModificationTime = youngestModificationTime;
   }
@@ -2799,8 +2648,6 @@ public class Schema
                          SchemaFileElement element)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "rebuildDependentElements",
-                      String.valueOf(element));
 
     try
     {
@@ -2845,8 +2692,6 @@ public class Schema
                           SchemaFileElement element, int depth)
           throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "rebuildDependentElements",
-                      String.valueOf(element), String.valueOf(depth));
 
     if (depth > 20)
     {
@@ -3002,7 +2847,6 @@ public class Schema
    */
   public final Schema duplicate()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     Schema dupSchema = new Schema();
 

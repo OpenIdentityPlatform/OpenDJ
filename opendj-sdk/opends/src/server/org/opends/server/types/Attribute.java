@@ -40,7 +40,10 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.Base64;
 
-import static org.opends.server.loggers.Debug.*;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -52,11 +55,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class Attribute
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.Attribute";
 
 
 
@@ -82,8 +80,6 @@ public class Attribute
    */
   public Attribute(AttributeType attributeType)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(attributeType));
 
     this.attributeType = attributeType;
     this.name          = attributeType.getPrimaryName();
@@ -102,8 +98,6 @@ public class Attribute
    */
   public Attribute(AttributeType attributeType, String name)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(attributeType),
-                            String.valueOf(name));
 
     this.attributeType = attributeType;
     this.name          = name;
@@ -124,9 +118,6 @@ public class Attribute
   public Attribute(AttributeType attributeType, String name,
                    LinkedHashSet<AttributeValue> values)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(attributeType),
-                            String.valueOf(name),
-                            String.valueOf(values));
 
     this.attributeType = attributeType;
     this.name          = name;
@@ -179,10 +170,6 @@ public class Attribute
                    LinkedHashSet<String> options,
                    LinkedHashSet<AttributeValue> values)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(attributeType),
-                            String.valueOf(name),
-                            String.valueOf(options),
-                            String.valueOf(values));
 
     this.attributeType = attributeType;
     this.name          = name;
@@ -215,7 +202,6 @@ public class Attribute
    */
   public AttributeType getAttributeType()
   {
-    assert debugEnter(CLASS_NAME, "getAttributeType");
 
     return attributeType;
   }
@@ -229,7 +215,6 @@ public class Attribute
    */
   public String getName()
   {
-    assert debugEnter(CLASS_NAME, "getName");
 
     return name;
   }
@@ -243,7 +228,6 @@ public class Attribute
    */
   public LinkedHashSet<String> getOptions()
   {
-    assert debugEnter(CLASS_NAME, "getOptions");
 
     return options;
   }
@@ -260,8 +244,6 @@ public class Attribute
    */
   public boolean hasOption(String option)
   {
-    assert debugEnter(CLASS_NAME, "hasOption",
-                      String.valueOf(option));
 
     return options.contains(option);
   }
@@ -276,7 +258,6 @@ public class Attribute
    */
   public boolean hasOptions()
   {
-    assert debugEnter(CLASS_NAME, "hasOptions");
 
     return ((options != null) && (! options.isEmpty()));
   }
@@ -296,8 +277,6 @@ public class Attribute
    */
   public boolean hasOptions(Collection<String> options)
   {
-    assert debugEnter(CLASS_NAME, "hasOptions",
-                      String.valueOf(options));
 
     if (options == null)
     {
@@ -330,8 +309,6 @@ public class Attribute
    */
   public boolean optionsEqual(Set<String> options)
   {
-    assert debugEnter(CLASS_NAME, "optionsEqual",
-                      String.valueOf(options));
 
     if (options == null)
     {
@@ -369,7 +346,6 @@ public class Attribute
    */
   public LinkedHashSet<AttributeValue> getValues()
   {
-    assert debugEnter(CLASS_NAME, "getValues");
 
     return values;
   }
@@ -383,8 +359,6 @@ public class Attribute
    */
   public void setValues(LinkedHashSet<AttributeValue> values)
   {
-    assert debugEnter(CLASS_NAME, "setValues",
-                      String.valueOf(values));
 
     if (values == null)
     {
@@ -406,7 +380,6 @@ public class Attribute
    */
   public boolean hasValue()
   {
-    assert debugEnter(CLASS_NAME, "hasValue");
 
     return (! values.isEmpty());
   }
@@ -423,7 +396,6 @@ public class Attribute
    */
   public boolean hasValue(AttributeValue value)
   {
-    assert debugEnter(CLASS_NAME, "hasValue", String.valueOf(value));
 
     return values.contains(value);
   }
@@ -443,8 +415,6 @@ public class Attribute
    */
   public boolean hasAllValues(Collection<AttributeValue> values)
   {
-    assert debugEnter(CLASS_NAME, "hasAllValues",
-                      String.valueOf(values));
 
     for (AttributeValue value : values)
     {
@@ -473,8 +443,6 @@ public class Attribute
    */
   public boolean hasAnyValue(Collection<AttributeValue> values)
   {
-    assert debugEnter(CLASS_NAME, "hasAnyValue",
-                      String.valueOf(values));
 
     for (AttributeValue value : values)
     {
@@ -509,10 +477,6 @@ public class Attribute
                                           List<ByteString> subAny,
                                           ByteString subFinal)
   {
-    assert debugEnter(CLASS_NAME, "matchesSubstring",
-                      String.valueOf(subInitial),
-                      String.valueOf(subAny),
-                      String.valueOf(subFinal));
 
 
     SubstringMatchingRule matchingRule =
@@ -537,7 +501,10 @@ public class Attribute
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "matchesSubstring", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // The substring couldn't be normalized.  We have to return
         // "undefined".
@@ -564,7 +531,10 @@ public class Attribute
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "matchesSubstring", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
 
           // The substring couldn't be normalized.  We have to return
           // "undefined".
@@ -588,7 +558,10 @@ public class Attribute
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "matchesSubstring", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // The substring couldn't be normalized.  We have to return
         // "undefined".
@@ -613,7 +586,10 @@ public class Attribute
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "matchesSubstring", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // The value couldn't be normalized.  If we can't find a
         // definite match, then we should return "undefined".
@@ -639,8 +615,6 @@ public class Attribute
    */
   public ConditionResult greaterThanOrEqualTo(AttributeValue value)
   {
-    assert debugEnter(CLASS_NAME, "greaterThanOrEqualTo",
-                      String.valueOf(value));
 
 
     OrderingMatchingRule matchingRule =
@@ -657,7 +631,10 @@ public class Attribute
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "greaterThanOrEqualTo", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // We couldn't normalize the provided value.  We should return
       // "undefined".
@@ -679,7 +656,10 @@ public class Attribute
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "greaterThanOrEqualTo", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // We couldn't normalize one of the attribute values.  If we
         // can't find a definite match, then we should return
@@ -706,8 +686,6 @@ public class Attribute
    */
   public ConditionResult lessThanOrEqualTo(AttributeValue value)
   {
-    assert debugEnter(CLASS_NAME, "lessThanOrEqualTo",
-                      String.valueOf(value));
 
 
     OrderingMatchingRule matchingRule =
@@ -724,7 +702,10 @@ public class Attribute
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "lessThanOrEqualTo", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // We couldn't normalize the provided value.  We should return
       // "undefined".
@@ -746,7 +727,10 @@ public class Attribute
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "lessThanOrEqualTo", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // We couldn't normalize one of the attribute values.  If we
         // can't find a definite match, then we should return
@@ -773,8 +757,6 @@ public class Attribute
    */
   public ConditionResult approximatelyEqualTo(AttributeValue value)
   {
-    assert debugEnter(CLASS_NAME, "approximatelyEqualTo",
-                      String.valueOf(value));
 
 
     ApproximateMatchingRule matchingRule =
@@ -791,7 +773,10 @@ public class Attribute
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "approximatelyEqualTo", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       // We couldn't normalize the provided value.  We should return
       // "undefined".
@@ -811,7 +796,10 @@ public class Attribute
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "approximatelyEqualTo", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         // We couldn't normalize one of the attribute values.  If we
         // can't find a definite match, then we should return
@@ -834,7 +822,6 @@ public class Attribute
    */
   public Attribute duplicate()
   {
-    assert debugEnter(CLASS_NAME, "duplicate");
 
     return duplicate(false);
   }
@@ -852,8 +839,6 @@ public class Attribute
    */
   public Attribute duplicate(boolean omitValues)
   {
-    assert debugEnter(CLASS_NAME, "duplicate",
-                      String.valueOf(omitValues));
 
     LinkedHashSet<String> optionsCopy =
          new LinkedHashSet<String>(options.size());
@@ -894,7 +879,6 @@ public class Attribute
    */
   public boolean equals(Object o)
   {
-    assert debugEnter(CLASS_NAME, "equals", String.valueOf(o));
 
     if (this == o)
     {
@@ -936,7 +920,6 @@ public class Attribute
    */
   public int hashCode()
   {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     int hashCode = attributeType.hashCode();
     for (AttributeValue value : values)
@@ -956,7 +939,6 @@ public class Attribute
    */
   public String toString()
   {
-    assert debugEnter(CLASS_NAME, "toString");
 
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
@@ -974,8 +956,6 @@ public class Attribute
    */
   public void toString(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toString",
-                      "java.lang.StringBuilder");
 
     buffer.append("Attribute(");
     buffer.append(name);
@@ -1005,7 +985,6 @@ public class Attribute
    */
   public String toLDIF()
   {
-    assert debugEnter(CLASS_NAME, "toLDIF");
 
     StringBuilder buffer = new StringBuilder();
     toLDIF(buffer);
@@ -1023,8 +1002,6 @@ public class Attribute
    */
   public void toLDIF(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toLDIF",
-                      "java.lang.StringBuilder");
 
     for (AttributeValue value : values)
     {

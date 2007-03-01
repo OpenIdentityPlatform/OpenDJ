@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -38,9 +38,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.Debug.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
 
 
 
@@ -56,11 +53,6 @@ public class BlindTrustManagerProvider
        extends TrustManagerProvider
        implements X509TrustManager
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.BlindTrustManagerProvider";
 
 
 
@@ -71,7 +63,6 @@ public class BlindTrustManagerProvider
    */
   public BlindTrustManagerProvider()
   {
-    assert debugConstructor(CLASS_NAME);
 
     // No implementation is required.
   }
@@ -96,8 +87,6 @@ public class BlindTrustManagerProvider
   public void initializeTrustManagerProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeTrustManagerProvider",
-                      String.valueOf(configEntry));
 
     // No implementation is required.
   }
@@ -110,7 +99,6 @@ public class BlindTrustManagerProvider
    */
   public void finalizeTrustManagerProvider()
   {
-    assert debugEnter(CLASS_NAME, "finalizeTrustManagerProvider");
 
     // No implementation is required.
   }
@@ -130,7 +118,6 @@ public class BlindTrustManagerProvider
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getTrustManagers");
 
     return new TrustManager[] { this };
   }
@@ -146,8 +133,6 @@ public class BlindTrustManagerProvider
    */
   public void checkClientTrusted(X509Certificate[] chain, String authType)
   {
-    assert debugEnter(CLASS_NAME, "checkClientTrusted",
-                      String.valueOf(chain), String.valueOf(authType));
 
     // As long as we don't throw an exception, then the client certificate will
     // be considered trusted.
@@ -164,8 +149,6 @@ public class BlindTrustManagerProvider
    */
   public void checkServerTrusted(X509Certificate[] chain, String authType)
   {
-    assert debugEnter(CLASS_NAME, "checkServerTrusted",
-                      String.valueOf(chain), String.valueOf(authType));
 
     // As long as we don't throw an exception, then the server certificate will
     // be considered trusted.
@@ -182,7 +165,6 @@ public class BlindTrustManagerProvider
    */
   public X509Certificate[] getAcceptedIssuers()
   {
-    assert debugEnter(CLASS_NAME, "getAcceptedIssuers");
 
     return new X509Certificate[0];
   }

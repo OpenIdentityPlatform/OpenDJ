@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -42,11 +41,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class SearchResultReference
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.SearchResultReference";
 
 
 
@@ -67,7 +61,6 @@ public class SearchResultReference
    */
   public SearchResultReference(String referralURL)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(referralURL));
 
     referralURLs = new ArrayList<String>(1);
     referralURLs.add(referralURL);
@@ -86,7 +79,6 @@ public class SearchResultReference
    */
   public SearchResultReference(List<String> referralURLs)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(referralURLs));
 
     if (referralURLs == null)
     {
@@ -114,8 +106,6 @@ public class SearchResultReference
   public SearchResultReference(List<String> referralURLs,
                                List<Control> controls)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(referralURLs),
-                            String.valueOf(controls));
 
     if (referralURLs == null)
     {
@@ -147,7 +137,6 @@ public class SearchResultReference
    */
   public List<String> getReferralURLs()
   {
-    assert debugEnter(CLASS_NAME, "getReferralURLs");
 
     return referralURLs;
   }
@@ -163,7 +152,6 @@ public class SearchResultReference
    */
   public String getReferralURLString()
   {
-    assert debugEnter(CLASS_NAME, "getReferralURLString");
 
     if ((referralURLs == null) || (referralURLs.isEmpty()))
     {
@@ -203,7 +191,6 @@ public class SearchResultReference
    */
   public List<Control> getControls()
   {
-    assert debugEnter(CLASS_NAME, "getControls");
 
     return controls;
   }

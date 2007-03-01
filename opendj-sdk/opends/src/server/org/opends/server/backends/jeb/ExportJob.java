@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -44,7 +44,9 @@ import org.opends.server.util.StaticUtils;
 import java.io.IOException;
 import java.util.*;
 
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.JebMessages.*;
@@ -54,11 +56,6 @@ import static org.opends.server.messages.JebMessages.*;
  */
 public class ExportJob
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.jeb.ExportJob";
 
   /**
    * The requested LDIF export configuration.
@@ -202,7 +199,10 @@ public class ExportJob
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "exportContainer", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           skippedCount++;
           System.err.printf("Malformed id2entry ID %s.%n",
                             StaticUtils.bytesToHex(key.getData()));
@@ -222,7 +222,10 @@ public class ExportJob
         }
         catch (Exception e)
         {
-          assert debugException(CLASS_NAME, "exportContainer", e);
+          if (debugEnabled())
+          {
+            debugCought(DebugLogLevel.ERROR, e);
+          }
           skippedCount++;
           System.err.printf("Malformed id2entry record for ID %d:%n%s%n",
                             entryID.longValue(),

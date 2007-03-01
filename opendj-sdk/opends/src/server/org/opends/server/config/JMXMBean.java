@@ -64,8 +64,10 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InvokableMethod;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
+import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -94,7 +96,7 @@ public class JMXMBean
        implements DynamicMBean, DirectoryServerMBean
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME = "org.opends.server.config.JMXMBean";
 
@@ -169,7 +171,10 @@ public class JMXMBean
           nameStr = MBEAN_BASE_DOMAIN + ":" + "Name=rootDSE" + typeStr;
       } catch (Exception e)
       {
-          assert debugException(CLASS_NAME, "<init>", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
           int msgID = MSGID_CONFIG_JMX_CANNOT_REGISTER_MBEAN;
           String message = getMessage(msgID, configEntryDN.toString(),
@@ -188,7 +193,6 @@ public class JMXMBean
    */
   public JMXMBean(DN configEntryDN)
     {
-        assert debugConstructor(CLASS_NAME);
 
         this.configEntryDN = configEntryDN;
 
@@ -213,14 +217,20 @@ public class JMXMBean
                   }
                 } catch(Exception e)
                 {
-                  assert debugException(CLASS_NAME, "<init>", e);
+                  if (debugEnabled())
+                  {
+                    debugCought(DebugLogLevel.ERROR, e);
+                  }
                 }
 
                 mBeanServer.registerMBean(this, objectName);
 
             } catch (Exception e)
             {
-                assert debugException(CLASS_NAME, "<init>", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
                 e.printStackTrace();
 
                 int msgID = MSGID_CONFIG_JMX_CANNOT_REGISTER_MBEAN;
@@ -241,7 +251,6 @@ public class JMXMBean
    */
   public ObjectName getObjectName()
   {
-    assert debugEnter(CLASS_NAME, "getObjectName");
 
     return objectName;
   }
@@ -255,7 +264,6 @@ public class JMXMBean
    */
   public CopyOnWriteArrayList<AlertGenerator> getAlertGenerators()
   {
-    assert debugEnter(CLASS_NAME, "getAlertGenerators");
 
     return alertGenerators;
   }
@@ -271,8 +279,6 @@ public class JMXMBean
    */
   public void addAlertGenerator(AlertGenerator generator)
   {
-    assert debugEnter(CLASS_NAME, "addAlertGenerator",
-                      String.valueOf(generator));
 
     synchronized (alertGenerators)
     {
@@ -297,8 +303,6 @@ public class JMXMBean
    */
   public boolean removeAlertGenerator(AlertGenerator generator)
   {
-    assert debugEnter(CLASS_NAME, "removeAlertGenerator",
-                      String.valueOf(generator));
 
     synchronized (alertGenerators)
     {
@@ -316,7 +320,6 @@ public class JMXMBean
    */
   public CopyOnWriteArrayList<ConfigurableComponent> getConfigurableComponents()
   {
-    assert debugEnter(CLASS_NAME, "getConfigurableComponents");
 
     return configurableComponents;
   }
@@ -332,8 +335,6 @@ public class JMXMBean
    */
   public void addConfigurableComponent(ConfigurableComponent component)
   {
-    assert debugEnter(CLASS_NAME, "addConfigurableComponent",
-                      String.valueOf(component));
 
     synchronized (configurableComponents)
     {
@@ -358,8 +359,6 @@ public class JMXMBean
    */
   public boolean removeConfigurableComponent(ConfigurableComponent component)
   {
-    assert debugEnter(CLASS_NAME, "removeConfigurableComponent",
-                      String.valueOf(component));
 
     synchronized (configurableComponents)
     {
@@ -376,7 +375,6 @@ public class JMXMBean
    */
   public CopyOnWriteArrayList<InvokableComponent> getInvokableComponents()
   {
-    assert debugEnter(CLASS_NAME, "getInvokableComponents");
 
     return invokableComponents;
   }
@@ -392,8 +390,6 @@ public class JMXMBean
    */
   public void addInvokableComponent(InvokableComponent component)
   {
-    assert debugEnter(CLASS_NAME, "addInvokableComponent",
-                      String.valueOf(component));
 
     synchronized (invokableComponents)
     {
@@ -418,8 +414,6 @@ public class JMXMBean
    */
   public boolean removeInvokableComponent(InvokableComponent component)
   {
-    assert debugEnter(CLASS_NAME, "removeInvokableComponent",
-                      String.valueOf(component));
 
     synchronized (invokableComponents)
     {
@@ -436,7 +430,6 @@ public class JMXMBean
    */
   public CopyOnWriteArrayList<MonitorProvider> getMonitorProviders()
   {
-    assert debugEnter(CLASS_NAME, "getMonitorProviders");
 
     return monitorProviders;
   }
@@ -452,8 +445,6 @@ public class JMXMBean
    */
   public void addMonitorProvider(MonitorProvider component)
   {
-    assert debugEnter(CLASS_NAME, "addMonitorProvider",
-                      String.valueOf(component));
 
     synchronized (monitorProviders)
     {
@@ -478,8 +469,6 @@ public class JMXMBean
    */
   public boolean removeMonitorProvider(MonitorProvider component)
   {
-    assert debugEnter(CLASS_NAME, "removeMonitorProvider",
-                      String.valueOf(component));
 
     synchronized (monitorProviders)
     {
@@ -499,8 +488,6 @@ public class JMXMBean
    */
   private ConfigAttribute getConfigAttribute(String name)
   {
-    assert debugEnter(CLASS_NAME, "getConfigAttribute",
-                      String.valueOf(name));
 
     for (ConfigurableComponent component : configurableComponents)
     {
@@ -528,7 +515,6 @@ public class JMXMBean
    */
   private Attribute getJmxAttribute(String name)
   {
-    assert debugEnter(CLASS_NAME, "getJmxAttribute", String.valueOf(name));
 
     String attributeName ;
     String pendingString = ";" + OPTION_PENDING_VALUES ;
@@ -627,7 +613,6 @@ public class JMXMBean
   public Attribute getAttribute(String attributeName)
          throws AttributeNotFoundException
   {
-    assert debugEnter(CLASS_NAME, "getAttribute");
 
     //
     // Get the jmx Client connection
@@ -647,7 +632,10 @@ public class JMXMBean
     }
     catch (LDAPException e)
     {
-      assert debugException(CLASS_NAME, "getAttribute", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_JMX_CANNOT_GET_ATTRIBUTE;
       String message = getMessage(msgID, String.valueOf(attributeName),
@@ -682,7 +670,10 @@ public class JMXMBean
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "setAttribute", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -712,8 +703,6 @@ private LDAPAttribute getLdapAttributeFromJmx(
       javax.management.Attribute attribute, ConfigEntry configEntry)
       throws AttributeNotFoundException, InvalidAttributeValueException
   {
-    assert debugEnter(CLASS_NAME, "getLdapAttributeFromJmx", String
-        .valueOf(attribute));
 
     String name = attribute.getName() ;
     //
@@ -725,7 +714,10 @@ private LDAPAttribute getLdapAttributeFromJmx(
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "setAttribute", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -745,7 +737,10 @@ private LDAPAttribute getLdapAttributeFromJmx(
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "setAttribute", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       logError(
           ErrorLogCategory.CONFIGURATION,
           ErrorLogSeverity.MILD_ERROR,
@@ -788,7 +783,6 @@ private LDAPAttribute getLdapAttributeFromJmx(
   public void setAttribute(javax.management.Attribute attribute)
          throws AttributeNotFoundException, InvalidAttributeValueException
   {
-    assert debugEnter(CLASS_NAME, "setAttribute", String.valueOf(attribute));
 
     ConfigEntry configEntry;
     ConfigEntry newConfigEntry ;
@@ -802,7 +796,10 @@ private LDAPAttribute getLdapAttributeFromJmx(
       newConfigEntry = configEntry.duplicate();
     } catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "setAttribute", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_JMX_CANNOT_GET_CONFIG_ENTRY;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -861,7 +858,6 @@ private LDAPAttribute getLdapAttributeFromJmx(
    */
   public AttributeList getAttributes(String[] attributes)
     {
-    assert debugEnter(CLASS_NAME, "getAttributes", String.valueOf(attributes));
 
     //
     // Get the jmx Client connection
@@ -913,7 +909,10 @@ private LDAPAttribute getLdapAttributeFromJmx(
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "getAttributes", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
 
       // It's possible that this is a monitor attribute rather than a
@@ -981,7 +980,6 @@ private LDAPAttribute getLdapAttributeFromJmx(
    */
   public AttributeList setAttributes(AttributeList attributes)
   {
-    assert debugEnter(CLASS_NAME, "setAttributes", String.valueOf(attributes));
 
     AttributeList setAttrs = new AttributeList();
 
@@ -998,7 +996,10 @@ private LDAPAttribute getLdapAttributeFromJmx(
       newConfigEntry = configEntry.duplicate();
     } catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "setAttribute", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       logError(
           ErrorLogCategory.CONFIGURATION,
@@ -1057,8 +1058,10 @@ private LDAPAttribute getLdapAttributeFromJmx(
       }
       catch (Exception e)
       {
-        assert debugException(
-            CLASS_NAME, "setAttribute", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
                  MSGID_CONFIG_JMX_ATTR_NO_ATTR, configEntryDN.toString(),
@@ -1092,8 +1095,6 @@ private LDAPAttribute getLdapAttributeFromJmx(
   public Object invoke(String actionName, Object[] params, String[] signature)
          throws MBeanException
   {
-    assert debugEnter(CLASS_NAME, "invoke", String.valueOf(actionName),
-                      String.valueOf(params), String.valueOf(signature));
 
     for (InvokableComponent component : invokableComponents)
     {
@@ -1107,13 +1108,19 @@ private LDAPAttribute getLdapAttributeFromJmx(
           }
           catch (MBeanException me)
           {
-            assert debugException(CLASS_NAME, "invoke", me);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, me);
+            }
 
             throw me;
           }
           catch (Exception e)
           {
-            assert debugException(CLASS_NAME, "invoke", e);
+            if (debugEnabled())
+            {
+              debugCought(DebugLogLevel.ERROR, e);
+            }
 
             throw new MBeanException(e);
           }
@@ -1160,7 +1167,6 @@ private LDAPAttribute getLdapAttributeFromJmx(
    */
   public MBeanInfo getMBeanInfo()
   {
-    assert debugEnter(CLASS_NAME, "getMBeanInfo");
     JmxClientConnection jmxClientConnection = getClientConnection();
     if (jmxClientConnection == null)
     {

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -49,7 +49,9 @@ import java.util.zip.GZIPInputStream;
 import org.opends.server.tools.makeldif.MakeLDIFInputStream;
 import org.opends.server.tools.makeldif.TemplateFile;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
 
@@ -61,11 +63,6 @@ import static org.opends.server.messages.UtilityMessages.*;
  */
 public class LDIFImportConfig
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.LDIFImportConfig";
 
 
 
@@ -154,7 +151,6 @@ public class LDIFImportConfig
    */
   public LDIFImportConfig(String ldifFile)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(ldifFile));
 
     ldifFiles = new ArrayList<String>(1);
     ldifFiles.add(ldifFile);
@@ -191,7 +187,6 @@ public class LDIFImportConfig
    */
   public LDIFImportConfig(List<String> ldifFiles)
   {
-    assert debugConstructor(CLASS_NAME, String.valueOf(ldifFiles));
 
     this.ldifFiles = ldifFiles;
     ldifFileIterator = ldifFiles.iterator();
@@ -226,8 +221,6 @@ public class LDIFImportConfig
    */
   public LDIFImportConfig(InputStream ldifInputStream)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(ldifInputStream));
 
     this.ldifInputStream   = ldifInputStream;
     bufferSize             = DEFAULT_BUFFER_SIZE;
@@ -259,8 +252,6 @@ public class LDIFImportConfig
    */
   public LDIFImportConfig(Reader ldifInputReader)
   {
-    assert debugConstructor(CLASS_NAME,
-                            String.valueOf(ldifInputStream));
 
     ldifInputStream        = null;
     bufferSize             = DEFAULT_BUFFER_SIZE;
@@ -309,7 +300,7 @@ public class LDIFImportConfig
   {
     this(new MakeLDIFInputStream(templateFile));
 
-    assert debugConstructor(CLASS_NAME, String.valueOf(templateFile));
+
   }
 
 
@@ -328,7 +319,6 @@ public class LDIFImportConfig
   public BufferedReader getReader()
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "getReader");
 
     if (reader == null)
     {
@@ -376,7 +366,6 @@ public class LDIFImportConfig
   public BufferedReader nextReader()
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "nextReader");
 
     if ((ldifFileIterator == null) || (! ldifFileIterator.hasNext()))
     {
@@ -417,7 +406,6 @@ public class LDIFImportConfig
    */
   public BufferedWriter getRejectWriter()
   {
-    assert debugEnter(CLASS_NAME, "getRejectWriter");
 
     return rejectWriter;
   }
@@ -444,9 +432,6 @@ public class LDIFImportConfig
                    ExistingFileBehavior existingFileBehavior)
          throws IOException
   {
-    assert debugEnter(CLASS_NAME, "writeRejectedEntries",
-                      String.valueOf(rejectFile),
-                      String.valueOf(existingFileBehavior));
 
     if (rejectFile == null)
     {
@@ -503,8 +488,6 @@ public class LDIFImportConfig
    */
   public void writeRejectedEntries(OutputStream outputStream)
   {
-    assert debugEnter(CLASS_NAME, "writeRejectedEntries",
-                      String.valueOf(outputStream));
 
     if (outputStream == null)
     {
@@ -536,7 +519,6 @@ public class LDIFImportConfig
    */
   public boolean appendToExistingData()
   {
-    assert debugEnter(CLASS_NAME, "appendToExistingData");
 
     return appendToExistingData;
   }
@@ -553,8 +535,6 @@ public class LDIFImportConfig
    */
   public void setAppendToExistingData(boolean appendToExistingData)
   {
-    assert debugEnter(CLASS_NAME, "setAppendToExistingData",
-                      String.valueOf(appendToExistingData));
 
     this.appendToExistingData = appendToExistingData;
   }
@@ -573,7 +553,6 @@ public class LDIFImportConfig
    */
   public boolean replaceExistingEntries()
   {
-    assert debugEnter(CLASS_NAME, "replaceExistingEntries");
 
     return replaceExistingEntries;
   }
@@ -592,8 +571,6 @@ public class LDIFImportConfig
   public void setReplaceExistingEntries(
                    boolean replaceExistingEntries)
   {
-    assert debugEnter(CLASS_NAME, "setReplaceExistingEntries",
-                      String.valueOf(replaceExistingEntries));
 
     this.replaceExistingEntries = replaceExistingEntries;
   }
@@ -610,7 +587,6 @@ public class LDIFImportConfig
    */
   public boolean invokeImportPlugins()
   {
-    assert debugEnter(CLASS_NAME, "invokeImportPlugins");
 
     return invokeImportPlugins;
   }
@@ -628,8 +604,6 @@ public class LDIFImportConfig
    */
   public void setInvokeImportPlugins(boolean invokeImportPlugins)
   {
-    assert debugEnter(CLASS_NAME, "setInvokeImportPlugins",
-                      String.valueOf(invokeImportPlugins));
 
     this.invokeImportPlugins = invokeImportPlugins;
   }
@@ -645,7 +619,6 @@ public class LDIFImportConfig
    */
   public boolean isCompressed()
   {
-    assert debugEnter(CLASS_NAME, "isCompressed");
 
     return isCompressed;
   }
@@ -662,8 +635,6 @@ public class LDIFImportConfig
    */
   public void setCompressed(boolean isCompressed)
   {
-    assert debugEnter(CLASS_NAME, "setCompressed",
-                      String.valueOf(isCompressed));
 
     this.isCompressed = isCompressed;
   }
@@ -679,7 +650,6 @@ public class LDIFImportConfig
    */
   public boolean isEncrypted()
   {
-    assert debugEnter(CLASS_NAME, "isEncrypted");
 
     return isEncrypted;
   }
@@ -696,8 +666,6 @@ public class LDIFImportConfig
    */
   public void setEncrypted(boolean isEncrypted)
   {
-    assert debugEnter(CLASS_NAME, "setEncrypted",
-                      String.valueOf(isEncrypted));
 
     this.isEncrypted = isEncrypted;
   }
@@ -714,7 +682,6 @@ public class LDIFImportConfig
    */
   public boolean validateSchema()
   {
-    assert debugEnter(CLASS_NAME, "validateSchema");
 
     return validateSchema;
   }
@@ -730,8 +697,6 @@ public class LDIFImportConfig
    */
   public void setValidateSchema(boolean validateSchema)
   {
-    assert debugEnter(CLASS_NAME, "setValidateSchema",
-                      String.valueOf(validateSchema));
 
     this.validateSchema = validateSchema;
   }
@@ -748,7 +713,6 @@ public class LDIFImportConfig
    */
   public List<DN> getExcludeBranches()
   {
-    assert debugEnter(CLASS_NAME, "getExcludeBranches");
 
     return excludeBranches;
   }
@@ -764,8 +728,6 @@ public class LDIFImportConfig
    */
   public void setExcludeBranches(List<DN> excludeBranches)
   {
-    assert debugEnter(CLASS_NAME, "setExcludeBranches",
-                      String.valueOf(excludeBranches));
 
     if (excludeBranches == null)
     {
@@ -789,7 +751,6 @@ public class LDIFImportConfig
    */
   public List<DN> getIncludeBranches()
   {
-    assert debugEnter(CLASS_NAME, "getIncludeBranches");
 
     return includeBranches;
   }
@@ -805,8 +766,6 @@ public class LDIFImportConfig
    */
   public void setIncludeBranches(List<DN> includeBranches)
   {
-    assert debugEnter(CLASS_NAME, "setIncludeBranches",
-                      String.valueOf(includeBranches));
 
     if (includeBranches == null)
     {
@@ -833,7 +792,6 @@ public class LDIFImportConfig
    */
   public boolean includeEntry(DN dn)
   {
-    assert debugEnter(CLASS_NAME, "excludeDN", String.valueOf(dn));
 
     if (! excludeBranches.isEmpty())
     {
@@ -874,7 +832,6 @@ public class LDIFImportConfig
    */
   public boolean includeObjectClasses()
   {
-    assert debugEnter(CLASS_NAME, "includeObjectClasses");
 
     return includeObjectClasses;
   }
@@ -891,8 +848,6 @@ public class LDIFImportConfig
    */
   public void setIncludeObjectClasses(boolean includeObjectClasses)
   {
-    assert debugEnter(CLASS_NAME, "setIncludeObjectClasses",
-                      String.valueOf(includeObjectClasses));
 
     this.includeObjectClasses = includeObjectClasses;
   }
@@ -909,7 +864,6 @@ public class LDIFImportConfig
    */
   public Set<AttributeType> getExcludeAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getExcludeAttributes");
 
     return excludeAttributes;
   }
@@ -927,8 +881,6 @@ public class LDIFImportConfig
   public void setExcludeAttributes(
                    Set<AttributeType> excludeAttributes)
   {
-    assert debugEnter(CLASS_NAME, "setExcludeAttributes",
-                      String.valueOf(excludeAttributes));
 
     if (excludeAttributes == null)
     {
@@ -952,7 +904,6 @@ public class LDIFImportConfig
    */
   public Set<AttributeType> getIncludeAttributes()
   {
-    assert debugEnter(CLASS_NAME, "getIncludeAttributes");
 
     return includeAttributes;
   }
@@ -970,8 +921,6 @@ public class LDIFImportConfig
   public void setIncludeAttributes(
                    Set<AttributeType> includeAttributes)
   {
-    assert debugEnter(CLASS_NAME, "setIncludeAttributes",
-                      String.valueOf(includeAttributes));
 
     if (includeAttributes == null)
     {
@@ -998,8 +947,6 @@ public class LDIFImportConfig
    */
   public boolean includeAttribute(AttributeType attributeType)
   {
-    assert debugEnter(CLASS_NAME, "includeAttribute",
-                      String.valueOf(attributeType));
 
     if ((! excludeAttributes.isEmpty()) &&
         excludeAttributes.contains(attributeType))
@@ -1027,7 +974,6 @@ public class LDIFImportConfig
    */
   public List<SearchFilter> getExcludeFilters()
   {
-    assert debugEnter(CLASS_NAME, "getExcludeFilters");
 
     return excludeFilters;
   }
@@ -1044,8 +990,6 @@ public class LDIFImportConfig
    */
   public void setExcludeFilters(List<SearchFilter> excludeFilters)
   {
-    assert debugEnter(CLASS_NAME, "setExcludeFilters",
-                      String.valueOf(excludeFilters));
 
     if (excludeFilters == null)
     {
@@ -1069,7 +1013,6 @@ public class LDIFImportConfig
    */
   public List<SearchFilter> getIncludeFilters()
   {
-    assert debugEnter(CLASS_NAME, "getIncludeFilters");
 
     return includeFilters;
   }
@@ -1086,8 +1029,6 @@ public class LDIFImportConfig
    */
   public void setIncludeFilters(List<SearchFilter> includeFilters)
   {
-    assert debugEnter(CLASS_NAME, "setIncludeFilters",
-                      String.valueOf(includeFilters));
 
     if (includeFilters == null)
     {
@@ -1118,8 +1059,6 @@ public class LDIFImportConfig
   public boolean includeEntry(Entry entry)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "includeEntry",
-                      String.valueOf(entry));
 
     if (! excludeFilters.isEmpty())
     {
@@ -1159,7 +1098,6 @@ public class LDIFImportConfig
    */
   public int getBufferSize()
   {
-    assert debugEnter(CLASS_NAME, "getBufferSize");
 
     return bufferSize;
   }
@@ -1175,8 +1113,6 @@ public class LDIFImportConfig
    */
   public void setBufferSize(int bufferSize)
   {
-    assert debugEnter(CLASS_NAME, "setBufferSize",
-                      String.valueOf(bufferSize));
 
     this.bufferSize = bufferSize;
   }
@@ -1188,7 +1124,6 @@ public class LDIFImportConfig
    */
   public void close()
   {
-    assert debugEnter(CLASS_NAME, "close");
 
     try
     {
@@ -1196,7 +1131,10 @@ public class LDIFImportConfig
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "close", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
     }
 
     if (rejectWriter != null)
@@ -1207,7 +1145,10 @@ public class LDIFImportConfig
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "close", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }

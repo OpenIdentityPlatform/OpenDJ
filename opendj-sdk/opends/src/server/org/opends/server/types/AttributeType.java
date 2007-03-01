@@ -40,7 +40,10 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.AttributeTypeSyntax;
 
-import static org.opends.server.loggers.Debug.*;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static
+    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -67,11 +70,6 @@ public final class AttributeType
        extends CommonSchemaElements
        implements SchemaFileElement
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.types.AttributeType";
 
 
 
@@ -266,24 +264,6 @@ public final class AttributeType
     super(primaryName, typeNames, oid, description, isObsolete,
         extraProperties);
 
-    assert debugConstructor(CLASS_NAME,
-                              String.valueOf(definition),
-                              String.valueOf(primaryName),
-                              String.valueOf(typeNames),
-                              String.valueOf(oid),
-                              String.valueOf(description),
-                              String.valueOf(superiorType),
-                              String.valueOf(syntax),
-                              String.valueOf(approximateMatchingRule),
-                              String.valueOf(equalityMatchingRule),
-                              String.valueOf(orderingMatchingRule),
-                              String.valueOf(substringMatchingRule),
-                              String.valueOf(attributeUsage),
-                              String.valueOf(isCollective),
-                              String.valueOf(isNoUserModification),
-                              String.valueOf(isObsolete),
-                              String.valueOf(isSingleValue),
-                              String.valueOf(extraProperties));
 
     ensureNotNull(definition, oid);
 
@@ -385,7 +365,6 @@ public final class AttributeType
    */
   public String getDefinition()
   {
-    assert debugEnter(CLASS_NAME, "getDefinition");
 
     return definition;
   }
@@ -431,7 +410,6 @@ public final class AttributeType
    */
   public AttributeType getSuperiorType()
   {
-    assert debugEnter(CLASS_NAME, "getSuperiorType");
 
     return superiorType;
   }
@@ -455,7 +433,6 @@ public final class AttributeType
    */
   boolean mayHaveSubordinateTypes()
   {
-    assert debugEnter(CLASS_NAME, "mayHaveSubordinateTypes");
 
     return mayHaveSubordinateTypes;
   }
@@ -470,7 +447,6 @@ public final class AttributeType
    */
   void setMayHaveSubordinateTypes()
   {
-    assert debugEnter(CLASS_NAME, "setMayHaveSubordinateTypes");
 
     mayHaveSubordinateTypes = true;
   }
@@ -484,7 +460,6 @@ public final class AttributeType
    */
   public AttributeSyntax getSyntax()
   {
-    assert debugEnter(CLASS_NAME, "getSyntax");
 
     return syntax;
   }
@@ -500,7 +475,6 @@ public final class AttributeType
    */
   public String getSyntaxOID()
   {
-    assert debugEnter(CLASS_NAME, "getSyntaxOID");
 
     return syntax.getOID();
   }
@@ -516,7 +490,6 @@ public final class AttributeType
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getApproximateMatchingRule");
 
     return approximateMatchingRule;
   }
@@ -532,7 +505,6 @@ public final class AttributeType
    */
   public EqualityMatchingRule getEqualityMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getEqualityMatchingRule");
 
     return equalityMatchingRule;
   }
@@ -548,7 +520,6 @@ public final class AttributeType
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getOrderingMatchingRule");
 
     return orderingMatchingRule;
   }
@@ -564,7 +535,6 @@ public final class AttributeType
    */
   public SubstringMatchingRule getSubstringMatchingRule()
   {
-    assert debugEnter(CLASS_NAME, "getSubstringMatchingRule");
 
     return substringMatchingRule;
   }
@@ -578,7 +548,6 @@ public final class AttributeType
    */
   public AttributeUsage getUsage()
   {
-    assert debugEnter(CLASS_NAME, "getUsage");
 
     return attributeUsage;
   }
@@ -596,7 +565,6 @@ public final class AttributeType
    */
   public boolean isOperational()
   {
-    assert debugEnter(CLASS_NAME, "isOperational");
 
     return attributeUsage.isOperational();
   }
@@ -611,7 +579,6 @@ public final class AttributeType
    */
   public boolean isCollective()
   {
-    assert debugEnter(CLASS_NAME, "isCollective");
 
     return isCollective;
   }
@@ -627,7 +594,6 @@ public final class AttributeType
    */
   public boolean isNoUserModification()
   {
-    assert debugEnter(CLASS_NAME, "isNoUserModification");
 
     return isNoUserModification;
   }
@@ -642,7 +608,6 @@ public final class AttributeType
    */
   public boolean isSingleValue()
   {
-    assert debugEnter(CLASS_NAME, "isSingleValue");
 
     return isSingleValue;
   }
@@ -659,7 +624,6 @@ public final class AttributeType
    */
   public boolean isObjectClassType()
   {
-    assert debugEnter(CLASS_NAME, "isObjectClassType");
 
     return isObjectClassType;
   }
@@ -682,7 +646,6 @@ public final class AttributeType
   public ByteString normalize(ByteString value)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "normalize", String.valueOf(value));
 
     if (equalityMatchingRule == null)
     {
@@ -713,8 +676,6 @@ public final class AttributeType
    */
   public int generateHashCode(AttributeValue value)
   {
-    assert debugEnter(CLASS_NAME, "generateHashCode",
-                      String.valueOf(value));
 
     try
     {
@@ -737,7 +698,10 @@ public final class AttributeType
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "generateHashCode", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       try
       {
@@ -745,7 +709,10 @@ public final class AttributeType
       }
       catch (Exception e2)
       {
-        assert debugException(CLASS_NAME, "generateHashCode", e2);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e2);
+        }
 
         return 0;
       }
@@ -759,8 +726,6 @@ public final class AttributeType
    */
   protected void toStringContent(StringBuilder buffer)
   {
-    assert debugEnter(CLASS_NAME, "toStringContent",
-                      "java.lang.StringBuilder");
 
     if (superiorType != null)
     {

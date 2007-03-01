@@ -22,12 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
-import static org.opends.server.loggers.Debug.debugConstructor;
-import static org.opends.server.loggers.Debug.debugEnter;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.SchemaMessages.*;
 
@@ -88,9 +86,6 @@ import org.opends.server.util.StaticUtils;
  */
 public final class RelativeSubtreeSpecification extends
     SimpleSubtreeSpecification {
-  // Fully qualified class name for debugging purposes.
-  private static final String CLASS_NAME = RelativeSubtreeSpecification.class
-      .getName();
 
   // The root DN.
   private DN rootDN;
@@ -116,7 +111,6 @@ public final class RelativeSubtreeSpecification extends
    */
   public static RelativeSubtreeSpecification valueOf(DN rootDN, String s)
       throws DirectoryException {
-    assert debugEnter(CLASS_NAME, "valueOf");
 
     // Default values.
     DN relativeBaseDN = null;
@@ -251,7 +245,6 @@ public final class RelativeSubtreeSpecification extends
     super(relativeBaseDN == null ? rootDN : rootDN.concat(relativeBaseDN),
         minimumDepth, maximumDepth, chopBefore, chopAfter);
 
-    assert debugConstructor(CLASS_NAME);
 
     this.rootDN = rootDN;
     this.relativeBaseDN = relativeBaseDN;
@@ -264,7 +257,6 @@ public final class RelativeSubtreeSpecification extends
    * @return Returns the root DN.
    */
   public DN getRootDN() {
-    assert debugEnter(CLASS_NAME, "getRootDN");
     return rootDN;
   }
 
@@ -275,7 +267,6 @@ public final class RelativeSubtreeSpecification extends
    *         was specified.
    */
   public DN getRelativeBaseDN() {
-    assert debugEnter(CLASS_NAME, "getRelativeBaseDN");
     return relativeBaseDN;
   }
 
@@ -286,7 +277,6 @@ public final class RelativeSubtreeSpecification extends
    *         is no filter.
    */
   public SearchFilter getFilter() {
-    assert debugEnter(CLASS_NAME, "getFilter");
     return filter;
   }
 
@@ -295,7 +285,6 @@ public final class RelativeSubtreeSpecification extends
    */
   @Override
   public boolean isWithinScope(Entry entry) {
-    assert debugEnter(CLASS_NAME, "isWithinScope");
 
     if (isDNWithinScope(entry.getDN())) {
       try {
@@ -315,7 +304,6 @@ public final class RelativeSubtreeSpecification extends
    */
   @Override
   public StringBuilder toString(StringBuilder builder) {
-    assert debugEnter(CLASS_NAME, "toString");
 
     boolean isFirstElement = true;
 
@@ -413,7 +401,6 @@ public final class RelativeSubtreeSpecification extends
    */
   @Override
   public boolean equals(Object obj) {
-    assert debugEnter(CLASS_NAME, "equals");
 
     if (this == obj) {
       return true;
@@ -445,7 +432,6 @@ public final class RelativeSubtreeSpecification extends
    */
   @Override
   public int hashCode() {
-    assert debugEnter(CLASS_NAME, "hashCode");
 
     int hash = commonComponentsHashCode();
 

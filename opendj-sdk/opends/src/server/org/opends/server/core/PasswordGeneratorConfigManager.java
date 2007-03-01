@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -52,7 +52,9 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -71,11 +73,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class PasswordGeneratorConfigManager
        implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.PasswordGeneratorConfigManager";
 
 
 
@@ -93,7 +90,6 @@ public class PasswordGeneratorConfigManager
    */
   public PasswordGeneratorConfigManager()
   {
-    assert debugConstructor(CLASS_NAME);
 
     configHandler      = DirectoryServer.getConfigHandler();
     passwordGenerators = new ConcurrentHashMap<DN,PasswordGenerator>();
@@ -116,7 +112,6 @@ public class PasswordGeneratorConfigManager
   public void initializePasswordGenerators()
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializePasswordGenerators");
 
 
     // First, get the configuration base entry.
@@ -128,8 +123,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordGenerators",
-                            e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_CONFIG_PWGENERATOR_CANNOT_GET_BASE;
       String message = getMessage(msgID, String.valueOf(e));
@@ -232,8 +229,6 @@ public class PasswordGeneratorConfigManager
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configChangeIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // Make sure that the entry has an appropriate objectclass for a password
@@ -268,7 +263,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -285,7 +283,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -301,7 +302,10 @@ public class PasswordGeneratorConfigManager
     }
     catch(Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_CLASS;
       String message = getMessage(msgID, generatorClass.getName(),
@@ -333,7 +337,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_ENABLED_VALUE;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -362,8 +369,6 @@ public class PasswordGeneratorConfigManager
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationChange",
-                      String.valueOf(configEntry));
 
 
     DN                configEntryDN       = configEntry.getDN();
@@ -444,7 +449,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_ENABLED_VALUE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -479,7 +487,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configChangeIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_CLASS_NAME;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -521,7 +532,10 @@ public class PasswordGeneratorConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_CLASS;
         messages.add(getMessage(msgID, className,
@@ -538,7 +552,10 @@ public class PasswordGeneratorConfigManager
       }
       catch (Exception e)
       {
-        assert debugException(CLASS_NAME, "applyConfigurationChange", e);
+        if (debugEnabled())
+        {
+          debugCought(DebugLogLevel.ERROR, e);
+        }
 
         int msgID = MSGID_CONFIG_PWGENERATOR_INITIALIZATION_FAILED;
         messages.add(getMessage(msgID, className,
@@ -579,8 +596,6 @@ public class PasswordGeneratorConfigManager
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                                        StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configAddIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // Make sure that no entry already exists with the specified DN.
@@ -626,7 +641,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -643,7 +661,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_CLASS_NAME;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -659,7 +680,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_CLASS;
       String message = getMessage(msgID, generatorClass.getName(),
@@ -721,7 +745,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "configAddIsAcceptable", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_ENABLED_VALUE;
       String message = getMessage(msgID, configEntry.getDN().toString(),
@@ -748,8 +775,6 @@ public class PasswordGeneratorConfigManager
    */
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationAdd",
-                      String.valueOf(configEntry));
 
 
     DN                configEntryDN       = configEntry.getDN();
@@ -799,7 +824,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_ENABLED_VALUE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -833,7 +861,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_CLASS_NAME;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
@@ -854,7 +885,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INVALID_CLASS;
       messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
@@ -869,7 +903,10 @@ public class PasswordGeneratorConfigManager
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "applyConfigurationAdd", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_CONFIG_PWGENERATOR_INITIALIZATION_FAILED;
       messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
@@ -902,8 +939,6 @@ public class PasswordGeneratorConfigManager
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
                                           StringBuilder unacceptableReason)
   {
-    assert debugEnter(CLASS_NAME, "configDeleteIsAcceptable",
-                      String.valueOf(configEntry), "java.lang.StringBuilder");
 
 
     // A delete should always be acceptable, so just return true.
@@ -922,8 +957,6 @@ public class PasswordGeneratorConfigManager
    */
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
   {
-    assert debugEnter(CLASS_NAME, "applyConfigurationDelete",
-                      String.valueOf(configEntry));
 
 
     DN         configEntryDN       = configEntry.getDN();

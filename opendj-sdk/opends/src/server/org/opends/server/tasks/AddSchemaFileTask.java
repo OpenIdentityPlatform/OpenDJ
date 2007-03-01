@@ -55,7 +55,6 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -69,11 +68,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class AddSchemaFileTask
        extends Task
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tasks.AddSchemaFileTask";
 
 
 
@@ -89,7 +83,6 @@ public class AddSchemaFileTask
   public void initializeTask()
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "initializeTask");
 
 
     // If the client connection is available, then make sure the associated
@@ -196,7 +189,6 @@ public class AddSchemaFileTask
    */
   protected TaskState runTask()
   {
-    assert debugEnter(CLASS_NAME, "runTask");
 
 
     // Obtain a write lock on the server schema so that we can be sure nothing

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -40,7 +40,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockType;
 
-import static org.opends.server.loggers.Debug.*;
 
 
 
@@ -53,11 +52,6 @@ import static org.opends.server.loggers.Debug.*;
 public class DefaultEntryCache
        extends EntryCache
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.extensions.DefaultEntryCache";
 
 
 
@@ -68,7 +62,6 @@ public class DefaultEntryCache
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -91,8 +84,6 @@ public class DefaultEntryCache
   public void initializeEntryCache(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializeEntryCache",
-                      String.valueOf(configEntry));
 
     // No implementation required.
   }
@@ -106,7 +97,6 @@ public class DefaultEntryCache
    */
   public void finalizeEntryCache()
   {
-    assert debugEnter(CLASS_NAME, "finalizeEntryCache");
 
     // No implementation required.
   }
@@ -125,7 +115,6 @@ public class DefaultEntryCache
    */
   public boolean containsEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "containsEntry", String.valueOf(entryDN));
 
     // This implementation does not store any entries.
     return false;
@@ -145,7 +134,6 @@ public class DefaultEntryCache
    */
   public Entry getEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN));
 
     // This implementation does not store any entries.
     return null;
@@ -165,7 +153,6 @@ public class DefaultEntryCache
    */
   public long getEntryID(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "getEntryID", String.valueOf(entryDN));
 
     // This implementation does not store any entries.
     return -1;
@@ -191,8 +178,6 @@ public class DefaultEntryCache
    */
   public Entry getEntry(DN entryDN, LockType lockType, List<Lock> lockList)
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(entryDN),
-                      String.valueOf(lockType), "java.util.List<Lock>");
 
     // This implementation does not store entries.
     return null;
@@ -221,9 +206,6 @@ public class DefaultEntryCache
   public Entry getEntry(Backend backend, long entryID, LockType lockType,
                         List<Lock> lockList)
   {
-    assert debugEnter(CLASS_NAME, "getEntry", String.valueOf(backend),
-                      String.valueOf(entryID), String.valueOf(lockType),
-                      "java.util.List<Lock>");
 
     // This implementation does not store entries.
     return null;
@@ -243,8 +225,6 @@ public class DefaultEntryCache
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-    assert debugEnter(CLASS_NAME, "putEntry", String.valueOf(entry),
-                      String.valueOf(backend), String.valueOf(entryID));
 
     // This implementation does not store entries.
   }
@@ -271,8 +251,6 @@ public class DefaultEntryCache
    */
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
-    assert debugEnter(CLASS_NAME, "putEntryIfAbsent", String.valueOf(entry),
-                      String.valueOf(backend), String.valueOf(entryID));
 
     // This implementation does not store entries, so we will never have a
     // conflict.
@@ -288,7 +266,6 @@ public class DefaultEntryCache
    */
   public void removeEntry(DN entryDN)
   {
-    assert debugEnter(CLASS_NAME, "removeEntry", String.valueOf(entryDN));
 
     // This implementation does not store entries.
   }
@@ -301,7 +278,6 @@ public class DefaultEntryCache
    */
   public void clear()
   {
-    assert debugEnter(CLASS_NAME, "clear");
 
     // This implementation does not store entries.
   }
@@ -316,7 +292,6 @@ public class DefaultEntryCache
    */
   public void clearBackend(Backend backend)
   {
-    assert debugEnter(CLASS_NAME, "clearBackend", String.valueOf(backend));
 
     // This implementation does not store entries.
   }
@@ -330,7 +305,6 @@ public class DefaultEntryCache
    */
   public void clearSubtree(DN baseDN)
   {
-    assert debugEnter(CLASS_NAME, "clearSubtree", String.valueOf(baseDN));
 
     // This implementation does not store entries.
   }
@@ -345,7 +319,6 @@ public class DefaultEntryCache
    */
   public void handleLowMemory()
   {
-    assert debugEnter(CLASS_NAME, "handleLowMemory");
 
     // This implementation does not store entries, so there are no resources
     // that it can free.

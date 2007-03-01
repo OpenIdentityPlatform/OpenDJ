@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -31,7 +31,6 @@ import java.io.PrintStream;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.Debug.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.types.DereferencePolicy.*;
@@ -45,11 +44,6 @@ import static org.opends.server.types.SearchScope.*;
  */
 public class LDAPSearchOptions extends LDAPToolOptions
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.tools.LDAPSearchOptions";
 
   private DereferencePolicy dereferencePolicy =  NEVER_DEREF_ALIASES;
   private SearchScope searchScope = WHOLE_SUBTREE;
@@ -64,7 +58,6 @@ public class LDAPSearchOptions extends LDAPToolOptions
    */
   public LDAPSearchOptions()
   {
-    assert debugConstructor(CLASS_NAME);
   }
 
   /**

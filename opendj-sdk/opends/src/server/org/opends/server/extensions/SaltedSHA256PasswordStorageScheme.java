@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -47,7 +47,9 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -70,7 +72,7 @@ public class SaltedSHA256PasswordStorageScheme
        extends PasswordStorageScheme
 {
   /**
-   * The fully-qualified name of this class for debugging purposes.
+   * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.SaltedSHA256PasswordStorageScheme";
@@ -106,7 +108,6 @@ public class SaltedSHA256PasswordStorageScheme
   {
     super();
 
-    assert debugConstructor(CLASS_NAME);
   }
 
 
@@ -118,8 +119,6 @@ public class SaltedSHA256PasswordStorageScheme
   public void initializePasswordStorageScheme(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    assert debugEnter(CLASS_NAME, "initializePasswordStorageScheme",
-                      String.valueOf(configEntry));
 
     try
     {
@@ -128,7 +127,10 @@ public class SaltedSHA256PasswordStorageScheme
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "initializePasswordStorageScheme", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST;
       String message = getMessage(msgID, MESSAGE_DIGEST_ALGORITHM_SHA_256,
@@ -149,7 +151,6 @@ public class SaltedSHA256PasswordStorageScheme
   @Override()
   public String getStorageSchemeName()
   {
-    assert debugEnter(CLASS_NAME, "getStorageSchemeName");
 
     return STORAGE_SCHEME_NAME_SALTED_SHA_256;
   }
@@ -163,7 +164,6 @@ public class SaltedSHA256PasswordStorageScheme
   public ByteString encodePassword(ByteString plaintext)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "encodePassword", "ByteString");
 
     byte[] plainBytes    = plaintext.value();
     byte[] saltBytes     = new byte[NUM_SALT_BYTES];
@@ -187,7 +187,10 @@ public class SaltedSHA256PasswordStorageScheme
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "encodePassword", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
       String message = getMessage(msgID, CLASS_NAME,
@@ -220,8 +223,6 @@ public class SaltedSHA256PasswordStorageScheme
   public ByteString encodePasswordWithScheme(ByteString plaintext)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "encodePasswordWithScheme",
-                      "ByteString");
 
     StringBuilder buffer = new StringBuilder();
     buffer.append('{');
@@ -250,7 +251,10 @@ public class SaltedSHA256PasswordStorageScheme
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "encodePassword", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int    msgID   = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
       String message = getMessage(msgID, CLASS_NAME,
@@ -284,9 +288,6 @@ public class SaltedSHA256PasswordStorageScheme
   public boolean passwordMatches(ByteString plaintextPassword,
                                  ByteString storedPassword)
   {
-    assert debugEnter(CLASS_NAME, "passwordMatches",
-                      String.valueOf(plaintextPassword),
-                      String.valueOf(storedPassword));
 
 
     // Base64-decode the stored value and take the last 8 bytes as the salt.
@@ -304,7 +305,10 @@ public class SaltedSHA256PasswordStorageScheme
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "passwordMatches", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD;
       String message = getMessage(msgID, storedPassword.stringValue(),
@@ -332,7 +336,10 @@ public class SaltedSHA256PasswordStorageScheme
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "passwordMatches", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return false;
     }
@@ -352,7 +359,6 @@ public class SaltedSHA256PasswordStorageScheme
   @Override()
   public boolean supportsAuthPasswordSyntax()
   {
-    assert debugEnter(CLASS_NAME, "supportsAuthPasswordSyntax");
 
     // This storage scheme does support the authentication password syntax.
     return true;
@@ -366,7 +372,6 @@ public class SaltedSHA256PasswordStorageScheme
   @Override()
   public String getAuthPasswordSchemeName()
   {
-    assert debugEnter(CLASS_NAME, "getAuthPasswordSchemeName");
 
     return AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_256;
   }
@@ -380,8 +385,6 @@ public class SaltedSHA256PasswordStorageScheme
   public ByteString encodeAuthPassword(ByteString plaintext)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "encodeAuthPassword",
-                      String.valueOf(plaintext));
 
 
     byte[] plainBytes    = plaintext.value();
@@ -406,7 +409,10 @@ public class SaltedSHA256PasswordStorageScheme
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "encodePassword", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       int msgID = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
       String message = getMessage(msgID, CLASS_NAME,
@@ -441,9 +447,6 @@ public class SaltedSHA256PasswordStorageScheme
   public boolean authPasswordMatches(ByteString plaintextPassword,
                                      String authInfo, String authValue)
   {
-    assert debugEnter(CLASS_NAME, "authPasswordMatches",
-                      String.valueOf(plaintextPassword),
-                      String.valueOf(authInfo), String.valueOf(authValue));
 
 
     byte[] saltBytes;
@@ -455,7 +458,10 @@ public class SaltedSHA256PasswordStorageScheme
     }
     catch (Exception e)
     {
-      assert debugException(CLASS_NAME, "authPasswordMatches", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
 
       return false;
     }
@@ -488,7 +494,6 @@ public class SaltedSHA256PasswordStorageScheme
   @Override()
   public boolean isReversible()
   {
-    assert debugEnter(CLASS_NAME, "isReversible");
 
     return false;
   }
@@ -502,8 +507,6 @@ public class SaltedSHA256PasswordStorageScheme
   public ByteString getPlaintextValue(ByteString storedPassword)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getPlaintextValue",
-                      String.valueOf(storedPassword));
 
     int msgID = MSGID_PWSCHEME_NOT_REVERSIBLE;
     String message = getMessage(msgID, STORAGE_SCHEME_NAME_SALTED_SHA_256);
@@ -521,8 +524,6 @@ public class SaltedSHA256PasswordStorageScheme
                                                   String authValue)
          throws DirectoryException
   {
-    assert debugEnter(CLASS_NAME, "getAuthPasswordPlaintextValue",
-                      String.valueOf(authInfo), String.valueOf(authValue));
 
     int msgID = MSGID_PWSCHEME_NOT_REVERSIBLE;
     String message = getMessage(msgID,
@@ -539,7 +540,6 @@ public class SaltedSHA256PasswordStorageScheme
   @Override()
   public boolean isStorageSchemeSecure()
   {
-    assert debugEnter(CLASS_NAME, "isStorageSchemeSecure");
 
     // SHA-2 should be considered secure.
     return true;

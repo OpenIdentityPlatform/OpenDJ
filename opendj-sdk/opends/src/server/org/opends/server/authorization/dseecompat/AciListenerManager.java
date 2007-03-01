@@ -30,15 +30,25 @@ package org.opends.server.authorization.dseecompat;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.Backend;
-import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import static org.opends.server.loggers.Debug.debugException;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.logError;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DN;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchScope;
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 
@@ -52,11 +62,6 @@ import java.util.LinkedHashSet;
 public class AciListenerManager
         implements ChangeNotificationListener, BackendInitializationListener {
 
-    /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-       "org.opends.server.core.AciListenerManager";
 
     private AciList aciList;
        /*
@@ -158,8 +163,10 @@ public class AciListenerManager
                     continue;
                 }
             } catch (Exception e) {
-                assert debugException(CLASS_NAME,
-                        "performBackendInitializationProcessing", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
                 //TODO log message
                 continue;
             }
@@ -174,8 +181,10 @@ public class AciListenerManager
             {
                 backend.search(internalSearch);
             } catch (Exception e) {
-                assert debugException(CLASS_NAME,
-                        "performBackendInitializationProcessing", e);
+              if (debugEnabled())
+              {
+                debugCought(DebugLogLevel.ERROR, e);
+              }
                 //TODO log message
                 continue;
             }

@@ -40,13 +40,14 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogCategory;
-import org.opends.server.types.DebugLogSeverity;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.DN;
 import org.opends.server.types.AuthenticationInfo;
 
-import static org.opends.server.loggers.Debug.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import org.opends.server.types.DebugLogLevel;
 
 /**
  * A <code>RMIAuthenticator</code> manages authentication for the secure
@@ -56,11 +57,6 @@ import static org.opends.server.loggers.Debug.*;
  */
 public class RmiAuthenticator implements JMXAuthenticator
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
-  private static final String CLASS_NAME =
-        "org.opends.server.protocols.jmx.RmiAuthenticator";
 
     /**
      * The client authencation mode. <code>true</code> indicates that the
@@ -91,7 +87,6 @@ public class RmiAuthenticator implements JMXAuthenticator
    */
   public RmiAuthenticator(JmxConnectionHandler jmxConnectionHandler)
   {
-    assert debugConstructor(CLASS_NAME);
 
     this.jmxConnectionHandler = jmxConnectionHandler;
   }
@@ -120,7 +115,6 @@ public class RmiAuthenticator implements JMXAuthenticator
    */
   public Subject authenticate(Object credentials)
   {
-    assert debugEnter(CLASS_NAME, "RmiAuthenticator");
 
     //
     // If we are in the finalized phase, we should not accept
@@ -147,34 +141,28 @@ public class RmiAuthenticator implements JMXAuthenticator
     // client
     if (authcID == null)
     {
-      assert debugMessage(
-          DebugLogCategory.CONNECTION_HANDLING,
-          DebugLogSeverity.VERBOSE,
-          CLASS_NAME,
-          "RmiAuthenticator",
-          "User name is Null ");
+      if (debugEnabled())
+      {
+        debugVerbose("User name is Null");
+      }
       SecurityException se = new SecurityException();
       throw se;
     }
     if (password == null)
     {
-      assert debugMessage(
-          DebugLogCategory.CONNECTION_HANDLING,
-          DebugLogSeverity.VERBOSE,
-          CLASS_NAME,
-          "RmiAuthenticator",
-          "User password is Null ");
+      if (debugEnabled())
+      {
+        debugVerbose("User password is Null ");
+      }
 
       SecurityException se = new SecurityException();
       throw se;
     }
 
-    assert debugMessage(
-        DebugLogCategory.CONNECTION_HANDLING,
-        DebugLogSeverity.VERBOSE,
-        CLASS_NAME,
-        "RmiAuthenticator",
-        "UserName  =" + authcID);
+    if (debugEnabled())
+    {
+      debugVerbose("UserName = %s", authcID);
+    }
 
     //
     // Declare the client connection
@@ -189,8 +177,10 @@ public class RmiAuthenticator implements JMXAuthenticator
     }
     catch (Exception e)
     {
-      assert debugException(
-          CLASS_NAME, "RmiAuthenticator", e);
+      if (debugEnabled())
+      {
+        debugCought(DebugLogLevel.ERROR, e);
+      }
       SecurityException se = new SecurityException();
       se.initCause(e);
       throw se;
@@ -277,12 +267,10 @@ public class RmiAuthenticator implements JMXAuthenticator
     bindOp.run();
     if (bindOp.getResultCode() == ResultCode.SUCCESS)
     {
-      assert debugMessage(
-          DebugLogCategory.CONNECTION_HANDLING,
-          DebugLogSeverity.VERBOSE,
-          CLASS_NAME,
-          "bind",
-          "User is authenticated");
+      if (debugEnabled())
+      {
+        debugVerbose("User is authenticated");
+      }
 
       authInfo = bindOp.getAuthenticationInfo();
       jmxClientConnection.setAuthenticationInfo(authInfo);
