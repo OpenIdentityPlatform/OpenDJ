@@ -53,7 +53,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.FilePermission;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.
@@ -426,7 +426,7 @@ public class RootContainer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }

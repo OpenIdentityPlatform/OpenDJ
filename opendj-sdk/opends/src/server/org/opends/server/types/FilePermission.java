@@ -35,7 +35,7 @@ import java.util.ArrayList;
 
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
@@ -193,7 +193,7 @@ public class FilePermission
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -586,7 +586,7 @@ public class FilePermission
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_FILEPERM_CANNOT_EXEC_CHMOD;
@@ -650,7 +650,7 @@ public class FilePermission
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         exceptionThrown = true;
       }
@@ -678,7 +678,7 @@ public class FilePermission
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       exceptionThrown = true;
     }
@@ -704,7 +704,7 @@ public class FilePermission
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         exceptionThrown = true;
       }
@@ -732,7 +732,7 @@ public class FilePermission
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       exceptionThrown = true;
     }
@@ -758,7 +758,7 @@ public class FilePermission
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         exceptionThrown = true;
       }
@@ -786,7 +786,7 @@ public class FilePermission
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       exceptionThrown = true;
     }

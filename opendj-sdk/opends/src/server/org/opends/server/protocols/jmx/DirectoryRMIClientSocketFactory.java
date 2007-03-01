@@ -27,7 +27,7 @@
 package org.opends.server.protocols.jmx;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 
@@ -315,7 +315,7 @@ public class DirectoryRMIClientSocketFactory implements
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
           tms = null;
         }
@@ -345,7 +345,7 @@ public class DirectoryRMIClientSocketFactory implements
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         throw new IOException("Unable to initialize SSL context : "
             + e.getMessage());

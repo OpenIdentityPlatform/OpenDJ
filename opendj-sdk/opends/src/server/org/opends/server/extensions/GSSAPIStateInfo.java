@@ -51,7 +51,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -136,7 +136,7 @@ public class GSSAPIStateInfo
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT;
@@ -152,7 +152,7 @@ public class GSSAPIStateInfo
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SASLGSSAPI_CANNOT_AUTHENTICATE_SERVER;
@@ -210,7 +210,7 @@ public class GSSAPIStateInfo
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -233,7 +233,7 @@ public class GSSAPIStateInfo
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -273,7 +273,7 @@ public class GSSAPIStateInfo
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_SASLGSSAPI_CANNOT_CREATE_SASL_SERVER;
@@ -320,7 +320,7 @@ public class GSSAPIStateInfo
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -331,7 +331,7 @@ public class GSSAPIStateInfo
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e2);
+          debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
 
@@ -369,7 +369,7 @@ public class GSSAPIStateInfo
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -391,7 +391,7 @@ public class GSSAPIStateInfo
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       try
@@ -402,7 +402,7 @@ public class GSSAPIStateInfo
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -426,7 +426,7 @@ public class GSSAPIStateInfo
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -463,7 +463,7 @@ public class GSSAPIStateInfo
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 

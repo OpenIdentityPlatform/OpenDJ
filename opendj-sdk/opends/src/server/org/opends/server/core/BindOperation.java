@@ -73,7 +73,7 @@ import org.opends.server.types.operation.PreParseBindOperation;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import org.opends.server.types.DebugLogLevel;
@@ -987,7 +987,7 @@ bindProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -1140,7 +1140,7 @@ bindProcessing:
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, de);
+                debugCaught(DebugLogLevel.ERROR, de);
               }
 
               setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -1433,7 +1433,7 @@ bindProcessing:
                     {
                       if (debugEnabled())
                       {
-                        debugCought(DebugLogLevel.ERROR, e);
+                        debugCaught(DebugLogLevel.ERROR, e);
                       }
 
                       int msgID = MSGID_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT;
@@ -1479,7 +1479,7 @@ bindProcessing:
                     {
                       if (debugEnabled())
                       {
-                        debugCought(DebugLogLevel.ERROR, e);
+                        debugCaught(DebugLogLevel.ERROR, e);
                       }
 
                       int msgID = MSGID_BIND_CANNOT_PROCESS_USER_TIME_LIMIT;
@@ -1525,7 +1525,7 @@ bindProcessing:
                     {
                       if (debugEnabled())
                       {
-                        debugCought(DebugLogLevel.ERROR, e);
+                        debugCaught(DebugLogLevel.ERROR, e);
                       }
 
                       int msgID =
@@ -1614,7 +1614,7 @@ bindProcessing:
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int    msgID   = MSGID_BIND_OPERATION_PASSWORD_VALIDATION_EXCEPTION;
@@ -1705,7 +1705,7 @@ bindProcessing:
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, de);
+                debugCaught(DebugLogLevel.ERROR, de);
               }
 
               setResponseData(de);
@@ -1959,7 +1959,7 @@ bindProcessing:
                     {
                       if (debugEnabled())
                       {
-                        debugCought(DebugLogLevel.ERROR, e);
+                        debugCaught(DebugLogLevel.ERROR, e);
                       }
 
                       int msgID = MSGID_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT;
@@ -2003,7 +2003,7 @@ bindProcessing:
                     {
                       if (debugEnabled())
                       {
-                        debugCought(DebugLogLevel.ERROR, e);
+                        debugCaught(DebugLogLevel.ERROR, e);
                       }
 
                       int msgID = MSGID_BIND_CANNOT_PROCESS_USER_TIME_LIMIT;
@@ -2047,7 +2047,7 @@ bindProcessing:
                     {
                       if (debugEnabled())
                       {
-                        debugCought(DebugLogLevel.ERROR, e);
+                        debugCaught(DebugLogLevel.ERROR, e);
                       }
 
                       int msgID =
@@ -2137,7 +2137,7 @@ bindProcessing:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       setResponseData(de);

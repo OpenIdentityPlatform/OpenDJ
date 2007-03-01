@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.server.api.Backend;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
@@ -127,7 +127,7 @@ public class LockFileManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_CREATE;
@@ -148,7 +148,7 @@ public class LockFileManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_OPEN;
@@ -168,7 +168,7 @@ public class LockFileManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_LOCK;
@@ -252,7 +252,7 @@ public class LockFileManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_CREATE;
@@ -273,7 +273,7 @@ public class LockFileManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_OPEN;
@@ -293,7 +293,7 @@ public class LockFileManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_LOCK;
@@ -361,7 +361,7 @@ public class LockFileManager
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_FILELOCKER_UNLOCK_EXCLUSIVE_FAILED_RELEASE;
@@ -378,7 +378,7 @@ public class LockFileManager
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // Even though we couldn't close the channel for some reason, this
@@ -409,7 +409,7 @@ public class LockFileManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int msgID = MSGID_FILELOCKER_UNLOCK_SHARED_FAILED_RELEASE;
@@ -426,7 +426,7 @@ public class LockFileManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             // Even though we couldn't close the channel for some reason, this

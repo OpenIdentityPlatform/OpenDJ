@@ -39,7 +39,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -170,7 +170,7 @@ public class LDAPAssertionRequestControl
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ae);
+        debugCaught(DebugLogLevel.ERROR, ae);
       }
 
       int    msgID   = MSGID_LDAPASSERT_INVALID_CONTROL_VALUE;

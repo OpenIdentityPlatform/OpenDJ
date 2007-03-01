@@ -73,7 +73,7 @@ import org.opends.server.types.operation.PreParseDeleteOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -539,7 +539,7 @@ deleteProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -601,7 +601,7 @@ deleteProcessing:
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
             }
 
@@ -612,7 +612,7 @@ deleteProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -641,7 +641,7 @@ deleteProcessing:
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -688,7 +688,7 @@ deleteProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -717,7 +717,7 @@ deleteProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -750,7 +750,7 @@ deleteProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -788,7 +788,7 @@ deleteProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -808,7 +808,7 @@ deleteProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -848,7 +848,7 @@ deleteProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -868,7 +868,7 @@ deleteProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1067,7 +1067,7 @@ deleteProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -1140,7 +1140,7 @@ deleteProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -1154,7 +1154,7 @@ deleteProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, coe);
+            debugCaught(DebugLogLevel.ERROR, coe);
           }
 
           CancelResult cancelResult = coe.getCancelResult();
@@ -1186,7 +1186,7 @@ deleteProcessing:
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -1240,7 +1240,7 @@ deleteProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER;
@@ -1278,7 +1278,7 @@ deleteProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_DELETE_ERROR_NOTIFYING_PERSISTENT_SEARCH;
@@ -1320,7 +1320,7 @@ deleteProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 

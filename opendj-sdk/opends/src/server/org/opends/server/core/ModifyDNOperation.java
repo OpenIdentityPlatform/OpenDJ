@@ -82,7 +82,7 @@ import org.opends.server.types.operation.PreParseModifyDNOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -798,7 +798,7 @@ modifyDNProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -819,7 +819,7 @@ modifyDNProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -846,7 +846,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -956,7 +956,7 @@ modifyDNProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         LockManager.unlock(entryDN, currentLock);
@@ -1012,7 +1012,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -1041,7 +1041,7 @@ modifyDNProcessing:
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
               break;
             }
@@ -1075,7 +1075,7 @@ modifyDNProcessing:
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -1121,7 +1121,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1150,7 +1150,7 @@ modifyDNProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -1183,7 +1183,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1210,7 +1210,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1248,7 +1248,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1268,7 +1268,7 @@ modifyDNProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1308,7 +1308,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1328,7 +1328,7 @@ modifyDNProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1627,7 +1627,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, e);
+                    debugCaught(DebugLogLevel.ERROR, e);
                   }
 
                   setResultCode(ResultCode.CONSTRAINT_VIOLATION);
@@ -1671,7 +1671,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, e);
+                    debugCaught(DebugLogLevel.ERROR, e);
                   }
 
                   setResultCode(ResultCode.CONSTRAINT_VIOLATION);
@@ -1800,7 +1800,7 @@ modifyDNProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -1924,7 +1924,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -1938,7 +1938,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, coe);
+            debugCaught(DebugLogLevel.ERROR, coe);
           }
 
           CancelResult cancelResult = coe.getCancelResult();
@@ -1971,7 +1971,7 @@ modifyDNProcessing:
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -2025,7 +2025,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER;
@@ -2063,7 +2063,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MODDN_ERROR_NOTIFYING_PERSISTENT_SEARCH;
@@ -2105,7 +2105,7 @@ modifyDNProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 

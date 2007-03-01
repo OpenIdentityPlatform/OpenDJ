@@ -47,7 +47,7 @@ import javax.mail.internet.MimeMultipart;
 
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
@@ -357,7 +357,7 @@ public class EMailMessage
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, me);
+          debugCaught(DebugLogLevel.ERROR, me);
         }
 
         int msgID = MSGID_EMAILMSG_INVALID_SENDER_ADDRESS;
@@ -383,7 +383,7 @@ public class EMailMessage
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, me);
+            debugCaught(DebugLogLevel.ERROR, me);
           }
 
           int msgID = MSGID_EMAILMSG_INVALID_RECIPIENT_ADDRESS;
@@ -429,7 +429,7 @@ public class EMailMessage
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, sfe);
+          debugCaught(DebugLogLevel.ERROR, sfe);
         }
 
         // We'll ignore this and hope that another server is available.  If not,

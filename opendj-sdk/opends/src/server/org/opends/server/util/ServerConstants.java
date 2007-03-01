@@ -838,7 +838,7 @@ public class ServerConstants
   /**
    * The English name for the debug log category used for exception debugging.
    */
-  public static final String DEBUG_CATEGORY_COUGHT = "COUGHT";
+  public static final String DEBUG_CATEGORY_CAUGHT = "CAUGHT";
 
 
 

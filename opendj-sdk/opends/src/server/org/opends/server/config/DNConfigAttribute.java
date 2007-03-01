@@ -48,7 +48,7 @@ import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Error.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -584,7 +584,7 @@ public class DNConfigAttribute
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       rejectReason.append(getMessage(MSGID_CONFIG_ATTR_DN_CANNOT_PARSE,
@@ -678,7 +678,7 @@ public class DNConfigAttribute
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_ATTR_DN_CANNOT_PARSE;
@@ -856,7 +856,7 @@ public class DNConfigAttribute
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, e);
+                  debugCaught(DebugLogLevel.ERROR, e);
                 }
 
                 int msgID = MSGID_CONFIG_ATTR_DN_CANNOT_PARSE;
@@ -929,7 +929,7 @@ public class DNConfigAttribute
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               int msgID = MSGID_CONFIG_ATTR_DN_CANNOT_PARSE;
@@ -1221,7 +1221,7 @@ public class DNConfigAttribute
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_ATTR_DN_CANNOT_PARSE;
@@ -1266,7 +1266,7 @@ public class DNConfigAttribute
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               int    msgID   = MSGID_CONFIG_ATTR_DN_CANNOT_PARSE;
@@ -1284,7 +1284,7 @@ public class DNConfigAttribute
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, ce);
+            debugCaught(DebugLogLevel.ERROR, ce);
           }
 
           throw ce;
@@ -1293,7 +1293,7 @@ public class DNConfigAttribute
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_CONFIG_ATTR_INVALID_DN_VALUE;

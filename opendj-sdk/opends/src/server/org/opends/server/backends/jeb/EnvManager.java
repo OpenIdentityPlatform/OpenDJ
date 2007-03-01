@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -97,7 +97,7 @@ public class EnvManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         String message = getMessage(MSGID_JEB_CREATE_FAIL, e.getMessage());
         throw new JebException(MSGID_JEB_CREATE_FAIL, message, e);
@@ -134,7 +134,7 @@ public class EnvManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       String message = getMessage(MSGID_JEB_REMOVE_FAIL, e.getMessage());
       throw new JebException(MSGID_JEB_REMOVE_FAIL, message, e);

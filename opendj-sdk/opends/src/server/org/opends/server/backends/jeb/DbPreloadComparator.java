@@ -28,7 +28,7 @@ package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseException;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 
@@ -69,7 +69,7 @@ public class DbPreloadComparator implements Comparator<Database>
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       return 3;
     }

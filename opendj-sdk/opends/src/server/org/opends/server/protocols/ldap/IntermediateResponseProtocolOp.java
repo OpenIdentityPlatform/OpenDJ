@@ -35,7 +35,7 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
@@ -220,7 +220,7 @@ public class IntermediateResponseProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_INTERMEDIATE_RESPONSE_DECODE_SEQUENCE;
@@ -256,7 +256,7 @@ public class IntermediateResponseProtocolOp
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, ae);
+              debugCaught(DebugLogLevel.ERROR, ae);
             }
 
             int msgID = MSGID_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID;
@@ -273,7 +273,7 @@ public class IntermediateResponseProtocolOp
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, ae);
+              debugCaught(DebugLogLevel.ERROR, ae);
             }
 
             int msgID = MSGID_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_VALUE;
@@ -297,7 +297,7 @@ public class IntermediateResponseProtocolOp
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ae);
+          debugCaught(DebugLogLevel.ERROR, ae);
         }
 
         int msgID = MSGID_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID;
@@ -313,7 +313,7 @@ public class IntermediateResponseProtocolOp
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ae);
+          debugCaught(DebugLogLevel.ERROR, ae);
         }
 
         int msgID = MSGID_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID;

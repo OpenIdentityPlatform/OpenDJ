@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.config.ConfigEntry;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 
@@ -116,7 +116,7 @@ public class RotationActionThread extends DirectoryThread
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }

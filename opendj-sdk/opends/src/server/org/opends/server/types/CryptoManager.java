@@ -49,7 +49,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.opends.server.config.ConfigException;
 
 import static
-    org.opends.server.loggers.debug.DebugLogger.debugCought;
+    org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.util.StaticUtils.*;
@@ -123,7 +123,7 @@ public class CryptoManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // FIXME -- Number this.
@@ -141,7 +141,7 @@ public class CryptoManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // FIXME -- Number this.
@@ -159,7 +159,7 @@ public class CryptoManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // FIXME -- Number this.

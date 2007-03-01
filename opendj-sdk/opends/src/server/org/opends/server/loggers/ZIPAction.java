@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 
@@ -122,7 +122,7 @@ public class ZIPAction implements PostRotationAction
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ioe);
+        debugCaught(DebugLogLevel.ERROR, ioe);
       }
       if (inputStreamOpen)
       {
@@ -134,7 +134,7 @@ public class ZIPAction implements PostRotationAction
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, fe);
+            debugCaught(DebugLogLevel.ERROR, fe);
           }
           // Cannot do much. Ignore.
         }
@@ -149,7 +149,7 @@ public class ZIPAction implements PostRotationAction
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, ze);
+            debugCaught(DebugLogLevel.ERROR, ze);
           }
           // Cannot do much. Ignore.
         }

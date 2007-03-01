@@ -79,7 +79,7 @@ import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -181,7 +181,7 @@ public class PasswordModifyExtendedOperation
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
@@ -290,7 +290,7 @@ public class PasswordModifyExtendedOperation
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ae);
+          debugCaught(DebugLogLevel.ERROR, ae);
         }
 
         operation.setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -378,7 +378,7 @@ public class PasswordModifyExtendedOperation
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             operation.setResultCode(ResultCode.INVALID_DN_SYNTAX);
@@ -437,7 +437,7 @@ public class PasswordModifyExtendedOperation
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             if (oldPassword == null)
@@ -484,7 +484,7 @@ public class PasswordModifyExtendedOperation
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         operation.setResultCode(DirectoryServer.getServerErrorResultCode());
@@ -800,7 +800,7 @@ public class PasswordModifyExtendedOperation
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           if (oldPassword == null)
@@ -932,7 +932,7 @@ public class PasswordModifyExtendedOperation
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           if (oldPassword == null)
@@ -1000,7 +1000,7 @@ public class PasswordModifyExtendedOperation
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, de);
+                debugCaught(DebugLogLevel.ERROR, de);
               }
 
               // We couldn't decode the provided password value, so remove it
@@ -1039,7 +1039,7 @@ public class PasswordModifyExtendedOperation
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, de);
+                debugCaught(DebugLogLevel.ERROR, de);
               }
 
               // We couldn't decode the provided password value, so remove it
@@ -1246,7 +1246,7 @@ public class PasswordModifyExtendedOperation
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
             break;
           }
@@ -1263,7 +1263,7 @@ public class PasswordModifyExtendedOperation
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       operation.setResultCode(de.getResultCode());
@@ -1372,7 +1372,7 @@ public class PasswordModifyExtendedOperation
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
@@ -1449,7 +1449,7 @@ public class PasswordModifyExtendedOperation
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       resultCode = DirectoryServer.getServerErrorResultCode();

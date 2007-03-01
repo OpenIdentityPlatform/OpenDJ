@@ -91,7 +91,7 @@ import org.opends.server.util.TimeThread;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -814,7 +814,7 @@ addProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -1050,7 +1050,7 @@ addProcessing:
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -1082,7 +1082,7 @@ addProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, de);
+            debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -1118,7 +1118,7 @@ addProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, e);
+                    debugCaught(DebugLogLevel.ERROR, e);
                   }
                   break;
                 }
@@ -1139,7 +1139,7 @@ addProcessing:
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             setResultCode(de.getResultCode());
@@ -1382,7 +1382,7 @@ addProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 int msgID = MSGID_ADD_INVALID_PWPOLICY_DN_SYNTAX;
@@ -1419,7 +1419,7 @@ addProcessing:
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             setResponseData(de);
@@ -1638,7 +1638,7 @@ addProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1667,7 +1667,7 @@ addProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -1700,7 +1700,7 @@ addProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1738,7 +1738,7 @@ addProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1758,7 +1758,7 @@ addProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1798,7 +1798,7 @@ addProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, le);
+                    debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1818,7 +1818,7 @@ addProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1996,7 +1996,7 @@ addProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, de);
+                    debugCaught(DebugLogLevel.ERROR, de);
                   }
 
                   logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -2069,7 +2069,7 @@ addProcessing:
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             setResultCode(de.getResultCode());
@@ -2083,7 +2083,7 @@ addProcessing:
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, coe);
+              debugCaught(DebugLogLevel.ERROR, coe);
             }
 
             CancelResult cancelResult = coe.getCancelResult();
@@ -2125,7 +2125,7 @@ addProcessing:
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -2183,7 +2183,7 @@ addProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_ADD_ERROR_NOTIFYING_CHANGE_LISTENER;
@@ -2221,7 +2221,7 @@ addProcessing:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_ADD_ERROR_NOTIFYING_PERSISTENT_SEARCH;
@@ -2487,7 +2487,7 @@ addProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 

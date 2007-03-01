@@ -61,7 +61,7 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -154,7 +154,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_SASLCRAMMD5_CANNOT_GET_MESSAGE_DIGEST;
@@ -206,7 +206,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLCRAMMD5_CANNOT_GET_IDENTITY_MAPPER;
@@ -344,7 +344,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, pe);
+        debugCaught(DebugLogLevel.ERROR, pe);
       }
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -373,7 +373,7 @@ public class CRAMMD5SASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -430,7 +430,7 @@ public class CRAMMD5SASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -462,7 +462,7 @@ public class CRAMMD5SASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -709,7 +709,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLCRAMMD5_CANNOT_GET_IDENTITY_MAPPER;
@@ -789,7 +789,7 @@ public class CRAMMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLCRAMMD5_CANNOT_GET_IDENTITY_MAPPER;

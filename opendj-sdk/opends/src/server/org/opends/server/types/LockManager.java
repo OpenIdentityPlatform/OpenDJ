@@ -34,7 +34,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugError;
@@ -150,7 +150,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
 
         // This is not fine.  Some unexpected error occurred.
         debugError(
@@ -218,7 +218,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
 
         // This is not fine.  Some unexpected error occurred.
         debugError(
@@ -298,7 +298,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       // This is fine.  The thread trying to acquire the lock was
@@ -309,7 +309,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This is not fine.  Some unexpected error occurred.
@@ -382,7 +382,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       // This is fine.  The thread trying to acquire the lock was
@@ -393,7 +393,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This is not fine.  Some unexpected error occurred.
@@ -450,7 +450,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
 
         // This is not fine.  Some unexpected error occurred.
         debugError(
@@ -520,7 +520,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
 
         // This is not fine.  Some unexpected error occurred.
         debugError(
@@ -596,7 +596,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       // This is fine.  The thread trying to acquire the lock was
@@ -607,7 +607,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This is not fine.  Some unexpected error occurred.
@@ -682,7 +682,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       // This is fine.  The thread trying to acquire the lock was
@@ -693,7 +693,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
 
         // This is not fine.  Some unexpected error occurred.
         debugError(
@@ -733,7 +733,7 @@ public class LockManager
       // necessary to remove the lock for the entry from the table.
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -756,7 +756,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       // The lock trying to acquire the lock was interrupted.  In this
@@ -769,7 +769,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This is not fine.  Some unexpected error occurred.  But
@@ -802,7 +802,7 @@ public class LockManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This should never happen.

@@ -32,7 +32,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 
@@ -118,7 +118,7 @@ public class GZIPAction implements PostRotationAction
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ioe);
+        debugCaught(DebugLogLevel.ERROR, ioe);
       }
       if (inputStreamOpen)
       {
@@ -130,7 +130,7 @@ public class GZIPAction implements PostRotationAction
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, fe);
+            debugCaught(DebugLogLevel.ERROR, fe);
           }
           // Cannot do much. Ignore.
         }
@@ -145,7 +145,7 @@ public class GZIPAction implements PostRotationAction
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, ge);
+            debugCaught(DebugLogLevel.ERROR, ge);
           }
           // Cannot do much. Ignore.
         }

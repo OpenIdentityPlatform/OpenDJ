@@ -49,7 +49,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -124,7 +124,7 @@ public class LengthBasedPasswordValidator
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWLENGTHVALIDATOR_CANNOT_DETERMINE_MIN_LENGTH;
@@ -153,7 +153,7 @@ public class LengthBasedPasswordValidator
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWLENGTHVALIDATOR_CANNOT_DETERMINE_MAX_LENGTH;
@@ -277,7 +277,7 @@ public class LengthBasedPasswordValidator
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWLENGTHVALIDATOR_CANNOT_DETERMINE_MIN_LENGTH;
@@ -306,7 +306,7 @@ public class LengthBasedPasswordValidator
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWLENGTHVALIDATOR_CANNOT_DETERMINE_MAX_LENGTH;
@@ -364,7 +364,7 @@ public class LengthBasedPasswordValidator
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (resultCode == ResultCode.SUCCESS)
@@ -397,7 +397,7 @@ public class LengthBasedPasswordValidator
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (resultCode == ResultCode.SUCCESS)

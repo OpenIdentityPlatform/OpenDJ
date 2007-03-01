@@ -57,7 +57,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -238,7 +238,7 @@ public final class ProfilerPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_PROFILE_DIR;
@@ -272,7 +272,7 @@ public final class ProfilerPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_AUTOSTART;
@@ -306,7 +306,7 @@ public final class ProfilerPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_INTERVAL;
@@ -348,7 +348,7 @@ public final class ProfilerPlugin
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA;
@@ -469,7 +469,7 @@ public final class ProfilerPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_INTERVAL;
@@ -507,7 +507,7 @@ public final class ProfilerPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_PROFILE_DIR;
@@ -533,7 +533,7 @@ public final class ProfilerPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_AUTOSTART;
@@ -558,7 +558,7 @@ public final class ProfilerPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_ACTION;
@@ -617,7 +617,7 @@ public final class ProfilerPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_UPDATE_INTERVAL;
@@ -670,7 +670,7 @@ public final class ProfilerPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_UPDATE_DIRECTORY;
@@ -769,7 +769,7 @@ public final class ProfilerPlugin
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, e);
+                    debugCaught(DebugLogLevel.ERROR, e);
                   }
 
                   msgID = MSGID_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA;
@@ -834,7 +834,7 @@ public final class ProfilerPlugin
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PLUGIN_PROFILER_CANNOT_PERFORM_ACTION;

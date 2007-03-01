@@ -76,7 +76,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugData;
 import static org.opends.server.loggers.debug.DebugLogger.debugProtocolElement;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -883,7 +883,7 @@ public class LDAPClientConnection
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // We were unable to send the message due to some other internal
@@ -897,7 +897,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // FIXME -- Log a message or something
@@ -968,7 +968,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     finally
@@ -1057,7 +1057,7 @@ public class LDAPClientConnection
       // here.
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -1071,7 +1071,7 @@ public class LDAPClientConnection
       // here.
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -1101,7 +1101,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -1192,7 +1192,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       operationsInProgress.remove(messageID);
@@ -1203,7 +1203,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_CLIENT_CANNOT_ENQUEUE;
@@ -1314,7 +1314,7 @@ public class LDAPClientConnection
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -1331,7 +1331,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     finally
@@ -1381,7 +1381,7 @@ public class LDAPClientConnection
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
           }
         }
@@ -1399,7 +1399,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     finally
@@ -1635,7 +1635,7 @@ public class LDAPClientConnection
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               disconnect(DisconnectReason.PROTOCOL_ERROR, true,
@@ -1654,7 +1654,7 @@ public class LDAPClientConnection
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               disconnect(DisconnectReason.PROTOCOL_ERROR, true,
@@ -1786,7 +1786,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_DISCONNECT_DUE_TO_PROCESSING_FAILURE;
@@ -1862,7 +1862,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       AddResponseProtocolOp responseOp =
@@ -1949,7 +1949,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       BindResponseProtocolOp responseOp =
@@ -2008,7 +2008,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       CompareResponseProtocolOp responseOp =
@@ -2058,7 +2058,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       DeleteResponseProtocolOp responseOp =
@@ -2128,7 +2128,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       ExtendedResponseProtocolOp responseOp =
@@ -2178,7 +2178,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       ModifyResponseProtocolOp responseOp =
@@ -2230,7 +2230,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       ModifyDNResponseProtocolOp responseOp =
@@ -2285,7 +2285,7 @@ public class LDAPClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       SearchResultDoneProtocolOp responseOp =
@@ -2457,7 +2457,7 @@ public class LDAPClientConnection
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         tlsSecurityProvider = null;

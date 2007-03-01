@@ -65,7 +65,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
@@ -225,7 +225,7 @@ public class TaskBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // This should never happen.
@@ -246,7 +246,7 @@ public class TaskBackend
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // This should never happen.
@@ -284,7 +284,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_TASKBE_CANNOT_INITIALIZE_RETENTION_TIME;
@@ -316,7 +316,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_TASKBE_CANNOT_INITIALIZE_BACKING_FILE;
@@ -348,7 +348,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
@@ -384,7 +384,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -400,7 +400,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -412,7 +412,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -1334,7 +1334,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_BACKING_FILE;
@@ -1366,7 +1366,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_RETENTION_TIME;
@@ -1462,7 +1462,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_BACKING_FILE;
@@ -1503,7 +1503,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_RETENTION_TIME;

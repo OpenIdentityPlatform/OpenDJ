@@ -41,7 +41,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -175,7 +175,7 @@ public class StartTLSExtendedOperation
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.MILD_ERROR,
@@ -197,7 +197,7 @@ public class StartTLSExtendedOperation
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.MILD_ERROR,

@@ -37,7 +37,7 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -376,7 +376,7 @@ public class BindRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_SEQUENCE;
@@ -403,7 +403,7 @@ public class BindRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_VERSION;
@@ -421,7 +421,7 @@ public class BindRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_DN;
@@ -489,7 +489,7 @@ public class BindRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_BIND_REQUEST_DECODE_CREDENTIALS;

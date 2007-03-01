@@ -55,7 +55,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugError;
 import org.opends.server.types.DebugLogLevel;
@@ -448,7 +448,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("Malformed id2entry ID %s.%n",
                        StaticUtils.bytesToHex(key.getData()));
@@ -468,7 +468,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("Malformed id2entry record for ID %d:%n%s%n",
                        entryID.longValue(),
@@ -563,7 +563,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("File dn2id has malformed key %s.%n",
                        StaticUtils.bytesToHex(key.getData()));
@@ -581,7 +581,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("File dn2id has malformed ID for DN <%s>:%n%s%n",
                        dn.toNormalizedString(),
@@ -600,7 +600,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
           continue;
         }
@@ -667,7 +667,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("File id2children has malformed ID %s%n",
                        StaticUtils.bytesToHex(key.getData()));
@@ -687,7 +687,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("File id2children has malformed ID list " +
                 "for ID %s:%n%s%n", entryID,
@@ -709,7 +709,7 @@ public class VerifyJob
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
             errorCount++;
             continue;
@@ -737,7 +737,7 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
               errorCount++;
               continue;
@@ -809,7 +809,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("File id2subtree has malformed ID %s%n",
                        StaticUtils.bytesToHex(key.getData()));
@@ -828,7 +828,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("File id2subtree has malformed ID list " +
                 "for ID %s:%n%s%n", entryID,
@@ -850,7 +850,7 @@ public class VerifyJob
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
             errorCount++;
             continue;
@@ -878,7 +878,7 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
               errorCount++;
               continue;
@@ -1011,7 +1011,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("Malformed ID list: %s%n%s",
                        StaticUtils.bytesToHex(data.getData()),
@@ -1084,7 +1084,7 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
               errorCount++;
               continue;
@@ -1118,7 +1118,7 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
             }
           }
@@ -1193,7 +1193,7 @@ public class VerifyJob
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
 
         debugError("File dn2id has error reading key %s: %s.%n",
                    dn.toNormalizedString(),
@@ -1223,7 +1223,7 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
 
           debugError("File dn2id has error reading key %s: %s.%n",
                      parentDN.toNormalizedString(),
@@ -1265,7 +1265,7 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
 
           debugError("File dn2id has error reading key %s: %s.",
                      parentDN.toNormalizedString(),
@@ -1298,7 +1298,7 @@ public class VerifyJob
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("File id2children has error reading key %d: %s.",
                        parentID.longValue(), e.getMessage());
@@ -1337,7 +1337,7 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
 
           debugError("File dn2id has error reading key %s: %s.%n",
                      dn.toNormalizedString(),
@@ -1370,7 +1370,7 @@ public class VerifyJob
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("File id2subtree has error reading key %d: %s.%n",
                        id.longValue(), e.getMessage());
@@ -1435,7 +1435,7 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
 
           debugError("Error normalizing values of attribute %s in " +
               "entry <%s>: %s.%n",
@@ -1493,7 +1493,7 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
 
           debugError("Error reading database: %s%n%s",
                      e.getMessage(),
@@ -1539,7 +1539,7 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
 
                 debugError("Error reading database: %s%n%s",
                            e.getMessage(),
@@ -1581,7 +1581,7 @@ public class VerifyJob
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, e);
+                  debugCaught(DebugLogLevel.ERROR, e);
 
                   debugError("Error reading database: %s%n%s",
                              e.getMessage(),
@@ -1626,7 +1626,7 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
 
                 debugError("Error reading database: %s%n%s",
                            e.getMessage(),
@@ -1743,7 +1743,7 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 

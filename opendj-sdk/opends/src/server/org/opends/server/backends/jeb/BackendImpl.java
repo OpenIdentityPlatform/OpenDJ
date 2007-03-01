@@ -69,7 +69,7 @@ import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_BASE_DN;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
@@ -220,7 +220,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -290,7 +290,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
@@ -318,7 +318,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       String message = getMessage(MSGID_JEB_OPEN_ENV_FAIL,
                                   e.getMessage());
@@ -339,7 +339,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, databaseException);
+        debugCaught(DebugLogLevel.ERROR, databaseException);
       }
       String message = getMessage(MSGID_JEB_OPEN_DATABASE_FAIL,
                                   databaseException.getMessage());
@@ -362,7 +362,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, databaseException);
+        debugCaught(DebugLogLevel.ERROR, databaseException);
       }
       String message = getMessage(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
                                   databaseException.getMessage());
@@ -414,7 +414,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -441,7 +441,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       int msgID = MSGID_JEB_DATABASE_EXCEPTION;
       String message = getMessage(msgID, e.getMessage());
@@ -607,7 +607,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -642,7 +642,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
@@ -653,7 +653,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
@@ -699,7 +699,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
@@ -710,7 +710,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
@@ -753,7 +753,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
@@ -764,7 +764,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
@@ -809,7 +809,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
@@ -820,7 +820,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
@@ -880,7 +880,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -890,7 +890,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -927,7 +927,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -968,7 +968,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -998,7 +998,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ioe);
+        debugCaught(DebugLogLevel.ERROR, ioe);
       }
       int msgID = MSGID_JEB_IO_ERROR;
       String message = getMessage(msgID, ioe.getMessage());
@@ -1009,7 +1009,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, je);
+        debugCaught(DebugLogLevel.ERROR, je);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    je.getMessage(),
@@ -1019,7 +1019,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                   de.getMessage());
@@ -1030,7 +1030,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -1051,7 +1051,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -1087,7 +1087,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -1103,7 +1103,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ioe);
+        debugCaught(DebugLogLevel.ERROR, ioe);
       }
       int msgID = MSGID_JEB_IO_ERROR;
       String message = getMessage(msgID, ioe.getMessage());
@@ -1114,7 +1114,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, je);
+        debugCaught(DebugLogLevel.ERROR, je);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    je.getMessage(),
@@ -1124,7 +1124,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                   de.getMessage());
@@ -1180,7 +1180,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                   e.getMessage());
@@ -1191,7 +1191,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -1212,7 +1212,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -1443,7 +1443,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             resultCode = DirectoryServer.getServerErrorResultCode();

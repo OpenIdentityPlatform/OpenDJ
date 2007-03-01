@@ -34,7 +34,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -158,7 +158,7 @@ public class PasswordExpiringControl
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION;

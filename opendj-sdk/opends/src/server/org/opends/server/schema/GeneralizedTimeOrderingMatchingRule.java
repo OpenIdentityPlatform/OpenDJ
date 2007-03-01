@@ -47,7 +47,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -260,7 +260,7 @@ public class GeneralizedTimeOrderingMatchingRule
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_CANNOT_PARSE;
@@ -295,7 +295,7 @@ public class GeneralizedTimeOrderingMatchingRule
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_CANNOT_PARSE;
@@ -354,7 +354,7 @@ public class GeneralizedTimeOrderingMatchingRule
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NORMALIZE_FAILURE;
@@ -382,7 +382,7 @@ public class GeneralizedTimeOrderingMatchingRule
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_CANNOT_PARSE;
@@ -443,7 +443,7 @@ public class GeneralizedTimeOrderingMatchingRule
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NORMALIZE_FAILURE;
@@ -586,7 +586,7 @@ public class GeneralizedTimeOrderingMatchingRule
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NORMALIZE_FAILURE;
@@ -626,7 +626,7 @@ public class GeneralizedTimeOrderingMatchingRule
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NORMALIZE_FAILURE;
@@ -672,7 +672,7 @@ public class GeneralizedTimeOrderingMatchingRule
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int msgID = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NORMALIZE_FAILURE;
@@ -708,7 +708,7 @@ public class GeneralizedTimeOrderingMatchingRule
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
@@ -743,7 +743,7 @@ public class GeneralizedTimeOrderingMatchingRule
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
@@ -802,7 +802,7 @@ public class GeneralizedTimeOrderingMatchingRule
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NORMALIZE_FAILURE;
@@ -850,7 +850,7 @@ public class GeneralizedTimeOrderingMatchingRule
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID   = MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NORMALIZE_FAILURE;

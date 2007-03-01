@@ -58,7 +58,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
@@ -351,7 +351,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_ATTRIBUTE;
@@ -420,7 +420,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_DEFAULT_STORAGE_SCHEMES;
@@ -451,7 +451,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_DEPRECATED_STORAGE_SCHEMES;
@@ -500,7 +500,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_VALIDATORS;
@@ -549,7 +549,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_NOTIFICATION_HANDLERS;
@@ -578,7 +578,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_USER_PW_CHANGES;
@@ -607,7 +607,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CURRENT_PW;
@@ -636,7 +636,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_FORCE_CHANGE_ON_ADD;
@@ -665,7 +665,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_FORCE_CHANGE_ON_RESET;
@@ -695,7 +695,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_SKIP_ADMIN_VALIDATION;
@@ -738,7 +738,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_GENERATOR;
@@ -767,7 +767,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_SECURE_AUTH;
@@ -797,7 +797,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_SECURE_CHANGES;
@@ -826,7 +826,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_MULTIPLE_PW_VALUES;
@@ -855,7 +855,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_PREENCODED;
@@ -885,7 +885,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_MIN_AGE;
@@ -915,7 +915,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_MAX_AGE;
@@ -946,7 +946,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_MAX_RESET_AGE;
@@ -976,7 +976,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_WARNING_INTERVAL;
@@ -1006,7 +1006,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_EXPIRE_WITHOUT_WARNING;
@@ -1047,7 +1047,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_EXPIRED_CHANGES;
@@ -1076,7 +1076,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_GRACE_LOGIN_COUNT;
@@ -1106,7 +1106,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LOCKOUT_FAILURE_COUNT;
@@ -1137,7 +1137,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LOCKOUT_DURATION;
@@ -1169,7 +1169,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_FAILURE_EXPIRATION;
@@ -1217,7 +1217,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CHANGE_BY_TIME;
@@ -1264,7 +1264,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_ATTR;
@@ -1296,7 +1296,7 @@ public class PasswordPolicy
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           msgID = MSGID_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT;
@@ -1316,7 +1316,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_FORMAT;
@@ -1351,7 +1351,7 @@ public class PasswordPolicy
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             msgID = MSGID_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT;
@@ -1373,7 +1373,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_PREVIOUS_LAST_LOGIN_TIME_FORMAT;
@@ -1404,7 +1404,7 @@ public class PasswordPolicy
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_PWPOLICY_CANNOT_DETERMINE_IDLE_LOCKOUT_INTERVAL;

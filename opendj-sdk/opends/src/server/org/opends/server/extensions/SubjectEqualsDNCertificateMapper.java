@@ -44,7 +44,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -142,7 +142,7 @@ public class SubjectEqualsDNCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SEDCM_PEER_CERT_NOT_X509;
@@ -164,7 +164,7 @@ public class SubjectEqualsDNCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SEDCM_CANNOT_DECODE_SUBJECT_AS_DN;
@@ -206,7 +206,7 @@ public class SubjectEqualsDNCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       int    msgID   = MSGID_SEDCM_CANNOT_GET_ENTRY;
@@ -219,7 +219,7 @@ public class SubjectEqualsDNCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SEDCM_CANNOT_GET_ENTRY;

@@ -69,7 +69,7 @@ import java.util.concurrent.locks.Lock;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugJEAccess;
 import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
 import static org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
@@ -281,7 +281,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       close();
       throw e;
@@ -342,7 +342,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       close();
       throw e;
@@ -400,7 +400,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       close();
       throw e;
@@ -566,7 +566,7 @@ public class EntryContainer
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                            e.getMessage(), e.getMessageID(), e);
@@ -602,7 +602,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -779,7 +779,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -862,7 +862,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         int msgID = MSGID_JEB_INVALID_PAGED_RESULTS_COOKIE;
         String str = StaticUtils.bytesToHex(pageRequest.getCookie().value());
@@ -1003,14 +1003,14 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     catch (JebException e)
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -1072,7 +1072,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         int msgID = MSGID_JEB_INVALID_PAGED_RESULTS_COOKIE;
         String str = StaticUtils.bytesToHex(pageRequest.getCookie().value());
@@ -1140,7 +1140,7 @@ public class EntryContainer
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
               continue;
             }
@@ -1336,7 +1336,7 @@ public class EntryContainer
         }
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, deadlockException);
+          debugCaught(DebugLogLevel.ERROR, deadlockException);
         }
       }
       catch (DatabaseException databaseException)
@@ -2102,7 +2102,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -3299,7 +3299,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     try
@@ -3310,7 +3310,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     try
@@ -3321,7 +3321,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     try
@@ -3332,7 +3332,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     for (AttributeIndex index : attrIndexMap.values())
@@ -3345,7 +3345,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -3393,7 +3393,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }

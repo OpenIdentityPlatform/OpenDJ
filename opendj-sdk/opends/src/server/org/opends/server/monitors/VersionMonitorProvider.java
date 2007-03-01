@@ -42,7 +42,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.DynamicConstants;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 
@@ -195,7 +195,7 @@ public class VersionMonitorProvider
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       values.add(new AttributeValue(encodedValue, encodedValue));

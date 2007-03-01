@@ -161,7 +161,7 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
@@ -793,7 +793,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_CREATE_MBEAN_SERVER;
@@ -836,7 +836,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_LOAD_CONFIG_HANDLER_CLASS;
@@ -852,7 +852,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_INSTANTIATE_CONFIG_HANDLER;
@@ -870,7 +870,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       throw ie;
@@ -879,7 +879,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_INITIALIZE_CONFIG_HANDLER;
@@ -965,7 +965,7 @@ public class DirectoryServer
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
@@ -1155,7 +1155,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1177,7 +1177,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1199,7 +1199,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1222,7 +1222,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1244,7 +1244,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1267,7 +1267,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1290,7 +1290,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1313,7 +1313,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1335,7 +1335,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1357,7 +1357,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1380,7 +1380,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1404,7 +1404,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1427,7 +1427,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1449,7 +1449,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1472,7 +1472,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1494,7 +1494,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1516,7 +1516,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1538,7 +1538,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1561,7 +1561,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1584,7 +1584,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1607,7 +1607,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1630,7 +1630,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1653,7 +1653,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE;
@@ -1685,7 +1685,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
@@ -1706,7 +1706,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
@@ -1727,7 +1727,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
@@ -1749,7 +1749,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
@@ -1770,7 +1770,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
@@ -1792,7 +1792,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
@@ -1813,7 +1813,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
@@ -1834,7 +1834,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
@@ -1855,7 +1855,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
@@ -1876,7 +1876,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
@@ -1897,7 +1897,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_BOOTSTRAP_SYNTAX;
@@ -2049,7 +2049,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -2061,7 +2061,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       throw ie;
@@ -2070,7 +2070,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_INITIALIZE_CONFIG_HANDLER;
@@ -2156,7 +2156,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY;
@@ -3290,7 +3290,7 @@ public class DirectoryServer
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
           }
         }
@@ -3315,7 +3315,7 @@ public class DirectoryServer
           // This should never happen.
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -4132,7 +4132,7 @@ public class DirectoryServer
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -4674,7 +4674,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -4710,7 +4710,7 @@ public class DirectoryServer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -6460,7 +6460,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_WORKQ_CANNOT_PARSE_DN;
@@ -6504,7 +6504,7 @@ public class DirectoryServer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_WORKQ_CANNOT_LOAD;
@@ -6521,7 +6521,7 @@ public class DirectoryServer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_WORKQ_CANNOT_INSTANTIATE;
@@ -6870,7 +6870,7 @@ public class DirectoryServer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -6921,7 +6921,7 @@ public class DirectoryServer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -6949,7 +6949,7 @@ public class DirectoryServer
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -6968,7 +6968,7 @@ public class DirectoryServer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -6986,7 +6986,7 @@ public class DirectoryServer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -7018,7 +7018,7 @@ public class DirectoryServer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -7058,7 +7058,7 @@ public class DirectoryServer
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e2);
+            debugCaught(DebugLogLevel.ERROR, e2);
           }
 
           msgID = MSGID_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK;
@@ -7073,7 +7073,7 @@ public class DirectoryServer
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -7088,7 +7088,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -7110,7 +7110,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID   = MSGID_CANNOT_RELEASE_EXCLUSIVE_SERVER_LOCK;
@@ -7134,7 +7134,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -7535,7 +7535,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This could theoretically happen if an alert needs to be sent before the
@@ -7597,7 +7597,7 @@ public class DirectoryServer
   {
     if (debugEnabled())
     {
-      debugCought(DebugLogLevel.ERROR, exception);
+      debugCaught(DebugLogLevel.ERROR, exception);
     }
 
     int    msgID   = MSGID_UNCAUGHT_THREAD_EXCEPTION;
@@ -7916,7 +7916,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
@@ -8052,7 +8052,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       int    msgID   = MSGID_DSCORE_CANNOT_BOOTSTRAP;
@@ -8076,7 +8076,7 @@ public class DirectoryServer
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       int    msgID   = MSGID_DSCORE_CANNOT_START;

@@ -51,7 +51,7 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.util.LDIFException;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static
@@ -313,7 +313,7 @@ public class Entry
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         lowerName = toLowerCase(v.getStringValue());
@@ -365,7 +365,7 @@ public class Entry
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       lowerName = toLowerCase(name);
@@ -450,7 +450,7 @@ public class Entry
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         lowerName = toLowerCase(v.getStringValue());
@@ -1850,7 +1850,7 @@ public class Entry
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           ocName = toLowerCase(v.getStringValue());
@@ -2786,7 +2786,7 @@ public class Entry
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               int    msgID   = MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR;
@@ -2897,7 +2897,7 @@ public class Entry
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               int msgID =
@@ -3666,7 +3666,7 @@ public class Entry
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_EXPORT;

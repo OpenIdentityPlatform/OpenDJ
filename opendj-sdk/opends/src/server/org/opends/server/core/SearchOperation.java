@@ -82,7 +82,7 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
@@ -846,7 +846,7 @@ public class SearchOperation
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -1528,7 +1528,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -1550,7 +1550,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -1590,7 +1590,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, le);
+                  debugCaught(DebugLogLevel.ERROR, le);
                 }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1614,7 +1614,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1649,7 +1649,7 @@ searchProcessing:
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, de);
+                debugCaught(DebugLogLevel.ERROR, de);
               }
 
               setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -1688,7 +1688,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, le);
+                  debugCaught(DebugLogLevel.ERROR, le);
                 }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1708,7 +1708,7 @@ searchProcessing:
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, de);
+                debugCaught(DebugLogLevel.ERROR, de);
               }
 
               setResultCode(de.getResultCode());
@@ -1748,7 +1748,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, le);
+                  debugCaught(DebugLogLevel.ERROR, le);
                 }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1768,7 +1768,7 @@ searchProcessing:
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, de);
+                debugCaught(DebugLogLevel.ERROR, de);
               }
 
               setResultCode(de.getResultCode());
@@ -1797,7 +1797,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, le);
+                  debugCaught(DebugLogLevel.ERROR, le);
                 }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1838,7 +1838,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, le);
+                  debugCaught(DebugLogLevel.ERROR, le);
                 }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1968,7 +1968,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -1988,7 +1988,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, coe);
+          debugCaught(DebugLogLevel.ERROR, coe);
         }
 
         CancelResult cancelResult = coe.getCancelResult();
@@ -2015,7 +2015,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         setResultCode(DirectoryServer.getServerErrorResultCode());
@@ -2156,7 +2156,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 

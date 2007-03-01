@@ -72,7 +72,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -162,7 +162,7 @@ public class DigestMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_GET_MESSAGE_DIGEST;
@@ -207,7 +207,7 @@ public class DigestMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_IDENTITY_MAPPER;
@@ -236,7 +236,7 @@ public class DigestMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_REALM;
@@ -428,7 +428,7 @@ public class DigestMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This isn't necessarily fatal because we're going to retry using UTF-8,
@@ -450,7 +450,7 @@ public class DigestMD5SASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // This is fatal because either we can't parse the credentials as a
@@ -568,7 +568,7 @@ public class DigestMD5SASLMechanismHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -588,7 +588,7 @@ public class DigestMD5SASLMechanismHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -667,7 +667,7 @@ public class DigestMD5SASLMechanismHandler
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, pe);
+            debugCaught(DebugLogLevel.ERROR, pe);
           }
 
           int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_PARSE_RESPONSE_DIGEST;
@@ -781,7 +781,7 @@ public class DigestMD5SASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -839,7 +839,7 @@ public class DigestMD5SASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -883,7 +883,7 @@ public class DigestMD5SASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -941,7 +941,7 @@ public class DigestMD5SASLMechanismHandler
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -1000,7 +1000,7 @@ public class DigestMD5SASLMechanismHandler
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, de);
+                  debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -1049,7 +1049,7 @@ public class DigestMD5SASLMechanismHandler
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, de);
+                debugCaught(DebugLogLevel.ERROR, de);
               }
 
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -1135,7 +1135,7 @@ public class DigestMD5SASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         logError(ErrorLogCategory.EXTENSIONS,
@@ -1180,7 +1180,7 @@ public class DigestMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -1718,7 +1718,7 @@ public class DigestMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_IDENTITY_MAPPER;
@@ -1742,7 +1742,7 @@ public class DigestMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_REALM;
@@ -1822,7 +1822,7 @@ public class DigestMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_IDENTITY_MAPPER;
@@ -1851,7 +1851,7 @@ public class DigestMD5SASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_SASLDIGESTMD5_CANNOT_GET_REALM;

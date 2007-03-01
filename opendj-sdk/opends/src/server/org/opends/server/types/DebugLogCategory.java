@@ -63,10 +63,10 @@ public class DebugLogCategory extends LogCategory
       DEBUG_CATEGORY_THROWN);
 
   /**
-   * The log category that will be used for cought exception messages.
+   * The log category that will be used for caught exception messages.
    * Only logger related classes may use this.
    */
-  public static final LogCategory COUGHT = new DebugLogCategory(
+  public static final LogCategory CAUGHT = new DebugLogCategory(
       DEBUG_CATEGORY_THROWN);
 
   /**

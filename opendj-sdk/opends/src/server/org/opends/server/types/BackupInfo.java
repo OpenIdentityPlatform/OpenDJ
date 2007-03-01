@@ -39,7 +39,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.util.Base64;
 
 import static
-    org.opends.server.loggers.debug.DebugLogger.debugCought;
+    org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.CoreMessages.*;
@@ -595,7 +595,7 @@ public class BackupInfo
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_BACKUPINFO_CANNOT_DECODE;

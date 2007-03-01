@@ -26,7 +26,7 @@
  */
 package org.opends.server.controls;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -128,7 +128,7 @@ public class PagedResultsControl extends Control
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_PAGED_RESULTS_DECODE_SEQUENCE;
@@ -152,7 +152,7 @@ public class PagedResultsControl extends Control
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_PAGED_RESULTS_DECODE_SIZE;
@@ -168,7 +168,7 @@ public class PagedResultsControl extends Control
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_PAGED_RESULTS_DECODE_COOKIE;

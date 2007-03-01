@@ -59,7 +59,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -171,7 +171,7 @@ public class ExactMatchIdentityMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_ATTR;
@@ -219,7 +219,7 @@ public class ExactMatchIdentityMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_BASE;
@@ -438,7 +438,7 @@ public class ExactMatchIdentityMapper
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // This should never happen.
@@ -521,7 +521,7 @@ public class ExactMatchIdentityMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_ATTR;
@@ -545,7 +545,7 @@ public class ExactMatchIdentityMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_BASE;
@@ -648,7 +648,7 @@ public class ExactMatchIdentityMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_ATTR;
@@ -699,7 +699,7 @@ public class ExactMatchIdentityMapper
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_BASE;

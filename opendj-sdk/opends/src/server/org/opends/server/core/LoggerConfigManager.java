@@ -56,7 +56,7 @@ import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
@@ -133,7 +133,7 @@ public class LoggerConfigManager
     {
       if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_LOGGER_CANNOT_GET_BASE;
@@ -331,7 +331,7 @@ public class LoggerConfigManager
     {
       if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
@@ -351,7 +351,7 @@ public class LoggerConfigManager
     {
       if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
@@ -371,7 +371,7 @@ public class LoggerConfigManager
       {
         if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
         int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
@@ -392,7 +392,7 @@ public class LoggerConfigManager
       {
         if(debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
@@ -430,7 +430,7 @@ public class LoggerConfigManager
     {
       if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_ENABLED_VALUE;
@@ -571,7 +571,7 @@ public class LoggerConfigManager
     {
       if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_ENABLED_VALUE;
@@ -609,7 +609,7 @@ public class LoggerConfigManager
     {
       if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
@@ -666,7 +666,7 @@ public class LoggerConfigManager
         {
           if(debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
@@ -686,7 +686,7 @@ public class LoggerConfigManager
         {
           if(debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_CONFIG_LOGGER_ACCESS_INITIALIZATION_FAILED;
@@ -715,7 +715,7 @@ public class LoggerConfigManager
         {
           if(debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
@@ -735,7 +735,7 @@ public class LoggerConfigManager
         {
           if(debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_CONFIG_LOGGER_ERROR_INITIALIZATION_FAILED;
@@ -844,7 +844,7 @@ public class LoggerConfigManager
     {
       if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
@@ -864,7 +864,7 @@ public class LoggerConfigManager
     {
       if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
@@ -886,7 +886,7 @@ public class LoggerConfigManager
       {
         if(debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
@@ -907,7 +907,7 @@ public class LoggerConfigManager
       {
         if(debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
@@ -975,7 +975,7 @@ public class LoggerConfigManager
     {
       if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_ENABLED_VALUE;
@@ -1066,7 +1066,7 @@ public class LoggerConfigManager
     {
       if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_ENABLED_VALUE;
@@ -1103,7 +1103,7 @@ public class LoggerConfigManager
     {
       if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME;
@@ -1130,7 +1130,7 @@ public class LoggerConfigManager
       {
         if(debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
         int msgID = MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS;
@@ -1150,7 +1150,7 @@ public class LoggerConfigManager
       {
         if(debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_LOGGER_ACCESS_INITIALIZATION_FAILED;
@@ -1184,7 +1184,7 @@ public class LoggerConfigManager
       {
         if(debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS;
@@ -1204,7 +1204,7 @@ public class LoggerConfigManager
       {
         if(debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_LOGGER_ERROR_INITIALIZATION_FAILED;

@@ -54,7 +54,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
@@ -218,7 +218,7 @@ public abstract class Task
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_TASK_CANNOT_PARSE_SCHEDULED_START_TIME;
@@ -252,7 +252,7 @@ public abstract class Task
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_TASK_CANNOT_PARSE_ACTUAL_START_TIME;
@@ -286,7 +286,7 @@ public abstract class Task
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_TASK_CANNOT_PARSE_COMPLETION_TIME;
@@ -1054,7 +1054,7 @@ public abstract class Task
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       setTaskState(TaskState.STOPPED_BY_ERROR);

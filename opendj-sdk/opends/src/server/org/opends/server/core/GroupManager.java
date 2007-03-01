@@ -68,7 +68,7 @@ import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -152,7 +152,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_GROUP_CANNOT_GET_BASE;
@@ -359,7 +359,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
@@ -379,7 +379,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
@@ -397,7 +397,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS;
@@ -432,7 +432,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_ENABLED_VALUE;
@@ -551,7 +551,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_GROUP_INVALID_ENABLED_VALUE;
@@ -589,7 +589,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
@@ -634,7 +634,7 @@ public class GroupManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_GROUP_INVALID_CLASS;
@@ -653,7 +653,7 @@ public class GroupManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_GROUP_INITIALIZATION_FAILED;
@@ -743,7 +743,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
@@ -763,7 +763,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
@@ -782,7 +782,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_CLASS;
@@ -847,7 +847,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_GROUP_INVALID_ENABLED_VALUE;
@@ -924,7 +924,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_GROUP_INVALID_ENABLED_VALUE;
@@ -961,7 +961,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_GROUP_INVALID_CLASS_NAME;
@@ -985,7 +985,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_GROUP_INVALID_CLASS;
@@ -1003,7 +1003,7 @@ public class GroupManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_GROUP_INITIALIZATION_FAILED;
@@ -1103,7 +1103,7 @@ public class GroupManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // FIXME -- Is there anything that we need to do here?
@@ -1124,7 +1124,7 @@ public class GroupManager
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // FIXME -- Is there anything that we need to do here?
@@ -1146,7 +1146,7 @@ public class GroupManager
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // FIXME -- Is there anything that we need to do here?
@@ -1164,7 +1164,7 @@ public class GroupManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             // FIXME -- Handle this.
@@ -1342,7 +1342,7 @@ public class GroupManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // FIXME -- Do we need to do anything else?

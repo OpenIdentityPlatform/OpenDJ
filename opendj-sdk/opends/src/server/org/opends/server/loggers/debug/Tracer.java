@@ -145,11 +145,11 @@ public class Tracer
   }
 
   /**
-   * Pointcut for matching debugCought() methods.
+   * Pointcut for matching debugCaught() methods.
    */
   @Pointcut("call(public static void org.opends.server." +
-      "loggers.debug.DebugLogger.debugCought(..))")
-  private void logCoughtMethod()
+      "loggers.debug.DebugLogger.debugCaught(..))")
+  private void logCaughtMethod()
   {
   }
 
@@ -184,7 +184,7 @@ public class Tracer
    * Pointcut for matching all debug logging methods.
    */
   @Pointcut("logMessageMethod() || logVerboseMethod() || logInfoMethod() || " +
-      "logWarningMethod() || logErrorMethod() || logCoughtMethod() || " +
+      "logWarningMethod() || logErrorMethod() || logCaughtMethod() || " +
       "logJEAccessMethod() || logDataMethod() || logProtocolElementMethod()")
   private void logMethods()
   {
@@ -204,7 +204,7 @@ public class Tracer
   /**
    * Pointcut for matching the execution of all public methods.
    */
-  @Pointcut("execution(public * *(..)) && !excluded()")
+  @Pointcut("execution(!@NoDebugTracing public * *(..)) && !excluded()")
   void tracedMethod()
   {
   }
@@ -212,7 +212,7 @@ public class Tracer
   /**
    * Pointcut for matching the execution of all constructors.
    */
-  @Pointcut("execution(public new(..)) && !excluded()")
+  @Pointcut("execution(!@NoDebugTracing public new(..)) && !excluded()")
   void tracedConstructor()
   {
   }
@@ -231,7 +231,7 @@ public class Tracer
   /**
    * Pointcut for matching only within the scope of the server packages.
    */
-  @Pointcut("within(org.opends.server..*)")
+  @Pointcut("within(!@NoDebugTracing org.opends.server..*)")
   protected void tracingScope()
   {
   }
@@ -337,7 +337,8 @@ public class Tracer
    * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param ret the return value of the method.
    */
-  @AfterReturning(pointcut = "shouldTrace() && tracedMethod()",
+  @AfterReturning(pointcut = "shouldTrace() && tracedMethod() &&" +
+                             "traceConstructor()",
                   returning = "ret")
   public void traceReturn(JoinPoint.StaticPart thisJoinPointStaticPart,
                           Object ret)
@@ -627,14 +628,14 @@ public class Tracer
    *
    * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
-   * @param ex the exception cought.
+   * @param ex the exception caught.
    */
-  @Around("shouldTrace() && logCoughtMethod() && args(level, ex)")
-  public void traceCought(JoinPoint.EnclosingStaticPart
+  @Around("shouldTrace() && logCaughtMethod() && args(level, ex)")
+  public void traceCaught(JoinPoint.EnclosingStaticPart
                             thisEnclosingJoinPointStaticPart,
                           LogLevel level, Throwable ex)
   {
-    LogCategory category = DebugLogCategory.COUGHT;
+    LogCategory category = DebugLogCategory.CAUGHT;
     Signature signature = thisEnclosingJoinPointStaticPart.getSignature();
     TraceSettings settings = getSettings(signature.getName());
     if (level.intValue() >=

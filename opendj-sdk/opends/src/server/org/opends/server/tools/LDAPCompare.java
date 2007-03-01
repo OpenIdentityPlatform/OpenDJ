@@ -61,7 +61,7 @@ import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
@@ -212,7 +212,7 @@ public class LDAPCompare
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ae);
+          debugCaught(DebugLogLevel.ERROR, ae);
         }
         if (!compareOptions.continueOnError())
         {
@@ -602,7 +602,7 @@ public class LDAPCompare
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE;
@@ -642,7 +642,7 @@ public class LDAPCompare
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ae);
+        debugCaught(DebugLogLevel.ERROR, ae);
       }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return 1;
@@ -662,7 +662,7 @@ public class LDAPCompare
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ae);
+        debugCaught(DebugLogLevel.ERROR, ae);
       }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
       return 1;
@@ -684,7 +684,7 @@ public class LDAPCompare
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, ex);
+          debugCaught(DebugLogLevel.ERROR, ex);
         }
         err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
         return 1;
@@ -865,7 +865,7 @@ public class LDAPCompare
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, le);
+        debugCaught(DebugLogLevel.ERROR, le);
       }
       err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
       int code = le.getResultCode();
@@ -874,7 +874,7 @@ public class LDAPCompare
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, lce);
+        debugCaught(DebugLogLevel.ERROR, lce);
       }
       err.println(wrapText(lce.getMessage(), MAX_LINE_WIDTH));
       int code = lce.getErrorCode();
@@ -883,7 +883,7 @@ public class LDAPCompare
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
       return 1;

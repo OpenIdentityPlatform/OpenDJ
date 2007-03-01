@@ -55,7 +55,7 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDIFImportConfig;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -247,7 +247,7 @@ public final class PasswordPolicyImportPlugin
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               int    msgID   = MSGID_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD;
@@ -308,7 +308,7 @@ public final class PasswordPolicyImportPlugin
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               int    msgID   = MSGID_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD;

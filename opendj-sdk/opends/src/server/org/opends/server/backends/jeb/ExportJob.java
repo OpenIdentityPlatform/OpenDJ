@@ -44,7 +44,7 @@ import org.opends.server.util.StaticUtils;
 import java.io.IOException;
 import java.util.*;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugError;
 import org.opends.server.types.DebugLogLevel;
@@ -202,7 +202,7 @@ public class ExportJob
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("Malformed id2entry ID %s.%n",
                             StaticUtils.bytesToHex(key.getData()));
@@ -226,7 +226,7 @@ public class ExportJob
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
 
             debugError("Malformed id2entry record for ID %d:%n%s%n",
                        entryID.longValue(),

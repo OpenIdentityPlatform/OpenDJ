@@ -51,7 +51,7 @@ import org.opends.server.types.FilterType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugError;
 import org.opends.server.types.DebugLogLevel;
@@ -499,7 +499,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, le);
+        debugCaught(DebugLogLevel.ERROR, le);
       }
 
       throw le;
@@ -508,7 +508,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_UNCAUGHT_EXCEPTION;
@@ -2248,7 +2248,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_FILTER_DECODE_COMPOUND_SET;
@@ -2274,7 +2274,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_FILTER_DECODE_COMPOUND_COMPONENTS;
@@ -2311,7 +2311,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_NOT_ELEMENT;
@@ -2333,7 +2333,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_NOT_COMPONENT;
@@ -2398,7 +2398,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_SEQUENCE;
@@ -2424,7 +2424,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_TYPE;
@@ -2442,7 +2442,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_VALUE;
@@ -2479,7 +2479,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE;
@@ -2505,7 +2505,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_TYPE;
@@ -2523,7 +2523,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS;
@@ -2578,7 +2578,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_VALUES;
@@ -2616,7 +2616,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_PRESENCE_TYPE;
@@ -2653,7 +2653,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE;
@@ -2699,7 +2699,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_ELEMENTS;

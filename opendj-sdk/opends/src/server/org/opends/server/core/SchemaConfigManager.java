@@ -70,7 +70,7 @@ import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -178,7 +178,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_GET_MR_BASE;
@@ -273,7 +273,7 @@ public class SchemaConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SCHEMA_MR_UNABLE_TO_DETERMINE_ENABLED_STATE;
@@ -318,7 +318,7 @@ public class SchemaConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_GET_CLASS;
@@ -340,7 +340,7 @@ public class SchemaConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_INSTANTIATE;
@@ -362,7 +362,7 @@ public class SchemaConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_INITIALIZE;
@@ -384,7 +384,7 @@ public class SchemaConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         msgID = MSGID_CONFIG_SCHEMA_MR_CONFLICTING_MR;
@@ -424,7 +424,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_GET_SYNTAX_BASE;
@@ -518,7 +518,7 @@ public class SchemaConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_UNABLE_TO_DETERMINE_ENABLED_STATE;
@@ -562,7 +562,7 @@ public class SchemaConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_GET_CLASS;
@@ -584,7 +584,7 @@ public class SchemaConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_INSTANTIATE;
@@ -606,7 +606,7 @@ public class SchemaConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE;
@@ -628,7 +628,7 @@ public class SchemaConfigManager
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX;
@@ -717,7 +717,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ie);
+        debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       throw ie;
@@ -726,7 +726,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_LIST_FILES;
@@ -823,7 +823,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_OPEN_FILE;
@@ -859,7 +859,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY;
@@ -886,7 +886,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -907,7 +907,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       attrTypeSyntax = new AttributeTypeSyntax();
@@ -941,7 +941,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       ocSyntax = new ObjectClassSyntax();
@@ -975,7 +975,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       nfSyntax = new NameFormSyntax();
@@ -1009,7 +1009,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       dcrSyntax = new DITContentRuleSyntax();
@@ -1044,7 +1044,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       dsrSyntax = new DITStructureRuleSyntax();
@@ -1079,7 +1079,7 @@ public class SchemaConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       mruSyntax = new MatchingRuleUseSyntax();
@@ -1129,7 +1129,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE;
@@ -1151,7 +1151,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE;
@@ -1181,7 +1181,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE;
@@ -1200,7 +1200,7 @@ public class SchemaConfigManager
               // This should never happen.
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
             }
           }
@@ -1226,7 +1226,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC;
@@ -1248,7 +1248,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC;
@@ -1279,7 +1279,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_OC;
@@ -1297,7 +1297,7 @@ public class SchemaConfigManager
               // This should never happen.
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
             }
           }
@@ -1325,7 +1325,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM;
@@ -1347,7 +1347,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM;
@@ -1378,7 +1378,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_NAME_FORM;
@@ -1396,7 +1396,7 @@ public class SchemaConfigManager
               // This should never happen.
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
             }
           }
@@ -1424,7 +1424,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR;
@@ -1446,7 +1446,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR;
@@ -1477,7 +1477,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_DCR;
@@ -1495,7 +1495,7 @@ public class SchemaConfigManager
               // This should never happen.
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
             }
           }
@@ -1524,7 +1524,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR;
@@ -1546,7 +1546,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR;
@@ -1577,7 +1577,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_DSR;
@@ -1595,7 +1595,7 @@ public class SchemaConfigManager
               // This should never happen.
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
             }
           }
@@ -1624,7 +1624,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU;
@@ -1646,7 +1646,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU;
@@ -1677,7 +1677,7 @@ public class SchemaConfigManager
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, de);
+              debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_CONFIG_SCHEMA_CONFLICTING_MRU;
@@ -1695,7 +1695,7 @@ public class SchemaConfigManager
               // This should never happen.
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
             }
           }

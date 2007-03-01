@@ -37,7 +37,7 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.loggers.debug.DebugLogger.debugWarning;
@@ -183,7 +183,7 @@ public class TraditionalWorkerThread
             "Uncaught exception in worker thread while processing " +
                 "operation %s: %s", String.valueOf(operation), e);
 
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         try
@@ -208,7 +208,7 @@ public class TraditionalWorkerThread
               "Exception in worker thread while trying to log a " +
                   "message about an uncaught exception %s: %s", e, e2);
 
-            debugCought(DebugLogLevel.ERROR, e2);
+            debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
 
@@ -227,7 +227,7 @@ public class TraditionalWorkerThread
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e2);
+            debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
       }
@@ -286,7 +286,7 @@ public class TraditionalWorkerThread
           debugWarning(
             "Caught an exception while trying to interrupt the worker " +
                 "thread waiting for work: %s", e);
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -305,7 +305,7 @@ public class TraditionalWorkerThread
           debugWarning(
             "Caught an exception while trying to abandon the " +
                 "operation in progress for the worker thread: %s", e);
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }

@@ -73,7 +73,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
@@ -250,7 +250,7 @@ public class PluginConfigManager
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_GET_CONFIG_BASE;
@@ -309,7 +309,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_PLUGIN_ERROR_INTERACTING_WITH_PLUGIN_ENTRY;
@@ -357,7 +357,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_PLUGIN_UNABLE_TO_DETERMINE_ENABLED_STATE;
@@ -423,7 +423,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_PLUGIN_TYPES;
@@ -470,7 +470,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
@@ -492,7 +492,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_PLUGIN_CANNOT_INSTANTIATE;
@@ -515,7 +515,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_CONFIG_PLUGIN_CANNOT_INITIALIZE;
@@ -556,7 +556,7 @@ parsePluginEntry:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -650,7 +650,7 @@ parsePluginEntry:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
@@ -670,7 +670,7 @@ parsePluginEntry:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
@@ -689,7 +689,7 @@ parsePluginEntry:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_INSTANTIATE;
@@ -724,7 +724,7 @@ parsePluginEntry:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_PLUGIN_UNABLE_TO_DETERMINE_ENABLED_STATE;
@@ -759,7 +759,7 @@ parsePluginEntry:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_GET_PLUGIN_TYPES;
@@ -864,7 +864,7 @@ parsePluginEntry:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_PLUGIN_UNABLE_TO_DETERMINE_ENABLED_STATE;
@@ -919,7 +919,7 @@ parsePluginEntry:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_PLUGIN_TYPES;
@@ -957,7 +957,7 @@ parsePluginEntry:
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
@@ -1002,7 +1002,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_PLUGIN_CANNOT_INSTANTIATE;
@@ -1023,7 +1023,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_PLUGIN_CANNOT_INITIALIZE;
@@ -1637,7 +1637,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_STARTUP_PLUGIN_EXCEPTION;
@@ -1714,7 +1714,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_SHUTDOWN_PLUGIN_EXCEPTION;
@@ -1751,7 +1751,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_PLUGIN_POST_CONNECT_PLUGIN_EXCEPTION;
@@ -1771,7 +1771,7 @@ parsePluginEntry:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e2);
+            debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
 
@@ -1798,7 +1798,7 @@ parsePluginEntry:
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -1855,7 +1855,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID = MSGID_PLUGIN_POST_DISCONNECT_PLUGIN_EXCEPTION;
@@ -1924,7 +1924,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_LDIF_IMPORT_PLUGIN_EXCEPTION;
@@ -1990,7 +1990,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_LDIF_EXPORT_PLUGIN_EXCEPTION;
@@ -2055,7 +2055,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2137,7 +2137,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2217,7 +2217,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2297,7 +2297,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2379,7 +2379,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2461,7 +2461,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2543,7 +2543,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2625,7 +2625,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2707,7 +2707,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2789,7 +2789,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2871,7 +2871,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -2951,7 +2951,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -3031,7 +3031,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -3113,7 +3113,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -3195,7 +3195,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -3277,7 +3277,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -3359,7 +3359,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -3441,7 +3441,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -3523,7 +3523,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3605,7 +3605,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3685,7 +3685,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3765,7 +3765,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3847,7 +3847,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3929,7 +3929,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -4011,7 +4011,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -4093,7 +4093,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -4175,7 +4175,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -4257,7 +4257,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -4339,7 +4339,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4413,7 +4413,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4487,7 +4487,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4561,7 +4561,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4635,7 +4635,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4709,7 +4709,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4783,7 +4783,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4857,7 +4857,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4933,7 +4933,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION;
@@ -5005,7 +5005,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION;
@@ -5077,7 +5077,7 @@ parsePluginEntry:
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_EXCEPTION;

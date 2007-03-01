@@ -75,7 +75,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
@@ -180,7 +180,7 @@ public class BackupBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_BACKUP_CANNOT_DECODE_BACKUP_ROOT_DN;
@@ -220,7 +220,7 @@ public class BackupBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_BACKUP_CANNOT_DETERMINE_BACKUP_DIR_LIST;
@@ -281,7 +281,7 @@ public class BackupBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
@@ -316,7 +316,7 @@ public class BackupBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -488,7 +488,7 @@ public class BackupBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       int msgID = MSGID_BACKUP_INVALID_BACKUP_DIRECTORY;
@@ -501,7 +501,7 @@ public class BackupBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY;
@@ -609,7 +609,7 @@ public class BackupBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, ce);
+        debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       int msgID = MSGID_BACKUP_INVALID_BACKUP_DIRECTORY;
@@ -621,7 +621,7 @@ public class BackupBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY;
@@ -932,7 +932,7 @@ public class BackupBackend
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             continue;
@@ -974,7 +974,7 @@ public class BackupBackend
                 {
                   if (debugEnabled())
                   {
-                    debugCought(DebugLogLevel.ERROR, e);
+                    debugCaught(DebugLogLevel.ERROR, e);
                   }
 
                   continue;
@@ -1031,7 +1031,7 @@ public class BackupBackend
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               continue;
@@ -1428,7 +1428,7 @@ public class BackupBackend
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_BACKUP_CANNOT_DETERMINE_BACKUP_DIR_LIST;

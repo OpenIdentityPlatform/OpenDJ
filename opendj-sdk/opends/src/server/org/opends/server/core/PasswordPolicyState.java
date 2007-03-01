@@ -65,7 +65,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.loggers.debug.DebugLogger.debugWarning;
@@ -323,7 +323,7 @@ public class PasswordPolicyState
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           if (debug)
@@ -487,7 +487,7 @@ public class PasswordPolicyState
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           if (debug)
@@ -573,7 +573,7 @@ public class PasswordPolicyState
         {
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           if (debug)
@@ -888,7 +888,7 @@ public class PasswordPolicyState
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         if (debug)
@@ -1076,7 +1076,7 @@ public class PasswordPolicyState
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         if (debug)
@@ -1228,7 +1228,7 @@ public class PasswordPolicyState
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         if (debug)
@@ -1429,7 +1429,7 @@ public class PasswordPolicyState
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         if (debug)
@@ -1724,7 +1724,7 @@ public class PasswordPolicyState
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             // This could mean that the last login time was encoded using a
@@ -1753,7 +1753,7 @@ public class PasswordPolicyState
               {
                 if (debugEnabled())
                 {
-                  debugCought(DebugLogLevel.ERROR, e2);
+                  debugCaught(DebugLogLevel.ERROR, e2);
                 }
               }
             }
@@ -1824,7 +1824,7 @@ public class PasswordPolicyState
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (debug)
@@ -2094,7 +2094,7 @@ public class PasswordPolicyState
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         if (debug)
@@ -2690,7 +2690,7 @@ public class PasswordPolicyState
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         if (debug)
@@ -2790,7 +2790,7 @@ public class PasswordPolicyState
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         if (debug)
@@ -2926,7 +2926,7 @@ public class PasswordPolicyState
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         if (debug)
@@ -3149,7 +3149,7 @@ public class PasswordPolicyState
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               if (debug)
@@ -3200,7 +3200,7 @@ public class PasswordPolicyState
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               if (debug)
@@ -3296,7 +3296,7 @@ public class PasswordPolicyState
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             if (debug)
@@ -3355,7 +3355,7 @@ public class PasswordPolicyState
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             if (debug)
@@ -3615,7 +3615,7 @@ public class PasswordPolicyState
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             if (debug)
@@ -3662,7 +3662,7 @@ public class PasswordPolicyState
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               if (debug)
@@ -3790,7 +3790,7 @@ public class PasswordPolicyState
           {
             if (debugEnabled())
             {
-              debugCought(DebugLogLevel.ERROR, e);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
             if (debug)
@@ -3837,7 +3837,7 @@ public class PasswordPolicyState
             {
               if (debugEnabled())
               {
-                debugCought(DebugLogLevel.ERROR, e);
+                debugCaught(DebugLogLevel.ERROR, e);
               }
 
               if (debug)

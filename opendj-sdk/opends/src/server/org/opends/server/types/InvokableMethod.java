@@ -36,7 +36,7 @@ import javax.management.MBeanParameterInfo;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.config.ConfigAttribute;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 
@@ -317,7 +317,7 @@ public class InvokableMethod
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       throw new MBeanException(de, de.getErrorMessage());
@@ -326,7 +326,7 @@ public class InvokableMethod
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       throw new MBeanException(e);

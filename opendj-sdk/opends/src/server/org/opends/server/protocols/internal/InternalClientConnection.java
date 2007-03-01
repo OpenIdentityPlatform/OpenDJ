@@ -84,7 +84,7 @@ import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static
-    org.opends.server.loggers.debug.DebugLogger.debugCought;
+    org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
@@ -215,7 +215,7 @@ public class InternalClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
 
       logError(ErrorLogCategory.CONNECTION_HANDLING,
@@ -236,7 +236,7 @@ public class InternalClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -273,7 +273,7 @@ public class InternalClientConnection
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }

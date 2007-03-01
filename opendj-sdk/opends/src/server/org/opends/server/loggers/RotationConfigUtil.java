@@ -49,7 +49,7 @@ import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.LoggerMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.loggers.Error.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 
 
@@ -418,7 +418,7 @@ public class RotationConfigUtil
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return null;

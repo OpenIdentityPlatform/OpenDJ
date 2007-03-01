@@ -46,7 +46,7 @@ import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.extensions.NullKeyManagerProvider;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
 import static org.opends.server.loggers.debug.DebugLogger.debugWarning;
@@ -184,7 +184,7 @@ public class RmiConnector
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
 
       throw new RuntimeException("Error while starting the RMI module : "
@@ -254,7 +254,7 @@ public class RmiConnector
 
           //
           // throw the original exception
-          debugCought(DebugLogLevel.ERROR, re);
+          debugCaught(DebugLogLevel.ERROR, re);
         }
         throw re;
       }
@@ -407,7 +407,7 @@ public class RmiConnector
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       throw e;
     }
@@ -479,7 +479,7 @@ public class RmiConnector
       // TODO Log an error message
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -496,7 +496,7 @@ public class RmiConnector
         // TODO Log an error message
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
       registry = null;

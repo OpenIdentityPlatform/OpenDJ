@@ -31,7 +31,7 @@ package org.opends.server.util;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static org.opends.server.loggers.debug.DebugLogger.debugCought;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugProtocolElement;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -276,7 +276,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT;
@@ -593,7 +593,7 @@ public final class LDIFReader
         // The value did not have a valid base64-encoding.
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_DN;
@@ -613,7 +613,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
@@ -628,7 +628,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
@@ -660,7 +660,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
@@ -675,7 +675,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
@@ -770,7 +770,7 @@ public final class LDIFReader
         // The value did not have a valid base64-encoding.
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_DN;
@@ -1078,7 +1078,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -1225,7 +1225,7 @@ public final class LDIFReader
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, de);
+        debugCaught(DebugLogLevel.ERROR, de);
       }
       int    msgID   = MSGID_LDIF_INVALID_DN;
       String message = getMessage(msgID, lineNumber, line.toString(),
@@ -1235,7 +1235,7 @@ public final class LDIFReader
     {
       if (debugEnabled())
       {
-        debugCought(DebugLogLevel.ERROR, e);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
       int    msgID   = MSGID_LDIF_INVALID_DN;
       String message = getMessage(msgID, lineNumber, line.toString(),
@@ -1287,7 +1287,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, de);
+          debugCaught(DebugLogLevel.ERROR, de);
         }
         int    msgID   = MSGID_LDIF_INVALID_DN;
         String message = getMessage(msgID, lineNumber, line.toString(),
@@ -1297,7 +1297,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
         int    msgID   = MSGID_LDIF_INVALID_DN;
         String message = getMessage(msgID, lineNumber, line.toString(),
@@ -1573,7 +1573,7 @@ public final class LDIFReader
           // The value did not have a valid base64-encoding.
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_ATTR;
@@ -1604,7 +1604,7 @@ public final class LDIFReader
           // The URL was malformed or had an invalid protocol.
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_LDIF_INVALID_URL;
@@ -1638,7 +1638,7 @@ public final class LDIFReader
           // reason.
           if (debugEnabled())
           {
-            debugCought(DebugLogLevel.ERROR, e);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_LDIF_URL_IO_ERROR;
@@ -1718,7 +1718,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCought(DebugLogLevel.ERROR, e);
+          debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
