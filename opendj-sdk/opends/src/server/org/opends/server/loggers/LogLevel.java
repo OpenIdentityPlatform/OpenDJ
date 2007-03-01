@@ -150,7 +150,7 @@ public class LogLevel
 
     // Look for a known Level with the given non-localized name.
     for (int i = 0; i < known.size(); i++) {
-      LogLevel l = (LogLevel) known.get(i);
+      LogLevel l = known.get(i);
       if (name.equalsIgnoreCase(l.name)) {
         return l;
       }
@@ -162,7 +162,7 @@ public class LogLevel
     try {
       int x = Integer.parseInt(name);
       for (int i = 0; i < known.size(); i++) {
-        LogLevel l = (LogLevel) known.get(i);
+        LogLevel l = known.get(i);
         if (l.value == x) {
           return l;
         }
