@@ -32,6 +32,7 @@ import org.opends.server.types.DN;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
 import java.util.regex.Pattern;
+
 /**
  * The Aci class represents ACI strings.
  */
@@ -41,28 +42,24 @@ public class Aci  {
      * pairs.
      */
     private AciBody body;
+
     /*
      * The ACI targets.
      */
     private AciTargets targets=null;
-    /**
-     * The ACIs are on a linked list hashed by the ACI entry DN.
-     * Next points to the next Aci object in the list.
-     */
-    /*
-     * TODO Remove this linked list an replace with an array
-     * of ACIs.
-     */
-    Aci next = null;
+
     /**
      * Version that we support.
      */
     public static final String supportedVersion="3.0";
+
     private String aciString;
+
     /*
      * The DN of the entry containing this ACI.
      */
     private DN dn;
+
     /*
      * This regular expression is used to do a quick syntax check
      * when an ACI is being decoded.
@@ -97,7 +94,7 @@ public class Aci  {
     public static Aci decode (ByteString byteString, DN dn)
     throws AciException {
         String input=byteString.stringValue();
-        //Perform an quick pattern check against the string to catch any
+        //Perform a quick pattern check against the string to catch any
         //obvious syntax errors.
         if (!Pattern.matches(aciRegex, input)) {
             int msgID = MSGID_ACI_SYNTAX_GENERAL_PARSE_FAILED;
