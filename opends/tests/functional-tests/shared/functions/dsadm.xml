@@ -122,9 +122,9 @@
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsPath</workdir>
+        <workdir>'%s/bin' % dsPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
@@ -220,9 +220,9 @@
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsPath</workdir>
+        <workdir>'%s/bin' % dsPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
@@ -460,9 +460,9 @@
         <location>'%s' % (location)</location>
         <command>'%s' % (STAFCmd)</command>
         <parms>'%s' % (STAFCmdParams)</parms>
-        <workdir>'%s' % dsPath</workdir>
+        <workdir>'%s/bin' % dsPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <stderr mode="'stdout'"/>
         <returnstdout/>
