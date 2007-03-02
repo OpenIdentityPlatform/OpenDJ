@@ -44,7 +44,8 @@ then
   fi
 fi
 
+OPENDS_LIB=`cd ../../lib;pwd`
 ANT_HOME=`cd ../..;pwd`/ext/ant
 export ANT_HOME
 # Execute the ant script and pass it any additional command-line arguments.
-$ANT_HOME/bin/ant -f staf-installer.xml ${*}
+$ANT_HOME/bin/ant -lib $OPENDS_LIB/mail.jar:$OPENDS_LIB/activation.jar -f staf-installer.xml ${*}

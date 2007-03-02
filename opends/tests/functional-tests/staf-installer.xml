@@ -31,9 +31,10 @@
 		This allows tests that need a running instance of staf to easily
 		get one and hides all the complexity under the hood
   </description>
+  <dirname file="${basedir}/.." property="project.home"/>
   
   <!-- installer wide settings - top -->
-    <property file="../../PRODUCT"/>
+    <property file="${project.home}//PRODUCT"/>
     <property name="product.name"
               value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}" />
     <!-- this is the file where the default values are defined                -->
@@ -254,11 +255,20 @@
 
 <!-- Gui section - top -->
   <target name="gui"
+          depends="status-do"
           description="brings up the stax gui" >
-    <java classname="com.ibm.staf.service.stax.STAXMonitor"
-          classpath="${staf.install.dir}/services/stax/STAXMon.jar${path.separator}${staf.install.dir}/bin/JSTAF.jar"
-          fork="true" 
-          spawn="true"/>
+    
+    <exec
+      dir="${staf.install.dir}"
+      executable="${java.home}/bin/java"
+      spawn="true">
+      <env key="LD_LIBRARY_PATH" value="${staf.lib.dir}"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+      <arg value="-classpath"/>
+      <arg value="${staf.install.dir}/services/stax/STAXMon.jar${path.separator}${staf.lib.dir}/JSTAF.jar"/>
+      <arg value="com.ibm.staf.service.stax.STAXMonitor"/>
+    </exec>
   </target>
 <!-- Gui section - bottom -->
 
@@ -277,11 +287,6 @@
   <target name="run-tests-prepare" 
           depends="status-do,get-pkg" 
           if="staf.running">
-    <condition property="staf.lib.dir" 
-      value="${staf.install.dir}${file.separator}bin" 
-      else="${staf.install.dir}${file.separator}lib">
-      <os family="windows"/>
-    </condition>
     <!-- python config - top -->
       <!-- 1. get a timestamp for step 3 -->
       <tstamp>
@@ -342,6 +347,7 @@
       >
       <arg line="LOCAL STAX ${tests.request}"/>
       <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="LD_LIBRARY_PATH" value="${staf.lib.dir}"/>
       <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
       <env key="STAFCODEPAGE" value="LATIN_1"/>
     </exec>
@@ -366,6 +372,14 @@
         <include name="r*"/>
       </fileset>
     </copy>
+    <mail from="arnaud@sun.com" 
+          tolist="arnaud@sun.com" 
+          subject="FT - ${daily.date} - ${os.name} - ${os.arch}"
+          files="${staf.tmp.dir}/results.html"
+          mailhost="pecos.central.sun.com"
+          messagefile="${staf.tmp.dir}/results.html"
+          messagemimetype="text/html">
+    </mail>
   </target>
   
   <target name="daily">
@@ -439,7 +453,7 @@
      <arg value="${staf.config}"/>
      <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
      <env key="LD_LIBRARY_PATH" path="${staf.install.dir}/lib"/>
-     <env key="CLASSPATH" path="${staf.install.dir}/bin/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+     <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
      <env key="STAFCODEPAGE" value="LATIN_1"/>
      <env key="STAF_INSTANCE_NAME" value="STAF"/>
@@ -529,6 +543,11 @@
       <available file="${staf.install.dir}" 
                 type="dir" 
                 property="staf.installed" />
+      <condition property="staf.lib.dir" 
+        value="${staf.install.dir}${file.separator}bin" 
+        else="${staf.install.dir}${file.separator}lib">
+        <os family="windows"/>
+      </condition>
   
       <condition property="staf.running">
         <socket port="${staf.port}" server="${host.name}"/>
@@ -604,4 +623,30 @@
 		<antcall target="uninstall"/>
 	</target>
 <!--  Macros section - bottom -->
+  <target name="javadoc" depends="status-do" if="staf.installed">
+    <delete dir="${staf.home}/doc"/>
+    <mkdir dir="${staf.home}/doc"/>
+    <java jar="${staf.install.dir}/services/stax/STAXDoc.jar" fork="true">
+      <arg value="-d"/> 
+      <arg value="${staf.home}/doc"/>
+      <arg value="testcases"/>
+      <arg value="testcases/aci"/>
+      <arg value="testcases/backends"/>
+      <arg value="testcases/core"/>
+      <arg value="testcases/schema"/>
+      <arg value="testcases/security"/>
+      <arg value="testcases/security/account_activation"/>
+      <arg value="testcases/security/auth_pwd_syntax"/>
+      <arg value="testcases/security/bind_no_pwd"/>
+      <arg value="testcases/security/jks"/>
+      <arg value="testcases/security/pkcs12"/>
+      <arg value="testcases/security/pwd_policy"/>
+      <arg value="testcases/security/pwd_policy_root"/>
+      <arg value="testcases/security/pwd_storage"/>
+      <arg value="testcases/security/pwd_validator"/>
+      <arg value="testcases/security/sasl"/>
+      <arg value="testcases/security/startTLS"/>
+      <arg value="shared/functions"/>
+    </java>
+  </target>
 </project>
