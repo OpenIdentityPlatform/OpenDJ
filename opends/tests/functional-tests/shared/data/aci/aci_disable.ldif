@@ -1,0 +1,6 @@
+dn: cn=Access Control Handler,cn=config
+changetype: modify
+replace: ds-cfg-acl-handler-enabled
+ds-cfg-acl-handler-enabled: false
+
+
