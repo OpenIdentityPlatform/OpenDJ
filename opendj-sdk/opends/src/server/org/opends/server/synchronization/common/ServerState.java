@@ -57,6 +57,19 @@ public class ServerState implements Iterable<Short>
     list = new HashMap<Short, ChangeNumber>();
   }
 
+  /**
+   * Empty the ServerState.
+   * After this call the Server State will be in the same state
+   * as if it was just created.
+   */
+  public void clear()
+  {
+    synchronized (this)
+    {
+      list.clear();
+    }
+  }
+
 
   /**
    * Creates a new ServerState object from its encoded form.

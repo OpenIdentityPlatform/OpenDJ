@@ -117,7 +117,7 @@ public class PersistentServerState extends ServerState
   /**
    * Load the ServerState from the backing entry in database to memory.
    */
-  private void loadState()
+  public void loadState()
   {
     /*
      * Read the serverState from the database,

@@ -445,8 +445,10 @@ public class MultimasterSynchronization extends SynchronizationProvider
   /**
    * Finds the Synchronization domain for a given DN.
    *
-   * @param dn The DN for which the domain must be returned.
-   * @return The Synchronization domain for this DN.
+   * @param dn   The DN for which the domain must be returned.
+   * @param op   An optional operation for which the check is done.
+   *             Can be null is the request has no associated operation.
+   * @return     The Synchronization domain for this DN.
    */
   private static SynchronizationDomain findDomain(DN dn, Operation op)
   {
@@ -454,7 +456,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
      * Don't run the special synchronization code on Operation that are
      * specifically marked as don't synchronize.
      */
-    if (op.dontSynchronize())
+    if ((op != null) && op.dontSynchronize())
       return null;
 
     SynchronizationDomain domain = null;
@@ -489,6 +491,50 @@ public class MultimasterSynchronization extends SynchronizationProvider
     return;
   }
 
+
+  /**
+   * Handle a Notification of restore start from the core server.
+   *
+   * @param dn The baseDn of the restore.
+   */
+  public static void notificationRestoreStart(DN dn)
+  {
+    SynchronizationDomain domain = findDomain(dn, null);
+    domain.disable();
+  }
+
+  /**
+   * Handle a Notification of restore end from the core server.
+   *
+   * @param dn The baseDn of the restore.
+   */
+  public static void notificationRestoreEnd(DN dn)
+  {
+    SynchronizationDomain domain = findDomain(dn, null);
+    domain.enable();
+  }
+
+  /**
+   * Handle a Notification of backup start from the core server.
+   *
+   * @param dn The baseDn of the backup.
+   */
+  public static void notificationBackupStart(DN dn)
+  {
+    SynchronizationDomain domain = findDomain(dn, null);
+    domain.backupStart();
+  }
+
+  /**
+   * Handle a Notification of backup end from the core server.
+   *
+   * @param dn The baseDn of the backup.
+   */
+  public static void notificationBackupEnd(DN dn)
+  {
+    SynchronizationDomain domain = findDomain(dn, null);
+    domain.backupEnd();
+  }
 }
 
 

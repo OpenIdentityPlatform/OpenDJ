@@ -163,6 +163,7 @@ public class ChangelogBroker implements InternalSearchListener
      * Open Socket to the Changelog
      * Send the Start message
      */
+    shutdown = false;
     this.servers = servers;
     if (servers.size() < 1)
     {
@@ -173,6 +174,7 @@ public class ChangelogBroker implements InternalSearchListener
                message, msgID);
     }
 
+    this.rcvWindow = this.maxRcvWindow;
     this.connect();
   }
 
@@ -537,7 +539,9 @@ public class ChangelogBroker implements InternalSearchListener
    */
   public void stop()
   {
+    changelogServer = "stopped";
     shutdown = true;
+    connected = false;
     try
     {
       session.close();
