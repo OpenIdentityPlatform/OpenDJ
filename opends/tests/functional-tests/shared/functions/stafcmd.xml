@@ -376,34 +376,34 @@
       </function-arg-def>      
     </function-map-args>
 
-      <sequence>
+    <sequence>
 
-        <stafcmd name="'STAF Command: Create Folder'">
-          <location>'%s' % location</location>
-          <service>'fs'</service>
-          <request>
-            'CREATE DIRECTORY %s FULLPATH' % foldername
-          </request>
-        </stafcmd>
+      <stafcmd name="'STAF Command: Create Folder'">
+        <location>'%s' % location</location>
+        <service>'fs'</service>
+        <request>
+          'CREATE DIRECTORY %s FULLPATH' % foldername
+        </request>
+      </stafcmd>
 
-        <script>
-          cmdRC=RC
-          cmdResult=STAFResult
-        </script>
-        
-        <call function="'checkRC'">
-            { 'returncode' : cmdRC ,
-              'result'     : cmdResult }
-        </call>
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+      
+      <call function="'checkRC'">
+          { 'returncode' : cmdRC ,
+            'result'     : cmdResult }
+      </call>
 
-        <return>cmdRC</return>
-        
-      </sequence>
+      <return>cmdRC</return>
+      
+    </sequence>
 
-    </function>  
+  </function>  
 
 
-    <function name="queryLogs">
+  <function name="queryLogs">
 
     <function-prolog>
         Queries the staf logs from startfrom point
@@ -436,16 +436,16 @@
       </function-arg-def> 
     </function-map-args>
 
-      <sequence>
-        
-        <stafcmd name="'STAF Command: Log Query for Test Case Log.'">
-          <location>'%s' % location</location>
-          <service>'log'</service>
-          <request>'QUERY ALL MACHINE %s LOGNAME %s FROM %s TO %s' % (location,logname,startfrom,endat)</request>
-        </stafcmd>
-        
-      </sequence>
+    <sequence>
+      
+      <stafcmd name="'STAF Command: Log Query for Test Case Log.'">
+        <location>'%s' % location</location>
+        <service>'log'</service>
+        <request>'QUERY ALL MACHINE %s LOGNAME %s FROM %s TO %s' % (location,logname,startfrom,endat)</request>
+      </stafcmd>
+      
+    </sequence>
 
-    </function>
-        
+  </function>
+
 </stax>
