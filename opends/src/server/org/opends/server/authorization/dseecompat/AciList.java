@@ -143,6 +143,10 @@ public class AciList {
     List<Attribute> attributeList =
          entry.getOperationalAttribute(AciHandler.aciType);
 
+    if (attributeList == null) {
+      return 0;
+    }
+
     // Copy the ACI list.
     LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
 
@@ -166,6 +170,11 @@ public class AciList {
   private static int addAciAttributeList(
        LinkedHashMap<DN,List<Aci>> aciList, DN dn,
        List<Attribute> attributeList) {
+
+    if (attributeList == null) {
+      return 0;
+    }
+
     int validAcis=0;
     ArrayList<Aci> acis = new ArrayList<Aci>();
     for (Attribute attribute : attributeList) {
@@ -212,7 +221,7 @@ public class AciList {
 
       aciCopy.remove(oldEntry.getDN());
       List<Attribute> attributeList =
-           newEntry.getOperationalAttribute(AciHandler.aciType, null);
+           newEntry.getOperationalAttribute(AciHandler.aciType);
       addAciAttributeList(aciCopy,newEntry.getDN(),attributeList);
 
       // Replace the ACI list with the copy.
