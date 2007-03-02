@@ -30,6 +30,15 @@
   <defaultcall function="aci_setup"/>
 
   <function name="aci_setup">
+
+    <sequence>
+  
+      <script>
+        CurrentTestPath['suite']='aci-setup'
+      </script>
+      
+      <call function="'testSuite_Preamble'"/>
+      
       <!---
             Place group-specific test information here.
             #@TestGroupName             ACI
@@ -41,7 +50,6 @@
             #@TestSuiteGroup            ACI Setup Tests
             #@TestScript                aci_setup.xml
       -->
-      <sequence>
 
        <!--- Test Case : Add Entries for ACI Tests -->
        <!---
@@ -97,6 +105,8 @@
           </sequence>
         </testcase>
 
+        <call function="'testSuite_Postamble'"/>
+            
      </sequence>
 
   </function>

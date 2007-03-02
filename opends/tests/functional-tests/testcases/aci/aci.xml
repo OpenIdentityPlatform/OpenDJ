@@ -33,7 +33,11 @@
 
       <sequence>
 
-        <call function="'testSuite_Preamble'"/>
+        <script>
+          CurrentTestPath['group']='aci'
+        </script>
+      
+        <call function="'testGroup_Preamble'"/>
         
         <parallel>
                 
@@ -105,7 +109,7 @@
     
           </parallel>
 
-        <call function="'testSuite_Postamble'"/>
+        <call function="'testGroup_Postamble'"/>
         
      </sequence>
 
