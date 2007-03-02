@@ -30,6 +30,15 @@
   <defaultcall function="aci_target"/>
 
   <function name="aci_target">
+
+    <sequence>
+        
+      <script>
+        CurrentTestPath['suite']='aci-target'
+      </script>
+      
+      <call function="'testSuite_Preamble'"/>
+      
       <!---
             Place suite-specific test information here.
             #@TestSuiteName             ACI Target Tests
@@ -37,7 +46,6 @@
             #@TestSuiteGroup            Basic ACI Target Tests
             #@TestScript                aci_target.xml
       -->
-      <sequence>
 
       <!---
             Place test-specific test information here.
@@ -1418,8 +1426,10 @@
           </sequence>
         </testcase>
 
+        <call function="'testSuite_Postamble'"/>
+            
        </sequence>
-
+      
   </function>
 
 </stax>
