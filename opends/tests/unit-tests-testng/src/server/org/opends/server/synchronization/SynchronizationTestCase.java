@@ -394,4 +394,52 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     return found;
   }
 
+  /**
+   * Retrieves an entry from the local Directory Server.
+   * @throws Exception When the entry cannot be locked.
+   */
+  protected Entry getEntry(DN dn, int timeout, boolean exist) throws Exception
+  {
+    int count = timeout/200;
+    if (count<1)
+      count=1;
+    Thread.sleep(50);
+    boolean found = DirectoryServer.entryExists(dn);
+    while ((count> 0) && (found != exist))
+    {
+      Thread.sleep(200);
+  
+      found = DirectoryServer.entryExists(dn);
+      count--;
+    }
+  
+    Lock lock = null;
+    for (int i=0; i < 3; i++)
+    {
+      lock = LockManager.lockRead(dn);
+      if (lock != null)
+      {
+        break;
+      }
+    }
+  
+    if (lock == null)
+    {
+      throw new Exception("could not lock entry " + dn);
+    }
+  
+    try
+    {
+      Entry entry = DirectoryServer.getEntry(dn);
+      if (entry == null)
+        return null;
+      else
+        return entry.duplicate();
+    }
+    finally
+    {
+      LockManager.unlock(dn, lock);
+    }
+  }
+
 }

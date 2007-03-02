@@ -158,6 +158,8 @@ public class SynchronizationDomain extends DirectoryThread
 
   private boolean solveConflictFlag = true;
 
+  private boolean disabled = false;
+
   static final String CHANGELOG_SERVER_ATTR = "ds-cfg-changelog-server";
   static final String BASE_DN_ATTR = "ds-cfg-synchronization-dn";
   static final String SERVER_ID_ATTR = "ds-cfg-directory-server-id";
@@ -1093,18 +1095,10 @@ public class SynchronizationDomain extends DirectoryThread
   @Override
   public void run()
   {
-    /* synchroThreads
-     * create the threads that will wait for incoming changes
-     * TODO : should use a pool of threads shared between all the servers
-     * TODO : need to make number of thread configurable
-     * TODO : need to handle operation dependencies
+    /*
+     * create the threads that will wait for incoming changes.
      */
-    for (int i=0; i<listenerThreadNumber; i++)
-    {
-      ListenerThread myThread = new ListenerThread(this);
-      myThread.start();
-      synchroThreads.add(myThread);
-    }
+    createListeners();
 
     while (shutdown  == false)
     {
@@ -1113,13 +1107,32 @@ public class SynchronizationDomain extends DirectoryThread
         synchronized (this)
         {
           this.wait(1000);
-          // save the RUV
-          state.save();
+          if (!disabled )
+          {
+            // save the RUV
+            state.save();
+          }
         }
       } catch (InterruptedException e)
       { }
     }
     state.save();
+  }
+
+  /**
+   * create the threads that will wait for incoming changes.
+   * TODO : should use a pool of threads shared between all the servers
+   * TODO : need to make number of thread configurable
+   */
+  private void createListeners()
+  {
+    synchroThreads.clear();
+    for (int i=0; i<listenerThreadNumber; i++)
+    {
+      ListenerThread myThread = new ListenerThread(this);
+      myThread.start();
+      synchroThreads.add(myThread);
+    }
   }
 
   /**
@@ -1853,5 +1866,71 @@ public class SynchronizationDomain extends DirectoryThread
   public boolean solveConflict()
   {
     return solveConflictFlag;
+  }
+
+  /**
+   * Disable the Synchronization on this domain.
+   * The session to the Synchronization server will be stopped.
+   * The domain will not be destroyed but call to the pre-operation
+   * methods will result in failure.
+   * The listener threads will be destroyed.
+   * The monitor informations will still be accessible.
+   */
+  public void disable()
+  {
+    state.save();
+    state.clear();
+    disabled = true;
+    //  stop the listener threads
+    for (ListenerThread thread : synchroThreads)
+    {
+      thread.shutdown();
+    }
+    broker.stop(); // this will cut the session and wake-up the listeners
+  }
+
+  /**
+   * Enable back the domain after a previous disable.
+   * The domain will connect back to a Synchronization Server and
+   * will recreate threads to listen for messages from the Sycnhronization
+   * server.
+   * The ServerState will also be read again from the local database.
+   */
+  public void enable()
+  {
+    state.clear();
+    state.loadState();
+    disabled = false;
+
+    try
+    {
+      broker.start(changelogServers);
+    } catch (Exception e)
+    {
+      /* TODO should mark that changelog service is
+       * not available, log an error and retry upon timeout
+       * should we stop the modifications ?
+       */
+      e.printStackTrace();
+      return;
+    }
+    createListeners();
+  }
+
+  /**
+   * Do whatever is needed when a backup is started.
+   * We need to make sure that the serverState is correclty save.
+   */
+  public void backupStart()
+  {
+    state.save();
+  }
+
+  /**
+   * Do whatever is needed when a backup is finished.
+   */
+  public void backupEnd()
+  {
+    // Nothing is needed at the moment
   }
 }

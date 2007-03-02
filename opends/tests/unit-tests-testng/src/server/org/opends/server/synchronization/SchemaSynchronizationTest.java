@@ -77,10 +77,6 @@ public class SchemaSynchronizationTest extends SynchronizationTestCase
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
 
-    // Disable schema check
-    schemaCheck = DirectoryServer.checkSchema();
-    DirectoryServer.setCheckSchema(false);
-
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();
 
