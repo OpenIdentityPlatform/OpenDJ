@@ -677,6 +677,8 @@ public abstract class Installer
     argList.add(getConfigFilePath());
     argList.add("-p");
     argList.add(String.valueOf(getUserData().getServerPort()));
+    argList.add("-j");
+    argList.add(String.valueOf(getUserData().getServerJMXPort()));
 
     argList.add("-D");
     argList.add(getUserData().getDirectoryManagerDn());

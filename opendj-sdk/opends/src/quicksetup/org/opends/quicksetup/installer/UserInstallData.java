@@ -40,6 +40,8 @@ public class UserInstallData
 
   private int serverPort;
 
+  private int serverJMXPort;
+
   private String directoryManagerDn;
 
   private String directoryManagerPwd;
@@ -82,6 +84,24 @@ public class UserInstallData
   public int getServerPort()
   {
     return serverPort;
+  }
+
+  /**
+   * Sets the server JMX port.
+   * @param serverJMXPort the new server JMX port.
+   */
+  public void setServerJMXPort(int serverJMXPort)
+  {
+    this.serverJMXPort = serverJMXPort;
+  }
+
+  /**
+   * Returns the server JMX port.
+   * @return the server JMX port.
+   */
+  public int getServerJMXPort()
+  {
+    return serverJMXPort;
   }
 
   /**

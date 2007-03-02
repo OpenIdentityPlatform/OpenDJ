@@ -179,6 +179,7 @@ public class InstallDS
     BooleanArgument   skipPortCheck;
     FileBasedArgument rootPWFile;
     IntegerArgument   ldapPort;
+    IntegerArgument   jmxPort;
     IntegerArgument   sampleData;
     StringArgument    baseDN;
     StringArgument    configClass;
@@ -249,6 +250,13 @@ public class InstallDS
                                      65535,
                                      MSGID_INSTALLDS_DESCRIPTION_LDAPPORT);
       argParser.addArgument(ldapPort);
+
+      jmxPort = new IntegerArgument("jmxport", 'j', "jmxPort", false, false,
+                                    true, "{port}",
+                                    SetupUtils.getDefaultJMXPort(), null, true,
+                                    1, true, 65535,
+                                    MSGID_INSTALLDS_DESCRIPTION_JMXPORT);
+      argParser.addArgument(jmxPort);
 
       skipPortCheck = new BooleanArgument("skipportcheck", 'S', "skipPortCheck",
                                           MSGID_INSTALLDS_DESCRIPTION_SKIPPORT);
@@ -489,6 +497,82 @@ public class InstallDS
       }
     }
 
+//  Determine the JMX port number.
+    int jmxPortNumber;
+    if (silentInstall.isPresent() || jmxPort.isPresent())
+    {
+      try
+      {
+        jmxPortNumber = jmxPort.getIntValue();
+
+        if (! skipPortCheck.isPresent())
+        {
+          // Check if the port can be used.
+          if (!SetupUtils.canUseAsPort(jmxPortNumber))
+          {
+            int msgID;
+            String message;
+            if (SetupUtils.isPriviledgedPort(jmxPortNumber))
+            {
+              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
+              message = getMessage(msgID, jmxPortNumber);
+              System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            }
+            else
+            {
+              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PORT;
+              message = getMessage(msgID, jmxPortNumber);
+              System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            }
+            return 1;
+          }
+        }
+      }
+      catch (ArgumentException ae)
+      {
+        System.err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
+        return 1;
+      }
+    }
+    else
+    {
+      while (true)
+      {
+        int    msgID   = MSGID_INSTALLDS_PROMPT_JMXPORT;
+        String message = getMessage(msgID);
+        jmxPortNumber = promptForInteger(message,
+            SetupUtils.getDefaultJMXPort(), 1, 65535);
+
+        if (skipPortCheck.isPresent())
+        {
+            break;
+        }
+        else
+        {
+          // Check if the port can be used.
+          if (SetupUtils.canUseAsPort(jmxPortNumber))
+          {
+              break;
+          }
+          else
+          {
+            if (SetupUtils.isPriviledgedPort(jmxPortNumber))
+            {
+              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT;
+              message = getMessage(msgID, jmxPortNumber);
+              System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            }
+            else
+            {
+              msgID   = MSGID_INSTALLDS_CANNOT_BIND_TO_PORT;
+              message = getMessage(msgID, jmxPortNumber);
+              System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            }
+          }
+        }
+      }
+    }
+
 
     // Determine the initial root user DN.
     LinkedList<DN> rootDNs;
@@ -716,6 +800,8 @@ public class InstallDS
     argList.add(configFileName);
     argList.add("-p");
     argList.add(String.valueOf(ldapPortNumber));
+    argList.add("-j");
+    argList.add(String.valueOf(jmxPortNumber));
 
     for (DN dn : baseDNs)
     {

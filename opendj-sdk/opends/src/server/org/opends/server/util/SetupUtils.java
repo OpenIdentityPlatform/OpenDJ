@@ -301,5 +301,14 @@ public class SetupUtils
   {
     return (port <= 1024) && !isWindows();
   }
+
+  /**
+   * Returns the default value for the JMX Port.
+   * @return the default value for the JMX Port.
+   */
+  public static int getDefaultJMXPort()
+  {
+    return 1689;
+  }
 }
 
