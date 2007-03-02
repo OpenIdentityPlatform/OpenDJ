@@ -103,6 +103,20 @@ public class BackUpDB
    */
   public static int mainBackUpDB(String[] args)
   {
+    return mainBackUpDB(args, true);
+  }
+
+  /**
+   * Processes the command-line arguments and invokes the backup process.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param  initializeServer  Indicates whether to initialize the server.
+   *
+   * @return The error code.
+   */
+  public static int mainBackUpDB(String[] args, boolean initializeServer)
+  {
     // Define the command-line arguments that may be used with this program.
     BooleanArgument backUpAll         = null;
     BooleanArgument compress          = null;
@@ -339,132 +353,134 @@ public class BackUpDB
     // Perform the initial bootstrap of the Directory Server and process the
     // configuration.
     DirectoryServer directoryServer = DirectoryServer.getInstance();
+    if (initializeServer)
+    {
+      try
+      {
+        directoryServer.bootstrapClient();
+        directoryServer.initializeJMX();
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_BACKUPDB_SERVER_BOOTSTRAP_ERROR;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
-    try
-    {
-      directoryServer.bootstrapClient();
-      directoryServer.initializeJMX();
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_BACKUPDB_SERVER_BOOTSTRAP_ERROR;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-
-    try
-    {
-      directoryServer.initializeConfiguration(configClass.getValue(),
-                                              configFile.getValue());
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_CONFIG;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_CONFIG;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-
-
-
-    // Initialize the Directory Server schema elements.
-    try
-    {
-      directoryServer.initializeSchema();
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_SCHEMA;
-      String message = getMessage(msgID, ce.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_SCHEMA;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_SCHEMA;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
+      try
+      {
+        directoryServer.initializeConfiguration(configClass.getValue(),
+                                                configFile.getValue());
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_CONFIG;
+        String message = getMessage(msgID, ie.getMessage());
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_CONFIG;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
 
-    // Initialize the Directory Server core configuration.
-    try
-    {
-      CoreConfigManager coreConfigManager = new CoreConfigManager();
-      coreConfigManager.initializeCoreConfig();
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CORE_CONFIG;
-      String message = getMessage(msgID, ce.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CORE_CONFIG;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CORE_CONFIG;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
+
+      // Initialize the Directory Server schema elements.
+      try
+      {
+        directoryServer.initializeSchema();
+      }
+      catch (ConfigException ce)
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_SCHEMA;
+        String message = getMessage(msgID, ce.getMessage());
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_SCHEMA;
+        String message = getMessage(msgID, ie.getMessage());
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_SCHEMA;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
 
-    // Initialize the Directory Server crypto manager.
-    try
-    {
-      directoryServer.initializeCryptoManager();
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-      String message = getMessage(msgID, ce.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
+      // Initialize the Directory Server core configuration.
+      try
+      {
+        CoreConfigManager coreConfigManager = new CoreConfigManager();
+        coreConfigManager.initializeCoreConfig();
+      }
+      catch (ConfigException ce)
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CORE_CONFIG;
+        String message = getMessage(msgID, ce.getMessage());
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CORE_CONFIG;
+        String message = getMessage(msgID, ie.getMessage());
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CORE_CONFIG;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
 
-    // FIXME -- Install a custom logger to capture information about the state
-    // of the export.
-    StartupErrorLogger startupLogger = new StartupErrorLogger();
-    startupLogger.initializeErrorLogger(null);
-    addErrorLogger(startupLogger);
+      // Initialize the Directory Server crypto manager.
+      try
+      {
+        directoryServer.initializeCryptoManager();
+      }
+      catch (ConfigException ce)
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        String message = getMessage(msgID, ce.getMessage());
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        String message = getMessage(msgID, ie.getMessage());
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+
+
+      // FIXME -- Install a custom logger to capture information about the state
+      // of the export.
+      StartupErrorLogger startupLogger = new StartupErrorLogger();
+      startupLogger.initializeErrorLogger(null);
+      addErrorLogger(startupLogger);
+    }
 
 
     // Get information about the backends defined in the server, and determine
