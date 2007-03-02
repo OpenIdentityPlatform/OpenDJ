@@ -155,7 +155,7 @@
       <process name="'Search Base Object'">
         <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
         <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
-        <parms>'-h %s -p %s -D "%s" -w %s %s -b "%s" "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN,dsFilter,attributes)</parms>
+        <parms>'-h %s -p %s -D "%s" -w %s %s -b "%s" "%s" %s' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,extraParams,dsBaseDN,dsFilter,attributes)</parms>
         <workdir>'%s' % (OPENDS_BINPATH)</workdir>
         <envs>
           ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
