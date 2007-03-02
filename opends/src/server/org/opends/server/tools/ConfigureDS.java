@@ -42,6 +42,7 @@ import org.opends.server.extensions.SaltedSHA512PasswordStorageScheme;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -99,6 +100,12 @@ public class ConfigureDS
        "cn=LDAP Connection Handler," + DN_CONNHANDLER_BASE;
 
 
+  /**
+   * The DN of the configuration entry defining the JMX connection handler.
+   */
+  private static final String DN_JMX_CONNECTION_HANDLER =
+       "cn=JMX Connection Handler," + DN_CONNHANDLER_BASE;
+
 
   /**
    * The DN of the configuration entry defining the initial root user.
@@ -140,6 +147,7 @@ public class ConfigureDS
     BooleanArgument   showUsage;
     FileBasedArgument rootPasswordFile;
     IntegerArgument   ldapPort;
+    IntegerArgument   jmxPort;
     StringArgument    baseDNString;
     StringArgument    configClass;
     StringArgument    configFile;
@@ -170,6 +178,12 @@ public class ConfigureDS
                                      true, 65535,
                                      MSGID_CONFIGDS_DESCRIPTION_LDAP_PORT);
       argParser.addArgument(ldapPort);
+
+      jmxPort = new IntegerArgument("jmxport", 'j', "jmxPort", false, false,
+          true, "{jmxPort}", SetupUtils.getDefaultJMXPort(), null, true, 1,
+          true, 65535,
+          MSGID_CONFIGDS_DESCRIPTION_JMX_PORT);
+      argParser.addArgument(jmxPort);
 
       baseDNString = new StringArgument("basedn", 'b', "baseDN", false, true,
                                         true, "{baseDN}", "dc=example,dc=com",
@@ -233,7 +247,7 @@ public class ConfigureDS
 
     // Make sure that the user actually tried to configure something.
     if (! (baseDNString.isPresent() || ldapPort.isPresent() ||
-           rootDNString.isPresent()))
+        jmxPort.isPresent() || rootDNString.isPresent()))
     {
       int    msgID   = MSGID_CONFIGDS_NO_CONFIG_CHANGES;
       String message = getMessage(msgID);
@@ -420,6 +434,31 @@ public class ConfigureDS
         catch (Exception e)
         {
           int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_LDAP_PORT;
+          String message = getMessage(msgID, String.valueOf(e));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+
+//    If an JMX port was specified, then update the config accordingly.
+      if (jmxPort.isPresent())
+      {
+        try
+        {
+          DN jmxListenerDN = DN.decode(DN_JMX_CONNECTION_HANDLER);
+          ConfigEntry configEntry =
+               configHandler.getConfigEntry(jmxListenerDN);
+
+          int msgID = MSGID_JMX_CONNHANDLER_DESCRIPTION_LISTEN_PORT;
+          IntegerConfigAttribute portAttr =
+               new IntegerConfigAttribute(ATTR_LISTEN_PORT, getMessage(msgID),
+                                          true, false, true, true, 1, true,
+                                          65535, jmxPort.getIntValue());
+          configEntry.putConfigAttribute(portAttr);
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_JMX_PORT;
           String message = getMessage(msgID, String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;

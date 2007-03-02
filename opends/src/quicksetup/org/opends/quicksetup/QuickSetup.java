@@ -64,6 +64,7 @@ import org.opends.quicksetup.uninstaller.UserUninstallDataException;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.SetupUtils;
 
 /**
  * This class is responsible for doing the following:
@@ -873,6 +874,12 @@ UninstallProgressUpdateListener
       displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM, false);
     }
 
+    int defaultJMXPort = getDefaultJMXPort();
+    if (defaultJMXPort != -1)
+    {
+      getUserInstallData().setServerJMXPort(defaultJMXPort);
+    }
+
     if (errorMsgs.size() > 0)
     {
       throw new UserInstallDataException(Step.SERVER_SETTINGS,
@@ -1168,6 +1175,7 @@ UninstallProgressUpdateListener
     {
       defaultUserData.setServerPort(defaultPort);
     }
+
     defaultUserData.setDirectoryManagerDn("cn=Directory Manager");
 
     defaultUserData.setDataOptions(defaultDataOptions);
@@ -1469,6 +1477,27 @@ UninstallProgressUpdateListener
     }
     return defaultPort;
   }
+
+  /**
+   * Provides the port that will be used by default for JMX.
+   *
+   * @return the port X689 if it is available and we can use and -1 if not.
+   */
+  private int getDefaultJMXPort()
+  {
+    int defaultJMXPort = -1;
+
+    for (int i=0;i<65000 && (defaultJMXPort == -1);i+=1000)
+    {
+      int port = i + SetupUtils.getDefaultJMXPort();
+      if (Utils.canUseAsPort(port))
+      {
+        defaultJMXPort = port;
+      }
+    }
+    return defaultJMXPort;
+  }
+
 
   /**
    * Returns the number of free disk space in bytes required to install Open DS

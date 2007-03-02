@@ -7664,7 +7664,34 @@ public class ToolMessages
   public static final int MSGID_DESCRIPTION_CERT_NICKNAME =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 805;
 
+  /**
+   * The message ID for the message that will be used as the description of the
+   * jmxPort argument.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIGDS_DESCRIPTION_JMX_PORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 806;
 
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to update the JMX port.  This takes a single argument, which is
+   * a message explaining the problem that occurred.
+   */
+  public static final int MSGID_CONFIGDS_CANNOT_UPDATE_JMX_PORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 807;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * jmxPort argument.  This does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_JMXPORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 808;
+
+  /**
+   * The message ID for the message that will be used as the prompt to determine
+   * the JMX port number to use.  It does not take any arguments.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_JMXPORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 809;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -9125,6 +9152,9 @@ public class ToolMessages
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_LDAP_PORT,
                     "Specifies the port on which the Directory Server should " +
                     "listen for LDAP communication.");
+    registerMessage(MSGID_CONFIGDS_DESCRIPTION_JMX_PORT,
+                    "Specifies the port on which the Directory Server should " +
+                    "listen for JMX communication.");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_BASE_DN,
                     "Specifies the base DN for user information in the " +
                     "Directory Server.  Multiple base DNs may be provided " +
@@ -9178,6 +9208,9 @@ public class ToolMessages
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_LDAP_PORT,
                     "An error occurred while attempting to update the port " +
                     "on which to listen for LDAP communication:  %s.");
+    registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_JMX_PORT,
+                    "An error occurred while attempting to update the port " +
+                    "on which to listen for JMX communication:  %s.");
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_ROOT_USER,
                     "An error occurred while attempting to update the entry " +
                     "for the initial Directory Server root user:  %s.");
@@ -9224,6 +9257,9 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_LDAPPORT,
                     "Specifies the port on which the Directory Server should " +
                     "listen for LDAP communication.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_JMXPORT,
+                    "Specifies the port on which the Directory Server should " +
+                    "listen for JMX communication.");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_SKIPPORT,
                     "Skip the check to determine whether the specified LDAP " +
                     "port is usable.");
@@ -9275,6 +9311,9 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_PROMPT_LDAPPORT,
                     "On which port would you like the Directory Server to " +
                     "accept connections from LDAP clients?");
+    registerMessage(MSGID_INSTALLDS_PROMPT_JMXPORT,
+                    "On which port would you like the Directory Server to " +
+                    "accept connections from JMX clients?");
     registerMessage(MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT,
                     "ERROR:  Unable to bind to port %d.  This port may " +
                     "already be in use, or you may not have permission to " +
