@@ -1,0 +1,1323 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying * information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="aci_targetattr"/>
+
+  <function name="aci_targetattr">
+      <!---
+            Place suite-specific test information here.
+            #@TestSuiteName             ACI Targetattr Tests
+            #@TestSuitePurpose          Test the basic ACI Targetattr Support. (allow(read))
+            #@TestSuiteGroup            Basic ACI Targetattr Tests allow(read)
+            #@TestScript                aci_targetattr.xml
+      -->
+      <sequence>
+
+      <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                ACI Targetattr Tests
+            #@TestName                  Preamble
+            #@TestIssue                 435
+            #@TestPurpose               Test default aci settings
+            #@TestPreamble              none
+            #@TestStep                  Client searches entry for an attribute in a branch dn.
+            #@TestStep                  Client searches entry for an attribute in another branch dn.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        and no entries are returned 
+                                        for all operations.
+        -->
+        <testcase name="'ACI: Targetattr: Preamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'ACI: Targetattr: Preamble - existing branch, user searching entry that will be targeted in future tests'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber'}
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Preamble - existing branch, user searching entry that will be non-targeted in future tests'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber'}
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+
+      <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                ACI Targetattr Tests
+            #@TestName                  Targetattr equals one attribute
+            #@TestIssue                 435
+            #@TestPurpose               Test with the targetattr set equal to a specific attribute
+            #@TestPreamble              Admin adds an aci to one branch with the targetattr equal to a specific attribute.
+            #@TestStep                  Client searches entry with the targeted dn for the targetattr.
+            #@TestStep                  Client searches entry that does not have the targeted dn for the targetattr.
+            #@TestStep                  Remove aci.
+            #@TestStep                  Client searches entry with the previously targeted dn for the targetattr.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        for all ldap operations. 
+                                        Entry is returned only for step 1 
+                                        and only with the specified attribute.
+        -->
+      <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+      <!-- cross reference to DS6 docs -->
+        <testcase name="'ACI: Targetattr: Targetattr Equals One Attribute'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'ACI: Targetattr: Targetattr Equals One Attribute, preamble adding aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci1.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Equals One Attribute, user searching targeted entry and targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'cn:' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'telephonenumber:' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Equals One Attribute, user searching non-targeted entry but with targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Equals One Attribute, admin deleting aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Equals One Attribute, user searching previously targeted entry and targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+
+     <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                ACI Targetattr Tests
+            #@TestName                  Targetattr not equals one attribute
+            #@TestIssue                 435
+            #@TestPurpose               Test with the targetattr set to not equal (!=) a specific attribute
+            #@TestPreamble              Admin adds an aci to one branch with the targetattr not equal to a specific attribute.
+            #@TestStep                  Client searches entry with the targeted dn for the targetattr.
+            #@TestStep                  Client searches entry that does not have the targeted dn for the targetattr.
+            #@TestStep                  Remove aci.
+            #@TestStep                  Client searches entry with the previously targeted dn for the targetattr.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        for all ldap operations. 
+                                        Entry is returned only for step 1 
+                                        with all the attributes except the specified attribute.
+        -->
+      <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+      <!-- cross reference to DS6 docs -->
+        <testcase name="'ACI: Targetattr: Targetattr Not Equals One Attribute'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'ACI: Targetattr: Targetattr Not Equals One Attribute, preamble adding aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci2.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Not Equals One Attribute, user searching targeted entry and targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'cn:' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'telephonenumber:' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Not Equals One Attribute, user searching non-targeted entry but with targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Not Equals One Attribute, admin deleting aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Not Equals One Attribute, user searching previously targeted entry and targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+      
+     <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                ACI Targetattr Tests
+            #@TestName                  Targetattr equals three attributes
+            #@TestIssue                 435
+            #@TestPurpose               Test with the targetattr set equal to three specific attributes
+            #@TestPreamble              Admin adds an aci with the targetattr equal to three specific attributes in one branch.
+            #@TestStep                  Client searches entry with the targeted dn for the targetattrs.
+            #@TestStep                  Client searches entry that does not have the targeted dn for the targetattrs.
+            #@TestStep                  Remove aci.
+            #@TestStep                  Client searches entry with the previously targeted dn for the targetattr.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        for all ldap operations. 
+                                        Entry is returned only for step 1 
+                                        and only with the three specified attributes.
+        -->
+      <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+      <!-- cross reference to DS6 docs -->
+        <testcase name="'ACI: Targetattr: Targetattr Equals Three Attributes'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'ACI: Targetattr: Targetattr Equals Three Attributes, preamble adding aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci3.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Equals Three Attributes, user searching targeted entry and targeted attributes'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'cn:' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'sn:' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'uid:' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'telephonenumber:' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Equals Three Attributes, user searching non-targeted entry but with targeted attributes'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Equals Three Attributes, admin deleting aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Equals Three Attributes, user searching previously targeted entry and targeted attributes'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+      
+     <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                ACI Targetattr Tests
+            #@TestName                  Targetattr not equals three attributes
+            #@TestIssue                 435
+            #@TestPurpose               Test with the targetattr set to not equal (!=) to three specific attributes
+            #@TestPreamble              Admin adds an aci with the targetattr not equal (!=) to three specific attributes in one branch.
+            #@TestStep                  Client searches entry with the targeted dn for the targetattr.
+            #@TestStep                  Client searches entry that does not have the targeted dn for the targetattr.
+            #@TestStep                  Remove aci.
+            #@TestStep                  Client searches entry with the previously targeted dn for the targetattr.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        for all ldap operations. 
+                                        Entry is returned only for step 1 
+                                        with all the attributes except the specified attributes.
+        -->
+      <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+      <!-- cross reference to DS6 docs -->
+        <testcase name="'ACI: Targetattr: Targetattr Not Equals Three Attributes'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'ACI: Targetattr: Targetattr Not Equals Three Attributes, preamble adding aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci4.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Not Equals Three Attributes, user searching targeted entry and targeted attributes'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'cn:' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'sn:' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'uid:' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'telephonenumber:' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Not Equals Three Attributes, user searching non-targeted entry but with targeted attributes'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Not Equals Three Attributes, admin deleting aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr Not Equals Three Attributes, user searching previously targeted entry and targeted attributes'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+      
+      
+     <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                ACI Targetattr Tests
+            #@TestName                  Attribute mispelled or non-existent in the entry - Use Not Equals
+            #@TestIssue                 435
+            #@TestPurpose               Test if an aci is allowed where the targetattr has an attribute not in the entry
+            #@TestPreamble              none
+            #@TestStep                  Admin adds an aci to an existing entry
+                                        that has specifies a non-existent attribute for the targetattr.
+            #@TestStep                  Client searches entry with the targeted dn for the targetattr.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for all ldap operations
+                                        and no attributes are returned.
+        -->
+        <testcase name="'ACI: Targetattr: Bad Targetattr'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'ACI: Targetattr: Bad Targetattr, preamble adding aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci5.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Bad Targetattr, user searching targeted entry and targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'cn:' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Bad Targetattr, user searching non-targeted entry but with targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Bad Targetattr, admin deleting aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Bad Targetattr, user searching previously targeted entry and targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+
+     <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                ACI Targetattr Tests
+            #@TestName                  Multiple targetattrs
+            #@TestIssue                 435
+            #@TestPurpose               Test if an aci is allowed to contain multiple targetattrs
+            #@TestPreamble              none
+            #@TestStep                  Admin adds an aci to an existing entry
+                                        that has multiple targetattrs.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 50
+        -->
+      <!-- cross reference to syntax.ksh Test Case 5 -->
+        <testcase name="'ACI: Targetattr: Multiple Targets'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'ACI: Targetattr: Multiple Targetattrs - add aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci6.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 50">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Multiple Targets - check aci'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' ,
+                'attributes'       : 'aci' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'aci:' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>          
+          </sequence>
+        </testcase>
+      
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                ACI Targetattr Tests
+            #@TestName                  targetattr mispelled
+            #@TestIssue                 435
+            #@TestPurpose               Test if an aci is allowed that has the keyword targetattr mispelled
+            #@TestPreamble              none
+            #@TestStep                  Admin adds an aci to an existing entry
+                                        that has multiple targetattrs.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 50
+        -->
+        <testcase name="'ACI: Targetattr: Keyword Targetattr Mispelled'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'ACI: Targetattr: Keyword Targetattr Mispelled - add aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci7.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 50">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Keyword Targetattr Mispelled - check aci'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' ,
+                'attributes'       : 'aci' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'aci:' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>          
+          </sequence>
+        </testcase>
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                ACI Targetattr Tests
+            #@TestName                  targetattr with missing quotes
+            #@TestIssue                 435
+            #@TestPurpose               Test if an aci is allowed that has the keyword targetattr with missing quotes
+            #@TestPreamble              none
+            #@TestStep                  Admin adds an aci to an existing entry
+                                        that has a targetattr missing quotes.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 50
+        -->
+        <testcase name="'ACI: Targetattr: Targetattr With Missing Quotes'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'ACI: Targetattr: Targetattr With Missing Quotes - add aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci8.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 50">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr With Missing Quotes - check aci'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' ,
+                'attributes'       : 'aci' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'aci:' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>          
+          </sequence>
+        </testcase>
+
+      <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                ACI Targetattr Tests
+            #@TestName                  Targetattr With Spaces
+            #@TestIssue                 435
+            #@TestPurpose               Test with the targetattr that has spaces
+            #@TestPreamble              Admin adds an aci to one branch with a targetattr with spaces.
+            #@TestStep                  Client searches entry with the targeted dn for the targetattr.
+            #@TestStep                  Client searches entry that does not have the targeted dn for the targetattr.
+            #@TestStep                  Remove aci.
+            #@TestStep                  Client searches entry with the previously targeted dn for the targetattr.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        for all ldap operations. 
+                                        Entry is returned only for step 1 
+                                        and only with the specified attribute.
+        -->
+        <testcase name="'ACI: Targetattr: Targetattr With Spaces'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'ACI: Targetattr: Targetattr With Spaces, preamble adding aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci9.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr With Spaces, user searching targeted entry and targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'cn:' }
+            </call>
+            
+            <if expr="returnCode != '1'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'telephonenumber:' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr With Spaces, user searching non-targeted entry but with targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr With Spaces, admin deleting aci'
+            </message>
+
+            <call function="'modifyEntry'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % STAGED_DATA_DIR }
+            </call>
+
+            <if expr="RC != 0">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Targetattr With Spaces, user searching previously targeted entry and targeted attribute'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber' }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+      <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                ACI Targetattr Tests
+            #@TestName                  Postamble
+            #@TestIssue                 435
+            #@TestPurpose               Test default aci settings
+            #@TestPreamble              none
+            #@TestStep                  Client searches entry for an attribute in a branch dn.
+            #@TestStep                  Client searches entry for an attribute in another branch dn.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+                                        and no entries are returned 
+                                        for all operations.
+        -->
+        <testcase name="'ACI: Targetattr: Postamble'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'ACI: Targetattr: Postamble - existing branch, user searching entry that will be targeted in future tests'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber'}
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+            </call>
+            
+            <if expr="returnCode != '0'">
+                <tcstatus result="'fail'"/>
+            </if>
+
+            <message>
+               'ACI: Targetattr: Postamble - existing branch, user searching entry that will be non-targeted in future tests'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'ACIRules' ,
+                'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'cn sn uid telephonenumber'}
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+
+      </sequence>
+
+  </function>
+
+</stax>
