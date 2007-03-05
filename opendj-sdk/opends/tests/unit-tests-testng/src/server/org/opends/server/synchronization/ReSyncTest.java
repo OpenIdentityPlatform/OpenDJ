@@ -227,7 +227,9 @@ public class ReSyncTest extends SynchronizationTestCase
                                         // sends a notification
 
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = buildRoot + File.separator + "ReSynchTest";
+    String path = buildRoot + File.separator + "build" +
+                  File.separator + "unit-tests" + File.separator +
+                  "package"+ File.separator + "ReSynchTest";
     
     task("dn: ds-task-id=" + UUID.randomUUID()
         + ",cn=Scheduled Tasks,cn=Tasks\n"
