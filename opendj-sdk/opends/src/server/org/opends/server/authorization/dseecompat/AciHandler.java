@@ -40,7 +40,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -166,14 +165,6 @@ public class AciHandler extends AccessControlHandler
             aciType = DirectoryServer.getDefaultAttributeType("aci");
     }
 
-    /*
-     * TODO
-     * The internal search performed by the searchAcis method will require
-     * a presence index on the aci attribute for any database of any significant
-     * size.  We should probably consider making this index present by default,
-     * because if they aren't using the DSEE-compatible implementation then
-     * they probably won't have any instances of the aci attribute.
-     */
     /**
      * Checks to see if a LDAP modification is allowed access.
      *
@@ -184,7 +175,7 @@ public class AciHandler extends AccessControlHandler
      * @return  True if access is allowed.
      */
     private boolean aciCheckMods(AciLDAPOperationContainer container,
-                                 Operation operation,
+                                 ModifyOperation operation,
                                  boolean skipAccessCheck) {
         Entry resourceEntry=container.getResourceEntry();
         DN dn=resourceEntry.getDN();
@@ -193,50 +184,68 @@ public class AciHandler extends AccessControlHandler
             Attribute modAttr=m.getAttribute();
             AttributeType modType=modAttr.getAttributeType();
             switch(m.getModificationType()) {
-            /*
-             * TODO Increment modification type needs to be handled.
-             */
-                case DELETE:
-                case REPLACE:
-                {
-                    /*
-                        Check if we have rights to delete all values of
-                        an attribute type in the resource entry.
-                    */
-                    if(resourceEntry.hasAttribute(modType)) {
-                        container.setCurrentAttributeType(modType);
-                        List<Attribute> attrList =
-                            resourceEntry.getAttribute(modType,null);
-                        for (Attribute a : attrList) {
-                            for (AttributeValue v : a.getValues()) {
-                                container.setCurrentAttributeValue(v);
-                                container.setRights(ACI_WRITE_DELETE);
-                                if(!skipAccessCheck &&
-                                   !accessAllowed(container))
-                                    return false;
-                            }
-                        }
+              case DELETE:
+              case REPLACE:
+              case INCREMENT:
+              {
+                /*
+                 * Check if we have rights to delete all values of
+                 * an attribute type in the resource entry.
+                 */
+                if(resourceEntry.hasAttribute(modType)) {
+                  container.setCurrentAttributeType(modType);
+                  List<Attribute> attrList =
+                       resourceEntry.getAttribute(modType,modAttr.getOptions());
+                  for (Attribute a : attrList) {
+                    for (AttributeValue v : a.getValues()) {
+                      container.setCurrentAttributeValue(v);
+                      container.setRights(ACI_WRITE_DELETE);
+                      if(!skipAccessCheck &&
+                           !accessAllowed(container))
+                        return false;
                     }
+                  }
                 }
+              }
             }
             if(modAttr.hasValue()) {
                boolean checkPrivileges=true;
                for(AttributeValue v : modAttr.getValues()) {
                    container.setCurrentAttributeType(modType);
-                   container.setCurrentAttributeValue(v);
-                   if((m.getModificationType() == ModificationType.ADD) ||
-                      (m.getModificationType() == ModificationType.REPLACE)) {
+                   switch (m.getModificationType())
+                   {
+                     case ADD:
+                     case REPLACE:
+                       container.setCurrentAttributeValue(v);
                        container.setRights(ACI_WRITE_ADD);
                        if(!skipAccessCheck && !accessAllowed(container))
                            return false;
-                   } else if(m.getModificationType()
-                           == ModificationType.DELETE) {
+                       break;
+                     case DELETE:
+                       container.setCurrentAttributeValue(v);
                        container.setRights(ACI_WRITE_DELETE);
                        if(!skipAccessCheck && !accessAllowed(container))
                            return false;
-                   } else {
-                     if(!skipAccessCheck)
-                       return false;
+                       break;
+                     case INCREMENT:
+                       Entry modifiedEntry = operation.getModifiedEntry();
+                       List<Attribute> modifiedAttrs =
+                            modifiedEntry.getAttribute(modType,
+                                                       modAttr.getOptions());
+                       if (modifiedAttrs != null)
+                       {
+                         for (Attribute attr : modifiedAttrs)
+                         {
+                           for (AttributeValue val : attr.getValues())
+                           {
+                             container.setCurrentAttributeValue(val);
+                             container.setRights(ACI_WRITE_ADD);
+                             if(!skipAccessCheck && !accessAllowed(container))
+                                 return false;
+                           }
+                         }
+                       }
+                       break;
                    }
                    /*
                     Check if the modification type has an "aci" attribute type.
