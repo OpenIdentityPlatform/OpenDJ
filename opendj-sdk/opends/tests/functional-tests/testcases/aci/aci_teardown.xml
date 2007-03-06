@@ -34,7 +34,7 @@
     <sequence>
   
       <script>
-        CurrentTestPath['suite']='aci-setup'
+        CurrentTestPath['suite']='aci-teardown'
       </script>
       
       <call function="'testSuite_Preamble'"/>
