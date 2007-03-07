@@ -263,7 +263,9 @@
       dir="${staf.install.dir}"
       executable="${java.home}/bin/java"
       spawn="true">
-      <env key="LD_LIBRARY_PATH" value="${staf.lib.dir}"/>
+      <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
+      <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
       <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
       <env key="STAFCODEPAGE" value="LATIN_1"/>
       <arg value="-classpath"/>
