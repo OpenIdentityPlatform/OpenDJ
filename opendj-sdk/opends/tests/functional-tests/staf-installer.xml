@@ -53,14 +53,13 @@
     <condition property="platform.supported">
       <available file="staf-installer/${os.myname}.properties"/>
     </condition>
-  
+    
     <!-- Load architecture specific properties
         loading this one first allows to override common properties with platform
         specific properties
     -->
     <property file="staf-installer/${os.myname}-${os.arch}-${sun.arch.data.model}.properties" />
     <property file="staf-installer/${os.myname}-${os.arch}.properties"         />
-    
     <!-- Load properties common to the OS regardless of architecture          -->
     <property file="staf-installer/${os.myname}.properties"                    />
 
@@ -91,10 +90,10 @@
  main targets=
    usage      : print this message
    status     : report if the staf is installed and running
-   bootstrap  : install and start the staf
+   bootstrap  : install and start the framework
    run-tests  : run the functional tests (requires staf installed and started)
    run-daily  : run the functional tests on today's build
-   wipeout    : stop and uninstall the staf
+   wipeout    : stop and uninstall the framework
  subtargets=
    download   : download the archives necessary to install the staf
    install    : install the staf
@@ -216,6 +215,7 @@
   </target>
 	
   <target name="install-staf-tar" if="staf.archive.is.tar">
+    <delete dir="${bits.download.dir}/staf"/>
     <gunzip
       src="${bits.download.dir}/${bits.staf.archive}"
       dest="${bits.download.dir}"/>
@@ -224,6 +224,7 @@
         <include name="*.tar"/>
       </fileset>
     </untar>
+    <chmod file="${bits.download.dir}/staf/STAFInst" perm="755"/>
     <exec executable="${bits.download.dir}/staf/STAFInst">
       <arg value="-source"/>
       <arg value="${bits.download.dir}/staf"/>
@@ -284,9 +285,33 @@
                value="${product.package.dir}/${product.name}.zip"/>
   </target>
 
-  <target name="run-tests-prepare" 
+  <target name="run-tests-check">
+    <condition property="opends.port.ldap.taken">
+      <socket port="${opends.port.ldap}" server="${host.name}"/>
+    </condition>
+    <condition property="opends.port.ldaps.taken">
+      <socket port="${opends.port.ldaps}" server="${host.name}"/>
+    </condition>
+    <condition property="opends.port.jmx.taken">
+      <socket port="${opends.port.jmx}" server="${host.name}"/>
+    </condition>
+    <condition property="run-tests.proceed">
+      <and>
+        <not>
+          <or>
+            <isset property="opends.port.ldap.taken"/>
+            <isset property="opends.port.ldaps.taken"/>
+            <isset property="opends.port.jmx.taken"/>
+          </or>
+        </not>
+        <isset property="staf.running"/>
+      </and>
+    </condition>
+  </target>
+
+  <target name="run-tests-prepare"
           depends="status-do,get-pkg" 
-          if="staf.running">
+          if="run-tests.proceed">
     <!-- python config - top -->
       <!-- 1. get a timestamp for step 3 -->
       <tstamp>
@@ -325,9 +350,26 @@
     <!-- python config - bottom -->
   </target>
   
+  <target name="run-tests-cant-ldap" if="opends.port.ldap.taken">
+    <echo>Port [${opends.port.ldap}] already used</echo>
+  </target>
+  <target name="run-tests-cant-ldaps" if="opends.port.ldaps.taken">
+    <echo>Port [${opends.port.ldaps}] already used</echo>
+  </target>
+  <target name="run-tests-cant-jmx" if="opends.port.jmx.taken">
+    <echo>Port [${opends.port.jmx}] already used</echo>
+  </target>
+  <target name="run-tests-cant-staf" unless="staf.running">
+    <echo>Staf is NOT running. Use the start target and try again</echo>
+  </target>
+  <target name="run-tests-cant" 
+          depends="run-tests-cant-ldap,run-tests-cant-ldaps,run-tests-cant-jmx,run-tests-cant-staf"
+          unless="run-tests.proceed">
+    <echo>Could not run the tests for the afore mentioned reasons</echo>
+  </target>
   <target name="run-tests"
-    depends="status-do,run-tests-prepare" 
-    if="staf.running">
+    depends="status-do,run-tests-check,run-tests-cant,run-tests-prepare" 
+    if="run-tests.proceed">
     <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_Functional_Tests SCRIPTFILE ${tests.config} SCRIPTFILE ${tests.python} WAIT CLEARLOGS"/>
     <condition property="tests.replay.script" value="replay.bat" else="replay.sh">
       <os family="windows"/>
@@ -339,6 +381,8 @@
         <expandproperties/>
       </filterchain>
     </copy>
+    <echo>While the tests are running you may tail the job logs at</echo>
+    <echo>${staf.home}/logs/MACHINE/</echo>
     <echo>Running tests. This will take more than a while.</echo>
     <property name="CLASSPATH" value="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
     <exec
@@ -372,6 +416,8 @@
         <include name="r*"/>
       </fileset>
     </copy>
+    <echo>You may access the tests report at</echo>
+    <echo>${tests.run.dir}/${tests.run.time}/report/results.html</echo>
     <mail from="arnaud@sun.com" 
           tolist="arnaud@sun.com" 
           subject="FT - ${daily.date} - ${os.name} - ${os.arch}"
@@ -552,7 +598,7 @@
       <condition property="staf.running">
         <socket port="${staf.port}" server="${host.name}"/>
       </condition>
-      
+
       <condition property="staf.archive.is.jar">
         <contains string="${bits.staf.archive}" substring=".jar"/>
       </condition>
@@ -602,8 +648,8 @@
       <echo>Platform Supported       - ${is.platform.supported}</echo>
       <echo>Java Home                - ${java.home}</echo>
       <echo>Java Version             - ${java.version}</echo>
-      <echo>PATH                     - ${path.current}</echo>
-      <echo>CLASSPATH                - ${e.CLASSPATH}</echo>
+<!--      <echo>PATH                     - ${path.current}</echo>
+      <echo>CLASSPATH                - ${e.CLASSPATH}</echo> -->
       <antcall target="status-staf-installed?"     />
       <antcall target="status-staf-not-installed?" />
     </target>
@@ -648,5 +694,9 @@
       <arg value="testcases/security/startTLS"/>
       <arg value="shared/functions"/>
     </java>
+  </target>
+  
+  <target name="properties">
+    <echoproperties/>
   </target>
 </project>
