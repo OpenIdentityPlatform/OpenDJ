@@ -109,6 +109,11 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
       mods4.add(mod);
     }
 
+    Attribute attr5 = new Attribute("namingcontexts", "dc=example");
+    Modification mod5 = new Modification(ModificationType.REPLACE, attr5);
+    List<Modification> mods5 = new ArrayList<Modification>();
+    mods5.add(mod5);
+
     return new Object[][] {
         { cn1, "dc=test", mods1},
         { cn2, "dc=cn2", mods1},
@@ -119,6 +124,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
         { cn2, "dc=test with several mod", mods2},
         { cn2, "dc=test with several values", mods3},
         { cn2, "dc=test with long mod", mods4},
+        { cn2, "dc=testDsaOperation", mods5},
         };
   }
 

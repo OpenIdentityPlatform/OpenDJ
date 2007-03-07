@@ -40,8 +40,11 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.synchronization.common.ChangeNumber;
 import org.opends.server.synchronization.plugin.Historical;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
+
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -204,6 +207,16 @@ public class ModifyMsg extends UpdateMessage
     for (Modification mod : mods)
     {
       Attribute attr = mod.getAttribute();
+      AttributeType type = attr.getAttributeType();
+      if (type != null )
+      {
+        if (AttributeUsage.DSA_OPERATION.equals(type.getUsage()))
+        {
+          // Attributes with a dsaOperation usage should not be synchronized.
+          // skip them.
+          continue;
+        }
+      }
       if (!attr.getAttributeType().equals(Historical.historicalAttrType))
       {
         LDAPModification ldapmod = new LDAPModification(
