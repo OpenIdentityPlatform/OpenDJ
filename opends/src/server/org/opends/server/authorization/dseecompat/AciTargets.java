@@ -101,12 +101,6 @@ public class AciTargets {
            "\"([^\"]+)\"" + ZERO_OR_MORE_WHITESPACE + CLOSED_PAREN +
            ZERO_OR_MORE_WHITESPACE;
 
-    private static final String targetRegex1 =
-           "\\(" +  Aci.ZERO_OR_MORE_WHITESPACE  +  Aci.WORD_GROUP +
-           Aci.ZERO_OR_MORE_WHITESPACE + "(!?=)" + Aci.ZERO_OR_MORE_WHITESPACE +
-           "\"([^\"]+)\"" + Aci.ZERO_OR_MORE_WHITESPACE + "\\)" +
-           Aci.ZERO_OR_MORE_WHITESPACE;
-
     /**
     * Regular expression used to match one or more target rules. The patern is
     * part of a general ACI verification.
