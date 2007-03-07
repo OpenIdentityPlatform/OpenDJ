@@ -364,10 +364,10 @@ public class AciMessages {
     /**
      * The message ID for the message that will be used if an "aci" attribute
      * type value failed parsing because of an invalid target keyword operator.
-     * This takes one argument, which is the target keyword operator string
-     * parsed from the "aci" attribute type value string.
+     * This takes two arguments, which  are the target keyword operator string
+     * parsed from the "aci" attribute type value string and the keyword string.
      */
-    public static final int MSGID_ACI_SYNTAX_INVALID_TARGET_OPERATOR =
+    public static final int MSGID_ACI_SYNTAX_INVALID_TARGET_NOT_OPERATOR =
         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 35;
 
     /**
@@ -392,11 +392,11 @@ public class AciMessages {
 
     /**
      * The message ID for the message that will be used if an "aci" attribute
-     * type value failed parsing because of an invalid targetscope keyword
-     * operator. This takes one argument, which is the targetscope keyword
+     * type value failed parsing because of an invalid target keyword
+     * operator. This takes one argument, which is the target keyword
      * operator string parsed from the "aci" attribute type value string.
      */
-    public static final int MSGID_ACI_SYNTAX_INVALID_TARGETSCOPE_OPERATOR =
+    public static final int MSGID_ACI_SYNTAX_INVALID_TARGETS_OPERATOR =
         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 38;
 
     /**
@@ -528,6 +528,88 @@ public class AciMessages {
     public static
     final int MSGID_ACI_SYNTAX_INVALID_USERATTR_ROLEDN_INHERITANCE_PATTERN =
         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 51;
+
+   /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse failed because a targattrfilters keyword expression
+     * did not parse because the operation was invalid.  This takes two
+     * arguments, which are the targattrfilters expression parsed from the ACI
+     * and a message further clarifying the error.
+     */
+    public static
+    final int MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_OPERATION =
+        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 52;
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse failed because a targattrfiltesr keyword expression
+     * did not parse.  This takes one argument, which is the targattrfilters
+     * expression parsed from the ACI.
+     */
+    public static
+    final int MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION =
+        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 53;
+
+      /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse failed because the operation tokens targattrfilters
+     * in the expresssion are the same.  This takes one argument, which is
+     * the targattrfilters expression parsed from the ACI.
+     */
+    public static
+    final int MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_OPS_MATCH =
+        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 54;
+
+    /**
+    * The message ID for the message that will be used if an "aci" attribute
+    * type value parse failed because the there are two many targattrfilters
+    * filter list statements in the ACI.  This takes one argument, which is
+    * the targattrfilters expression parsed from the ACI.
+    */
+   public static
+   final int MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_MAX_FILTER_LISTS =
+       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 55;
+
+  /**
+    * The message ID for the message that will be used if an "aci" attribute
+    * type value parse failed because the targattrfilters expression statement
+    * is in the wrong format.  This takes one argument, which is
+    * the targattrfilters expression parsed from the ACI.
+    */
+   public static
+   final int MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LIST_FORMAT =
+       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 56;
+
+    /**
+      * The message ID for the message that will be used if an "aci" attribute
+      * type value parse failed because one or more targattrfilters filter
+      * statements are invalid.  This takes two arguments, which are
+      * the targattrfilters expression parsed from the ACI and an error
+      * message from the createFilterFromString method.
+      */
+     public static
+     final int MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_FILTER =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 57;
+
+     /**
+      * The message ID for the message that will be used if an "aci" attribute
+      * type value parse failed because one or more targattrfilters filter
+      * statements contain invalid attribute type names.  This takes one
+      * argument, which is the targattrfilters expression parsed from the ACI.
+      */
+     public static final
+        int MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_ATTR_FILTER =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 58;
+
+     /**
+      * The message ID for the message that will be used if an "aci" attribute
+      * type name is invalid.  This takes one
+      * argument, which is the attribute type name parsed from the ACI.
+      */
+     public static final
+        int MSGID_ACI_SYNTAX_INVALID_ATTRIBUTE_TYPE_NAME =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 59;
+
     /**
      * Associates a set of generic messages with the message IDs defined in
      * this class.
@@ -559,7 +641,7 @@ public class AciMessages {
                 "The provided Access Control Instruction (ACI) rights " +
                 "keyword values \"%s\" are invalid. The valid rights " +
                 "keyword values are one or more of the following: read, " +
-                "write, add, delete, search, compare or the single value" +
+                "write, add, delete, search, compare or the single value " +
                 "all.");
 
         registerMessage(MSGID_ACI_SYNTAX_BIND_RULE_MISSING_CLOSE_PAREN,
@@ -733,7 +815,7 @@ public class AciMessages {
                 " value is one of the following: target, targetscope, " +
                 "targetfilter, targetattr or targetattrfilters.");
 
-        registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGET_OPERATOR,
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGETS_OPERATOR,
                 "The provided Access Control Instruction (ACI) target " +
                 "keyword operator value  \"%s\" is invalid. A valid target" +
                 "keyword operator value is either '=' or \"!=\".");
@@ -747,10 +829,10 @@ public class AciMessages {
                 "target keyword value \"%s\" was seen multiple times in" +
                 " the ACI \"%s\".");
 
-        registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGETSCOPE_OPERATOR,
-                "The provided Access Control Instruction (ACI) targetscope" +
-                " keyword operator value \"%s\" is invalid. The only valid" +
-                "targetscope operator value is '='.");
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGET_NOT_OPERATOR,
+                "The provided Access Control Instruction (ACI) target" +
+                " operator value \"%s\" is invalid. The only valid" +
+                "target operator value for the \"%s\" keyword is '='.");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGETSCOPE_EXPRESSION,
                 "The provided Access Control Instruction (ACI) targetscope" +
@@ -775,7 +857,7 @@ public class AciMessages {
                 "The provided Access Control Instruction (ACI) " +
                 "targetattr expression value \"%s\" is invalid. A valid " +
                 "targetattr keyword expression value requires one or more " +
-                "attribute type values in the following format: " +
+                "valid attribute type names in the following format: " +
                 "attribute1 [|| attribute1] ... [|| attributen].");
 
         registerMessage(
@@ -823,5 +905,67 @@ public class AciMessages {
                 "userattr expression inheritance pattern value " +
                 "\"%s\" is invalid for the roledn keyword because it starts " +
                         "with the string \"parent[\".");
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_OPERATION,
+                "The provided Access Control Instruction (ACI) " +
+                "targattrfilter expression value " +
+                "%s is invalid because %s.");
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION,
+                "The provided Access Control Instruction (ACI) " +
+                "targattrfilter expression value " +
+                "%s is invalid because it is not in the correct format." +
+                "A valid targattrsfilters expression value must be in " +
+                "the following format: "+
+               "\"add=attr1: F1 && attr2: F2 ... && attrn: Fn" +
+                ",del= attr1: F1 && attr2: F2 ... && attrn: Fn\"");
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_OPS_MATCH,
+                "The provided Access Control Instruction (ACI) " +
+                   "targattrfilter expression value " +
+                   "%s is invalid because the both operation tokens " +
+                   "match in the two filter lists.");
+
+        registerMessage(
+                MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_MAX_FILTER_LISTS,
+                "The provided Access Control Instruction (ACI) " +
+                     "targattrfilters expression value " +
+                     "%s is invalid because there are more than two" +
+                      "filter list statements.");
+
+        registerMessage(
+                MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LIST_FORMAT,
+                "The provided Access Control Instruction (ACI) " +
+                "targattrfilters expression value " +
+                "%s is invalid because the provided filter list string " +
+                "is in the wrong format. A valid targattrfilters filter " +
+                "list must be in the following format: " +
+                "add=attr1: F1 && attr2: F2 ... && attrn: Fn .");
+
+        registerMessage(
+             MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_FILTER,
+             "The provided Access Control Instruction (ACI) " +
+             "targattrfilters expression value " +
+             "%s is invalid because the one or more of the specified" +
+             "filters are invalid for the following reason: " +
+             "%s.");
+
+        registerMessage(
+             MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_ATTR_FILTER,
+             "The provided Access Control Instruction (ACI) " +
+             "targattrfilters expression value " +
+             "%s is invalid because the one or more of the specified" +
+             "filters are invalid because of non-matching attribute" +
+             "type names in the filter.");
+
+        registerMessage(
+             MSGID_ACI_SYNTAX_INVALID_ATTRIBUTE_TYPE_NAME,
+             "The provided Access Control Instruction (ACI) " +
+             "attribute name value " +
+             "%s is invalid. A valid attribute type name must begin " +
+             "with an ASCII letter and must contain only ASCII letters," +
+              "digits or the \"-\" character.");
+
+
     }
 }

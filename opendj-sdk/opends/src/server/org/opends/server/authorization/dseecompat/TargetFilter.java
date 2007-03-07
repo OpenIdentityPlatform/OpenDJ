@@ -38,10 +38,18 @@ import org.opends.server.types.SearchFilter;
  *
  */
 public class TargetFilter {
+
+    /*
+     * Enumeration representing the targetfilter operation.
+     */
     private EnumTargetOperator op = EnumTargetOperator.EQUALITY;
+
+    /*
+     * Filter parsed from the ACI used to match the resource entry.
+     */
     private SearchFilter filter;
 
-    /**
+    /*
      * Class representing a targetfilter keyword.
      * @param op The operation of the targetfilter expression (=, !=)
      * @param filter The filter itself.

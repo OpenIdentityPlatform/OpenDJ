@@ -43,13 +43,22 @@ public class UserDN implements KeywordBindRule {
      */
     private static String urlStr="ldap:///";
 
-    /**
+    /*
      * This list holds a list of objects representing a EnumUserDNType
      * URL mapping.
      */
-    List<UserDNTypeURL> urlList=null;
+    private List<UserDNTypeURL> urlList=null;
+
+    /*
+     * Enumeration of the userdn operation type.
+     */
     private EnumBindRuleType type=null;
+
+    /*
+     * Used to evaluate a userdn that has a pattern  (wild-card).
+     */
     private AttributeType userDNAttrType;
+
     /**
      * Constructor that creates the userdn class. It also sets up an attribute
      * type ("userdn") needed  for wild-card matching.

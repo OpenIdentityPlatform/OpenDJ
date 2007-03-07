@@ -31,6 +31,7 @@ package org.opends.server.authorization.dseecompat;
  * This class provides an enumeration of the allowed bind rule types.
  */
 public enum EnumBindRuleType {
+
     /**
      * The enumeration type when the bind rule has specified type of
      * "=".
@@ -62,7 +63,7 @@ public enum EnumBindRuleType {
      */
     GREATER_OR_EQUAL_BINDRULE_TYPE  (">=");
 
-    /**
+    /*
      * The bind rule type name.
      */
     private final String type;

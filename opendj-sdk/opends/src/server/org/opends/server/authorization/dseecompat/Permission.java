@@ -29,6 +29,7 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import java.util.regex.Pattern;
 
 /**
@@ -36,12 +37,30 @@ import java.util.regex.Pattern;
  * of an ACI look like deny(search, write).
  */
 public class Permission {
-    //the access type (allow,deny)
+
+    /*
+     *  The access type (allow,deny) corresponding to the ACI permission value.
+     */
     private EnumAccessType accessType = null;
+
+    /*
+     * The rights (search, add, delete, ...) corresponding to the ACI rights
+     * value.
+     */
     private int rights;
+
+    /*
+     * Regular expression token representing the separator.
+     */
     private static final String separatorToken = ",";
-    private static final String rightsRegex =
-        "\\s*(\\w+)\\s*(,\\s*(\\w+)\\s*)*";
+
+    /*
+     * Regular expression used to match the ACI rights string.
+     */
+    private static final String rightsRegex = ZERO_OR_MORE_WHITESPACE +
+            WORD_GROUP + ZERO_OR_MORE_WHITESPACE +
+            "(," + ZERO_OR_MORE_WHITESPACE + WORD_GROUP +
+            ZERO_OR_MORE_WHITESPACE +  ")*";
 
     /**
      * Constructor creating a class representing a permission part of an bind

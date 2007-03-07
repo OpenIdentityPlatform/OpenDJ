@@ -45,7 +45,9 @@ public class AciException extends Exception {
    */
   private static final long serialVersionUID = -2763328522960628853L;
 
-    // The unique message ID for the associated message.
+    /*
+     * The unique message ID for the associated message.
+     */
     private int messageID;
 
     /**

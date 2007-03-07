@@ -31,6 +31,7 @@ package org.opends.server.authorization.dseecompat;
  *  This class provides an enumeration of the valid ACI target operators.
  */
 public enum EnumTargetOperator {
+
     /**
     * This enumeration is returned when the target operator is  "=".
      */
@@ -40,7 +41,7 @@ public enum EnumTargetOperator {
      */
     NOT_EQUALITY    ("!=");
 
-    /**
+    /*
      * The target operator name.
      */
     private final String operator;

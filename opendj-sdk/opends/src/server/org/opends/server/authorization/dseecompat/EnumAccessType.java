@@ -32,6 +32,7 @@ package org.opends.server.authorization.dseecompat;
  * types (allow, deny).
  */
 public enum EnumAccessType {
+
     /**
      * Allow access type.
      */
@@ -41,6 +42,9 @@ public enum EnumAccessType {
      */
     DENY    ("deny");
 
+    /*
+     * The access type string.
+     */
     private final String accessType;
 
     /**

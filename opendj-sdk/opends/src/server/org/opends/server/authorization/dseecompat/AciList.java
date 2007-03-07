@@ -49,7 +49,8 @@ import org.opends.server.api.Backend;
  * using the entry DN as the key.
  */
 public class AciList {
-  /**
+
+  /*
    * A map containing all the ACIs.
    * We use the copy-on-write technique to avoid locking when reading.
    */

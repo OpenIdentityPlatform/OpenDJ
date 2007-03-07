@@ -28,6 +28,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -40,47 +41,75 @@ import java.util.regex.Pattern;
  * of an ACI before the ACI body and specifies the entry, attributes, or set
  * of entries and attributes which the ACI controls access.
  *
- * The four supported  ACI target keywords currently
- * supported are: target, targetattr, targetscope and targetfilter.
- * Missing is support for targetattrfilters.
+ * The five supported  ACI target keywords are: target, targetattr,
+ * targetscope, targetfilter and targattrfilters.
  */
 public class AciTargets {
+
     /*
      * ACI syntax has a target keyword.
      */
     private Target target = null ;
+
     /*
      * ACI syntax has a targetscope keyword.
      */
     private SearchScope targetScope = SearchScope.WHOLE_SUBTREE;
+
     /*
      * ACI syntax has a targetattr keyword.
      */
     private TargetAttr targetAttr = null ;
+
     /*
      * ACI syntax has a targetfilter keyword.
      */
     private TargetFilter targetFilter=null;
 
-    private TargAttrFilters targAttrFilters=null;
     /*
-     * These are used in the regular expression parsing.
+     * ACI syntax has a targattrtfilters keyword.
+     */
+    private TargAttrFilters targAttrFilters=null;
+
+    /*
+     * The number of regular expression group positions in a valid ACI target
+     * expression.
      */
     private static final int targetElementCount = 3;
-    private static final int targetKeywordPos       = 1;
-    private static final int targetOperatorPos      = 2;
-    private static final int targetExpressionPos    = 3;
+
     /*
-     * TODO Make the regular expression strings below easier to
-     * understand.
-     *
-     * The same note earlier about making regex values easier to
-     * understand applies to this class as well.
+     *  Regular expression group position of a target keyword.
+     */
+    private static final int targetKeywordPos       = 1;
+
+    /*
+     *  Regular expression group position of a target operator enumeration.
+     */
+    private static final int targetOperatorPos      = 2;
+
+    /*
+     *  Regular expression group position of a target expression statement.
+     */
+    private static final int targetExpressionPos    = 3;
+
+    /*
+     * Regular expression used to match a single target rule.
      */
     private static final String targetRegex =
-            "\\(\\s*(\\w+)\\s*(!?=)\\s*\"([^\"]+)\"\\s*\\)\\s*";
+           OPEN_PAREN +  ZERO_OR_MORE_WHITESPACE  +  WORD_GROUP +
+           ZERO_OR_MORE_WHITESPACE + "(!?=)" + ZERO_OR_MORE_WHITESPACE +
+           "\"([^\"]+)\"" + ZERO_OR_MORE_WHITESPACE + CLOSED_PAREN +
+           ZERO_OR_MORE_WHITESPACE;
+
+    private static final String targetRegex1 =
+           "\\(" +  Aci.ZERO_OR_MORE_WHITESPACE  +  Aci.WORD_GROUP +
+           Aci.ZERO_OR_MORE_WHITESPACE + "(!?=)" + Aci.ZERO_OR_MORE_WHITESPACE +
+           "\"([^\"]+)\"" + Aci.ZERO_OR_MORE_WHITESPACE + "\\)" +
+           Aci.ZERO_OR_MORE_WHITESPACE;
+
     /**
-    * Regular expression used in target matching.
+    * Regular expression used to match one or more target rules. The patern is
+    * part of a general ACI verification.
     */
     public static final String targetsRegex = "(" + targetRegex + ")*";
 
@@ -106,8 +135,7 @@ public class AciTargets {
      *  for this ACI.
      */
 
-    private static final int skipRights =
-            (AciHandler.ACI_ADD | AciHandler.ACI_DELETE | AciHandler.ACI_PROXY);
+    private static final int skipRights = (ACI_ADD | ACI_DELETE | ACI_PROXY);
 
     /**
      * Creates an ACI target from the specified arguments. All of these
@@ -116,14 +144,17 @@ public class AciTargets {
      * @param targetAttr The ACI targetattr keyword if any.
      * @param targetFilter The ACI targetfilter keyword if any.
      * @param targetScope The ACI targetscope keyword if any.
+     * @param targAttrFilters The ACI targAttrFilters keyword if any.
      */
     private AciTargets(Target targetEntry, TargetAttr targetAttr,
                        TargetFilter targetFilter,
-                       SearchScope targetScope) {
+                       SearchScope targetScope,
+                       TargAttrFilters targAttrFilters) {
        this.target=targetEntry;
        this.targetAttr=targetAttr;
        this.targetScope=targetScope;
        this.targetFilter=targetFilter;
+       this.targAttrFilters=targAttrFilters;
     }
 
     /**
@@ -162,6 +193,14 @@ public class AciTargets {
     }
 
     /**
+     * Return the class representing the ACI targattrfilters keyword. May be
+     * null.
+     * @return The targattrfilters information.
+     */
+    public TargAttrFilters getTargAttrFilters() {
+        return targAttrFilters;
+    }
+    /**
      * Decode an ACI's target part of the syntax from the string provided.
      * @param input String representing an ACI target part of syntax.
      * @param dn The DN of the entry containing the ACI.
@@ -197,7 +236,7 @@ public class AciTargets {
             EnumTargetOperator targetOperator =
                 EnumTargetOperator.createOperator(operator);
             if (targetOperator == null) {
-                int msgID = MSGID_ACI_SYNTAX_INVALID_TARGET_OPERATOR;
+                int msgID = MSGID_ACI_SYNTAX_INVALID_TARGETS_OPERATOR;
                 String message = getMessage(msgID, operator);
                 throw new AciException(msgID, message);
             }
@@ -238,7 +277,7 @@ public class AciTargets {
             {
                 // Check the operator for the targetscope is EQUALITY
                 if (targetOperator == EnumTargetOperator.NOT_EQUALITY) {
-                    int msgID = MSGID_ACI_SYNTAX_INVALID_TARGETSCOPE_OPERATOR;
+                    int msgID = MSGID_ACI_SYNTAX_INVALID_TARGET_NOT_OPERATOR;
                     String message = getMessage(msgID, operator);
                     throw new AciException(msgID, message);
                 }
@@ -253,31 +292,39 @@ public class AciTargets {
                 }
                 else {
                     int msgID =
-                        MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
+                            MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
                     String message =
-                        getMessage(msgID, "targetfilter", input);
+                            getMessage(msgID, "targetfilter", input);
                     throw new AciException(msgID, message);
                 }
                 break;
             }
-                case KEYWORD_TARGATTRFILTERS:
-                {
-                    if (targAttrFilters == null){
-                        targAttrFilters = TargAttrFilters.decode(targetOperator,
-                                expression);
-                    }
-                    else {
+            case KEYWORD_TARGATTRFILTERS:
+            {
+                if (targAttrFilters == null){
+                    // Check the operator for the targattrfilters is EQUALITY
+                    if (targetOperator == EnumTargetOperator.NOT_EQUALITY) {
                         int msgID =
-                             MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
-                        String message =
-                                getMessage(msgID, "targattrfilters", input);
+                                MSGID_ACI_SYNTAX_INVALID_TARGET_NOT_OPERATOR;
+                        String message = getMessage(msgID, operator);
                         throw new AciException(msgID, message);
                     }
-                    break;
+                    targAttrFilters = TargAttrFilters.decode(targetOperator,
+                            expression);
                 }
+                else {
+                    int msgID =
+                            MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
+                    String message =
+                            getMessage(msgID, "targattrfilters", input);
+                    throw new AciException(msgID, message);
+                }
+                break;
+            }
             }
         }
-        return new AciTargets(target, targetAttr, targetFilter, targetScope);
+        return new AciTargets(target, targetAttr, targetFilter,
+                              targetScope, targAttrFilters);
     }
 
     /*
@@ -308,7 +355,7 @@ public class AciTargets {
     }
 
     /**
-     * Checks an ACI's targetfilter information against an target match
+     * Checks an ACI's targetfilter information against a target match
      * context.
      * @param aci The ACI to try an match the targetfilter of.
      * @param matchCtx The target match context containing information needed
@@ -321,6 +368,32 @@ public class AciTargets {
         TargetFilter targetFilter=aci.getTargets().getTargetFilter();
         if(targetFilter != null)
              ret=targetFilter.isApplicable(matchCtx);
+        return ret;
+    }
+
+    /**
+     * Check an ACI's targattrfilters against a target match context.
+     * @param aci The ACI to match the targattrfilters against.
+     * @param matchCtx  The target match context containing the information
+     * needed to perform the target match.
+     * @return True if the targattrfilters matched the target context.
+     */
+    public static boolean isTargAttrFiltersApplicable(Aci aci,
+                                               AciTargetMatchContext matchCtx) {
+        boolean ret=true;
+        TargAttrFilters targAttrFilters=aci.getTargets().getTargAttrFilters();
+        if(targAttrFilters != null) {
+            if((matchCtx.hasRights(ACI_ADD) &&
+                targAttrFilters.hasMask(TARGATTRFILTERS_ADD)) ||
+              (matchCtx.hasRights(ACI_DELETE) &&
+               targAttrFilters.hasMask(TARGATTRFILTERS_DELETE)))
+                ret=targAttrFilters.isApplicableAddDel(matchCtx);
+            else if((matchCtx.hasRights(ACI_WRITE_ADD) &&
+                     targAttrFilters.hasMask(TARGATTRFILTERS_ADD)) ||
+                    (matchCtx.hasRights(ACI_WRITE_DELETE) &&
+                    targAttrFilters.hasMask(TARGATTRFILTERS_DELETE)))
+                ret=targAttrFilters.isApplicableMod(matchCtx);
+        }
         return ret;
     }
 
@@ -338,26 +411,28 @@ public class AciTargets {
      * @return True if the targetattr matched the target context.
      */
     public static boolean isTargetAttrApplicable(Aci aci,
-                                AciTargetMatchContext targetMatchCtx) {
+                                         AciTargetMatchContext targetMatchCtx) {
         boolean ret=true;
-        AciTargets targets=aci.getTargets();
-        AttributeType a=targetMatchCtx.getCurrentAttributeType();
-        int rights=targetMatchCtx.getRights();
-        boolean isFirstAttr=targetMatchCtx.isFirstAttribute();
-        if((a != null) && (targets.getTargetAttr() != null)) {
-            ret=TargetAttr.isApplicable(a, targets.getTargetAttr());
-        } else if((a != null) || (targets.getTargetAttr() != null)) {
-            if((aci.hasRights(skipRights)) && (skipRightsHasRights(rights))) {
-                ret=true;
-            } else if ((targets.getTargetAttr() != null) &&
-                    (a == null) && (aci.hasRights(AciHandler.ACI_WRITE))) {
-                ret = true;
-            } else {
-                ret = false;
+        if(!targetMatchCtx.getTargAttrFiltersMatch()) {
+            AciTargets targets=aci.getTargets();
+            AttributeType a=targetMatchCtx.getCurrentAttributeType();
+            int rights=targetMatchCtx.getRights();
+            boolean isFirstAttr=targetMatchCtx.isFirstAttribute();
+            if((a != null) && (targets.getTargetAttr() != null))
+                ret=TargetAttr.isApplicable(a, targets.getTargetAttr());
+            else if((a != null) || (targets.getTargetAttr() != null)) {
+                if((aci.hasRights(skipRights)) &&
+                                                (skipRightsHasRights(rights)))
+                    ret=true;
+                else if ((targets.getTargetAttr() != null) &&
+                        (a == null) && (aci.hasRights(ACI_WRITE)))
+                    ret = true;
+                else
+                    ret = false;
             }
+            if((isFirstAttr) && (aci.getTargets().getTargetAttr() == null))
+                targetMatchCtx.setEntryTestRule(true);
         }
-        if((isFirstAttr) && (aci.getTargets().getTargetAttr() == null))
-            targetMatchCtx.setEntryTestRule(true);
         return ret;
     }
 

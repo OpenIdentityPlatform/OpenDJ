@@ -40,6 +40,7 @@ package org.opends.server.authorization.dseecompat;
  * SELF and ANYONE.
  */
 public enum EnumUserDNType {
+
         /**
          * The enumeration type when the "userdn" URL contains only a DN (no
          * filter or scope) and that DN has no pattern.

@@ -28,6 +28,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -38,38 +39,84 @@ import java.util.HashMap;
  * pair.
  */
 public class BindRule {
+
     /*
      * This hash table holds the keyword bind rule mapping.
      */
     private HashMap<String, KeywordBindRule> keywordRuleMap =
                                     new HashMap<String, KeywordBindRule>();
 
-    //True is a boolean "not" was seen.
+    /*
+     * True is a boolean "not" was seen.
+     */
     private boolean negate=false;
 
-    //Complex bind rules have left and right values.
+    /*
+     * Complex bind rules have left and right values.
+     */
     private BindRule left = null;
     private BindRule right = null;
 
-    //Enumeration of the boolean type of the complex bind rule ("and" or "or").
+    /*
+     * Enumeration of the boolean type of the complex bind rule ("and" or "or").
+     */
     private EnumBooleanTypes booleanType = null;
 
-    //The keyword of a simple bind rule.
+    /*
+     * The keyword of a simple bind rule.
+     */
     private EnumBindRuleKeyword keyword = null;
 
-    //Regular expression stuff that needs to be made clearer.
+    /*
+     * Regular expression group position of a bind rule keyword.
+     */
     private static final int keywordPos = 1;
+
+    /*
+     * Regular expression group position of a bind rule operation.
+     */
     private static final int opPos = 2;
+
+    /*
+     * Regular expression group position of a bind rule expression.
+     */
     private static final int expressionPos = 3;
-    private static final String keywordRegex = "^(\\w+)";
-    private static final String opRegex = "([!=<>]+)";
-    private static final String expressionRegex = "\"([^\"]+)\"\\s*";
-    private static final String bindruleRegex =
-        keywordRegex + "\\s*" + opRegex + "\\s*" + expressionRegex;
+
+    /*
+     * Regular expression group position of the remainder part of an operand.
+     */
     private static final int remainingOperandPos = 1;
+
+    /*
+     * Regular expression group position of the remainder of the bind rule.
+     */
     private static final int remainingBindrulePos = 2;
+
+    /*
+     * Regular expression for valid bind rule operator group.
+     */
+    private static final String opRegGroup = "([!=<>]+)";
+
+    /*
+     * Regular expression for the expression part of a partially parsed
+     * bind rule.
+     */
+    private static final String expressionRegex =
+                                  "\"([^\"]+)\"" + ZERO_OR_MORE_WHITESPACE;
+
+    /*
+     * Regular expression for a single bind rule.
+     */
+    private static final String bindruleRegex =
+        WORD_GROUP_START_PATTERN + ZERO_OR_MORE_WHITESPACE +
+        opRegGroup + ZERO_OR_MORE_WHITESPACE + expressionRegex;
+
+    /*
+     * Regular expression of the remainder part of a partially parsed bind rule.
+     */
     private static final String remainingBindruleRegex =
-        "^\\s*(\\w+)\\s*(.*)$";
+        ZERO_OR_MORE_WHITESPACE_START_PATTERN + WORD_GROUP +
+        ZERO_OR_MORE_WHITESPACE + "(.*)$";
 
     /**
      * Constructor that takes an keyword enumeration and corresponding

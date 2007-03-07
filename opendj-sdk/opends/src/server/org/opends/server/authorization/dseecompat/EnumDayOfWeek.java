@@ -33,6 +33,7 @@ import java.util.Calendar;
  * This class provides an enumeration of the allowed dayofweek types.
  */
 public enum EnumDayOfWeek {
+
     /**
      * The enumeration type when the bind rule has specified dayofweek type of
      * "mon".
@@ -69,7 +70,7 @@ public enum EnumDayOfWeek {
      */
     DAY_SUNDAY      ("sun");
 
-    /**
+    /*
     * The bind rule dayofweek type name.
      */
     private String day = null;

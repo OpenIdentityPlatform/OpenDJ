@@ -54,13 +54,17 @@ import java.util.List;
 public class AciListenerManager
         implements ChangeNotificationListener, BackendInitializationListener {
 
-
+    /*
+     * The AciList caches the ACIs.
+     */
     private AciList aciList;
-       /*
+
+    /*
      * Search filter used in context search for "aci" attribute types.
      */
     private static SearchFilter aciFilter;
-    /**
+
+    /*
      * The aci attribute type is operational so we need to specify it to be
      * returned.
      */
@@ -77,6 +81,7 @@ public class AciListenerManager
         }
         attrs.add("aci");
     }
+
     /**
      * Save the list created by the AciHandler routine.
      * @param aciList The list object created and loaded by the handler.

@@ -33,10 +33,12 @@ import org.opends.server.types.LDAPURL;
  * of a "userdn" URL decoded by the UserDN.decode() method.
  */
 public class UserDNTypeURL {
-    /**
+
+    /*
      * The DN type of the URL.
      */
     private EnumUserDNType dnType;
+
     /*
      * The URL value. Maybe a dummy value for types such as ANYONE or SELF.
      */

@@ -26,6 +26,7 @@
  */
 
 package org.opends.server.authorization.dseecompat;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 
 /**
  * This class provides an enumeration of the allowed rights.
@@ -88,7 +89,7 @@ public enum EnumRight {
      */
     ADDWRITE    ("addwrite");
 
-    /**
+    /*
      * The name of the right.
      */
     private final String right;
@@ -132,40 +133,40 @@ public enum EnumRight {
      * @return The bit mask associated with the right.
      */
     public static int getMask(EnumRight right) {
-        int mask=AciHandler.ACI_NULL;
+        int mask=ACI_NULL;
         switch(right) {
             case READ:
-                mask=AciHandler.ACI_READ;
+                mask=ACI_READ;
                 break;
             case WRITE:
-                mask=AciHandler.ACI_WRITE;
+                mask=ACI_WRITE;
                 break;
             case ADD:
-                mask=AciHandler.ACI_ADD;
+                mask=ACI_ADD;
                 break;
             case DELETE:
-                mask=AciHandler.ACI_DELETE;
+                mask=ACI_DELETE;
                 break;
             case SEARCH:
-                mask=AciHandler.ACI_SEARCH;
+                mask=ACI_SEARCH;
                 break;
             case COMPARE:
-                mask=AciHandler.ACI_COMPARE;
+                mask=ACI_COMPARE;
                 break;
             case ALL:
-                mask=AciHandler.ACI_ALL;
+                mask=ACI_ALL;
                 break;
             case  EXPORT:
-                mask=AciHandler.ACI_EXPORT;
+                mask=ACI_EXPORT;
                 break;
             case IMPORT:
-                mask=AciHandler.ACI_IMPORT;
+                mask=ACI_IMPORT;
                 break;
             case PROXY:
-                mask=AciHandler.ACI_PROXY;
+                mask=ACI_PROXY;
                 break;
             case SELFWRITE:
-                mask=AciHandler.ACI_SELF;
+                mask=ACI_SELF;
                 break;
         }
         return mask;

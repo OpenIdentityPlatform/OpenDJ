@@ -28,6 +28,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.HashSet;
 import java.util.regex.Pattern;
@@ -38,18 +39,29 @@ import org.opends.server.types.AttributeType;
  * A class representing an ACI's targetattr keyword.
  */
 public class TargetAttr {
+    /*
+     * Enumeration representing the targetattr operator.
+     */
     private EnumTargetOperator operator = EnumTargetOperator.EQUALITY;
+
+    /*
+     * Flags that is set if all attributes pattern seen "*".
+     */
     private boolean allAttributes = false ;
+
     /*
      * HashSet of the attribute types parsed by the constructor.
      */
     private HashSet<AttributeType> attributes = new HashSet<AttributeType>();
-    //private String[] attributes = new String[0];
-    private static final String allAttrsRegex  = "\\s*\\*\\s*";
-    private static final String noAttrsRegex   = "\\s*";
-    private static final String separatorToken = "\\|\\|";
-    private static final String attrListRegex  =
-        "\\s*(\\w+)\\s*(" + separatorToken + "\\s*(\\w+)\\s*)*";
+
+    /*
+     * Regular expression that matches one or more ATTR_NAME's separated by
+     * the "||" token.
+     */
+    private static final String attrListRegex  =  ZERO_OR_MORE_WHITESPACE +
+           ATTR_NAME + ZERO_OR_MORE_WHITESPACE + "(" +
+            LOGICAL_OR + ZERO_OR_MORE_WHITESPACE + ATTR_NAME +
+            ZERO_OR_MORE_WHITESPACE + ")*";
 
     /**
      * Constructor creating a class representing a targetattr keyword of an ACI.
@@ -63,18 +75,19 @@ public class TargetAttr {
     throws AciException {
         this.operator = operator;
         if (attrString != null) {
-            if (Pattern.matches(allAttrsRegex, attrString) ){
+            if (Pattern.matches(ALL_ATTRS_WILD_CARD, attrString) ){
                 allAttributes = true ;
             } else {
-                if (Pattern.matches(noAttrsRegex, attrString)){
+                if (Pattern.matches(ZERO_OR_MORE_WHITESPACE, attrString)){
                     allAttributes = false;
                 } else {
                     if (Pattern.matches(attrListRegex, attrString)) {
                         // Remove the spaces in the attr string and
                         // split the list.
                         Pattern separatorPattern =
-                            Pattern.compile(separatorToken);
-                        attrString=attrString.replaceAll("\\s", "");
+                            Pattern.compile(LOGICAL_OR);
+                        attrString=
+                         attrString.replaceAll(ZERO_OR_MORE_WHITESPACE, "");
                         String[] attributeArray=
                              separatorPattern.split(attrString);
                         //Add each element of array to attributes HashSet
@@ -83,7 +96,7 @@ public class TargetAttr {
                     } else {
                       int msgID =
                          MSGID_ACI_SYNTAX_INVALID_TARGETATTRKEYWORD_EXPRESSION;
-                      String message = getMessage(msgID, operator);
+                      String message = getMessage(msgID, attrString);
                       throw new AciException(msgID, message);
                     }
                 }
@@ -101,12 +114,13 @@ public class TargetAttr {
             String attribute=attributeArray[i].toLowerCase();
             AttributeType attributeType;
             if((attributeType =
-                DirectoryServer.getAttributeType(attribute)) == null)
+                    DirectoryServer.getAttributeType(attribute)) == null)
                 attributeType =
-                    DirectoryServer.getDefaultAttributeType(attribute);
+                        DirectoryServer.getDefaultAttributeType(attribute);
             attributes.add(attributeType);
         }
     }
+
     /**
      * Returns the operator enumeration of the targetattr expression.
      * @return The operator enumeration.
@@ -172,8 +186,14 @@ public class TargetAttr {
                           TargetAttr targetAttr) {
       boolean ret;
       if(targetAttr.isAllAttributes()) {
-          ret =
-             !targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY);
+          //If it is an operational attribute, then access is denied for all
+          //attributes wild-card. Operational attributes must be
+          // explicitly defined.
+          if(a.isOperational()) {
+              ret=false;
+          } else
+              ret =
+              !targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY);
       }  else {
           ret=false;
           HashSet<AttributeType> attributes=targetAttr.getAttributes();

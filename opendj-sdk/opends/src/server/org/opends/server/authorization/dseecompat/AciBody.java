@@ -28,6 +28,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,57 +41,120 @@ import java.util.regex.Pattern;
  */
 public class AciBody {
 
+    /*
+     * Regular expression group position for the version string.
+     */
     private static final int VERSION = 1;
+
+    /*
+     * Regular expression group position for the namr string.
+     */
     private static final int NAME = 2;
+
+    /*
+     * Regular expression group position for the permission string.
+     */
     private static final int PERM = 1;
+
+    /*
+     * Regular expression group position for the rights string.
+     */
     private static final int RIGHTS = 2;
+
+    /*
+     * Regular expression group position for the bindrule string.
+     */
     private static final int BINDRULE = 3;
+
+    /*
+     * Index into the ACI string where the ACI body starts.
+     */
     private int startPos=0;
+
     /*
-     * The name of the ACI, currently not used but parsed.
-     */
+    * The name of the ACI, currently not used but parsed.
+    */
     private String name = null;
+
     /*
-     * The version of the ACi, current not used but parsed and checked
-     * for 3.0.
-     */
+    * The version of the ACi, current not used but parsed and checked
+    * for 3.0.
+    */
     private String version = null;
+
     /*
      This structure represents a permission-bind rule pairs. There can be
      several of these.
     */
     private List<PermBindRulePair> permBindRulePairs;
+
     /*
-     * TODO Define constants for these regular expressions to make them more
-     * readable.
-     * The regular expressions would probably be a lot easier
-     * to understand if you defined a number of constants for the
-     * individual components and then concatenated them.  For example,
-     * "\\s*" could be defined in a constant named ZERO_OR_MORE_SPACES.
-     * This would also help make it easier to understand which parentheses
-     * were part of the regex and which were part of the ACI syntax.
+     * Regular expression used to match the access type group (allow, deny) and
+     * the rights group "(read, write, ...)". The last pattern looks for a group
+     * surrounded by parenthesis. The group must contain at least one
+     * non-paren character.
      */
-    private static final String permissionRegex = "(\\w+)\\s*\\(([^()]+)\\)";
-    private static final String bindRuleRegex = "(.+?\"[)]*)\\s*;";
+    private static final
+    String permissionRegex =
+               WORD_GROUP + ZERO_OR_MORE_WHITESPACE + "\\(([^()]+)\\)";
+
+    /*
+     * Regular expression that matches a bind rule group at a coarse level. It
+     * matches any character one or more times, a single quotation and
+     * an optional right parenthesis.
+     */
+    private static final String bindRuleRegex =
+            "(.+?\"[)]*)" + ACI_STATEMENT_SEPARATOR;
+
+    /*
+     * Regular expression used to match the actions of the ACI. The actions
+     * are permissions and matching bind rules.
+     */
     private static final String actionRegex =
-            "\\s*" + permissionRegex + "\\s*" + bindRuleRegex;
+            ZERO_OR_MORE_WHITESPACE + permissionRegex +
+            ZERO_OR_MORE_WHITESPACE + bindRuleRegex;
+
+    /*
+     * Regular expression used to match the version value (digit.digit).
+     */
     private static final String versionRegex = "(\\d\\.\\d)";
-    private static final String versionToken = "(?i)version";
-    private static final String aclToken = "(?i)acl";
+
+    /*
+     * Regular expression used to match the version token. Case insensitive.
+     */
+    private static final String versionToken = "(?i)version(?-i)";
+
+    /*
+     * Regular expression used to match the acl token. Case insensitive.
+     */
+    private static final String aclToken = "(?i)acl(?-i)";
+
     /**
-     * Regular expression used to parse the body of an ACI.
+     * Regular expression used to match the body of an ACI. This pattern is
+     * a general verification check.
      */
     public static final String bodyRegx =
-        "\\(\\s*" + versionToken + "\\s*"
-        + versionRegex + "\\s*;\\s*" + aclToken + "\\s*\"(.*)\"\\s*;\\s*"
-        + actionRegex + "\\s*\\)";
-    /**
-     * Regular expression used to parse the header of the ACI body. The
+        "\\(" + ZERO_OR_MORE_WHITESPACE + versionToken +
+        ZERO_OR_MORE_WHITESPACE + versionRegex +
+        ACI_STATEMENT_SEPARATOR + aclToken + ZERO_OR_MORE_WHITESPACE +
+        "\"(.*)\"" + ACI_STATEMENT_SEPARATOR + actionRegex +
+        ZERO_OR_MORE_WHITESPACE  + "\\)";
+
+        public static final String bodyRegx1 =
+        "\\("+ Aci.ZERO_OR_MORE_WHITESPACE + versionToken +
+        Aci.ZERO_OR_MORE_WHITESPACE + versionRegex +
+        Aci.ACI_STATEMENT_SEPARATOR + aclToken + Aci.ZERO_OR_MORE_WHITESPACE +
+        "\"(.*)\"" + Aci.ACI_STATEMENT_SEPARATOR + actionRegex +
+        Aci.ZERO_OR_MORE_WHITESPACE  + "\\)";
+    /*
+     * Regular expression used to match the header of the ACI body. The
      * header is version and acl name.
      */
-    public static final String header =
-        "\\(\\s*" + versionToken + "\\s*"
-        + versionRegex + "\\s*;\\s*" + aclToken + "\\s*\"(.*?)\"\\s*;";
+    private static final String header =
+       OPEN_PAREN + ZERO_OR_MORE_WHITESPACE + versionToken +
+       ZERO_OR_MORE_WHITESPACE +
+       versionRegex + ACI_STATEMENT_SEPARATOR + aclToken +
+       ZERO_OR_MORE_WHITESPACE +  "\"(.*?)\"" + ACI_STATEMENT_SEPARATOR;
 
     /**
      * Construct an ACI body from the specified version, name and
@@ -128,7 +192,7 @@ public class AciBody {
         if(bodyMatcher.find()) {
             startPos=bodyMatcher.start();
             version  = bodyMatcher.group(VERSION);
-            if (!version.equalsIgnoreCase(Aci.supportedVersion)) {
+            if (!version.equalsIgnoreCase(supportedVersion)) {
                 int msgID = MSGID_ACI_SYNTAX_INVAILD_VERSION;
                 String message = getMessage(msgID, version);
                 throw new AciException(msgID, message);
@@ -203,9 +267,6 @@ public class AciBody {
         return startPos;
     }
 
-    //TODO Evaluate adding support for the "absolute" deny access
-    //     type precedence operator.
-
     /**
      * Performs an evaluation of the permission-bind rule pairs
      * using the evaluation context. The method walks down
@@ -226,29 +287,32 @@ public class AciBody {
         EnumEvalResult res=EnumEvalResult.FALSE;
         List<PermBindRulePair>pairs=getPermBindRulePairs();
         for(PermBindRulePair p : pairs) {
+            if(evalCtx.isDenyEval() &&
+                    (p.hasAccessType(EnumAccessType.ALLOW)))
+                continue;
             if(!p.hasRights(evalCtx.getRights()))
                 continue;
-           res=p.getBindRule().evaluate(evalCtx);
-           // The evaluation result could be FAIL. Stop processing and return
-           //FAIL. Maybe an internal search failed.
-           if((res != EnumEvalResult.TRUE) &&
-              (res != EnumEvalResult.FALSE)) {
-               res=EnumEvalResult.FAIL;
-               break;
-           //If the access type is DENY and the pair evaluated to TRUE,
-           //then stop processing and return TRUE. A deny pair
-           //succeeded.
-           } else if((p.hasAccessType(EnumAccessType.DENY)) &&
-                     (res == EnumEvalResult.TRUE)) {
-               res=EnumEvalResult.TRUE;
-               break;
-           //An allow access type evaluated TRUE, stop processing
-           //and return TRUE.
-           } else if((p.hasAccessType(EnumAccessType.ALLOW) &&
-                     (res == EnumEvalResult.TRUE))) {
-               res=EnumEvalResult.TRUE;
-               break;
-           }
+            res=p.getBindRule().evaluate(evalCtx);
+            // The evaluation result could be FAIL. Stop processing and return
+            //FAIL. Maybe an internal search failed.
+            if((res != EnumEvalResult.TRUE) &&
+                    (res != EnumEvalResult.FALSE)) {
+                res=EnumEvalResult.FAIL;
+                break;
+                //If the access type is DENY and the pair evaluated to TRUE,
+                //then stop processing and return TRUE. A deny pair
+                //succeeded.
+            } else if((p.hasAccessType(EnumAccessType.DENY)) &&
+                    (res == EnumEvalResult.TRUE)) {
+                res=EnumEvalResult.TRUE;
+                break;
+                //An allow access type evaluated TRUE, stop processing
+                //and return TRUE.
+            } else if((p.hasAccessType(EnumAccessType.ALLOW) &&
+                    (res == EnumEvalResult.TRUE))) {
+                res=EnumEvalResult.TRUE;
+                break;
+            }
         }
         return res;
     }

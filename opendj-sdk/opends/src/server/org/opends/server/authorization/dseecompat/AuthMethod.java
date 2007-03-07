@@ -34,7 +34,15 @@ import static org.opends.server.messages.MessageHandler.getMessage;
  * The AuthMethod class represents an authmethod bind rule keyword expression.
  */
 public class AuthMethod implements KeywordBindRule {
+
+    /*
+     * Enumeration representing the authentication method.
+     */
     private EnumAuthMethod authMethod=null;
+
+    /*
+     * Enumeration representing the bind rule operation type.
+     */
     private EnumBindRuleType type=null;
 
     /**

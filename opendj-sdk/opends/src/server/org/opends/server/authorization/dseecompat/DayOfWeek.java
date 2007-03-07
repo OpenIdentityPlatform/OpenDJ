@@ -38,7 +38,14 @@ import java.util.LinkedList;
  */
 public class DayOfWeek  implements KeywordBindRule {
 
+    /*
+     * List containing the enumeration of the day of the week.
+     */
     LinkedList<EnumDayOfWeek> days=null;
+
+    /*
+     * Enumeration representing the bind rule operation type.
+     */
     private EnumBindRuleType type=null;
 
     /**

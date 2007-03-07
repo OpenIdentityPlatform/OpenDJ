@@ -41,6 +41,7 @@ import java.util.LinkedList;
  * checked on.
  */
 public interface AciTargetMatchContext {
+
     /**
      * Set the deny ACI list.
      * @param denyList The deny ACI list.
@@ -129,6 +130,19 @@ public interface AciTargetMatchContext {
      * @param rights The rights to set the container's rights to.
      */
     public void setRights(int rights);
+
+    /**
+     * Set to true  if the ACI had a targattrfilter rule that matched.
+     * @param v  The value to use.
+     */
+    public void setTargAttrFiltersMatch(boolean v);
+
+    /**
+     * Return the value of the targAttrFiltersMatch variable. This is set to
+     * true if the ACI had a targattrfilter rule that matched.
+     * @return  True if the ACI had a targattrfilter rule that matched.
+     */
+    public boolean getTargAttrFiltersMatch();
 }
 
 
