@@ -27,10 +27,8 @@
 package org.opends.server.loggers.debug;
 
 import org.opends.server.api.ProtocolElement;
-import org.opends.server.api.LogPublisher;
 import org.opends.server.loggers.Logger;
 import org.opends.server.loggers.LogLevel;
-import org.opends.server.loggers.LogRecord;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -55,35 +53,21 @@ import com.sleepycat.je.DatabaseEntry;
  */
 public class DebugLogger extends Logger
 {
-  /**
-   * Whether the debug logger is enabled or disabled.
-   */
-  static boolean enabled = false;
   private static DebugLogger logger = null;
+  static boolean staticEnabled = false;
 
   private Map<String, Tracer> classTracers;
-  private TraceConfiguration config;
 
-  private DebugLogger()
+  private DebugConfiguration configuration;
+
+  private DebugLogger(DebugConfiguration config)
   {
-    super(new DebugErrorHandler());
-
+    super(config);
+    configuration = config;
     classTracers = new HashMap<String, Tracer>();
-    config = new TraceConfiguration();
+    staticEnabled = enabled;
   }
 
-  /**
-   * Publish a record to all the registered publishers.
-   *
-   * @param record The log record to publish.
-   */
-  protected void publishRecord(LogRecord record)
-  {
-    for(LogPublisher p : publishers)
-    {
-      p.publish(record, handler);
-    }
-  }
 
   /**
    * Obtain the trace logger singleton.
@@ -92,20 +76,16 @@ public class DebugLogger extends Logger
   public static synchronized DebugLogger getLogger()
   {
     if (logger == null) {
-      logger= new DebugLogger();
+      /**
+       * The debug logger is being intialized for the first time.
+       * Bootstrap the debug logger when the server first starts up so
+       * all debug messages are log from the first initialization of a
+       * server class.
+       */
+      logger= new DebugLogger(DebugConfiguration.getStartupConfiguration());
     }
 
     return logger;
-  }
-
-  /**
-   * Enable or disable the debug logger.
-   *
-   * @param enable if the debug logger should be enabled.
-   */
-  public static void enabled(boolean enable)
-  {
-    enabled = enable;
   }
 
   /**
@@ -115,7 +95,7 @@ public class DebugLogger extends Logger
    */
   public static boolean debugEnabled()
   {
-    return enabled;
+    return staticEnabled;
   }
 
   /**
@@ -129,21 +109,8 @@ public class DebugLogger extends Logger
     Tracer traceLogger = classTracers.get(className);
     if (traceLogger == null) {
       classTracers.put(className, tracer);
+      tracer.updateSettings(this.configuration);
     }
-    else
-    {
-      //TODO: handle dup case!
-    }
-  }
-
-  /**
-   * Retrives the current tracing configuration of the debug logger.
-   *
-   * @return the current tracing configuration of the debug logger.
-   */
-  protected TraceConfiguration getConfiguration()
-  {
-    return config;
   }
 
   /**
@@ -152,14 +119,17 @@ public class DebugLogger extends Logger
    *
    * @param config the new configuration to apply.
    */
-  public void updateConfiguration(TraceConfiguration config)
+  public synchronized void updateConfiguration(DebugConfiguration config)
   {
-    this.config = config;
+    super.updateConfiguration(config);
+    staticEnabled = enabled;
 
     for(Tracer tracer : classTracers.values())
     {
-      tracer.updateSettings();
+      tracer.updateSettings(config);
     }
+
+    this.configuration = config;
   }
 
   /**

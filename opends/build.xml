@@ -100,6 +100,10 @@
   <!-- Properties for the EMMA code coverage tool.                 -->
   <property name="emma.dir" location="${ext.dir}/emma/lib"          />
 
+  <!-- Properties for the AspectJ tools                            -->
+  <property name="aj.dir" location="${ext.dir}/aspectj"             />
+  <property name="aj.lib.dir" location="${aj.dir}/lib"              />
+
   <!-- Properties for the TestNG unit testing  tool.               -->
   <property name="testng.dir" location="${ext.dir}/testng"          />
   <property name="testng.lib.dir" location="${testng.dir}/lib"      />
@@ -183,10 +187,14 @@
       <format property="timestamp" pattern="yyyyMMddHHmmss" />
     </tstamp>
 
-    <condition property="DEBUG_BUILD" value="false">
+    <condition property="DEBUG_BUILD" value="true">
       <not>
         <isset property="DEBUG_BUILD" />
       </not>
+    </condition>
+
+    <condition property="weave.enabled" value="true">
+      <equals arg1="${DEBUG_BUILD}" arg2="true" />
     </condition>
 
     <condition property="MEM" value="128M">
@@ -367,7 +375,7 @@
 
   <!-- Compile the Directory Server source files. -->
   <target name="cleancompile"
-       depends="cleaninit,compile,compilequicksetup,compilestatuspanel"
+       depends="cleaninit,weave,compilequicksetup,compilestatuspanel"
        description="Recompile the Directory Server source files.">
   </target>
 
@@ -380,7 +388,7 @@
 
     <javac srcdir="${src.dir}" destdir="${classes.dir}" optimize="true"
          excludes="**/package-info.java"
-         debug="on" debuglevel="lines,source" source="1.5" target="1.5"
+         debug="on" debuglevel="lines,vars,source" source="1.5" target="1.5"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -393,8 +401,27 @@
     </javac>
   </target>
 
+  <target name="weave" if="weave.enabled" depends="compile">
+    <taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
+      <classpath>
+        <pathelement location="${aj.lib.dir}/aspectjtools.jar" />
+      </classpath>
+    </taskdef>
+
+    <iajc inpath="${classes.dir}" destdir="${classes.dir}"
+          debug="true" debuglevel="lines,source" source="1.5" target="1.5"
+          deprecation="true" fork="true" maxmem="${MEM}">
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </iajc>
+  </target>
+
+
   <!-- Compile the Quick Setup source files. -->
-  <target name="compilequicksetup" depends="buildtools,compile"
+  <target name="compilequicksetup" depends="buildtools,weave"
           description="Compile the Quick Setup source files.">
 
     <mkdir dir="${quicksetup.classes.dir}" />
@@ -780,7 +807,7 @@
 
 
   <!-- Prepare to execute the Directory Server TestNG unit tests. -->
-  <target name="testinit" depends="buildtools,compile"
+  <target name="testinit" depends="buildtools,weave"
          description="Prepare to execute the Directory Server TestNG unit tests.">
 
     <!-- If we are to perform coverage tests, then set that up. -->
@@ -994,6 +1021,19 @@
     <echo message="  -Dtest.failed=true"/>
     <echo message="      runs only the tests that failed last time"/>
     <echo message=""/>
+    <echo message="  -DDEBUG_BUILD=false" />
+    <echo message="      builds the server without the debug logging facility." />
+    <echo message="      No debug logging messages will be included on test failures." />
+    <echo message=""/>
+    <echo message="  -Dtest.debug.target=org.opends.server.core:level=verbose,category=data_access"/>
+    <echo message="      for example only include debug messages in the core"/>
+    <echo message="      package that are related to data access and at the" />
+    <echo message="      verbose level or higher. The syntax of this target" />
+    <echo message="      definition is the same as the org.opends.server.debug.target.x" />
+    <echo message="      property when starting OpenDS. " />
+    <echo message="      Default debug target:"/>
+    <echo message="      org.opends.server:level=verbose,category=caught|data|database_access|message|protocol" />
+    <echo message=""/>
     <echo message="  -Dtest.packages=org.opends.server.api"/>
     <echo message="      for example runs only the tests in the api package"/>
     <echo message="      For multiple packages, separate them with a ',' and "/>
@@ -1047,7 +1087,16 @@
       </not>
     </condition>
 
-    <!-- Cleanout the old reports.  Otherwise, the old testng-failed.xml 
+    <!-- This sets org.opends.test.debug.target if and only if its's not
+         alreadly set. -->
+    <condition property="org.opends.test.debug.target"
+               value="org.opends.server:level=verbose,category=caught|data|database_access|message|protocol">
+      <not>
+        <isset property="org.opends.test.debug.target" />
+      </not>
+    </condition>
+
+    <!-- Cleanout the old reports.  Otherwise, the old testng-failed.xml
          will hang around even if all of the tests pass. -->
     <delete>
       <fileset dir="${unittest.report.dir}" includes="*"/>
@@ -1084,6 +1133,7 @@
       <jvmarg value="-Demma.coverage.out.merge=false" />
       <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}" />
       <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
+      <jvmarg value="-Dorg.opends.test.debug.target=${org.opends.test.debug.target}" />
       <jvmarg value="-Xms${MEM}" />
       <jvmarg value="-Xmx${MEM}" />
       <xmlfileset dir="${unittest.resource.dir}" includes="testng.xml" />

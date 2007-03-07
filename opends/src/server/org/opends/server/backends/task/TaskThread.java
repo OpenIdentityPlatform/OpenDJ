@@ -38,6 +38,7 @@ import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.util.Map;
 
 
 /**
@@ -222,6 +223,20 @@ public class TaskThread
       task.setTaskState(TaskState.STOPPED_BY_SHUTDOWN);
       taskScheduler.threadDone(this, task);
     }
+  }
+
+  /**
+   * Retrieves any relevent debug information with which this tread is
+   * associated so they can be included in debug messages.
+   *
+   * @return debug information about this thread as a string.
+   */
+  public Map<String, String> getDebugProperties()
+  {
+    Map<String, String> properties = super.getDebugProperties();
+    properties.put("task", task.toString());
+
+    return properties;
   }
 }
 

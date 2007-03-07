@@ -2250,6 +2250,24 @@ public class ServerConstants
 
 
   /**
+   * The name of the system property that can be used to enable or disable
+   * the debug logger on startup.
+   */
+  public static final String PROPERTY_DEBUG_ENABLED =
+      "org.opends.server.debug.enabled";
+
+
+
+  /**
+   * The name of the system property that can be used to specify a target
+   * for the debug logger on startup.
+   */
+  public static final String PROPERTY_DEBUG_TARGET =
+      "org.opends.server.debug.target";
+
+
+
+  /**
    * The column at which to wrap long lines of output in the command-line tools.
    */
   public static final int MAX_LINE_WIDTH = 79;

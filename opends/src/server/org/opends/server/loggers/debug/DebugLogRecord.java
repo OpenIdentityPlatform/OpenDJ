@@ -34,6 +34,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DebugLogCategory;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * A DebugLogRecord is reponsible for passing tracing log messages from the
@@ -67,6 +68,11 @@ public class DebugLogRecord extends LogRecord
    * Thread ID for thread that issued logging call.
    */
   private long threadID;
+
+  /**
+   * Detailed debug properties for thread that issued logging call.
+   */
+  private Map<String, String> threadProperties;
 
   /**
    * Event time in milliseconds since 1970.
@@ -386,5 +392,25 @@ public class DebugLogRecord extends LogRecord
    */
   public void setSequenceNumber(long seq) {
     sequenceNumber = seq;
+  }
+
+  /**
+   * Set the thread properties.
+   *
+   * @param threadProperties the thread properties map to set.
+   */
+  public void setThreadProperties(Map<String, String> threadProperties)
+  {
+    this.threadProperties = threadProperties;
+  }
+
+  /**
+   * Retrives the thread properties.
+   *
+   * @return the thread properties.
+   */
+  public Map<String, String> getThreadProperties()
+  {
+    return threadProperties;
   }
 }

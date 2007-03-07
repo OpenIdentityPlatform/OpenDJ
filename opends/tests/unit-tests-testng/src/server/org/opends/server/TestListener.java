@@ -36,6 +36,12 @@ import org.testng.ITestContext;
 import org.testng.xml.XmlSuite;
 import static org.opends.server.util.ServerConstants.EOL;
 import static org.opends.server.TestCaseUtils.originalSystemErr;
+import org.opends.server.loggers.debug.DebugLogFormatter;
+import org.opends.server.loggers.debug.DebugConfiguration;
+import org.opends.server.loggers.debug.TraceSettings;
+import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.loggers.LogLevel;
+import org.opends.server.types.DebugLogLevel;
 
 import java.util.List;
 import java.util.LinkedHashMap;
@@ -63,6 +69,12 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   // This is used to communicate with build.xml.  So that even when a test
   // fails, we can do the coverage report before failing the build.
   public static final String ANT_TESTS_FAILED_FILE_NAME = ".tests-failed-marker";
+
+  /**
+   * The Log Publisher for the Debug Logger
+   */
+  public static TestLogPublisher DEBUG_LOG_PUBLISHER =
+      new TestLogPublisher(new DebugLogFormatter());
 
   private static final String DIVIDER_LINE = "-------------------------------------------------------------------------------" + EOL;
 
@@ -173,6 +185,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     TestErrorLogger.clear();
     TestCaseUtils.clearSystemOutContents();
     TestCaseUtils.clearSystemErrContents();
+
+    DEBUG_LOG_PUBLISHER.clear();
   }
 
 
@@ -223,6 +237,19 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     {
       failureInfo.append(EOL);
       failureInfo.append("Error Log Messages:");
+      failureInfo.append(EOL);
+      for (String message : messages)
+      {
+        failureInfo.append(message);
+        failureInfo.append(EOL);
+      }
+    }
+
+    messages = DEBUG_LOG_PUBLISHER.getMessages();
+    if(! messages.isEmpty())
+    {
+      failureInfo.append(EOL);
+      failureInfo.append("Debug Log Messages:");
       failureInfo.append(EOL);
       for (String message : messages)
       {

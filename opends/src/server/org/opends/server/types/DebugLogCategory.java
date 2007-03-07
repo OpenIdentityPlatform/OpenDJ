@@ -67,7 +67,7 @@ public class DebugLogCategory extends LogCategory
    * Only logger related classes may use this.
    */
   public static final LogCategory CAUGHT = new DebugLogCategory(
-      DEBUG_CATEGORY_THROWN);
+      DEBUG_CATEGORY_CAUGHT);
 
   /**
    * The log category that will be used for method entry messages.

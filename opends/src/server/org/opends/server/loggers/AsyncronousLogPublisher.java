@@ -61,9 +61,9 @@ public class AsyncronousLogPublisher
   private static class PublishRequest
   {
     public final LogRecord record;
-    public final LogErrorHandler handler;
+    public final LoggerErrorHandler handler;
 
-    PublishRequest(LogRecord record, LogErrorHandler handler)
+    PublishRequest(LogRecord record, LoggerErrorHandler handler)
     {
       this.record = record;
       this.handler = handler;
@@ -129,7 +129,7 @@ public class AsyncronousLogPublisher
         catch (Throwable t) {
           // Forward exception to error handler
           if (request != null  && request.handler != null) {
-            LogErrorHandler handler= request.handler;
+            LoggerErrorHandler handler= request.handler;
             handler.handleError(request.record, t);
           }
         }
@@ -141,7 +141,7 @@ public class AsyncronousLogPublisher
   // want shutdown to start after we check for it, but before we queue
   // request.
   private synchronized void publishAsynchronously(LogRecord record,
-                                                  LogErrorHandler handler)
+                                                  LoggerErrorHandler handler)
   {
     // If shutting down reject, otherwise publish (if we have a publisher!)
     if (isShuttingDown()) {
@@ -167,7 +167,7 @@ public class AsyncronousLogPublisher
    * @param record the log record to publish.
    * @param handler the error handler to use if an error occurs.
    */
-  public void publish(LogRecord record, LogErrorHandler handler)
+  public void publish(LogRecord record, LoggerErrorHandler handler)
   {
     // No publisher?  Off to the bit bucket.
     if (publisher != null) {

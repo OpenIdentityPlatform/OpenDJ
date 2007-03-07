@@ -26,29 +26,77 @@
  */
 package org.opends.server.loggers.debug;
 
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.HashMap;
+import org.opends.server.loggers.*;
+import org.opends.server.util.DynamicConstants;
+import org.opends.server.types.DebugLogLevel;
+
+import static org.opends.server.util.ServerConstants.PROPERTY_DEBUG_ENABLED;
+import static org.opends.server.util.ServerConstants.PROPERTY_DEBUG_TARGET;
+
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * A LoggingConfiguration for the debug logging system.
  */
-public class TraceConfiguration
+public class DebugConfiguration extends LoggerConfiguration
 {
   private static final String GLOBAL= "_global";
 
   private Map<String, TraceSettings> classTraceSettings;
   private Map<String, Map<String, TraceSettings>> methodTraceSettings;
 
+  /**
+   * Error handler for tracing.  Tracing will be disabled
+   * if too many errors occur.
+   */
+  private class DebugErrorHandler implements LoggerErrorHandler
+  {
+    private static final int ERROR_THRESHOLD= 10;
+
+    private int _loggingErrors= 0;
+
+    /**
+     * Error handler for tracing.  Tracing will be disabled
+     * if too many errors occur.
+     *
+     * @param record the log record that caused the error to occur.
+     * @param ex the exception thrown.
+     */
+    public synchronized void handleError(LogRecord record, Throwable ex)
+    {
+      _loggingErrors++;
+
+      DebugLogFormatter formatter = new DebugLogFormatter();
+      System.err.println("Error publishing record: " +
+          formatter.format(record) + ex);
+
+      // If we've had too many write errors, just turn off
+      // tracing to prevent an overflow of messages.
+      if (_loggingErrors >= ERROR_THRESHOLD) {
+        System.err.println("TOO MANY ERRORS FROM DEBUG LOGGER. SHUTTING DOWN");
+
+        enabled = false;
+      }
+    }
+  }
 
   /**
-   * Construct a default configuration where all settings are disabled.
+   * Construct a default configuration where the logger is disabled and the
+   * global scope will only log at the ERROR level.
    */
-  public TraceConfiguration()
+  public DebugConfiguration()
   {
+    super(null);
+    this.setErrorHandler(new DebugErrorHandler());
     classTraceSettings = null;
     methodTraceSettings = null;
+
+    //Set the global settings so that only errors are logged.
+    addTraceSettings(null, new TraceSettings(DebugLogLevel.ERROR));
   }
 
   /**
@@ -63,7 +111,7 @@ public class TraceConfiguration
   {
     Map<String, TraceSettings> levels = null;
 
-    if (DebugLogger.enabled && methodTraceSettings != null) {
+    if (enabled && methodTraceSettings != null) {
       // Method levels are always at leaves in the
       // hierarchy, so don't bother searching up.
       Map<String, TraceSettings> value= methodTraceSettings.get(className);
@@ -85,7 +133,7 @@ public class TraceConfiguration
     TraceSettings settings = TraceSettings.DISABLED;
 
     // If we're not enabled, trace level is DISABLED.
-    if (DebugLogger.enabled  && classTraceSettings != null) {
+    if (enabled  && classTraceSettings != null) {
       // Find most specific trace setting which covers this
       // fully qualified class name
       // Search up the hierarchy for a match.
@@ -115,9 +163,13 @@ public class TraceConfiguration
   }
 
   /**
-   * Adds a trace settings to the current set for a specified scope.
+   * Adds a trace settings to the current set for a specified scope. If a
+   * scope is not specified, the settings will be set for the global scope.
+   * The global scope settings are used when no other scope matches.
+   *
    * @param scope - the scope to set trace settings for; this is a fully
-   * qualified class name.
+   * qualified class name or null to set the trace settings for the global
+   * scope.
    * @param settings - the trace settings for the scope
    */
   public void addTraceSettings(String scope, TraceSettings settings)
@@ -161,5 +213,62 @@ public class TraceConfiguration
     }
 
     methodLevels.put(methodName, settings);
+  }
+
+  /**
+   * Retrieve the initial configuration to use on debug logger startup. Settings
+   * are read from system properties.
+   * If this is not a debug build of OpenDS, the resulting configuration is
+   * always disabled.
+   *
+   * @return the initial configuration to use for the debug logger.
+   */
+  public static DebugConfiguration getStartupConfiguration()
+  {
+
+    String enabledProp = System.getProperty(PROPERTY_DEBUG_ENABLED);
+    if(DynamicConstants.DEBUG_BUILD && (enabledProp != null &&
+        (enabledProp.startsWith("T") || enabledProp.startsWith("t") ||
+            enabledProp.startsWith("Y") || enabledProp.startsWith("y"))))
+    {
+      DebugConfiguration config = new DebugConfiguration();
+      config.setEnabled(true);
+
+      TextLogPublisher consolePublisher =
+          new TextLogPublisher(TextWriter.STDOUT, new DebugLogFormatter());
+      config.addPublisher(consolePublisher);
+
+      Set<Map.Entry<Object, Object>> propertyEntries =
+          System.getProperties().entrySet();
+      for(Map.Entry<Object, Object> entry : propertyEntries)
+      {
+        if(((String)entry.getKey()).startsWith(PROPERTY_DEBUG_TARGET))
+        {
+          String value = (String)entry.getValue();
+          int settingsStart= value.indexOf(":");
+
+          //See if the scope and settings exists
+          if(settingsStart > 0)
+          {
+            String scope = value.substring(0, settingsStart);
+            TraceSettings settings =
+                TraceSettings.parseTraceSettings(
+                    value.substring(settingsStart+1));
+            if(settings != null)
+            {
+              config.addTraceSettings(scope, settings);
+            }
+          }
+        }
+      }
+
+      return config;
+    }
+    else
+    {
+      //If it is not enabled or not a debug build, just return the default
+      //off config.
+      return new DebugConfiguration();
+    }
   }
 }

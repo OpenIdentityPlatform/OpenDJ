@@ -39,6 +39,7 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.api.ProtocolElement;
+import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.*;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogLevel;
@@ -53,7 +54,11 @@ import com.sleepycat.je.*;
  * Logging is always done at a level basis, with debug log messages
  * exceeding the trace threshold being traced, others being discarded.
  */
-@Aspect("pertypewithin(*)")
+@Aspect("pertypewithin(!@Tracer.NoDebugTracing org.opends.server..*+ && " +
+    "!org.opends.server.loggers.*+ && " +
+    "!org.opends.server.loggers.debug..*+ &&" +
+    "!org.opends.server.types.DebugLogLevel+ && " +
+    "!org.opends.server.types.DebugLogCategory+)")
 public class Tracer
 {
   /**
@@ -76,7 +81,7 @@ public class Tracer
   /**
    * Pointcut for matching all toString() methods.
    */
-  @Pointcut("execution(String *..toString())")
+  @Pointcut("execution(* *..toString(..))")
   private void toStringMethod()
   {
   }
@@ -87,6 +92,16 @@ public class Tracer
   @Pointcut("execution(String org.opends.server." +
       "messages.MessageHandler.getMessage(..))")
   private void getMessageMethod()
+  {
+  }
+
+  /**
+   * Pointcut for matching all getDebugProperties() methods.
+   * TODO: Make this less general. Find out if pointcut matches
+   * subclass methods.
+   */
+  @Pointcut("execution(* *..getDebugProperties(..))")
+  private void getDebugPropertiesMethod()
   {
   }
 
@@ -194,9 +209,8 @@ public class Tracer
    * Pointcut to exclude all pointcuts which should not be adviced by the
    * debug logger.
    */
-  @Pointcut("within(Tracer+) || within(org.opends.server.loggers.debug..*) " +
-      "|| toStringMethod() " +
-      "|| getMessageMethod() || logMethods()")
+  @Pointcut("toStringMethod() || getMessageMethod() || " +
+      "getDebugPropertiesMethod() || logMethods()")
   private void excluded()
   {
   }
@@ -204,16 +218,47 @@ public class Tracer
   /**
    * Pointcut for matching the execution of all public methods.
    */
-  @Pointcut("execution(!@NoDebugTracing public * *(..)) && !excluded()")
-  void tracedMethod()
+  @Pointcut("execution(!@(Tracer.NoDebugTracing || " +
+      "Tracer.NoEntryDebugTracing) public * *(..)) && " +
+      "!excluded()")
+  void tracedEntryMethod()
+  {
+  }
+
+  /**
+   * Pointcut for matching the execution of all public methods.
+   */
+  @Pointcut("execution(!@(Tracer.NoDebugTracing || " +
+      "Tracer.NoExitDebugTracing) public * *(..)) && " +
+      "!excluded()")
+  void tracedExitMethod()
+  {
+  }
+
+  /**
+   * Pointcut for matching the execution of all public methods.
+   */
+  @Pointcut("execution(@Tracer.TraceThrown public * *(..)) && " +
+      "!excluded()")
+  void tracedThrownMethod()
   {
   }
 
   /**
    * Pointcut for matching the execution of all constructors.
    */
-  @Pointcut("execution(!@NoDebugTracing public new(..)) && !excluded()")
-  void tracedConstructor()
+  @Pointcut("execution(!@(Tracer.NoDebugTracing || " +
+      "Tracer.NoEntryDebugTracing) public new(..)) && !excluded()")
+  void tracedEntryConstructor()
+  {
+  }
+
+  /**
+   * Pointcut for matching the execution of all constructors.
+   */
+  @Pointcut("execution(!@(Tracer.NoDebugTracing || " +
+      "Tracer.NoExitDebugTracing) public new(..)) && !excluded()")
+  void tracedExitConstructor()
   {
   }
 
@@ -222,19 +267,12 @@ public class Tracer
    *
    * @return if debug logging is enabled.
    */
-  @Pointcut("if() && tracingScope()")
+  @Pointcut("if()")
   public static boolean shouldTrace()
   {
-    return DebugLogger.enabled;
+    return DebugLogger.staticEnabled;
   }
 
-  /**
-   * Pointcut for matching only within the scope of the server packages.
-   */
-  @Pointcut("within(!@NoDebugTracing org.opends.server..*)")
-  protected void tracingScope()
-  {
-  }
 
   //The default level to log constructor exectuions.
   private static final LogLevel DEFAULT_CONSTRUCTOR_LEVEL =
@@ -242,6 +280,12 @@ public class Tracer
   //The default level to log method entry and exit pointcuts.
   private static final LogLevel DEFAULT_ENTRY_EXIT_LEVEL =
       DebugLogLevel.VERBOSE;
+  //The default level to log method entry and exit pointcuts.
+  private static final LogLevel DEFAULT_THROWN_LEVEL =
+      DebugLogLevel.ERROR;
+
+  private static final DebugMessageFormatter msgFormatter =
+      new DebugMessageFormatter();
 
   // The class this tracer traces.
   private String className;
@@ -258,13 +302,12 @@ public class Tracer
    *
    * @param thisJoinPointStaticPart the JoinPoint reflection object.
    */
-  @Before("staticinitialization(*) && tracingScope()")
+  @Before("staticinitialization(*)")
   public void initializeTracer(JoinPoint.StaticPart thisJoinPointStaticPart)
   {
     className = thisJoinPointStaticPart.getSignature().getDeclaringTypeName();
     logger = DebugLogger.getLogger();
     logger.registerTracer(className, this);
-    updateSettings();
   }
 
   /**
@@ -272,7 +315,7 @@ public class Tracer
    *
    * @param thisJoinPoint the JoinPoint reflection object.
    */
-  @Before("shouldTrace() && tracedConstructor()")
+  @Before("shouldTrace() && tracedEntryConstructor()")
   public void traceConstructor(JoinPoint thisJoinPoint)
   {
     LogCategory category = DebugLogCategory.CONSTRUCTOR;
@@ -294,7 +337,7 @@ public class Tracer
    * @param thisJoinPoint the JoinPoint reflection object.
    * @param obj the object this method operations on.
    */
-  @Before("shouldTrace() && tracedMethod() && nonStaticContext(obj)")
+  @Before("shouldTrace() && tracedEntryMethod() && nonStaticContext(obj)")
   public void traceNonStaticMethodEntry(JoinPoint thisJoinPoint, Object obj)
   {
     LogCategory category = DebugLogCategory.ENTER;
@@ -315,7 +358,7 @@ public class Tracer
    *
    * @param thisJoinPoint the JoinPoint reflection object.
    */
-  @Before("shouldTrace() && tracedMethod() && staticContext()")
+  @Before("shouldTrace() && tracedEntryMethod() && staticContext()")
   public void traceStaticMethodEntry(JoinPoint thisJoinPoint)
   {
     LogCategory category = DebugLogCategory.ENTER;
@@ -337,8 +380,8 @@ public class Tracer
    * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param ret the return value of the method.
    */
-  @AfterReturning(pointcut = "shouldTrace() && tracedMethod() &&" +
-                             "traceConstructor()",
+  @AfterReturning(pointcut = "shouldTrace() && " +
+      "(tracedExitMethod() || tracedExitConstructor())",
                   returning = "ret")
   public void traceReturn(JoinPoint.StaticPart thisJoinPointStaticPart,
                           Object ret)
@@ -359,12 +402,42 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
+   * @param ex the exception thrown.
+   */
+  @AfterThrowing(pointcut = "shouldTrace() && tracedThrownMethod()",
+                 throwing = "ex")
+  public void traceThrown(JoinPoint.StaticPart thisJoinPointStaticPart,
+                          Throwable ex)
+  {
+    LogCategory category = DebugLogCategory.THROWN;
+    LogLevel level = DEFAULT_THROWN_LEVEL;
+    Signature signature = thisJoinPointStaticPart.getSignature();
+    TraceSettings settings = getSettings(signature.getName());
+    if (level.intValue() >=
+        getEffectiveLevel(settings, category).intValue())
+    {
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
+      publish(category, level, signature.toLongString(), sl.toString(),
+              null, null , new Object[]{ex}, settings);
+    }
+  }
+
+  /**
+   * AspectJ Implementation.
+   *
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    */
   @Around("shouldTrace() && logVerboseMethod() && args(msg)")
   public void traceVerbose(JoinPoint.EnclosingStaticPart
-                             thisEnclosingJoinPointStaticPart, String msg)
+                             thisEnclosingJoinPointStaticPart,
+                           JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
+                           String msg)
   {
     LogLevel level = DebugLogLevel.VERBOSE;
     LogCategory category = DebugLogCategory.MESSAGE;
@@ -373,7 +446,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(),
               sl.toString(), null, msg, null, settings);
     }
@@ -382,13 +455,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    * @param msgArgs arguments to place into the format string.
    */
   @Around("shouldTrace() && logVerboseMethod() && args(msg, msgArgs)")
   public void traceVerbose(JoinPoint.EnclosingStaticPart
                              thisEnclosingJoinPointStaticPart,
+                           JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
                            String msg, Object[] msgArgs)
   {
     LogLevel level = DebugLogLevel.VERBOSE;
@@ -398,7 +476,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(),
               sl.toString(), null, msg, msgArgs, settings);
     }
@@ -407,12 +485,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    */
   @Around("shouldTrace() && logInfoMethod() && args(msg)")
   public void traceInfo(JoinPoint.EnclosingStaticPart
-                          thisEnclosingJoinPointStaticPart, String msg)
+                          thisEnclosingJoinPointStaticPart,
+                        JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
+                        String msg)
   {
     LogLevel level = DebugLogLevel.INFO;
     LogCategory category = DebugLogCategory.MESSAGE;
@@ -421,7 +505,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(),
               sl.toString(), null, msg, null, settings);
     }
@@ -430,13 +514,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    * @param msgArgs arguments to place into the format string.
    */
   @Around("shouldTrace() && logInfoMethod() && args(msg, msgArgs)")
   public void traceInfo(JoinPoint.EnclosingStaticPart
                           thisEnclosingJoinPointStaticPart,
+                        JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
                         String msg, Object[] msgArgs)
   {
     LogLevel level = DebugLogLevel.INFO;
@@ -446,7 +535,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(),
               sl.toString(), null, msg, msgArgs, settings);
     }
@@ -455,12 +544,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    */
   @Around("shouldTrace() && logWarningMethod() && args(msg)")
   public void traceWarning(JoinPoint.EnclosingStaticPart
-                             thisEnclosingJoinPointStaticPart, String msg)
+                             thisEnclosingJoinPointStaticPart,
+                           JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
+                           String msg)
 
   {
     LogLevel level = DebugLogLevel.WARNING;
@@ -470,7 +565,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(),
               sl.toString(), null, msg, null, settings);
     }
@@ -479,13 +574,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    * @param msgArgs arguments to place into the format string.
    */
   @Around("shouldTrace() && logWarningMethod() && args(msg, msgArgs)")
   public void traceWarning(JoinPoint.EnclosingStaticPart
                              thisEnclosingJoinPointStaticPart,
+                           JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
                            String msg, Object[] msgArgs)
   {
     LogLevel level = DebugLogLevel.WARNING;
@@ -495,7 +595,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(),
               sl.toString(), null, msg, msgArgs, settings);
     }
@@ -504,12 +604,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    */
   @Around("shouldTrace() && logErrorMethod() && args(msg)")
   public void traceError(JoinPoint.EnclosingStaticPart
-                           thisEnclosingJoinPointStaticPart, String msg)
+                           thisEnclosingJoinPointStaticPart,
+                         JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
+                         String msg)
 
   {
     LogLevel level = DebugLogLevel.ERROR;
@@ -519,7 +625,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(),
               sl.toString(), null, msg, null, settings);
     }
@@ -528,13 +634,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    * @param msgArgs arguments to place into the format string.
    */
   @Around("shouldTrace() && logErrorMethod() && args(msg, msgArgs)")
   public void traceError(JoinPoint.EnclosingStaticPart
                            thisEnclosingJoinPointStaticPart,
+                         JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
                          String msg, Object[] msgArgs)
   {
     LogLevel level = DebugLogLevel.ERROR;
@@ -544,7 +655,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(),
               sl.toString(), null, msg, msgArgs, settings);
     }
@@ -553,13 +664,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param msg message to format and log.
    */
   @Around("shouldTrace() && logMessageMethod() && args(level, msg)")
   public void traceMessage(JoinPoint.EnclosingStaticPart
                              thisEnclosingJoinPointStaticPart,
+                           JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
                            LogLevel level, String msg)
   {
     LogCategory category = DebugLogCategory.MESSAGE;
@@ -568,7 +684,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(), sl.toString(),
               null, msg, null, settings);
     }
@@ -577,7 +693,10 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param msg message to format and log.
    * @param msgArgs arguments to place into the format string.
@@ -585,6 +704,8 @@ public class Tracer
   @Around("shouldTrace() && logMessageMethod() && args(level, msg, msgArgs)")
   public void traceMessage(JoinPoint.EnclosingStaticPart
                              thisEnclosingJoinPointStaticPart,
+                           JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
                            LogLevel level, String msg, Object... msgArgs)
   {
     LogCategory category = DebugLogCategory.MESSAGE;
@@ -593,7 +714,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(), sl.toString(),
               null, msg, msgArgs, settings);
     }
@@ -602,13 +723,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param ex the exception thrown.
    */
   @Around("shouldTrace() && logThrownMethod() && args(level, ex)")
   public void traceThrown(JoinPoint.EnclosingStaticPart
                             thisEnclosingJoinPointStaticPart,
+                          JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
                           LogLevel level, Throwable ex)
   {
     LogCategory category = DebugLogCategory.THROWN;
@@ -617,7 +743,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(), sl.toString(),
               null, null , new Object[]{ex}, settings);
     }
@@ -626,13 +752,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param ex the exception caught.
    */
   @Around("shouldTrace() && logCaughtMethod() && args(level, ex)")
   public void traceCaught(JoinPoint.EnclosingStaticPart
                             thisEnclosingJoinPointStaticPart,
+                          JoinPoint.StaticPart
+                            thisJoinPointStaticPart,
                           LogLevel level, Throwable ex)
   {
     LogCategory category = DebugLogCategory.CAUGHT;
@@ -641,7 +772,7 @@ public class Tracer
     if (level.intValue() >=
         getEffectiveLevel(settings, category).intValue())
     {
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(), sl.toString(),
               null, null , new Object[]{ex}, settings);
     }
@@ -650,7 +781,10 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param status status of the JE operation.
    * @param database the database handle.
@@ -662,6 +796,8 @@ public class Tracer
       "database, txn, key, data)")
   public void traceJEAccess(JoinPoint.EnclosingStaticPart
                               thisEnclosingJoinPointStaticPart,
+                            JoinPoint.StaticPart
+                              thisJoinPointStaticPart,
                             LogLevel level, OperationStatus status,
                             Database database, Transaction txn,
                             DatabaseEntry key, DatabaseEntry data)
@@ -704,26 +840,29 @@ public class Tracer
         builder.append(" txnid=none");
       }
 
-      // If the operation was successful we log the same common information
-      // plus the key and data under category DATABASE_READ or DATABASE_WRITE
-      if (status == OperationStatus.SUCCESS)
+      builder.append(ServerConstants.EOL);
+      if(key != null)
       {
-        builder.append(ServerConstants.EOL);
-        builder.append(" key:");
+        builder.append("key:");
         builder.append(ServerConstants.EOL);
         StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-        if (data != null)
-        {
-          builder.append("data(len=");
-          builder.append(data.getSize());
-          builder.append("):");
-          builder.append(ServerConstants.EOL);
-          StaticUtils.byteArrayToHexPlusAscii(builder, data.getData(), 4);
-        }
+      }
+
+      // If the operation was successful we log the same common information
+      // plus the data
+      if (status == OperationStatus.SUCCESS && data != null)
+      {
+
+        builder.append("data(len=");
+        builder.append(data.getSize());
+        builder.append("):");
+        builder.append(ServerConstants.EOL);
+        StaticUtils.byteArrayToHexPlusAscii(builder, data.getData(), 4);
+
       }
 
 
-      SourceLocation sl = thisEnclosingJoinPointStaticPart.getSourceLocation();
+      SourceLocation sl = thisJoinPointStaticPart.getSourceLocation();
       publish(category, level, signature.toLongString(), sl.toString(), null,
               builder.toString(), null, settings);
     }
@@ -731,13 +870,18 @@ public class Tracer
 
   /**
    * AspectJ Implementation.
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param data the data to dump.
    */
   @Around("shouldTrace() && logDataMethod() && args(level, data)")
   public void traceData(JoinPoint.EnclosingStaticPart
                           thisEnclosingJoinPointStaticPart,
+                        JoinPoint.StaticPart
+                          thisJoinPointStaticPart,
                         LogLevel level, byte[] data)
   {
     LogCategory category = DebugLogCategory.DATA;
@@ -756,7 +900,7 @@ public class Tracer
         builder.append(ServerConstants.EOL);
         StaticUtils.byteArrayToHexPlusAscii(builder, data, 4);
         SourceLocation sl =
-            thisEnclosingJoinPointStaticPart.getSourceLocation();
+            thisJoinPointStaticPart.getSourceLocation();
         publish(category, level, signature.toLongString(), sl.toString(), null,
                 builder.toString(), null, settings);
       }
@@ -766,13 +910,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param element the protocol element to dump.
    */
   @Around("shouldTrace() && logProtocolElementMethod() && args(level, element)")
   public void traceProtocolElement(JoinPoint.EnclosingStaticPart
                                      thisEnclosingJoinPointStaticPart,
+                                   JoinPoint.StaticPart
+                                     thisJoinPointStaticPart,
                                    LogLevel level, ProtocolElement element)
   {
     LogCategory category = DebugLogCategory.PROTOCOL;
@@ -787,7 +936,7 @@ public class Tracer
         builder.append(ServerConstants.EOL);
         element.toString(builder, 4);
         SourceLocation sl =
-            thisEnclosingJoinPointStaticPart.getSourceLocation();
+            thisJoinPointStaticPart.getSourceLocation();
         publish(category, level, signature.toLongString(), sl.toString(), null,
                 builder.toString(), null, settings);
       }
@@ -797,13 +946,18 @@ public class Tracer
   /**
    * AspectJ Implementation.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object.
+   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
+   *                                         of the code that contains the
+   *                                         debug call.
+   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param buffer the data to dump.
    */
   @Around("shouldTrace() && logDataMethod() && args(level, buffer)")
   public void traceData(JoinPoint.EnclosingStaticPart
                           thisEnclosingJoinPointStaticPart,
+                        JoinPoint.StaticPart
+                          thisJoinPointStaticPart,
                         LogLevel level, ByteBuffer buffer)
   {
     LogCategory category = DebugLogCategory.DATA;
@@ -823,7 +977,7 @@ public class Tracer
         builder.append(ServerConstants.EOL);
         StaticUtils.byteArrayToHexPlusAscii(builder, data, 4);
         SourceLocation sl =
-            thisEnclosingJoinPointStaticPart.getSourceLocation();
+            thisJoinPointStaticPart.getSourceLocation();
         publish(category, level, signature.toLongString(), sl.toString(), null,
                 builder.toString(), null, settings);
       }
@@ -839,9 +993,10 @@ public class Tracer
   {
     int stackDepth = 0;
 
-    if(DebugLogCategory.ENTER.equals(category))
+    if (DebugLogCategory.ENTER.equals(category) ||
+        DebugLogCategory.CONSTRUCTOR.equals(category))
     {
-      if (settings.noArgs)
+      if(settings.noArgs)
       {
         msgArgs = null;
       }
@@ -849,12 +1004,11 @@ public class Tracer
       {
         msg = buildDefaultEntryMessage(msgArgs.length);
       }
-
-      stackDepth = settings.stackDepth;
     }
-    if(DebugLogCategory.EXIT.equals(category))
+
+    else if(DebugLogCategory.EXIT.equals(category))
     {
-      if (settings.noRetVal)
+      if(settings.noRetVal)
       {
         msgArgs = null;
       }
@@ -863,18 +1017,26 @@ public class Tracer
         msg = "returned={%s}";
       }
     }
-    if(DebugLogCategory.THROWN.equals(category))
+
+    else if(DebugLogCategory.THROWN.equals(category))
     {
-      if (msg == null)
+      if(msg == null)
       {
         msg = "threw={%s}";
       }
-      stackDepth = settings.stackDepth;
+    }
+
+    else if(DebugLogCategory.CAUGHT.equals(category))
+    {
+      if(msg == null)
+      {
+        msg = "caught={%s}";
+      }
     }
 
     if (msg != null && msgArgs != null)
     {
-      msg = String.format(msg, msgArgs);
+      msg = msgFormatter.format(msg, msgArgs);
     }
 
 
@@ -883,21 +1045,25 @@ public class Tracer
     record.setSignature(method);
     record.setSourceLocation(srcLocation);
 
+    Thread thread = Thread.currentThread();
+    if(thread instanceof DirectoryThread)
+    {
+      record.setThreadProperties(
+          ((DirectoryThread)thread).getDebugProperties());
+    }
+
+    //Stack trace applies only to entry and thrown exception messages.
+    if(DebugLogCategory.ENTER.equals(category) ||
+        DebugLogCategory.THROWN.equals(category))
+    {
+      stackDepth = settings.stackDepth;
+    }
+
     // Inject a stack trace if requested
     if (stackDepth > 0) {
 
       //Generate a dummy exception to get stack trace if necessary
-      Throwable t;
-      if(!DebugLogCategory.THROWN.equals(category) || msgArgs == null
-          || msgArgs[0] == null)
-      {
-       t= new NullPointerException();
-      }
-      else
-      {
-        t = (Throwable)msgArgs[0];
-      }
-
+      Throwable t= new NullPointerException();
       String stack=
           DebugStackTraceFormatter.formatStackTrace(t,
                                    DebugStackTraceFormatter.SMART_FRAME_FILTER,
@@ -988,15 +1154,15 @@ public class Tracer
 
   /**
    * Update the settings for this tracer.
+   *
+   * @param config the new trace configuration.
    */
-  protected void updateSettings()
+  protected void updateSettings(DebugConfiguration config)
   {
     synchronized (this)
     {
-      this.settings =
-          logger.getConfiguration().getTraceSettings(className);
-      this.methodSettings =
-          logger.getConfiguration().getMethodSettings(className);
+      this.settings = config.getTraceSettings(className);
+      this.methodSettings = config.getMethodSettings(className);
     }
   }
 
@@ -1026,5 +1192,29 @@ public class Tracer
     TraceSettings settings = getSettings(method);
     return getEffectiveLevel(settings, category);
   }
+
+  /**
+   * Classes and methods annotated with @NoDebugTracing will not be weaved with
+   * debug logging statements by AspectJ.
+   */
+  public @interface NoDebugTracing {}
+
+  /**
+   * Methods annotated with @NoEntryDebugTracing will not be weaved with
+   * entry debug logging statements by AspectJ.
+   */
+  public @interface NoEntryDebugTracing {}
+
+  /**
+   * Methods annotated with @NoExitDebugTracing will not be weaved with
+   * exit debug logging statements by AspectJ.
+   */
+  public @interface NoExitDebugTracing {}
+
+  /**
+   * Methods annotated with @TraceThrown will not be weaved by AspectJ with
+   * debug logging statements when an exception is thrown from the method.
+   */
+  public @interface TraceThrown {}
 
 }

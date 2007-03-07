@@ -119,7 +119,7 @@ public class LogLevel
   }
 
   /**
-   * Parse a level name string into a Level.
+   * Parse a level name string into a LogLevel.
    * <p>
    * The argument string may consist of either a level name
    * or an integer value.
