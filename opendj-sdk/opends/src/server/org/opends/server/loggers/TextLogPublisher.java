@@ -56,7 +56,8 @@ public class TextLogPublisher implements LogPublisher
    * @param record the log record to publish.
    * @param handler the error handler to use if an error occurs.
    */
-  public void publish(LogRecord record, LogErrorHandler handler)
+  public synchronized void publish(LogRecord record,
+                                   LoggerErrorHandler handler)
   {
     try
     {

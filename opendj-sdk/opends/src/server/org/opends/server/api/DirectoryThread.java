@@ -34,6 +34,8 @@ import org.opends.server.core.DirectoryServer;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 
 /**
@@ -210,6 +212,25 @@ public class DirectoryThread
   public void setAssociatedTask(Task task)
   {
     this.task = task;
+  }
+
+
+  /**
+   * Retrieves any relevent debug information with which this tread is
+   * associated so they can be included in debug messages.
+   *
+   * @return debug information about this thread as a string.
+   */
+  public Map<String, String> getDebugProperties()
+  {
+    LinkedHashMap<String, String> properties =
+        new LinkedHashMap<String, String>();
+
+    properties.put("parentThread", parentThread.getName() +
+        "(" + parentThread.getId() + ")");
+    properties.put("isDaemon", String.valueOf(this.isDaemon()));
+
+    return properties;
   }
 }
 

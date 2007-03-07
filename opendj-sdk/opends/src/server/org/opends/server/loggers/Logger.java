@@ -28,8 +28,7 @@ package org.opends.server.loggers;
 
 import org.opends.server.api.LogPublisher;
 
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.List;
 
 /**
  *  A Logger is the entry point into a message distribution
@@ -37,37 +36,36 @@ import java.util.concurrent.locks.ReentrantLock;
  * filters out undesired messages using a RecordFilter, and
  * sends them to a LogPublisher for further distribution.
  * Any logging exceptions encountered will be sent to a
- * LoggingErrorHandler.
+ * LoggerErrorHandler.
  */
 public abstract class Logger
 {
+ /**
+   * Whether the debug logger is enabled or disabled.
+   */
+  protected boolean enabled;
+
   /**
    * The logging error handler.
    */
-  protected LogErrorHandler handler;
+  protected LoggerErrorHandler handler;
 
   /**
    * The set of publishers.
    */
-  protected CopyOnWriteArrayList<LogPublisher> publishers;
-
-  /**
-   * A mutex that will be used to provide threadsafe access to methods
-   * changing the set of defined publishers.
-   */
-  protected ReentrantLock publisherMutex;
+  protected List<LogPublisher> publishers;
 
   /**
    * Construct a new logger object.
    *
-   * @param handler the error handler to use when an error occurs.
+   * @param config the logger configuration to use when construting the new
+   *               logger object.
    */
-  protected Logger(LogErrorHandler handler)
+  protected Logger(LoggerConfiguration config)
   {
-    this.publishers = new CopyOnWriteArrayList<LogPublisher>();
-    this.publisherMutex = new ReentrantLock();
-
-    this.handler = handler;
+    this.enabled = config.getEnabled();
+    this.publishers = config.getPublishers();
+    this.handler = config.getErrorHandler();
   }
 
   /**
@@ -75,7 +73,7 @@ public abstract class Logger
    *
    * @param record The log record to publish.
    */
-  protected void publishRecord(LogRecord record)
+  public void publishRecord(LogRecord record)
   {
     for(LogPublisher p : publishers)
     {
@@ -84,97 +82,36 @@ public abstract class Logger
   }
 
   /**
-   * Adds a new publisher to which log records should be sent.
+   * Update this logger with the provided configuration.
    *
-   * @param publisher The publisher to which records should be sent.
+   * @param config the new configuration to use for this logger.
    */
-  protected void addPublisher(LogPublisher publisher)
+  protected void updateConfiguration(LoggerConfiguration config)
   {
-    publisherMutex.lock();
-
-    try
+    boolean newEnabled = config.getEnabled();
+    if(enabled && !newEnabled)
     {
-      for (LogPublisher p : publishers)
+      //it is now disabled. Close all publishers if any.
+      for(LogPublisher publisher : publishers)
       {
-        if (p.equals(publisher))
+        publisher.shutdown();
+        publishers.remove(publisher);
+      }
+    }
+
+    if(newEnabled)
+    {
+      List<LogPublisher> newPublishers = config.getPublishers();
+      for(LogPublisher oldPublisher : publishers)
+      {
+        if(!newPublishers.contains(oldPublisher))
         {
-          return;
+          //A publisher was removed. Make sure to close it before removing it.
+          oldPublisher.shutdown();
         }
       }
-
-      publishers.add(publisher);
-    }
-    catch (Exception e)
-    {
-      // This should never happen.
-      e.printStackTrace();
-    }
-    finally
-    {
-      publisherMutex.unlock();
-    }
-  }
-
-  /**
-   * Removes the provided publisher so records will no longer be sent to it.
-   *
-   * @param publisher The publisher to remove.
-   */
-  protected void removePublisher(LogPublisher publisher)
-  {
-      publisherMutex.lock();
-
-    try
-    {
-      publishers.remove(publisher);
-    }
-    catch (Exception e)
-    {
-      // This should never happen.
-      e.printStackTrace();
-    }
-    finally
-    {
-      publisherMutex.unlock();
-    }
-  }
-
-  /**
-   * Removes all publishers so records are not sent anywhere.
-   *
-   * @param closePublishers whether to close the publishers when removing them.
-   */
-  protected void removeAllPublishers(boolean closePublishers)
-  {
-    publisherMutex.lock();
-
-    try
-    {
-      if(closePublishers)
-      {
-        LogPublisher[] pubs = new LogPublisher[publishers.size()];
-        publishers.toArray(pubs);
-
-        publishers.clear();
-
-        for(LogPublisher pub : pubs)
-        {
-          pub.shutdown();
-        }
-      }
-          else
-    {
-      publishers.clear();
-    }
-    }
-    catch(Exception e)
-    {
-      // This should never happen.
-      e.printStackTrace();
-    }
-    finally
-    {
-      publisherMutex.unlock();
+      this.publishers = config.getPublishers();
+      this.handler = config.getErrorHandler();
     }
   }
 }

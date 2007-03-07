@@ -56,6 +56,9 @@ import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.Access;
 import org.opends.server.loggers.Error;
+import org.opends.server.loggers.debug.DebugLogFormatter;
+import org.opends.server.loggers.debug.DebugConfiguration;
+import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.DN;
@@ -146,6 +149,19 @@ public final class TestCaseUtils {
     {
       return;
     }
+
+    String debugTarget = System.getProperty("org.opends.test.debug.target");
+    if(debugTarget != null)
+    {
+      System.setProperty("org.opends.server.debug.target.1", debugTarget);
+    }
+    DebugConfiguration testDebugConfig =
+        DebugConfiguration.getStartupConfiguration();
+    testDebugConfig.removeAllPublishers(true);
+    testDebugConfig.addPublisher(TestListener.DEBUG_LOG_PUBLISHER);
+
+    DebugLogger debugLogger = DebugLogger.getLogger();
+    debugLogger.updateConfiguration(testDebugConfig);
 
     InvocationCounterPlugin.resetStartupCalled();
 

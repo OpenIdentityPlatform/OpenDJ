@@ -30,6 +30,7 @@ import org.opends.server.loggers.TextLogFormatter;
 import org.opends.server.loggers.LogRecord;
 
 import java.util.Locale;
+import java.util.Map;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -66,25 +67,44 @@ public class DebugLogFormatter implements TextLogFormatter
       buf.append(_timestamper.format(dlr.getTimestamp()));
       buf.append(" ");
 
-      // Emit the debug level.
-      buf.append(dlr.getLevel());
+      // Emit the seq num
+      buf.append(dlr.getSequenceNumber());
       buf.append(" ");
-
-      // Emit thread info.
-      buf.append(dlr.getThreadName());
-      buf.append("(");
-      buf.append(dlr.getThreadID());
-      buf.append(") ");
 
       // Emit debug category.
       buf.append(dlr.getCategory());
       buf.append(" ");
 
+      // Emit the debug level.
+      buf.append(dlr.getLevel());
+      buf.append(" ");
+
+      // Emit thread info.
+      buf.append("thread={");
+      buf.append(dlr.getThreadName());
+      buf.append("(");
+      buf.append(dlr.getThreadID());
+      buf.append(")} ");
+
+      if(dlr.getThreadProperties() != null)
+      {
+        buf.append("threadDetail={");
+        for(Map.Entry entry : dlr.getThreadProperties().entrySet())
+        {
+          buf.append(entry.getKey());
+          buf.append("=");
+          buf.append(entry.getValue());
+          buf.append(" ");
+        }
+        buf.append("} ");
+      }
+
       // Emit method info.
+      buf.append("signature={");
       buf.append(dlr.getSignature());
       buf.append(" @ ");
       buf.append(dlr.getSourceLocation());
-      buf.append(" ");
+      buf.append("} ");
 
       // Emit message.
       buf.append(dlr.getMessage());
@@ -92,7 +112,7 @@ public class DebugLogFormatter implements TextLogFormatter
       // Emit Stack Trace.
       if(dlr.getStackTrace() != null)
       {
-        buf.append("\nStack Trace\n");
+        buf.append("\nStack Trace:\n");
         buf.append(dlr.getStackTrace());
       }
 

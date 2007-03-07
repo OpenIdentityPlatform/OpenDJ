@@ -47,6 +47,7 @@ import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.util.Map;
 
 
 /**
@@ -309,6 +310,22 @@ public class TraditionalWorkerThread
         }
       }
     }
+  }
+
+  /**
+   * Retrieves any relevent debug information with which this tread is
+   * associated so they can be included in debug messages.
+   *
+   * @return debug information about this thread as a string.
+   */
+  public Map<String, String> getDebugProperties()
+  {
+    Map<String, String> properties = super.getDebugProperties();
+    properties.put("clientConnection",
+                   operation.getClientConnection().toString());
+    properties.put("operation", operation.toString());
+
+    return properties;
   }
 }
 

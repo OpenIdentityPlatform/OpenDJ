@@ -1054,9 +1054,48 @@ public class FilePermission
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append("FilePermission(");
-    toUNIXMode(buffer, this);
-    buffer.append(")");
+    buffer.append("Owner=");
+
+    if (isOwnerReadable())
+    {
+      buffer.append("r");
+    }
+    if (isOwnerWritable())
+    {
+      buffer.append("w");
+    }
+    if (isOwnerExecutable())
+    {
+      buffer.append("x");
+    }
+    buffer.append(", Group=");
+
+    if (isGroupReadable())
+    {
+      buffer.append("r");
+    }
+    if (isGroupWritable())
+    {
+      buffer.append("w");
+    }
+    if (isGroupExecutable())
+    {
+      buffer.append("x");
+    }
+    buffer.append(", Other=");
+
+    if (isOtherReadable())
+    {
+      buffer.append("r");
+    }
+    if (isOtherWritable())
+    {
+      buffer.append("w");
+    }
+    if (isOtherExecutable())
+    {
+      buffer.append("x");
+    }
   }
 }
 

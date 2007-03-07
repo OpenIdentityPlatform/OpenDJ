@@ -27,13 +27,13 @@
 package org.opends.server.loggers;
 
 /**
- * A LoggingErrorHandler is used for notification of exceptions which
+ * A LoggerErrorHandler is used for notification of exceptions which
  * occur during the publishing of a record.
  *
  * The advantage of using a handler is that we can handle exceptions
  * asynchronously (useful when dealing with an AsynchronousPublisher).
  */
-public interface LogErrorHandler
+public interface LoggerErrorHandler
 {
   /**
    * Handle an exception which occurred during the publishing
