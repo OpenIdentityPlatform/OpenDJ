@@ -227,7 +227,23 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String BIND_RULE_GROUPDN_1 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com\"";
   private static final String BIND_RULE_GROUPDN_2 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com\"";
   private static final String BIND_RULE_GROUPDN_3 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com || ldap:///cn=SomeThirdGroup,dc=example,dc=com\"";
+  private static final String BIND_RULE_ROLEDN_1 = "roledn=\"ldap:///cn=SomeGroup,dc=example,dc=com\"";
+  private static final String BIND_RULE_ROLEDN_2 =  "roledn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com\"";
+  private static final String BIND_RULE_ROLEDN_3 =  "roledn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com || ldap:///cn=SomeThirdGroup,dc=example,dc=com\"";
+
   private static final String BIND_RULE_USERDN_FILTER = "userdn=\"ldap:///dc=example,dc=com??one?(|(ou=eng)(ou=acct))\"";
+
+  //bind rule user attr ACIs
+  private static final String BIND_RULE_USERATTR_USERDN = "userattr=\"manager#USERDN\"";
+  private static final String BIND_RULE_USERATTR_USERDN_1 = "userattr=\"ldap:///dc=example,dc=com?owner#USERDN\"";
+  private static final String BIND_RULE_USERATTR_URL = "userattr=\"cn#LDAPURL\"";
+  private static final String BIND_RULE_USERATTR_GROUPDN = "userattr=\"manager#GROUPDN\"";
+  private static final String BIND_RULE_USERATTR_GROUPDN_1 = "userattr=\"ldap:///dc=example,dc=com?owner#GROUPDN\"";
+  private static final String BIND_RULE_USERATTR_ROLEDN = "userattr=\"manager#ROLEDN\"";
+  private static final String BIND_RULE_USERATTR_ROLEDN_1 = "userattr=\"ldap:///dc=example,dc=com?owner#ROLEDN\"";
+  private static final String BIND_RULE_USERATTR_USERDN_INHERITANCE = "userattr=\"parent[0,1,2].cn#USERDN\"";
+  private static final String BIND_RULE_USERATTR_GROUPDN_INHERITANCE = "userattr=\"parent[0,1,2].cn#GROUPDN\"";
+  private static final String BIND_RULE_USERATTR_VALUE = "userattr=\"manager#a manager\"";
 
   private static final String BIND_RULE_INVALID_DAY = "dayofweek=\"sumday\"";
 
@@ -237,6 +253,21 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String BIND_RULE_NOON_AND_AFTER = "timeofday>=\"1200\"";
   private static final String BIND_RULE_BEFORE_NOON = "timeofday<\"1200\"";
   private static final String BIND_RULE_NOON_AND_BEFORE = "timeofday<=\"1200\"";
+  //targattrfilters
+  private static final String TARG_ATTR_FILTERS =  "add=cn:(!(cn=superAdmin))";
+  private static final String TARG_ATTR_FILTERS_1 =  "add=cn:(!(cn=superAdmin)) && telephoneNumber:(telephoneNumber=123*)";
+  private static final String TARG_ATTR_FILTERS_2 =  "add=cn:(!(cn=superAdmin)), del=sn:(!(sn=nonSuperAdmin))";
+  private static final String TARG_ATTR_FILTERS_4 =  "del=cn:(&(cn=foo)(cn=f*)) && sn:(sn=joe*)";
+  private static final String TARG_ATTR_FILTERS_5 = TARG_ATTR_FILTERS_1 + "," + TARG_ATTR_FILTERS_4 ;
+  //targattrfilters invalids
+  private static final String TARG_ATTR_FILTERS_INVALID_FILTER =  "del=cn:(&(cnfoo)(cn=f*)) && sn:(snjoe*)";
+  private static final String TARG_ATTR_FILTERS_BAD_OP =  "delete=cn:(&(cn=foo)(cn=f*)) && sn:(sn=joe*)";
+  private static final String TARG_ATTR_FILTERS_BAD_OP_MATCH = TARG_ATTR_FILTERS_1 + "," + TARG_ATTR_FILTERS_1 ;
+  private static final String TARG_ATTR_FILTERS_BAD_FILTER_ATTR =  "del=cn:(&(cn=foo)(cn=f*)) && sn:(cn=joe*)";
+  private static final String TARG_ATTR_FILTERS_BAD_FORMAT =  "delete=cn;(&(cn=foo)(cn=f*)) && sn:(sn=joe*)";
+  private static final String TARG_ATTR_FILTERS_TOO_MANY_LISTS = TARG_ATTR_FILTERS_1 + "," + TARG_ATTR_FILTERS_4 + "," + TARG_ATTR_FILTERS_1;
+  private static final String TARG_ATTR_FILTERS_BAD_TOK =  "delete=cn:(&(cn=foo)(cn=f*)) && sn:(sn=joe*) || pager:(pager=123-*)";
+  private static final String TARG_ATTR_FILTERS_ATTR_TYPE_NAME =  "del=cn:(&(cn=foo)(cn=f*)) && 1sn_;:(1sn_;=joe*)";
 
   private static final String SELF_MODIFY_ACI = "aci: (targetattr=\"*\")(version 3.0; acl \"self modify\";allow(all) userdn=\"userdn=\"ldap:///self\";)";
 
@@ -250,7 +281,7 @@ public class AciTests extends DirectoryServerTestCase {
           buildAciValue("name", "allow all to anyone", "targetattr", "*", "allow(all)", BIND_RULE_USERDN_ANYONE);
 
   private static final String ALLOW_SEARCH_TO_ADMIN =
-          buildAciValue("name", "allow search to admin", "targetattr", "*", "allow(search)", BIND_RULE_USERDN_ADMIN);
+          buildAciValue("name", "allow search to admin", "targetattr", "*", "allow(search, read)", BIND_RULE_USERDN_ADMIN);
 
   private static final String DENY_ALL_TO_ALL =
           buildAciValue("name", "deny all", "targetattr", "*", "deny(all)", BIND_RULE_USERDN_ALL);
@@ -262,7 +293,7 @@ public class AciTests extends DirectoryServerTestCase {
           buildAciValue("name", "deny search", "targetattr", "*", "deny(search)", BIND_RULE_USERDN_ALL);
 
   private static final String ALLOW_SEARCH_TO_ALL =
-          buildAciValue("name", "allow search", "targetattr", "*", "allow(search)", BIND_RULE_USERDN_ALL);
+          buildAciValue("name", "allow search", "targetattr", "*", "allow(search, read)", BIND_RULE_USERDN_ALL);
 
   private static final String ALLOW_READ_TO_ALL =
           buildAciValue("name", "allow read", "targetattr", "*", "allow(read)", BIND_RULE_USERDN_ALL);
@@ -289,7 +320,7 @@ public class AciTests extends DirectoryServerTestCase {
           buildAciValue("name", "allow all to non ou person", "targetattr", "*", "targetfilter!=", "(|(objectclass=organizationalunit)(objectclass=person))", "allow(all)", BIND_RULE_USERDN_ALL);
 
   private static final String ALLOW_WRITE_DELETE_SEARCH_TO_ALL =
-          buildAciValue("name", "allow write, delete, and search,", "targetattr", "*", "allow(write, delete, search)", BIND_RULE_USERDN_ALL);
+          buildAciValue("name", "allow write, delete, and search,", "targetattr", "*", "allow(write, delete, search, read)", BIND_RULE_USERDN_ALL);
 
   private static final String DENY_WRITE_DELETE_READ_TO_ALL =
           buildAciValue("name", "deny write delete read to all", "targetattr", "*", "deny(write, delete, read)", BIND_RULE_USERDN_ALL);
@@ -307,7 +338,7 @@ public class AciTests extends DirectoryServerTestCase {
           buildAciValue("name", "deny read to users with 'admin' in their cn", "targetattr", "*", "deny(read)", BIND_RULE_USERDN_ALL_CN_ADMINS);
 
   private static final String ALLOW_SEARCH_TO_CN_ADMINS =
-          buildAciValue("name", "allow search to users with 'admin' in their cn", "targetattr", "*", "allow(search)", BIND_RULE_USERDN_ALL_CN_ADMINS);
+          buildAciValue("name", "allow search to users with 'admin' in their cn", "targetattr", "*", "allow(search, read)", BIND_RULE_USERDN_ALL_CN_ADMINS);
 
   private static final String DENY_READ_TO_TOP_LEVEL_CN_ADMINS =
           buildAciValue("name", "deny read to users with 'admin' in their cn", "targetattr", "*", "deny(read)", BIND_RULE_USERDN_TOP_LEVEL_CN_ADMINS);
@@ -386,19 +417,19 @@ public class AciTests extends DirectoryServerTestCase {
           buildAciValue("name", "allow not admin", "targetattr", "*", "allow(all)", BIND_RULE_USERDN_NOT_ADMIN);
 
   private static final String ALLOW_SEARCH_TO_LOCALHOST =
-          buildAciValue("name", "allow search to localhost", "targetattr", "*", "allow(search)", BIND_RULE_IP_LOCALHOST);
+          buildAciValue("name", "allow search to localhost", "targetattr", "*", "allow(search, read)", BIND_RULE_IP_LOCALHOST);
 
   private static final String ALLOW_SEARCH_REALATTRS_TO_LOCALHOST =
-          buildAciValue("name", "allow search to localhost", "targetattr!=", "bogusAttr", "allow(search)", BIND_RULE_IP_LOCALHOST);
+          buildAciValue("name", "allow search to localhost", "targetattr!=", "bogusAttr", "allow(search, read)", BIND_RULE_IP_LOCALHOST);
 
   private static final String ALLOW_SEARCH_OUR_ATTRS_TO_ADMIN =
-          buildAciValue("name", "allow search to our attributes to admin", "targetattr", "objectclass||ou||cn||sn||givenname", "target", LDAP_URL_OU_INNER, "allow(search)", BIND_RULE_USERDN_ADMIN);
+          buildAciValue("name", "allow search to our attributes to admin", "targetattr", "objectclass||ou||cn||sn||givenname", "target", LDAP_URL_OU_INNER, "allow(search, read)", BIND_RULE_USERDN_ADMIN);
 
   private static final String ALLOW_SEARCH_TARGET_INNER_TO_LOCALHOST =
-          buildAciValue("name", "allow search inner to localhost", "targetattr", "*", "target", LDAP_URL_OU_INNER, "allow(search)", BIND_RULE_IP_LOCALHOST);
+          buildAciValue("name", "allow search inner to localhost", "targetattr", "*", "target", LDAP_URL_OU_INNER, "allow(search, read)", BIND_RULE_IP_LOCALHOST);
 
   private static final String ALLOW_SEARCH_OU_AND_PERSON_TO_SIMPLE =
-          buildAciValue("name", "allow search ou and person to localhost", "targetattr", "*", "targetfilter", "(|(objectclass=organizationalunit)(objectclass=person))", "allow(search)", BIND_RULE_AUTHMETHOD_SIMPLE);
+          buildAciValue("name", "allow search ou and person to localhost", "targetattr", "*", "targetfilter", "(|(objectclass=organizationalunit)(objectclass=person))", "allow(search, read)", BIND_RULE_AUTHMETHOD_SIMPLE);
 
 
 // -----------------------------------------------------------------------------
@@ -461,6 +492,13 @@ public class AciTests extends DirectoryServerTestCase {
     buildAciValue("name", "w/ 1 targetattr", "targetattr", "cn", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ 2 targetattr", "targetattr", "cn || sn", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ 3 targetattr", "targetattr", "cn || sn || uid", "allow (write)", BIND_RULE_USERDN_SELF),
+    //These are four are OpenDS specific attr names
+    buildAciValue("name", "opends targetattr", "targetattr", "1-digitinfirst", "allow (write)", BIND_RULE_USERDN_SELF),
+    buildAciValue("name", "opendstargetattr", "targetattr", "this_has_underscores", "allow (write)", BIND_RULE_USERDN_SELF),
+    buildAciValue("name", "locality targetattr", "targetattr", "locality;lang-fr-ca", "allow (write)", BIND_RULE_USERDN_SELF),
+    buildAciValue("name", "oid targetattr", "targetattr", " 2.16.840.1.113730.3.3.2.18.1.4", "allow (write)", BIND_RULE_USERDN_SELF),
+    buildAciValue("name", "complicated targetattr", "targetattr", "1ocal_ity;lang-fr-ca", "allow (write)", BIND_RULE_USERDN_SELF),
+
     buildAciValue("name", "w/ * targetattr", "targetattr", "*", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ non-existing attr", "targetattr", "notanattr", "allow (write)", BIND_RULE_USERDN_SELF),       // DS 5.2p4 accepts this so we should too.
     buildAciValue("name", "w/ non-existing attr", "targetattr", "cn || notanattr", "allow (write)", BIND_RULE_USERDN_SELF), // DS 5.2p4 accepts this so we should too.
@@ -481,20 +519,16 @@ public class AciTests extends DirectoryServerTestCase {
     buildAciValue("name", "w/ 1 !targetattr", "targetattr!=", "cn", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ 2 !targetattr", "targetattr!=", "cn || sn", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ targetfilter", "targetfilter!=", "(sn=admin)", "allow (write)", BIND_RULE_USERDN_SELF),
-// </PASSES>
-
-// <FAILS>
-//  These aren't supported yet.  We should open an issue.
-//    buildAciValue("name", "w/ targetattrfilters", "targetattrfilters", "add=cn:(!(cn=superAdmin))", "allow (write)", BIND_RULE_USERDN_SELF),
-//    buildAciValue("name", "w/ targetattrfilters", "targetattrfilters", "add=cn:(!(cn=superAdmin)) && telephoneNumber:(telephoneNumber=123*)", "allow (write)", BIND_RULE_USERDN_SELF),
-// </FAILS>
-
-// <PASSES>
+    buildAciValue("name", "w/ targattrfilters", "targattrfilters=",  TARG_ATTR_FILTERS, "allow (write)", BIND_RULE_USERDN_SELF),
+    buildAciValue("name", "w/ targattrfilters", "targattrfilters=",  TARG_ATTR_FILTERS_1 , "allow (write)", BIND_RULE_USERDN_SELF),
+    buildAciValue("name", "w/ targattrfilters", "targattrfilters=",  TARG_ATTR_FILTERS_2 , "allow (write)", BIND_RULE_USERDN_SELF),
+    buildAciValue("name", "w/ targattrfilters", "targattrfilters=",  TARG_ATTR_FILTERS_5 , "allow (write)", BIND_RULE_USERDN_SELF),
+    buildAciValue("name", "bad_ATTR_TYPE_NAME", "targattrfilters",TARG_ATTR_FILTERS_ATTR_TYPE_NAME, "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "read", "targetattr", "*", "allow (read)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "write", "targetattr", "*", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "add", "targetattr", "*", "allow (add)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "delete", "targetattr", "*", "allow (delete)", BIND_RULE_USERDN_SELF),
-    buildAciValue("name", "search", "targetattr", "*", "allow (search)", BIND_RULE_USERDN_SELF),
+    buildAciValue("name", "search", "targetattr", "*", "allow (search, read)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "compare", "targetattr", "*", "allow (compare)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "selfwrite", "targetattr", "*", "allow (selfwrite)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "all", "targetattr", "*", "allow (all)", BIND_RULE_USERDN_SELF),
@@ -518,16 +552,22 @@ public class AciTests extends DirectoryServerTestCase {
     buildAciValue("name", "read anyone", "targetattr", "*", "allow (read)", BIND_RULE_USERDN_ANYONE),
     buildAciValue("name", "read filter", "targetattr", "*", "allow (read)", BIND_RULE_USERDN_FILTER),
     buildAciValue("name", "read parent", "targetattr", "*", "allow (read)", BIND_RULE_USERDN_PARENT),
-// <FAIL>
-//  These aren't supported yet.  We should open an issue.
-//    buildAciValue("name", "read group dn 1", "targetattr", "*", "allow (read)", BIND_RULE_GROUPDN_1),
-//    buildAciValue("name", "read group dn 2", "targetattr", "*", "allow (read)", BIND_RULE_GROUPDN_2),
-//    buildAciValue("name", "read group dn 3", "targetattr", "*", "allow (read)", BIND_RULE_GROUPDN_3),
-// </FAIL>
-    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", "userattr=\"manager#USERDN\""),
-    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", "userattr=\"ldap:///dc=example,dc=com?owner#USERDN\""),
-    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", "userattr=\"cn#LDAPURL\""),
-
+    buildAciValue("name", "read group dn 1", "targetattr", "*", "allow (read)", BIND_RULE_GROUPDN_1),
+    buildAciValue("name", "read group dn 2", "targetattr", "*", "allow (read)", BIND_RULE_GROUPDN_2),
+    buildAciValue("name", "read group dn 3", "targetattr", "*", "allow (read)", BIND_RULE_GROUPDN_3),
+    buildAciValue("name", "read group dn 1", "targetattr", "*", "allow (read)", BIND_RULE_ROLEDN_1),
+    buildAciValue("name", "read group dn 2", "targetattr", "*", "allow (read)", BIND_RULE_ROLEDN_2),
+    buildAciValue("name", "read group dn 3", "targetattr", "*", "allow (read)", BIND_RULE_ROLEDN_3),
+    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_USERDN),
+    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_USERDN_1),
+    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_URL),
+    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_GROUPDN),
+    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_GROUPDN_1),
+    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_ROLEDN),
+    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_ROLEDN_1),
+    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_USERDN_INHERITANCE),
+    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_GROUPDN_INHERITANCE),
+    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_VALUE),
     // BUG!  These work with DS 5.2p4, but not with OpenDS.
 // <FAIL>
 //    DENY_ALL_TO_LOCALHOST_SUBNET,
@@ -559,12 +599,6 @@ public class AciTests extends DirectoryServerTestCase {
      DENY_ALL_TO_ADMIN_AND_LOCALHOST_OR_SSL,
      ALLOW_ALL_NOT_ADMIN
 
-
-// <FAIL>
-//  These aren't supported yet.  We should open an issue.
-//    buildAciValue("name", "userattr 1", "targetattr", "*", "allow (read)", "userattr=\"owner#GROUPDN\""),
-//    buildAciValue("name", "userattr 1", "targetattr", "*", "allow (read)", "userattr=\"ldap:///dc=example,dc=com?owner#GROUPDN\""),
-// </FAIL>
 // </PASSES>
     // TODO: bind rules for 'ip', 'dns', 'dayofweek', 'timeofday', 'authmethod'
     // TODO: combinations of these things, including multiple bind rules.
@@ -575,20 +609,29 @@ public class AciTests extends DirectoryServerTestCase {
     // Test each feature in isolation.
 // <PASSES>
     "aci: ",
-    buildAciValue("allow (write)", BIND_RULE_USERDN_SELF),  // No name
-    buildAciValue("name", "invalid", "target", "ldap:///", "allow (write)", BIND_RULE_USERDN_SELF),
-    buildAciValue("name", "invalid", "target", "ldap:///not a DN", "allow (write)", BIND_RULE_USERDN_SELF),
-    buildAciValue("name", "invalid", "target", "ldap:///cn=", "allow (write)", BIND_RULE_USERDN_SELF),
-    buildAciValue("name", "invalid", "targetattr", "", "allow (write)", BIND_RULE_USERDN_SELF),
-    buildAciValue("name", "invalid", "targetattr", "not an attr", "allow (write)", BIND_RULE_USERDN_SELF),
-    buildAciValue("name", "invalid", "targetattr", "cn ||", "allow (write)", BIND_RULE_USERDN_SELF),
-    buildAciValue("name", "invalid", "targetattr", "not/an/attr", "allow (write)", BIND_RULE_USERDN_SELF),
-    buildAciValue("name", "invalid", "targetattr", "cn", "allow (write)", BIND_RULE_INVALID_DAY),
+          buildAciValue("allow (write)", BIND_RULE_USERDN_SELF),  // No name
+          buildAciValue("name", "invalid", "target", "ldap:///", "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "invalid", "target", "ldap:///not a DN", "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "invalid", "target", "ldap:///cn=", "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "invalid", "targetattr", "", "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "invalid", "targetattr", "not an attr", "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "invalid", "targetattr", "cn ||", "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "invalid", "targetattr", "not/an/attr", "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "invalid", "targetattr", "cn", "allow (write)", BIND_RULE_INVALID_DAY),
+          buildAciValue("name", "bad_filters", "targetattrfilters",TARG_ATTR_FILTERS_INVALID_FILTER, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad_op", "targetattrfilters",TARG_ATTR_FILTERS_BAD_OP, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad_op_match", "targetattrfilters",TARG_ATTR_FILTERS_BAD_OP_MATCH, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad_filter_attr", "targetattrfilters",TARG_ATTR_FILTERS_BAD_FILTER_ATTR, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad_format", "targetattrfilters",TARG_ATTR_FILTERS_BAD_FORMAT, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "too_many_lists", "targetattrfilters",TARG_ATTR_FILTERS_TOO_MANY_LISTS, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad_tok", "targetattrfilters",TARG_ATTR_FILTERS_BAD_TOK, "allow (write)", BIND_RULE_USERDN_SELF),
 
-// <FAIL>
-// Attributes can't have '_' right?, but DS 5.2p4 accepts this, so should we?
-//    buildAciValue("name", "invalid", "targetattr", "not_an_attr", "allow (write)", BIND_RULE_USERDN_SELF),
-// </FAIL>
+
+         buildAciValue("name", "bad targetScope", "targetScope", "sub_tree", "allow (write)", BIND_RULE_USERDN_SELF),
+         buildAciValue("name", "bad right", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all, foo)", BIND_RULE_USERDN_SELF),
+         buildAciValue("name", "bad access type", "targetattr", "*", "allows (read, write, add, delete, search, compare, selfwrite, all)", BIND_RULE_USERDN_SELF),
+         //no name
+         buildAciValue("targetattr", "*", "allows (read, write, add, delete, search, compare, selfwrite, all)", BIND_RULE_USERDN_SELF),
 
 // </PASSES>
   };
@@ -1392,7 +1435,7 @@ public class AciTests extends DirectoryServerTestCase {
       // Ignoring whitespace the diff should be empty.
       Assert.assertTrue(diffFromExpected.replaceAll("\\s", "").length() == 0);
     } catch (Throwable e) {
-      System.err.println(
+        System.err.println(
               "Started with dit:\n" +
               params._initialDitLdif +
               ((params._aciLdif.length() == 0) ?
@@ -1429,7 +1472,7 @@ public class AciTests extends DirectoryServerTestCase {
       String aciField = aciFields[i];
       String aciValue = aciFields[i+1];
 
-      if (aciField.startsWith("target")) {
+      if (aciField.startsWith("targ")) {
         if (!aciField.endsWith("=")) {  // We allow = or more importantly != to be included with the target
           aciField += "=";
         }
@@ -1456,7 +1499,7 @@ public class AciTests extends DirectoryServerTestCase {
       String permission = aciFields[i];
       String bindRule = aciFields[i+1];
 
-      if (!permission.startsWith("target") && !permission.equals("name")) {
+      if (!permission.startsWith("targ") && !permission.equals("name")) {
         aci.append(EOL + " " + permission + " " + bindRule + ";");
       }
     }

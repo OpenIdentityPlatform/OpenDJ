@@ -32,6 +32,7 @@ package org.opends.server.authorization.dseecompat;
  * keyword types.
  */
 public enum EnumBindRuleKeyword {
+
     /**
      * The enumeration type when the bind rule has specified keyword of
      * userdn.
@@ -77,10 +78,11 @@ public enum EnumBindRuleKeyword {
      * authmethod.
      */
     AUTHMETHOD ("authmethod");
-    /**
+
+    /*
      * The keyword name.
      */
-    public final String keyword;
+    private final String keyword;
 
     /**
      * Creates a new enumeration type for the specified keyword.

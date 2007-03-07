@@ -104,6 +104,11 @@ implements AciTargetMatchContext, AciEvalContext {
      */
     private Operation operation;
 
+    /*
+     * True if a targattrfilters match was found.
+     */
+    private boolean targAttrFiltersMatch=false;
+
     /**
      * This constructor is used by all currently supported LDAP operations.
      *
@@ -305,6 +310,7 @@ implements AciTargetMatchContext, AciEvalContext {
     public void setRights(int rights) {
          this.rights=rights;
     }
+
     /**
      * Gets the hostname of the remote client.
      * @return  Cannonical hostname of remote client.
@@ -322,7 +328,7 @@ implements AciTargetMatchContext, AciEvalContext {
     }
 
     /**
-     * Return true if this is an add operation.
+     * Return true if the current operation is a LDAP add operation.
      * @return True if this is an add operation.
      */
     public boolean isAddOperation() {
@@ -330,13 +336,32 @@ implements AciTargetMatchContext, AciEvalContext {
     }
 
     /**
-     * Tries to determine the authentication information from the connection
-     * class. The checks are for simple and SASL, anything else is not a
-     * match. If the bind rule needs the SSL client flag then that needs
-     * to be set. This code is used by the authmethod bind rule keyword.
+     * Set to true  if the ACI had a targattrfilter rule that matched.
+     * @param v  The value to use.
+     */
+    public void setTargAttrFiltersMatch(boolean v) {
+        this.targAttrFiltersMatch=v;
+    }
+
+    /**
+     * Return the value of the targAttrFiltersMatch variable. This is set to
+     * true if the ACI had a targattrfilter rule that matched.
+     * @return  True if the ACI had a targattrfilter rule that matched.
+     */
+    public boolean getTargAttrFiltersMatch() {
+        return targAttrFiltersMatch;
+    }
+
+    /**
+     * Try to determine the authentication information from the current
+     * client connection. The checks are for simple and SASL, anything else
+     * is not a match. If the bind rule requires any SSL client authentication
+     * information then the "wantSSL" flag should be set. This code is used by
+     * the authmethod bind rule keyword.
+     *
      * @param wantSSL True if the bind rule needs the ssl client auth check.
      * @return  Return an enumeration containing the authentication method
-     * for this connection.
+     * type for this client connection.
      */
     public EnumAuthMethod getAuthenticationMethod(boolean wantSSL) {
         EnumAuthMethod method=EnumAuthMethod.AUTHMETHOD_NOMATCH;

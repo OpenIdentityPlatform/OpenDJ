@@ -31,6 +31,7 @@ package org.opends.server.authorization.dseecompat;
  *  This class provides an enumeration of the valid ACI target keywords.
  */
 public enum EnumTargetKeyword {
+
     /**
      * This enumeration is returned when the target keyword is
      * "target".
@@ -56,10 +57,8 @@ public enum EnumTargetKeyword {
      * "targattrfilters".
      */
     KEYWORD_TARGATTRFILTERS ("targattrfilters");
+
     /*
-     * TODO Add support for the targattrfilters keyword.
-     */
-    /**
      * The target keyword name.
      */
     private final String keyword;

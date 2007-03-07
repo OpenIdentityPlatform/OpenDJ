@@ -38,11 +38,13 @@ import org.opends.server.types.InitializationException;
  */
 public class AciProvider  implements AccessControlProvider  {
 
-
+    /*
+     * The AciHandler does all the work in this package.
+     */
     private static AciHandler instance = null;
 
     /**
-     * Create an aci provider. This doesn't do much.
+     * Create an aci provider.
      */
     public AciProvider() {
         super();

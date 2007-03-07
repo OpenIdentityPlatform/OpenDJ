@@ -28,6 +28,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.types.*;
 import org.opends.server.api.Group;
@@ -47,10 +48,21 @@ import java.util.regex.Matcher;
  */
 public class RoleDN  implements KeywordBindRule {
 
+    /*
+     * List of DNs parsed from the ACI bind rule.
+     */
     LinkedList<DN> roleDNs=null;
+
+    /*
+     * The bind rule type of the RoleDN statement.
+     */
     private EnumBindRuleType type=null;
+
+    /*
+     * Group manager needed by the class.
+     */
     private static GroupManager groupManager =
-            DirectoryServer.getGroupManager();
+                           DirectoryServer.getGroupManager();
 
     /**
      * Constructor creating a class representing a roledn keyword of a bind
@@ -72,31 +84,26 @@ public class RoleDN  implements KeywordBindRule {
      * @throws AciException If the expression is invalid.
      */
     public static KeywordBindRule decode(String expr, EnumBindRuleType type)
-    throws AciException {
-        String ldapURLRegex = "\\s*(ldap:///[^\\|]+)";
-        String ldapURLSRegex =
-            ldapURLRegex + "\\s*(\\|\\|\\s*" + ldapURLRegex + ")*";
-        if (!Pattern.matches(ldapURLSRegex, expr)) {
+            throws AciException {
+        if (!Pattern.matches(GroupDN.LDAP_URLS, expr)) {
             int msgID = MSGID_ACI_SYNTAX_INVALID_ROLEDN_EXPRESSION;
             String message = getMessage(msgID, expr);
             throw new AciException(msgID, message);
         }
         LinkedList<DN>roleDNs=new LinkedList<DN>();
         int ldapURLPos = 1;
-        Pattern ldapURLPattern = Pattern.compile(ldapURLRegex);
+        Pattern ldapURLPattern = Pattern.compile(LDAP_URL);
         Matcher ldapURLMatcher = ldapURLPattern.matcher(expr);
         while (ldapURLMatcher.find()) {
-            String val = ldapURLMatcher.group(ldapURLPos);
-            val = val.trim();
-            DN dn;
+            String value = ldapURLMatcher.group(ldapURLPos).trim();
             try {
-                dn=DN.decode(val);
+                DN dn=LDAPURL.decode(value, true).getBaseDN();
+                roleDNs.add(dn);
             } catch (DirectoryException ex) {
                 int msgID = MSGID_ACI_SYNTAX_INVALID_ROLEDN_URL;
                 String message = getMessage(msgID, ex.getErrorMessage());
                 throw new AciException(msgID, message);
             }
-            roleDNs.add(dn);
         }
         return new RoleDN(type, roleDNs);
     }

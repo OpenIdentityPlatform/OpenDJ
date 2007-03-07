@@ -28,6 +28,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
@@ -38,8 +39,27 @@ import java.util.regex.Pattern;
  */
 public class DNS implements KeywordBindRule {
 
+    /*
+     * List of patterns to match against.
+     */
     LinkedList<String> patterns=null;
+
+    /*
+     * The enumeration representing the bind rule type of the DNS rule.
+     */
     private EnumBindRuleType type=null;
+
+    /*
+     *  Regular expression group used to match a dns rule.
+     */
+    private static final String valueRegex = "([a-zA-Z0-9\\.\\-\\*]+)";
+
+    /*
+     * Regular expression group used to match one or more DNS values.
+     */
+    private static final String valuesRegExGroup =
+            valueRegex + ZERO_OR_MORE_WHITESPACE +
+            "(," +  ZERO_OR_MORE_WHITESPACE  +  valueRegex  +  ")*";
 
     /**
      * Create a class representing a dns bind rule keyword.
@@ -62,9 +82,7 @@ public class DNS implements KeywordBindRule {
     public static DNS decode(String expr,  EnumBindRuleType type)
     throws AciException
     {
-        String valueRegex = "([a-zA-Z0-9\\.\\-\\*]+)";
-        String valuesRegex = valueRegex + "\\s*(,\\s*" + valueRegex + ")*";
-        if (!Pattern.matches(valuesRegex, expr)) {
+        if (!Pattern.matches(valuesRegExGroup, expr)) {
             int msgID = MSGID_ACI_SYNTAX_INVALID_DNS_EXPRESSION;
             String message = getMessage(msgID, expr);
             throw new AciException(msgID, message);

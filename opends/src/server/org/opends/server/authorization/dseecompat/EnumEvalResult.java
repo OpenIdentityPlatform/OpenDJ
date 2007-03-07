@@ -32,6 +32,7 @@ package org.opends.server.authorization.dseecompat;
  * the bind rule evaluation methods.
  */
 public enum EnumEvalResult {
+
     /**
      * This enumeration is returned when the result of the evaluation is TRUE.
      */

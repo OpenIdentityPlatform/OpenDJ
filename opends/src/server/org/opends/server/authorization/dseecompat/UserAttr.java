@@ -48,19 +48,57 @@ import org.opends.server.types.*;
  * This class implements the  userattr bind rule keyword.
  */
 public class UserAttr implements KeywordBindRule {
+
     /**
      * This enumeration is the various types the userattr can have after
      * the "#" token.
      */
-    enum UserAttrType {
+    private enum UserAttrType {
         USERDN, GROUPDN, ROLEDN, URL, VALUE
     }
-    private  static String f="objectclass=*";
+
+    /*
+     * Filter used in  internal search.
+     */
+    private static SearchFilter filter;
+
+    /*
+     * Used to create an attribute type that can compare the value below in
+     * an entry returned from an internal search.
+     */
     private  String attrStr=null;
+
+    /*
+     * Used to compare a attribute value returned from a search against this
+     * value which might have been defined in the ACI userattr rule.
+     */
     private  String attrVal=null;
+
+    /*
+     * Contains the type of the userattr, one of the above enumerations.
+     */
     private UserAttrType userAttrType=null;
+
+    /*
+     * An enumeration representing the bind rule type.
+     */
     private EnumBindRuleType type=null;
+
+    /*
+     * The class used to hold the parent inheritance information.
+     */
     private ParentInheritance parentInheritance=null;
+
+    static {
+        /*
+         * Set up the filter used to search private and public contexts.
+         */
+        try {
+            filter=SearchFilter.createFilterFromString("(objectclass=*)");
+        } catch (DirectoryException ex) {
+            //TODO should never happen, error message?
+        }
+    }
 
     /**
      * Create an non-USERDN/GROUPDN instance of the userattr keyword class.
@@ -174,27 +212,22 @@ public class UserAttr implements KeywordBindRule {
         AttributeType attrType;
         if((attrType = DirectoryServer.getAttributeType(attrStr)) == null)
             attrType = DirectoryServer.getDefaultAttributeType(attrStr);
-        try {
-            InternalClientConnection conn =
+        InternalClientConnection conn =
                 InternalClientConnection.getRootConnection();
-            InternalSearchOperation op =
-                    conn.processSearch(evalCtx.getClientDN(),
-                    SearchScope.BASE_OBJECT,
-                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                    SearchFilter.createFilterFromString(f), null);
-            LinkedList<SearchResultEntry> result = op.getSearchEntries();
-            if (!result.isEmpty()) {
-                AttributeValue val=new AttributeValue(attrType, attrVal);
-                SearchResultEntry resultEntry = result.getFirst();
-                if(resultEntry.hasValue(attrType, null, val)) {
-                    Entry e=evalCtx.getResourceEntry();
-                    if(e.hasValue(attrType, null, val))
-                        matched=EnumEvalResult.TRUE;
-                }
+        InternalSearchOperation op =
+                conn.processSearch(evalCtx.getClientDN(),
+                        SearchScope.BASE_OBJECT,
+                        DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                        filter, null);
+        LinkedList<SearchResultEntry> result = op.getSearchEntries();
+        if (!result.isEmpty()) {
+            AttributeValue val=new AttributeValue(attrType, attrVal);
+            SearchResultEntry resultEntry = result.getFirst();
+            if(resultEntry.hasValue(attrType, null, val)) {
+                Entry e=evalCtx.getResourceEntry();
+                if(e.hasValue(attrType, null, val))
+                    matched=EnumEvalResult.TRUE;
             }
-        } catch (DirectoryException ex) {
-            undefined = true;
-            matched = EnumEvalResult.ERR;
         }
         return matched.getRet(type, undefined);
     }
@@ -305,31 +338,25 @@ public class UserAttr implements KeywordBindRule {
                         stop=true;
                 }
             } else {
-                try {
-                    DN pDN=
+                DN pDN=
                         getDNParentLevel(levels[i], evalCtx.getResourceDN());
-                    if(pDN == null)
-                        continue;
-                    InternalClientConnection conn =
+                if(pDN == null)
+                    continue;
+                InternalClientConnection conn =
                         InternalClientConnection.getRootConnection();
-                    InternalSearchOperation op = conn.processSearch(pDN,
-                            SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                            SearchFilter.createFilterFromString(f), null);
-                    LinkedList<SearchResultEntry> result =
+                InternalSearchOperation op = conn.processSearch(pDN,
+                        SearchScope.BASE_OBJECT,
+                        DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                        filter, null);
+                LinkedList<SearchResultEntry> result =
                         op.getSearchEntries();
-                    if (!result.isEmpty()) {
-                        Entry e = result.getFirst();
-                        if (e.hasAttribute(attrType)) {
-                            matched = evalEntryAttr(e, evalCtx, attrType);
-                           if(matched.equals(EnumEvalResult.TRUE))
-                                stop=true;
-                        }
+                if (!result.isEmpty()) {
+                    Entry e = result.getFirst();
+                    if (e.hasAttribute(attrType)) {
+                        matched = evalEntryAttr(e, evalCtx, attrType);
+                        if(matched.equals(EnumEvalResult.TRUE))
+                            stop=true;
                     }
-                } catch (DirectoryException ex) {
-                    undefined=true;
-                    stop=true;
-                    matched=EnumEvalResult.ERR;
                 }
             }
         }

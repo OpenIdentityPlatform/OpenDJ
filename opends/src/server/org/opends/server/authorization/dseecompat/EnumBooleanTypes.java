@@ -31,6 +31,7 @@ package org.opends.server.authorization.dseecompat;
  * This class provides an enumeration of the allowed bind rule booelan types.
  */
 public enum EnumBooleanTypes {
+
     /**
      * The enumeration type when the bind rule has specified boolean type of
      * "AND".
@@ -47,7 +48,7 @@ public enum EnumBooleanTypes {
      */
     NOT_BOOLEAN_TYPE                ("not");
 
-    /**
+    /*
     * The bind rule boolean type name.
      */
     private final String booleanType;

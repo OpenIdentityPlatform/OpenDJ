@@ -33,7 +33,14 @@ package org.opends.server.authorization.dseecompat;
  */
 public class PermBindRulePair {
 
+    /*
+     * The Bind Rule part.
+     */
     private BindRule bindRule;
+
+    /*
+     * The permission part.
+     */
     private Permission perm=null;
 
     /**

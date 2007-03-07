@@ -28,6 +28,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.types.*;
 import org.opends.server.api.Group;
@@ -46,10 +47,28 @@ import java.util.regex.Pattern;
  */
 public class GroupDN implements KeywordBindRule {
 
+    /*
+     * List of group DNs.
+     */
     LinkedList<DN> groupDNs=null;
+
+    /*
+     * Enumeration representing the groupdn operator type.
+     */
     private EnumBindRuleType type=null;
+
+    /*
+     * Group manager needed for group API.
+     */
     private static GroupManager groupManager =
-            DirectoryServer.getGroupManager();
+                                            DirectoryServer.getGroupManager();
+    /**
+     * Regular expression matching one or more LDAP URLs separated by
+     * "||".
+     */
+    public static final String LDAP_URLS = LDAP_URL +
+            ZERO_OR_MORE_WHITESPACE + "(" + LOGICAL_OR +
+            ZERO_OR_MORE_WHITESPACE + LDAP_URL + ")*";
 
     /**
      * Create a class representing a groupdn bind rule keyword.
@@ -71,17 +90,14 @@ public class GroupDN implements KeywordBindRule {
      */
     public static KeywordBindRule decode(String expr, EnumBindRuleType type)
     throws AciException  {
-        String ldapURLRegex = "\\s*(ldap:///[^\\|]+)";
-        String ldapURLSRegex =
-            ldapURLRegex + "\\s*(\\|\\|\\s*" + ldapURLRegex + ")*";
-        if (!Pattern.matches(ldapURLSRegex, expr)) {
+        if (!Pattern.matches(LDAP_URLS, expr)) {
             int msgID = MSGID_ACI_SYNTAX_INVALID_GROUPDN_EXPRESSION;
             String message = getMessage(msgID, expr);
             throw new AciException(msgID, message);
         }
         LinkedList<DN>groupDNs=new LinkedList<DN>();
         int ldapURLPos = 1;
-        Pattern ldapURLPattern = Pattern.compile(ldapURLRegex);
+        Pattern ldapURLPattern = Pattern.compile(LDAP_URL);
         Matcher ldapURLMatcher = ldapURLPattern.matcher(expr);
         while (ldapURLMatcher.find()) {
             try {

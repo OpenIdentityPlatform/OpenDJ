@@ -29,20 +29,11 @@ package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.api.AccessControlHandler;
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import org.opends.server.core.*;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.Modification;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,87 +45,6 @@ import java.util.Map;
  */
 public class AciHandler extends AccessControlHandler
 {
-
-
-    /**
-     * ACI_ADD is used to set the container rights for a LDAP add operation.
-     */
-    public static final int ACI_ADD = 0x0001;
-
-    /**
-     * ACI_DELETE is used to set the container rights for a LDAP
-     * delete operation.
-     */
-    public static final int ACI_DELETE = 0x0002;
-
-    /**
-     * ACI_READ is used to set the container rights for a LDAP
-     * search operation.
-     */
-    public static final int ACI_READ = 0x0004;
-
-    /**
-     * ACI_WRITE is used to set the container rights for a LDAP
-     * modify operation.
-     */
-    public static final int ACI_WRITE = 0x0008;
-
-    /**
-     * ACI_COMPARE is used to set the container rights for a LDAP
-     * compare operation.
-     */
-    public static final int ACI_COMPARE = 0x0010;
-
-    /**
-     * ACI_SEARCH is used to set the container rights a LDAP search operation.
-     */
-    public static final int ACI_SEARCH = 0x0020;
-
-    /**
-     * ACI_SELF is used for the SELFWRITE right. Currently not implemented.
-     */
-    public static final int ACI_SELF = 0x0040;
-
-    /**
-     * ACI_ALL is used to as a mask for all of the above. These
-     * six below are not masked by the ACI_ALL.
-     */
-    public static final int ACI_ALL = 0x007F;
-
-    /**
-     * ACI_PROXY is used for the PROXY right. Currently not implemented.
-     */
-    public static final int ACI_PROXY = 0x0080;
-
-    /**
-     * ACI_IMPORT is used to set the container rights for a LDAP
-     * modify dn operation. Currently not implemented.
-     */
-    public static final int ACI_IMPORT = 0x0100;
-
-    /**
-     * ACI_EXPORT is used to set the container rights for a LDAP
-     * modify dn operation. Currently not implemented.
-     */
-    public static final int ACI_EXPORT = 0x0200;
-
-    /**
-     * ACI_WRITE_ADD and ACI_WRITE_DELETE are used by the LDAP modify
-     * operation. They currently don't have much value; but will be needed
-     * once the targetattrfilters target and modify dn are implemented.
-     */
-    public static final int ACI_WRITE_ADD = 0x800;
-    /**
-     * See above.
-     */
-    public static final int ACI_WRITE_DELETE = 0x400;
-
-    /**
-     * ACI_NULL is used to set the container rights to all zeros. Used
-     * by LDAP modify.
-     */
-    public static final int ACI_NULL = 0x0000;
-
     /*
      * The list that holds that ACIs keyed by the DN of the entry
       * holding the ACI.
@@ -511,6 +421,39 @@ public class AciHandler extends AccessControlHandler
     }
 
     /**
+     * Test the attribute types of the search filter for access. This method
+     * supports the search right.
+     *
+     * @param container  The container used in the access evaluation.
+     * @param filter The filter to check access on.
+     * @return  True if all attribute types in the filter have access.
+     */
+    private boolean
+    testFilter(AciLDAPOperationContainer container, SearchFilter filter) {
+        boolean ret=true;
+        switch (filter.getFilterType()) {
+            case AND:
+            case OR: {
+                for (SearchFilter f : filter.getFilterComponents())
+                    if(!testFilter(container, f))
+                        return false ;
+                break;
+            }
+            case NOT:  {
+                SearchFilter f = filter.getNotComponent();
+                ret=!testFilter(container, f);
+                break;
+            }
+            default: {
+                AttributeType attrType=filter.getAttributeType();
+                container.setCurrentAttributeType(attrType);
+                ret=accessAllowed(container);
+            }
+        }
+        return ret;
+    }
+
+    /**
      * Evaluate an entry to be added to see if it has any "aci"
      * attribute type. If it does, examines each "aci" attribute type
      * value for syntax errors. All of the "aci" attribute type values
@@ -657,19 +600,6 @@ public class AciHandler extends AccessControlHandler
                           skipAccessCheck(operation));
   }
 
-
-  /*
-   * TODO Add access testing of the filter against the entry. This was
-   * brought up in the first code review.
-   *
-   *  The static block that creates the arrays of EnumRight objects needs to
-   *  be documented to explain what they are.  Also, I still disagree with
-   *  the  interpretation that the READ right is all that is necessary to
-   *  perform either search or compare operations.  That definitely goes
-   *  against the documentation, which states that READ applies only to
-   *  the search operation, and that users must have both SEARCH and READ
-   *  in order to access the results.
-   */
   /**
    * Checks access on a search operation.
    * @param operation The search operation class containing information to
@@ -681,9 +611,16 @@ public class AciHandler extends AccessControlHandler
   maySend(SearchOperation operation, SearchResultEntry entry) {
       AciLDAPOperationContainer operationContainer =
               new AciLDAPOperationContainer(operation,
-                                           (ACI_READ | ACI_SEARCH), entry);
-      return skipAccessCheck(operation) ||
-              accessAllowedEntry(operationContainer);
+                      (ACI_SEARCH), entry);
+      boolean ret;
+      if(!(ret=skipAccessCheck(operation))) {
+          ret=testFilter(operationContainer, operation.getFilter());
+          if (ret) {
+              operationContainer.setRights(ACI_READ);
+              ret=accessAllowedEntry(operationContainer);
+          }
+      }
+      return ret;
   }
 
   /*

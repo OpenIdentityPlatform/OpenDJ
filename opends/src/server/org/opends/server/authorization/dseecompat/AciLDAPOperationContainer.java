@@ -44,16 +44,17 @@ import org.opends.server.types.SearchResultEntry;
  */
 public class AciLDAPOperationContainer extends AciContainer  {
 
-    /**
+    /*
      * The entry to be returned if this is a LDAP search.
      */
     private SearchResultEntry searchEntry;
 
-    /**
+    /*
      * The list of modifications if this operation is a LDAP
      * modify.
      */
     private List<Modification>  modifications;
+
     /**
      * Constructor interface for the compare operation.
      * @param operation The compare operation to evaluate.

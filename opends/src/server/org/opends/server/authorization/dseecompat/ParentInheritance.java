@@ -28,8 +28,12 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 
@@ -38,14 +42,31 @@ import org.opends.server.types.AttributeType;
  * to determine what parent inheritance checks to make.
  */
 public class ParentInheritance {
+
     /*
      * The maximum number of parent inheritance levels supported.
-     *
      */
     private static final int MAX_LEVELS=10;
+
+    /*
+     * Pattern to match for parent inheritance.
+     */
     private String parentPat="parent[";
+
+    /*
+     * Array used to hold the level information. Each slot corresponds to a
+     * level parsed from the rule.
+     */
     private int[] levels=new int[MAX_LEVELS];
+
+    /*
+     * The number of levels parsed.
+     */
     private int numLevels;
+
+    /*
+     * The attribute type parsed from the rule.
+     */
     private AttributeType attributeType;
 
 
@@ -66,21 +87,29 @@ public class ParentInheritance {
             //The "parent[" pattern is invalid for ROLEDN user attr keyword.
             if(pattern.startsWith(parentPat)) {
                 int msgID =
-                  MSGID_ACI_SYNTAX_INVALID_USERATTR_ROLEDN_INHERITANCE_PATTERN;
+                   MSGID_ACI_SYNTAX_INVALID_USERATTR_ROLEDN_INHERITANCE_PATTERN;
                 String message = getMessage(msgID, pattern);
                 throw new AciException(msgID, message);
             }  else {
                 pattern=pattern.trim();
-                if((this.attributeType =
-                        DirectoryServer.getAttributeType(pattern)) == null)
-                    this.attributeType =
-                            DirectoryServer.getDefaultAttributeType(pattern);
-                numLevels=1;
-                levels[0]=0;
+                Pattern pattern1=Pattern.compile(ATTR_NAME);
+                Matcher matcher=pattern1.matcher(pattern);
+               //Check if valid attribute type name.
+               if(!matcher.find() || matcher.groupCount() != 1) {
+                int msgID =
+                        MSGID_ACI_SYNTAX_INVALID_ATTRIBUTE_TYPE_NAME;
+                String message = getMessage(msgID, pattern);
+                throw new AciException(msgID, message);
+               }
+               if((this.attributeType =
+                    DirectoryServer.getAttributeType(pattern)) == null)
+                this.attributeType =
+                        DirectoryServer.getDefaultAttributeType(pattern);
+               numLevels=1;
+              levels[0]=0;
             }
-        } else
-            parse(pattern);
-    }
+    } else parse(pattern);
+}
 
     /**
      * Performs all parsing of the specified pattern string.
@@ -106,6 +135,15 @@ public class ParentInheritance {
                 int msgID =
                     MSGID_ACI_SYNTAX_INVALID_USERATTR_INHERITANCE_PATTERN;
                 String message = getMessage(msgID, pattern);
+                throw new AciException(msgID, message);
+            }
+            Pattern pattern1=Pattern.compile(ATTR_NAME);
+            Matcher matcher=pattern1.matcher(toks[1]);
+            //Check if valid attribute type name.
+            if(!matcher.find() || matcher.groupCount() != 1) {
+                int msgID =
+                    MSGID_ACI_SYNTAX_INVALID_ATTRIBUTE_TYPE_NAME;
+                String message = getMessage(msgID, toks[1]);
                 throw new AciException(msgID, message);
             }
             if((this.attributeType =

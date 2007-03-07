@@ -28,6 +28,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -47,13 +48,37 @@ import org.opends.server.types.SearchFilter;
  */
 public class Target
 {
+    /*
+     * Enumeration representing the target operator.
+     */
     private EnumTargetOperator operator = EnumTargetOperator.EQUALITY;
-    private LDAPURL targetURL = null;
-    private DN urlDN=null;
-    private boolean isPattern=false;
-    private SearchFilter filter=null;
-    private AttributeType targetType;
 
+    /*
+     * The target URL.
+     */
+    private LDAPURL targetURL = null;
+
+    /*
+     * The DN of the above URL.
+     */
+    private DN urlDN=null;
+
+    /*
+     * True of a wild-card pattern was seen.
+     */
+    private boolean isPattern=false;
+
+    /*
+     * Filter used to apply to an dummy entry when a wild-card pattern is
+     * used.
+     */
+    private SearchFilter filter=null;
+
+    /*
+     * Attribute type that is used to create the pattern attribute.
+     *  See matchesPattern method.
+     */
+    private AttributeType targetType;
 
       /*
      * TODO Save aciDN parameter and use it in matchesPattern re-write.
@@ -89,8 +114,7 @@ public class Target
             throws AciException {
         this.operator = operator;
         try {
-          String ldapURLRegex = "\\s*(ldap:///[^\\|]+)";
-          if (!Pattern.matches(ldapURLRegex, target)) {
+          if (!Pattern.matches(LDAP_URL, target)) {
               int msgID = MSGID_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION;
               String message = getMessage(msgID, target);
               throw new AciException(msgID, message);
@@ -163,7 +187,8 @@ public class Target
     }
 
     /*
-     * TODO Evaluate re-writing this method.
+     * TODO Evaluate re-writing this method. Evaluate if we want to dis-allow
+     * wild-card matching in the suffix part of the dn.
      *
      * The matchesPattern() method really needs to be rewritten.  It's using a
      * very inefficient and very error-prone method to make the determination.

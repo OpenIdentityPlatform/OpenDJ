@@ -28,6 +28,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -39,8 +40,7 @@ import java.util.regex.Pattern;
 /**
  * This class represents a ip bind rule keyword.
  */
-public class IpCriteria implements KeywordBindRule
-{
+public class IpCriteria implements KeywordBindRule {
     private EnumBindRuleType type=null;
 
     // private token to express that any address is accepted
@@ -49,6 +49,13 @@ public class IpCriteria implements KeywordBindRule
 
     private IpBitsNetworkCriteria[] ipBitsCriteria = null;
     private IpMaskNetworkCriteria[] ipMaskCriteria = null;
+
+    private static final String valueRegex =
+                                   "([^," + ZERO_OR_MORE_WHITESPACE + "]+)";
+
+    private static final String valuesRegex =
+            valueRegex + ZERO_OR_MORE_WHITESPACE + "(," +
+            ZERO_OR_MORE_WHITESPACE + valueRegex + ")*";
 
     /*
      * TODO Verifiy IpCriteria constructor adheres to DS 5.2 ip keyword
@@ -245,8 +252,6 @@ public class IpCriteria implements KeywordBindRule
      */
     public static KeywordBindRule decode(String expr, EnumBindRuleType type)
     throws AciException  {
-        String valueRegex = "([^,\\s]+)";
-        String valuesRegex = valueRegex + "\\s*(,\\s*" + valueRegex + ")*";
         if (!Pattern.matches(valuesRegex, expr)) {
             int msgID = MSGID_ACI_SYNTAX_INVALID_IP_EXPRESSION;
             String message = getMessage(msgID, expr);

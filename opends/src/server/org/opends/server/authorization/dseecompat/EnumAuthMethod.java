@@ -41,6 +41,7 @@ package org.opends.server.authorization.dseecompat;
  * This class provides an enumeration of the allowed authmethod types.
  */
 public enum EnumAuthMethod {
+
     /**
      * The enumeration type when the bind rule has specified authentication of
      * none.
@@ -76,10 +77,10 @@ public enum EnumAuthMethod {
      */
     AUTHMETHOD_NOMATCH       ("nomatch");
 
-    /**
+    /*
      * The name of the authmethod.
      */
-    public String authmethod = null;
+    private String authmethod = null;
 
     /**
      * Creates a new enumeration type for this authmethod.

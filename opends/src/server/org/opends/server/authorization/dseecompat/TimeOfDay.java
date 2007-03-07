@@ -36,8 +36,20 @@ import java.util.regex.Pattern;
  * This class represents the timeofday keyword in a bind rule.
  */
 public class TimeOfDay implements KeywordBindRule {
+
+    /*
+     * Regular expression matching a valid timeofday rule value (0-2359).
+     */
     private static final String timeofdayRegex = "[0-2]\\d[0-5]\\d";
+
+    /*
+     *  Enumeration representing the bind rule operation type.
+     */
     private EnumBindRuleType type=null;
+
+    /*
+     * Holds the time value parsed from the ACI.
+     */
     private int timeRef;
 
     /**
