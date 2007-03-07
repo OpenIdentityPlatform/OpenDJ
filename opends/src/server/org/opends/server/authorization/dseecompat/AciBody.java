@@ -140,12 +140,6 @@ public class AciBody {
         "\"(.*)\"" + ACI_STATEMENT_SEPARATOR + actionRegex +
         ZERO_OR_MORE_WHITESPACE  + "\\)";
 
-        public static final String bodyRegx1 =
-        "\\("+ Aci.ZERO_OR_MORE_WHITESPACE + versionToken +
-        Aci.ZERO_OR_MORE_WHITESPACE + versionRegex +
-        Aci.ACI_STATEMENT_SEPARATOR + aclToken + Aci.ZERO_OR_MORE_WHITESPACE +
-        "\"(.*)\"" + Aci.ACI_STATEMENT_SEPARATOR + actionRegex +
-        Aci.ZERO_OR_MORE_WHITESPACE  + "\\)";
     /*
      * Regular expression used to match the header of the ACI body. The
      * header is version and acl name.
