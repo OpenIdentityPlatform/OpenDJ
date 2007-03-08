@@ -90,8 +90,8 @@ public final class TimeThread
   // The date formatter that will be used to obtain the local timestamp.
   private static SimpleDateFormat localTimestampFormatter;
 
-  // The date formatter that will be used to obtain the UTC timestamp.
-  private static SimpleDateFormat utcTimestampFormatter;
+  // The date formatter that will be used to obtain the GMT timestamp.
+  private static SimpleDateFormat gmtTimestampFormatter;
 
   // The timestamp for this time thread in the generalized time format.
   private static String generalizedTime;
@@ -99,8 +99,8 @@ public final class TimeThread
   // The timestamp for this time thread in the local time zone.
   private static String localTimestamp;
 
-  // The timestamp for this time thread in UTC.
-  private static String utcTimestamp;
+  // The timestamp for this time thread in GMT.
+  private static String gmtTimestamp;
 
 
 
@@ -122,8 +122,8 @@ public final class TimeThread
          new SimpleDateFormat(DATE_FORMAT_GENERALIZED_TIME);
     generalizedTimeFormatter.setTimeZone(utcTimeZone);
 
-    utcTimestampFormatter = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
-    utcTimestampFormatter.setTimeZone(utcTimeZone);
+    gmtTimestampFormatter = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
+    gmtTimestampFormatter.setTimeZone(utcTimeZone);
 
     localTimestampFormatter = new SimpleDateFormat(DATE_FORMAT_LOCAL_TIME);
 
@@ -132,7 +132,7 @@ public final class TimeThread
     time            = date.getTime();
     generalizedTime = generalizedTimeFormatter.format(date);
     localTimestamp  = localTimestampFormatter.format(date);
-    utcTimestamp    = utcTimestampFormatter.format(date);
+    gmtTimestamp    = gmtTimestampFormatter.format(date);
     hourAndMinute   = (calendar.get(Calendar.HOUR_OF_DAY) * 100) +
                       calendar.get(Calendar.MINUTE);
 
@@ -156,7 +156,7 @@ public final class TimeThread
         time            = date.getTime();
         generalizedTime = generalizedTimeFormatter.format(date);
         localTimestamp  = localTimestampFormatter.format(date);
-        utcTimestamp    = utcTimestampFormatter.format(date);
+        gmtTimestamp    = gmtTimestampFormatter.format(date);
         hourAndMinute   = (calendar.get(Calendar.HOUR_OF_DAY) * 100) +
                           calendar.get(Calendar.MINUTE);
 
@@ -245,14 +245,14 @@ public final class TimeThread
 
 
   /**
-   * Retrieves a string containing the current time in UTC.  The timestamp will
+   * Retrieves a string containing the current time in GMT.  The timestamp will
    * look like "20050101000000Z".
    *
-   * @return  A string containing the current time in UTC.
+   * @return  A string containing the current time in GMT.
    */
-  public static String getUTCTime()
+  public static String getGMTTime()
   {
-    return utcTimestamp;
+    return gmtTimestamp;
   }
 
 

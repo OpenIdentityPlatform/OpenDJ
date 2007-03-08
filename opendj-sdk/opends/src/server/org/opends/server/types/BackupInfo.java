@@ -422,7 +422,7 @@ public class BackupInfo
   {
     LinkedList<String> list       = new LinkedList<String>();
     SimpleDateFormat   dateFormat =
-         new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+         new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
 
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
@@ -545,7 +545,7 @@ public class BackupInfo
         else if (name.equals(PROPERTY_BACKUP_DATE))
         {
           SimpleDateFormat dateFormat =
-               new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+               new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
           dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
           backupDate = dateFormat.parse(value);
         }

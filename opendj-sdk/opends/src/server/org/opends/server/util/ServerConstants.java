@@ -88,11 +88,21 @@ public class ServerConstants
 
   /**
    * The date format string that will be used to construct and parse dates
-   * represented using generalized time.  It is assumed that the provided date
-   * formatter will be set to UTC.
+   * represented using generalized time with a four-digit year.  It is assumed
+   * that the provided date formatter will be set to UTC.
+   */
+  public static final String DATE_FORMAT_GMT_TIME =
+       "yyyyMMddHHmmss'Z'";
+
+
+
+  /**
+   * The date format string that will be used to construct and parse dates
+   * represented using generalized time with a two-digit year.  It is assumed
+   * that the provided date formatter will be set to UTC.
    */
   public static final String DATE_FORMAT_UTC_TIME =
-       "yyyyMMddHHmmss'Z'";
+       "yyMMddHHmmss'Z'";
 
 
 

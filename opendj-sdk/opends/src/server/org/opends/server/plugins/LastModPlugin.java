@@ -177,7 +177,7 @@ public final class LastModPlugin
     LinkedHashSet<AttributeValue> timeValues =
          new LinkedHashSet<AttributeValue>(1);
     timeValues.add(new AttributeValue(createTimestampType,
-                                      ByteStringFactory.create(getUTCTime())));
+                                      ByteStringFactory.create(getGMTTime())));
 
     Attribute timeAttr = new Attribute(createTimestampType,
                                        OP_ATTR_CREATE_TIMESTAMP, timeValues);
@@ -240,7 +240,7 @@ public final class LastModPlugin
     LinkedHashSet<AttributeValue> timeValues =
          new LinkedHashSet<AttributeValue>(1);
     timeValues.add(new AttributeValue(modifyTimestampType,
-                                      ByteStringFactory.create(getUTCTime())));
+                                      ByteStringFactory.create(getGMTTime())));
 
     Attribute timeAttr = new Attribute(modifyTimestampType,
                                        OP_ATTR_MODIFY_TIMESTAMP, timeValues);
@@ -302,7 +302,7 @@ public final class LastModPlugin
     LinkedHashSet<AttributeValue> timeValues =
          new LinkedHashSet<AttributeValue>(1);
     timeValues.add(new AttributeValue(modifyTimestampType,
-                                      ByteStringFactory.create(getUTCTime())));
+                                      ByteStringFactory.create(getGMTTime())));
 
     Attribute timeAttr = new Attribute(modifyTimestampType,
                                        OP_ATTR_MODIFY_TIMESTAMP, timeValues);

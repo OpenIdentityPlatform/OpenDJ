@@ -31,7 +31,7 @@ import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.util.ServerConstants.DATE_FORMAT_UTC_TIME;
+import static org.opends.server.util.ServerConstants.DATE_FORMAT_GMT_TIME;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.util.ServerConstants.
@@ -229,7 +229,7 @@ public class BackupTask extends Task
     // If no backup ID was provided, then create one with the current timestamp.
     if (backupID == null)
     {
-      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       backupID = dateFormat.format(new Date());
     }

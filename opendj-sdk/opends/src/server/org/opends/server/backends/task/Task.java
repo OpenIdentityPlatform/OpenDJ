@@ -202,7 +202,7 @@ public abstract class Task
       SimpleDateFormat dateFormat;
       if (timeString.endsWith("Z"))
       {
-        dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+        dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       }
       else
@@ -236,7 +236,7 @@ public abstract class Task
       SimpleDateFormat dateFormat;
       if (timeString.endsWith("Z"))
       {
-        dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+        dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       }
       else
@@ -270,7 +270,7 @@ public abstract class Task
       SimpleDateFormat dateFormat;
       if (timeString.endsWith("Z"))
       {
-        dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+        dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       }
       else
@@ -629,7 +629,7 @@ public abstract class Task
                     ATTR_TASK_ACTUAL_START_TIME);
       }
 
-      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       Date d = new Date(actualStartTime);
       ASN1OctetString s = new ASN1OctetString(dateFormat.format(d));
@@ -689,7 +689,7 @@ public abstract class Task
              DirectoryServer.getDefaultAttributeType(ATTR_TASK_COMPLETION_TIME);
       }
 
-      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       Date d = new Date(completionTime);
       ASN1OctetString s = new ASN1OctetString(dateFormat.format(d));

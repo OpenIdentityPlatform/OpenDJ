@@ -339,7 +339,7 @@ public final class ProfilerPlugin
         profilerThread.stopProfiling();
 
         String filename = profileDirectory + File.separator + "profile." +
-                          TimeThread.getUTCTime();
+                          TimeThread.getGMTTime();
         try
         {
           profilerThread.writeCaptureData(filename);
@@ -751,7 +751,7 @@ public final class ProfilerPlugin
                 }
 
                 String filename = profileDirectory + File.separator +
-                                  "profile." + TimeThread.getUTCTime();
+                                  "profile." + TimeThread.getGMTTime();
 
                 try
                 {
