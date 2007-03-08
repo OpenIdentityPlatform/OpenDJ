@@ -142,6 +142,8 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     broker.start(servers);
     if (timeout != 0)
       broker.setSoTimeout(timeout);
+    TestCaseUtils.sleep(100); // give some time to the broker to connect
+                              // to the changelog server.
     if (emptyOldChanges)
     {
       /*

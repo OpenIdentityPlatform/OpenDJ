@@ -3425,10 +3425,10 @@ public class SchemaBackend
       if (values != null)
       {
         ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(new Attribute(matchingRuleUsesType,
-                                 matchingRuleUsesType.getPrimaryName(),
-                                 values));
-        schemaEntry.putAttribute(matchingRuleUsesType, attrList);
+        attrList.add(new Attribute(synchronizationStateType,
+                                   synchronizationStateType.getPrimaryName(),
+                                   values));
+        schemaEntry.putAttribute(synchronizationStateType, attrList);
       }
     }
 

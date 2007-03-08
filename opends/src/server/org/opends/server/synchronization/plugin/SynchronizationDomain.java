@@ -90,6 +90,7 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -259,25 +260,19 @@ public class SynchronizationDomain extends DirectoryThread
     configAttributes.add(baseDn);
 
     /*
-     * Modify conflicts are solved for all suffixes but the cn=schema suffix
+     * Modify conflicts are solved for all suffixes but the schema suffix
      * because we don't want to store extra information in the schema
      * ldif files.
      * This has no negative impact because the changes on schema should
      * not produce conflicts.
      */
-    try
+    if (baseDN.compareTo(DirectoryServer.getSchemaDN()) == 0)
     {
-      if (baseDN.compareTo(DN.decode("cn=schema")) == 0)
-      {
-        solveConflictFlag = false;
-      }
-      else
-      {
-        solveConflictFlag = true;
-      }
-    } catch (DirectoryException e1)
+      solveConflictFlag = false;
+    }
+    else
     {
-      // never happens because "cn=schema" is a valid DN
+      solveConflictFlag = true;
     }
 
     state = new PersistentServerState(baseDN);
@@ -1932,5 +1927,31 @@ public class SynchronizationDomain extends DirectoryThread
   public void backupEnd()
   {
     // Nothing is needed at the moment
+  }
+
+  /**
+   * Push the modifications contain the in given parameter has
+   * a modification that would happen on a local server.
+   * The modifications are not applied to the local database,
+   * historical information is not updated but a ChangeNumber
+   * is generated and the ServerState associated to this domain is
+   * updated.
+   * @param modifications The modification to push
+   */
+  public void synchronizeModifications(List<Modification> modifications)
+  {
+    Operation op =
+      new ModifyOperation(InternalClientConnection.getRootConnection(),
+                          InternalClientConnection.nextOperationID(),
+                          InternalClientConnection.nextMessageID(),
+                          null, DirectoryServer.getSchemaDN(),
+                          modifications);
+
+    ChangeNumber cn = generateChangeNumber(op);
+    System.out.println("cn is " + cn);
+    OperationContext ctx = new ModifyContext(cn, "schema");
+    op.setAttachment(SYNCHROCONTEXT, ctx);
+    op.setResultCode(ResultCode.SUCCESS);
+    synchronize(op);
   }
 }
