@@ -27,6 +27,7 @@
 package org.opends.server.synchronization.plugin;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.opends.server.api.ConfigAddListener;
@@ -47,6 +48,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.Modification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SynchronizationProviderResult;
 
@@ -534,6 +536,24 @@ public class MultimasterSynchronization extends SynchronizationProvider
   {
     SynchronizationDomain domain = findDomain(dn, null);
     domain.backupEnd();
+  }
+
+  /**
+   * This method is called whenever the server detects a modification
+   * of the schema done by directly modifying the backing files
+   * of the schema backend.
+   * Call the schema Synchronization Domain if it exists.
+   *
+   * @param  modifications  The list of modifications that was
+   *                                      applied to the schema.
+   *
+   */
+  public static void schemaChangeNotification(List<Modification> modifications)
+  {
+    SynchronizationDomain domain =
+      findDomain(DirectoryServer.getSchemaDN(), null);
+    if (domain != null)
+      domain.synchronizeModifications(modifications);
   }
 }
 
