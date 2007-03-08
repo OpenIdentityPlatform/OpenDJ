@@ -1260,6 +1260,13 @@ cn: Absolute Subtree Specification
 ds-cfg-syntax-class: org.opends.server.schema.AbsoluteSubtreeSpecificationSyntax
 ds-cfg-syntax-enabled: true
 
+dn: cn=Sun-defined Access Control Information,cn=Syntaxes,cn=config
+objectClass: top
+objectClass: ds-cfg-attribute-syntax
+cn: Sun-defined Access Control Information
+ds-cfg-syntax-class: org.opends.server.schema.AciSyntax
+ds-cfg-syntax-enabled: true
+
 dn: cn=Attribute Type Description,cn=Syntaxes,cn=config
 objectClass: top
 objectClass: ds-cfg-attribute-syntax

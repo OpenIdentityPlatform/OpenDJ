@@ -6666,7 +6666,7 @@ public class CoreMessages
 
 
     registerMessage(MSGID_ADD_OP_INVALID_SYNTAX,
-                    "Entry \"%s\" contains an value \"%s\" for attribute %s " +
+                    "Entry \"%s\" contains a value \"%s\" for attribute %s " +
                     "that is invalid according to the syntax for that " +
                     "attribute:  %s.");
     registerMessage(MSGID_ADD_ATTR_IS_OBSOLETE,

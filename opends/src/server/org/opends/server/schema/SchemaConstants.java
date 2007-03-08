@@ -811,6 +811,29 @@ public class SchemaConstants
 
 
 
+   /**
+    * The OID for the aci attribute syntax.
+    */
+   public static final String SYNTAX_ACI_OID =
+        OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".4";
+
+
+
+  /**
+   * The description for aci attribute syntax.
+   */
+  public static final String SYNTAX_ACI_DESCRIPTION =
+       "Sun-defined Access Control Information";
+
+
+
+  /**
+   * The name for the aci attribute syntax.
+   */
+  public static final String SYNTAX_ACI_NAME = "ds-syntax-dseecompat-aci";
+
+
+
   /**
    * The description for the attribute type description attribute syntax.
    */

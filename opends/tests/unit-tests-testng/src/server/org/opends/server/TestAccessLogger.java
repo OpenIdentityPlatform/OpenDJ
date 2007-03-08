@@ -260,7 +260,7 @@ public class TestAccessLogger
     addCommonRequestElements(addOperation, buffer);
     buffer.append(" dn=\"");
     buffer.append(addOperation.getRawEntryDN());
-    buffer.append("\" attibutes={");
+    buffer.append("\" attributes={");
 
     Iterator<LDAPAttribute> attrIterator =
          addOperation.getRawAttributes().iterator();
