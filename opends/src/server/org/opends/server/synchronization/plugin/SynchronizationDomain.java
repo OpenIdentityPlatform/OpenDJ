@@ -1948,7 +1948,6 @@ public class SynchronizationDomain extends DirectoryThread
                           modifications);
 
     ChangeNumber cn = generateChangeNumber(op);
-    System.out.println("cn is " + cn);
     OperationContext ctx = new ModifyContext(cn, "schema");
     op.setAttachment(SYNCHROCONTEXT, ctx);
     op.setResultCode(ResultCode.SUCCESS);

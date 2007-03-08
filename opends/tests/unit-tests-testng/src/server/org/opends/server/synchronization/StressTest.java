@@ -32,12 +32,14 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.TestErrorLogger;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
@@ -131,19 +133,22 @@ public class StressTest extends SynchronizationTestCase
       entryList.add(personEntry.getDN());
       assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
         "The Add Entry operation failed");
+      if (ResultCode.SUCCESS == addOp.getResultCode())
+      {
+        // Check if the client has received the msg
+        SynchronizationMessage msg = broker.receive();
 
-      // Check if the client has received the msg
-      SynchronizationMessage msg = broker.receive();
-      assertTrue(msg instanceof AddMsg,
+        assertTrue(msg instanceof AddMsg,
         "The received synchronization message is not an ADD msg");
-      AddMsg addMsg =  (AddMsg) msg;
+        AddMsg addMsg =  (AddMsg) msg;
 
-      Operation receivedOp = addMsg.createOperation(connection);
-      assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
+        Operation receivedOp = addMsg.createOperation(connection);
+        assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
         "The received synchronization message is not an ADD msg");
 
-      assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
+        assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
         "The received ADD synchronization message is not for the excepted DN");
+      }
 
       reader = new BrokerReader(broker);
       reader.start();
