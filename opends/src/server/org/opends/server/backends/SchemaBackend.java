@@ -1689,7 +1689,7 @@ public class SchemaBackend
         try
         {
           at = AttributeTypeSyntax.decodeAttributeType(v.getValue(), schema,
-                                                       false);
+                                                       true);
         }
         catch (DirectoryException de)
         {
@@ -2039,7 +2039,7 @@ public class SchemaBackend
         ObjectClass oc;
         try
         {
-          oc = ObjectClassSyntax.decodeObjectClass(v.getValue(), schema, false);
+          oc = ObjectClassSyntax.decodeObjectClass(v.getValue(), schema, true);
         }
         catch (DirectoryException de)
         {
@@ -2369,7 +2369,7 @@ public class SchemaBackend
         NameForm nf;
         try
         {
-          nf = NameFormSyntax.decodeNameForm(v.getValue(), schema, false);
+          nf = NameFormSyntax.decodeNameForm(v.getValue(), schema, true);
         }
         catch (DirectoryException de)
         {
@@ -2942,7 +2942,7 @@ public class SchemaBackend
         try
         {
           dsr = DITStructureRuleSyntax.decodeDITStructureRule(
-                     v.getValue(), schema, false);
+                     v.getValue(), schema, true);
         }
         catch (DirectoryException de)
         {
