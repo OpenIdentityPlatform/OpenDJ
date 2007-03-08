@@ -855,18 +855,21 @@ public class UpdateOperationTest extends SynchronizationTestCase
       assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
       "The Add Entry operation failed");
 
-      // Check if the client has received the msg
-      SynchronizationMessage msg = broker.receive();
-      assertTrue(msg instanceof AddMsg,
-      "The received synchronization message is not an ADD msg");
-      AddMsg addMsg =  (AddMsg) msg;
+      if (ResultCode.SUCCESS.equals(addOp.getResultCode()))
+      {
+        // Check if the client has received the msg
+        SynchronizationMessage msg = broker.receive();
+        assertTrue(msg instanceof AddMsg,
+        "The received synchronization message is not an ADD msg");
+        AddMsg addMsg =  (AddMsg) msg;
 
-      Operation receivedOp = addMsg.createOperation(connection);
-      assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
-      "The received synchronization message is not an ADD msg");
+        Operation receivedOp = addMsg.createOperation(connection);
+        assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
+        "The received synchronization message is not an ADD msg");
 
-      assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
-      "The received ADD synchronization message is not for the excepted DN");
+        assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
+        "The received ADD synchronization message is not for the excepted DN");
+      }
 
       // Modify the entry
       List<Modification> mods = generatemods("telephonenumber", "01 02 45");
@@ -878,12 +881,12 @@ public class UpdateOperationTest extends SynchronizationTestCase
       modOp.run();
 
       // See if the client has received the msg
-      msg = broker.receive();
+      SynchronizationMessage msg = broker.receive();
       assertTrue(msg instanceof ModifyMsg,
       "The received synchronization message is not a MODIFY msg");
       ModifyMsg modMsg = (ModifyMsg) msg;
 
-      receivedOp = modMsg.createOperation(connection);
+      Operation receivedOp = modMsg.createOperation(connection);
       assertTrue(DN.decode(modMsg.getDn()).compareTo(personEntry.getDN()) == 0,
       "The received MODIFY synchronization message is not for the excepted DN");
 
@@ -935,7 +938,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
        *
        * Start by testing the Add message reception
        */
-      addMsg = new AddMsg(gen.NewChangeNumber(),
+      AddMsg addMsg = new AddMsg(gen.NewChangeNumber(),
           personWithUUIDEntry.getDN().toString(),
           user1entryUUID, baseUUID,
           personWithUUIDEntry.getObjectClassAttribute(),
