@@ -75,195 +75,151 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class PasswordPolicy
 {
-
-
-
-  // The attribute type that will hold the last login time.
-  private AttributeType lastLoginTimeAttribute;
+  // The DN of the entry containing the configuration for this password
+  // policy.
+  private final DN configEntryDN;
 
   // The attribute type that will hold user passwords for this password policy.
-  private AttributeType passwordAttribute;
+  private final AttributeType passwordAttribute;
+
+  // Indicates whether the attribute type uses the authPassword syntax.
+  private final boolean authPasswordSyntax;
 
   // Indicates whether a user with an expired password will still be allowed to
   // change it via the password modify extended operation.
-  private boolean allowExpiredPasswordChanges;
+  private boolean allowExpiredPasswordChanges =
+       DEFAULT_PWPOLICY_ALLOW_EXPIRED_CHANGES;
 
   // Indicates whether the password attribute will be allowed to have multiple
   // distinct values.
-  private boolean allowMultiplePasswordValues;
+  private boolean allowMultiplePasswordValues =
+       DEFAULT_PWPOLICY_ALLOW_MULTIPLE_PW_VALUES;
 
   // Indicates whether to allow pre-encoded passwords.
-  private boolean allowPreEncodedPasswords;
+  private boolean allowPreEncodedPasswords =
+       DEFAULT_PWPOLICY_ALLOW_PRE_ENCODED_PASSWORDS;
 
   // Indicates whether users will be allowed to change their passwords.
-  private boolean allowUserPasswordChanges;
-
-  // Indicates whether the attribute type uses the authPassword syntax.
-  private boolean authPasswordSyntax;
+  private boolean allowUserPasswordChanges =
+       DEFAULT_PWPOLICY_ALLOW_USER_CHANGE;
 
   // Indicates whether to allow a password to expire without ever providing the
   // user with a notification.
-  private boolean expirePasswordsWithoutWarning;
+  private boolean expirePasswordsWithoutWarning =
+       DEFAULT_PWPOLICY_EXPIRE_WITHOUT_WARNING;
 
   // Indicates whether users must change their passwords the first time they
   // authenticate after their account is created.
-  private boolean forceChangeOnAdd;
+  private boolean forceChangeOnAdd =
+       DEFAULT_PWPOLICY_FORCE_CHANGE_ON_ADD;
 
   // Indicates whether a user must change their password after it has been reset
   // by an administrator.
-  private boolean forceChangeOnReset;
+  private boolean forceChangeOnReset =
+       DEFAULT_PWPOLICY_FORCE_CHANGE_ON_RESET;
 
   // Indicates whether a user must provide their current password in order to
   // use a new password.
-  private boolean requireCurrentPassword;
+  private boolean requireCurrentPassword =
+       DEFAULT_PWPOLICY_REQUIRE_CURRENT_PASSWORD;
 
   // Indicates whether users will be required to authenticate using a secure
   // mechanism.
-  private boolean requireSecureAuthentication;
+  private boolean requireSecureAuthentication =
+       DEFAULT_PWPOLICY_REQUIRE_SECURE_AUTHENTICATION;
 
   // Indicates whether users will be required to change their passwords using a
   // secure mechanism.
-  private boolean requireSecurePasswordChanges;
+  private boolean requireSecurePasswordChanges =
+       DEFAULT_PWPOLICY_REQUIRE_SECURE_PASSWORD_CHANGES;
 
   // Indicates whether password validation should be performed for
   // administrative password changes.
-  private boolean skipValidationForAdministrators;
+  private boolean skipValidationForAdministrators =
+       DEFAULT_PWPOLICY_SKIP_ADMIN_VALIDATION;
 
   // The set of account status notification handlers for this password policy.
-  private ConcurrentHashMap<DN,AccountStatusNotificationHandler>
-               notificationHandlers;
+  private ConcurrentHashMap<DN, AccountStatusNotificationHandler>
+       notificationHandlers =
+            new ConcurrentHashMap<DN, AccountStatusNotificationHandler>();
 
   // The set of password validators that will be used with this password policy.
-  private ConcurrentHashMap<DN,PasswordValidator> passwordValidators;
+  private ConcurrentHashMap<DN,PasswordValidator> passwordValidators =
+       new ConcurrentHashMap<DN,PasswordValidator>();
 
   // The set of default password storage schemes for this password policy.
-  private CopyOnWriteArrayList<PasswordStorageScheme> defaultStorageSchemes;
-
-  // The set of previous last login time format strings.
-  private CopyOnWriteArrayList<String> previousLastLoginTimeFormats;
+  private CopyOnWriteArrayList<PasswordStorageScheme> defaultStorageSchemes =
+       new CopyOnWriteArrayList<PasswordStorageScheme>();
+  {
+    PasswordStorageScheme defaultScheme =
+      DirectoryServer.getPasswordStorageScheme(DEFAULT_PASSWORD_STORAGE_SCHEME);
+    if (defaultScheme != null) defaultStorageSchemes.add(defaultScheme);
+  }
 
   // The names of the deprecated password storage schemes for this password
   // policy.
-  private CopyOnWriteArraySet<String> deprecatedStorageSchemes;
-
-  // The DN of the entry containing the configuration for this password
-  // policy.
-  private DN configEntryDN;
+  private CopyOnWriteArraySet<String> deprecatedStorageSchemes =
+       new CopyOnWriteArraySet<String>();
 
   // The DN of the password validator for this password policy.
-  private DN passwordGeneratorDN;
+  private DN passwordGeneratorDN = null;
+
+  // The password generator for use with this password policy.
+  private PasswordGenerator passwordGenerator = null;
 
   // The number of grace logins that a user may have.
-  private int graceLoginCount;
+  private int graceLoginCount = DEFAULT_PWPOLICY_GRACE_LOGIN_COUNT;
 
   // The maximum length of time in seconds that an account may remain idle
   // before it is locked out.
-  private int idleLockoutInterval;
+  private int idleLockoutInterval = DEFAULT_PWPOLICY_IDLE_LOCKOUT_INTERVAL;
 
   // The length of time a user should stay locked out, in seconds.
-  private int lockoutDuration;
+  private int lockoutDuration = DEFAULT_PWPOLICY_LOCKOUT_DURATION;
 
   // The number of authentication failures before an account is locked out.
-  private int lockoutFailureCount;
+  private int lockoutFailureCount = DEFAULT_PWPOLICY_LOCKOUT_FAILURE_COUNT;
 
   // The length of time that authentication failures should be counted against
   // a user.
-  private int lockoutFailureExpirationInterval;
+  private int lockoutFailureExpirationInterval =
+       DEFAULT_PWPOLICY_LOCKOUT_FAILURE_EXPIRATION_INTERVAL;
 
   // The maximum password age (i.e., expiration interval), in seconds.
-  private int maximumPasswordAge;
+  private int maximumPasswordAge = DEFAULT_PWPOLICY_MAXIMUM_PASSWORD_AGE;
 
   // The maximum password age for administratively reset passwords, in seconds.
-  private int maximumPasswordResetAge;
+  private int maximumPasswordResetAge =
+       DEFAULT_PWPOLICY_MAXIMUM_PASSWORD_RESET_AGE;
 
   // The minimum password age, in seconds.
-  private int minimumPasswordAge;
+  private int minimumPasswordAge = DEFAULT_PWPOLICY_MINIMUM_PASSWORD_AGE;
 
   // The password expiration warning interval, in seconds.
-  private int warningInterval;
+  private int warningInterval = DEFAULT_PWPOLICY_WARNING_INTERVAL;
 
   // The the time by which all users will be required to change their passwords.
-  private long requireChangeByTime;
+  private long requireChangeByTime = -1L;
 
-  // The password generator for use with this password policy.
-  private PasswordGenerator passwordGenerator;
+  // The attribute type that will hold the last login time.
+  private AttributeType lastLoginTimeAttribute = null;
 
   // The format string to use when generating the last login time.
-  private String lastLoginTimeFormat;
+  private String lastLoginTimeFormat = null;
 
-
-
-  /**
-   * Creates a new password policy with all of the default settings.
-   */
-  private PasswordPolicy()
-  {
-    configEntryDN                    = null;
-    passwordAttribute                = null;
-    authPasswordSyntax               = false;
-    lastLoginTimeAttribute           = null;
-    previousLastLoginTimeFormats     = new CopyOnWriteArrayList<String>();
-    allowExpiredPasswordChanges      = DEFAULT_PWPOLICY_ALLOW_EXPIRED_CHANGES;
-    allowMultiplePasswordValues      =
-         DEFAULT_PWPOLICY_ALLOW_MULTIPLE_PW_VALUES;
-    allowPreEncodedPasswords         =
-         DEFAULT_PWPOLICY_ALLOW_PRE_ENCODED_PASSWORDS;
-    allowUserPasswordChanges         = DEFAULT_PWPOLICY_ALLOW_USER_CHANGE;
-    expirePasswordsWithoutWarning    = DEFAULT_PWPOLICY_EXPIRE_WITHOUT_WARNING;
-    forceChangeOnAdd                 = DEFAULT_PWPOLICY_FORCE_CHANGE_ON_ADD;
-    forceChangeOnReset               = DEFAULT_PWPOLICY_FORCE_CHANGE_ON_RESET;
-    requireCurrentPassword           =
-         DEFAULT_PWPOLICY_REQUIRE_CURRENT_PASSWORD;
-    requireSecureAuthentication      =
-         DEFAULT_PWPOLICY_REQUIRE_SECURE_AUTHENTICATION;
-    requireSecurePasswordChanges     =
-         DEFAULT_PWPOLICY_REQUIRE_SECURE_PASSWORD_CHANGES;
-    skipValidationForAdministrators  = DEFAULT_PWPOLICY_SKIP_ADMIN_VALIDATION;
-    graceLoginCount                  = DEFAULT_PWPOLICY_GRACE_LOGIN_COUNT;
-    idleLockoutInterval              = DEFAULT_PWPOLICY_IDLE_LOCKOUT_INTERVAL;
-    lockoutDuration                  = DEFAULT_PWPOLICY_LOCKOUT_DURATION;
-    lockoutFailureCount              = DEFAULT_PWPOLICY_LOCKOUT_FAILURE_COUNT;
-    lockoutFailureExpirationInterval =
-         DEFAULT_PWPOLICY_LOCKOUT_FAILURE_EXPIRATION_INTERVAL;
-    minimumPasswordAge               = DEFAULT_PWPOLICY_MINIMUM_PASSWORD_AGE;
-    maximumPasswordAge               = DEFAULT_PWPOLICY_MAXIMUM_PASSWORD_AGE;
-    maximumPasswordResetAge          =
-         DEFAULT_PWPOLICY_MAXIMUM_PASSWORD_RESET_AGE;
-    warningInterval                  = DEFAULT_PWPOLICY_WARNING_INTERVAL;
-    requireChangeByTime              = -1L;
-    lastLoginTimeFormat              = null;
-    passwordGenerator                = null;
-    passwordGeneratorDN              = null;
-
-    notificationHandlers =
-         new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
-
-    defaultStorageSchemes = new CopyOnWriteArrayList<PasswordStorageScheme>();
-    PasswordStorageScheme defaultScheme =
-         DirectoryServer.getPasswordStorageScheme(
-              DEFAULT_PASSWORD_STORAGE_SCHEME);
-    if (defaultScheme != null)
-    {
-      defaultStorageSchemes.add(defaultScheme);
-    }
-
-    deprecatedStorageSchemes = new CopyOnWriteArraySet<String>();
-
-    passwordValidators = new ConcurrentHashMap<DN,PasswordValidator>();
-  }
+  // The set of previous last login time format strings.
+  private CopyOnWriteArrayList<String> previousLastLoginTimeFormats =
+       new CopyOnWriteArrayList<String>();
 
 
 
   /**
    * Creates a new password policy based on the configuration contained in the
    * provided configuration entry.  Any parameters not included in the provided
-   * configuration entry will be assigned server-wide default values.  This
-   * method should only be used to initialize the default password policy -- all
-   * other policies should use the constructor that accepts the default password
-   * policy as an additional argument.
+   * configuration entry will be assigned server-wide default values.
    *
    * @param  configEntry  The configuration entry with the information to use to
-   *                          use to initialize this password policy.
+   *                      initialize this password policy.
    *
    * @throws  ConfigException  If the provided entry does not contain a valid
    *                           password policy configuration.
@@ -275,8 +231,6 @@ public class PasswordPolicy
   public PasswordPolicy(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
-    this(); // Initialize fields to default values.
-
     // Create a list of units and values that we can use to represent time
     // periods.
     LinkedHashMap<String,Double> timeUnits = new LinkedHashMap<String,Double>();
@@ -304,7 +258,16 @@ public class PasswordPolicy
     {
       StringConfigAttribute pwAttrAttr =
            (StringConfigAttribute) configEntry.getConfigAttribute(pwAttrStub);
-      if (pwAttrAttr != null)
+      if (pwAttrAttr == null)
+      {
+        this.passwordAttribute  = null;
+        this.authPasswordSyntax = false;
+        // FIXME: clearly this is an error, but I have not found an example
+        // where it is handled (in a very cursory survey of calls to
+        // ConfigEntry.getConfigAttribute).
+        // Let it fall through and be caught by holistic validation.
+      }
+      else
       {
         String lowerName = toLowerCase(pwAttrAttr.pendingValue());
         AttributeType pwAttrType = DirectoryServer.getAttributeType(lowerName);
