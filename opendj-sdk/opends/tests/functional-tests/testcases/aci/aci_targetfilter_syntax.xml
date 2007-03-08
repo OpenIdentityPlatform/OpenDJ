@@ -133,11 +133,11 @@
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
       <!-- cross reference to DS6 docs -->
-        <testcase name="'ACI: Target: Targetfilter Equals One Statement'">
+        <testcase name="'ACI: Targetfilter: Targetfilter Equals One Statement'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'ACI: Target: Targetfilter Equals One Statement, preamble adding aci'
+               'ACI: Targetfilter: Targetfilter Equals One Statement, preamble adding aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -153,7 +153,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement, user searching targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals One Statement, user searching targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -207,7 +207,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement, user searching non-targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals One Statement, user searching non-targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -234,7 +234,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement, user searching non-targeted entry outside of the scope of the aci'
+               'ACI: Targetfilter: Targetfilter Equals One Statement, user searching non-targeted entry outside of the scope of the aci'
             </message>
 
             <call function="'SearchObject'">
@@ -261,7 +261,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement, admin deleting aci'
+               'ACI: Targetfilter: Targetfilter Equals One Statement, admin deleting aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -277,7 +277,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement, user searching previously targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals One Statement, user searching previously targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -326,11 +326,11 @@
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
       <!-- cross reference to DS6 docs -->
-        <testcase name="'ACI: Target: Targetfilter Equals One Statement 2'">
+        <testcase name="'ACI: Targetfilter: Targetfilter Equals One Statement 2'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'ACI: Target: Targetfilter Equals One Statement 2, preamble adding aci'
+               'ACI: Targetfilter: Targetfilter Equals One Statement 2, preamble adding aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -346,7 +346,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement 2, user searching targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals One Statement 2, user searching targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -400,7 +400,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement, user searching non-targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals One Statement, user searching non-targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -427,7 +427,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement 2, user searching non-targeted entry outside of the scope of the aci'
+               'ACI: Targetfilter: Targetfilter Equals One Statement 2, user searching non-targeted entry outside of the scope of the aci'
             </message>
 
             <call function="'SearchObject'">
@@ -454,7 +454,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement 2, admin deleting aci'
+               'ACI: Targetfilter: Targetfilter Equals One Statement 2, admin deleting aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -470,7 +470,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement 2, user searching previously targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals One Statement 2, user searching previously targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -517,11 +517,11 @@
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
       <!-- cross reference to DS6 docs -->
-        <testcase name="'ACI: Target: Targetfilter Equals One Statement 3'">
+        <testcase name="'ACI: Targetfilter: Targetfilter Equals One Statement 3'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'ACI: Target: Targetfilter Equals One Statement 3, preamble adding aci'
+               'ACI: Targetfilter: Targetfilter Equals One Statement 3, preamble adding aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -537,7 +537,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement 3, user searching targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals One Statement 3, user searching targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -590,7 +590,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement 3, user searching non-targeted entry outside of the scope of the aci'
+               'ACI: Targetfilter: Targetfilter Equals One Statement 3, user searching non-targeted entry outside of the scope of the aci'
             </message>
 
             <call function="'SearchObject'">
@@ -616,7 +616,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement 3, admin deleting aci'
+               'ACI: Targetfilter: Targetfilter Equals One Statement 3, admin deleting aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -632,7 +632,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals One Statement 3, user searching previously targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals One Statement 3, user searching previously targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -679,11 +679,11 @@
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
       <!-- cross reference to DS6 docs -->
-        <testcase name="'ACI: Target: Targetfilter Not Equals One Statement'">
+        <testcase name="'ACI: Targetfilter: Targetfilter Not Equals One Statement'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'ACI: Target: Targetfilter Not Equals One Statement, preamble adding aci'
+               'ACI: Targetfilter: Targetfilter Not Equals One Statement, preamble adding aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -699,7 +699,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Not Equals One Statement, user searching targeted entry'
+               'ACI: Targetfilter: Targetfilter Not Equals One Statement, user searching targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -726,7 +726,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Not Equals One Statement, user searching non-targeted entry in ACI branch'
+               'ACI: Targetfilter: Targetfilter Not Equals One Statement, user searching non-targeted entry in ACI branch'
             </message>
 
             <call function="'SearchObject'">
@@ -780,7 +780,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Not Equals One Statement, user searching non-targeted entry outside of the scope of the aci'
+               'ACI: Targetfilter: Targetfilter Not Equals One Statement, user searching non-targeted entry outside of the scope of the aci'
             </message>
 
             <call function="'SearchObject'">
@@ -807,7 +807,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Not Equals One Statement, admin deleting aci'
+               'ACI: Targetfilter: Targetfilter Not Equals One Statement, admin deleting aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -823,7 +823,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Not Equals One Statement, user searching previously non-targeted entry in ACI branch'
+               'ACI: Targetfilter: Targetfilter Not Equals One Statement, user searching previously non-targeted entry in ACI branch'
             </message>
 
             <call function="'SearchObject'">
@@ -871,11 +871,11 @@
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
       <!-- cross reference to DS6 docs -->
-        <testcase name="'ACI: Target: Targetfilter Equals Three Statements With or, one true'">
+        <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With or, one true, preamble adding aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true, preamble adding aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -891,7 +891,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With or, one true, user searching targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true, user searching targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -945,7 +945,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With or, one true, user searching non-targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true, user searching non-targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -972,7 +972,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With or, one true, user searching non-targeted entry outside of the scope of the aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true, user searching non-targeted entry outside of the scope of the aci'
             </message>
 
             <call function="'SearchObject'">
@@ -999,7 +999,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With or, one true, admin deleting aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true, admin deleting aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -1015,7 +1015,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With or, one true, user searching previously targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true, user searching previously targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -1061,11 +1061,11 @@
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
       <!-- cross reference to DS6 docs -->
-        <testcase name="'ACI: Target: Targetfilter Equals Three Statements With or, none true'">
+        <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With or, none true'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With or, none true, preamble adding aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With or, none true, preamble adding aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -1081,7 +1081,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With or, none true, user searching targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With or, none true, user searching targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -1108,7 +1108,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With or, none true, user searching non-targeted entry outside of the scope of the aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With or, none true, user searching non-targeted entry outside of the scope of the aci'
             </message>
 
             <call function="'SearchObject'">
@@ -1135,7 +1135,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With or, none true, admin deleting aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With or, none true, admin deleting aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -1151,7 +1151,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With or, none true, user searching previously targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With or, none true, user searching previously targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -1198,11 +1198,11 @@
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
       <!-- cross reference to DS6 docs -->
-        <testcase name="'ACI: Target: Targetfilter Equals Three Statements With and, one true'">
+        <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With and, one true'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With and, one true, preamble adding aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With and, one true, preamble adding aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -1218,7 +1218,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With and, one true, user searching targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With and, one true, user searching targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -1245,7 +1245,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With and, one true, user searching non-targeted entry outside of the scope of the aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With and, one true, user searching non-targeted entry outside of the scope of the aci'
             </message>
 
             <call function="'SearchObject'">
@@ -1272,7 +1272,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With and, one true, admin deleting aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With and, one true, admin deleting aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -1288,7 +1288,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With and, one true, user searching previously targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With and, one true, user searching previously targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -1338,11 +1338,11 @@
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
       <!-- cross reference to DS6 docs -->
-        <testcase name="'ACI: Target: Targetfilter Equals Three Statements With and, all true'">
+        <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With and, all true, preamble adding aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true, preamble adding aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -1358,7 +1358,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With and, all true, user searching targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true, user searching targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -1412,7 +1412,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With and, all true, user searching non-targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true, user searching non-targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -1439,7 +1439,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With and, all true, user searching non-targeted entry outside of the scope of the aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true, user searching non-targeted entry outside of the scope of the aci'
             </message>
 
             <call function="'SearchObject'">
@@ -1466,7 +1466,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With and, all true, admin deleting aci'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true, admin deleting aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -1482,7 +1482,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter Equals Three Statements With and, all true, user searching previously targeted entry'
+               'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true, user searching previously targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -1527,11 +1527,11 @@
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
       <!-- cross reference to DS6 docs -->
-        <testcase name="'ACI: Target: Targetfilter With Extra Spaces'">
+        <testcase name="'ACI: Targetfilter: Targetfilter With Extra Spaces'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'ACI: Target: Targetfilter With Extra Spaces, preamble adding aci'
+               'ACI: Targetfilter: Targetfilter With Extra Spaces, preamble adding aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -1547,7 +1547,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter With Extra Spaces, user searching targeted entry'
+               'ACI: Targetfilter: Targetfilter With Extra Spaces, user searching targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -1574,7 +1574,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter With Extra Spaces, admin deleting aci'
+               'ACI: Targetfilter: Targetfilter With Extra Spaces, admin deleting aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -1590,7 +1590,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter With Extra Spaces, user searching previously targeted entry'
+               'ACI: Targetfilter: Targetfilter With Extra Spaces, user searching previously targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -1633,11 +1633,11 @@
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
       <!-- cross reference to DS6 docs -->
-        <testcase name="'ACI: Target: Targetfilter With Missing Quotes'">
+        <testcase name="'ACI: Targetfilter: Targetfilter With Missing Quotes'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'ACI: Target: Targetfilter With Missing Quotes, preamble adding aci'
+               'ACI: Targetfilter: Targetfilter With Missing Quotes, preamble adding aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -1653,7 +1653,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter With Missing Quotes, user searching targeted entry'
+               'ACI: Targetfilter: Targetfilter With Missing Quotes, user searching targeted entry'
             </message>
 
             <call function="'SearchObject'">
@@ -1696,11 +1696,11 @@
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
       <!-- cross reference to DS6 docs -->
-        <testcase name="'ACI: Target: Targetfilter With Missing Quotes 2'">
+        <testcase name="'ACI: Targetfilter: Targetfilter With Missing Quotes 2'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'ACI: Target: Targetfilter With Missing Quotes 2, preamble adding aci'
+               'ACI: Targetfilter: Targetfilter With Missing Quotes 2, preamble adding aci'
             </message>
 
             <call function="'modifyEntry'">
@@ -1716,7 +1716,7 @@
             </if>
 
             <message>
-               'ACI: Target: Targetfilter With Missing Quotes 2, user searching targeted entry'
+               'ACI: Targetfilter: Targetfilter With Missing Quotes 2, user searching targeted entry'
             </message>
 
             <call function="'SearchObject'">
