@@ -38,7 +38,13 @@
             #@TestScript                aci_targetfilter.xml
       -->
       <sequence>
-
+      
+      <script>
+        CurrentTestPath['suite']='aci_targetfilter_syntax'
+      </script>
+      
+      <call function="'testSuite_Preamble'"/>
+      
       <!---
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -1816,6 +1822,8 @@
           </sequence>
         </testcase>
 
+        <call function="'testSuite_Postamble'"/>
+ 
       </sequence>
 
   </function>
