@@ -129,7 +129,7 @@ public abstract class ClientConnection
   protected ClientConnection()
   {
     connectTime        = TimeThread.getTime();
-    connectTimeString  = TimeThread.getUTCTime();
+    connectTimeString  = TimeThread.getGMTTime();
     authenticationInfo = new AuthenticationInfo();
     saslAuthState      = null;
     bindInProgress     = false;

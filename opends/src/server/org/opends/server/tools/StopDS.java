@@ -647,7 +647,7 @@ public class StopDS
       ArrayList<ASN1OctetString> stopTimeValues =
            new ArrayList<ASN1OctetString>(1);
 
-      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       stopTimeValues.add(new ASN1OctetString(dateFormat.format(stopTime)));
       attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME,

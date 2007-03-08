@@ -356,7 +356,7 @@ public class DirectoryFileHandler extends Handler
    */
   private String getFileExtension()
   {
-    return TimeThread.getUTCTime();
+    return TimeThread.getGMTTime();
   }
 
 

@@ -1769,7 +1769,7 @@ writeConfigArchive:
       File archiveFile;
       try
       {
-        String timestamp = TimeThread.getUTCTime();
+        String timestamp = TimeThread.getGMTTime();
         archiveFile = new File(archiveDirectory, "config-" + timestamp + ".gz");
         if (archiveFile.exists())
         {

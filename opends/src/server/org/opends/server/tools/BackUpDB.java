@@ -290,7 +290,7 @@ public class BackUpDB
     }
     else
     {
-      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       backupID = dateFormat.format(new Date());
     }

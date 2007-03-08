@@ -26,8 +26,13 @@
  */
 package org.opends.server.schema;
 
+import java.util.Date;
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.types.AttributeValue;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 /**
  * Test the UTCTimeSyntax.
@@ -49,11 +54,7 @@ public class UTCTimeSyntaxTest extends AttributeSyntaxTest
   public Object[][] createAcceptableValues()
   {
     return new Object [][] {
-        // tests for the UTC time syntax. This time syntax only uses 2 digits
-        // for the year but it is currently implemented using 4 digits
-        // disable the tests for now.
-        // see issue 637
-        /*
+        // tests for the UTC time syntax.
         {"060906135030+01",   true},
         {"0609061350Z",       true},
         {"060906135030Z",     true},
@@ -62,7 +63,8 @@ public class UTCTimeSyntaxTest extends AttributeSyntaxTest
         {"061231235959Z",     true},
         {"060906135030+0101", true},
         {"060906135030+2359", true},
-        */
+        {"060906135060+0101", true},
+        {"060906135061+0101", false},
         {"060906135030+3359", false},
         {"060906135030+2389", false},
         {"062231235959Z",     false},
@@ -73,7 +75,58 @@ public class UTCTimeSyntaxTest extends AttributeSyntaxTest
         {"0612-1235959Z",     false},
         {"061231#35959Z",     false},
         {"2006",              false},
+        {"062106135030+0101", false},
+        {"060A06135030+0101", false},
+        {"061A06135030+0101", false},
+        {"060936135030+0101", false},
+        {"06090A135030+0101", false},
+        {"06091A135030+0101", false},
+        {"060900135030+0101", false},
+        {"060906335030+0101", false},
+        {"0609061A5030+0101", false},
+        {"0609062A5030+0101", false},
+        {"060906137030+0101", false},
+        {"060906135A30+0101", false},
+        {"060906135", false},
+        {"0609061350", false},
+        {"060906135070+0101", false},
+        {"06090613503A+0101", false},
+        {"06090613503", false},
+        {"0609061350Z0", false},
+        {"0609061350+0", false},
+        {"0609061350+000A", false},
+        {"0609061350+A00A", false},
+        {"060906135030Z0", false},
+        {"060906135030+010", false},
+        {"060906135030+010A", false},
+        {"060906135030+0A01", false},
+        {"060906135030+2501", false},
+        {"060906135030+0170", false},
+        {"060906135030+010A", false},
+        {"060906135030+A00A", false},
+        {"060906135030Q", false},
+        {"060906135030+", false},
     };
   }
 
+
+
+  /**
+   * Tests the {@code createUTCTimeValue} and {@code decodeUTCTimeValue}
+   * methods.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testCreateAndDecodeUTCTimeValue()
+         throws Exception
+  {
+    Date d = new Date();
+    AttributeValue timeValue = UTCTimeSyntax.createUTCTimeValue(d);
+    Date decodedDate = UTCTimeSyntax.decodeUTCTimeValue(timeValue.getValue());
+
+    // UTCTime does not have support for sub-second values, so we need to make
+    // sure that the decoded value is within 1000 milliseconds.
+    assertTrue(Math.abs(d.getTime() - decodedDate.getTime()) < 1000);
+  }
 }

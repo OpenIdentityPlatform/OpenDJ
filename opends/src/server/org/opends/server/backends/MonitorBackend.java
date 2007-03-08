@@ -549,7 +549,7 @@ public class MonitorBackend
     // Add the current time.
     Attribute currentTimeAttr =
          createAttribute(ATTR_CURRENT_TIME, ATTR_CURRENT_TIME_LC,
-                         TimeThread.getUTCTime());
+                         TimeThread.getGMTTime());
     ArrayList<Attribute> currentTimeList = new ArrayList<Attribute>(1);
     currentTimeList.add(currentTimeAttr);
     monitorUserAttrs.put(currentTimeAttr.getAttributeType(), currentTimeList);

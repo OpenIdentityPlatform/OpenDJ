@@ -64,6 +64,6 @@ public class TimeStampNaming implements FileNamingPolicy
    */
   public File getNextName()
   {
-    return new File(file + "." + TimeThread.getUTCTime());
+    return new File(file + "." + TimeThread.getGMTTime());
   }
 }

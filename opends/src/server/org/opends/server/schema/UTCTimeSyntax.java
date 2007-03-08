@@ -71,9 +71,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class UTCTimeSyntax
        extends AttributeSyntax
 {
-
-
-
   /**
    * The lock that will be used to provide threadsafe access to the date
    * formatter.
@@ -125,7 +122,6 @@ public class UTCTimeSyntax
   public UTCTimeSyntax()
   {
     super();
-
   }
 
 
@@ -289,7 +285,7 @@ public class UTCTimeSyntax
     // "YYYYMMDDhhmmZ", which is the shortest allowed value.
     String valueString = value.stringValue().toUpperCase();
     int    length      = valueString.length();
-    if (length < 13)
+    if (length < 11)
     {
       int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_TOO_SHORT;
       String message = getMessage(msgID, valueString);
@@ -298,9 +294,9 @@ public class UTCTimeSyntax
     }
 
 
-    // The first four characters are the century and year, and they must be
-    // numeric digits between 0 and 9.
-    for (int i=0; i < 4; i++)
+    // The first two characters are the year, and they must be numeric digits
+    // between 0 and 9.
+    for (int i=0; i < 2; i++)
     {
       switch (valueString.charAt(i))
       {
@@ -328,8 +324,8 @@ public class UTCTimeSyntax
 
     // The next two characters are the month, and they must form the string
     // representation of an integer between 01 and 12.
-    char m1 = valueString.charAt(4);
-    char m2 = valueString.charAt(5);
+    char m1 = valueString.charAt(2);
+    char m2 = valueString.charAt(3);
     switch (m1)
     {
       case '0':
@@ -350,7 +346,7 @@ public class UTCTimeSyntax
           default:
             int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH;
             String message = getMessage(msgID, valueString,
-                                        valueString.substring(4, 6));
+                                        valueString.substring(2, 4));
             invalidReason.append(message);
             return false;
         }
@@ -367,7 +363,7 @@ public class UTCTimeSyntax
           default:
             int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH;
             String message = getMessage(msgID, valueString,
-                                        valueString.substring(4, 6));
+                                        valueString.substring(2, 4));
             invalidReason.append(message);
             return false;
         }
@@ -375,7 +371,7 @@ public class UTCTimeSyntax
       default:
         int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH;
         String message = getMessage(msgID, valueString,
-                                    valueString.substring(4, 6));
+                                    valueString.substring(2, 4));
         invalidReason.append(message);
         return false;
     }
@@ -386,8 +382,8 @@ public class UTCTimeSyntax
     // This doesn't do any validation against the year or month, so it will
     // allow dates like April 31, or February 29 in a non-leap year, but we'll
     // let those slide.
-    char d1 = valueString.charAt(6);
-    char d2 = valueString.charAt(7);
+    char d1 = valueString.charAt(4);
+    char d2 = valueString.charAt(5);
     switch (d1)
     {
       case '0':
@@ -408,7 +404,7 @@ public class UTCTimeSyntax
           default:
             int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_DAY;
             String message = getMessage(msgID, valueString,
-                                        valueString.substring(6, 8));
+                                        valueString.substring(4, 6));
             invalidReason.append(message);
             return false;
         }
@@ -434,7 +430,7 @@ public class UTCTimeSyntax
           default:
             int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_DAY;
             String message = getMessage(msgID, valueString,
-                                        valueString.substring(6, 8));
+                                        valueString.substring(4, 6));
             invalidReason.append(message);
             return false;
         }
@@ -450,7 +446,7 @@ public class UTCTimeSyntax
           default:
             int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_DAY;
             String message = getMessage(msgID, valueString,
-                                        valueString.substring(6, 8));
+                                        valueString.substring(4, 6));
             invalidReason.append(message);
             return false;
         }
@@ -458,7 +454,7 @@ public class UTCTimeSyntax
       default:
         int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_DAY;
         String message = getMessage(msgID, valueString,
-                                    valueString.substring(6, 8));
+                                    valueString.substring(4, 6));
         invalidReason.append(message);
         return false;
     }
@@ -466,8 +462,8 @@ public class UTCTimeSyntax
 
     // The next two characters must be the hour, and they must form the string
     // representation of an integer between 00 and 23.
-    char h1 = valueString.charAt(8);
-    char h2 = valueString.charAt(9);
+    char h1 = valueString.charAt(6);
+    char h2 = valueString.charAt(7);
     switch (h1)
     {
       case '0':
@@ -490,7 +486,7 @@ public class UTCTimeSyntax
           default:
             int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR;
             String message = getMessage(msgID, valueString,
-                                        valueString.substring(8, 10));
+                                        valueString.substring(6, 8));
             invalidReason.append(message);
             return false;
         }
@@ -508,7 +504,7 @@ public class UTCTimeSyntax
           default:
             int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR;
             String message = getMessage(msgID, valueString,
-                                        valueString.substring(8, 10));
+                                        valueString.substring(6, 8));
             invalidReason.append(message);
             return false;
         }
@@ -516,7 +512,7 @@ public class UTCTimeSyntax
       default:
         int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR;
         String message = getMessage(msgID, valueString,
-                                    valueString.substring(8, 10));
+                                    valueString.substring(6, 8));
         invalidReason.append(message);
         return false;
     }
@@ -524,8 +520,63 @@ public class UTCTimeSyntax
 
     // Next, there should be two digits comprising an integer between 00 and 59
     // for the minute.
-    m1 = valueString.charAt(10);
+    m1 = valueString.charAt(8);
     switch (m1)
+    {
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+        // There must be at least two more characters, and the next one must
+        // be a digit between 0 and 9.
+        if (length < 11)
+        {
+          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
+          String message = getMessage(msgID, valueString, m1, 8);
+          invalidReason.append(message);
+          return false;
+        }
+
+        switch (valueString.charAt(9))
+        {
+          case '0':
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+          case '6':
+          case '7':
+          case '8':
+          case '9':
+            // These are all fine.
+            break;
+          default:
+            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_MINUTE;
+            String message = getMessage(msgID, valueString,
+                                        valueString.substring(8, 10));
+            invalidReason.append(message);
+            return false;
+        }
+
+        break;
+
+      default:
+        int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
+        String message = getMessage(msgID, valueString, m1, 8);
+        invalidReason.append(message);
+        return false;
+    }
+
+
+    // Next, there should be either two digits comprising an integer between 00
+    // and 60 (for the second, including a possible leap second), a letter 'Z'
+    // (for the UTC specifier), or a plus or minus sign followed by four digits
+    // (for the UTC offset).
+    char s1 = valueString.charAt(10);
+    switch (s1)
     {
       case '0':
       case '1':
@@ -538,7 +589,7 @@ public class UTCTimeSyntax
         if (length < 13)
         {
           int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, m1, 10);
+          String message = getMessage(msgID, valueString, s1, 10);
           invalidReason.append(message);
           return false;
         }
@@ -558,64 +609,9 @@ public class UTCTimeSyntax
             // These are all fine.
             break;
           default:
-            int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_MINUTE;
-            String message = getMessage(msgID, valueString,
-                                        valueString.substring(10, 12));
-            invalidReason.append(message);
-            return false;
-        }
-
-        break;
-
-      default:
-        int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-        String message = getMessage(msgID, valueString, m1, 10);
-        invalidReason.append(message);
-        return false;
-    }
-
-
-    // Next, there should be either two digits comprising an integer between 00
-    // and 60 (for the second, including a possible leap second), a letter 'Z'
-    // (for the UTC specifier), or a plus or minus sign followed by four digits
-    // (for the UTC offset).
-    char s1 = valueString.charAt(12);
-    switch (s1)
-    {
-      case '0':
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-        // There must be at least two more characters, and the next one must
-        // be a digit between 0 and 9.
-        if (length < 15)
-        {
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 12);
-          invalidReason.append(message);
-          return false;
-        }
-
-        switch (valueString.charAt(13))
-        {
-          case '0':
-          case '1':
-          case '2':
-          case '3':
-          case '4':
-          case '5':
-          case '6':
-          case '7':
-          case '8':
-          case '9':
-            // These are all fine.
-            break;
-          default:
             int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND;
             String message = getMessage(msgID, valueString,
-                                        valueString.substring(12, 14));
+                                        valueString.substring(10, 12));
             invalidReason.append(message);
             return false;
         }
@@ -624,24 +620,66 @@ public class UTCTimeSyntax
       case '6':
         // There must be at least two more characters and the next one must be
         // a 0.
-        if (length < 15)
+        if (length < 13)
         {
           int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 12);
+          String message = getMessage(msgID, valueString, s1, 10);
           invalidReason.append(message);
           return false;
         }
 
-        if (valueString.charAt(13) != '0')
+        if (valueString.charAt(11) != '0')
         {
           int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND;
           String message = getMessage(msgID, valueString,
-                                      valueString.substring(12, 14));
+                                      valueString.substring(10, 12));
           invalidReason.append(message);
           return false;
         }
 
         break;
+      case 'Z':
+        // This is fine only if we are at the end of the value.
+        if (length == 11)
+        {
+          return true;
+        }
+        else
+        {
+          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
+          String message = getMessage(msgID, valueString, s1, 10);
+          invalidReason.append(message);
+          return false;
+        }
+
+      case '+':
+      case '-':
+        // These are fine only if there are exactly four more digits that
+        // specify a valid offset.
+        if (length == 15)
+        {
+          return hasValidOffset(valueString, 11, invalidReason);
+        }
+        else
+        {
+          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
+          String message = getMessage(msgID, valueString, s1, 10);
+          invalidReason.append(message);
+          return false;
+        }
+
+      default:
+        int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
+        String message = getMessage(msgID, valueString, s1, 10);
+        invalidReason.append(message);
+        return false;
+    }
+
+
+    // The last element should be either a letter 'Z' (for the UTC specifier),
+    // or a plus or minus sign followed by four digits (for the UTC offset).
+    switch (valueString.charAt(12))
+    {
       case 'Z':
         // This is fine only if we are at the end of the value.
         if (length == 13)
@@ -651,50 +689,8 @@ public class UTCTimeSyntax
         else
         {
           int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 12);
-          invalidReason.append(message);
-          return false;
-        }
-
-      case '+':
-      case '-':
-        // These are fine only if there are exactly four more digits that
-        // specify a valid offset.
-        if (length == 17)
-        {
-          return hasValidOffset(valueString, 13, invalidReason);
-        }
-        else
-        {
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-          String message = getMessage(msgID, valueString, s1, 12);
-          invalidReason.append(message);
-          return false;
-        }
-
-      default:
-        int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-        String message = getMessage(msgID, valueString, s1, 12);
-        invalidReason.append(message);
-        return false;
-    }
-
-
-    // The last element should be either a letter 'Z' (for the UTC specifier),
-    // or a plus or minus sign followed by four digits (for the UTC offset).
-    switch (valueString.charAt(14))
-    {
-      case 'Z':
-        // This is fine only if we are at the end of the value.
-        if (length == 15)
-        {
-          return true;
-        }
-        else
-        {
-          int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
           String message = getMessage(msgID, valueString,
-                                      valueString.charAt(14), 14);
+                                      valueString.charAt(12), 12);
           invalidReason.append(message);
           return false;
         }
@@ -703,23 +699,23 @@ public class UTCTimeSyntax
       case '-':
         // These are fine only if there are four or two more digits that
         // specify a valid offset.
-        if ((length == 19) || (length == 17))
+        if ((length == 17) || (length == 15))
         {
-          return hasValidOffset(valueString, 15, invalidReason);
+          return hasValidOffset(valueString, 13, invalidReason);
         }
         else
         {
           int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
           String message = getMessage(msgID, valueString,
-                                      valueString.charAt(14), 14);
+                                      valueString.charAt(12), 12);
           invalidReason.append(message);
           return false;
         }
 
       default:
         int    msgID   = MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR;
-        String message = getMessage(msgID, valueString, valueString.charAt(14),
-                                    14);
+        String message = getMessage(msgID, valueString, valueString.charAt(12),
+                                    12);
         invalidReason.append(message);
         return false;
     }

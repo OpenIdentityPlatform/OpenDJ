@@ -1111,7 +1111,7 @@ public class DirectoryServer
       // Mark the current time as the start time and indicate that the server is
       // now running.
       startUpTime  = System.currentTimeMillis();
-      startTimeUTC = TimeThread.getUTCTime();
+      startTimeUTC = TimeThread.getGMTTime();
       isRunning    = true;
 
       int    msgID   = MSGID_DIRECTORY_SERVER_STARTED;
