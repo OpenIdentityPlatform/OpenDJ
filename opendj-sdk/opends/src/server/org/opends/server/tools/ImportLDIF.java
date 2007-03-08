@@ -555,6 +555,8 @@ public class ImportLDIF
     // See if there were any user-defined sets of include/exclude attributes or
     // filters.  If so, then process them.
     HashSet<AttributeType> excludeAttributes;
+    boolean excludeAllUserAttributes = false;
+    boolean excludeAllOperationalAttributes = false;
     if (excludeAttributeStrings == null)
     {
       excludeAttributes = null;
@@ -565,17 +567,30 @@ public class ImportLDIF
       for (String attrName : excludeAttributeStrings.getValues())
       {
         String        lowerName = attrName.toLowerCase();
-        AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
-        if (attrType == null)
+        if(lowerName.equals("*"))
         {
-          attrType = DirectoryServer.getDefaultAttributeType(attrName);
+          excludeAllUserAttributes = true;
         }
+        else if(lowerName.equals("+"))
+        {
+          excludeAllOperationalAttributes = true;
+        }
+        else
+        {
+          AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
+          if (attrType == null)
+          {
+            attrType = DirectoryServer.getDefaultAttributeType(attrName);
+          }
 
-        excludeAttributes.add(attrType);
+          excludeAttributes.add(attrType);
+        }
       }
     }
 
     HashSet<AttributeType> includeAttributes;
+    boolean includeAllUserAttributes = false;
+    boolean includeAllOperationalAttributes = false;
     if (includeAttributeStrings == null)
     {
       includeAttributes = null;
@@ -586,13 +601,24 @@ public class ImportLDIF
       for (String attrName : includeAttributeStrings.getValues())
       {
         String        lowerName = attrName.toLowerCase();
-        AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
-        if (attrType == null)
+         if(lowerName.equals("*"))
         {
-          attrType = DirectoryServer.getDefaultAttributeType(attrName);
+          includeAllUserAttributes = true;
         }
+        else if(lowerName.equals("+"))
+        {
+          includeAllOperationalAttributes = true;
+        }
+        else
+        {
+          AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
+          if (attrType == null)
+          {
+            attrType = DirectoryServer.getDefaultAttributeType(attrName);
+          }
 
-        includeAttributes.add(attrType);
+          includeAttributes.add(attrType);
+        }
       }
     }
 
@@ -889,6 +915,13 @@ public class ImportLDIF
     importConfig.setIncludeFilters(includeFilters);
     importConfig.setValidateSchema(!skipSchemaValidation.isPresent());
     importConfig.setBufferSize(LDIF_BUFFER_SIZE);
+    importConfig.setExcludeAllUserAttributes(
+                                     excludeAllUserAttributes);
+    importConfig.setExcludeAllOperationalAttributes(
+                                     excludeAllOperationalAttributes);
+    importConfig.setIncludeAllOpAttributes(
+                                      includeAllOperationalAttributes);
+    importConfig.setIncludeAllUserAttributes(includeAllUserAttributes);
 
     // FIXME -- Should this be conditional?
     importConfig.setInvokeImportPlugins(true);

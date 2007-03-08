@@ -136,6 +136,20 @@ public class LDIFImportConfig
   // The set of attribute types that should be included in the import.
   private Set<AttributeType> includeAttributes;
 
+//Indicates whether all the user attributes should be included.
+  private boolean includeAllUserAttrs;
+
+  //Indicates whether all the operational attributes should be
+  // included.
+  private boolean includeAllOpAttrs;
+
+  //Indicates whether all the user attributes should be excluded.
+  private boolean excludeAllUserAttrs;
+
+  //Indicates whether all the operational attributes should be
+  // excluded.
+  private boolean excludeAllOpAttrs;
+
   // The MakeLDIF template file that should be used to generate
   // entries (instead of having them read from a file).
   private TemplateFile templateFile;
@@ -172,6 +186,11 @@ public class LDIFImportConfig
     rejectWriter           = null;
     excludeAttributes      = new HashSet<AttributeType>();
     includeAttributes      = new HashSet<AttributeType>();
+    includeAllUserAttrs    = false;
+    includeAllOpAttrs      = false;
+    excludeAllUserAttrs    = false;
+    excludeAllOpAttrs      = false;
+
   }
 
 
@@ -206,6 +225,11 @@ public class LDIFImportConfig
     rejectWriter           = null;
     excludeAttributes      = new HashSet<AttributeType>();
     includeAttributes      = new HashSet<AttributeType>();
+    includeAllUserAttrs    = false;
+    includeAllOpAttrs      = false;
+    excludeAllUserAttrs    = false;
+    excludeAllOpAttrs      = false;
+
   }
 
 
@@ -238,6 +262,11 @@ public class LDIFImportConfig
     rejectWriter           = null;
     excludeAttributes      = new HashSet<AttributeType>();
     includeAttributes      = new HashSet<AttributeType>();
+    includeAllUserAttrs    = false;
+    includeAllOpAttrs      = false;
+    excludeAllUserAttrs    = false;
+    excludeAllOpAttrs      = false;
+
   }
 
   /**
@@ -268,6 +297,11 @@ public class LDIFImportConfig
     rejectWriter           = null;
     excludeAttributes      = new HashSet<AttributeType>();
     includeAttributes      = new HashSet<AttributeType>();
+    includeAllUserAttrs    = false;
+    includeAllOpAttrs      = false;
+    excludeAllUserAttrs    = false;
+    excludeAllOpAttrs      = false;
+
   }
 
   /**
@@ -921,11 +955,30 @@ public class LDIFImportConfig
       return false;
     }
 
+     if(excludeAllOpAttrs && attributeType.isOperational() ||
+      excludeAllUserAttrs && !attributeType.isOperational())
+    {
+      return false;
+    }
+
+    if(includeAllUserAttrs && !attributeType.isOperational() ||
+           includeAllOpAttrs && attributeType.isOperational())
+    {
+      return true;
+    }
+
     if (! includeAttributes.isEmpty())
     {
       return includeAttributes.contains(attributeType);
     }
-
+    else
+    {
+       if(includeAllUserAttrs && attributeType.isOperational() ||
+               includeAllOpAttrs && !attributeType.isOperational())
+       {
+         return false;
+       }
+    }
     return true;
   }
 
@@ -1075,6 +1128,64 @@ public class LDIFImportConfig
   public void setBufferSize(int bufferSize)
   {
     this.bufferSize = bufferSize;
+  }
+
+
+
+    /**
+   * Specifies whether all the user attributes should be excluded.
+   *
+   * @param  excludeAllUserAttrs  Specifies all user attributes to
+   *         be excluded.
+   */
+  public void setExcludeAllUserAttributes(boolean excludeAllUserAttrs)
+  {
+    this.excludeAllUserAttrs = excludeAllUserAttrs;
+  }
+
+
+
+  /**
+   * Specifies whether all the operational attributes should be
+   * excluded.
+   *
+   * @param  excludeAllOpAttrs  Specifies whether all the
+   *                            operational attributes
+   *                            should be excluded.
+   */
+  public void setExcludeAllOperationalAttributes(
+                                    boolean excludeAllOpAttrs)
+  {
+    this.excludeAllOpAttrs = excludeAllOpAttrs;
+  }
+
+
+
+  /**
+   * Specifies whether all the operational attributes should be
+   * included.
+   *
+   * @param  includeAllOpAttrs  Specifies whether all
+   *         the operation attributes should be included.
+   *
+   */
+  public void setIncludeAllOpAttributes(boolean includeAllOpAttrs)
+  {
+    this.includeAllOpAttrs = includeAllOpAttrs;
+  }
+
+
+
+  /**
+   * Specifies whether all the user attributes should be included.
+   *
+   * @param  includeAllUserAttrs  Specifies whether all the
+   *                              user attributes should be
+   *                              included.
+   */
+  public void setIncludeAllUserAttributes(boolean includeAllUserAttrs)
+  {
+    this.includeAllUserAttrs = includeAllUserAttrs;
   }
 
 
