@@ -5187,6 +5187,65 @@ public class SchemaBackendTestCase
 
 
   /**
+   * This test case covers the problem identified in issue #1318.  In that
+   * issue, a problem arose if the following elements occurred in the following
+   * order in a single modify request:
+   *
+   * <OL>
+   *   <LI>Delete an existing object class</LI>
+   *   <LI>Add a new attribute type</LI>
+   *   <LI>Add a new object class (different from the one that was removed) that
+   *       depends on the new attribute type</LI>
+   * </OL>
+   *
+   * The problem was that in the process of removing the object class in step 1,
+   * the server checks to see if the same object class is going to be re-added
+   * again later.  It does that by looking through the remaining modifications
+   * in the operation and for each modification that would add a new object
+   * class we decode it to see if it has the same OID.  The process of decoding
+   * that object class would fail because it depended on a new attribute type
+   * that wasn't yet defined in the schema, and the server wasn't told to ignore
+   * missing schema elements.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testRemoveAndAddObjectClassIssue1318()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: objectClasses",
+         "objectClasses: ( testissue1318oc1-oid NAME 'testIssue1381OC1' )",
+         "",
+         "dn: cn=schema",
+         "changetype: modify",
+         "delete: objectClasses",
+         "objectClasses: ( testissue1318oc1-oid NAME 'testIssue1381OC1' )",
+         "-",
+         "add: attributeTypes",
+         "attributeTypes: ( testissue1318at-oid NAME 'testIssue1381AT' )",
+         "-",
+         "add: objectClasses",
+         "objectClasses: ( testissue1318oc2-oid NAME 'testIssue1381OC2' " +
+              "MUST testIssue1381AT )");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
    * Tests to ensure that the schema subentry includes the lastmod attributes
    * and that the modifiersName and modifyTimestamp attributes get updated when
    * the schema is modified.
