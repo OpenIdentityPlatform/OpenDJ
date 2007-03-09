@@ -591,6 +591,7 @@
     <mkdir dir="${pdir}/bin"             />
     <mkdir dir="${pdir}/classes"         />
     <mkdir dir="${pdir}/config"          />
+    <mkdir dir="${pdir}/config/upgrade"  />
     <mkdir dir="${pdir}/config/schema"   />
     <mkdir dir="${pdir}/config/messages" />
     <mkdir dir="${pdir}/config/MakeLDIF" />
@@ -627,6 +628,21 @@
     <copy todir="${pdir}/config">
       <fileset file="${config.dir}/*" />
     </copy>
+
+    <copy file="${pdir}/config/config.ldif"
+         tofile="${pdir}/config/upgrade/config.ldif.${REVISION_NUMBER}" />
+
+    <taskdef name="concatschema"
+             classname="org.opends.build.tools.ConcatSchema">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <concatschema schemaDirectory="${resource.dir}/schema"
+         toFile="${pdir}/config/upgrade/schema.ldif.${REVISION_NUMBER}" />
 
     <copy todir="${pdir}/config/schema">
       <fileset dir="${resource.dir}/schema" />
