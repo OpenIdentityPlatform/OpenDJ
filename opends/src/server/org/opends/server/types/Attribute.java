@@ -59,16 +59,20 @@ public class Attribute
 
 
   // The attribute type for this attribute.
-  private AttributeType attributeType;
+  private final AttributeType attributeType;
 
   // The set of values for this attribute.
   private LinkedHashSet<AttributeValue> values;
 
   // The set of options for this attribute.
-  private LinkedHashSet<String> options;
+  private final LinkedHashSet<String> options;
+
+  // The set of options for this attribute, formatted in all lowercase
+  // characters.
+  private final LinkedHashSet<String> lowerOptions;
 
   // The name of this attribute as provided by the end user.
-  private String name;
+  private final String name;
 
 
 
@@ -84,6 +88,8 @@ public class Attribute
     this.name          = attributeType.getPrimaryName();
     this.options       = new LinkedHashSet<String>(0);
     this.values        = new LinkedHashSet<AttributeValue>();
+
+    lowerOptions = options;
   }
 
 
@@ -101,6 +107,8 @@ public class Attribute
     this.name          = name;
     this.options       = new LinkedHashSet<String>(0);
     this.values        = new LinkedHashSet<AttributeValue>();
+
+    lowerOptions = options;
   }
 
 
@@ -119,6 +127,8 @@ public class Attribute
     this.attributeType = attributeType;
     this.name          = name;
     this.options       = new LinkedHashSet<String>(0);
+
+    lowerOptions = options;
 
     if (values == null)
     {
@@ -150,6 +160,8 @@ public class Attribute
     this.values.add(new AttributeValue(this.attributeType,
                                        valueString));
     this.options = new LinkedHashSet<String>(0);
+
+    lowerOptions = options;
   }
 
 
@@ -173,10 +185,16 @@ public class Attribute
     if (options == null)
     {
       this.options = new LinkedHashSet<String>(0);
+      lowerOptions = options;
     }
     else
     {
       this.options = options;
+      lowerOptions = new LinkedHashSet<String>();
+      for (String option : options)
+      {
+        lowerOptions.add(toLowerCase(option));
+      }
     }
 
     if (values == null)
@@ -237,7 +255,7 @@ public class Attribute
    */
   public boolean hasOption(String option)
   {
-    return options.contains(option);
+    return lowerOptions.contains(toLowerCase(option));
   }
 
 
@@ -250,7 +268,7 @@ public class Attribute
    */
   public boolean hasOptions()
   {
-    return ((options != null) && (! options.isEmpty()));
+    return (! options.isEmpty());
   }
 
 
@@ -275,7 +293,7 @@ public class Attribute
 
     for (String option : options)
     {
-      if (! this.options.contains(option))
+      if (! lowerOptions.contains(toLowerCase(option)))
       {
         return false;
       }
@@ -316,7 +334,7 @@ public class Attribute
 
     for (String s : options)
     {
-      if (! this.options.contains(s))
+      if (! lowerOptions.contains(toLowerCase(s)))
       {
         return false;
       }

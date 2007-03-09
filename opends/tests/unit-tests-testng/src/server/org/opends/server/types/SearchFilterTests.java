@@ -369,15 +369,18 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
             // attribute options
             {JOHN_SMITH_LDIF, "(cn;lang-en=Jonathan Smith)", true},
+            {JOHN_SMITH_LDIF, "(cn;lang-EN=Jonathan Smith)", true},
             {JOHN_SMITH_LDIF, "(cn;lang-en=Jonathan Smithe)", false},
             {JOHN_SMITH_LDIF, "(cn;lang-fr=Jonathan Smith)", false},
             {JOHN_SMITH_LDIF, "(cn;lang-en=*jon*an*)", true},
+            {JOHN_SMITH_LDIF, "(cn;lAnG-En=*jon*an*)", true},
 
             // attribute subtypes.  Enable this once 593 is fixed.
-//            {JOHN_SMITH_LDIF, "(name=John Smith)", true},
-//            {JOHN_SMITH_LDIF, "(name=*Smith*)", true},
-//            {JOHN_SMITH_LDIF, "(name;lang-en=Jonathan Smith)", true},  // ? maybe not
-//            {JOHN_SMITH_LDIF, "(name;lang-en=*Jonathan*)", true},  // ? maybe not
+            {JOHN_SMITH_LDIF, "(name=John Smith)", true},
+            {JOHN_SMITH_LDIF, "(name=*Smith*)", true},
+            {JOHN_SMITH_LDIF, "(name;lang-en=Jonathan Smith)", true},
+            {JOHN_SMITH_LDIF, "(name;lang-EN=Jonathan Smith)", true},
+            {JOHN_SMITH_LDIF, "(name;lang-en=*Jonathan*)", true},
 
             // Enable this once
 //            {JOHN_SMITH_LDIF, "(cn=*Jo**i*th*)", true},

@@ -398,6 +398,25 @@ public class CompareOperationTestCase extends OperationTestCase
   }
 
   @Test
+  public void testCompareOptions3()
+  {
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    CompareOperation compareOperation =
+         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+                              InternalClientConnection.nextMessageID(),
+                              new ArrayList<Control>(),
+                              new ASN1OctetString(entry.getDN().toString()),
+                              "givenName;lAnG-En",
+                              new ASN1OctetString("Rodney"));
+
+    compareOperation.run();
+    assertEquals(compareOperation.getResultCode(),
+                 ResultCode.COMPARE_TRUE);
+  }
+
+  @Test
   public void testCompareTrueAssertion() throws Exception
   {
     InvocationCounterPlugin.resetAllCounters();
