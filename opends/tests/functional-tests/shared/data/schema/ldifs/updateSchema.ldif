@@ -1,0 +1,7 @@
+dn: cn=schema
+changetype:modify
+add: attributeTypes
+attributeTypes: ( addschema2at-oid NAME 'addschema2AT' )
+-
+add: objectClasses
+objectClasses: ( addschema2oc-oid NAME 'addschema2OC' STRUCTURAL MUST addschema2AT )
