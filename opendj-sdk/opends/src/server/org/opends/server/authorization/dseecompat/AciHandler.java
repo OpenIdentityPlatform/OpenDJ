@@ -87,6 +87,7 @@ public class AciHandler extends AccessControlHandler
                                  ModifyOperation operation,
                                  boolean skipAccessCheck) {
         Entry resourceEntry=container.getResourceEntry();
+        DN dn=resourceEntry.getDN();
         List<Modification> modifications=container.getModifications();
         for(Modification m : modifications) {
             Attribute modAttr=m.getAttribute();
@@ -137,7 +138,6 @@ public class AciHandler extends AccessControlHandler
               }
             }
             if(modAttr.hasValue()) {
-               boolean checkPrivileges=true;
                for(AttributeValue v : modAttr.getValues()) {
                    container.setCurrentAttributeType(modType);
                    switch (m.getModificationType())
@@ -175,6 +175,25 @@ public class AciHandler extends AccessControlHandler
                        }
                        break;
                    }
+                  /*
+                   Check if the modification type has an "aci" attribute type.
+                   If so, check the syntax of that attribute value. Fail the
+                   the operation if the syntax check fails.
+                   */
+                  if(modType.equals(aciType)) {
+                      try {
+                          Aci.decode(v.getValue(),dn);
+                      } catch (AciException ex) {
+                          int    msgID  = MSGID_ACI_MODIFY_FAILED_DECODE;
+                          String message = getMessage(msgID,
+                                  String.valueOf(dn),
+                                  ex.getMessage());
+                          logError(ErrorLogCategory.ACCESS_CONTROL,
+                                   ErrorLogSeverity.SEVERE_WARNING,
+                                   message, msgID);
+                          return false;
+                      }
+                  }
                }
             }
         }
@@ -446,6 +465,63 @@ public class AciHandler extends AccessControlHandler
     }
 
     /**
+     * Evaluate an entry to be added to see if it has any "aci"
+     * attribute type. If it does, examines each "aci" attribute type
+     * value for syntax errors. All of the "aci" attribute type values
+     * must pass syntax check for the add operation to proceed. Any
+     * entry with an "aci" attribute type must have "modify-acl"
+     * privileges.
+     *
+     * @param entry  The entry to be examined.
+     * @param operation The operation to to check privileges on.
+     * @param clientDN The authorization DN.
+     * @return True if the entry has no ACI attributes or if all of the "aci"
+     * attributes values pass ACI syntax checking.
+     */
+    private boolean
+       verifySyntax(Entry entry, Operation operation, DN clientDN) {
+      if(entry.hasOperationalAttribute(aciType)) {
+        /*
+         * Check that the operation has "modify-acl" privileges since the
+         * entry to be added has an "aci" attribute type.
+         */
+        if (!operation.getClientConnection().
+             hasPrivilege(Privilege.MODIFY_ACL, operation))  {
+          int    msgID  = MSGID_ACI_ADD_FAILED_PRIVILEGE;
+          String message = getMessage(msgID,
+                                      String.valueOf(entry.getDN()),
+                                      String.valueOf(clientDN));
+          logError(ErrorLogCategory.ACCESS_CONTROL,
+                   ErrorLogSeverity.SEVERE_WARNING,
+                   message, msgID);
+          return false;
+        }
+        List<Attribute> attributeList =
+             entry.getOperationalAttribute(aciType, null);
+        for (Attribute attribute : attributeList)
+        {
+          for (AttributeValue value : attribute.getValues())
+          {
+            try {
+              DN dn=entry.getDN();
+              Aci.decode(value.getValue(),dn);
+            } catch (AciException ex) {
+              int    msgID  = MSGID_ACI_ADD_FAILED_DECODE;
+              String message = getMessage(msgID,
+                                          String.valueOf(entry.getDN()),
+                                          ex.getMessage());
+              logError(ErrorLogCategory.ACCESS_CONTROL,
+                       ErrorLogSeverity.SEVERE_WARNING,
+                       message, msgID);
+              return false;
+            }
+          }
+        }
+      }
+    return true;
+  }
+
+    /**
      * Check access on add operations.
      *
      * @param operation The add operation to check access on.
@@ -456,27 +532,11 @@ public class AciHandler extends AccessControlHandler
                 new AciLDAPOperationContainer(operation, ACI_ADD);
         boolean ret=isAllowed(operationContainer,operation);
 
-        if(ret) {
-          Entry entry = operation.getEntryToAdd();
-          if(entry.hasOperationalAttribute(aciType)) {
-            /*
-             * Check that the operation has "modify-acl" privileges since the
-             * entry to be added has an "aci" attribute type.
-             */
-            if (!operation.getClientConnection().
-                 hasPrivilege(Privilege.MODIFY_ACL, operation))  {
-              int    msgID  = MSGID_ACI_ADD_FAILED_PRIVILEGE;
-              String message =
-                   getMessage(msgID,
-                              String.valueOf(entry.getDN()),
-                              String.valueOf(operationContainer.getClientDN()));
-              logError(ErrorLogCategory.ACCESS_CONTROL,
-                       ErrorLogSeverity.SEVERE_WARNING,
-                       message, msgID);
-              ret = false;
-            }
-          }
-        }
+        //LDAP add needs a verify ACI syntax step in case any
+        //"aci" attribute types are being added.
+        if(ret)
+          ret=verifySyntax(operation.getEntryToAdd(), operation,
+                           operationContainer.getClientDN());
         return ret;
     }
 
