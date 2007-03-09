@@ -26,5 +26,5 @@
 dn: ou=aci branch, o=ACI Tests, dc=example,dc=com
 changetype: modify
 add: aci
-aci: (target="ldap:///ou=Peo*,ou=aci branch, o=ACI Tests, dc=example,dc=com")(targetattr="*")(version 3.0; acl "add_aci3"; allow (read) userdn="ldap:///all";)
+aci: (target="ldap:///ou=Peo*,ou=aci branch, o=ACI Tests, dc=example,dc=com")(targetattr="*")(version 3.0; acl "add_aci3"; allow (search,read) userdn="ldap:///all";)
 

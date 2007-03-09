@@ -32,7 +32,7 @@ dn: ou=new aci branch, o=More Branches,o=ACI Tests, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: new aci branch
-aci: (target="ldap:///ou=new aci branch, o=More Branches, o=ACI Tests, dc=example,dc=com")(targetattr="*")(version 3.0; acl "add_entries1"; allow (read) userdn="ldap:///all";)
+aci: (target="ldap:///ou=new aci branch, o=More Branches, o=ACI Tests, dc=example,dc=com")(targetattr="*")(version 3.0; acl "add_entries1"; allow (search,read) userdn="ldap:///all";)
 
 dn: ou=People, ou=new aci branch, o=More Branches,o=ACI Tests, dc=example,dc=com
 objectclass: top
