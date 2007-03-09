@@ -1735,5 +1735,177 @@
       </loop>
       <return>loopRC</return>
     </sequence>
-  </function> 
+  </function>
+ 
+    <!-- Add Schema Task Function --> 
+    <function name="addSchemaTask">
+
+    <function-prolog>
+        This function performs a dynamic schema add task 
+    </function-prolog>
+
+    <function-map-args>
+        <function-required-arg name="dsInstanceHost">
+            Directory Server host name
+        </function-required-arg>
+        <function-required-arg name="dsInstancePort">
+            Directory Server port number
+        </function-required-arg>
+        <function-required-arg name="dsInstanceDn">
+            Directory Server Manager DN
+        </function-required-arg>
+        <function-required-arg name="dsInstancePswd">
+            Directory Server Manager Password
+        </function-required-arg>
+        <function-required-arg name="taskID">
+            The identifier for the task
+        </function-required-arg>
+        <function-required-arg name="ldifFile">
+            The name of the ldif file that contains the schema updates
+        </function-required-arg>
+    </function-map-args>
+
+      <sequence>
+
+        <script>
+          taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
+        </script>
+        
+        <!-- Build the schema task configuration object -->
+        <script>
+          ldifLines=[]
+          ldifLines.append('dn: %s' % taskDN)
+          ldifLines.append('objectclass: top')
+          ldifLines.append('objectclass: ds-task')
+          ldifLines.append('objectclass: ds-task-add-schema-file')
+          ldifLines.append('ds-task-class-name: org.opends.server.tasks.AddSchemaFileTask')
+          ldifLines.append('ds-task-id: %s' % taskID)
+        </script>
+    
+        <script>
+          ldifLines.append('ds-task-schema-file-name: %s' % ldifFile )
+        </script>
+               
+                   
+        <!-- Write out the schema-task ldif -->
+        <script>
+          outfile = open('%s/schema-task.ldif' % TMP_DATA_DIR,"w")
+            
+          for line in ldifLines:
+            outfile.write("%s\n" % line)
+            
+          outfile.close()
+        </script>
+
+        
+        <!-- Copy the schema-task ldif to remote host -->
+        <message>'Copy schema task ldif file.'</message>
+        <call function="'copyFile'">
+          { 'srcfile'    : '%s/schema-task.ldif' % TMP_DATA_DIR,
+            'destfile'   : '%s/schema-task.ldif' % STAGED_DATA_DIR,
+            'remotehost' : STAF_REMOTE_HOSTNAME }
+        </call>
+        
+        <!-- Copy the schema update ldif to remote host's config/schema directory -->
+        <message>'Copy schema update ldif file.'</message>
+        <call function="'copyFile'">
+          { 'srcfile'    : '%s/schema/ldifs/%s' % (STAGED_DATA_DIR,ldifFile),
+            'destfile'   : '%s/%s/config/schema/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,ldifFile),
+            'remotehost' : STAF_REMOTE_HOSTNAME }
+        </call>
+
+        <!-- On line Schema Task with ldapmodify -->
+        <message>
+          'ldapmodify%s -a -h %s -p %s -D "%s" -w %s' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)
+        </message>
+        <process name="'On line Schema Task'">
+          <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+          <command>'%s/ldapmodify%s' % (OPENDS_BINPATH,fileExt)</command>
+          <parms>'-a -h %s -p %s -D "%s" -w %s' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd)</parms>
+          <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+          <envs>
+                ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+          </envs>
+          <stdin>'%s/schema-task.ldif' % STAGED_DATA_DIR</stdin>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+
+        <script>
+          schemaTaskRC=RC
+          schemaTaskResult=STAXResult
+        </script>
+
+        <call function="'checkRC'">
+          { 'returncode' : schemaTaskRC ,
+            'result'     : schemaTaskResult }
+        </call>
+          
+        <!-- Check that the task is completed -->
+        <script>
+          loopRC=1
+        </script>
+
+        <script> 
+          searchre = re.compile('ds-task-state: COMPLETED_SUCCESSFULLY') 
+        </script> 
+
+        <!-- Wait for the task to be COMPLETED_SUCCESSFULLY -->
+        <loop from="1" to="5" while="loopRC != 0">
+
+          <sequence>
+          
+            <message>
+              'ldapsearch%s -h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (fileExt,dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)
+            </message>
+            <process name="'Search On line Restore Task'">
+              <location>'%s' % (STAF_REMOTE_HOSTNAME) </location>
+              <command>'%s/ldapsearch%s' % (OPENDS_BINPATH,fileExt)</command>
+              <parms>'-h %s -p %s -D "%s" -w %s -s base -b "%s" "objectclass=*" ds-task-state' % (dsInstanceHost,dsInstancePort,dsInstanceDn,dsInstancePswd,taskDN)</parms>
+              <workdir>'%s' % (OPENDS_BINPATH)</workdir>
+              <envs>
+                    ['PATH=/bin:/usr/bin:%s' % (OPENDS_BINPATH), 'JAVA_HOME=%s' % (JAVA_HOME)]
+              </envs>
+              <stderr mode="'stdout'"/>
+              <returnstdout/>
+            </process>
+            
+            <script>
+              searchRC=RC
+              searchResult=STAXResult
+            </script>
+    
+            <script> 
+              result = STAXResult[0][1]
+            </script> 
+    
+            <if expr='re.search(searchre, result) != None'>
+              <sequence>
+                <script>loopRC=0</script>
+              </sequence>
+            <else>
+              <message log="1" level="'Warning'">
+                'No match on ds-task-state.'
+              </message>
+            </else>
+            </if>
+            
+            <call function="'checkRC'">
+                { 'returncode' : searchRC ,
+                  'result'     : searchResult }
+            </call>
+          
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '2000' }
+            </call>
+            
+          </sequence>
+          
+        </loop>
+
+        <return>loopRC</return>
+
+      </sequence>
+    </function> 
+    
 </stax>
