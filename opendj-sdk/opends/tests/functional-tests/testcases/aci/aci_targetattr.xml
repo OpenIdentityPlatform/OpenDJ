@@ -67,7 +67,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber'}
             </call>
 
@@ -94,7 +94,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber'}
             </call>
 
@@ -161,7 +161,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -206,7 +206,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -249,7 +249,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -316,7 +316,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'telephonenumber=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -361,7 +361,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'telephonenumber=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -404,7 +404,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'telephonenumber=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -471,7 +471,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -534,7 +534,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -577,7 +577,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -644,7 +644,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'telephonenumber=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -707,7 +707,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'telephonenumber=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -750,7 +750,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'telephonenumber=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -813,7 +813,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -849,7 +849,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -892,7 +892,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -953,7 +953,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'extraParams'      : '-s base' ,
                 'attributes'       : 'aci' }
             </call>
@@ -1013,7 +1013,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'extraParams'      : '-s base' ,
                 'attributes'       : 'aci' }
             </call>
@@ -1073,7 +1073,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'extraParams'      : '-s base' ,
                 'attributes'       : 'aci' }
             </call>
@@ -1138,7 +1138,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -1183,7 +1183,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -1226,7 +1226,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber' }
             </call>
 
@@ -1271,7 +1271,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber'}
             </call>
 
@@ -1298,7 +1298,7 @@
                 'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  ,
+                'dsFilter'         : 'cn=*'  ,
                 'attributes'       : 'cn sn uid telephonenumber'}
             </call>
 
