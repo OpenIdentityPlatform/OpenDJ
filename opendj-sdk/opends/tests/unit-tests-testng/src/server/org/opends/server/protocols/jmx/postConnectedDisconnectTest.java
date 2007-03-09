@@ -62,7 +62,7 @@ public class postConnectedDisconnectTest extends JmxTestCase
    * Perform a simple connect.
    * @throws Exception If something wrong occurs.
    */
-  @Test(enabled = true)
+  @Test(enabled = false)
   public void checkPostconnectDisconnectPlugin() throws Exception
   {
     // Before the test, how many time postconnect and postdisconnect
