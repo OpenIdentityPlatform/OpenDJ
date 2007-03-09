@@ -642,7 +642,7 @@ public class AciHandler extends AccessControlHandler
 
       AciLDAPOperationContainer operationContainer =
               new AciLDAPOperationContainer(operation,
-                                            (ACI_READ | ACI_SEARCH), entry);
+                                            (ACI_READ), entry);
       SearchResultEntry returnEntry;
       if(!skipAccessCheck(operation)) {
           returnEntry=accessAllowedAttrs(operationContainer);
