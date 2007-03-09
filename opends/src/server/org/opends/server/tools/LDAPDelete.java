@@ -509,7 +509,7 @@ public class LDAPDelete
 
     // If we should just display usage information, then it has already been
     // done so just exit.
-    if (showUsage.isPresent())
+    if (argParser.usageDisplayed())
     {
       return 0;
     }

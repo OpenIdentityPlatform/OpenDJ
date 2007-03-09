@@ -1197,6 +1197,12 @@ public class LDAPCompareTestCase
 
     args = new String[] { "-H" };
     assertEquals(LDAPCompare.mainCompare(args, false, null, null), 0);
+
+    args = new String[] { "-?" };
+    assertEquals(LDAPCompare.mainCompare(args, false, null, null), 0);
+
+    args = new String[] { "/?" };
+    assertEquals(LDAPCompare.mainCompare(args, false, null, null), 0);
   }
 }
 

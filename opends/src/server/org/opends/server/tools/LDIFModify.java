@@ -496,7 +496,7 @@ public class LDIFModify
 
 
     // If we should just display usage information, then print it and exit.
-    if (showUsage.isPresent())
+    if (argParser.usageDisplayed())
     {
       return 0;
     }

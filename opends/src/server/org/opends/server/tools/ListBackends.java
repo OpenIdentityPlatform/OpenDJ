@@ -219,7 +219,7 @@ public class ListBackends
 
     // If we should just display usage information, then it's already been done
     // so just return.
-    if (displayUsage.isPresent())
+    if (argParser.usageDisplayed())
     {
       return 0;
     }

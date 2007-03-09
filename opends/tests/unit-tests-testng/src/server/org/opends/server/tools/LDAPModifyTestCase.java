@@ -1935,6 +1935,12 @@ public class LDAPModifyTestCase
 
     args = new String[] { "-H" };
     assertEquals(LDAPModify.mainModify(args, false, null, null), 0);
+
+    args = new String[] { "-?" };
+    assertEquals(LDAPModify.mainModify(args, false, null, null), 0);
+
+    args = new String[] { "/?" };
+    assertEquals(LDAPModify.mainModify(args, false, null, null), 0);
   }
 }
 

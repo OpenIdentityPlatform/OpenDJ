@@ -85,11 +85,16 @@ public class LDIFDiffTestCase
   @Test()
   public void testUsage()
   {
-    String[] args =
-    {
-      "--help"
-    };
+    String[] args = { "--help" };
+    assertEquals(LDIFDiff.mainDiff(args, true), 0);
 
+    args = new String[] { "-H" };
+    assertEquals(LDIFDiff.mainDiff(args, true), 0);
+
+    args = new String[] { "-?" };
+    assertEquals(LDIFDiff.mainDiff(args, true), 0);
+
+    args = new String[] { "/?" };
     assertEquals(LDIFDiff.mainDiff(args, true), 0);
   }
 

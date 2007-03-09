@@ -333,7 +333,7 @@ public class StopDS
 
     // If we should just display usage information, then exit because it will
     // have already been done.
-    if (showUsage.isPresent())
+    if (argParser.usageDisplayed())
     {
       return LDAPResultCode.SUCCESS;
     }

@@ -755,16 +755,21 @@ public class EncodePasswordTestCase
 
 
   /**
-   * Tests the EncodePassword tool with the "--help" option.
+   * Tests the EncodePassword tool with the help options.
    */
   @Test()
   public void testHelp()
   {
-    String[] args =
-    {
-      "--help"
-    };
+    String[] args = { "--help" };
+    assertEquals(EncodePassword.encodePassword(args, false, null, null), 0);
 
+    args = new String[] { "-H" };
+    assertEquals(EncodePassword.encodePassword(args, false, null, null), 0);
+
+    args = new String[] { "-?" };
+    assertEquals(EncodePassword.encodePassword(args, false, null, null), 0);
+
+    args = new String[] { "/?" };
     assertEquals(EncodePassword.encodePassword(args, false, null, null), 0);
   }
 }

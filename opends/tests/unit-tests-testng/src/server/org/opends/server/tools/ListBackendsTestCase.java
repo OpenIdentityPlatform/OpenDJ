@@ -387,11 +387,16 @@ public class ListBackendsTestCase
   @Test()
   public void testHelp()
   {
-    String[] args =
-    {
-      "--help"
-    };
+    String[] args = { "--help" };
+    assertEquals(ListBackends.listBackends(args, false, null, null), 0);
 
+    args = new String[] { "-H" };
+    assertEquals(ListBackends.listBackends(args, false, null, null), 0);
+
+    args = new String[] { "-?" };
+    assertEquals(ListBackends.listBackends(args, false, null, null), 0);
+
+    args = new String[] { "/?" };
     assertEquals(ListBackends.listBackends(args, false, null, null), 0);
   }
 }

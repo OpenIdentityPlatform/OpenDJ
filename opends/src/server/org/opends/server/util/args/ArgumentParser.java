@@ -69,6 +69,9 @@ public class ArgumentParser
   // manner.
   private boolean longArgumentsCaseSensitive;
 
+  // Indicates whether the usage information has been displayed.
+  private boolean usageDisplayed;
+
   // The set of arguments defined for this parser, referenced by short ID.
   private HashMap<Character,Argument> shortIDMap;
 
@@ -133,6 +136,7 @@ public class ArgumentParser
     shortIDMap              = new HashMap<Character,Argument>();
     longIDMap               = new HashMap<String,Argument>();
     allowsTrailingArguments = false;
+    usageDisplayed          = false;
     trailingArgsDisplayName = null;
     maxTrailingArguments    = 0;
     minTrailingArguments    = 0;
@@ -194,6 +198,7 @@ public class ArgumentParser
     shortIDMap        = new HashMap<Character,Argument>();
     longIDMap         = new HashMap<String,Argument>();
     trailingArguments = new ArrayList<String>();
+    usageDisplayed    = false;
     rawArguments      = null;
     usageArgument     = null;
     usageOutputStream = System.out;
@@ -646,10 +651,24 @@ public class ArgumentParser
         Argument a = longIDMap.get(argName);
         if (a == null)
         {
-          // There is no such argument registered.
-          int    msgID   = MSGID_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID;
-          String message = getMessage(msgID, argName);
-          throw new ArgumentException(msgID, message);
+          if (argName.equals("help"))
+          {
+            // "--help" will always be interpreted as requesting usage
+            // information.
+            try
+            {
+              getUsage(usageOutputStream);
+            } catch (Exception e) {}
+
+            return;
+          }
+          else
+          {
+            // There is no such argument registered.
+            int    msgID   = MSGID_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID;
+            String message = getMessage(msgID, argName);
+            throw new ArgumentException(msgID, message);
+          }
         }
         else
         {
@@ -715,14 +734,14 @@ public class ArgumentParser
           }
         }
       }
-      else if (arg.startsWith("-"))
+      else if (arg.startsWith("-") || arg.startsWith("/"))
       {
         // This indicates that we are using the 1-character name to reference
         // the argument.  It may be in any of the following forms:
         // -n
         // -nvalue
         // -n value
-        if (arg.equals("-"))
+        if (arg.equals("-") || arg.equals("/"))
         {
           int    msgID   = MSGID_ARGPARSER_INVALID_DASH_AS_ARGUMENT;
           String message = getMessage(msgID);
@@ -745,10 +764,23 @@ public class ArgumentParser
         Argument a = shortIDMap.get(argCharacter);
         if (a == null)
         {
-          // There is no such argument registered.
-          int    msgID   = MSGID_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID;
-          String message = getMessage(msgID, String.valueOf(argCharacter));
-          throw new ArgumentException(msgID, message);
+          if (argCharacter == '?')
+          {
+            // "-?" will always be interpreted as requesting usage information.
+            try
+            {
+              getUsage(usageOutputStream);
+            } catch (Exception e) {}
+
+            return;
+          }
+          else
+          {
+            // There is no such argument registered.
+            int    msgID   = MSGID_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID;
+            String message = getMessage(msgID, String.valueOf(argCharacter));
+            throw new ArgumentException(msgID, message);
+          }
         }
         else
         {
@@ -938,6 +970,7 @@ public class ArgumentParser
    */
   public void getUsage(StringBuilder buffer)
   {
+    usageDisplayed = true;
     if ((toolDescription != null) && (toolDescription.length() > 0))
     {
       buffer.append(wrapText(toolDescription, 79));
@@ -1140,6 +1173,21 @@ public class ArgumentParser
     getUsage(buffer);
 
     outputStream.write(getBytes(buffer.toString()));
+  }
+
+
+
+  /**
+   * Indicates whether the usage information has been displayed to the end user
+   * either by an explicit argument like "-H" or "--help", or by a built-in
+   * argument like "-?".
+   *
+   * @return  {@code true} if the usage information has been displayed, or
+   *          {@code false} if not.
+   */
+  public boolean usageDisplayed()
+  {
+    return usageDisplayed;
   }
 }
 

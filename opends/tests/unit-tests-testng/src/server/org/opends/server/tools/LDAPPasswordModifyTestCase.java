@@ -1108,6 +1108,14 @@ public class LDAPPasswordModifyTestCase
     args = new String[] { "-H" };
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
                  0);
+
+    args = new String[] { "-?" };
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
+                 0);
+
+    args = new String[] { "/?" };
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
+                 0);
   }
 }
 

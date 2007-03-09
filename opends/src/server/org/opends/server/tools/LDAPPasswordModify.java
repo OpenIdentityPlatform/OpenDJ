@@ -364,7 +364,7 @@ public class LDAPPasswordModify
 
     // If the usage argument was provided, then we don't need to do anything
     // else.
-    if (showUsage.isPresent())
+    if (argParser.usageDisplayed())
     {
       return 0;
     }
