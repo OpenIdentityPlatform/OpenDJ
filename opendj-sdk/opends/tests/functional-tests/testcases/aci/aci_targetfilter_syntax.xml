@@ -1634,7 +1634,7 @@
             #@TestStep                  Admin adds an aci with the targetfilter with missing quotes.
             #@TestStep                  Client searches entry which should not be allowed.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 50
+            #@TestResult                Success if OpenDS returns 21
                                         and the aci was not addded.
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
@@ -1654,7 +1654,7 @@
                 'entryToBeModified'   : '%s/aci/aci_targetfilter/add_aci8.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <if expr="RC != 50">
+            <if expr="RC != 21">
                 <tcstatus result="'fail'"/>
             </if>
 
@@ -1697,7 +1697,7 @@
             #@TestStep                  Admin adds an aci with the targetfilter with misplaced quotes.
             #@TestStep                  Client searches entry which should not be allowed.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 50
+            #@TestResult                Success if OpenDS returns 21
                                         and the aci was not addded.
         -->
       <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
@@ -1717,7 +1717,7 @@
                 'entryToBeModified'   : '%s/aci/aci_targetfilter/add_aci9.ldif' % STAGED_DATA_DIR }
             </call>
 
-            <if expr="RC != 50">
+            <if expr="RC != 21">
                 <tcstatus result="'fail'"/>
             </if>
 
