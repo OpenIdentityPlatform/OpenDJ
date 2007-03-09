@@ -1,0 +1,7 @@
+dn: cn=schema
+changetype:modify
+delete: objectClasses
+objectClasses: ( addschema3oc-oid NAME 'addschema3OC' STRUCTURAL MUST addschema3AT )
+-
+delete: attributeTypes
+attributeTypes: ( addschema3at-oid NAME 'addschema3AT' )

@@ -1,0 +1,6 @@
+dn: cn=schema
+objectClass: top
+objectClass: ldapSubentry
+objectClass: subschema
+attributeTypes: ( addschema1at-oid NAME 'addschema1AT' )
+objectClasses: ( addschema1oc-oid NAME 'addschema1OC' STRUCTURAL MUST addschema1AT )
