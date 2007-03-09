@@ -1652,6 +1652,12 @@ public class LDAPSearchTestCase
 
     args = new String[] { "-H" };
     assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+
+    args = new String[] { "-?" };
+    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+
+    args = new String[] { "/?" };
+    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
   }
 }
 

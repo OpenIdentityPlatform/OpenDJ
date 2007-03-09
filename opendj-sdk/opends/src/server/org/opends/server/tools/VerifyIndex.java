@@ -168,7 +168,7 @@ public class VerifyIndex
 
 
     // If we should just display usage information, then print it and exit.
-    if (displayUsage.isPresent())
+    if (argParser.usageDisplayed())
     {
       System.exit(0);
     }

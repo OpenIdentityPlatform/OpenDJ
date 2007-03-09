@@ -961,6 +961,12 @@ public class LDAPDeleteTestCase
 
     args = new String[] { "-H" };
     assertEquals(LDAPDelete.mainDelete(args, false, null, null), 0);
+
+    args = new String[] { "-?" };
+    assertEquals(LDAPDelete.mainDelete(args, false, null, null), 0);
+
+    args = new String[] { "/?" };
+    assertEquals(LDAPDelete.mainDelete(args, false, null, null), 0);
   }
 }
 

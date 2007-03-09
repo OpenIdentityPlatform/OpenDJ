@@ -7742,7 +7742,7 @@ public class DirectoryServer
       //   exit code of 0.  Otherwise, it will have an exit code that is
       //   something other than 0, 98, or 99 to indicate that a problem
       // occurred.
-      if (displayUsage.isPresent())
+      if (argParser.usageDisplayed())
       {
         // We're just trying to display usage, and that's already been done so
         // exit with a code of zero.
@@ -7805,7 +7805,7 @@ public class DirectoryServer
         }
       }
     }
-    else if (displayUsage.isPresent())
+    else if (argParser.usageDisplayed())
     {
       System.exit(0);
     }

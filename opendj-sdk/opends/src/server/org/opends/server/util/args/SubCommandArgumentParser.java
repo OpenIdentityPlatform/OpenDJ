@@ -62,6 +62,9 @@ public class SubCommandArgumentParser
   // case-sensitive manner.
   private boolean longArgumentsCaseSensitive;
 
+  // Indicates whether the usage information has been displayed.
+  private boolean usageDisplayed;
+
   // The set of global arguments defined for this parser, referenced by short
   // ID.
   private HashMap<Character,Argument> globalShortIDMap;
@@ -127,6 +130,7 @@ public class SubCommandArgumentParser
     globalShortIDMap   = new HashMap<Character,Argument>();
     globalLongIDMap    = new HashMap<String,Argument>();
     subCommands        = new HashMap<String,SubCommand>();
+    usageDisplayed     = false;
     rawArguments       = null;
     subCommand         = null;
     usageArgument      = null;
@@ -698,20 +702,48 @@ public class SubCommandArgumentParser
         {
           if (subCommand == null)
           {
-            // There is no such global argument.
-            int    msgID   = MSGID_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_LONG_ID;
-            String message = getMessage(msgID, argName);
-            throw new ArgumentException(msgID, message);
+            if (argName.equals("help"))
+            {
+              // "--help" will always be interpreted as requesting usage
+              // information.
+              try
+              {
+                getUsage(usageOutputStream);
+              } catch (Exception e) {}
+
+              return;
+            }
+            else
+            {
+              // There is no such global argument.
+              int msgID = MSGID_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_LONG_ID;
+              String message = getMessage(msgID, argName);
+              throw new ArgumentException(msgID, message);
+            }
           }
           else
           {
             a = subCommand.getArgument(argName);
             if (a == null)
             {
-              // There is no such global or subcommand argument.
-              int    msgID   = MSGID_SUBCMDPARSER_NO_ARGUMENT_FOR_LONG_ID;
-              String message = getMessage(msgID, argName);
-              throw new ArgumentException(msgID, message);
+              if (argName.equals("help"))
+              {
+                // "--help" will always be interpreted as requesting usage
+                // information.
+                try
+                {
+                  getUsage(usageOutputStream);
+                } catch (Exception e) {}
+
+                return;
+              }
+              else
+              {
+                // There is no such global or subcommand argument.
+                int    msgID   = MSGID_SUBCMDPARSER_NO_ARGUMENT_FOR_LONG_ID;
+                String message = getMessage(msgID, argName);
+                throw new ArgumentException(msgID, message);
+              }
             }
           }
         }
@@ -777,14 +809,14 @@ public class SubCommandArgumentParser
           }
         }
       }
-      else if (arg.startsWith("-"))
+      else if (arg.startsWith("-") || arg.startsWith("/"))
       {
         // This indicates that we are using the 1-character name to reference
         // the argument.  It may be in any of the following forms:
         // -n
         // -nvalue
         // -n value
-        if (arg.equals("-"))
+        if (arg.equals("-") || arg.equals("/"))
         {
           int    msgID   = MSGID_SUBCMDPARSER_INVALID_DASH_AS_ARGUMENT;
           String message = getMessage(msgID);
@@ -810,20 +842,47 @@ public class SubCommandArgumentParser
         {
           if (subCommand == null)
           {
-            // There is no such argument registered.
-            int msgID = MSGID_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID;
-            String message = getMessage(msgID, String.valueOf(argCharacter));
-            throw new ArgumentException(msgID, message);
+            if (argCharacter == '?')
+            {
+              // "-?" will always be interpreted as requesting usage.
+              try
+              {
+                getUsage(usageOutputStream);
+              } catch (Exception e) {}
+
+              return;
+            }
+            else
+            {
+              // There is no such argument registered.
+              int msgID = MSGID_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID;
+              String message = getMessage(msgID, String.valueOf(argCharacter));
+              throw new ArgumentException(msgID, message);
+            }
           }
           else
           {
             a = subCommand.getArgument(argCharacter);
             if (a == null)
             {
-              // There is no such argument registered.
-              int    msgID   = MSGID_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID;
-              String message = getMessage(msgID, String.valueOf(argCharacter));
-              throw new ArgumentException(msgID, message);
+              if (argCharacter == '?')
+              {
+                // "-?" will always be interpreted as requesting usage.
+                try
+                {
+                  getUsage(usageOutputStream);
+                } catch (Exception e) {}
+
+                return;
+              }
+              else
+              {
+                // There is no such argument registered.
+                int    msgID   = MSGID_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID;
+                String message = getMessage(msgID,
+                                            String.valueOf(argCharacter));
+                throw new ArgumentException(msgID, message);
+              }
             }
           }
         }
@@ -1072,6 +1131,7 @@ public class SubCommandArgumentParser
    */
   public void getFullUsage(StringBuilder buffer)
   {
+    usageDisplayed = true;
     if ((toolDescription != null) && (toolDescription.length() > 0))
     {
       buffer.append(wrapText(toolDescription, 79));
@@ -1227,6 +1287,7 @@ public class SubCommandArgumentParser
    */
   public void getSubCommandUsage(StringBuilder buffer, SubCommand subCommand)
   {
+    usageDisplayed = true;
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
     if ((scriptName == null) || (scriptName.length() == 0))
     {
@@ -1540,6 +1601,21 @@ public class SubCommandArgumentParser
     }
 
     outputStream.write(getBytes(buffer.toString()));
+  }
+
+
+
+  /**
+   * Indicates whether the usage information has been displayed to the end user
+   * either by an explicit argument like "-H" or "--help", or by a built-in
+   * argument like "-?".
+   *
+   * @return  {@code true} if the usage information has been displayed, or
+   *          {@code false} if not.
+   */
+  public boolean usageDisplayed()
+  {
+    return usageDisplayed;
   }
 }
 
