@@ -126,7 +126,7 @@ PKG_LIB_DIR="${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/lib"
 CERT_KEYSTORE="${ROOT_DIR}/tests/unit-tests-testng/resource/server.keystore"
 CERT_KEYSTORE_PIN="password"
 CERT_ALIAS="server-cert"
-for LIBFILE in OpenDS.jar je.jar quicksetup.jar
+for LIBFILE in OpenDS.jar je.jar aspectjrt.jar quicksetup.jar
 do
   echo "Signing ${LIBFILE} ..."
   cp "${PKG_LIB_DIR}/${LIBFILE}" "${INSTALL_DIR}/lib"
@@ -174,9 +174,10 @@ cat > "${JNLP_FILENAME}" <<ENDOFJNLP
     <jar href="lib/quicksetup.jar" download="eager" main="true"/>
     <jar href="lib/OpenDS.jar" download="lazy"/>
     <jar href="lib/je.jar" download="lazy"/>
+    <jar href="lib/aspectjrt.jar" download="lazy"/>
     <jar href="lib/zipped.jar" download="lazy"/>
     <property name="org.opends.quicksetup.iswebstart" value="true" />
-    <property name="org.opends.quicksetup.lazyjarurls" value="${INSTALLER_URI}/lib/OpenDS.jar ${INSTALLER_URI}/lib/zipped.jar ${INSTALLER_URI}/lib/je.jar" />
+    <property name="org.opends.quicksetup.lazyjarurls" value="${INSTALLER_URI}/lib/OpenDS.jar ${INSTALLER_URI}/lib/zipped.jar ${INSTALLER_URI}/lib/je.jar ${INSTALLER_URI}/lib/aspectjrt.jar" />
     <property name="org.opends.quicksetup.zipfilename" value="${ZIP_FILENAME_BASE}.zip"/>
   </resources>
   
