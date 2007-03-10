@@ -144,15 +144,21 @@
     <property name="bits.staf.downloaded" value="true"/>
   </target>
 
-  <target name="download-do-get-stax"  unless="bits.stax.downloaded.before">
+  <target name="download-do-get-services"  unless="bits.services.downloaded.before">
+    <get src="${bits.download.url}/${bits.email.archive}" 
+         dest="${bits.download.dir}/${bits.email.archive}" />
+    <get src="${bits.download.url}/${bits.event.archive}" 
+         dest="${bits.download.dir}/${bits.event.archive}" />
+    <get src="${bits.download.url}/${bits.eventmanager.archive}" 
+         dest="${bits.download.dir}/${bits.eventmanager.archive}" />
     <get src="${bits.download.url}/${bits.stax.archive}" 
          dest="${bits.download.dir}/${bits.stax.archive}" />
-    <property name="bits.stax.downloaded" value="true" />
+    <property name="bits.services.downloaded" value="true" />
   </target>
   
   <target name="download-do" 
           if="platform.supported" 
-          depends="status-do,download-do-prepare,download-do-get-staf,download-do-get-stax">
+          depends="status-do,download-do-prepare,download-do-get-staf,download-do-get-services">
     <condition property="bits.all.downloaded" >
       <and>
         <or>
@@ -160,8 +166,8 @@
           <isset property="bits.staf.downloaded.before" />
         </or>
         <or>
-          <isset property="bits.stax.downloaded"/>
-          <isset property="bits.stax.downloaded.before" />
+          <isset property="bits.services.downloaded"/>
+          <isset property="bits.services.downloaded.before" />
         </or>
       </and>
     </condition>
@@ -182,8 +188,7 @@
     <get src="${daily.package.url}"
          dest="${daily.package}"/>
   </target>
-
-  <!-- Downloader section - bottom -->
+<!-- Downloader section - bottom -->
 
 <!-- Installation section - top    -->
   <target name="install-config" if="staf.install.successful">
@@ -194,7 +199,16 @@
     </copy>
   </target>
 
-  <target name="install-stax" if="staf.install.successful">
+  <target name="install-services" if="staf.install.successful">
+    <unzip 
+        src="${bits.download.dir}/${bits.email.archive}" 
+        dest="${staf.install.dir}/services"/>
+    <unzip 
+        src="${bits.download.dir}/${bits.event.archive}" 
+        dest="${staf.install.dir}/services"/>
+    <unzip 
+        src="${bits.download.dir}/${bits.eventmanager.archive}" 
+        dest="${staf.install.dir}/services"/>
     <unzip 
         src="${bits.download.dir}/${bits.stax.archive}" 
         dest="${staf.install.dir}/services"/>
@@ -250,7 +264,7 @@
 
   <target name="install" 
           description="Perform framework installation" 
-          depends="status-do,install-prepare,install-staf,install-stax,install-config"
+          depends="status-do,install-prepare,install-staf,install-services,install-config"
           if="bits.all.downloaded"/>
 <!-- Installation section - bottom -->
 
@@ -274,9 +288,31 @@
     </exec>
   </target>
 <!-- Gui section - bottom -->
+<!-- Jvmlog section - top -->
+  <target name="jvm-log"
+          depends="status-do"
+          description="brings up the jvmlog gui" >
+    
+    <exec
+      dir="${staf.install.dir}"
+      executable="${java.home}/bin/java"
+      ><!--
+      spawn="true">
+      -->
+      <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
+      <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+      <arg value="-classpath"/>
+      <arg value="${staf.lib.dir}${path.separator}${staf.lib.dir}/JSTAF.jar"/>
+      <arg value="com.ibm.staf.STAFJVMLogViewer"/>
+    </exec>
+  </target>
+<!-- Jvmlog section - bottom -->
+
 
 <!-- Run tests section - top    -->
-
   <target name="get-pkg">
     <condition property="product.package.dir" 
                value="${daily.package.dir}"
@@ -411,7 +447,9 @@
     <copy todir="${tests.run.dir}/${tests.run.time}/staf-logs">
       <fileset dir="${staf.home}/logs"/>
     </copy>
+    <!--
     <delete dir="${staf.home}/logs" />
+    -->
     <echo>Saving report</echo>
     <copy todir="${tests.run.dir}/${tests.run.time}/report">
       <fileset dir="${staf.tmp.dir}">
@@ -461,9 +499,9 @@
 <!-- Run tests section - bottom -->
   
 <!-- Uninstallation section - top    -->
-  <target name="uninstall-do"
+  <target name="uninstall-do-jar"
           description="Uninstall the staf"
-					if="staf.installed"            >
+					if="staf.install.is.jar">
     <echo message="Uninstalling staf, please wait..."                        />
     <java jar="${staf.install.dir}/_uninst/uninstall.jar" fork="true">
       <arg value="-silent" />
@@ -471,8 +509,26 @@
     <sleep seconds="5" />
     <delete dir="${staf.install.dir}" />
   </target>
+  <target name="uninstall-do-tar"
+          description="Uninstall the staf"
+					if="staf.install.is.tar">
+    <echo message="Uninstalling staf, please wait..."                        />
+    <exec executable="${staf.install.dir}/STAFUninst"/>
+    <sleep seconds="5" />
+    <delete dir="${staf.install.dir}" />
+  </target>
 
-
+  <target name="uninstall-do" if="staf.installed">
+    <condition property="staf.install.is.jar">
+      <available file="${staf.install.dir}/_uninst/uninstall.jar"/>
+    </condition>
+    <condition property="staf.install.is.tar">
+      <available file="${staf.install.dir}/STAFUninst"/>
+      <!-- TODO - check on windows if there is a .exe extension -->
+    </condition>
+    <antcall target="uninstall-do-jar"/>
+    <antcall target="uninstall-do-tar"/>
+  </target>
   <target name="uninstall-dont-not-installed" unless="staf.installed">
     <echo>Staf is not installed.</echo>
   </target>
@@ -520,8 +576,13 @@
 	<target name="stop-do" if="staf.running">
 		<echo>Stopping staf...</echo>
     <exec
-      executable="${staf.executable}"
-      spawn="true"                                  >
+      executable="${staf.executable}" 
+      >
+      <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
+      <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
       <arg line="local shutdown shutdown"/>
     </exec>
     <echo>staf has been instructed to close the shop.</echo>
@@ -577,13 +638,13 @@
       <condition property="bits.staf.downloaded.before">
         <available file="${bits.download.dir}/${bits.staf.archive}"/>
       </condition>
-      <condition property="bits.stax.downloaded.before" >
+      <condition property="bits.services.downloaded.before" >
         <available file="${bits.download.dir}/${bits.stax.archive}" />
       </condition>
       <condition property="bits.all.downloaded.before">
         <and>
           <isset property="bits.staf.downloaded.before"/>
-          <isset property="bits.stax.downloaded.before"/>
+          <isset property="bits.services.downloaded.before"/>
         </and>
       </condition>
       <available file="${daily.package}" property="daily.package.downloaded"/>
@@ -667,7 +728,8 @@
 	
 	<target name="wipeout">
 		<antcall target="stop"/>
-    <sleep seconds="10"/>
+    <echo>Allow a minute for STAF to bring all the JVMs down</echo>
+    <sleep seconds="60"/>
 		<antcall target="uninstall"/>
 	</target>
 <!--  Macros section - bottom -->
