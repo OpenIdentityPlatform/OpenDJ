@@ -94,6 +94,9 @@
    run-tests  : run the functional tests (requires staf installed and started)
    run-daily  : run the functional tests on today's build
    wipeout    : stop and uninstall the framework
+ gui tools:
+   gui        : start the STAX gui
+   jvm-log    : start the STAF jvm log viewer
  subtargets=
    download   : download the archives necessary to install the staf
    install    : install the staf
@@ -296,9 +299,7 @@
     <exec
       dir="${staf.install.dir}"
       executable="${java.home}/bin/java"
-      ><!--
       spawn="true">
-      -->
       <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
       <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
       <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
@@ -313,7 +314,15 @@
 
 
 <!-- Run tests section - top    -->
-  <target name="get-pkg">
+  <target name="run-tests-build-pkg" 
+    if="product.package.build" 
+    depends="run-tests-get-pkg">
+    <ant dir="${project.home}" 
+      antfile="${project.home}/build.xml" 
+      target="package"/>
+  </target>
+  
+  <target name="run-tests-get-pkg">
     <condition property="product.package.dir" 
                value="${daily.package.dir}"
                else="${project.home}/build/package">
@@ -321,9 +330,19 @@
      </condition>
      <property name="product.package" 
                value="${product.package.dir}/${product.name}.zip"/>
+     <condition property="product.package.build">
+       <and> 
+         <not>
+           <isset property="tests.run.daily"/>
+         </not>
+         <not>
+           <available file="${product.package}"/>
+         </not>
+       </and>
+     </condition>
   </target>
 
-  <target name="run-tests-check">
+  <target name="run-tests-check" depends="run-tests-build-pkg">
     <condition property="opends.port.ldap.taken">
       <socket port="${opends.port.ldap}" server="${host.name}"/>
     </condition>
@@ -332,6 +351,9 @@
     </condition>
     <condition property="opends.port.jmx.taken">
       <socket port="${opends.port.jmx}" server="${host.name}"/>
+    </condition>
+    <condition property="product.package.available">
+      <available file="${product.package}"/>
     </condition>
     <condition property="run-tests.proceed">
       <and>
@@ -343,12 +365,13 @@
           </or>
         </not>
         <isset property="staf.running"/>
+        <isset property="product.package.available"/>
       </and>
     </condition>
   </target>
 
   <target name="run-tests-prepare"
-          depends="status-do,get-pkg" 
+          depends="status-do,run-tests-build-pkg" 
           if="run-tests.proceed">
     <!-- python config - top -->
       <!-- 1. get a timestamp for step 3 -->
@@ -400,8 +423,11 @@
   <target name="run-tests-cant-staf" unless="staf.running">
     <echo>Staf is NOT running. Use the start target and try again</echo>
   </target>
+  <target name="run-tests-cant-package" unless="product.package.available">
+    <echo>the package [${product.package}] is not available</echo>
+  </target>
   <target name="run-tests-cant" 
-          depends="run-tests-cant-ldap,run-tests-cant-ldaps,run-tests-cant-jmx,run-tests-cant-staf"
+          depends="run-tests-cant-ldap,run-tests-cant-ldaps,run-tests-cant-jmx,run-tests-cant-staf,run-tests-cant-package"
           unless="run-tests.proceed">
     <echo>Could not run the tests for the afore mentioned reasons</echo>
   </target>
@@ -478,7 +504,7 @@
     <property name="coverage.on" value="true"/>
   </target>
   
-  <target name="coverage-instrument" depends="status-do,get-pkg" if="coverage.on">
+  <target name="coverage-instrument" depends="status-do,run-tests-get-pkg" if="coverage.on">
     <mkdir dir="${staf.tmp.dir}/coverage-instr"/>
     <unzip src="${product.package}" 
            dest="${staf.tmp.dir}/coverage-instr"/>
