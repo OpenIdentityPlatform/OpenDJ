@@ -1542,7 +1542,7 @@ bindProcessing:
 
 
               pwPolicyState.handleDeprecatedStorageSchemes(simplePassword);
-              pwPolicyState.clearAuthFailureTimes();
+              pwPolicyState.clearFailureLockout();
 
               if (isFirstWarning)
               {
@@ -1574,21 +1574,15 @@ bindProcessing:
               setResultCode(ResultCode.INVALID_CREDENTIALS);
               setAuthFailureReason(msgID, message);
 
-              int maxAllowedFailures
-                   = pwPolicyState.getPolicy().getLockoutFailureCount();
-              if (maxAllowedFailures > 0)
+              if (pwPolicyState.getPolicy().getLockoutFailureCount() > 0)
               {
                 pwPolicyState.updateAuthFailureTimes();
-                if (pwPolicyState.getAuthFailureTimes().size() >=
-                    maxAllowedFailures)
+                if (pwPolicyState.lockedDueToFailures())
                 {
-                  pwPolicyState.lockDueToFailures();
-
                   AccountStatusNotificationType notificationType;
 
-                  int lockoutDuration
-                       = pwPolicyState.getPolicy().getLockoutDuration();
-                  if (lockoutDuration > 0)
+                  int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
+                  if (lockoutDuration > -1)
                   {
                     notificationType = AccountStatusNotificationType.
                                             ACCOUNT_TEMPORARILY_LOCKED;
@@ -2073,23 +2067,17 @@ bindProcessing:
               if (saslHandler.isPasswordBased(saslMechanism))
               {
 
-                int maxAllowedFailures
-                     = pwPolicyState.getPolicy().getLockoutFailureCount();
-                if (maxAllowedFailures > 0)
+                if (pwPolicyState.getPolicy().getLockoutFailureCount() > 0)
                 {
                   pwPolicyState.updateAuthFailureTimes();
-                  if (pwPolicyState.getAuthFailureTimes().size() >=
-                      maxAllowedFailures)
+                  if (pwPolicyState.lockedDueToFailures())
                   {
-                    pwPolicyState.lockDueToFailures();
-
                     AccountStatusNotificationType notificationType;
                     int msgID;
                     String message;
 
-                    int lockoutDuration
-                         = pwPolicyState.getPolicy().getLockoutDuration();
-                    if (lockoutDuration > 0)
+                    int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
+                    if (lockoutDuration > -1)
                     {
                       notificationType = AccountStatusNotificationType.
                                               ACCOUNT_TEMPORARILY_LOCKED;
