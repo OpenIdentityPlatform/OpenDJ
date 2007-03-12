@@ -39,6 +39,7 @@ import java.util.Set;
 
 import org.opends.server.schema.ObjectClassSyntax;
 
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -63,7 +64,6 @@ public final class ObjectClass
        extends CommonSchemaElements
        implements SchemaFileElement
 {
-
   // The set of optional attribute types for this objectclass.
   private final Set<AttributeType> optionalAttributes;
 
@@ -150,8 +150,37 @@ public final class ObjectClass
 
     ensureNotNull(definition, oid);
 
-    this.definition    = definition;
     this.superiorClass = superiorClass;
+
+    int schemaFilePos = definition.indexOf(SCHEMA_PROPERTY_FILENAME);
+    if (schemaFilePos > 0)
+    {
+      String defStr;
+      try
+      {
+        int firstQuotePos = definition.indexOf('\'', schemaFilePos);
+        int secondQuotePos = definition.indexOf('\'',
+                                                firstQuotePos+1);
+
+        defStr = definition.substring(0, schemaFilePos).trim() + " " +
+                 definition.substring(secondQuotePos+1).trim();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        defStr = definition;
+      }
+
+      this.definition = defStr;
+    }
+    else
+    {
+      this.definition = definition;
+    }
 
     // Set flag indicating whether or not this object class allows any
     // attributes.

@@ -28,10 +28,17 @@ package org.opends.server.types;
 
 
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.server.api.ApproximateMatchingRule;
@@ -40,10 +47,17 @@ import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.Error.*;
+import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -2821,6 +2835,435 @@ public class Schema
               LinkedHashSet<AttributeValue> values)
   {
     synchronizationState = values;
+  }
+
+
+
+  /**
+   * Writes a single file containing all schema element definitions,
+   * which can be used on startup to determine whether the schema
+   * files were edited with the server offline.
+   */
+  public static void writeConcatenatedSchema()
+  {
+    String concatFilePath = null;
+    try
+    {
+      LinkedHashSet<String> attributeTypes =
+           new LinkedHashSet<String>();
+      LinkedHashSet<String> objectClasses =
+           new LinkedHashSet<String>();
+      LinkedHashSet<String> nameForms = new LinkedHashSet<String>();
+      LinkedHashSet<String> ditContentRules =
+           new LinkedHashSet<String>();
+      LinkedHashSet<String> ditStructureRules =
+           new LinkedHashSet<String>();
+      LinkedHashSet<String> matchingRuleUses =
+           new LinkedHashSet<String>();
+      genConcatenatedSchema(attributeTypes, objectClasses, nameForms,
+                            ditContentRules, ditStructureRules,
+                            matchingRuleUses);
+
+
+      File configFile = new File(DirectoryServer.getConfigFile());
+      File configDirectory  = configFile.getParentFile();
+      File upgradeDirectory = new File(configDirectory, "upgrade");
+      File concatFile       = new File(upgradeDirectory,
+                                       SCHEMA_CONCAT_FILE_NAME);
+      concatFilePath = concatFile.getAbsolutePath();
+
+      File tempFile = new File(concatFilePath + ".tmp");
+      BufferedWriter writer =
+           new BufferedWriter(new FileWriter(tempFile, false));
+      writer.write("dn: " + DirectoryServer.getSchemaDN().toString());
+      writer.newLine();
+      writer.write("objectClass: top");
+      writer.newLine();
+      writer.write("objectClass: ldapSubentry");
+      writer.newLine();
+      writer.write("objectClass: subschema");
+      writer.newLine();
+
+      for (String line : attributeTypes)
+      {
+        writer.write(ATTR_ATTRIBUTE_TYPES);
+        writer.write(": ");
+        writer.write(line);
+        writer.newLine();
+      }
+
+      for (String line : objectClasses)
+      {
+        writer.write(ATTR_OBJECTCLASSES);
+        writer.write(": ");
+        writer.write(line);
+        writer.newLine();
+      }
+
+      for (String line : nameForms)
+      {
+        writer.write(ATTR_NAME_FORMS);
+        writer.write(": ");
+        writer.write(line);
+        writer.newLine();
+      }
+
+      for (String line : ditContentRules)
+      {
+        writer.write(ATTR_DIT_CONTENT_RULES);
+        writer.write(": ");
+        writer.write(line);
+        writer.newLine();
+      }
+
+      for (String line : ditStructureRules)
+      {
+        writer.write(ATTR_DIT_STRUCTURE_RULES);
+        writer.write(": ");
+        writer.write(line);
+        writer.newLine();
+      }
+
+      for (String line : matchingRuleUses)
+      {
+        writer.write(ATTR_MATCHING_RULE_USE);
+        writer.write(": ");
+        writer.write(line);
+        writer.newLine();
+      }
+
+      writer.close();
+
+      if (concatFile.exists())
+      {
+        concatFile.delete();
+      }
+      tempFile.renameTo(concatFile);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      // This is definitely not ideal, but it's not the end of the
+      // world.  The worst that should happen is that the schema
+      // changes could potentially be sent to the other servers again
+      // when this server is restarted, which shouldn't hurt anything.
+      // Still, we should log a warning message.
+      logError(ErrorLogCategory.SCHEMA,
+               ErrorLogSeverity.SEVERE_WARNING,
+               MSGID_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE,
+               String.valueOf(concatFilePath),
+               stackTraceToSingleLineString(e));
+    }
+  }
+
+
+
+  /**
+   * Reads the files contained in the schema directory and generates a
+   * concatenated view of their contents in the provided sets.
+   *
+   * @param  attributeTypes     The set into which to place the
+   *                            attribute types read from the schema
+   *                            files.
+   * @param  objectClasses      The set into which to place the object
+   *                            classes read from the schema files.
+   * @param  nameForms          The set into which to place the name
+   *                            forms read from the schema files.
+   * @param  ditContentRules    The set into which to place the DIT
+   *                            content rules read from the schema
+   *                            files.
+   * @param  ditStructureRules  The set into which to place the DIT
+   *                            structure rules read from the schema
+   *                            files.
+   * @param  matchingRuleUses   The set into which to place the
+   *                            matching rule uses read from the
+   *                            schema files.
+   *
+   * @throws  IOException  If a problem occurs while reading the
+   *                       schema file elements.
+   */
+  public static void genConcatenatedSchema(
+                          LinkedHashSet<String> attributeTypes,
+                          LinkedHashSet<String> objectClasses,
+                          LinkedHashSet<String> nameForms,
+                          LinkedHashSet<String> ditContentRules,
+                          LinkedHashSet<String> ditStructureRules,
+                          LinkedHashSet<String> matchingRuleUses)
+          throws IOException
+  {
+    // Get a sorted list of the files in the schema directory.
+    String schemaDirectory =
+                SchemaConfigManager.getSchemaDirectoryPath();
+    TreeSet<String> schemaFileNames = new TreeSet<String>();
+    for (File f : new File(schemaDirectory).listFiles())
+    {
+      if (f.isFile())
+      {
+        schemaFileNames.add(f.getName());
+      }
+    }
+
+
+    // Open each of the files in order and read the elements that they
+    // contain, appending them to the appropriate lists.
+    for (String name : schemaFileNames)
+    {
+      // Read the contents of the file into a list with one schema
+      // element per list element.
+      LinkedList<StringBuilder> lines =
+           new LinkedList<StringBuilder>();
+      BufferedReader reader =
+           new BufferedReader(new FileReader(
+                    new File(schemaDirectory, name)));
+
+      while (true)
+      {
+        String line = reader.readLine();
+        if (line == null)
+        {
+          break;
+        }
+        else if (line.startsWith("#") || (line.length() == 0))
+        {
+          continue;
+        }
+        else if (line.startsWith(" "))
+        {
+          lines.getLast().append(line.substring(1));
+        }
+        else
+        {
+          lines.add(new StringBuilder(line));
+        }
+      }
+
+      reader.close();
+
+
+      // Iterate through each line in the list.  Find the colon and
+      // get the attribute name at the beginning.  If it's someting
+      // that we don't recognize, then skip it.  Otherwise, add the
+      // X-SCHEMA-FILE extension and add it to the appropriate schema
+      // element list.
+      for (StringBuilder buffer : lines)
+      {
+        // Get the line and add the X-SCHEMA-FILE extension to the end
+        // of it.  All of them should end with " )" but some might
+        // have the parenthesis crammed up against the last character
+        // so deal with that as well.
+        String line = buffer.toString().trim();
+        if (line.endsWith(" )"))
+        {
+         line = line.substring(0, line.length()-1) +
+                SCHEMA_PROPERTY_FILENAME + " '" + name + "' )";
+        }
+        else if (line.endsWith(")"))
+        {
+         line = line.substring(0, line.length()-1) + " " +
+                SCHEMA_PROPERTY_FILENAME + " '" + name + "' )";
+        }
+        else
+        {
+          continue;
+        }
+
+        String value;
+        String lowerLine = toLowerCase(line);
+        if (lowerLine.startsWith(ATTR_ATTRIBUTE_TYPES_LC))
+        {
+          value = line.substring(
+                       ATTR_ATTRIBUTE_TYPES.length()+1).trim();
+          attributeTypes.add(value);
+        }
+        else if (lowerLine.startsWith(ATTR_OBJECTCLASSES_LC))
+        {
+          value = line.substring(
+                       ATTR_OBJECTCLASSES.length()+1).trim();
+          objectClasses.add(value);
+        }
+        else if (lowerLine.startsWith(ATTR_NAME_FORMS_LC))
+        {
+          value = line.substring(ATTR_NAME_FORMS.length()+1).trim();
+          nameForms.add(value);
+        }
+        else if (lowerLine.startsWith(ATTR_DIT_CONTENT_RULES_LC))
+        {
+          value = line.substring(
+                     ATTR_DIT_CONTENT_RULES.length()+1).trim();
+          ditContentRules.add(value);
+        }
+        else if (lowerLine.startsWith(ATTR_DIT_STRUCTURE_RULES_LC))
+        {
+          value = line.substring(
+                     ATTR_DIT_STRUCTURE_RULES.length()+1).trim();
+          ditStructureRules.add(value);
+        }
+        else if (lowerLine.startsWith(ATTR_MATCHING_RULE_USE_LC))
+        {
+          value = line.substring(
+                     ATTR_MATCHING_RULE_USE.length()+1).trim();
+          matchingRuleUses.add(value);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Reads data from the specified concatenated schema file into the
+   * provided sets.
+   *
+   * @param  concatSchemaFile   The path to the concatenated schema
+   *                            file to be read.
+   * @param  attributeTypes     The set into which to place the
+   *                            attribute types read from the
+   *                            concatenated schema file.
+   * @param  objectClasses      The set into which to place the object
+   *                            classes read from the concatenated
+   *                            schema file.
+   * @param  nameForms          The set into which to place the name
+   *                            forms read from the concatenated
+   *                            schema file.
+   * @param  ditContentRules    The set into which to place the DIT
+   *                            content rules read from the
+   *                            concatenated schema file.
+   * @param  ditStructureRules  The set into which to place the DIT
+   *                            structure rules read from the
+   *                            concatenated schema file.
+   * @param  matchingRuleUses   The set into which to place the
+   *                            matching rule uses read from the
+   *                            concatenated schema file.
+   *
+   * @throws  IOException  If a problem occurs while reading the
+   *                       schema file elements.
+   */
+  public static void readConcatenatedSchema(String concatSchemaFile,
+                          LinkedHashSet<String> attributeTypes,
+                          LinkedHashSet<String> objectClasses,
+                          LinkedHashSet<String> nameForms,
+                          LinkedHashSet<String> ditContentRules,
+                          LinkedHashSet<String> ditStructureRules,
+                          LinkedHashSet<String> matchingRuleUses)
+          throws IOException
+  {
+    BufferedReader reader =
+         new BufferedReader(new FileReader(concatSchemaFile));
+    while (true)
+    {
+      String line = reader.readLine();
+      if (line == null)
+      {
+        break;
+      }
+
+      String value;
+      String lowerLine = toLowerCase(line);
+      if (lowerLine.startsWith(ATTR_ATTRIBUTE_TYPES_LC))
+      {
+        value =
+             line.substring(ATTR_ATTRIBUTE_TYPES.length()+1).trim();
+        attributeTypes.add(value);
+      }
+      else if (lowerLine.startsWith(ATTR_OBJECTCLASSES_LC))
+      {
+        value = line.substring(ATTR_OBJECTCLASSES.length()+1).trim();
+        objectClasses.add(value);
+      }
+      else if (lowerLine.startsWith(ATTR_NAME_FORMS_LC))
+      {
+        value = line.substring(ATTR_NAME_FORMS.length()+1).trim();
+        nameForms.add(value);
+      }
+      else if (lowerLine.startsWith(ATTR_DIT_CONTENT_RULES_LC))
+      {
+        value = line.substring(
+                     ATTR_DIT_CONTENT_RULES.length()+1).trim();
+        ditContentRules.add(value);
+      }
+      else if (lowerLine.startsWith(ATTR_DIT_STRUCTURE_RULES_LC))
+      {
+        value = line.substring(
+                     ATTR_DIT_STRUCTURE_RULES.length()+1).trim();
+        ditStructureRules.add(value);
+      }
+      else if (lowerLine.startsWith(ATTR_MATCHING_RULE_USE_LC))
+      {
+        value = line.substring(
+                     ATTR_MATCHING_RULE_USE.length()+1).trim();
+        matchingRuleUses.add(value);
+      }
+    }
+
+    reader.close();
+  }
+
+
+
+  /**
+   * Compares the provided sets of schema element definitions and
+   * writes any differences found into the given list of
+   * modifications.
+   *
+   * @param  oldElements  The set of elements of the specified type
+   *                      read from the previous concatenated schema
+   *                      files.
+   * @param  newElements  The set of elements of the specified type
+   *                      read from the server's current schema.
+   * @param  elementType  The attribute type associated with the
+   *                      schema element being compared.
+   * @param  mods         The list of modifications into which any
+   *                      identified differences should be written.
+   */
+  public static void compareConcatenatedSchema(
+                          LinkedHashSet<String> oldElements,
+                          LinkedHashSet<String> newElements,
+                          AttributeType elementType,
+                          LinkedList<Modification> mods)
+  {
+    AttributeType attributeTypesType =
+         DirectoryServer.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC,
+                                          true);
+
+    LinkedHashSet<AttributeValue> values =
+         new LinkedHashSet<AttributeValue>();
+    for (String s : oldElements)
+    {
+      if (! newElements.contains(s))
+      {
+        values.add(new AttributeValue(attributeTypesType, s));
+      }
+    }
+
+    if (! values.isEmpty())
+    {
+      mods.add(new Modification(ModificationType.DELETE,
+                        new Attribute(elementType,
+                                      elementType.getNameOrOID(),
+                                      values)));
+    }
+
+
+    values.clear();
+    for (String s : newElements)
+    {
+      if (! oldElements.contains(s))
+      {
+        values.add(new AttributeValue(attributeTypesType, s));
+      }
+    }
+
+    if (! values.isEmpty())
+    {
+      mods.add(new Modification(ModificationType.ADD,
+                        new Attribute(elementType,
+                                      elementType.getNameOrOID(),
+                                      values)));
+    }
   }
 }
 

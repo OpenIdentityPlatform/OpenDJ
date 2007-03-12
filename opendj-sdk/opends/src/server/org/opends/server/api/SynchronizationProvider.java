@@ -28,6 +28,8 @@ package org.opends.server.api;
 
 
 
+import java.util.List;
+
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -36,6 +38,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
 import org.opends.server.types.SynchronizationProviderResult;
 
 
@@ -368,5 +371,24 @@ public abstract class SynchronizationProvider
   public abstract void doPostOperation(
                             ModifyDNOperation modifyDNOperation)
          throws DirectoryException;
+
+  /**
+   * Performs any processing that may be required whenever the server
+   * schema has been updated.  This may be invoked for schema
+   * modifications made with the server online, and it may also be
+   * called if the server detects that there were any scheam changes
+   * made with the server offline (e.g., by directly editing the
+   * schema configuration files).
+   * <BR><BR>
+   * At the time this method is called, the schema changes will have
+   * already been applied to the server.  As such, this method must
+   * make a best effort attempt to process the associated schema
+   * changes, and is not allowed to throw any exceptions.
+   *
+   * @param  modifications  The set of modifications that have been
+   *                        made to the server schema.
+   */
+  public abstract void processSchemaChange(List<Modification>
+                                                modifications);
 }
 

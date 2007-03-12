@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -141,6 +142,7 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.MatchingRuleUse;
+import org.opends.server.types.Modification;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ObjectClassType;
@@ -435,6 +437,10 @@ public class DirectoryServer
   // The set of connections that are currently established.
   private LinkedHashSet<ClientConnection> establishedConnections;
 
+  // The set of schema changes made by editing the schema configuration files
+  // with the server offline.
+  private List<Modification> offlineSchemaChanges;
+
   // The logger configuration manager for the Directory Server.
   private LoggerConfigManager loggerConfigManager;
 
@@ -670,6 +676,7 @@ public class DirectoryServer
     directoryServer.saslMechanismHandlers =
          new ConcurrentHashMap<String,SASLMechanismHandler>();
     directoryServer.authenticatedUsers = new AuthenticatedUsers();
+    directoryServer.offlineSchemaChanges = new LinkedList<Modification>();
   }
 
 
@@ -2580,6 +2587,42 @@ public class DirectoryServer
   public static void setSchema(Schema schema)
   {
     directoryServer.schema = schema;
+  }
+
+
+
+  /**
+   * Retrieves a list of modifications detailing any schema changes that may
+   * have been made with the server offline (e.g., by directly editing the
+   * schema configuration files).  Note that this information will not be
+   * available until the server backends (and in particular, the schema backend)
+   * have been initialized.
+   *
+   * @return  A list of modifications detailing any schema changes that may have
+   *          been made with the server offline, or an empty list if no offline
+   *          schema changes have been detected.
+   */
+  public static List<Modification> getOfflineSchemaChanges()
+  {
+    return directoryServer.offlineSchemaChanges;
+  }
+
+
+
+  /**
+   * Specifies a list of modifications detailing any schema changes that may
+   * have been made with the server offline.
+   *
+   * @param  offlineSchemaChanges  A list of modifications detailing any schema
+   *                               changes that may have been made with the
+   *                               server offline.  It must not be {@code null}.
+   */
+  public static void setOfflineSchemaChanges(List<Modification>
+                                                  offlineSchemaChanges)
+  {
+    ensureNotNull(offlineSchemaChanges);
+
+    directoryServer.offlineSchemaChanges = offlineSchemaChanges;
   }
 
 

@@ -29,11 +29,14 @@ package org.opends.server.tasks;
 
 
 import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
@@ -43,6 +46,7 @@ import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -50,13 +54,16 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
+import org.opends.server.types.Modification;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.TaskMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -68,9 +75,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class AddSchemaFileTask
        extends Task
 {
-
-
-
   // The list of files to be added to the server schema.
   TreeSet<String> filesToAdd;
 
@@ -139,6 +143,11 @@ public class AddSchemaFileTask
         }
         catch (Exception e)
         {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, e);
+          }
+
           int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE;
           String message = getMessage(msgID, filename, schemaDirectory,
                                       stackTraceToSingleLineString(e));
@@ -163,6 +172,11 @@ public class AddSchemaFileTask
       }
       catch (ConfigException ce)
       {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, ce);
+        }
+
         int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
         String message = getMessage(msgID, String.valueOf(schemaFile),
                                     ce.getMessage());
@@ -171,6 +185,11 @@ public class AddSchemaFileTask
       }
       catch (InitializationException ie)
       {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, ie);
+        }
+
         int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
         String message = getMessage(msgID, String.valueOf(schemaFile),
                                     ie.getMessage());
@@ -207,15 +226,53 @@ public class AddSchemaFileTask
 
     try
     {
+      LinkedList<Modification> mods = new LinkedList<Modification>();
       Schema schema = DirectoryServer.getSchema().duplicate();
       for (String schemaFile : filesToAdd)
       {
         try
         {
-          SchemaConfigManager.loadSchemaFile(schema, schemaFile);
+          List<Modification> modList =
+               SchemaConfigManager.loadSchemaFile(schema, schemaFile);
+          for (Modification m : modList)
+          {
+            Attribute a = m.getAttribute();
+            LinkedHashSet<AttributeValue> valuesWithFileElement =
+                 new LinkedHashSet<AttributeValue>();
+            for (AttributeValue v : a.getValues())
+            {
+              String s = v.getStringValue();
+              if (s.indexOf(SCHEMA_PROPERTY_FILENAME) < 0)
+              {
+                if (s.endsWith(" )"))
+                {
+                 s = s.substring(0, s.length()-1) + SCHEMA_PROPERTY_FILENAME +
+                     " '" + schemaFile + "' )";
+                }
+                else if (s.endsWith(")"))
+                {
+                 s = s.substring(0, s.length()-1) + " " +
+                     SCHEMA_PROPERTY_FILENAME + " '" + schemaFile + "' )";
+                }
+              }
+
+              valuesWithFileElement.add(new AttributeValue(a.getAttributeType(),
+                                                           s));
+            }
+
+            Attribute attrWithFile = new Attribute(a.getAttributeType(),
+                                                   a.getName(),
+                                                   valuesWithFileElement);
+            mods.add(new Modification(m.getModificationType(), attrWithFile));
+          }
         }
         catch (ConfigException ce)
         {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, ce);
+          }
+
           int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
           String message = getMessage(msgID, String.valueOf(schemaFile),
                                       ce.getMessage());
@@ -225,6 +282,11 @@ public class AddSchemaFileTask
         }
         catch (InitializationException ie)
         {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, ie);
+          }
+
           int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
           String message = getMessage(msgID, String.valueOf(schemaFile),
                                       ie.getMessage());
@@ -232,6 +294,33 @@ public class AddSchemaFileTask
                    message, msgID);
           return TaskState.STOPPED_BY_ERROR;
         }
+      }
+
+      if (! mods.isEmpty())
+      {
+        for (SynchronizationProvider provider :
+             DirectoryServer.getSynchronizationProviders())
+        {
+          try
+          {
+            provider.processSchemaChange(mods);
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              debugCaught(DebugLogLevel.ERROR, e);
+            }
+
+            int msgID = MSGID_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER;
+            String message = getMessage(msgID, provider.getClass().getName(),
+                                        stackTraceToSingleLineString(e));
+            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
+                     message, msgID);
+          }
+        }
+
+        Schema.writeConcatenatedSchema();
       }
 
       schema.setYoungestModificationTime(System.currentTimeMillis());

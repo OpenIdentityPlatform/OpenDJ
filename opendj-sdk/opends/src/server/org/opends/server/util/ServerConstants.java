@@ -2232,6 +2232,15 @@ public class ServerConstants
 
 
   /**
+   * The name of the system property that can be used to determine whether the
+   * Directory Server is starting up for the purpose of running the unit tests.
+   */
+  public static final String PROPERTY_RUNNING_UNIT_TESTS =
+       "org.opends.server.RunningUnitTests";
+
+
+
+  /**
    * The name of the system property that can be used to specify the path to the
    * directory in which the schema configuration files may be found.  If this is
    * not set, then the server wiill use a directory named "schema" below the
@@ -2281,5 +2290,25 @@ public class ServerConstants
    * The column at which to wrap long lines of output in the command-line tools.
    */
   public static final int MAX_LINE_WIDTH = 79;
+
+
+
+  /**
+   * The name that should be used for the file to which the latest complete
+   * schema data should be concatenated.
+   */
+  public static final String SCHEMA_CONCAT_FILE_NAME = "schema.ldif.current";
+
+
+
+  /**
+   * The name that should be used for the concatenated schema file generated at
+   * build time with the base schema for the Subversion revision on which the
+   * current build is based.  The value of
+   * {@code DynamicConstants.REVISION_NUMBER} must be appended to this value in
+   * order to get the full name.
+   */
+  public static final String SCHEMA_BASE_FILE_NAME_WITHOUT_REVISION  =
+       "schema.ldif.";
 }
 

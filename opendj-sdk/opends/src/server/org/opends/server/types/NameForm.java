@@ -38,6 +38,7 @@ import java.util.Set;
 
 import org.opends.server.schema.NameFormSyntax;
 
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
@@ -53,9 +54,6 @@ import static org.opends.server.util.Validator.*;
 public final class NameForm
        implements SchemaFileElement
 {
-
-
-
   // Indicates whether this name form is declared "obsolete".
   private final boolean isObsolete;
 
@@ -119,11 +117,40 @@ public final class NameForm
   {
     ensureNotNull(definition, oid, structuralClass);
 
-    this.definition      = definition;
     this.oid             = oid;
     this.description     = description;
     this.isObsolete      = isObsolete;
     this.structuralClass = structuralClass;
+
+    int schemaFilePos = definition.indexOf(SCHEMA_PROPERTY_FILENAME);
+    if (schemaFilePos > 0)
+    {
+      String defStr;
+      try
+      {
+        int firstQuotePos = definition.indexOf('\'', schemaFilePos);
+        int secondQuotePos = definition.indexOf('\'',
+                                                firstQuotePos+1);
+
+        defStr = definition.substring(0, schemaFilePos).trim() + " " +
+                 definition.substring(secondQuotePos+1).trim();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        defStr = definition;
+      }
+
+      this.definition = defStr;
+    }
+    else
+    {
+      this.definition = definition;
+    }
 
     if ((names == null) || names.isEmpty())
     {

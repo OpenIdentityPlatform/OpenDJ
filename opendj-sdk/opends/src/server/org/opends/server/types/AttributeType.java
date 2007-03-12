@@ -40,10 +40,7 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.AttributeTypeSyntax;
 
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -70,9 +67,6 @@ public final class AttributeType
        extends CommonSchemaElements
        implements SchemaFileElement
 {
-
-
-
   // The approximate matching rule for this attribute type.
   private final ApproximateMatchingRule approximateMatchingRule;
 
@@ -267,13 +261,42 @@ public final class AttributeType
 
     ensureNotNull(definition, oid);
 
-    this.definition   = definition;
     this.superiorType = superiorType;
     this.isCollective = isCollective;
     this.isNoUserModification = isNoUserModification;
     this.isSingleValue = isSingleValue;
 
     mayHaveSubordinateTypes = false;
+
+    int schemaFilePos = definition.indexOf(SCHEMA_PROPERTY_FILENAME);
+    if (schemaFilePos > 0)
+    {
+      String defStr;
+      try
+      {
+        int firstQuotePos = definition.indexOf('\'', schemaFilePos);
+        int secondQuotePos = definition.indexOf('\'',
+                                                firstQuotePos+1);
+
+        defStr = definition.substring(0, schemaFilePos).trim() + " " +
+                 definition.substring(secondQuotePos+1).trim();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        defStr = definition;
+      }
+
+      this.definition = defStr;
+    }
+    else
+    {
+      this.definition = definition;
+    }
 
     if (syntax == null)
     {

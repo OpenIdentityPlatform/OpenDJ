@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -109,7 +110,6 @@ import org.opends.server.types.RDN;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
-import org.opends.server.types.SchemaFileElement;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.DynamicConstants;
@@ -238,8 +238,6 @@ public class SchemaBackend
   public SchemaBackend()
   {
     super();
-
-
 
     // Perform all initialization in initializeBackend.
   }
@@ -418,6 +416,116 @@ public class SchemaBackend
     // Define an empty sets for the supported controls and features.
     supportedControls = new HashSet<String>(0);
     supportedFeatures = new HashSet<String>(0);
+
+
+    // Identify any differences that may exist between the concatenated schema
+    // file from the last online modification and the current schema files.  If
+    // there are any differences, then they should be from making changes to the
+    // schema files with the server offline.
+    try
+    {
+      // First, generate lists of elements from the current schema.
+      LinkedHashSet<String> newATs  = new LinkedHashSet<String>();
+      LinkedHashSet<String> newOCs  = new LinkedHashSet<String>();
+      LinkedHashSet<String> newNFs  = new LinkedHashSet<String>();
+      LinkedHashSet<String> newDCRs = new LinkedHashSet<String>();
+      LinkedHashSet<String> newDSRs = new LinkedHashSet<String>();
+      LinkedHashSet<String> newMRUs = new LinkedHashSet<String>();
+      Schema.genConcatenatedSchema(newATs, newOCs, newNFs, newDCRs, newDSRs,
+                                   newMRUs);
+
+      // Next, generate lists of elements from the previous concatenated schema.
+      // If there isn't a previous concatenated schema, then use the base
+      // schema for the current revision.
+      String concatFilePath;
+      File configFile       = new File(DirectoryServer.getConfigFile());
+      File configDirectory  = configFile.getParentFile();
+      File upgradeDirectory = new File(configDirectory, "upgrade");
+      File concatFile       = new File(upgradeDirectory,
+                                       SCHEMA_CONCAT_FILE_NAME);
+      if (concatFile.exists())
+      {
+        concatFilePath = concatFile.getAbsolutePath();
+      }
+      else
+      {
+        concatFile = new File(upgradeDirectory,
+                              SCHEMA_BASE_FILE_NAME_WITHOUT_REVISION +
+                              DynamicConstants.REVISION_NUMBER);
+        if (concatFile.exists())
+        {
+          concatFilePath = concatFile.getAbsolutePath();
+        }
+        else
+        {
+          String runningUnitTestsStr =
+               System.getProperty(PROPERTY_RUNNING_UNIT_TESTS);
+          if ((runningUnitTestsStr != null) &&
+              runningUnitTestsStr.equalsIgnoreCase("true"))
+          {
+            Schema.writeConcatenatedSchema();
+            concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
+            concatFilePath = concatFile.getAbsolutePath();
+          }
+          else
+          {
+            msgID = MSGID_SCHEMA_CANNOT_FIND_CONCAT_FILE;
+            String message = getMessage(msgID,
+                                        upgradeDirectory.getAbsolutePath(),
+                                        SCHEMA_CONCAT_FILE_NAME,
+                                        concatFile.getName());
+            throw new InitializationException(msgID, message);
+          }
+        }
+      }
+
+      LinkedHashSet<String> oldATs  = new LinkedHashSet<String>();
+      LinkedHashSet<String> oldOCs  = new LinkedHashSet<String>();
+      LinkedHashSet<String> oldNFs  = new LinkedHashSet<String>();
+      LinkedHashSet<String> oldDCRs = new LinkedHashSet<String>();
+      LinkedHashSet<String> oldDSRs = new LinkedHashSet<String>();
+      LinkedHashSet<String> oldMRUs = new LinkedHashSet<String>();
+      Schema.readConcatenatedSchema(concatFilePath, oldATs, oldOCs, oldNFs,
+                                    oldDCRs, oldDSRs, oldMRUs);
+
+      // Create a list of modifications and add any differences between the old
+      // and new schema into them.
+      LinkedList<Modification> mods = new LinkedList<Modification>();
+      Schema.compareConcatenatedSchema(oldATs, newATs, attributeTypesType,
+                                       mods);
+      Schema.compareConcatenatedSchema(oldOCs, newOCs, objectClassesType, mods);
+      Schema.compareConcatenatedSchema(oldNFs, newNFs, nameFormsType, mods);
+      Schema.compareConcatenatedSchema(oldDCRs, newDCRs, ditContentRulesType,
+                                       mods);
+      Schema.compareConcatenatedSchema(oldDSRs, newDSRs, ditStructureRulesType,
+                                       mods);
+      Schema.compareConcatenatedSchema(oldMRUs, newMRUs, matchingRuleUsesType,
+                                       mods);
+      if (! mods.isEmpty())
+      {
+        DirectoryServer.setOfflineSchemaChanges(mods);
+
+        // Write a new concatenated schema file with the most recent information
+        // so we don't re-find these same changes on the next startup.
+        Schema.writeConcatenatedSchema();
+      }
+    }
+    catch (InitializationException ie)
+    {
+      throw ie;
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      msgID = MSGID_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES;
+      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
+               msgID);
+    }
 
 
     // Register with the Directory Server as a configurable component.
@@ -961,13 +1069,6 @@ public class SchemaBackend
     }
 
 
-
-    // At present, we only allow the addition of new attribute types,
-    // object classes, name forms, DIT content rules, DIT structure rules, and
-    // matching rule uses.  We will not support removing or replacing existing
-    // elements, nor will we allow modification of any other attributes.  Make
-    // sure that the included modify operation is acceptable within these
-    // constraints.
     ArrayList<Modification> mods =
          new ArrayList<Modification>(modifyOperation.getModifications());
     if (mods.isEmpty())
@@ -978,18 +1079,19 @@ public class SchemaBackend
 
     Schema newSchema = DirectoryServer.getSchema().duplicate();
     TreeSet<String> modifiedSchemaFiles = new TreeSet<String>();
-    LinkedHashSet<SchemaFileElement> dependentElements =
-         new LinkedHashSet<SchemaFileElement>();
 
     int pos = -1;
-    for (Modification m : mods)
+    Iterator<Modification> iterator = mods.iterator();
+    while (iterator.hasNext())
     {
+      Modification m = iterator.next();
       pos++;
 
       if (m.isInternal())
       {
         // We don't need to do anything for internal modifications (e.g., like
         // those that set modifiersName and modifyTimestamp).
+        iterator.remove();
         continue;
       }
 
@@ -1440,6 +1542,13 @@ public class SchemaBackend
     {
       cleanUpTempSchemaFiles(tempSchemaFiles);
     }
+
+
+    // Create a single file with all of the concatenated schema information
+    // that we can use on startup to detect whether the schema files have been
+    // edited with the server offline.
+    Schema.writeConcatenatedSchema();
+
 
     DN authzDN = modifyOperation.getAuthorizationDN();
     if (authzDN == null)
