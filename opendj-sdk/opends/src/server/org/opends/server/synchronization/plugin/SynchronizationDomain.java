@@ -1644,7 +1644,8 @@ public class SynchronizationDomain extends DirectoryThread
       return true;
     }
 
-    if (result == ResultCode.NO_SUCH_OBJECT)
+    if ((result == ResultCode.NO_SUCH_OBJECT) ||
+        (result == ResultCode.OBJECTCLASS_VIOLATION))
     {
       /*
        * The entry or it's new parent has not been found
