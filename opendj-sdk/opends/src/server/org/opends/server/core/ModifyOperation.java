@@ -1286,7 +1286,6 @@ modifyProcessing:
             // Update the password policy state attributes in the user's entry.
             // If the modification fails, then these changes won't be applied.
             pwPolicyState.setPasswordChangedTime();
-            pwPolicyState.clearAuthFailureTimes();
             pwPolicyState.clearFailureLockout();
             pwPolicyState.clearGraceLoginTimes();
             pwPolicyState.clearWarnedTime();
@@ -1297,7 +1296,7 @@ modifyProcessing:
               pwPolicyState.setMustChangePassword(! selfChange);
             }
 
-            if (pwPolicyState.getRequiredChangeTime() > 0)
+            if (pwPolicyState.getPolicy().getRequireChangeByTime() > 0)
             {
               pwPolicyState.setRequiredChangeTime();
             }

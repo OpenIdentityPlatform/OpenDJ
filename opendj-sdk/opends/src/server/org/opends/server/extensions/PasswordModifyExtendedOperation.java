@@ -1101,7 +1101,6 @@ public class PasswordModifyExtendedOperation
 
       // Clear any record of grace logins, auth failures, and expiration
       // warnings.
-      pwPolicyState.clearAuthFailureTimes();
       pwPolicyState.clearFailureLockout();
       pwPolicyState.clearGraceLoginTimes();
       pwPolicyState.clearWarnedTime();

@@ -85,106 +85,83 @@ public class PasswordPolicyState
 {
 
 
-
-  // Indicates whether to debug password policy processing performed wth this
-  // state object.
-  private boolean debug;
+  // The user entry with which this state information is associated.
+  private final Entry userEntry;
 
   // Indicates whether the user entry itself should be updated or if the updates
   // should be stored as modifications.
-  private boolean updateEntry;
+  private final boolean updateEntry;
 
-  // Indicates whether an expiration warning message should be sent if the
-  // authentication is successful.
-  private boolean sendExpirationWarning;
+  // Indicates whether to debug password policy processing performed wth this
+  // state object.
+  private final boolean debug;
 
-  // Indicates whether a grace login will be used if the authentication is
-  // successful.
-  private boolean useGraceLogin;
+  // The string representation of the user's DN.
+  private final String userDNString;
+
+  // The password policy with which the account is associated.
+  private final PasswordPolicy passwordPolicy;
+
+  // The current time for use in all password policy calculations.
+  private final long currentTime;
+
+  // The time that the user's password was last changed.
+  private long passwordChangedTime = Long.MIN_VALUE;
 
   // Indicates whether the user's account is expired.
-  private ConditionResult isAccountExpired;
+  private ConditionResult isAccountExpired = ConditionResult.UNDEFINED;
 
   // Indicates whether the user's account is disabled.
-  private ConditionResult isDisabled;
+  private ConditionResult isDisabled = ConditionResult.UNDEFINED;
 
   // Indicates whether the user's password is expired.
-  private ConditionResult isPasswordExpired;
+  private ConditionResult isPasswordExpired = ConditionResult.UNDEFINED;
 
   // Indicates whether the warning to send to the client would be the first
   // warning for the user.
-  private ConditionResult isFirstWarning;
+  private ConditionResult isFirstWarning = ConditionResult.UNDEFINED;
 
   // Indicates whether the user's account is locked by the idle lockout.
-  private ConditionResult isIdleLocked;
-
-  // Indicates whether the user's account is locked by administrative reset.
-  private ConditionResult isResetLocked;
+  private ConditionResult isIdleLocked = ConditionResult.UNDEFINED;
 
   // Indicates whether the user may use a grace login if the password is expired
   // and there are one or more grace logins remaining.
-  private ConditionResult mayUseGraceLogin;
+  private ConditionResult mayUseGraceLogin = ConditionResult.UNDEFINED;
 
   // Indicates whether the user's password must be changed.
-  private ConditionResult mustChangePassword;
+  private ConditionResult mustChangePassword = ConditionResult.UNDEFINED;
 
   // Indicates whether the user should be warned of an upcoming expiration.
-  private ConditionResult shouldWarn;
-
-  // The user entry with which this state information is associated.
-  private Entry userEntry;
+  private ConditionResult shouldWarn = ConditionResult.UNDEFINED;
 
   // The number of seconds until the user's account is automatically unlocked.
-  private int secondsUntilUnlock;
-
-  // The number of seconds until the user's password expires.
-  private int secondsUntilExpiration;
-
-  // The set of modifications that should be applied to the user's entry.
-  private LinkedList<Modification> modifications;
+  private int secondsUntilUnlock = Integer.MIN_VALUE;
 
   // The set of authentication failure times for this user.
-  private List<Long> authFailureTimes;
+  private List<Long> authFailureTimes = null;
 
   // The set of grace login times for this user.
-  private List<Long> graceLoginTimes;
-
-  // The time that the user's account was created.
-  private long createTime;
-
-  // The current time for use in all password policy calculations.
-  private long currentTime;
+  private List<Long> graceLoginTimes = null;
 
   // The time that the user's password should expire (or did expire).
-  private long expirationTime;
+  private long expirationTime = Long.MIN_VALUE;
 
   // The time that the user's entry was locked due to too many authentication
   // failures.
-  private long failureLockedTime;
-
-  // The time that the user's entry was locked due to the idle lockout.
-  private long idleLockedTime;
+  private long failureLockedTime = Long.MIN_VALUE;
 
   // The time that the user last authenticated to the Directory Server.
-  private long lastLoginTime;
-
-  // The time that the user's password was last changed.
-  private long passwordChangedTime;
+  private long lastLoginTime = Long.MIN_VALUE;
 
   // The last required change time with which the user complied.
-  private long requiredChangeTime;
+  private long requiredChangeTime = Long.MIN_VALUE;
 
   // The time that the user was first warned about an upcoming expiration.
-  private long warnedTime;
+  private long warnedTime = Long.MIN_VALUE;
 
-  // The password policy with which the account is associated.
-  private PasswordPolicy passwordPolicy;
-
-  // The string representation of the current time.
-  private String currentGeneralizedTime;
-
-  // The string representation of the user's DN.
-  private String userDNString;
+  // The set of modifications that should be applied to the user's entry.
+  private LinkedList<Modification> modifications
+       = new LinkedList<Modification>();
 
 
 
@@ -204,62 +181,37 @@ public class PasswordPolicyState
    */
   public PasswordPolicyState(Entry userEntry, boolean updateEntry,
                              boolean debug)
-         throws DirectoryException
+       throws DirectoryException
   {
     this.userEntry   = userEntry;
     this.updateEntry = updateEntry;
     this.debug       = debug;
 
-    userDNString           = userEntry.getDN().toString();
-    passwordPolicy         = getPasswordPolicyInternal();
-    currentGeneralizedTime = TimeThread.getGeneralizedTime();
-    currentTime            = TimeThread.getTime();
-    modifications          = new LinkedList<Modification>();
-    isDisabled             = ConditionResult.UNDEFINED;
-    isAccountExpired       = ConditionResult.UNDEFINED;
-    isPasswordExpired      = ConditionResult.UNDEFINED;
-    isFirstWarning         = ConditionResult.UNDEFINED;
-    isIdleLocked           = ConditionResult.UNDEFINED;
-    isResetLocked          = ConditionResult.UNDEFINED;
-    mayUseGraceLogin       = ConditionResult.UNDEFINED;
-    mustChangePassword     = ConditionResult.UNDEFINED;
-    shouldWarn             = ConditionResult.UNDEFINED;
-    expirationTime         = Long.MIN_VALUE;
-    failureLockedTime      = Long.MIN_VALUE;
-    idleLockedTime         = Long.MIN_VALUE;
-    lastLoginTime          = Long.MIN_VALUE;
-    requiredChangeTime     = Long.MIN_VALUE;
-    warnedTime             = Long.MIN_VALUE;
-    authFailureTimes       = null;
-    sendExpirationWarning  = false;
-    useGraceLogin          = false;
-    secondsUntilExpiration = Integer.MIN_VALUE;
-    secondsUntilUnlock     = Integer.MIN_VALUE;
-
-
-    // Get the time that the user's account was created.
-    AttributeType type =
-         DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC);
-    if (type == null)
-    {
-      type = DirectoryServer.getDefaultAttributeType(OP_ATTR_CREATE_TIMESTAMP);
-    }
-
-    createTime = getGeneralizedTime(type);
-
+    userDNString     = userEntry.getDN().toString();
+    passwordPolicy   = getPasswordPolicyInternal(this.userEntry, this.debug);
+    currentTime      = TimeThread.getTime();
 
     // Get the password changed time for the user.
-    type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_TIME_LC);
+    AttributeType type
+         = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_TIME_LC);
     if (type == null)
     {
       type = DirectoryServer.getDefaultAttributeType(
-                                  OP_ATTR_PWPOLICY_CHANGED_TIME);
+           OP_ATTR_PWPOLICY_CHANGED_TIME);
     }
 
     passwordChangedTime = getGeneralizedTime(type);
     if (passwordChangedTime <= 0)
     {
-      passwordChangedTime = createTime;
+      // Get the time that the user's account was created.
+      AttributeType createTimeType
+           = DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC);
+      if (createTimeType == null)
+      {
+        createTimeType
+            = DirectoryServer.getDefaultAttributeType(OP_ATTR_CREATE_TIMESTAMP);
+      }
+      passwordChangedTime = getGeneralizedTime(createTimeType);
 
       if (passwordChangedTime <= 0)
       {
@@ -267,9 +219,8 @@ public class PasswordPolicyState
 
         if (debug)
         {
-          debugWarning(
-              "Could not determine password changed time " +
-                           "for user %s", userDNString);
+          debugWarning("Could not determine password changed time for user %s.",
+                       userDNString);
         }
       }
     }
@@ -278,42 +229,36 @@ public class PasswordPolicyState
 
 
   /**
-   * Retrieves the password policy for the user.
+   * Retrieves the password policy for the user. If the user entry contains the
+   * ds-pwp-password-policy-dn attribute (whether real or virtual), that
+   * password policy is returned, otherwise the default password policy is
+   * returned.
+   *
+   * @param  userEntry    The user entry.
+   * @param  debug        Indicates whether to enable debugging for the
+   *                      operations performed.
    *
    * @return  The password policy for the user.
    *
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              determine the password policy for the user.
    */
-  private PasswordPolicy getPasswordPolicyInternal()
-          throws DirectoryException
+  private static PasswordPolicy getPasswordPolicyInternal(Entry userEntry,
+                                                          boolean debug)
+       throws DirectoryException
   {
-    // See if the user entry contains the ds-pwp-password-policy-dn attribute to
-    // select a custom objectclass (whether real or virtual).
+    String userDNString = userEntry.getDN().toString();
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN, true);
 
     List<Attribute> attrList = userEntry.getAttribute(type);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList != null)
     {
-      // There is no policy subentry defined, so we'll use the default.
-      if (debug)
+      for (Attribute a : attrList)
       {
-        if (debugEnabled())
-        {
-          debugInfo("Using the default password policy for user %s",
-                    userDNString);
-        }
-      }
+        if(a.getValues().isEmpty()) continue;
 
-      return DirectoryServer.getDefaultPasswordPolicy();
-    }
-
-
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v : a.getValues())
-      {
+        AttributeValue v = a.getValues().iterator().next();
         DN subentryDN;
         try
         {
@@ -328,11 +273,10 @@ public class PasswordPolicyState
 
           if (debug)
           {
-            debugError(
-                "Could not parse password policy subentry " +
-                    "DN %s for user %s: %s",
-                v.getStringValue(), userDNString,
-                stackTraceToSingleLineString(e));
+            debugError("Could not parse password policy subentry DN %s " +
+                 "for user %s: %s",
+                       v.getStringValue(), userDNString,
+                       stackTraceToSingleLineString(e));
           }
 
           int    msgID   = MSGID_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN;
@@ -347,9 +291,8 @@ public class PasswordPolicyState
         {
           if (debug)
           {
-            debugError(
-                "Password policy subentry %s for user %s " +
-                           "is not defined in the Directory Server.",
+            debugError("Password policy subentry %s for user %s " +
+                 "is not defined in the Directory Server.",
                        String.valueOf(subentryDN), userDNString);
           }
 
@@ -357,33 +300,30 @@ public class PasswordPolicyState
           String message = getMessage(msgID, userDNString,
                                       String.valueOf(subentryDN));
           throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(), message,
-                         msgID);
+               DirectoryServer.getServerErrorResultCode(), message,
+               msgID);
         }
-        else
+
+        if (debug)
         {
-          if (debug)
-          {
             if (debugEnabled())
             {
-              debugInfo("Using password policy subentry %s for user " +
-                  "%s.", String.valueOf(subentryDN), userDNString);
+              debugInfo("Using password policy subentry %s for user %s.",
+                        String.valueOf(subentryDN), userDNString);
             }
           }
 
-          return policy;
-        }
+        return policy;
       }
     }
 
-
-    // This shouldn't happen, but if it does then use the default.
+    // There is no policy subentry defined: use the default.
     if (debug)
     {
       if (debugEnabled())
       {
-        debugInfo("Falling back to the default password policy for " +
-            "user %s", userDNString);
+        debugInfo("Using the default password policy for user %s",
+                  userDNString);
       }
     }
 
@@ -392,52 +332,52 @@ public class PasswordPolicyState
 
 
 
-  /**
-   * Retrieves the value of the specified attribute as a string.
-   *
-   * @param  attributeType  The attribute type whose value should be retrieved.
-   *
-   * @return  The value of the specified attribute as a string, or
-   *          <CODE>null</CODE> if there is no such value.
-   */
+   /**
+    * Retrieves the value of the specified attribute as a string.
+    *
+    * @param  attributeType  The attribute type whose value should be retrieved.
+    *
+    * @return  The value of the specified attribute as a string, or
+    *          <CODE>null</CODE> if there is no such value.
+    */
   private String getValue(AttributeType attributeType)
   {
+    String stringValue = null;
+
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList != null)
     {
-      if (debug)
+      for (Attribute a : attrList)
+      {
+        if (a.getValues().isEmpty()) continue;
+
+        stringValue = a.getValues().iterator().next().getStringValue();
+        break ;
+      }
+    }
+
+    if (debug)
+    {
+      if (stringValue == null)
       {
         if (debugEnabled())
         {
           debugInfo("Returning null because attribute %s does not " +
-              "exist in user entry %s", attributeType.getNameOrOID(),
-                                        userDNString);
+              "exist in user entry %s",
+                    attributeType.getNameOrOID(), userDNString);
         }
       }
-
-      return null;
-    }
-
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v : a.getValues())
+      else
       {
-        String stringValue = v.getStringValue();
-
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            debugInfo("Returning value %s for user %s", stringValue,
-                      userDNString);
-          }
+          debugInfo("Returning value %s for user %s",
+                    stringValue, userDNString);
         }
-
-        return stringValue;
       }
     }
 
-    return null;
+    return stringValue;
   }
 
 
@@ -457,31 +397,20 @@ public class PasswordPolicyState
   private long getGeneralizedTime(AttributeType attributeType)
           throws DirectoryException
   {
+    long timeValue = -1 ;
+
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList != null)
     {
-      if (debug)
+      for (Attribute a : attrList)
       {
-        if (debugEnabled())
-        {
-          debugInfo("Returning -1 because attribute %s does not " +
-              "exist in user entry %s", attributeType.getNameOrOID(),
-                                        userDNString);
-        }
-      }
+        if (a.getValues().isEmpty()) continue;
 
-      return -1;
-    }
-
-
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v  : a.getValues())
-      {
+        AttributeValue v = a.getValues().iterator().next();
         try
         {
-          return GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                                            v.getNormalizedValue());
+          timeValue = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                          v.getNormalizedValue());
         }
         catch (Exception e)
         {
@@ -492,11 +421,10 @@ public class PasswordPolicyState
 
           if (debug)
           {
-            debugWarning(
-                "Unable to decode value %s for attribute " +
-                    "%s in user entry %s: %s",
-                v.getStringValue(),
-                attributeType.getNameOrOID(), userDNString);
+            debugWarning("Unable to decode value %s for attribute %s " +
+                 "in user entry %s: %s",
+                         v.getStringValue(), attributeType.getNameOrOID(),
+                         userDNString, stackTraceToSingleLineString(e));
           }
 
           int msgID = MSGID_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME;
@@ -506,21 +434,25 @@ public class PasswordPolicyState
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message, msgID, e);
         }
+        break ;
       }
     }
-
 
     if (debug)
     {
-      if (debugEnabled())
+      if (timeValue == -1)
       {
-        debugInfo("Returning -1 for attribute %s in user entry %s " +
-            "because all options have been exhausted.",
-                  attributeType.getNameOrOID(), userDNString);
+        if (debugEnabled())
+        {
+          debugInfo("Returning -1 because attribute %s does not " +
+              "exist in user entry %s",
+                    attributeType.getNameOrOID(), userDNString);
+        }
       }
+      // FIXME: else to be consistent...
     }
 
-    return -1;
+    return timeValue;
   }
 
 
@@ -544,9 +476,46 @@ public class PasswordPolicyState
     ArrayList<Long> timeValues = new ArrayList<Long>();
 
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList != null)
     {
-      if (debug)
+      for (Attribute a : attrList)
+      {
+        for (AttributeValue v : a.getValues())
+        {
+          try
+          {
+            timeValues.add(GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                                                       v.getNormalizedValue()));
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              debugCaught(DebugLogLevel.ERROR, e);
+            }
+
+            if (debug)
+            {
+              debugWarning("Unable to decode value %s for attribute %s" +
+                   "in user entry %s: %s",
+                           v.getStringValue(), attributeType.getNameOrOID(),
+                           userDNString, stackTraceToSingleLineString(e));
+            }
+
+            int msgID = MSGID_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME;
+            String message = getMessage(msgID, v.getStringValue(),
+                                        attributeType.getNameOrOID(),
+                                        userDNString, String.valueOf(e));
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                         message, msgID, e);
+          }
+        }
+      }
+    }
+
+    if (debug)
+    {
+      if (timeValues.isEmpty())
       {
         if (debugEnabled())
         {
@@ -555,47 +524,7 @@ public class PasswordPolicyState
                     attributeType.getNameOrOID(), userDNString);
         }
       }
-
-      return timeValues;
     }
-
-
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v  : a.getValues())
-      {
-        try
-        {
-          timeValues.add(GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                                                    v.getNormalizedValue()));
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          if (debug)
-          {
-            debugWarning(
-                "Unable to decode value %s for attribute " +
-                    "%s in user entry %s: %s",
-                v.getStringValue(),
-                attributeType.getNameOrOID(),
-                userDNString, e);
-          }
-
-          int msgID = MSGID_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME;
-          String message = getMessage(msgID, v.getStringValue(),
-                                      attributeType.getNameOrOID(),
-                                      userDNString, String.valueOf(e));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID, e);
-        }
-      }
-    }
-
     return timeValues;
   }
 
@@ -607,40 +536,26 @@ public class PasswordPolicyState
    *
    * @param  attributeType  The attribute type whose value should be parsed as a
    *                        Boolean.
-   * @param  defaultValue   The default value that should be used if the
-   *                        specified attribute does not exist.
    *
-   * @return  The requested Boolean value, or the default value if the specified
-   *          attribute does not exist with a Boolean value.
+   * @return  The attribute's value represented as a ConditionResult value, or
+   *          ConditionResult.UNDEFINED if the specified attribute does not
+   *          exist in the entry.
    *
    * @throws  DirectoryException  If the value cannot be decoded as a Boolean.
    */
-  private boolean getBoolean(AttributeType attributeType, boolean defaultValue)
+  private ConditionResult getBoolean(AttributeType attributeType)
           throws DirectoryException
   {
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList != null)
     {
-      if (debug)
+      for (Attribute a : attrList)
       {
-        if (debugEnabled())
-        {
-          debugInfo("Returning default of %b because attribute " +
-              "%s does not exist in user entry %s",
-                    defaultValue, attributeType.getNameOrOID(),
-                    attributeType.getNameOrOID());
-        }
-      }
+        if (a.getValues().isEmpty()) continue;
 
-      return defaultValue;
-    }
+        String valueString
+             = toLowerCase(a.getValues().iterator().next().getStringValue());
 
-
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v  : a.getValues())
-      {
-        String valueString = toLowerCase(v.getStringValue());
         if (valueString.equals("true") || valueString.equals("yes") ||
             valueString.equals("on") || valueString.equals("1"))
         {
@@ -648,61 +563,58 @@ public class PasswordPolicyState
           {
             if (debugEnabled())
             {
-              debugInfo("Attribute %s resolves to true for user " +
-                  "entry %s", attributeType.getNameOrOID(), userDNString);
+              debugInfo("Attribute %s resolves to true for user entry %s",
+                        attributeType.getNameOrOID(), userDNString);
             }
           }
 
-          return true;
+          return ConditionResult.TRUE;
         }
-        else if (valueString.equals("false") || valueString.equals("no") ||
+
+        if (valueString.equals("false") || valueString.equals("no") ||
                  valueString.equals("off") || valueString.equals("0"))
         {
           if (debug)
           {
             if (debugEnabled())
             {
-              debugInfo("Attribute %s resolves to false for user " +
-                  "entry %s", attributeType.getNameOrOID(), userDNString);
+              debugInfo("Attribute %s resolves to false for user entry %s",
+                        attributeType.getNameOrOID(), userDNString);
             }
           }
 
-          return false;
+          return ConditionResult.FALSE;
         }
-        else
+
+        if (debug)
         {
-          if (debug)
-          {
-            debugError(
-                "Unable to resolve value %s for attribute " +
-                           "%s in user entry %us as a Boolean.",
+            debugError("Unable to resolve value %s for attribute %s " +
+                 "in user entry %s as a Boolean.",
                        valueString, attributeType.getNameOrOID(),
                        userDNString);
-          }
-
-          int msgID = MSGID_PWPSTATE_CANNOT_DECODE_BOOLEAN;
-          String message = getMessage(msgID, v.getStringValue(),
-                                      attributeType.getNameOrOID(),
-                                      userDNString);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, msgID);
         }
+
+        int msgID = MSGID_PWPSTATE_CANNOT_DECODE_BOOLEAN;
+        String message = getMessage(msgID, valueString,
+                                    attributeType.getNameOrOID(),
+                                    userDNString);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                     message, msgID);
       }
     }
-
 
     if (debug)
     {
       if (debugEnabled())
       {
-        debugInfo("Returning default of %b for attribute %s in " +
-            "user entry %s because all options have been " +
-            "exhausted.", defaultValue, attributeType.getNameOrOID(),
-                          userDNString);
+        debugInfo("Returning %s because attribute %s does not exist " +
+             "in user entry %s",
+                  ConditionResult.UNDEFINED.toString(),
+                  attributeType.getNameOrOID(), userDNString);
       }
     }
 
-    return defaultValue;
+    return ConditionResult.UNDEFINED;
   }
 
 
@@ -720,21 +632,6 @@ public class PasswordPolicyState
 
 
   /**
-   * Retrieves the set of modifications that correspond to changes made in
-   * password policy processing that may need to be applied to the user entry.
-   *
-   * @return  The set of modifications that correspond to changes made in
-   *          password policy processing that may need to be applied to the user
-   *          entry.
-   */
-  public LinkedList<Modification> getModifications()
-  {
-    return modifications;
-  }
-
-
-
-  /**
    * Retrieves the set of values for the password attribute from the user entry.
    *
    * @return  The set of values for the password attribute from the user entry.
@@ -743,53 +640,17 @@ public class PasswordPolicyState
   {
     List<Attribute> attrList =
          userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
-    for (Attribute a : attrList)
+    if (attrList != null)
     {
-      return a.getValues();
+      for (Attribute a : attrList)
+      {
+        if (a.getValues().isEmpty()) continue;
+
+        return a.getValues();
+      }
     }
 
     return new LinkedHashSet<AttributeValue>(0);
-  }
-
-
-
-  /**
-   * Indicates whether the associated password policy requires that
-   * authentication be performed in a secure manner.
-   *
-   * @return  <CODE>true</CODE> if the associated password policy requires that
-   *          authentication be performed in a secure manner, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean requireSecureAuthentication()
-  {
-    return passwordPolicy.requireSecureAuthentication();
-  }
-
-
-
-  /**
-   * Retrieves time that this password policy state object was created.
-   *
-   * @return  The time that this password policy state object was created.
-   */
-  public long getCurrentTime()
-  {
-    return currentTime;
-  }
-
-
-
-  /**
-   * Retrieves the generalized time representation of the time that this
-   * password policy state object was created.
-   *
-   * @return  The generalized time representation of the time that this
-   *          password policy state object was created.
-   */
-  public String getCurrentGeneralizedTime()
-  {
-    return currentGeneralizedTime;
   }
 
 
@@ -808,6 +669,8 @@ public class PasswordPolicyState
       }
     }
 
+    // passwordChangedTime is computed in the constructor from values in the
+    // entry.
     if (passwordChangedTime != currentTime)
     {
       passwordChangedTime = currentTime;
@@ -850,87 +713,71 @@ public class PasswordPolicyState
    */
   public boolean isDisabled()
   {
-    if ((isDisabled == null) || (isDisabled == ConditionResult.UNDEFINED))
-    {
-      AttributeType type =
-           DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_DISABLED, true);
-      try
-      {
-        if (getBoolean(type, false))
-        {
-          if (debug)
-          {
-            if (debugEnabled())
-            {
-              debugInfo("User %s is administratively disabled.", userDNString);
-            }
-          }
-
-          isDisabled = ConditionResult.TRUE;
-          return true;
-        }
-        else
-        {
-          if (debug)
-          {
-            if (debugEnabled())
-            {
-              debugInfo("User %s is not administratively disabled.",
-                        userDNString);
-            }
-          }
-
-          isDisabled = ConditionResult.FALSE;
-          return false;
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        if (debug)
-        {
-          debugWarning(
-              "User %s is considered administratively disabled " +
-                  "because an error occurred while attempting to make " +
-                  "the determination: %s.",
-              userDNString, stackTraceToSingleLineString(e));
-        }
-
-        isDisabled = ConditionResult.TRUE;
-        return true;
-      }
-    }
-
-    if (isDisabled == ConditionResult.FALSE)
+    if (isDisabled != ConditionResult.UNDEFINED)
     {
       if (debug)
       {
         if (debugEnabled())
         {
-          debugInfo("Returning stored result of false for user %s",
-                    userDNString);
+          debugInfo("Returning stored result of %b for user %s",
+                    (isDisabled == ConditionResult.TRUE), userDNString);
         }
       }
 
-      return false;
+      return isDisabled == ConditionResult.TRUE;
     }
-    else
+
+    AttributeType type =
+         DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_DISABLED, true);
+    try
     {
+      isDisabled = getBoolean(type);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      isDisabled = ConditionResult.TRUE;
       if (debug)
       {
-        if (debugEnabled())
-        {
-          debugInfo("Returning stored result of true for user %s",
-                    userDNString);
-        }
+          debugWarning("User %s is considered administratively disabled " +
+               "because an error occurred while attempting to make " +
+               "the determination: %s.",
+                       userDNString, stackTraceToSingleLineString(e));
       }
 
       return true;
     }
+
+    if (isDisabled == ConditionResult.UNDEFINED)
+    {
+      isDisabled = ConditionResult.FALSE;
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          debugInfo("User %s is not administratively disabled since the" +
+                          " attribute \"%s\" is not present in the entry.",
+                     userDNString, OP_ATTR_ACCOUNT_DISABLED);
+        }
+      }
+      return false;
+    }
+
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        debugInfo("User %s %s administratively disabled.",
+                  userDNString,
+                  ((isDisabled == ConditionResult.TRUE) ? " is" : " is not"));
+      }
+    }
+
+    return isDisabled == ConditionResult.TRUE;
   }
 
 
@@ -954,27 +801,27 @@ public class PasswordPolicyState
     }
 
 
+    if (isDisabled == isDisabled())
+    {
+      return; // requested state matches current state
+    }
+
+    this.isDisabled = ConditionResult.inverseOf(this.isDisabled);
+
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_DISABLED, true);
-    LinkedHashSet<AttributeValue> values;
 
     if (isDisabled)
     {
-      if (this.isDisabled == ConditionResult.TRUE)
-      {
-        return;
-      }
-
-      this.isDisabled = ConditionResult.TRUE;
-      values = new LinkedHashSet<AttributeValue>(1);
-      values.add(new AttributeValue(type, String.valueOf(isDisabled)));
-
+      LinkedHashSet<AttributeValue> values
+           = new LinkedHashSet<AttributeValue>(1);
+      values.add(new AttributeValue(type, String.valueOf(true)));
       Attribute a = new Attribute(type, OP_ATTR_ACCOUNT_DISABLED, values);
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
 
       if (updateEntry)
       {
+        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+        attrList.add(a);
         userEntry.putAttribute(type, attrList);
       }
       else
@@ -984,15 +831,7 @@ public class PasswordPolicyState
     }
     else
     {
-      if (this.isDisabled == ConditionResult.FALSE)
-      {
-        return;
-      }
-
-      this.isDisabled = ConditionResult.FALSE;
-      values = new LinkedHashSet<AttributeValue>(1);
-      values.add(new AttributeValue(type, String.valueOf(isDisabled)));
-
+      // erase
       if (updateEntry)
       {
         userEntry.removeAttribute(type);
@@ -1015,252 +854,250 @@ public class PasswordPolicyState
    */
   public boolean isAccountExpired()
   {
-    if ((isAccountExpired == null) ||
-        (isAccountExpired == ConditionResult.UNDEFINED))
+    if (isAccountExpired != ConditionResult.UNDEFINED)
     {
-      AttributeType type =
-           DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_EXPIRATION_TIME,
-                                            true);
-      try
-      {
-        long expirationTime = getGeneralizedTime(type);
-        if (expirationTime < 0)
-        {
-          // The user doesn't have an expiration time in their entry, so it
-          // can't be expired.
-          if (debug)
-          {
-            if (debugEnabled())
-            {
-              debugInfo("The account for user %s is not expired because " +
-                  "there is no expiration time in the user's entry.",
-              userDNString);
-            }
-          }
-
-          isAccountExpired = ConditionResult.FALSE;
-          return false;
-        }
-        else if (expirationTime > currentTime)
-        {
-          // The user does have an expiration time, but it hasn't arrived yet.
-          if (debug)
-          {
-            if (debugEnabled())
-            {
-              debugInfo("The account for user %s is not expired because the " +
-                  "expiration time has not yet arrived.", userDNString);
-            }
-          }
-
-          isAccountExpired = ConditionResult.FALSE;
-          return false;
-        }
-        else
-        {
-          // The user does have an expiration time, and it is in the past.
-          if (debug)
-          {
-            if (debugEnabled())
-            {
-              debugInfo("The account for user %s is expired because the " +
-                  "expiration time in that account has passed.", userDNString);
-            }
-          }
-
-          isAccountExpired = ConditionResult.TRUE;
-          return true;
-        }
-      }
-      catch (Exception e)
+      if(debug)
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          debugInfo("Returning stored result of %b for user %s",
+                    (isAccountExpired == ConditionResult.TRUE), userDNString);
         }
+      }
 
-        if (debug)
-        {
-          debugWarning(
-              "User %s is considered to have an expired account " +
-                  "because an error occurred while attempting to make " +
-                  "the determination: %s.",
+      return isAccountExpired == ConditionResult.TRUE;
+    }
+
+    AttributeType type =
+         DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_EXPIRATION_TIME,
+                                          true);
+
+    long expirationTime;
+    try
+    {
+      expirationTime = getGeneralizedTime(type);
+     }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      isAccountExpired = ConditionResult.TRUE;
+      if (debug)
+      {
+          debugWarning("User %s is considered to have an expired account " +
+               "because an error occurred while attempting to make " +
+               "the determination: %s.",
               userDNString, stackTraceToSingleLineString(e));
-        }
-
-        isAccountExpired = ConditionResult.TRUE;
-        return true;
-      }
-    }
-
-
-    if (isAccountExpired == ConditionResult.FALSE)
-    {
-      if (debug)
-      {
-        if (debugEnabled())
-        {
-          debugInfo("Returning stored result of false for user %s",
-                    userDNString);
-        }
-      }
-
-      return false;
-    }
-    else
-    {
-      if (debug)
-      {
-        if (debugEnabled())
-        {
-          debugInfo("Returning stored result of true for user %s",
-                    userDNString);
-        }
       }
 
       return true;
     }
+
+    if (expirationTime > currentTime)
+    {
+      // The user does have an expiration time, but it hasn't arrived yet.
+      isAccountExpired = ConditionResult.FALSE;
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          debugInfo("The account for user %s is not expired because the " +
+              "expiration time has not yet arrived.", userDNString);
+        }
+      }
+    }
+    else if (expirationTime >= 0)
+    {
+      // The user does have an expiration time, and it is in the past.
+      isAccountExpired = ConditionResult.TRUE;
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          debugInfo("The account for user %s is expired because the " +
+              "expiration time in that account has passed.", userDNString);
+        }
+      }
+    }
+    else
+    {
+      // The user doesn't have an expiration time in their entry, so it
+      // can't be expired.
+      isAccountExpired = ConditionResult.FALSE;
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          debugInfo("The account for user %s is not expired because " +
+              "there is no expiration time in the user's entry.",
+          userDNString);
+        }
+      }
+    }
+
+    return isAccountExpired == ConditionResult.TRUE;
   }
 
 
 
   /**
    * Retrieves the set of times of failed authentication attempts for the user.
+   * If authentication failure time expiration is enabled, and there are expired
+   * times in the entry, these times are removed from the instance field and an
+   * update is provided to delete those values from the entry.
    *
-   * @return  The set of times of failed authentication attempts for the user.
+   * @return  The set of times of failed authentication attempts for the user,
+   *          which will be an empty list in the case of no valid (unexpired)
+   *          times in the entry.
    */
-  public List<Long> getAuthFailureTimes()
+  private List<Long> getAuthFailureTimes()
   {
-    if (authFailureTimes == null)
+    if (authFailureTimes != null)
     {
-      AttributeType type =
-           DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME_LC);
-      if (type == null)
-      {
-        type = DirectoryServer.getDefaultAttributeType(
-                                    OP_ATTR_PWPOLICY_FAILURE_TIME);
-      }
-
-      try
-      {
-        authFailureTimes = getGeneralizedTimes(type);
-
-
-        // Remove any expired failures from the list.
-        if (passwordPolicy.getLockoutFailureExpirationInterval() > 0)
-        {
-          LinkedHashSet<AttributeValue> values = null;
-
-          long expirationTime = currentTime -
-               (passwordPolicy.getLockoutFailureExpirationInterval()*1000L);
-          Iterator<Long> iterator = authFailureTimes.iterator();
-          while (iterator.hasNext())
-          {
-            long l = iterator.next();
-            if (l < expirationTime)
-            {
-              if (debug)
-              {
-                if (debugEnabled())
-                {
-                  debugInfo("Removing expired auth failure time %d for user " +
-                      "%s", l, userDNString);
-                }
-              }
-
-              iterator.remove();
-
-              if (values == null)
-              {
-                values = new LinkedHashSet<AttributeValue>();
-              }
-
-              values.add(new AttributeValue(type,
-                                            GeneralizedTimeSyntax.format(l)));
-            }
-          }
-
-          if (values != null)
-          {
-            Attribute a = new Attribute(type, OP_ATTR_PWPOLICY_FAILURE_TIME,
-                                        values);
-            ArrayList<Attribute> removeList = new ArrayList<Attribute>(1);
-            removeList.add(a);
-
-
-            if (authFailureTimes.isEmpty())
-            {
-              if (updateEntry)
-              {
-                userEntry.removeAttribute(type);
-              }
-            }
-            else
-            {
-              LinkedHashSet<AttributeValue> keepValues =
-                   new LinkedHashSet<AttributeValue>(authFailureTimes.size());
-              for (Long l : authFailureTimes)
-              {
-                keepValues.add(new AttributeValue(type,
-                                        GeneralizedTimeSyntax.format(l)));
-              }
-
-              ArrayList<Attribute> keepList = new ArrayList<Attribute>(1);
-              keepList.add(new Attribute(type, OP_ATTR_PWPOLICY_FAILURE_TIME,
-                                         keepValues));
-
-              if (updateEntry)
-              {
-                userEntry.putAttribute(type, keepList);
-              }
-            }
-
-
-            if (! updateEntry)
-            {
-              modifications.add(new Modification(ModificationType.DELETE, a,
-                                                 true));
-            }
-          }
-        }
-      }
-      catch (Exception e)
+      if(debug)
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          debugInfo("Returning stored auth failure time list of %d " +
+              "elements for user %s" +
+              authFailureTimes.size(), userDNString);
         }
+      }
 
-        if (debug)
+      return authFailureTimes;
+    }
+
+    AttributeType type =
+         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME_LC);
+    if (type == null)
+    {
+      type = DirectoryServer.getDefaultAttributeType(
+           OP_ATTR_PWPOLICY_FAILURE_TIME);
+    }
+
+    try
+    {
+      authFailureTimes = getGeneralizedTimes(type);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      if (debug)
+      {
+        debugWarning("Error while processing auth failure times " +
+             "for user %s: %s",
+                     userDNString, stackTraceToSingleLineString(e));
+      }
+
+      authFailureTimes = new ArrayList<Long>();
+
+      if (updateEntry)
+      {
+        userEntry.removeAttribute(type);
+      }
+      else
+      {
+        modifications.add(new Modification(ModificationType.REPLACE,
+                                           new Attribute(type), true));
+      }
+
+      return authFailureTimes;
+    }
+
+    if (authFailureTimes.isEmpty())
+    {
+      if (debug)
+      {
+       if (debugEnabled())
         {
-          debugWarning(
-              "Error while processing auth failure times " +
-                  "for user %s: %s",
-              userDNString,
-              stackTraceToSingleLineString(e));
+          debugInfo("Returning an empty auth failure time list for user %s" +
+                    " because the attribute is absent from the entry.",
+                    userDNString);
         }
+      }
 
-        authFailureTimes = new ArrayList<Long>();
+      return authFailureTimes;
+    }
 
+    // Remove any expired failures from the list.
+    if (passwordPolicy.getLockoutFailureExpirationInterval() > 0)
+    {
+      LinkedHashSet<AttributeValue> valuesToRemove = null;
+
+      long expirationTime = currentTime -
+           (passwordPolicy.getLockoutFailureExpirationInterval() * 1000L);
+      Iterator<Long> iterator = authFailureTimes.iterator();
+      while (iterator.hasNext())
+      {
+        long l = iterator.next();
+        if (l < expirationTime)
+        {
+          if (debug)
+          {
+            if (debugEnabled())
+            {
+              debugInfo("Removing expired auth failure time %d for user %s",
+                        l, userDNString);
+            }
+          }
+
+          iterator.remove();
+
+          if (valuesToRemove == null)
+          {
+            valuesToRemove = new LinkedHashSet<AttributeValue>();
+          }
+
+          valuesToRemove.add(new AttributeValue(type,
+                                              GeneralizedTimeSyntax.format(l)));
+        }
+      }
+
+      if (valuesToRemove != null)
+      {
         if (updateEntry)
         {
-          userEntry.removeAttribute(type);
+          if (authFailureTimes.isEmpty())
+          {
+            userEntry.removeAttribute(type);
+          }
+          else
+          {
+            LinkedHashSet<AttributeValue> keepValues =
+                 new LinkedHashSet<AttributeValue>(authFailureTimes.size());
+            for (Long l : authFailureTimes)
+            {
+              keepValues.add(
+                   new AttributeValue(type, GeneralizedTimeSyntax.format(l)));
+            }
+            ArrayList<Attribute> keepList = new ArrayList<Attribute>(1);
+            keepList.add(new Attribute(type, OP_ATTR_PWPOLICY_FAILURE_TIME,
+                                       keepValues));
+            userEntry.putAttribute(type, keepList);
+          }
         }
         else
         {
-          modifications.add(new Modification(ModificationType.REPLACE,
-                                             new Attribute(type), true));
+          Attribute a = new Attribute(type, OP_ATTR_PWPOLICY_FAILURE_TIME,
+                                      valuesToRemove);
+          modifications.add(new Modification(ModificationType.DELETE, a,
+                                             true));
         }
       }
     }
-
 
     if (debug)
     {
       if (debugEnabled())
       {
-        debugInfo("Returning auth failure time list of %d " +
-            "elements for user %s" +
+        debugInfo("Returning auth failure time list of %d elements for user %s",
             authFailureTimes.size(), userDNString);
       }
     }
@@ -1272,10 +1109,13 @@ public class PasswordPolicyState
 
   /**
    * Updates the set of authentication failure times to include the current
-   * time.
+   * time. If the number of failures reaches the policy configuration limit,
+   * lock the account.
    */
   public void updateAuthFailureTimes()
   {
+    assert passwordPolicy.getLockoutFailureCount() > 0;
+
     if (debug)
     {
       if (debugEnabled())
@@ -1287,6 +1127,7 @@ public class PasswordPolicyState
 
 
     List<Long> failureTimes = getAuthFailureTimes();
+    // Note: failureTimes == this.authFailureTimes
     long highestFailureTime = -1;
     for (Long l : failureTimes)
     {
@@ -1337,15 +1178,30 @@ public class PasswordPolicyState
     {
       modifications.add(new Modification(ModificationType.ADD, addAttr, true));
     }
+
+    // Now check to see if there have been sufficient failures to lock the
+    // account.
+    if (passwordPolicy.getLockoutFailureCount() <= failureTimes.size())
+    {
+      setFailureLockedTime(highestFailureTime);
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          debugInfo("Locking user account %s due to too many failures.",
+                    userDNString);
+        }
+      }
+    }
   }
 
 
 
   /**
    * Updates the user entry to remove any record of previous authentication
-   * failures.
+   * failure times.
    */
-  public void clearAuthFailureTimes()
+  private void clearAuthFailureTimes()
   {
     if (debug)
     {
@@ -1361,7 +1217,8 @@ public class PasswordPolicyState
     {
       return;
     }
-    failureTimes.clear();
+
+    failureTimes.clear(); // Note: failureTimes == this.authFailureTimes
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME_LC);
@@ -1383,206 +1240,68 @@ public class PasswordPolicyState
   }
 
 
-
   /**
-   * Indicates whether the associated user should be considered locked out as a
-   * result of too many authentication failures.
+   * Retrieves the time of an authentication failure lockout for the user.
    *
-   * @return  <CODE>true</CODE> if the user is currently locked out due to too
-   *          many authentication failures, or <CODE>false</CODE> if not.
+   * @return  The time of an authentication failure lockout for the user, or -1
+   *          if no such time is present in the entry.
    */
-  public boolean lockedDueToFailures()
+  private long getFailureLockedTime()
   {
-    int maxFailures = passwordPolicy.getLockoutFailureCount();
-    if (maxFailures <= 0)
+    if (failureLockedTime != Long.MIN_VALUE)
     {
-      if (debug)
-      {
-        if (debugEnabled())
-        {
-          debugInfo("Returning false for user %s because lockout due to " +
-              "failures is not enabled.", userDNString);
-        }
-      }
-
-      return false;
+      return failureLockedTime;
     }
-
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_LOCKED_TIME_LC);
     if (type == null)
     {
       type = DirectoryServer.getDefaultAttributeType(
-                                  OP_ATTR_PWPOLICY_LOCKED_TIME);
+           OP_ATTR_PWPOLICY_LOCKED_TIME);
     }
 
-    // Get the locked time from the user's entry.  If it's not there, then the
-    // account is not locked.
-    if (failureLockedTime == Long.MIN_VALUE)
+    try
     {
-      try
-      {
-        failureLockedTime = getGeneralizedTime(type);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        if (debug)
-        {
-          debugWarning(
-              "Returning true for user %s because an error occurred: %s",
-              userDNString, stackTraceToSingleLineString(e));
-        }
-
-        return true;
-      }
+      failureLockedTime = getGeneralizedTime(type);
     }
-
-    if (failureLockedTime <= 0)
-    {
-      // There is no failure locked time, but that doesn't mean that the
-      // account isn't locked anyway due to the maximum number of failures
-      // (which may happen in certain cases due to synchronization latency).
-      List<Long> failureTimes = getAuthFailureTimes();
-      if ((failureTimes != null) && (failureTimes.size() >= maxFailures))
-      {
-        // The account isn't locked but should be, so do so now.
-        lockDueToFailures();
-
-        if (debug)
-        {
-          if (debugEnabled())
-          {
-            debugInfo("Setting the lock for user " + userDNString +
-                " because there were enough preexisting failures even " +
-                "though there was no account locked time.");
-          }
-        }
-
-        return true;
-      }
-
-
-      if (debug)
-      {
-        if (debugEnabled())
-        {
-          debugInfo("Returning false for user  because there is no locked " +
-              "time.", userDNString);
-        }
-      }
-
-      return false;
-    }
-
-    // There is a failure locked time, but it may be expired.  See if that's the
-    // case.
-    if (passwordPolicy.getLockoutDuration() > 0)
-    {
-      long unlockTime = failureLockedTime +
-          (1000L * passwordPolicy.getLockoutDuration());
-      if (unlockTime > currentTime)
-      {
-        if (debug)
-        {
-          if (debugEnabled())
-          {
-            debugInfo("Returning true for user %s because there is a locked " +
-                "time and the lockout duration has not been reached.",
-                      userDNString);
-          }
-
-          secondsUntilUnlock = (int) (unlockTime - currentTime);
-        }
-
-        return true;
-      }
-      else
-      {
-        if (updateEntry)
-        {
-          userEntry.removeAttribute(type);
-        }
-        else
-        {
-          modifications.add(new Modification(ModificationType.REPLACE,
-                                             new Attribute(type), true));
-        }
-
-        if (debug)
-        {
-          if (debugEnabled())
-          {
-            debugInfo("Returning false for user %s " +
-                "because the existing lockout has expired.", userDNString);
-          }
-        }
-
-        return false;
-      }
-    }
-    else
-    {
-      if (debug)
-      {
-        if (debugEnabled())
-        {
-          debugInfo("Returning true for user %s " +
-              "because there is a locked time and no lockout duration.",
-                    userDNString);
-        }
-      }
-
-      return true;
-    }
-  }
-
-
-
-  /**
-   * Retrieves the length of time in seconds until the user's account is
-   * automatically unlocked.  This should only be called after calling
-   * <CODE>lockedDueToFailures</CODE>.
-   *
-   * @return  The length of time in seconds until the user's account is
-   *          automatically unlocked, or -1 if the account is not locked or the
-   *          lockout requires administrative action to clear.
-   */
-  public int getSecondsUntilUnlock()
-  {
-    if (secondsUntilUnlock < 0)
-    {
-      return -1;
-    }
-    else
-    {
-      return secondsUntilUnlock;
-    }
-  }
-
-
-
-  /**
-   * Updates the user account to indicate that it has been locked due to too
-   * many authentication failures.
-   */
-  public void lockDueToFailures()
-  {
-    if (debug)
+    catch (Exception e)
     {
       if (debugEnabled())
       {
-        debugInfo("Locking user account %s due to too many failures.",
-                  userDNString);
+        debugCaught(DebugLogLevel.ERROR, e);
       }
+
+      failureLockedTime = currentTime;
+      if (debug)
+      {
+        debugWarning("Returning current time for user %s because an error " +
+             "occurred: %s",
+                     userDNString, stackTraceToSingleLineString(e));
+      }
+
+      return failureLockedTime;
     }
 
-    failureLockedTime = currentTime;
+    // An expired locked time is handled in lockedDueToFailures.
+    return failureLockedTime;
+  }
+
+
+
+  /**
+    Sets the failure lockout attribute in the entry to the requested time.
+
+    @param time  The time to which to set the entry's failure lockout attribute.
+   */
+  private void setFailureLockedTime(final long time)
+  {
+    if (time == getFailureLockedTime())
+    {
+      return;
+    }
+
+    failureLockedTime = time;
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_LOCKED_TIME_LC);
@@ -1596,11 +1315,11 @@ public class PasswordPolicyState
     values.add(new AttributeValue(type,
                         GeneralizedTimeSyntax.format(failureLockedTime)));
     Attribute a = new Attribute(type, OP_ATTR_PWPOLICY_LOCKED_TIME, values);
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
 
     if (updateEntry)
     {
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(a);
       userEntry.putAttribute(type, attrList);
     }
     else
@@ -1612,23 +1331,25 @@ public class PasswordPolicyState
 
 
   /**
-   * Updates the user account to remove any record of a previous lockout due to
-   * failed authentications.
+   * Updates the user entry to remove any record of previous authentication
+   * failure lockout.
    */
-  public void clearFailureLockout()
+  private void clearFailureLockedTime()
   {
     if (debug)
     {
       if (debugEnabled())
       {
-        debugInfo("Clearing lockout failures for user %s", userDNString);
+        debugInfo("Clearing failure lockout time for user %s.", userDNString);
       }
     }
 
-    if (! lockedDueToFailures())
+    if (-1L == getFailureLockedTime())
     {
       return;
     }
+
+    failureLockedTime = -1L;
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_LOCKED_TIME_LC);
@@ -1652,6 +1373,174 @@ public class PasswordPolicyState
 
 
   /**
+   * Indicates whether the associated user should be considered locked out as a
+   * result of too many authentication failures. In the case of an expired
+   * lock-out, this routine produces the update to clear the lock-out attribute
+   * and the authentication failure timestamps.
+   * In case the failure lockout time is absent from the entry, but sufficient
+   * authentication failure timestamps are present in the entry, this routine
+   * produces the update to set the lock-out attribute.
+   *
+   * @return  <CODE>true</CODE> if the user is currently locked out due to too
+   *          many authentication failures, or <CODE>false</CODE> if not.
+   */
+  public boolean lockedDueToFailures()
+  {
+    // FIXME: Introduce a state field to cache the computed value of this
+    // method. Note that only a cached "locked" status can be returned due to
+    // the possibility of intervening updates to this.failureLockedTime by
+    // updateAuthFailureTimes.
+
+    // Check if the feature is enabled in the policy.
+    final int maxFailures = passwordPolicy.getLockoutFailureCount();
+    if (maxFailures <= 0)
+    {
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          debugInfo("Returning false for user %s because lockout due to " +
+               "failures is not enabled.", userDNString);
+        }
+      }
+
+      return false;
+    }
+
+    // Get the locked time from the user's entry. If it is present and not
+    // expired, the account is locked. If it is absent, the failure timestamps
+    // must be checked, since failure timestamps sufficient to lock the
+    // account could be produced across the synchronization topology within the
+    // synchronization latency. Also, note that IETF
+    // draft-behera-ldap-password-policy-09 specifies "19700101000000Z" as
+    // the value to be set under a "locked until reset" regime; however, this
+    // implementation accepts the value as a locked entry, but observes the
+    // lockout expiration policy for all values including this one.
+    // FIXME: This "getter" is unusual in that it might produce an update to the
+    // entry in two cases. Does it make sense to factor the methods so that,
+    // e.g., an expired lockout is reported, and clearing the lockout is left to
+    // the caller?
+    if (getFailureLockedTime() < 0L)
+    {
+      // There was no locked time present in the entry; however, sufficient
+      // failure times might have accumulated to trigger a lockout.
+      if (getAuthFailureTimes().size() < maxFailures)
+      {
+        if (debug)
+        {
+          if (debugEnabled())
+          {
+            debugInfo("Returning false for user %s because there is no " +
+                 "locked time.", userDNString);
+          }
+        }
+
+        return false;
+      }
+
+      // The account isn't locked but should be, so do so now.
+      setFailureLockedTime(currentTime);// FIXME: set to max(failureTimes)?
+
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          debugInfo("Locking user %s because there were enough existing " +
+               "failures even though there was no account locked time.",
+                    userDNString);
+        }
+      }
+      // Fall through...
+    }
+
+    // There is a failure locked time, but it may be expired.
+    if (passwordPolicy.getLockoutDuration() > 0)
+    {
+      final long unlockTime = getFailureLockedTime() +
+           (1000L * passwordPolicy.getLockoutDuration());
+      if (unlockTime > currentTime)
+      {
+        secondsUntilUnlock = (int) (unlockTime - currentTime);
+
+        if (debug)
+        {
+          if (debugEnabled())
+          {
+            debugInfo("Returning true for user %s because there is a locked " +
+                 "time and the lockout duration has not been reached.",
+                      userDNString);
+          }
+        }
+
+        return true;
+      }
+
+      // The lockout in the entry has expired...
+      clearFailureLockout();
+
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          debugInfo("Returning false for user %s " +
+               "because the existing lockout has expired.", userDNString);
+        }
+      }
+
+      assert -1L == getFailureLockedTime();
+      return false;
+    }
+
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        debugInfo("Returning true for user %s " +
+             "because there is a locked time and no lockout duration.",
+                  userDNString);
+      }
+    }
+
+    assert -1L <= getFailureLockedTime();
+    return true;
+  }
+
+
+
+  /**
+   * Retrieves the length of time in seconds until the user's account is
+   * automatically unlocked.  This should only be called after calling
+   * <CODE>lockedDueToFailures</CODE>.
+   *
+   * @return  The length of time in seconds until the user's account is
+   *          automatically unlocked, or -1 if the account is not locked or the
+   *          lockout requires administrative action to clear.
+   */
+  public int getSecondsUntilUnlock()
+  {
+    // secondsUntilUnlock is only set when failureLockedTime is present and
+    // PasswordPolicy.getLockoutDuration is enabled; hence it is not
+    // unreasonable to find secondsUntilUnlock uninitialized.
+    assert failureLockedTime != Long.MIN_VALUE;
+
+    return (secondsUntilUnlock < 0) ? -1 : secondsUntilUnlock;
+  }
+
+
+
+  /**
+   * Updates the user account to remove any record of a previous lockout due to
+   * failed authentications.
+   */
+  public void clearFailureLockout()
+  {
+    clearAuthFailureTimes();
+    clearFailureLockedTime();
+  }
+
+
+
+  /**
    * Retrieves the time that the user last authenticated to the Directory
    * Server.
    *
@@ -1660,139 +1549,125 @@ public class PasswordPolicyState
    */
   public long getLastLoginTime()
   {
-    if (lastLoginTime == Long.MIN_VALUE)
+    if (lastLoginTime != Long.MIN_VALUE)
     {
-      AttributeType type   = passwordPolicy.getLastLoginTimeAttribute();
-      String        format = passwordPolicy.getLastLoginTimeFormat();
-
-      if ((type == null) || (format == null))
+      if (debug)
       {
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            debugInfo("Returning -1 for user %s because no last " +
-                "login time will be maintained.", userDNString);
-          }
+          debugInfo("Returning stored last login time of %d for user %s.",
+                    lastLoginTime, userDNString);
         }
-
-        lastLoginTime = -1;
-        return lastLoginTime;
       }
 
-      List<Attribute> attrList = userEntry.getAttribute(type);
-      if ((attrList == null) || attrList.isEmpty())
-      {
-        if (debug)
-        {
-          if (debugEnabled())
-          {
-            debugInfo("Returning -1 for user %s because no last " +
-                "login time value exists.", userDNString);
-          }
-        }
+      return lastLoginTime;
+    }
 
-        lastLoginTime = -1;
-        return lastLoginTime;
+    // The policy configuration must be checked since the entry cannot be
+    // evaluated without both an attribute name and timestamp format.
+    AttributeType type   = passwordPolicy.getLastLoginTimeAttribute();
+    String        format = passwordPolicy.getLastLoginTimeFormat();
+
+    if ((type == null) || (format == null))
+    {
+      lastLoginTime = -1;
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          debugInfo("Returning -1 for user %s because no last login time " +
+               "will be maintained.", userDNString);
+        }
       }
 
+      return lastLoginTime;
+    }
+
+    lastLoginTime = -1;
+    List<Attribute> attrList = userEntry.getAttribute(type);
+
+    if (attrList != null)
+    {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        if (a.getValues().isEmpty()) continue;
+
+        String valueString = a.getValues().iterator().next().getStringValue();
+
+        try
         {
-          String valueString = v.getStringValue();
-          SimpleDateFormat dateFormat;
+          SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+          lastLoginTime = dateFormat.parse(valueString).getTime();
 
-          try
-          {
-            dateFormat    = new SimpleDateFormat(format);
-            lastLoginTime = dateFormat.parse(valueString).getTime();
-
-            if (debug)
-            {
-              if (debugEnabled())
-              {
-                debugInfo("Returning last login time of %s for user " +
-                    "%s decoded using current last login " +
-                    "time format.", lastLoginTime, userDNString);
-              }
-            }
-
-            return lastLoginTime;
-          }
-          catch (Exception e)
+          if (debug)
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            // This could mean that the last login time was encoded using a
-            // previous format.
-            for (String f : passwordPolicy.getPreviousLastLoginTimeFormats())
-            {
-              try
-              {
-                dateFormat = new SimpleDateFormat(f);
-                lastLoginTime = dateFormat.parse(valueString).getTime();
-
-                if (debug)
-                {
-                  if (debugEnabled())
-                  {
-                    debugInfo("Returning last login time of %s for " +
-                        "user %s decoded using previous " +
-                        "last login time format of %s",
-                              lastLoginTime, userDNString, f);
-                  }
-                }
-
-                return lastLoginTime;
+              debugInfo("Returning last login time of %d for user %s" +
+                   "decoded using current last login time format.",
+                        lastLoginTime, userDNString);
               }
-              catch (Exception e2)
+          }
+
+          return lastLoginTime;
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          // This could mean that the last login time was encoded using a
+          // previous format.
+          for (String f : passwordPolicy.getPreviousLastLoginTimeFormats())
+          {
+            try
+            {
+              SimpleDateFormat dateFormat = new SimpleDateFormat(f);
+              lastLoginTime = dateFormat.parse(valueString).getTime();
+
+              if (debug)
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, e2);
+                  debugInfo("Returning last login time of %d for user %s" +
+                       "decoded using previous last login time format of %s.",
+                            lastLoginTime, userDNString, f);
                 }
               }
+
+              return lastLoginTime;
             }
-
-
-            if (debug)
+            catch (Exception e2)
             {
-              debugWarning(
-                  "Returning -1 for user %s because the " +
-                      "last login time value %s could not " +
-                      "be parsed using any known format.",
-                  userDNString, valueString);
+              if (debugEnabled())
+              {
+                debugCaught(DebugLogLevel.ERROR, e);
+              }
             }
-
-            lastLoginTime = -1;
-            return lastLoginTime;
           }
+
+          assert lastLoginTime == -1;
+          if (debug)
+          {
+              debugWarning("Returning -1 for user %s because the last login " +
+                   "time value %s could not be parsed using any known format.",
+                           userDNString, valueString);
+          }
+
+          return lastLoginTime;
         }
       }
-
-
-      // We shouldn't get here.
-      if (debug)
-      {
-        debugWarning(
-            "Returning -1 for user %s because even though " +
-                         "there appears to be a last login time " +
-                         "value we couldn't decipher it.",
-                     userDNString);
-      }
-      return -1;
     }
 
+    assert lastLoginTime == -1;
     if (debug)
     {
       if (debugEnabled())
       {
-        debugInfo("Returning previously calculated last login time " +
-            "of %s for user %s", lastLoginTime, userDNString);
+        debugInfo("Returning %d for user %s because no last " +
+            "login time value exists.", lastLoginTime, userDNString);
       }
     }
 
@@ -1829,10 +1704,9 @@ public class PasswordPolicyState
 
       if (debug)
       {
-        debugWarning(
-            "Unable to set last login time for user %s because an " +
-                "error occurred: %s",
-            userDNString, stackTraceToSingleLineString(e));
+        debugWarning("Unable to set last login time for user %s because an " +
+             "error occurred: %s",
+                     userDNString, stackTraceToSingleLineString(e));
       }
 
       return;
@@ -1859,11 +1733,11 @@ public class PasswordPolicyState
     values.add(new AttributeValue(type, timestamp));
 
     Attribute a = new Attribute(type, type.getNameOrOID(), values);
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
 
     if (updateEntry)
     {
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(a);
       userEntry.putAttribute(type, attrList);
     }
     else
@@ -1892,264 +1766,207 @@ public class PasswordPolicyState
    */
   public boolean lockedDueToIdleInterval()
   {
-    if ((isIdleLocked == null) || (isIdleLocked == ConditionResult.UNDEFINED))
+    if (isIdleLocked != ConditionResult.UNDEFINED)
     {
-      if (passwordPolicy.getIdleLockoutInterval() <= 0)
+      if (debug)
       {
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            debugInfo("Returning false for user %s because no idle lockout " +
-                "interval is defined.", userDNString);
-          }
+          debugInfo("Returning stored result of %b for user %s",
+                    (isIdleLocked == ConditionResult.TRUE), userDNString);
         }
-
-        isIdleLocked = ConditionResult.FALSE;
-        return false;
       }
 
-      long lockTime = currentTime -
-          (passwordPolicy.getIdleLockoutInterval() * 1000L);
-      long lastLoginTime = getLastLoginTime();
-      if (lastLoginTime > 0)
+      return isIdleLocked == ConditionResult.TRUE;
+    }
+
+    // Return immediately if this feature is disabled, since the feature is not
+    // responsible for any state attribute in the entry.
+    if (passwordPolicy.getIdleLockoutInterval() <= 0)
+    {
+      isIdleLocked = ConditionResult.FALSE;
+
+      if (debug)
       {
-        if (lastLoginTime > lockTime)
+        if (debugEnabled())
         {
-          if (debug)
-          {
-            if (debugEnabled())
-            {
-              debugInfo("Returning false for user %s because the last login " +
-                  "time is in an acceptable window.", userDNString);
-            }
-          }
-
-          isIdleLocked = ConditionResult.FALSE;
-          return false;
+          debugInfo("Returning false for user %s because no idle lockout " +
+              "interval is defined.", userDNString);
         }
-        else
-        {
-          if (passwordChangedTime > lockTime)
-          {
-            if (debug)
-            {
-              if (debugEnabled())
-              {
-                debugInfo("Returning false for user  because the password " +
-                    "changed time is in an acceptable window.", userDNString);
-              }
-            }
+      }
 
-            isIdleLocked = ConditionResult.FALSE;
-            return false;
+      return false;
+    }
+
+    long lockTime = currentTime -
+                         (1000L * passwordPolicy.getIdleLockoutInterval());
+    if(lockTime < 0) lockTime = 0;
+
+    long lastLoginTime = getLastLoginTime();
+    if (lastLoginTime > lockTime || passwordChangedTime > lockTime)
+    {
+      isIdleLocked = ConditionResult.FALSE;
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          StringBuilder reason = new StringBuilder();
+          if(lastLoginTime > lockTime)
+          {
+            reason.append("the last login time is in an acceptable window");
           }
           else
           {
-            if (debug)
+            if(lastLoginTime < 0)
             {
-              if (debugEnabled())
-              {
-                debugInfo("Returning true for user because neither last " +
-                    "login time nor password changed time are in an " +
-                    "acceptable window.", userDNString);
-              }
+              reason.append("there is no last login time, but ");
             }
-
-            isIdleLocked = ConditionResult.TRUE;
-            return true;
+            reason.append(
+                 "the password changed time is in an acceptable window");
           }
+          debugInfo("Returning false for user %s because %s.",
+                    userDNString, reason.toString());
         }
       }
-      else
-      {
-        if (passwordChangedTime < lockTime)
-        {
-          if (debug)
-          {
-            if (debugEnabled())
-            {
-              debugInfo("Returning true for user %s because there is no last " +
-                  "login time and the password changed time is not in " +
-                  "an acceptable window.", userDNString);
-            }
-          }
-
-          isIdleLocked = ConditionResult.TRUE;
-          return true;
-        }
-        else
-        {
-          if (debug)
-          {
-            if (debugEnabled())
-            {
-              debugInfo("Returning false for user %s because there is no " +
-                  "last login time but the password changed time is in an " +
-                  "acceptable window.", userDNString);
-            }
-          }
-
-          isIdleLocked = ConditionResult.FALSE;
-          return false;
-        }
-      }
-    }
-
-
-    if (isIdleLocked == ConditionResult.TRUE)
-    {
-      if (debug)
-      {
-        if (debugEnabled())
-        {
-          debugInfo("Returning stored result of true for user %s",
-                    userDNString);
-        }
-      }
-
-      return true;
     }
     else
     {
+      isIdleLocked = ConditionResult.TRUE;
       if (debug)
       {
         if (debugEnabled())
         {
-          debugInfo("Returning stored result of false for user %s",
-                    userDNString);
+          String reason = (lastLoginTime < 0)
+             ? "there is no last login time and the password " +
+                  "changed time is not in an acceptable window"
+             : "neither last login time nor password " +
+                  "changed time are in an acceptable window";
+          debugInfo("Returning true for user %s because %s.",
+                    userDNString, reason);
         }
       }
-
-      return false;
     }
+
+    return isIdleLocked == ConditionResult.TRUE;
   }
 
 
 
-  /**
-   * Indicates whether the user's password must be changed before any other
-   * operation can be performed.
-   *
-   * @return  <CODE>true</CODE> if the user's password must be changed before
-   *          any other operation can be performed.
-   */
+/**
+* Indicates whether the user's password must be changed before any other
+* operation can be performed.
+*
+* @return  <CODE>true</CODE> if the user's password must be changed before
+*          any other operation can be performed.
+*/
   public boolean mustChangePassword()
   {
-    // If the password policy doesn't use force change on add or force change on
-    // reset, or if it forbits the user from changing their password, then this
-    // must return false.
-    if (! passwordPolicy.allowUserPasswordChanges())
-    {
-      return false;
-    }
-    else if (! (passwordPolicy.forceChangeOnAdd() ||
-                passwordPolicy.forceChangeOnReset()))
-    {
-      return false;
-    }
-
-    if ((mustChangePassword == null) ||
-        (mustChangePassword == ConditionResult.UNDEFINED))
-    {
-      AttributeType type =
-           DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_RESET_REQUIRED_LC);
-      if (type == null)
-      {
-        type = DirectoryServer.getDefaultAttributeType(
-                                    OP_ATTR_PWPOLICY_RESET_REQUIRED);
-      }
-
-      try
-      {
-        boolean resetRequired = getBoolean(type, false);
-        if (resetRequired)
-        {
-          if (debug)
-          {
-            if (debugEnabled())
-            {
-              debugInfo("Returning true for user %", userDNString);
-            }
-          }
-
-          mustChangePassword = ConditionResult.TRUE;
-          return true;
-        }
-        else
-        {
-          if (debug)
-          {
-            if (debugEnabled())
-            {
-              debugInfo("Returning false for user %s", userDNString);
-            }
-          }
-
-          mustChangePassword = ConditionResult.FALSE;
-          return false;
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        if (debug)
-        {
-          if (debugEnabled())
-          {
-            debugInfo("Returning true for user %s because an unexpected " +
-                "error occurred: %s",
-                      userDNString, stackTraceToSingleLineString(e));
-          }
-        }
-
-        mustChangePassword = ConditionResult.TRUE;
-        return true;
-      }
-    }
-
-
-    if (mustChangePassword == ConditionResult.TRUE)
+    if(mustChangePassword != ConditionResult.UNDEFINED)
     {
       if (debug)
       {
         if (debugEnabled())
         {
-          debugInfo("Returning stored result of true for user %s",
-                    userDNString);
+          debugInfo("Returning stored result of %b for user %s.",
+                    (mustChangePassword == ConditionResult.TRUE), userDNString);
         }
+      }
+
+      return mustChangePassword == ConditionResult.TRUE;
+    }
+
+    // If the password policy doesn't use force change on add or force change on
+    // reset, or if it forbids the user from changing his password, then return
+    // false.
+    // FIXME: the only getter responsible for a state attribute (pwdReset) that
+    // considers the policy before checking the entry for the presence of the
+    // attribute.
+    if (! (passwordPolicy.allowUserPasswordChanges()
+           && (passwordPolicy.forceChangeOnAdd()
+               || passwordPolicy.forceChangeOnReset())))
+    {
+      mustChangePassword = ConditionResult.FALSE;
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          debugInfo("Returning false for user %s because neither force " +
+               "change on add nor force change on reset is enabled, " +
+               "or users are not allowed to self-modify passwords.",
+                    userDNString);
+
+        }
+      }
+
+      return false;
+    }
+
+    AttributeType type =
+           DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_RESET_REQUIRED_LC);
+    if (type == null)
+    {
+      type = DirectoryServer.getDefaultAttributeType(
+           OP_ATTR_PWPOLICY_RESET_REQUIRED);
+    }
+
+    try
+    {
+      mustChangePassword = getBoolean(type);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      mustChangePassword = ConditionResult.TRUE;
+      if (debug)
+      {
+        debugWarning("Returning true for user %s because an error occurred: %s",
+                     userDNString, stackTraceToSingleLineString(e));
       }
 
       return true;
     }
-    else
+
+    if(mustChangePassword == ConditionResult.UNDEFINED)
     {
-      if (debug)
+      mustChangePassword = ConditionResult.FALSE;
+      if(debug)
       {
         if (debugEnabled())
         {
-          debugInfo("Returning stored result of false for user %s",
-                    userDNString);
+          debugInfo("Returning %b for user since the attribute \"%s\"" +
+               " is not present in the entry.",
+                    false, userDNString, OP_ATTR_PWPOLICY_RESET_REQUIRED);
         }
       }
 
       return false;
     }
+
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        debugInfo("Returning %b for user %s.",
+                  (mustChangePassword == ConditionResult.TRUE), userDNString);
+      }
+    }
+
+    return mustChangePassword == ConditionResult.TRUE;
   }
 
 
 
-  /**
-   * Updates the user entry to indicate whether the user's password must be
-   * changed.
-   *
-   * @param  mustChangePassword  Indicates whether the user's password must be
-   *                             changed.
-   */
+/**
+* Updates the user entry to indicate whether the user's password must be
+* changed.
+*
+* @param  mustChangePassword  Indicates whether the user's password must be
+*                             changed.
+*/
   public void setMustChangePassword(boolean mustChangePassword)
   {
     if (debug)
@@ -2161,8 +1978,8 @@ public class PasswordPolicyState
       }
     }
 
-    if (mustChangePassword ==
-            (this.mustChangePassword == ConditionResult.TRUE)){
+    if (mustChangePassword == mustChangePassword())
+    {
       return;  // requested state matches current state
     }
 
@@ -2198,6 +2015,7 @@ public class PasswordPolicyState
     }
     else
     {
+      // erase
       if (updateEntry)
       {
         userEntry.removeAttribute(type);
@@ -2222,6 +2040,8 @@ public class PasswordPolicyState
    */
   public boolean lockedDueToMaximumResetAge()
   {
+    // This feature is reponsible for neither a state field nor an entry state
+    // attribute.
     if (passwordPolicy.getMaximumPasswordResetAge() <= 0)
     {
       if (debug)
@@ -2229,14 +2049,14 @@ public class PasswordPolicyState
         if (debugEnabled())
         {
           debugInfo("Returning false for user %s because there is no maximum " +
-              "reset age .", userDNString);
+              "reset age.", userDNString);
         }
       }
 
       return false;
     }
 
-    if (!mustChangePassword())
+    if (! mustChangePassword())
     {
       if (debug)
       {
@@ -2448,17 +2268,15 @@ public class PasswordPolicyState
       }
     }
 
-
     if (debug)
     {
       if (debugEnabled())
       {
-        debugInfo("Returning password expiration time of %s for user " +
-            "%s", expirationTime, userDNString);
+        debugInfo("Returning password expiration time of %d for user %s.",
+                  expirationTime, userDNString);
       }
     }
 
-    secondsUntilExpiration = (int) (expirationTime - currentTime);
     return expirationTime;
   }
 
@@ -2478,14 +2296,7 @@ public class PasswordPolicyState
       getPasswordExpirationTime();
     }
 
-    if (isPasswordExpired == ConditionResult.TRUE)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    return isPasswordExpired == ConditionResult.TRUE;
   }
 
 
@@ -2500,6 +2311,8 @@ public class PasswordPolicyState
    */
   public boolean isWithinMinimumAge()
   {
+    // This feature is reponsible for neither a state field nor entry state
+    // attribute.
     int minAge = passwordPolicy.getMinimumPasswordAge();
     if (minAge <= 0)
     {
@@ -2546,7 +2359,10 @@ public class PasswordPolicyState
       // The user is within the minimum age.
       if (debug)
       {
-        debugWarning("Returning true.");
+        if (debugEnabled())
+        {
+          debugInfo("Returning true.");
+        }
       }
 
       return true;
@@ -2575,14 +2391,7 @@ public class PasswordPolicyState
       getPasswordExpirationTime();
     }
 
-    if (mayUseGraceLogin == ConditionResult.TRUE)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    return mayUseGraceLogin == ConditionResult.TRUE;
   }
 
 
@@ -2602,14 +2411,7 @@ public class PasswordPolicyState
       getPasswordExpirationTime();
     }
 
-    if (shouldWarn == ConditionResult.TRUE)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    return shouldWarn == ConditionResult.TRUE;
   }
 
 
@@ -2629,14 +2431,7 @@ public class PasswordPolicyState
       getPasswordExpirationTime();
     }
 
-    if (isFirstWarning == ConditionResult.TRUE)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    return isFirstWarning == ConditionResult.TRUE;
   }
 
 
@@ -2677,41 +2472,50 @@ public class PasswordPolicyState
    */
   public long getRequiredChangeTime()
   {
-    if (requiredChangeTime == Long.MIN_VALUE)
+    if (requiredChangeTime != Long.MIN_VALUE)
     {
-      AttributeType type = DirectoryServer.getAttributeType(
-                                OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME,
-                                true);
-      try
-      {
-        requiredChangeTime = getGeneralizedTime(type);
-      }
-      catch (Exception e)
+      if (debug)
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          debugInfo("Returning stored required change time of %d for user %s",
+                    requiredChangeTime, userDNString);
         }
-
-        if (debug)
-        {
-          debugWarning(
-              "An error occurred while attempting to " +
-                  "determine the required change time for " +
-                  "user %s: %s",
-              userDNString, stackTraceToSingleLineString(e));
-        }
-
-        requiredChangeTime = -1;
       }
+
+      return requiredChangeTime;
     }
 
+    AttributeType type = DirectoryServer.getAttributeType(
+                              OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME, true);
+
+    try
+    {
+      requiredChangeTime = getGeneralizedTime(type);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      requiredChangeTime = -1;
+      if (debug)
+      {
+        debugWarning("Returning %d for user %s because an error occurred: %s",
+                     requiredChangeTime, userDNString,
+                     stackTraceToSingleLineString(e));
+      }
+
+      return requiredChangeTime;
+    }
 
     if (debug)
     {
       if (debugEnabled())
       {
-        debugInfo("Returning required change time of %s for user %s",
+        debugInfo("Returning required change time of %d for user %s",
                   requiredChangeTime, userDNString);
       }
     }
@@ -2735,29 +2539,26 @@ public class PasswordPolicyState
       }
     }
 
-
-    long reqChangeTime = getRequiredChangeTime();
-    if (reqChangeTime != passwordPolicy.getRequireChangeByTime())
+    long requiredChangeByTimePolicy = passwordPolicy.getRequireChangeByTime();
+    if (getRequiredChangeTime() != requiredChangeByTimePolicy)
     {
-      reqChangeTime = passwordPolicy.getRequireChangeByTime();
-      requiredChangeTime = reqChangeTime;
-
       AttributeType type = DirectoryServer.getAttributeType(
-                                OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME,
-                                true);
+                               OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME, true);
+
       LinkedHashSet<AttributeValue> values =
            new LinkedHashSet<AttributeValue>(1);
-      String timeValue = GeneralizedTimeSyntax.format(passwordChangedTime);
+      String timeValue =
+           GeneralizedTimeSyntax.format(requiredChangeByTimePolicy);
       values.add(new AttributeValue(type, timeValue));
 
       Attribute a = new Attribute(type,
                                   OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME,
                                   values);
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
 
       if (updateEntry)
       {
+        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+        attrList.add(a);
         userEntry.putAttribute(type, attrList);
       }
       else
@@ -2795,10 +2596,8 @@ public class PasswordPolicyState
 
         if (debug)
         {
-          debugWarning(
-              "Unable to decode the warned time for user " +
-                  "%s: %s",
-              userDNString, stackTraceToSingleLineString(e));
+          debugWarning("Unable to decode the warned time for user %s: %s",
+                       userDNString, stackTraceToSingleLineString(e));
         }
 
         warnedTime = -1;
@@ -2848,11 +2647,11 @@ public class PasswordPolicyState
     values.add(GeneralizedTimeSyntax.createGeneralizedTimeValue(currentTime));
 
     Attribute a = new Attribute(type, OP_ATTR_PWPOLICY_WARNED_TIME, values);
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
 
     if (updateEntry)
     {
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(a);
       userEntry.putAttribute(type, attrList);
     }
     else
@@ -2876,6 +2675,20 @@ public class PasswordPolicyState
    */
   public void clearWarnedTime()
   {
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        debugInfo("Clearing warned time for user %s", userDNString);
+      }
+    }
+
+    if (getWarnedTime() < 0)
+    {
+      return;
+    }
+    warnedTime = -1;
+
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME, true);
     if (updateEntry)
@@ -2931,10 +2744,9 @@ public class PasswordPolicyState
 
         if (debug)
         {
-          debugWarning(
-              "Error while processing grace login times " +
-                  "for user %s: %s",
-              userDNString, stackTraceToSingleLineString(e));
+          debugWarning("Error while processing grace login times " +
+               "for user %s: %s",
+                       userDNString, stackTraceToSingleLineString(e));
         }
 
         graceLoginTimes = new ArrayList<Long>();
@@ -3015,7 +2827,7 @@ public class PasswordPolicyState
     {
       highestGraceTime = currentTime;
     }
-    graceTimes.add(highestGraceTime);
+    graceTimes.add(highestGraceTime); // graceTimes == this.graceLoginTimes
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC);
@@ -3025,31 +2837,31 @@ public class PasswordPolicyState
                                   OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
     }
 
-    LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>(graceTimes.size());
-    for (Long l : graceTimes)
-    {
-      values.add(new AttributeValue(type, GeneralizedTimeSyntax.format(l)));
-    }
-
-    Attribute a = new Attribute(type, OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME,
-                                values);
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
-
-    LinkedHashSet<AttributeValue> addValues =
-         new LinkedHashSet<AttributeValue>(1);
-    addValues.add(new AttributeValue(type,
-                           GeneralizedTimeSyntax.format(highestGraceTime)));
-    Attribute addAttr = new Attribute(type, OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME,
-                                      addValues);
-
     if (updateEntry)
     {
+      LinkedHashSet<AttributeValue> values =
+             new LinkedHashSet<AttributeValue>(graceTimes.size());
+      for (Long l : graceTimes)
+      {
+        values.add(new AttributeValue(type, GeneralizedTimeSyntax.format(l)));
+      }
+
+      Attribute a = new Attribute(type, OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME,
+                                  values);
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(a);
+
       userEntry.putAttribute(type, attrList);
     }
     else
     {
+      LinkedHashSet<AttributeValue> addValues =
+           new LinkedHashSet<AttributeValue>(1);
+      addValues.add(new AttributeValue(type,
+                             GeneralizedTimeSyntax.format(highestGraceTime)));
+      Attribute addAttr = new Attribute(type, OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME,
+                                        addValues);
+
       modifications.add(new Modification(ModificationType.ADD, addAttr, true));
     }
   }
@@ -3074,7 +2886,7 @@ public class PasswordPolicyState
     {
       return;
     }
-    graceTimes.clear();
+    graceTimes.clear(); // graceTimes == this.graceLoginTimes
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC);
@@ -3109,107 +2921,75 @@ public class PasswordPolicyState
 
     List<Attribute> attrList =
          userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
-    if (attrList != null)
+
+    if (attrList == null)
     {
-      if (passwordPolicy.usesAuthPasswordSyntax())
+      return clearPasswords;
+    }
+
+    for (Attribute a : attrList)
+    {
+      boolean usesAuthPasswordSyntax = passwordPolicy.usesAuthPasswordSyntax();
+
+      for (AttributeValue v : a.getValues())
       {
-        for (Attribute a : attrList)
+        try
         {
-          for (AttributeValue v : a.getValues())
+          StringBuilder[] pwComponents;
+          if (usesAuthPasswordSyntax)
           {
-            try
+            pwComponents =
+                 AuthPasswordSyntax.decodeAuthPassword(v.getStringValue());
+          }
+          else
+          {
+            String[] userPwComponents =
+                 UserPasswordSyntax.decodeUserPassword(v.getStringValue());
+            pwComponents = new StringBuilder[userPwComponents.length];
+            for (int i = 0; i < userPwComponents.length; ++i)
             {
-              StringBuilder[] pwComponents =
-                   AuthPasswordSyntax.decodeAuthPassword(v.getStringValue());
-              PasswordStorageScheme scheme =
-                   DirectoryServer.getAuthPasswordStorageScheme(
-                                        pwComponents[0].toString());
-              if (scheme == null)
-              {
-                if (debug)
-                {
-                  debugWarning("User entry %s contains an " +
-                                 "authPassword with scheme %s " +
-                                 "that is not defined in the " +
-                                 "server.", userDNString, pwComponents[0]);
-                }
-
-                continue;
-              }
-              else if (scheme.isReversible())
-              {
-                ByteString clearValue =
-                     scheme.getAuthPasswordPlaintextValue(
-                          pwComponents[1].toString(),
-                          pwComponents[2].toString());
-                clearPasswords.add(clearValue);
-              }
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              if (debug)
-              {
-                debugWarning(
-                    "Cannot get clear authPassword " +
-                        "value for user %s: %s",
-                    userDNString, e);
-              }
+              pwComponents[i] = new StringBuilder(userPwComponents[i]);
             }
           }
-        }
-      }
-      else
-      {
-        for (Attribute a : attrList)
-        {
-          for (AttributeValue v : a.getValues())
+
+          String schemeName = pwComponents[0].toString();
+          PasswordStorageScheme scheme = (usesAuthPasswordSyntax)
+                    ? DirectoryServer.getAuthPasswordStorageScheme(schemeName)
+                    : DirectoryServer.getPasswordStorageScheme(schemeName);
+          if (scheme == null)
           {
-            try
+            if (debug)
             {
-              String[] pwComponents =
-                   UserPasswordSyntax.decodeUserPassword(v.getStringValue());
-              PasswordStorageScheme scheme =
-                   DirectoryServer.getPasswordStorageScheme(pwComponents[0]);
-              if (scheme == null)
-              {
-                if (debug)
-                {
-                  debugWarning(
-                      "User entry %s contains a password " +
-                                 "with scheme %s that is not " +
-                                 "defined in the server.",
-                             userDNString, pwComponents[0]);
-                }
-
-                continue;
-              }
-              else if (scheme.isReversible())
-              {
-                ByteString clearValue =
-                     scheme.getPlaintextValue(
-                          new ASN1OctetString(pwComponents[1]));
-                clearPasswords.add(clearValue);
-              }
+              debugWarning("User entry %s contains a password with scheme %s " +
+                   "that is not defined in the server.",
+                           userDNString, schemeName);
             }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                debugCaught(DebugLogLevel.ERROR, e);
-              }
 
-              if (debug)
-              {
-                debugWarning(
-                    "Cannot get clear password value for " +
-                        "user %s: %s", userDNString, e);
-              }
-            }
+            continue;
+          }
+
+          if (scheme.isReversible())
+          {
+            ByteString clearValue = (usesAuthPasswordSyntax)
+                         ? scheme.getAuthPasswordPlaintextValue(
+                               pwComponents[1].toString(),
+                               pwComponents[2].toString())
+                         : scheme.getPlaintextValue(
+                               new ASN1OctetString(pwComponents[1].toString()));
+            clearPasswords.add(clearValue);
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          if (debug)
+          {
+            debugWarning("Cannot get clear password value foruser %s: %s",
+                         userDNString, e);
           }
         }
       }
@@ -3249,122 +3029,80 @@ public class PasswordPolicyState
       return false;
     }
 
-
-    if (passwordPolicy.usesAuthPasswordSyntax())
+    for (Attribute a : attrList)
     {
-      for (Attribute a : attrList)
+      boolean usesAuthPasswordSyntax = passwordPolicy.usesAuthPasswordSyntax();
+
+      for (AttributeValue v : a.getValues())
       {
-        for (AttributeValue v : a.getValues())
+        try
         {
-          try
+          StringBuilder[] pwComponents;
+          if (usesAuthPasswordSyntax)
           {
-            StringBuilder[] pwComponents =
+            pwComponents =
                  AuthPasswordSyntax.decodeAuthPassword(v.getStringValue());
-            PasswordStorageScheme scheme =
-                 DirectoryServer.getAuthPasswordStorageScheme(
-                                      pwComponents[0].toString());
-            if (scheme == null)
+          }
+          else
+          {
+            String[] userPwComponents =
+                 UserPasswordSyntax.decodeUserPassword(v.getStringValue());
+            pwComponents = new StringBuilder[userPwComponents.length];
+            for (int i = 0; i < userPwComponents.length; ++i)
             {
-              if (debug)
-              {
-                debugWarning(
-                    "User entry %s contains a password with scheme %s " +
-                                 "that is not defined in the server.",
-                             userDNString, pwComponents[0]);
-              }
-
-              continue;
-            }
-
-            if (scheme.authPasswordMatches(password, pwComponents[1].toString(),
-                                           pwComponents[2].toString()))
-            {
-              if (debug)
-              {
-                if (debugEnabled())
-                {
-                  debugInfo("Returning true for user %s because the provided " +
-                      "password matches a value encoded with scheme %s",
-                            userDNString, pwComponents[0]);
-                }
-              }
-
-              return true;
+              pwComponents[i] = new StringBuilder(userPwComponents[i]);
             }
           }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              debugCaught(DebugLogLevel.ERROR, e);
-            }
 
+          String schemeName = pwComponents[0].toString();
+          PasswordStorageScheme scheme = (usesAuthPasswordSyntax)
+                     ? DirectoryServer.getAuthPasswordStorageScheme(schemeName)
+                     : DirectoryServer.getPasswordStorageScheme(schemeName);
+          if (scheme == null)
+          {
             if (debug)
             {
-              debugError(
-                  "An error occurred while attempting to process a " +
-                      "password value for user %s: %s",
-                  userDNString, stackTraceToSingleLineString(e));
+              debugWarning("User entry %s contains a password with scheme %s " +
+                   "that is not defined in the server.",
+                           userDNString, schemeName);
             }
+
+            continue;
+          }
+
+          boolean passwordMatches = (usesAuthPasswordSyntax)
+                     ? scheme.authPasswordMatches(password,
+                                                  pwComponents[1].toString(),
+                                                  pwComponents[2].toString())
+                     : scheme.passwordMatches(password,
+                               new ASN1OctetString(pwComponents[1].toString()));
+          if (passwordMatches)
+          {
+            if (debug)
+            {
+              if (debugEnabled())
+              {
+                debugInfo("Returning true for user %s because the provided " +
+                    "password matches a value encoded with scheme %s",
+                          userDNString, schemeName);
+              }
+            }
+
+            return true;
           }
         }
-      }
-    }
-    else
-    {
-      for (Attribute a : attrList)
-      {
-        for (AttributeValue v : a.getValues())
+        catch (Exception e)
         {
-          try
+          if (debugEnabled())
           {
-            String[] pwComponents =
-                 UserPasswordSyntax.decodeUserPassword(v.getStringValue());
-            PasswordStorageScheme scheme =
-                 DirectoryServer.getPasswordStorageScheme(pwComponents[0]);
-            if (scheme == null)
-            {
-              if (debug)
-              {
-                debugWarning(
-                    "User entry %s contains a password with scheme %s " +
-                                 "that is not defined in the server.",
-                             userDNString, pwComponents[0]);
-              }
-
-              continue;
-            }
-
-            if (scheme.passwordMatches(password,
-                                       new ASN1OctetString(pwComponents[1])))
-            {
-              if (debug)
-              {
-                if (debugEnabled())
-                {
-                  debugInfo("Returning true for user %s because the provided " +
-                      "password matches a value encoded with scheme %s",
-                            userDNString, pwComponents[0]);
-                }
-              }
-
-              return true;
-            }
+            debugCaught(DebugLogLevel.ERROR, e);
           }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              debugCaught(DebugLogLevel.ERROR, e);
-            }
 
-            if (debug)
-            {
-              debugError(
-                  "An error occurred while attempting to process a " +
-                      "password value for user %s: %s",
-                  userDNString, stackTraceToSingleLineString(e));
-            }
+          if (debug)
+          {
+            debugWarning("An error occurred while attempting to process a " +
+                 "password value for user %s: %s",
+                         userDNString, stackTraceToSingleLineString(e));
           }
         }
       }
@@ -3553,354 +3291,187 @@ public class PasswordPolicyState
     LinkedHashSet<AttributeValue> updatedValues =
          new LinkedHashSet<AttributeValue>();
 
-    if (passwordPolicy.usesAuthPasswordSyntax())
-    {
-      for (Attribute a : attrList)
-      {
-        Iterator<AttributeValue> iterator = a.getValues().iterator();
-        while (iterator.hasNext())
-        {
-          AttributeValue v = iterator.next();
+    boolean usesAuthPasswordSyntax = passwordPolicy.usesAuthPasswordSyntax();
 
-          try
+    for (Attribute a : attrList)
+    {
+      Iterator<AttributeValue> iterator = a.getValues().iterator();
+      while (iterator.hasNext())
+      {
+        AttributeValue v = iterator.next();
+
+        try
+        {
+          StringBuilder[] pwComponents;
+          if (usesAuthPasswordSyntax)
           {
-            StringBuilder[] pwComponents =
+            pwComponents =
                  AuthPasswordSyntax.decodeAuthPassword(v.getStringValue());
-            String schemeName = pwComponents[0].toString();
-            PasswordStorageScheme scheme =
-                 DirectoryServer.getAuthPasswordStorageScheme(schemeName);
-            if (scheme == null)
+          }
+          else
+          {
+            String[] userPwComponents =
+                 UserPasswordSyntax.decodeUserPassword(v.getStringValue());
+            pwComponents = new StringBuilder[userPwComponents.length];
+            for (int i = 0; i < userPwComponents.length; ++i)
+            {
+              pwComponents[i] = new StringBuilder(userPwComponents[i]);
+            }
+          }
+
+          String schemeName = pwComponents[0].toString();
+          PasswordStorageScheme scheme = (usesAuthPasswordSyntax)
+                    ? DirectoryServer.getAuthPasswordStorageScheme(schemeName)
+                    : DirectoryServer.getPasswordStorageScheme(schemeName);
+          if (scheme == null)
+          {
+            if (debug)
+            {
+              debugWarning("Skipping password value for user %s because the " +
+                   "associated storage scheme %s is not configured for use.",
+                           userDNString, schemeName);
+            }
+
+            continue;
+          }
+
+          boolean passwordMatches = (usesAuthPasswordSyntax)
+                     ? scheme.authPasswordMatches(password,
+                                                  pwComponents[1].toString(),
+                                                  pwComponents[2].toString())
+                     : scheme.passwordMatches(password,
+                               new ASN1OctetString(pwComponents[1].toString()));
+          if (passwordMatches)
+          {
+            if (passwordPolicy.isDefaultStorageScheme(schemeName))
+            {
+              existingDefaultSchemes.add(schemeName);
+              updatedValues.add(v);
+            }
+            else if (passwordPolicy.isDeprecatedStorageScheme(schemeName))
             {
               if (debug)
               {
-                debugWarning(
-                    "Skipping password value for user %s because the " +
-                                 "associated storage scheme %s is not " +
-                                 "configured for use.",
-                    userDNString, schemeName);
-              }
-
-              continue;
-            }
-
-            if (scheme.authPasswordMatches(password, pwComponents[1].toString(),
-                                           pwComponents[2].toString()))
-            {
-              if (passwordPolicy.isDefaultStorageScheme(schemeName))
-              {
-                existingDefaultSchemes.add(schemeName);
-                updatedValues.add(v);
-              }
-              else if (passwordPolicy.isDeprecatedStorageScheme(schemeName))
-              {
-                if (debug)
+                if (debugEnabled())
                 {
-                  if (debugEnabled())
-                  {
-                    debugInfo("Marking password with scheme %s for removal " +
-                        "from user entry %s", pwComponents[0], userDNString);
-                  }
+                  debugInfo("Marking password with scheme %s for removal " +
+                      "from user entry %s.", schemeName, userDNString);
                 }
-
-                iterator.remove();
-                removedValues.add(v);
               }
-              else
-              {
-                updatedValues.add(v);
-              }
-            }
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              debugCaught(DebugLogLevel.ERROR, e);
-            }
 
-            if (debug)
+              iterator.remove();
+              removedValues.add(v);
+            }
+            else
             {
-              debugWarning(
-                  "Skipping password value for user %s because an " +
-                      "error occurred while attempting to decode it " +
-                      "based on the user password syntax: %s",
-                  userDNString, stackTraceToSingleLineString(e));
+              updatedValues.add(v);
             }
           }
         }
-      }
-
-      if (removedValues.isEmpty())
-      {
-        if (debug)
+        catch (Exception e)
         {
           if (debugEnabled())
           {
-            debugInfo("User entry %s does not have any password values " +
-                "encoded using deprecated schemes.", userDNString);
-          }
-        }
-      }
-      else
-      {
-        LinkedHashSet<AttributeValue> addedValues = new
-             LinkedHashSet<AttributeValue>();
-        for (PasswordStorageScheme s :
-             passwordPolicy.getDefaultStorageSchemes())
-        {
-          if (! existingDefaultSchemes.contains(
-                     toLowerCase(s.getStorageSchemeName())))
-          {
-            try
-            {
-              ByteString encodedPassword = s.encodeAuthPassword(password);
-              AttributeValue v = new AttributeValue(type, encodedPassword);
-              addedValues.add(v);
-              updatedValues.add(v);
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              if (debug)
-              {
-                debugWarning(
-                    "Unable to encode password for user %s using " +
-                        "default scheme %s: %s",
-                    userDNString, s.getStorageSchemeName(),
-                    stackTraceToSingleLineString(e));
-              }
-            }
-          }
-        }
-
-        if (updatedValues.isEmpty())
-        {
-          if (debug)
-          {
-            debugWarning(
-                "Not updating user entry %s because removing " +
-                             "deprecated schemes would leave the user " +
-                             "without a password.", userDNString);
-          }
-
-          return;
-        }
-        else
-        {
-          Attribute a = new Attribute(type, type.getNameOrOID(), removedValues);
-          if (! updateEntry)
-          {
-            modifications.add(new Modification(ModificationType.DELETE, a,
-                                               true));
-          }
-
-          if (! addedValues.isEmpty())
-          {
-            Attribute a2 = new Attribute(type, type.getNameOrOID(),
-                                         addedValues);
-            if (! updateEntry)
-            {
-              modifications.add(new Modification(ModificationType.ADD, a2,
-                                                 true));
-            }
-          }
-
-          ArrayList<Attribute> newList = new ArrayList<Attribute>(1);
-          newList.add(new Attribute(type, type.getNameOrOID(), updatedValues));
-          if (updateEntry)
-          {
-            userEntry.putAttribute(type, newList);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
           if (debug)
           {
-            if (debugEnabled())
-            {
-              debugInfo("Updating user entry %s to replace password values " +
-                  "encoded with deprecated schemes with values encoded " +
-                  "with the default schemes.", userDNString);
-            }
+            debugWarning("Skipping password value for user %s because an " +
+                 "error occurred while attempting to decode it " +
+                 "based on the user password syntax: %s",
+                         userDNString, stackTraceToSingleLineString(e));
           }
         }
       }
     }
-    else
+
+    if (removedValues.isEmpty())
     {
-      for (Attribute a : attrList)
+      if (debug)
       {
-        Iterator<AttributeValue> iterator = a.getValues().iterator();
-        while (iterator.hasNext())
+        if (debugEnabled())
         {
-          AttributeValue v = iterator.next();
-
-          try
-          {
-            String[] pwComponents =
-                 UserPasswordSyntax.decodeUserPassword(v.getStringValue());
-            PasswordStorageScheme scheme =
-                 DirectoryServer.getPasswordStorageScheme(pwComponents[0]);
-            if (scheme == null)
-            {
-              if (debug)
-              {
-                debugWarning(
-                    "Skipping password value for user %s because the " +
-                                 "associated storage scheme %s is not " +
-                                 "configured for use.",
-                             userDNString, pwComponents[0]);
-              }
-
-              continue;
-            }
-
-            if (scheme.passwordMatches(password,
-                                       new ASN1OctetString(pwComponents[1])))
-            {
-              if (passwordPolicy.isDefaultStorageScheme(pwComponents[0]))
-              {
-                existingDefaultSchemes.add(pwComponents[0]);
-                updatedValues.add(v);
-              }
-              else if (passwordPolicy.isDeprecatedStorageScheme(
-                                           pwComponents[0]))
-              {
-                if (debug)
-                {
-                  if (debugEnabled())
-                  {
-                    debugInfo("Marking password with scheme %s for removal " +
-                        "from user entry %s", pwComponents[0], userDNString);
-                  }
-                }
-
-                iterator.remove();
-                removedValues.add(v);
-              }
-              else
-              {
-                updatedValues.add(v);
-              }
-            }
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            if (debug)
-            {
-              debugWarning(
-                  "Skipping password value for user %s because an error " +
-                      "occurred while attempting to decode it based on " +
-                      "the user password syntax: %s",
-                  userDNString, stackTraceToSingleLineString(e));
-            }
-          }
+          debugInfo("User entry %s does not have any password values " +
+              "encoded using deprecated schemes.", userDNString);
         }
       }
 
-      if (removedValues.isEmpty())
+      return;
+    }
+
+    LinkedHashSet<AttributeValue> addedValues = new
+         LinkedHashSet<AttributeValue>();
+    for (PasswordStorageScheme s :
+         passwordPolicy.getDefaultStorageSchemes())
+    {
+      if (! existingDefaultSchemes.contains(
+           toLowerCase(s.getStorageSchemeName())))
       {
-        if (debug)
+        try
+        {
+          ByteString encodedPassword = (usesAuthPasswordSyntax)
+                                       ? s.encodeAuthPassword(password)
+                                       : s.encodePasswordWithScheme(password);
+          AttributeValue v = new AttributeValue(type, encodedPassword);
+          addedValues.add(v);
+          updatedValues.add(v);
+        }
+        catch (Exception e)
         {
           if (debugEnabled())
           {
-            debugInfo("User entry %s does not have any password values " +
-                "encoded using deprecated schemes.", userDNString);
+            debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          if (debug)
+          {
+            debugWarning("Unable to encode password for user %s using " +
+                 "default scheme %s: %s",
+                         userDNString, s.getStorageSchemeName(),
+                         stackTraceToSingleLineString(e));
           }
         }
       }
-      else
+    }
+
+    if (updatedValues.isEmpty())
+    {
+      if (debug)
       {
-        LinkedHashSet<AttributeValue> addedValues = new
-             LinkedHashSet<AttributeValue>();
-        for (PasswordStorageScheme s :
-             passwordPolicy.getDefaultStorageSchemes())
-        {
-          if (! existingDefaultSchemes.contains(
-                     toLowerCase(s.getStorageSchemeName())))
-          {
-            try
-            {
-              ByteString encodedPassword = s.encodePasswordWithScheme(password);
-              AttributeValue v = new AttributeValue(type, encodedPassword);
-              addedValues.add(v);
-              updatedValues.add(v);
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                debugCaught(DebugLogLevel.ERROR, e);
-              }
+        debugWarning("Not updating user entry %s because removing " +
+             "deprecated schemes would leave the user without a password.",
+                     userDNString);
+      }
 
-              if (debug)
-              {
-                debugWarning(
-                    "Unable to encode password for user %s using " +
-                        "default scheme %s: %s",
-                    userDNString, s.getStorageSchemeName(),
-                    stackTraceToSingleLineString(e));
-              }
-            }
-          }
-        }
+      return;
+    }
 
-        if (updatedValues.isEmpty())
-        {
-          if (debug)
-          {
-            debugWarning(
-                "Not updating user entry %s because removing " +
-                             "deprecated schemes would leave the user " +
-                             "without a password.", userDNString);
-          }
+    if (updateEntry)
+    {
+      ArrayList<Attribute> newList = new ArrayList<Attribute>(1);
+      newList.add(new Attribute(type, type.getNameOrOID(), updatedValues));
+      userEntry.putAttribute(type, newList);
+    }
+    else
+    {
+      Attribute a = new Attribute(type, type.getNameOrOID(), removedValues);
+      modifications.add(new Modification(ModificationType.DELETE, a, true));
 
-          return;
-        }
-        else
-        {
-          Attribute a = new Attribute(type, type.getNameOrOID(), removedValues);
-          if (! updateEntry)
-          {
-            modifications.add(new Modification(ModificationType.DELETE, a,
-                                               true));
-          }
+      if (! addedValues.isEmpty())
+      {
+        Attribute a2 = new Attribute(type, type.getNameOrOID(), addedValues);
+        modifications.add(new Modification(ModificationType.ADD, a2, true));
+      }
+    }
 
-          if (! addedValues.isEmpty())
-          {
-            Attribute a2 = new Attribute(type, type.getNameOrOID(),
-                                         addedValues);
-            if (! updateEntry)
-            {
-              modifications.add(new Modification(ModificationType.ADD, a2,
-                                                 true));
-            }
-          }
-
-          ArrayList<Attribute> newList = new ArrayList<Attribute>(1);
-          newList.add(new Attribute(type, type.getNameOrOID(), updatedValues));
-          if (updateEntry)
-          {
-            userEntry.putAttribute(type, newList);
-          }
-
-          if (debug)
-          {
-            if (debugEnabled())
-            {
-              debugInfo("Updating user entry %sto replace password values " +
-                  "encoded with deprecated schemes with values encoded " +
-                  "with the default schemes.", userDNString);
-            }
-          }
-        }
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        debugInfo("Updating user entry %s to replace password values " +
+            "encoded with deprecated schemes with values encoded " +
+            "with the default schemes.", userDNString);
       }
     }
   }
@@ -3924,10 +3495,9 @@ public class PasswordPolicyState
     {
       if (debug)
       {
-        debugWarning(
-            "Unable to generate a new password for user %s " +
-                         "because no password generator has been " +
-                         "defined in the associated password policy.",
+        debugWarning("Unable to generate a new password for user %s because " +
+             "no password generator has been defined in the associated " +
+             "password policy.",
                      userDNString);
       }
 
@@ -3993,6 +3563,21 @@ public class PasswordPolicyState
 
 
   /**
+   * Retrieves the set of modifications that correspond to changes made in
+   * password policy processing that may need to be applied to the user entry.
+   *
+   * @return  The set of modifications that correspond to changes made in
+   *          password policy processing that may need to be applied to the user
+   *          entry.
+   */
+  public LinkedList<Modification> getModifications()
+  {
+    return modifications;
+  }
+
+
+
+  /**
    * Performs an internal modification to update the user's entry, if necessary.
    * This will do nothing if no modifications are required.
    *
@@ -4033,4 +3618,3 @@ public class PasswordPolicyState
     }
   }
 }
-
