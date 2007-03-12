@@ -321,9 +321,6 @@ public class AciTargets {
                               targetScope, targAttrFilters);
     }
 
-    /*
-     * TODO Add support for the SearchScope.SUBORDINATE_SUBTREE scope.
-     */
     /**
      * Evaluates a provided scope string and returns an appropriate
      * SearchScope enumeration.
@@ -340,6 +337,8 @@ public class AciTargets {
             return SearchScope.SINGLE_LEVEL;
         else if(expression.equalsIgnoreCase("subtree"))
             return SearchScope.WHOLE_SUBTREE;
+        else if(expression.equalsIgnoreCase("subordinate"))
+            return SearchScope.SUBORDINATE_SUBTREE;
         else {
             int msgID =
                 MSGID_ACI_SYNTAX_INVALID_TARGETSCOPE_EXPRESSION;
@@ -501,12 +500,12 @@ public class AciTargets {
             if(!entryDN.isDescendantOf(targetDN))
                 return false;
             break;
-        /*
-         * TODO Add support for the SearchScope.SUBORDINATE_SUBTREE scope.
-         *
-         * The isTargetApplicable method doesn't account for the subordinate
-         * subtree search scope.
-        */
+        case SUBORDINATE_SUBTREE:
+            if ((entryDN.getNumComponents() <= targetDN.getNumComponents()) ||
+                 !entryDN.isDescendantOf(targetDN)) {
+              return false;
+            }
+            break;
         default:
             return false;
         }
