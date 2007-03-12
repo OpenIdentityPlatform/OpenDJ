@@ -82,7 +82,8 @@ public class SchemaSynchronizationTest extends SynchronizationTestCase
   {
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
-
+    schemaCheck = DirectoryServer.checkSchema();
+    
     // find  a free port for the changelog server
     ServerSocket socket = TestCaseUtils.bindFreePort();
     changelogPort = socket.getLocalPort();
