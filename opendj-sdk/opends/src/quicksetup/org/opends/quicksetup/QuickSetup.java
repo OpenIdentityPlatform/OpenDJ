@@ -131,7 +131,7 @@ UninstallProgressUpdateListener
 
   private static final int MIN_NUMBER_ENTRIES = 1;
 
-  private static final int MAX_NUMBER_ENTRIES = 10000000;
+  private static final int MAX_NUMBER_ENTRIES = 10000;
 
   // Update period of the dialogs.
   private static final int UPDATE_PERIOD = 500;
