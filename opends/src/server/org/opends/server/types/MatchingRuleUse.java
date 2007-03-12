@@ -39,6 +39,7 @@ import java.util.Set;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
@@ -54,9 +55,6 @@ import static org.opends.server.util.Validator.*;
 public final class MatchingRuleUse
        implements SchemaFileElement
 {
-
-
-
   // Indicates whether this matching rule use is declared "obsolete".
   private final boolean isObsolete;
 
@@ -113,10 +111,39 @@ public final class MatchingRuleUse
   {
     ensureNotNull(definition, matchingRule);
 
-    this.definition   = definition;
     this.matchingRule = matchingRule;
     this.description  = description;
     this.isObsolete   = isObsolete;
+
+    int schemaFilePos = definition.indexOf(SCHEMA_PROPERTY_FILENAME);
+    if (schemaFilePos > 0)
+    {
+      String defStr;
+      try
+      {
+        int firstQuotePos = definition.indexOf('\'', schemaFilePos);
+        int secondQuotePos = definition.indexOf('\'',
+                                                firstQuotePos+1);
+
+        defStr = definition.substring(0, schemaFilePos).trim() + " " +
+                 definition.substring(secondQuotePos+1).trim();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        defStr = definition;
+      }
+
+      this.definition = defStr;
+    }
+    else
+    {
+      this.definition = definition;
+    }
 
     if ((names == null) || names.isEmpty())
     {

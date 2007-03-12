@@ -38,6 +38,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
@@ -276,7 +277,11 @@ public class SchemaSynchronizationTest extends SynchronizationTestCase
     Modification mod = new Modification(ModificationType.ADD, attr);
     mods.add(mod);
 
-    MultimasterSynchronization.schemaChangeNotification(mods);
+    for (SynchronizationProvider provider :
+         DirectoryServer.getSynchronizationProviders())
+    {
+      provider.processSchemaChange(mods);
+    }
 
     // receive the message on the broker side.
     SynchronizationMessage msg = broker.receive();

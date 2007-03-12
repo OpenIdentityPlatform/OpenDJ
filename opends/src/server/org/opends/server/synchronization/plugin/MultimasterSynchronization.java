@@ -120,6 +120,17 @@ public class MultimasterSynchronization extends SynchronizationProvider
         createNewSynchronizationDomain(domainEntry);
       }
     }
+
+    /*
+     * If any schema changes were made with the server offline, then handle them
+     * now.
+     */
+    List<Modification> offlineSchemaChanges =
+         DirectoryServer.getOfflineSchemaChanges();
+    if ((offlineSchemaChanges != null) && (! offlineSchemaChanges.isEmpty()))
+    {
+      processSchemaChange(offlineSchemaChanges);
+    }
   }
 
   /**
@@ -548,7 +559,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
    *                                      applied to the schema.
    *
    */
-  public static void schemaChangeNotification(List<Modification> modifications)
+  public void processSchemaChange(List<Modification> modifications)
   {
     SynchronizationDomain domain =
       findDomain(DirectoryServer.getSchemaDN(), null);

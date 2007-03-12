@@ -3181,6 +3181,41 @@ public class BackendMessages
 
 
   /**
+   * The message ID for the message that will be used if the schema backend is
+   * unable to find a file containing the concatenated schema definitions.  This
+   * takes three arguments, which are the path to the directory in which the
+   * file should have been found, the name of the most recent concatenated
+   * schema file, and the name of the base concatenated schema file shipped with
+   * the server.
+   */
+  public static final int MSGID_SCHEMA_CANNOT_FIND_CONCAT_FILE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 294;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting determine whether there were any changes made to the server
+   * schema while the server was offline.  This takes a single argument, which
+   * is a string representation of the exception that was caught.
+   */
+  public static final int MSGID_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 295;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to write a file containing the concatenated server schema.  This
+   * takes two arguments, which are the path to the file being written and a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 296;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -3401,6 +3436,22 @@ public class BackendMessages
                     " attribute of configuration entry %s:  %s.  The default " +
                     "behavior, which is to treat the attribute types as " +
                     "defined in the server schema, will be used.");
+    registerMessage(MSGID_SCHEMA_CANNOT_FIND_CONCAT_FILE,
+                    "Unable to find a file containing concatenated schema " +
+                    "element definitions in order to determine if any schema " +
+                    "changes were made with the server offline.  The " +
+                    "file was expected in the %s directory and should have " +
+                    "been named either %s or %s.");
+    registerMessage(MSGID_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES,
+                    "An error occurred while attempting to determine whether " +
+                    "any schema changes had been made by directly editing " +
+                    "the schema files with the server offline:  %s.");
+    registerMessage(MSGID_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE,
+                    "An error occurred while attempting to write file %s " +
+                    "containing a concatenated list of all server schema " +
+                    "elements:  %s.  The server may not be able to " +
+                    "accurately identify any schema changes made with the " +
+                    "server offline.");
     registerMessage(MSGID_SCHEMA_ADD_NOT_SUPPORTED,
                     "Unwilling to add entry \"%s\" because add operations " +
                     "are not supported in the schema backend.");

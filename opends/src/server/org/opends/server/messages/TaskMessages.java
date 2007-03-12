@@ -202,6 +202,18 @@ public class TaskMessages
 
 
   /**
+   * The message ID for the shutdown message that will be used if an error
+   * occurs while trying to notify a synchronization provider about the new
+   * schema elements added to the server.  This takes two arguments, which are
+   * the name of the synchronization provider class and a string representation
+   * of the exception that was caught.
+   */
+  public static final int MSGID_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 17;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -245,6 +257,10 @@ public class TaskMessages
     registerMessage(MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE,
                     "An error occurred while attempting to load the contents " +
                     "of schema file %s into the server schema:  %s.");
+    registerMessage(MSGID_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER,
+                    "An error occurred while attempting to notify a " +
+                    "synchronization provider of type %s about the schema " +
+                    "changes made by the add schema file task:  %s.");
     registerMessage(MSGID_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA,
                     "Unable to add one or more files to the server schema " +
                     "because the server was unable to obtain a write lock on " +

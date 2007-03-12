@@ -31,6 +31,7 @@ package org.opends.server.core;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.api.AttributeSyntax;
@@ -63,6 +64,8 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.MatchingRuleUse;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ResultCode;
@@ -94,8 +97,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class SchemaConfigManager
        implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
 {
-
-
   // The schema that has been parsed from the server configuration.
   private Schema schema;
 
@@ -771,6 +772,9 @@ public class SchemaConfigManager
    * @param  schemaFile  The name of the schema file to be loaded into the
    *                     provided schema.
    *
+   * @return  A list of the modifications that could be performed in order to
+   *          obtain the contents of the file.
+   *
    * @throws  ConfigException  If a configuration problem causes the schema
    *                           element initialization to fail.
    *
@@ -778,10 +782,11 @@ public class SchemaConfigManager
    *                                   the schema elements that is not related
    *                                   to the server configuration.
    */
-  public static void loadSchemaFile(Schema schema, String schemaFile)
+  public static List<Modification> loadSchemaFile(Schema schema,
+                                                  String schemaFile)
          throws ConfigException, InitializationException
   {
-    loadSchemaFile(schema, schemaFile, true);
+    return loadSchemaFile(schema, schemaFile, true);
   }
 
 
@@ -800,6 +805,10 @@ public class SchemaConfigManager
    *                      This should only be {@code false} when called from
    *                      {@code initializeSchemaFromFiles}.
    *
+   * @return  A list of the modifications that could be performed in order to
+   *          obtain the contents of the file, or {@code null} if a problem
+   *          occurred and {@code failOnError} is {@code false}.
+   *
    * @throws  ConfigException  If a configuration problem causes the schema
    *                           element initialization to fail.
    *
@@ -807,8 +816,9 @@ public class SchemaConfigManager
    *                                   the schema elements that is not related
    *                                   to the server configuration.
    */
-  private static void loadSchemaFile(Schema schema, String schemaFile,
-                                     boolean failOnError)
+  private static List<Modification> loadSchemaFile(Schema schema,
+                                                   String schemaFile,
+                                                   boolean failOnError)
          throws ConfigException, InitializationException
   {
     // Create an LDIF reader to use when reading the files.
@@ -838,7 +848,7 @@ public class SchemaConfigManager
       {
         logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        return;
+        return null;
       }
     }
 
@@ -852,7 +862,7 @@ public class SchemaConfigManager
       if (entry == null)
       {
         // The file was empty -- skip it.
-        return;
+        return new LinkedList<Modification>();
       }
     }
     catch (Exception e)
@@ -874,7 +884,7 @@ public class SchemaConfigManager
       {
         logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        return;
+        return null;
       }
     }
 
@@ -892,6 +902,7 @@ public class SchemaConfigManager
 
 
     // Get the attributeTypes attribute from the entry.
+    LinkedList<Modification> mods = new LinkedList<Modification>();
     AttributeTypeSyntax attrTypeSyntax;
     try
     {
@@ -924,6 +935,13 @@ public class SchemaConfigManager
     }
 
     List<Attribute> attrList = entry.getAttribute(attributeAttrType);
+    if ((attrList != null) && (! attrList.isEmpty()))
+    {
+      for (Attribute a : attrList)
+      {
+        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+      }
+    }
 
 
     // Get the objectClasses attribute from the entry.
@@ -958,6 +976,13 @@ public class SchemaConfigManager
     }
 
     List<Attribute> ocList = entry.getAttribute(objectclassAttrType);
+    if ((ocList != null) && (! ocList.isEmpty()))
+    {
+      for (Attribute a : ocList)
+      {
+        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+      }
+    }
 
 
     // Get the name forms attribute from the entry.
@@ -991,6 +1016,13 @@ public class SchemaConfigManager
     }
 
     List<Attribute> nfList = entry.getAttribute(nameFormAttrType);
+    if ((nfList != null) && (! nfList.isEmpty()))
+    {
+      for (Attribute a : nfList)
+      {
+        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+      }
+    }
 
 
     // Get the DIT content rules attribute from the entry.
@@ -1026,6 +1058,13 @@ public class SchemaConfigManager
     }
 
     List<Attribute> dcrList = entry.getAttribute(dcrAttrType);
+    if ((dcrList != null) && (! dcrList.isEmpty()))
+    {
+      for (Attribute a : dcrList)
+      {
+        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+      }
+    }
 
 
     // Get the DIT structure rules attribute from the entry.
@@ -1061,6 +1100,13 @@ public class SchemaConfigManager
     }
 
     List<Attribute> dsrList = entry.getAttribute(dsrAttrType);
+    if ((dsrList != null) && (! dsrList.isEmpty()))
+    {
+      for (Attribute a : dsrList)
+      {
+        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+      }
+    }
 
 
     // Get the matching rule uses attribute from the entry.
@@ -1096,6 +1142,14 @@ public class SchemaConfigManager
     }
 
     List<Attribute> mruList = entry.getAttribute(mruAttrType);
+    if ((mruList != null) && (! mruList.isEmpty()))
+    {
+      for (Attribute a : mruList)
+      {
+        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+      }
+    }
+
 
     AttributeType synchronizationStateType =
       schema.getAttributeType(ATTR_SYNCHRONIZATION_STATE_LC);
@@ -1124,6 +1178,8 @@ public class SchemaConfigManager
           {
             attrType = attrTypeSyntax.decodeAttributeType(v.getValue(),
                                                           schema, false);
+            attrType.setExtraProperty(SCHEMA_PROPERTY_FILENAME, (String) null);
+            attrType.setSchemaFile(schemaFile);
           }
           catch (DirectoryException de)
           {
@@ -1221,6 +1277,8 @@ public class SchemaConfigManager
           try
           {
             oc = ocSyntax.decodeObjectClass(v.getValue(), schema, false);
+            oc.setExtraProperty(SCHEMA_PROPERTY_FILENAME, (String) null);
+            oc.setSchemaFile(schemaFile);
           }
           catch (DirectoryException de)
           {
@@ -1702,6 +1760,9 @@ public class SchemaConfigManager
         }
       }
     }
+
+
+    return mods;
   }
 
 

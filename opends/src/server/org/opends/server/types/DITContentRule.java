@@ -38,6 +38,7 @@ import java.util.Set;
 
 import org.opends.server.schema.DITContentRuleSyntax;
 
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -55,9 +56,6 @@ import static org.opends.server.util.Validator.*;
 public final class DITContentRule
        implements SchemaFileElement
 {
-
-
-
   // Indicates whether this content rule is declared "obsolete".
   private final boolean isObsolete;
 
@@ -133,10 +131,39 @@ public final class DITContentRule
   {
     ensureNotNull(definition, structuralClass);
 
-    this.definition      = definition;
     this.structuralClass = structuralClass;
     this.description     = description;
     this.isObsolete      = isObsolete;
+
+    int schemaFilePos = definition.indexOf(SCHEMA_PROPERTY_FILENAME);
+    if (schemaFilePos > 0)
+    {
+      String defStr;
+      try
+      {
+        int firstQuotePos = definition.indexOf('\'', schemaFilePos);
+        int secondQuotePos = definition.indexOf('\'',
+                                                firstQuotePos+1);
+
+        defStr = definition.substring(0, schemaFilePos).trim() + " " +
+                 definition.substring(secondQuotePos+1).trim();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        defStr = definition;
+      }
+
+      this.definition = defStr;
+    }
+    else
+    {
+      this.definition = definition;
+    }
 
     if ((names == null) || names.isEmpty())
     {
