@@ -68,6 +68,8 @@ public class CurrentInstallStatus
 
   private String ldapsUrl;
 
+  private static boolean lockPathInitialized;
+
   /**
    * The constructor of a CurrentInstallStatus object.
    *
@@ -222,6 +224,16 @@ public class CurrentInstallStatus
   public static boolean isServerRunning()
   {
     boolean isServerRunning;
+    if (!lockPathInitialized)
+    {
+      String lockDirectory = Utils.getPath(Utils.getInstallPathFromClasspath(),
+      org.opends.server.util.ServerConstants.LOCKS_DIRECTORY);
+
+      System.setProperty(
+        org.opends.server.util.ServerConstants.PROPERTY_LOCK_DIRECTORY,
+        lockDirectory);
+      lockPathInitialized = true;
+    }
     String lockFile =
       org.opends.server.core.LockFileManager.getServerLockFileName();
     StringBuilder failureReason = new StringBuilder();
