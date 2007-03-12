@@ -44,10 +44,11 @@ public class NumericStringSubstringMatchingRuleTest extends
   public Object[][] createSubstringMiddleMatchData()
   {
     return new Object[][] {
-       // disabled becasue of issue 730
-       // {"123456789", new String[] {"123", "234", "567", "789"}, true },
-       // {"123456789", new String[] {"123", "234"}, true },
-       // {"123456789", new String[] {"567", "234"}, true },
+         // The matching rule requires ordered non overlapping substrings.
+         // Issue #730 was not valid.
+        {"123456789", new String[] {"123", "234", "567", "789"}, false },
+        {"123456789", new String[] {"123", "234"}, false },
+        {"123456789", new String[] {"567", "234"}, false },
         {"123456789", new String[] {"123", "456"}, true },
         {"123456789", new String[] {"123"}, true },
         {"123456789", new String[] {"456"}, true },
