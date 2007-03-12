@@ -62,7 +62,7 @@ public class postConnectedDisconnectTest extends JmxTestCase
    * Perform a simple connect.
    * @throws Exception If something wrong occurs.
    */
-  @Test(enabled = false)
+  @Test(enabled = true, groups = {"slow"})
   public void checkPostconnectDisconnectPlugin() throws Exception
   {
     // Before the test, how many time postconnect and postdisconnect
@@ -81,20 +81,39 @@ public class postConnectedDisconnectTest extends JmxTestCase
     assertNotNull(opendsConnector);
 
     // Check that number of postconnect has been incremented.
-    Thread.sleep(3000);
-    int postConnectAfter = InvocationCounterPlugin.getPostConnectCount();
-    int postDisconnectAfter = InvocationCounterPlugin.getPostDisconnectCount();
+    // Don't wait more than 5 seconds
+    long endTime = System.currentTimeMillis() + 5000;
+    int postConnectAfter = postConnectBefore;
+
+    while ((System.currentTimeMillis() < endTime)
+        && (postConnectAfter == postConnectAfter))
+    {
+      Thread.sleep(10);
+      postConnectAfter = InvocationCounterPlugin.getPostConnectCount();
+    }
     assertEquals(postConnectBefore +1, postConnectAfter);
+
+    // Check that postDisconnect is not incremented.
+    int postDisconnectAfter = InvocationCounterPlugin.getPostDisconnectCount();
     assertEquals(postDisconnectBefore, postDisconnectAfter);
 
     // Close the client connection
     opendsConnector.close();
-    Thread.sleep(3000);
 
     // Check that number of postdisconnect has been incremented.
-    postConnectAfter = InvocationCounterPlugin.getPostConnectCount();
-    postDisconnectAfter = InvocationCounterPlugin.getPostDisconnectCount();
-    assertEquals(postConnectBefore +1 , postConnectAfter);
+    // Don't wait more than 5 seconds
+    endTime = System.currentTimeMillis() + 5000;
+    postDisconnectAfter = postDisconnectBefore;
+    while ((System.currentTimeMillis() < endTime)
+        && (postDisconnectAfter == postDisconnectBefore))
+    {
+      Thread.sleep(10);
+      postDisconnectAfter = InvocationCounterPlugin.getPostDisconnectCount();
+    }
     assertEquals(postDisconnectBefore +1 , postDisconnectAfter);
+
+    // Check that postDisconnect is not incremented again.
+    postConnectAfter = InvocationCounterPlugin.getPostConnectCount();
+    assertEquals(postConnectBefore +1 , postConnectAfter);
   }
 }
