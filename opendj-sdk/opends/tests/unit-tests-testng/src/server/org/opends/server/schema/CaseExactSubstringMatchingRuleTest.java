@@ -50,9 +50,10 @@ public class CaseExactSubstringMatchingRuleTest extends
         {"this is a value", new String[] {"value"}, true },
         {"this is a value", new String[] {" "}, true },
         {"this is a value", new String[] {"this", "is", "a", "value"}, true },
-       // {"this is a value", new String[] {"this", "this is"}, true },
-       // disabled becasue of issue 730
-       // {"this is a value", new String[] {"value", "this"}, true },
+         // The matching rule requires ordered non overlapping substrings.
+         // Issue #730 was not valid.
+        {"this is a value", new String[] {"value", "this"}, false },
+        {"this is a value", new String[] {"this", "this is"}, false },
         {"this is a value", new String[] {"his is", "a val",}, true },
         {"this is a value", new String[] {"not",}, false },
         {"this is a value", new String[] {"THIS",}, false },
