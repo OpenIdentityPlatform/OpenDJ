@@ -106,8 +106,8 @@ public class AciTests extends DirectoryServerTestCase {
 // TODO: Test userattr
 
   // Tests are disabled this way because a class-level @Test(enabled=false)
-  // doesn't appear to work and the aci handler is not yet enabled.
-  private static final boolean TESTS_ARE_DISABLED = true;
+  // doesn't appear to work.
+  private static final boolean TESTS_ARE_DISABLED = false;
 
 
   // This is used to lookup the day of the week from the calendar field.
