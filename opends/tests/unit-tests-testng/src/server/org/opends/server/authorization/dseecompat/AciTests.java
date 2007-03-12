@@ -515,6 +515,7 @@ public class AciTests extends DirectoryServerTestCase {
     buildAciValue("name", "w/ targetScope", "targetScope", "base", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ targetScope", "targetScope", "onelevel", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ targetScope", "targetScope", "subtree", "allow (write)", BIND_RULE_USERDN_SELF),
+    buildAciValue("name", "w/ targetScope", "targetScope", "subordinate", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ !target", "target!=", LDAP_URL_OU_INNER, "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ 1 !targetattr", "targetattr!=", "cn", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ 2 !targetattr", "targetattr!=", "cn || sn", "allow (write)", BIND_RULE_USERDN_SELF),
