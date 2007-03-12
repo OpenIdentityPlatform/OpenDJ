@@ -252,7 +252,7 @@ public class InstallDS
       argParser.addArgument(ldapPort);
 
       jmxPort = new IntegerArgument("jmxport", 'j', "jmxPort", false, false,
-                                    true, "{port}",
+                                    true, "{jmxPort}",
                                     SetupUtils.getDefaultJMXPort(), null, true,
                                     1, true, 65535,
                                     MSGID_INSTALLDS_DESCRIPTION_JMXPORT);
