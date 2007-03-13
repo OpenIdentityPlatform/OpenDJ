@@ -32,84 +32,92 @@
   <function name="aci_teardown">
 
     <sequence>
-  
-      <script>
-        CurrentTestPath['suite']='aci-teardown'
-      </script>
+
+      <block name="'teardown'">
       
-      <call function="'testSuite_Preamble'"/>
-      
-      <!---
-            Place group-specific test information here.
-            #@TestGroupName             ACI
-            #@TestGroupPurpose          To test the ACI functionality.
+        <sequence>
+    
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+    
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+                Place group-specific test information here.
+                #@TestGroupName             ACI
+                #@TestGroupPurpose          To test the ACI functionality.
+                
+                Place suite-specific test information here.
+                #@TestSuiteName             ACI Teardown Tests
+                #@TestSuitePurpose          Unconfigure OpenDS after testing ACI functionality.
+                #@TestSuiteGroup            ACI Teardown Tests
+                #@TestScript                aci_teardown.xml
+          -->
+    
+           <!--- Test Case : Remove Entries for ACI Tests -->
+           <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Teardown Tests
+                #@TestName                  ACI Teardown Test 
+                #@TestIssue                 none
+                #@TestPurpose               Remove entries that were needed for the ACI tests.
+                #@TestPreamble              none
+                #@TestStep                  Disable ACI with ldapmodify.
+                #@TestStep                  Remove entries.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 for all operations
+            -->
+            <testcase name="'ACI: ACI Teardown: Remove Initial Entries'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                   'ACI: ACI Teardown: Disabling ACI'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_disable.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                 <message>
+                   'ACI: ACI Teardown: Removing Initial Entries'
+                </message>
+    
+                <call function="'DeleteEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'o=ACI Tests,dc=example,dc=com' ,
+                    'extraParams'      : '-x'}
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                
+               <call function="'testCase_Postamble'"/>
+                
+              </sequence>
+            </testcase>
+    
+            <call function="'testSuite_Postamble'"/>
             
-            Place suite-specific test information here.
-            #@TestSuiteName             ACI Teardown Tests
-            #@TestSuitePurpose          Unconfigure OpenDS after testing ACI functionality.
-            #@TestSuiteGroup            ACI Teardown Tests
-            #@TestScript                aci_teardown.xml
-      -->
-
-       <!--- Test Case : Remove Entries for ACI Tests -->
-       <!---
-            Place test-specific test information here.
-            The tag, TestMarker, must be the same as the tag, TestSuiteName.
-            #@TestMarker                ACI Teardown Tests
-            #@TestName                  ACI Teardown Test 
-            #@TestIssue                 none
-            #@TestPurpose               Remove entries that were needed for the ACI tests.
-            #@TestPreamble              none
-            #@TestStep                  Disable ACI with ldapmodify.
-            #@TestStep                  Remove entries.
-            #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 0 for all operations
-        -->
-        <testcase name="'ACI: ACI Teardown: Remove Initial Entries'">
-          <sequence>
-            <call function="'testCase_Preamble'"/>
-            <message>
-               'ACI: ACI Teardown: Disabling ACI'
-            </message>
-
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/aci/aci_disable.ldif' % STAGED_DATA_DIR }
-            </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
-             <message>
-               'ACI: ACI Teardown: Removing Initial Entries'
-            </message>
-
-            <call function="'DeleteEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : 'o=ACI Tests,dc=example,dc=com' ,
-                'extraParams'      : '-x'}
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
-           <call function="'testCase_Postamble'"/>
-            
-          </sequence>
-        </testcase>
-
-        <call function="'testSuite_Postamble'"/>
-            
-     </sequence>
+        </sequence>
+     
+      </block>
+     
+    </sequence>
 
   </function>
 

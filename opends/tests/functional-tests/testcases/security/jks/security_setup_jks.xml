@@ -117,9 +117,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
-		'extraParams'  	   : '-Z -X' }
+                'extraParams'  	   : '-Z -X' }
             </call>
 
             <call function="'checktestRC'">

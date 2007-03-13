@@ -32,129 +32,137 @@
   <function name="security_pwd_storage">
 
     <sequence>
-    
-      <script>
-        CurrentTestPath['suite']='pwd-storage'
-      </script>
 
-      <call function="'testSuite_Preamble'"/>
-              
-      <parallel>
+      <block name="'pwd-storage'">
       
-        <block name="'Block DS Process Active'">
-    
-          <!--- Start DS -->
-          <sequence>
-            <message>
-               'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-            </message>
-    
-            <!--- Start DS -->
-            <call function="'StartDsWithScript'">
-             { 'location'  : STAF_REMOTE_HOSTNAME }
-            </call>
-    
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-    
-          </sequence>
-    
-         <!--- End Block DS Process Active -->
-         </block>
-    
-         <block name="'Block Clients'">
-    
-          <sequence>
-    
-            <!--- Check that DS started -->
-            <call function="'isAlive'">
-              { 'noOfLoops'        : 5 ,
-                'noOfMilliSeconds' : 2000 }
-            </call>
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_setup_pwd_storage.xml' % (TESTS_DIR)"/>
-            <call function="'setup_pwd_storage'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_pwd_SSHA.xml' % (TESTS_DIR)"/>
-            <call function="'pwd_SSHA'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_pwd_SHA.xml' % (TESTS_DIR)"/>
-            <call function="'pwd_SHA'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_pwd_SSHA256.xml' % (TESTS_DIR)"/>
-            <call function="'pwd_SSHA256'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_pwd_SSHA384.xml' % (TESTS_DIR)"/>
-            <call function="'pwd_SSHA384'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_pwd_SSHA512.xml' % (TESTS_DIR)"/>
-            <call function="'pwd_SSHA512'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_pwd_MD5.xml' % (TESTS_DIR)"/>
-            <call function="'pwd_MD5'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_pwd_SMD5.xml' % (TESTS_DIR)"/>
-            <call function="'pwd_SMD5'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_pwd_BASE64.xml' % (TESTS_DIR)"/>
-            <call function="'pwd_BASE64'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_pwd_CLEAR.xml' % (TESTS_DIR)"/>
-            <call function="'pwd_CLEAR'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_multiple_schemes.xml' % (TESTS_DIR)"/>
-            <call function="'multiple_schemes'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_deprecated_schemes.xml' % (TESTS_DIR)"/>
-            <call function="'deprecated_schemes'" />
-    
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/testcases/security/pwd_storage/security_teardown_pwd_storage.xml' % (TESTS_DIR)"/>
-            <call function="'teardown_pwd_storage'" />
-    
-            <!--- Stop DS -->
-            <sequence>
-              <message>
-                 'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
-              </message>
-    
-              <call function="'StopDsWithScript'">
-                  { 'location'  : STAF_REMOTE_HOSTNAME,
-                    'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                    'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                    'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                    'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
-              </call>
-    
-              <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-            </sequence>
-    
-          </sequence>
-    
-        <!--- End Block Clients -->
-        </block>
+        <sequence>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
 
-      </parallel>
-
-      <call function="'testSuite_Postamble'"/>
-
+          <call function="'testSuite_Preamble'"/>
+                  
+          <parallel>
+          
+            <block name="'Block DS Process Active'">
+        
+              <!--- Start DS -->
+              <sequence>
+                <message>
+                   'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+                </message>
+        
+                <!--- Start DS -->
+                <call function="'StartDsWithScript'">
+                 { 'location'  : STAF_REMOTE_HOSTNAME }
+                </call>
+        
+                <call function="'checkRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+        
+              </sequence>
+        
+             <!--- End Block DS Process Active -->
+             </block>
+        
+             <block name="'Block Clients'">
+        
+              <sequence>
+        
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 5 ,
+                    'noOfMilliSeconds' : 2000 }
+                </call>
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_setup_pwd_storage.xml' % (TESTS_DIR)"/>
+                <call function="'setup_pwd_storage'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_pwd_SSHA.xml' % (TESTS_DIR)"/>
+                <call function="'pwd_SSHA'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_pwd_SHA.xml' % (TESTS_DIR)"/>
+                <call function="'pwd_SHA'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_pwd_SSHA256.xml' % (TESTS_DIR)"/>
+                <call function="'pwd_SSHA256'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_pwd_SSHA384.xml' % (TESTS_DIR)"/>
+                <call function="'pwd_SSHA384'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_pwd_SSHA512.xml' % (TESTS_DIR)"/>
+                <call function="'pwd_SSHA512'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_pwd_MD5.xml' % (TESTS_DIR)"/>
+                <call function="'pwd_MD5'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_pwd_SMD5.xml' % (TESTS_DIR)"/>
+                <call function="'pwd_SMD5'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_pwd_BASE64.xml' % (TESTS_DIR)"/>
+                <call function="'pwd_BASE64'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_pwd_CLEAR.xml' % (TESTS_DIR)"/>
+                <call function="'pwd_CLEAR'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_multiple_schemes.xml' % (TESTS_DIR)"/>
+                <call function="'multiple_schemes'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_deprecated_schemes.xml' % (TESTS_DIR)"/>
+                <call function="'deprecated_schemes'" />
+        
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/security/pwd_storage/security_teardown_pwd_storage.xml' % (TESTS_DIR)"/>
+                <call function="'teardown_pwd_storage'" />
+        
+                <!--- Stop DS -->
+                <sequence>
+                  <message>
+                     'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                  </message>
+        
+                  <call function="'StopDsWithScript'">
+                      { 'location'  : STAF_REMOTE_HOSTNAME,
+                        'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                        'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                        'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                  </call>
+        
+                  <call function="'checkRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                  </call>
+                </sequence>
+        
+              </sequence>
+        
+            <!--- End Block Clients -->
+            </block>
+    
+          </parallel>
+    
+          <call function="'testSuite_Postamble'"/>
+    
+        </sequence>
+     
+      </block>
+     
      </sequence>
 
   </function>

@@ -34,213 +34,221 @@
 
     <sequence>
 
-      <script>
-        CurrentTestPath['suite']='backup'
-      </script>
+      <block name="'backup'">
       
-      <call function="'testSuite_Preamble'"/>
-              
-      <!--- Test Suite information
-        #@TestSuiteName       Backend Backup Tests
-        #@TestSuitePurpose    Verify that the basic backup functionality is working in the Directory Server.
-        #@TestSuiteID         Backup Tests
-        #@TestSuiteGroup      Backup
-        #@TestGroup           Backend
-        #@TestScript          backup.xml
-        #@TestHTMLLink        http://opends.dev.java.net/
-      -->
-
-      <!--- Test Case information
-        #@TestMarker          Backend Backup Tests
-        #@TestName            Export: Backup 1
-        #@TestID              Backup1
-        #@TestPurpose         Backup the data in OpenDS.
-        #@TestPreamble
-        #@TestSteps           Client calls backup with the parameters
-                              default backendID, and backupDirectory
-        #@TestPostamble
-        #@TestResult Success if backup returns 0
-      -->
-        
-             <testcase name="'Backend: Backup 1'">
-    
-              <sequence>
-      
-                <call function="'testCase_Preamble'"/>
-                <message>
-                  'Backend Backup1: Create a backup of the data in OpenDS'
-                </message>
-                <call function="'backup'">
-                  { 
-                    'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR
-                  }
-                </call>
-      
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-                     
-                <call function="'testCase_Postamble'"/>
-      
-              </sequence>
-      
-            </testcase>
-            
-      <!--- Test Case information
-        #@TestMarker          Backend Backup Tests
-        #@TestName            Export: Backup 2
-        #@TestID              Backup2
-        #@TestPurpose         Create an incremental backup of the data in OpenDS.
-        #@TestPreamble
-        #@TestSteps           Client calls backup with the parameters
-                              default backendID, backupDir, and incremental
-        #@TestPostamble
-        #@TestResult Success if backup returns 0
-      -->
-        
-             <testcase name="'Backend: Backup 2'">
-    
-              <sequence>
-      
-                <call function="'testCase_Preamble'"/>
-                <message>
-                  'Backend Backup2: Create an incremental backup of the data in OpenDS'
-                </message>
-                <call function="'backup'">
-                  { 
-                    'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR,
-                    'extraParams' : '-i'
-                  }
-                </call>
-      
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-                     
-                <call function="'testCase_Postamble'"/>
-      
-              </sequence>
-      
-            </testcase>  
-          
-      <!--- Test Case information
-        #@TestMarker          Backend Backup Tests
-        #@TestName            Export: Backup 3
-        #@TestID              Backup3
-        #@TestPurpose         Create a backup of the data in OpenDS with a backup id.
-        #@TestPreamble
-        #@TestSteps           Client calls backup with the parameters
-                              default backendID, backupDir, and backupID
-        #@TestPostamble
-        #@TestResult Success if backup returns 0
-      -->
-        
-             <testcase name="'Backend: Backup 3'">
-    
-              <sequence>
-                  
-                <call function="'testCase_Preamble'"/>
-                <message>
-                  'Backend Backup3: Create a backup of the data in OpenDS with a backup id'
-                </message>
-                <call function="'backup'">
-                  { 
-                    'backupDir'       : '%s/backends/backup2' % STAGED_DATA_DIR,
-                    'extraParams' : '-I 20070714142807Z'
-                  }
-                </call>
-      
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-                     
-                <call function="'testCase_Postamble'"/>
-      
-              </sequence>
-      
-            </testcase>
-            
-       <!--- Test Case information
-        #@TestMarker          Backend Backup Tests
-        #@TestName            Export: Backup 4
-        #@TestID              Backup4
-        #@TestPurpose         Create an incremental backup of the data in OpenDS with a backup id.
-        #@TestPreamble
-        #@TestSteps           Client calls backup with the parameters
-                              default backendID, backupDir, incremental, and backupID
-        #@TestPostamble
-        #@TestResult Success if backup returns 0
-      -->
-        
-             <testcase name="'Backend: Backup 4'">
-    
-              <sequence>
- 
-                <call function="'testCase_Preamble'"/>
-                <message>
-                  'Backend Backup4: Create an incremental backup of the data in OpenDS with a backup id'
-                </message>
-                <call function="'backup'">
-                  { 
-                    'backupDir'       : '%s/backends/backup2' % STAGED_DATA_DIR,
-                    'extraParams' : '-B 20070714142807Z -i'
-                  }
-                </call>
-      
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-                     
-                <call function="'testCase_Postamble'"/>
-      
-              </sequence>
-      
-            </testcase>
-            
-       <!--- Test Case information
-        #@TestMarker          Backend Backup Tests
-        #@TestName            Export: Backup 5
-        #@TestID              Backup5
-        #@TestPurpose         Create a compressed backup of the data in OpenDS.
-        #@TestPreamble
-        #@TestSteps           Client calls backup with the parameters
-                              default backendID, backupDir, and compress
-        #@TestPostamble
-        #@TestResult Success if backup returns 0
-      -->
-        
-             <testcase name="'Backend: Backup 5'">
-    
-              <sequence>
+        <sequence>
   
-                <call function="'testCase_Preamble'"/>
-                <message>
-                  'Backend Backup5: Create a compressed backup of the data in OpenDS'
-                </message>
-                <call function="'backup'">
-                  { 
-                    'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR,
-                    'extraParams' : '-c'
-                  }
-                </call>
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
       
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-                     
-                <call function="'testCase_Postamble'"/>
-      
-              </sequence>
-      
-            </testcase>
+          <call function="'testSuite_Preamble'"/>
+                  
+          <!--- Test Suite information
+            #@TestSuiteName       Backend Backup Tests
+            #@TestSuitePurpose    Verify that the basic backup functionality is working in the Directory Server.
+            #@TestSuiteID         Backup Tests
+            #@TestSuiteGroup      Backup
+            #@TestGroup           Backend
+            #@TestScript          backup.xml
+            #@TestHTMLLink        http://opends.dev.java.net/
+          -->
+    
+          <!--- Test Case information
+            #@TestMarker          Backend Backup Tests
+            #@TestName            Export: Backup 1
+            #@TestID              Backup1
+            #@TestPurpose         Backup the data in OpenDS.
+            #@TestPreamble
+            #@TestSteps           Client calls backup with the parameters
+                                  default backendID, and backupDirectory
+            #@TestPostamble
+            #@TestResult Success if backup returns 0
+          -->
+        
+          <testcase name="'Backend: Backup:1'">
+  
+            <sequence>
+    
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'Backend Backup1: Create a backup of the data in OpenDS'
+              </message>
+              <call function="'backup'">
+                { 
+                  'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR
+                }
+              </call>
+    
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+                   
+              <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+    
+          </testcase>
             
-            <call function="'testSuite_Postamble'"/>
+          <!--- Test Case information
+            #@TestMarker          Backend Backup Tests
+            #@TestName            Export: Backup 2
+            #@TestID              Backup2
+            #@TestPurpose         Create an incremental backup of the data in OpenDS.
+            #@TestPreamble
+            #@TestSteps           Client calls backup with the parameters
+                                  default backendID, backupDir, and incremental
+            #@TestPostamble
+            #@TestResult Success if backup returns 0
+          -->
+        
+          <testcase name="'Backend: Backup 2'">
+  
+            <sequence>
+    
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'Backend Backup2: Create an incremental backup of the data in OpenDS'
+              </message>
+              <call function="'backup'">
+                { 
+                  'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR,
+                  'extraParams' : '-i'
+                }
+              </call>
+    
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+                   
+              <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+    
+          </testcase>  
+          
+          <!--- Test Case information
+            #@TestMarker          Backend Backup Tests
+            #@TestName            Export: Backup 3
+            #@TestID              Backup3
+            #@TestPurpose         Create a backup of the data in OpenDS with a backup id.
+            #@TestPreamble
+            #@TestSteps           Client calls backup with the parameters
+                                  default backendID, backupDir, and backupID
+            #@TestPostamble
+            #@TestResult Success if backup returns 0
+          -->
+        
+          <testcase name="'Backend: Backup 3'">
+  
+            <sequence>
+                
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'Backend Backup3: Create a backup of the data in OpenDS with a backup id'
+              </message>
+              <call function="'backup'">
+                { 
+                  'backupDir'       : '%s/backends/backup2' % STAGED_DATA_DIR,
+                  'extraParams' : '-I 20070714142807Z'
+                }
+              </call>
+    
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+                   
+              <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+    
+          </testcase>
             
+          <!--- Test Case information
+            #@TestMarker          Backend Backup Tests
+            #@TestName            Export: Backup 4
+            #@TestID              Backup4
+            #@TestPurpose         Create an incremental backup of the data in OpenDS with a backup id.
+            #@TestPreamble
+            #@TestSteps           Client calls backup with the parameters
+                                  default backendID, backupDir, incremental, and backupID
+            #@TestPostamble
+            #@TestResult Success if backup returns 0
+          -->
+        
+          <testcase name="'Backend: Backup 4'">
+  
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'Backend Backup4: Create an incremental backup of the data in OpenDS with a backup id'
+              </message>
+              <call function="'backup'">
+                { 
+                  'backupDir'       : '%s/backends/backup2' % STAGED_DATA_DIR,
+                  'extraParams' : '-B 20070714142807Z -i'
+                }
+              </call>
+    
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+                   
+              <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+    
+          </testcase>
+            
+          <!--- Test Case information
+            #@TestMarker          Backend Backup Tests
+            #@TestName            Export: Backup 5
+            #@TestID              Backup5
+            #@TestPurpose         Create a compressed backup of the data in OpenDS.
+            #@TestPreamble
+            #@TestSteps           Client calls backup with the parameters
+                                  default backendID, backupDir, and compress
+            #@TestPostamble
+            #@TestResult Success if backup returns 0
+          -->
+        
+          <testcase name="'Backend: Backup 5'">
+  
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'Backend Backup5: Create a compressed backup of the data in OpenDS'
+              </message>
+              <call function="'backup'">
+                { 
+                  'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR,
+                  'extraParams' : '-c'
+                }
+              </call>
+    
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+                   
+              <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+    
+          </testcase>
+            
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+    
+      </block>
+    
     </sequence>
 
   </function>
