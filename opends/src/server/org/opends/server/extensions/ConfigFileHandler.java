@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPOutputStream;
@@ -1148,8 +1149,9 @@ public class ConfigFileHandler
       // Notify all the add listeners that the entry has been added.
       for (ConfigAddListener l : addListeners)
       {
-        // FIXME -- Do something with the result.
-        ConfigChangeResult result =  l.applyConfigurationAdd(newEntry);
+        handleConfigChangeResult(l.applyConfigurationAdd(newEntry),
+                                 newEntry.getDN(), l.getClass().getName(),
+                                 "applyConfigurationAdd");
       }
     }
     finally
@@ -1295,8 +1297,9 @@ public class ConfigFileHandler
       // Notify all the delete listeners that the entry has been removed.
       for (ConfigDeleteListener l : deleteListeners)
       {
-        // FIXME -- Do something with the result.
-        ConfigChangeResult result = l.applyConfigurationDelete(entry);
+        handleConfigChangeResult(l.applyConfigurationDelete(entry),
+                                 entry.getDN(), l.getClass().getName(),
+                                 "applyConfigurationDelete");
       }
     }
     finally
@@ -1469,8 +1472,9 @@ public class ConfigFileHandler
       // Notify all the change listeners of the update.
       for (ConfigChangeListener l : changeListeners)
       {
-        // FIXME -- Do something with the result.
-        ConfigChangeResult result = l.applyConfigurationChange(currentEntry);
+        handleConfigChangeResult(l.applyConfigurationChange(currentEntry),
+                                 currentEntry.getDN(), l.getClass().getName(),
+                                 "applyConfigurationChange");
       }
 
 
@@ -1479,9 +1483,10 @@ public class ConfigFileHandler
       {
         for (ConfigurableComponent c : configurableComponents)
         {
-          // FIXME -- Do something with the result.
-          ConfigChangeResult result = c.applyNewConfiguration(currentEntry,
-                                           DynamicConstants.DEBUG_BUILD);
+          handleConfigChangeResult(c.applyNewConfiguration(currentEntry,
+                                          DynamicConstants.DEBUG_BUILD),
+                                   currentEntry.getDN(), c.getClass().getName(),
+                                   "applyNewConfiguration");
         }
       }
     }
@@ -3171,6 +3176,89 @@ writeConfigArchive:
                ALERT_DESCRIPTION_CANNOT_WRITE_CONFIGURATION);
 
     return alerts;
+  }
+
+
+
+  /**
+   * Examines the provided result and logs a message if appropriate.  If the
+   * result code is anything other than {@code SUCCESS}, then it will log an
+   * error message.  If the operation was successful but admin action is
+   * required, then it will log a warning message.  If no action is required but
+   * messages were generated, then it will log an informational message.
+   *
+   * @param  result      The config change result object that
+   * @param  entryDN     The DN of the entry that was added, deleted, or
+   *                     modified.
+   * @param  className   The name of the class for the object that generated the
+   *                     provided result.
+   * @param  methodName  The name of the method that generated the provided
+   *                     result.
+   */
+  public void handleConfigChangeResult(ConfigChangeResult result, DN entryDN,
+                                       String className, String methodName)
+  {
+    if (result == null)
+    {
+      int    msgID   = MSGID_CONFIG_CHANGE_NO_RESULT;
+      String message = getMessage(msgID, String.valueOf(className),
+                                  String.valueOf(methodName),
+                                  String.valueOf(entryDN));
+      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+               message, msgID);
+      return;
+    }
+
+    ResultCode   resultCode          = result.getResultCode();
+    boolean      adminActionRequired = result.adminActionRequired();
+    List<String> messages            = result.getMessages();
+
+    StringBuilder messageBuffer = new StringBuilder();
+    if (messages != null)
+    {
+      for (String s : messages)
+      {
+        if (messageBuffer.length() > 0)
+        {
+          messageBuffer.append("  ");
+        }
+        messageBuffer.append(s);
+      }
+    }
+
+
+    if (resultCode != ResultCode.SUCCESS)
+    {
+      int    msgID   = MSGID_CONFIG_CHANGE_RESULT_ERROR;
+      String message = getMessage(msgID, String.valueOf(className),
+                                  String.valueOf(methodName),
+                                  String.valueOf(entryDN),
+                                  String.valueOf(resultCode),
+                                  adminActionRequired,
+                                  messageBuffer.toString());
+      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+               message, msgID);
+    }
+    else if (adminActionRequired)
+    {
+      int    msgID   = MSGID_CONFIG_CHANGE_RESULT_ACTION_REQUIRED;
+      String message = getMessage(msgID, String.valueOf(className),
+                                  String.valueOf(methodName),
+                                  String.valueOf(entryDN),
+                                  messageBuffer.toString());
+      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_WARNING,
+               message, msgID);
+    }
+    else if (messageBuffer.length() > 0)
+    {
+      int    msgID   = MSGID_CONFIG_CHANGE_RESULT_MESSAGES;
+      String message = getMessage(msgID, String.valueOf(className),
+                                  String.valueOf(methodName),
+                                  String.valueOf(entryDN),
+                                  messageBuffer.toString());
+      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.INFORMATIONAL,
+               message, msgID);
+    }
   }
 }
 

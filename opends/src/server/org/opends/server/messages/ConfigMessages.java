@@ -6478,6 +6478,56 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used if a configuration add,
+   * delete, or change listener or a configurable component return a result of
+   * {@code null} instead of a valid config change result.  This takes three
+   * arguments, which are the class name of the object, the name of the method
+   * that was invoked, and the DN of the target entry.
+   */
+  public static final int MSGID_CONFIG_CHANGE_NO_RESULT =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 645;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to update the configuration as a result of an added, deleted,
+   * or modified configuration entry.  This takes six arguments, which are the
+   * class name of the object that generated the error, the name of the method
+   * that was invoked, the DN of the target entry, the result code generated,
+   * whether administrative action is required to apply the change, and any
+   * messages generated.
+   */
+  public static final int MSGID_CONFIG_CHANGE_RESULT_ERROR =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 646;
+
+
+
+  /**
+   * The message ID for the message that will be used if a configuration change
+   * requires some kind of administrative action before it will take effect.
+   * This takes four arguments, which are the class name of the object that
+   * indicated the action was required, the name of the method that was invoked,
+   * the DN of the target entry, and any messages generated.
+   */
+  public static final int MSGID_CONFIG_CHANGE_RESULT_ACTION_REQUIRED =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 647;
+
+
+
+  /**
+   * The message ID for the message that will be used if a configuration change
+   * was successful and no administrative action is required, but there were
+   * messages generated.  This takes four arguments, which are the name of the
+   * object that performed the processing, the name of the method that was
+   * invoked, the DN of the target entry, and the messages generated.
+   */
+  public static final int MSGID_CONFIG_CHANGE_RESULT_MESSAGES =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 648;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -9320,6 +9370,19 @@ public class ConfigMessages
                     "configuration attribute " +
                     ATTR_REJECT_UNAUTHENTICATED_REQ + "(the value should " +
                     "be either true or false)");
+
+
+    registerMessage(MSGID_CONFIG_CHANGE_NO_RESULT,
+                    "%s.%s returned a result of null for entry %s.");
+    registerMessage(MSGID_CONFIG_CHANGE_RESULT_ERROR,
+                    "%s.%s failed for entry %s:  result code=%s, admin " +
+                    "action required=%b, messages=\"%s\".");
+    registerMessage(MSGID_CONFIG_CHANGE_RESULT_ACTION_REQUIRED,
+                    "%s.%s indicated that administrative action is required " +
+                    "for entry %s:  messages=\"%s\".");
+    registerMessage(MSGID_CONFIG_CHANGE_RESULT_MESSAGES,
+                    "%s.%s succeeded but generated the following messages " +
+                    "for entry %s:  %s.");
   }
 }
 
