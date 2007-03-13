@@ -31,180 +31,187 @@
   <defaultcall function="schema-dynamic"/>
 
   <function name="schema-dynamic">
-
-      <!---
-            #@TestGroupName             Schema
-            #@TestGroupPurpose          To test the Dynamic Schema functionality.
-            
-            Place suite-specific test information here.
-            #@TestSuiteName             Dynamic Schema Tests
-            #@TestSuitePurpose          Test the Dynamic Schema Updates over Protocol and via Files.
-            #@TestSuiteGroup            Dynamic Schema Tests
-            #@TestScript                schema_dynamic.xml
-      -->
-      <sequence>
-
-       <!--- Test case: Update Schema via a file -->
-       <!---
-            Place test-specific test information here.
-            The tag, TestMarker, must be the same as the tag, TestSuiteName.
-            #@TestMarker                Dynamic Schema Tests
-            #@TestName                  Update via a file
-            #@TestIssue                 367
-            #@TestPurpose               To make sure the schema can be updated by a file.
-            #@TestPreamble              none
-            #@TestStep                  Create a task that will cause the server to 
-                                        read one or two files into the schema.
-                                        Then try adding a new entry that uses the
-                                        added schema.
-            #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 0
-        --> 
-      
-      <call function="'testSuite_Preamble'"/>
-      
-            <testcase name="'Schema: Dynamic Schema: Update via File'">
-         
-              <sequence>
-      
-                <call function="'testCase_Preamble'"/>
-                <message>
-                  'Schema: Dynamic Schema: Update via File'
-                </message>
-                <call function="'addSchemaTask'">
-                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                    'taskID'         : '6',
-                    'ldifFile'       : '05-DynamicSchemaAdd.ldif'
-                  }
-                </call>
-      
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
-                <message>
-                   'Schema: Add an entry that uses this new schema'
-                </message>
-
-                <call function="'addEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema1.ldif' % STAGED_DATA_DIR }
-                </call>
-            
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
-                <message>
-                   'Search for the entry just added and return addschema1AT '
-                </message>
-
-                <call function="'SearchObject'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'dsBaseDN'         : 'dc=dynamic-schema-tests,dc=example,dc=com' ,
-		    'dsFilter'         : 'objectclass=addschema1OC' ,
-                    'attributes'       : 'addschema1AT' }
-                
-                </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
-                     
-                <call function="'testCase_Postamble'"/>
-      
-              </sequence>
-      
-            </testcase>
-       
-       <!--- Test case: Update Schema Over Protocol: Add -->
-       <!---
-            Place test-specific test information here.
-            The tag, TestMarker, must be the same as the tag, TestSuiteName.
-            #@TestMarker                Dynamic Schema Tests
-            #@TestName                  Update Over Protocol: Add 
-            #@TestIssue                 366
-            #@TestPurpose               To verify the schema can be updated over protocol.
-            #@TestPreamble              none
-            #@TestStep                  Update the schema over protocol adding 
-                                        a new objectclass and attributes.
-                                        Then try adding a new entry that uses these
-                                        new attributes and objectclass.
-            #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 0
-        -->  
   
-        <!--- Test Case : Schema: Update Over Protocol: Add -->
-        <testcase name="'Schema: Update Over Protocol: Add'">
-          <sequence>
-            <call function="'testCase_Preamble'"/>
-            <message>
-               'Schema: Update Over Protocol: Add'
-            </message>
-            
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/schema/ldifs/updateSchema.ldif' % STAGED_DATA_DIR }
-            </call>
+    <sequence>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
+      <block name="'dynamic'">
+      
+        <sequence>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+
+        <!---
+              #@TestGroupName             Schema
+              #@TestGroupPurpose          To test the Dynamic Schema functionality.
+              
+              Place suite-specific test information here.
+              #@TestSuiteName             Dynamic Schema Tests
+              #@TestSuitePurpose          Test the Dynamic Schema Updates over Protocol and via Files.
+              #@TestSuiteGroup            Dynamic Schema Tests
+              #@TestScript                schema_dynamic.xml
+        -->
+  
+         <!--- Test case: Update Schema via a file -->
+         <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                Dynamic Schema Tests
+              #@TestName                  Update via a file
+              #@TestIssue                 367
+              #@TestPurpose               To make sure the schema can be updated by a file.
+              #@TestPreamble              none
+              #@TestStep                  Create a task that will cause the server to 
+                                          read one or two files into the schema.
+                                          Then try adding a new entry that uses the
+                                          added schema.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+          --> 
+        
+              <testcase name="'Schema: Dynamic Schema: Update via File'">
+           
+                <sequence>
+        
+                  <call function="'testCase_Preamble'"/>
+                  <message>
+                    'Schema: Dynamic Schema: Update via File'
+                  </message>
+                  <call function="'addSchemaTask'">
+                    { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                      'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                      'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                      'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                      'taskID'         : '6',
+                      'ldifFile'       : '05-DynamicSchemaAdd.ldif'
+                    }
+                  </call>
+        
+                  <if expr="RC != 0">
+                      <tcstatus result="'fail'"/>
+                  </if>
+                  
+                  <message>
+                     'Schema: Add an entry that uses this new schema'
+                  </message>
+  
+                  <call function="'addEntry'">
+                    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                      'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema1.ldif' % STAGED_DATA_DIR }
+                  </call>
+              
+                  <if expr="RC != 0">
+                      <tcstatus result="'fail'"/>
+                  </if>
+  
+                  <message>
+                     'Search for the entry just added and return addschema1AT '
+                  </message>
+  
+                  <call function="'SearchObject'">
+                    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                      'dsBaseDN'         : 'dc=dynamic-schema-tests,dc=example,dc=com' ,
+                      'dsFilter'         : 'objectclass=addschema1OC' ,
+                      'attributes'       : 'addschema1AT' }      
+                  </call>
+                  
+                  <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                  </call>
+                       
+                  <call function="'testCase_Postamble'"/>
+        
+                </sequence>
+        
+              </testcase>
+         
+         <!--- Test case: Update Schema Over Protocol: Add -->
+         <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                Dynamic Schema Tests
+              #@TestName                  Update Over Protocol: Add 
+              #@TestIssue                 366
+              #@TestPurpose               To verify the schema can be updated over protocol.
+              #@TestPreamble              none
+              #@TestStep                  Update the schema over protocol adding 
+                                          a new objectclass and attributes.
+                                          Then try adding a new entry that uses these
+                                          new attributes and objectclass.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+          -->  
+    
+          <!--- Test Case : Schema: Update Over Protocol: Add -->
+          <testcase name="'Schema: Update Over Protocol: Add'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Schema: Update Over Protocol: Add'
+              </message>
+              
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/schema/ldifs/updateSchema.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+                  
+              <message>
+                 'Schema: Add an entry that uses this new schema'
+              </message>
+  
+              <call function="'addEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema2.ldif' % STAGED_DATA_DIR }
+              </call>
+              
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'Search for the entry just added and return addschema2AT '
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'         : 'dc=dynamic-schema-tests-2,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=addschema2OC' ,
+                  'attributes'       : 'addschema2AT' }
                 
-            <message>
-               'Schema: Add an entry that uses this new schema'
-            </message>
-
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema2.ldif' % STAGED_DATA_DIR }
-            </call>
-            
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
-            <message>
-               'Search for the entry just added and return addschema2AT '
-            </message>
-
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : 'dc=dynamic-schema-tests-2,dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=addschema2OC' ,
-                'attributes'       : 'addschema2AT' }
+              </call>
                 
-            </call>
-                
-            <call function="'checktestRC'">
+              <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
-            </call>
+              </call>
                      
-            <call function="'testCase_Postamble'"/>
-          </sequence>
-        </testcase>
-        
-
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+            
+          </testcase>   
  
        <!--- Test case: Update Schema Over Protocol: Replace -->
        <!---
@@ -342,6 +349,10 @@
           </sequence>
         </testcase>
       
+        </sequence>
+    
+      </block>
+    
     </sequence>
 
   </function>

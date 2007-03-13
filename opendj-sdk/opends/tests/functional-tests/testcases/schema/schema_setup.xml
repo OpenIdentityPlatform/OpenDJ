@@ -33,44 +33,52 @@
 
     <sequence>
 
-      <script>
-        CurrentTestPath['suite']='setup'
-      </script>
-            
-      <call function="'testSuite_Preamble'"/>
-
-      <!--- Check that DS started -->
-      <call function="'isAlive'">
-        { 'noOfLoops'        : 5 ,
-          'noOfMilliSeconds' : 2000 }
-      </call>
-
-        <!--- Test Case : Add required entries -->
-      <testcase name="'Core: Schema: Add required entries'">
-        <sequence>
-          <call function="'testCase_Preamble'"/>
-          <message>
-             'Add entries that are required for the Schema Tests'
-          </message>
-
-          <call function="'addEntry'">
-            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeAdded'   : '%s/schema/ldifs/schema_start.ldif' % STAGED_DATA_DIR }
-          </call>
-
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
-          <call function="'testCase_Postamble'"/>
-        </sequence>
-      </testcase>
+      <block name="'setup'">
       
-      <call function="'testSuite_Postamble'"/>
+        <sequence>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+            
+          <call function="'testSuite_Preamble'"/>
+    
+          <!--- Check that DS started -->
+          <call function="'isAlive'">
+            { 'noOfLoops'        : 5 ,
+              'noOfMilliSeconds' : 2000 }
+          </call>
+    
+            <!--- Test Case : Add required entries -->
+          <testcase name="'Core: Schema: Add required entries'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Add entries that are required for the Schema Tests'
+              </message>
+    
+              <call function="'addEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeAdded'   : '%s/schema/ldifs/schema_start.ldif' % STAGED_DATA_DIR }
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          <call function="'testSuite_Postamble'"/>
 
+        </sequence>
+    
+      </block>
+    
     </sequence>
 
   </function>

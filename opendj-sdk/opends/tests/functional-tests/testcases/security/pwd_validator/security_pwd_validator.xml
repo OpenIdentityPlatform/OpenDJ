@@ -33,92 +33,100 @@
 
     <sequence>
 
-    <script>
-      CurrentTestPath['suite']='pwd-validator'
-    </script>
-    
-    <call function="'testSuite_Preamble'"/>
+      <block name="'pwd-validator'">
       
-    <parallel>
-    
-      <block name="'Block DS Process Active'">
-  
-        <!--- Start DS -->
-        <sequence>
-          <message>
-             'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-          </message>
-  
-          <!--- Start DS -->
-          <call function="'StartDsWithScript'">
-           { 'location'  : STAF_REMOTE_HOSTNAME }
-          </call>
-  
-          <call function="'checkRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
-  
-        </sequence>
-  
-       <!--- End Block DS Process Active -->
-       </block>
-  
-       <block name="'Block Clients'">
-  
         <sequence>
   
-          <!--- Check that DS started -->
-          <call function="'isAlive'">
-            { 'noOfLoops'        : 5 ,
-              'noOfMilliSeconds' : 2000 }
-          </call>
-  
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-            file="'%s/testcases/security/pwd_validator/security_setup_pwd_validator.xml' % (TESTS_DIR)"/>
-          <call function="'setup_pwd_validator'" />
-  
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-            file="'%s/testcases/security/pwd_validator/security_pwd_length.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_length'" />
-  
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-            file="'%s/testcases/security/pwd_validator/security_skip_val_for_admins.xml' % (TESTS_DIR)"/>
-          <call function="'skip_val_for_admins'" />
-  
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-            file="'%s/testcases/security/pwd_validator/security_teardown_pwd_validator.xml' % (TESTS_DIR)"/>
-          <call function="'teardown_pwd_validator'" />
-  
-          <!--- Stop DS -->
-          <sequence>
-            <message>
-               'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
-            </message>
-  
-            <call function="'StopDsWithScript'">
-                { 'location'  : STAF_REMOTE_HOSTNAME,
-                  'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                  'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                  'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
-            </call>
-  
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-          </sequence>
-  
-        </sequence>
-  
-        <!--- End Block Clients -->
-        </block>
-
-      </parallel>
-
-      <call function="'testSuite_Postamble'"/>
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+    
+        <call function="'testSuite_Preamble'"/>
+          
+        <parallel>
+        
+          <block name="'Block DS Process Active'">
       
+            <!--- Start DS -->
+            <sequence>
+              <message>
+                 'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+              </message>
+      
+              <!--- Start DS -->
+              <call function="'StartDsWithScript'">
+               { 'location'  : STAF_REMOTE_HOSTNAME }
+              </call>
+      
+              <call function="'checkRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+              </call>
+      
+            </sequence>
+      
+           <!--- End Block DS Process Active -->
+           </block>
+      
+           <block name="'Block Clients'">
+      
+            <sequence>
+      
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+                { 'noOfLoops'        : 5 ,
+                  'noOfMilliSeconds' : 2000 }
+              </call>
+      
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                file="'%s/testcases/security/pwd_validator/security_setup_pwd_validator.xml' % (TESTS_DIR)"/>
+              <call function="'setup_pwd_validator'" />
+      
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                file="'%s/testcases/security/pwd_validator/security_pwd_length.xml' % (TESTS_DIR)"/>
+              <call function="'pwd_length'" />
+      
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                file="'%s/testcases/security/pwd_validator/security_skip_val_for_admins.xml' % (TESTS_DIR)"/>
+              <call function="'skip_val_for_admins'" />
+      
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                file="'%s/testcases/security/pwd_validator/security_teardown_pwd_validator.xml' % (TESTS_DIR)"/>
+              <call function="'teardown_pwd_validator'" />
+      
+              <!--- Stop DS -->
+              <sequence>
+                <message>
+                   'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                </message>
+      
+                <call function="'StopDsWithScript'">
+                    { 'location'  : STAF_REMOTE_HOSTNAME,
+                      'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                      'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                      'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                      'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                </call>
+      
+                <call function="'checkRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+              </sequence>
+      
+            </sequence>
+      
+            <!--- End Block Clients -->
+            </block>
+    
+          </parallel>
+    
+          <call function="'testSuite_Postamble'"/>
+          
+        </sequence>
+    
+      </block>
+    
     </sequence>
 
   </function>

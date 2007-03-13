@@ -34,36 +34,39 @@
 
     <sequence>
 
-      <script>
-        CurrentTestPath['suite']='restore-tasks'
-      </script>
-          
-      <call function="'testSuite_Preamble'"/>
-
-      <!--- Test Suite information
-        #@TestSuiteName       Backend Restore Tasks Tests
-        #@TestSuitePurpose    Verify that the basic restore task functionality is working in the Directory Server.
-        #@TestSuiteID         Restore Tasks Tests
-        #@TestSuiteGroup      Restore Tasks
-        #@TestGroup           Backend
-        #@TestScript          restore-tasks.xml
-        #@TestHTMLLink        http://opends.dev.java.net/
-      -->
-
-      <!--- Test Case information
-        #@TestMarker          Backend Restore Tasks Tests
-        #@TestName            Restore Tasks: Restore Tasks 1
-        #@TestID              RestoreTasks1
-        #@TestPurpose         Verify an restore task of a LDIF file on the default backend.
-        #@TestPreamble
-        #@TestSteps           An ldif file is created that describes the restore task to be
-                              scheduled. The task is scheduled by adding the ldif file
-                              with the static ldapmodify.
-        #@TestPostamble
-        #@TestResult          Success if OpenDS returns 0
-      -->  
+      <block name="'restore-tasks'">
       
-
+        <sequence>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+          
+          <call function="'testSuite_Preamble'"/>
+    
+          <!--- Test Suite information
+            #@TestSuiteName       Backend Restore Tasks Tests
+            #@TestSuitePurpose    Verify that the basic restore task functionality is working in the Directory Server.
+            #@TestSuiteID         Restore Tasks Tests
+            #@TestSuiteGroup      Restore Tasks
+            #@TestGroup           Backend
+            #@TestScript          restore-tasks.xml
+            #@TestHTMLLink        http://opends.dev.java.net/
+          -->
+    
+          <!--- Test Case information
+            #@TestMarker          Backend Restore Tasks Tests
+            #@TestName            Restore Tasks: Restore Tasks 1
+            #@TestID              RestoreTasks1
+            #@TestPurpose         Verify an restore task of a LDIF file on the default backend.
+            #@TestPreamble
+            #@TestSteps           An ldif file is created that describes the restore task to be
+                                  scheduled. The task is scheduled by adding the ldif file
+                                  with the static ldapmodify.
+            #@TestPostamble
+            #@TestResult          Success if OpenDS returns 0
+          -->            
+    
             <testcase name="'Backend: Restore Tasks 1'">
 
               
@@ -79,7 +82,7 @@
                     'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                     'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                     'taskID'         : '4',
-                    'backupDir'       : '%s/backends/' % STAGED_DATA_DIR
+                    'backupDir'      : '%s/backends/' % STAGED_DATA_DIR
                   }
                 </call>
       
@@ -94,8 +97,12 @@
       
             </testcase>
 
-      <call function="'testSuite_Postamble'"/>
+          <call function="'testSuite_Postamble'"/>
       
+        </sequence>
+    
+      </block>
+    
     </sequence>
 
   </function>

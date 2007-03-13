@@ -34,60 +34,68 @@
 
     <sequence>
 
-      <script>
-        CurrentTestPath['suite']='setup'
-      </script>
-          
-      <call function="'testSuite_Preamble'"/>
-
-      <!--- Test Suite information
-      #@TestSuiteName       Backend Setup
-      #@TestSuitePurpose    Verify that the basic import functionality is working in the Directory Server.
-      #@TestSuiteID         Import Tests
-      #@TestSuiteGroup      Import
-      #@TestGroup           Backend
-      #@TestScript          import.xml
-      #@TestHTMLLink        http://opends.dev.java.net/
-      -->
- 
-      <!--- Test Case information
-      #@TestMarker          Backend Export, Backup, and Restore Tests
-      #@TestName            Import: LDIF Default
-      #@TestID              LDIF Default
-      #@TestPurpose         Add entries that are required for these Backend Tests.
-      #@TestPreamble
-      #@TestSteps           ./import-ldif.sh -l data/backends/backend_start.ldif -n "userRoot"
-      #@TestPostamble
-      #@TestResult
-      -->
-        
-      <testcase name="'Backend: Backend Setup'">
-
+      <block name="'setup'">
+      
         <sequence>
-
-          <call function="'testCase_Preamble'"/>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
           
-          <message>
-            'Backend: Backend Setup for Export, Backup, and Restore Tests'
-          </message>
-          <call function="'importLdif'">
-            { 'ldifFile'    : '%s/backends/backend_start.ldif' % STAGED_DATA_DIR }
-          </call>
-
-          <call function="'checktestRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-          </call>
-
+          <call function="'testSuite_Preamble'"/>
+    
+          <!--- Test Suite information
+          #@TestSuiteName       Backend Setup
+          #@TestSuitePurpose    Verify that the basic import functionality is working in the Directory Server.
+          #@TestSuiteID         Import Tests
+          #@TestSuiteGroup      Import
+          #@TestGroup           Backend
+          #@TestScript          import.xml
+          #@TestHTMLLink        http://opends.dev.java.net/
+          -->
+     
+          <!--- Test Case information
+          #@TestMarker          Backend Export, Backup, and Restore Tests
+          #@TestName            Import: LDIF Default
+          #@TestID              LDIF Default
+          #@TestPurpose         Add entries that are required for these Backend Tests.
+          #@TestPreamble
+          #@TestSteps           ./import-ldif.sh -l data/backends/backend_start.ldif -n "userRoot"
+          #@TestPostamble
+          #@TestResult
+          -->
+            
+          <testcase name="'Backend: Backend Setup'">
+    
+            <sequence>
+    
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'Backend: Backend Setup for Export, Backup, and Restore Tests'
+              </message>
+              <call function="'importLdif'">
+                { 'ldifFile'    : '%s/backends/backend_start.ldif' % STAGED_DATA_DIR }
+              </call>
+    
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+    
+              
+              <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+    
+          </testcase>
           
-          <call function="'testCase_Postamble'"/>
-
+          <call function="'testSuite_Postamble'"/>
+      
         </sequence>
-
-      </testcase>
-      
-      <call function="'testSuite_Postamble'"/>
-      
+    
+      </block>
+    
     </sequence>
 
   </function>

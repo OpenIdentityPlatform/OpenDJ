@@ -33,123 +33,131 @@
 
     <sequence>
 
-      <script>
-        CurrentTestPath['suite']='filters'
-      </script>
+      <block name="'filters'">
+      
+        <sequence>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
             
-      <call function="'testSuite_Preamble'"/>
-
-      <!--- Check that DS started -->
-      <call function="'isAlive'">
-        { 'noOfLoops'        : 5 ,
-          'noOfMilliSeconds' : 2000 }
-      </call>
-
-      <!--- Test Case : True False Filters: And Filter -->
-      <testcase name="'Core: True False Filters: And Filter'">
-        <sequence>
-          <call function="'testCase_Preamble'"/>
-          <message>
-             'Core TFF1: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character '
-          </message>
-
-          <call function="'SearchObject'">
-            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'         : 'cn=version,cn=monitor' ,
-              'dsFilter'         : '&amp;' }                
+          <call function="'testSuite_Preamble'"/>
+    
+          <!--- Check that DS started -->
+          <call function="'isAlive'">
+            { 'noOfLoops'        : 5 ,
+              'noOfMilliSeconds' : 2000 }
           </call>
+    
+          <!--- Test Case : True False Filters: And Filter -->
+          <testcase name="'Core: True False Filters: And Filter'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Core TFF1: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character '
+              </message>
+    
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'         : 'cn=version,cn=monitor' ,
+                  'dsFilter'         : '&amp;' }                
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          <!--- Test Case : True False Filters: Or Filter -->
+          <testcase name="'Core: True False Filters: Or Filter'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Core TFF2: Check the response of OpenDS when an ldap search request is conducted with a single pipe character'
+              </message>
+    
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'         : 'cn=version,cn=monitor' ,
+                  'dsFilter'         : '|' }
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          <!--- Test Case : True False Filters: And Filter Entry Not Exists -->
+          <testcase name="'Core: True False Filters: And Filter Entry Not Exists'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Core TFF3: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character for a non-existent entry'
+              </message>
+    
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'         : 'cn=bad,cn=monitor' ,
+                  'dsFilter'         : '&amp;' }
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult ,
+                    'expected'   : 32 }
+              </call>
+              <call function="'testCase_Postamble'"/>
+             </sequence>
+          </testcase>
+    
+          <!--- Test Case : True False Filters: Or Filter Entry Not Exists -->
+          <testcase name="'Core: True False Filters: Or Filter Entry Not Exists'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Core TFF4: Check the response of OpenDS when an ldap search request is conducted with a single pipe character for a non-existent entry'
+              </message>
+    
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'         : 'cn=bad,cn=monitor' ,
+                  'dsFilter'         : '|' }
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult ,
+                    'expected'   : 32 }
+              </call>
+              <call function="'testCase_Postamble'"/>
+             </sequence>
+    
+          </testcase>
+          
+          <call function="'testSuite_Postamble'"/>
 
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
-          <call function="'testCase_Postamble'"/>
         </sequence>
-      </testcase>
-      
-      <!--- Test Case : True False Filters: Or Filter -->
-      <testcase name="'Core: True False Filters: Or Filter'">
-        <sequence>
-          <call function="'testCase_Preamble'"/>
-          <message>
-             'Core TFF2: Check the response of OpenDS when an ldap search request is conducted with a single pipe character'
-          </message>
-
-          <call function="'SearchObject'">
-            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'         : 'cn=version,cn=monitor' ,
-              'dsFilter'         : '|' }
-          </call>
-
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
-          <call function="'testCase_Postamble'"/>
-        </sequence>
-      </testcase>
-      
-      <!--- Test Case : True False Filters: And Filter Entry Not Exists -->
-      <testcase name="'Core: True False Filters: And Filter Entry Not Exists'">
-        <sequence>
-          <call function="'testCase_Preamble'"/>
-          <message>
-             'Core TFF3: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character for a non-existent entry'
-          </message>
-
-          <call function="'SearchObject'">
-            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'         : 'cn=bad,cn=monitor' ,
-              'dsFilter'         : '&amp;' }
-          </call>
-
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult ,
-                'expected'   : 32 }
-          </call>
-          <call function="'testCase_Postamble'"/>
-         </sequence>
-      </testcase>
-
-      <!--- Test Case : True False Filters: Or Filter Entry Not Exists -->
-      <testcase name="'Core: True False Filters: Or Filter Entry Not Exists'">
-        <sequence>
-          <call function="'testCase_Preamble'"/>
-          <message>
-             'Core TFF4: Check the response of OpenDS when an ldap search request is conducted with a single pipe character for a non-existent entry'
-          </message>
-
-          <call function="'SearchObject'">
-            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'         : 'cn=bad,cn=monitor' ,
-              'dsFilter'         : '|' }
-          </call>
-
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult ,
-                'expected'   : 32 }
-          </call>
-          <call function="'testCase_Postamble'"/>
-         </sequence>
-
-      </testcase>
-      
-      <call function="'testSuite_Postamble'"/>
-
+    
+      </block>
+    
     </sequence>
 
   </function>

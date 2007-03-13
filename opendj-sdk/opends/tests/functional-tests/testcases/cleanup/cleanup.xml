@@ -31,27 +31,35 @@
 
   <function name="main_cleanup">
 
-      <sequence>
+     <sequence>
 
-      <!--- Delete file if it exists already-->
-      <message>
-          'Delete folder %s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR
-      </message>
-      <call function="'deleteFile'">
-          { 'location' : STAF_REMOTE_HOSTNAME,
-            'filename' : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR }
-      </call>
+      <block name="'cleanup'">
+      
+        <sequence>
 
-      <!--- Delete folder if it exists already-->
-      <message>
-          'Delete folder %s/functional-tests' % DIRECTORY_INSTANCE_DIR
-      </message>
-      <call function="'deleteFolder'">
-          { 'location'   : STAF_REMOTE_HOSTNAME,
-            'foldername' : '%s/functional-tests' % DIRECTORY_INSTANCE_DIR }
-      </call>
-
-     </sequence>
+          <!--- Delete file if it exists already-->
+          <message>
+              'Delete folder %s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR
+          </message>
+          <call function="'deleteFile'">
+              { 'location' : STAF_REMOTE_HOSTNAME,
+                'filename' : '%s/ldifdata.zip' % DIRECTORY_INSTANCE_DIR }
+          </call>
+    
+          <!--- Delete folder if it exists already-->
+          <message>
+              'Delete folder %s/functional-tests' % DIRECTORY_INSTANCE_DIR
+          </message>
+          <call function="'deleteFolder'">
+              { 'location'   : STAF_REMOTE_HOSTNAME,
+                'foldername' : '%s/functional-tests' % DIRECTORY_INSTANCE_DIR }
+          </call>
+    
+        </sequence>
+     
+      </block>
+     
+    </sequence>
 
   </function>
 

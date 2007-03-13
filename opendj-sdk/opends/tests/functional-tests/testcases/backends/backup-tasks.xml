@@ -34,67 +34,75 @@
 
     <sequence>
 
-      <script>
-        CurrentTestPath['suite']='backup-tasks'
-      </script>
-          
-      <call function="'testSuite_Preamble'"/>
-
-        <!--- Start DS -->
+      <block name="'backup-tasks'">
+      
         <sequence>
-          <message>
-             'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-          </message>
   
-          <call function="'StartDsWithScript'">
-           { 'location'  : STAF_REMOTE_HOSTNAME }
-          </call>
- 
-          <call function="'checkRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
- 
-        </sequence>
-                
-            <!--- Check that DS started -->
-            <call function="'isAlive'">
-              { 'noOfLoops'        : 5 ,
-                'noOfMilliSeconds' : 2000 }
-            </call>
-              
-              <testcase name="'Backend: Backup Tasks 1'">
-              
-              <sequence>
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+          
+          <call function="'testSuite_Preamble'"/>
+    
+            <!--- Start DS -->
+            <sequence>
+              <message>
+                 'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+              </message>
       
-                <call function="'testCase_Preamble'"/>
-                <message>
-                  'Backend ExportTasks1: Backup the data in OpenDS by scheduling a task'
-                </message>
-                <call function="'backupTask'">
-                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                    'taskID'         : '3',
-                    'backupDir'       : '%s/backends/' % STAGED_DATA_DIR
-                  }
-                </call>
-      
-                <call function="'checktestRC'">
+              <call function="'StartDsWithScript'">
+               { 'location'  : STAF_REMOTE_HOSTNAME }
+              </call>
+     
+              <call function="'checkRC'">
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
+              </call>
+     
+            </sequence>
+                    
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 5 ,
+                    'noOfMilliSeconds' : 2000 }
                 </call>
-                     
-                <call function="'testCase_Postamble'"/>
+                  
+                  <testcase name="'Backend: Backup Tasks 1'">
+                  
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend ExportTasks1: Backup the data in OpenDS by scheduling a task'
+                    </message>
+                    <call function="'backupTask'">
+                      { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                        'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                        'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                        'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                        'taskID'         : '3',
+                        'backupDir'       : '%s/backends/' % STAGED_DATA_DIR
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
+            
+    
+          <call function="'testSuite_Postamble'"/>
       
-              </sequence>
-      
-            </testcase>
-        
-
-      <call function="'testSuite_Postamble'"/>
-      
+        </sequence>
+    
+      </block>
+    
     </sequence>
 
   </function>

@@ -34,34 +34,38 @@
 
     <sequence>
 
-      <script>
-        CurrentTestPath['suite']='restore'
-      </script>
+      <block name="'restore'">
+      
+        <sequence>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
           
-      <call function="'testSuite_Preamble'"/>
-        
-      <!--- Test Suite information
-        #@TestSuiteName       Backend Restore Tests
-        #@TestSuitePurpose    Test the restore functionality for OpenDS.
-        #@TestSuiteID         Restore Tests
-        #@TestSuiteGroup      Restore
-        #@TestGroup           Backend
-        #@TestScript          restore.xml
-        #@TestHTMLLink        http://opends.dev.java.net/
-      -->
-
-      <!--- Test Case information
-        #@TestMarker          Backend Restore Tests
-        #@TestName            Export: Restore 1
-        #@TestID              Restore1
-        #@TestPurpose         Restore data to OpenDS.
-        #@TestPreamble
-        #@TestSteps           Client calls restore with the parameters
-                              default backendID, and backupDirectory
-        #@TestPostamble
-        #@TestResult Success if restore returns 0
-      -->
-        
+          <call function="'testSuite_Preamble'"/>
+            
+          <!--- Test Suite information
+            #@TestSuiteName       Backend Restore Tests
+            #@TestSuitePurpose    Test the restore functionality for OpenDS.
+            #@TestSuiteID         Restore Tests
+            #@TestSuiteGroup      Restore
+            #@TestGroup           Backend
+            #@TestScript          restore.xml
+            #@TestHTMLLink        http://opends.dev.java.net/
+          -->
+    
+          <!--- Test Case information
+            #@TestMarker          Backend Restore Tests
+            #@TestName            Export: Restore 1
+            #@TestID              Restore1
+            #@TestPurpose         Restore data to OpenDS.
+            #@TestPreamble
+            #@TestSteps           Client calls restore with the parameters
+                                  default backendID, and backupDirectory
+            #@TestPostamble
+            #@TestResult Success if restore returns 0
+          -->
+            
              <testcase name="'Backend: Restore 1'">
     
               <sequence>
@@ -88,20 +92,20 @@
               </sequence>
       
             </testcase>
+                
+          <!--- Test Case information
+            #@TestMarker          Backend Restore Tests
+            #@TestName            Export: Restore 2
+            #@TestID              Restore2
+            #@TestPurpose         Restore compressed data to OpenDS.
+            #@TestPreamble
+            #@TestSteps           Client calls restore with the parameters
+                                  default backendID, backupDirectory, and uncompress
+                                  is automatically done
+            #@TestPostamble
+            #@TestResult Success if restore returns 0
+          -->
             
-      <!--- Test Case information
-        #@TestMarker          Backend Restore Tests
-        #@TestName            Export: Restore 2
-        #@TestID              Restore2
-        #@TestPurpose         Restore compressed data to OpenDS.
-        #@TestPreamble
-        #@TestSteps           Client calls restore with the parameters
-                              default backendID, backupDirectory, and uncompress
-                              is automatically done
-        #@TestPostamble
-        #@TestResult Success if restore returns 0
-      -->
-        
              <testcase name="'Backend: Restore 2'">
     
               <sequence>
@@ -127,8 +131,12 @@
       
             </testcase>
             
-      <call function="'testSuite_Postamble'"/>
+          <call function="'testSuite_Postamble'"/>
       
+        </sequence>
+    
+      </block>
+    
     </sequence>
 
   </function>

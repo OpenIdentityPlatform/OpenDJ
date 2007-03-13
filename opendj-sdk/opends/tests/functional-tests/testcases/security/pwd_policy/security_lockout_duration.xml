@@ -83,7 +83,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=mward,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : '%s' % pwds,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
               </call>
@@ -118,7 +118,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=mward,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'adminnormal' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -177,7 +177,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=mward,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : '%s' % pwds,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
               </call>
