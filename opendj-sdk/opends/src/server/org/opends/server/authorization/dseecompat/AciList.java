@@ -30,10 +30,11 @@ package org.opends.server.authorization.dseecompat;
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.ArrayList;
 
 import org.opends.server.types.Attribute;
@@ -276,10 +277,14 @@ public class AciList {
     // Copy the ACI list.
     LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
 
-    Set<DN> keys=aciCopy.keySet();
-    for(DN dn : keys) {
-      if (backend.handlesEntry(dn))
-        aciCopy.remove(dn);
+    Iterator<Map.Entry<DN,List<Aci>>> iterator = aciCopy.entrySet().iterator();
+    while (iterator.hasNext())
+    {
+      Map.Entry<DN,List<Aci>> mapEntry = iterator.next();
+      if (backend.handlesEntry(mapEntry.getKey()))
+      {
+        iterator.remove();
+      }
     }
 
     // Replace the ACI list with the copy.
