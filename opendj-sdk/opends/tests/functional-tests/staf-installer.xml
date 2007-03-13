@@ -343,7 +343,7 @@
   </target>
 
   <target name="run-tests-check" depends="run-tests-build-pkg">
-    <condition property="opends.port.ldap.taken">
+    <condition property="opends.port.ldap.taken">run
       <socket port="${opends.port.ldap}" server="${host.name}"/>
     </condition>
     <condition property="opends.port.ldaps.taken">
@@ -430,6 +430,7 @@
           depends="run-tests-cant-ldap,run-tests-cant-ldaps,run-tests-cant-jmx,run-tests-cant-staf,run-tests-cant-package"
           unless="run-tests.proceed">
     <echo>Could not run the tests for the afore mentioned reasons</echo>
+    <fail message="Could not run the functional tests"/>
   </target>
   <target name="run-tests"
     depends="status-do,run-tests-check,run-tests-cant,run-tests-prepare" 
