@@ -2369,6 +2369,37 @@ public class BackendConfigManager
       }
 
       DirectoryServer.deregisterBackend(backend);
+      configEntry.deregisterChangeListener(this);
+
+      // Remove the shared lock for this backend.
+      try
+      {
+        String lockFile = LockFileManager.getBackendLockFileName(backend);
+        StringBuilder failureReason = new StringBuilder();
+        if (! LockFileManager.releaseLock(lockFile, failureReason))
+        {
+          int msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
+          String message = getMessage(msgID, backend.getBackendID(),
+                                      String.valueOf(failureReason));
+          logError(ErrorLogCategory.CONFIGURATION,
+                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          // FIXME -- Do we need to send an admin alert?
+        }
+      }
+      catch (Exception e2)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e2);
+        }
+
+        int msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
+        String message = getMessage(msgID, backend.getBackendID(),
+                                    stackTraceToSingleLineString(e2));
+        logError(ErrorLogCategory.CONFIGURATION,
+                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+        // FIXME -- Do we need to send an admin alert?
+      }
 
       return new ConfigChangeResult(resultCode, adminActionRequired,
                                     messages);
