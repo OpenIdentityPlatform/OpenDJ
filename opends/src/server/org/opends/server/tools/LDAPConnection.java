@@ -45,6 +45,7 @@ import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 
@@ -418,13 +419,28 @@ public class LDAPConnection
   }
 
   /**
-   * Close the underlying ASN1 reader and writer.
+   * Close the underlying ASN1 reader and writer, optionally sending an unbind
+   * request before disconnecting.
    *
+   * @param  nextMessageID  The message ID counter that should be used for
+   *                        the unbind request, or {@code null} if the
+   *                        connection should be closed without an unbind
+   *                        request.
    */
-  public void close()
+  public void close(AtomicInteger nextMessageID)
   {
     if(asn1Writer != null)
     {
+      if (nextMessageID != null)
+      {
+        try
+        {
+          LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
+                                                new UnbindRequestProtocolOp());
+          asn1Writer.writeElement(message.encode());
+        } catch (Exception e) {}
+      }
+
       asn1Writer.close();
     }
     if(asn1Reader != null)

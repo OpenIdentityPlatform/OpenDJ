@@ -688,6 +688,7 @@ public class LDAPDelete
       }
     }
 
+    LDAPDelete ldapDelete = null;
     try
     {
       if (initializeServer)
@@ -722,7 +723,7 @@ public class LDAPDelete
                                       connectionOptions, out, err);
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
-      LDAPDelete ldapDelete = new LDAPDelete(nextMessageID, out, err);
+      ldapDelete = new LDAPDelete(nextMessageID, out, err);
       if(fileNameValue == null && dnStrings.isEmpty())
       {
         // Read from stdin.
@@ -769,7 +770,14 @@ public class LDAPDelete
     {
       if(connection != null)
       {
-        connection.close();
+        if (ldapDelete == null)
+        {
+          connection.close(null);
+        }
+        else
+        {
+          connection.close(ldapDelete.nextMessageID);
+        }
       }
     }
     return 0;

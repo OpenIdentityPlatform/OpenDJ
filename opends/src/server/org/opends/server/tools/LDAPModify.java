@@ -1051,6 +1051,7 @@ public class LDAPModify
       }
     }
 
+    LDAPModify ldapModify = null;
     try
     {
       if (initializeServer)
@@ -1085,8 +1086,7 @@ public class LDAPModify
                                       connectionOptions, out, err);
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
-      LDAPModify ldapModify = new LDAPModify(fileNameValue, nextMessageID,
-                                             out, err);
+      ldapModify = new LDAPModify(fileNameValue, nextMessageID, out, err);
       InputStream is = System.in;
       if(fileNameValue != null)
       {
@@ -1123,7 +1123,14 @@ public class LDAPModify
     {
       if(connection != null)
       {
-        connection.close();
+        if (ldapModify == null)
+        {
+          connection.close(null);
+        }
+        else
+        {
+          connection.close(ldapModify.nextMessageID);
+        }
       }
     }
     return 0;

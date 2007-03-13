@@ -808,6 +808,7 @@ public class LDAPCompare
       }
     }
 
+    LDAPCompare ldapCompare = null;
     try
     {
       if (initializeServer)
@@ -843,7 +844,7 @@ public class LDAPCompare
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
 
 
-      LDAPCompare ldapCompare = new LDAPCompare(nextMessageID, out, err);
+      ldapCompare = new LDAPCompare(nextMessageID, out, err);
       if(fileNameValue == null && dnStrings.isEmpty())
       {
         // Read from stdin.
@@ -891,7 +892,14 @@ public class LDAPCompare
     {
       if(connection != null)
       {
-        connection.close();
+        if (ldapCompare == null)
+        {
+          connection.close(null);
+        }
+        else
+        {
+          connection.close(ldapCompare.nextMessageID);
+        }
       }
     }
     return 0;

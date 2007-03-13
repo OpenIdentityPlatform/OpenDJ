@@ -51,6 +51,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -302,7 +303,7 @@ public class DSMLServlet extends HttpServlet {
       }
     } finally {
       if (connection != null) {
-        connection.close();
+        connection.close(new AtomicInteger(1));
       }
     }
   }
