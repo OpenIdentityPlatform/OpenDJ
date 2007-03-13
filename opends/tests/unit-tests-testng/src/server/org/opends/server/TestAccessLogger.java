@@ -59,6 +59,7 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.util.TimeThread;
 
 
 
@@ -1018,6 +1019,8 @@ public class TestAccessLogger
     buffer.append(operation.getOperationID());
     buffer.append(" msgID=");
     buffer.append(operation.getMessageID());
+    buffer.append(" time=" + TimeThread.getTime());
+    buffer.append(" thread=" + Thread.currentThread().getName());
   }
 
 
@@ -1038,6 +1041,8 @@ public class TestAccessLogger
     buffer.append(" op=");
     buffer.append(operation.getOperationID());
     buffer.append(" msgID=");
+    buffer.append(" time=" + TimeThread.getTime());
+    buffer.append(" thread=" + Thread.currentThread().getName());
     buffer.append(operation.getMessageID());
     buffer.append(" resultCode=\"");
     buffer.append(operation.getResultCode());
