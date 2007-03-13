@@ -1329,6 +1329,7 @@ public class LDAPSearch
       wrapColumn = 0;
     }
 
+    LDAPSearch ldapSearch = null;
     try
     {
       if (initializeServer)
@@ -1386,7 +1387,7 @@ public class LDAPSearch
                new PagedResultsControl(true, pageSize, cookieValue)));
           searchOptions.setControls(newControls);
 
-          LDAPSearch ldapSearch = new LDAPSearch(nextMessageID, out, err);
+          ldapSearch = new LDAPSearch(nextMessageID, out, err);
           matchingEntries += ldapSearch.executeSearch(connection, baseDNValue,
                                                       filters, attributes,
                                                       searchOptions,
@@ -1432,7 +1433,7 @@ public class LDAPSearch
       }
       else
       {
-        LDAPSearch ldapSearch = new LDAPSearch(nextMessageID, out, err);
+        ldapSearch = new LDAPSearch(nextMessageID, out, err);
         matchingEntries = ldapSearch.executeSearch(connection, baseDNValue,
                                                    filters, attributes,
                                                    searchOptions, wrapColumn);
@@ -1477,7 +1478,14 @@ public class LDAPSearch
     {
       if(connection != null)
       {
-        connection.close();
+        if (ldapSearch == null)
+        {
+          connection.close(null);
+        }
+        else
+        {
+          connection.close(ldapSearch.nextMessageID);
+        }
       }
     }
   }
