@@ -86,7 +86,7 @@ public class postConnectedDisconnectTest extends JmxTestCase
     int postConnectAfter = postConnectBefore;
 
     while ((System.currentTimeMillis() < endTime)
-        && (postConnectAfter == postConnectAfter))
+        && (postConnectAfter == postConnectBefore))
     {
       Thread.sleep(10);
       postConnectAfter = InvocationCounterPlugin.getPostConnectCount();
@@ -112,7 +112,7 @@ public class postConnectedDisconnectTest extends JmxTestCase
     }
     assertEquals(postDisconnectBefore +1 , postDisconnectAfter);
 
-    // Check that postDisconnect is not incremented again.
+    // Check that postconnect is not incremented again.
     postConnectAfter = InvocationCounterPlugin.getPostConnectCount();
     assertEquals(postConnectBefore +1 , postConnectAfter);
   }
