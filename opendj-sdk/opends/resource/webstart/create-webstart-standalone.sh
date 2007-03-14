@@ -152,7 +152,7 @@ cd ..
 cat > "${JNLP_FILENAME}" <<ENDOFJNLP
 <?xml version="1.0" encoding="utf-8"?>
 <!-- JNLP File for OpenDS Quick Setup Application -->
-<jnlp spec="1.0+"
+<jnlp spec="1.5+"
   codebase="${INSTALLER_URI}" href="${JNLP_FILENAME}">
   <information>
     <title>OpenDS Quick Setup Application</title>
@@ -162,7 +162,6 @@ cat > "${JNLP_FILENAME}" <<ENDOFJNLP
     <description kind="short">OpenDS Web Start Installer</description>
     <icon href="images/opendshref.png" height="128" width="128"/>
     <icon kind="splash" href="images/opendssplash.png" height="114" width="479"/>
-    <offline-allowed/>
   </information>
 
   <security>
