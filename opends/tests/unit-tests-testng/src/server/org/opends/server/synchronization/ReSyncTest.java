@@ -153,7 +153,7 @@ public class ReSyncTest extends SynchronizationTestCase
   /**
    * Test re-synchronization after after backup/restore
    */
-  @Test()
+  @Test(enabled=false)
   public void testResyncAfterRestore() throws Exception
   {
     /*
@@ -208,7 +208,7 @@ public class ReSyncTest extends SynchronizationTestCase
   /**
    * Test re-synchronization after after backup/restore
    */
-  @Test()
+  @Test(enabled=false)
   public void testResyncAfterImport() throws Exception
   {
     /*
