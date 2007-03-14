@@ -44,6 +44,7 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.types.Control;
@@ -166,12 +167,14 @@ public class LDAPConnection
       {
         int msgID = MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
         String msg = getMessage(msgID);
-        throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, uhe);
+        throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
+                                          uhe);
       } catch(ConnectException ce)
       {
         int msgID = MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
         String msg = getMessage(msgID);
-        throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, ce);
+        throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
+                                          ce);
       } catch(Exception ex)
       {
         if (debugEnabled())
@@ -205,12 +208,9 @@ public class LDAPConnection
       resultCode = res.getResultCode();
       if(resultCode != SUCCESS)
       {
-        String message = res.getErrorMessage();
-        if(message == null)
-        {
-          message = "Response code:" + resultCode;
-        }
-        throw new LDAPConnectionException(message);
+        throw new LDAPConnectionException(res.getErrorMessage(), resultCode,
+                                          res.getErrorMessage(),
+                                          res.getMatchedDN(), null);
       }
     }
     SSLConnectionFactory sslConnectionFactory =
@@ -238,12 +238,14 @@ public class LDAPConnection
     {
       int msgID = MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
       String msg = getMessage(msgID);
-      throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, uhe);
+      throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
+                                        uhe);
     } catch(ConnectException ce)
     {
       int msgID = MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
       String msg = getMessage(msgID);
-      throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, ce);
+      throw new LDAPConnectionException(msg, CLIENT_SIDE_CONNECT_ERROR, null,
+                                        ce);
     } catch(Exception ex2)
     {
       if (debugEnabled())
@@ -406,7 +408,13 @@ public class LDAPConnection
       {
         debugCaught(DebugLogLevel.ERROR, ce);
       }
-      throw new LDAPConnectionException(ce.getMessage(), ce.getExitCode(), ce);
+      throw new LDAPConnectionException(ce.getMessage(), ce.getExitCode(),
+                                        null, ce);
+    } catch (LDAPException le)
+    {
+      throw new LDAPConnectionException(le.getMessage(), le.getResultCode(),
+                                        le.getErrorMessage(), le.getMatchedDN(),
+                                        le.getCause());
     } catch(Exception ex)
     {
       if (debugEnabled())

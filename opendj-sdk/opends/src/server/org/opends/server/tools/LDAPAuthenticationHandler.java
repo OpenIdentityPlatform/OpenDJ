@@ -448,10 +448,9 @@ public class LDAPAuthenticationHandler
     // FIXME -- Add support for referrals.
 
     int    msgID   = MSGID_LDAPAUTH_SIMPLE_BIND_FAILED;
-    String message = getMessage(msgID, resultCode,
-                                LDAPResultCode.toString(resultCode),
-                                bindResponse.getErrorMessage());
-    throw new LDAPException(bindResponse.getResultCode(), msgID, message);
+    String message = getMessage(msgID);
+    throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
+                            msgID, message, bindResponse.getMatchedDN(), null);
   }
 
 
@@ -774,10 +773,9 @@ public class LDAPAuthenticationHandler
     // FIXME -- Add support for referrals.
 
     int    msgID   = MSGID_LDAPAUTH_SASL_BIND_FAILED;
-    String message = getMessage(msgID, SASL_MECHANISM_ANONYMOUS, resultCode,
-                                LDAPResultCode.toString(resultCode),
-                                bindResponse.getErrorMessage());
-    throw new LDAPException(bindResponse.getResultCode(), msgID, message);
+    String message = getMessage(msgID, SASL_MECHANISM_ANONYMOUS);
+    throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
+                            msgID, message, bindResponse.getMatchedDN(), null);
   }
 
 
@@ -1038,11 +1036,18 @@ public class LDAPAuthenticationHandler
     int resultCode1 = bindResponse1.getResultCode();
     if (resultCode1 != LDAPResultCode.SASL_BIND_IN_PROGRESS)
     {
+      String errorMessage = bindResponse1.getErrorMessage();
+      if (errorMessage == null)
+      {
+        errorMessage = "";
+      }
+
       int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_INITIAL_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5, resultCode1,
                                   LDAPResultCode.toString(resultCode1),
-                                  bindResponse1.getErrorMessage());
-      throw new LDAPException(resultCode1, msgID, message);
+                                  errorMessage);
+      throw new LDAPException(resultCode1, errorMessage, msgID, message,
+                              bindResponse1.getMatchedDN(), null);
     }
 
 
@@ -1205,10 +1210,9 @@ public class LDAPAuthenticationHandler
     // FIXME -- Add support for referrals.
 
     int    msgID   = MSGID_LDAPAUTH_SASL_BIND_FAILED;
-    String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5, resultCode2,
-                                LDAPResultCode.toString(resultCode2),
-                                bindResponse2.getErrorMessage());
-    throw new LDAPException(bindResponse2.getResultCode(), msgID, message);
+    String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5);
+    throw new LDAPException(resultCode2, bindResponse2.getErrorMessage(),
+                            msgID, message, bindResponse2.getMatchedDN(), null);
   }
 
 
@@ -1659,11 +1663,18 @@ public class LDAPAuthenticationHandler
     int resultCode1 = bindResponse1.getResultCode();
     if (resultCode1 != LDAPResultCode.SASL_BIND_IN_PROGRESS)
     {
+      String errorMessage = bindResponse1.getErrorMessage();
+      if (errorMessage == null)
+      {
+        errorMessage = "";
+      }
+
       int    msgID   = MSGID_LDAPAUTH_UNEXPECTED_INITIAL_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5, resultCode1,
                                   LDAPResultCode.toString(resultCode1),
-                                  bindResponse1.getErrorMessage());
-      throw new LDAPException(resultCode1, msgID, message);
+                                  errorMessage);
+      throw new LDAPException(resultCode1, errorMessage, msgID, message,
+                              bindResponse1.getMatchedDN(), null);
     }
 
 
@@ -1990,10 +2001,10 @@ public class LDAPAuthenticationHandler
       // FIXME -- Add support for referrals.
 
       int    msgID   = MSGID_LDAPAUTH_SASL_BIND_FAILED;
-      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5, resultCode2,
-                                  LDAPResultCode.toString(resultCode2),
-                                  bindResponse2.getErrorMessage());
-      throw new LDAPException(bindResponse2.getResultCode(), msgID, message);
+      String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5);
+      throw new LDAPException(resultCode2, bindResponse2.getErrorMessage(),
+                              msgID, message, bindResponse2.getMatchedDN(),
+                              null);
     }
 
 
@@ -2672,10 +2683,9 @@ public class LDAPAuthenticationHandler
     // FIXME -- Add support for referrals.
 
     int    msgID   = MSGID_LDAPAUTH_SASL_BIND_FAILED;
-    String message = getMessage(msgID, SASL_MECHANISM_EXTERNAL, resultCode,
-                                LDAPResultCode.toString(resultCode),
-                                bindResponse.getErrorMessage());
-    throw new LDAPException(bindResponse.getResultCode(), msgID, message);
+    String message = getMessage(msgID, SASL_MECHANISM_EXTERNAL);
+    throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
+                            msgID, message, bindResponse.getMatchedDN(), null);
   }
 
 
@@ -3296,10 +3306,9 @@ public class LDAPAuthenticationHandler
     // FIXME -- Add support for referrals.
 
     int    msgID   = MSGID_LDAPAUTH_SASL_BIND_FAILED;
-    String message = getMessage(msgID, SASL_MECHANISM_PLAIN, resultCode,
-                                LDAPResultCode.toString(resultCode),
-                                bindResponse.getErrorMessage());
-    throw new LDAPException(bindResponse.getResultCode(), msgID, message);
+    String message = getMessage(msgID, SASL_MECHANISM_PLAIN);
+    throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
+                            msgID, message, bindResponse.getMatchedDN(), null);
   }
 
 
@@ -3716,10 +3725,10 @@ public class LDAPAuthenticationHandler
         {
           // This is an error.
           int    msgID   = MSGID_LDAPAUTH_GSSAPI_BIND_FAILED;
-          String message = getMessage(msgID, resultCode,
-                                      LDAPResultCode.toString(resultCode),
-                                      bindResponse.getErrorMessage());
-          throw new LDAPException(resultCode, msgID, message);
+          String message = getMessage(msgID);
+          throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
+                                  msgID, message, bindResponse.getMatchedDN(),
+                                  null);
         }
       }
     }
@@ -3916,10 +3925,10 @@ public class LDAPAuthenticationHandler
     if (resultCode != LDAPResultCode.SUCCESS)
     {
       int msgID = MSGID_LDAPAUTH_WHOAMI_FAILED;
-      String message = getMessage(msgID, resultCode,
-                                  LDAPResultCode.toString(resultCode),
-                                  extendedResponse.getErrorMessage());
-      throw new LDAPException(resultCode, msgID, message);
+      String message = getMessage(msgID);
+      throw new LDAPException(resultCode, extendedResponse.getErrorMessage(),
+                              msgID, message, extendedResponse.getMatchedDN(),
+                              null);
     }
 
 

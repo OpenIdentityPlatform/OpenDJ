@@ -205,8 +205,9 @@ public class LDAPDelete
         else
         {
           msgID = MSGID_OPERATION_FAILED;
-          String msg = getMessage(msgID, "DELETE", line, ae.getMessage());
+          String msg = getMessage(msgID, "DELETE");
           err.println(wrapText(msg, MAX_LINE_WIDTH));
+          err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
           return;
         }
       }
@@ -219,15 +220,17 @@ public class LDAPDelete
          !deleteOptions.continueOnError())
       {
         msgID = MSGID_OPERATION_FAILED;
-        String msg = getMessage(msgID, "DELETE", line, errorMessage);
-        throw new LDAPException(resultCode, msgID, msg);
+        String msg = getMessage(msgID, "DELETE");
+        throw new LDAPException(resultCode, errorMessage, msgID, msg,
+                                op.getMatchedDN(), null);
       } else
       {
         if(resultCode != SUCCESS && resultCode != REFERRAL)
         {
           msgID = MSGID_OPERATION_FAILED;
-          String msg = getMessage(msgID, "DELETE", line, errorMessage);
-          err.println(wrapText(msg, MAX_LINE_WIDTH));
+          String msg = getMessage(msgID, "DELETE");
+          LDAPToolUtils.printErrorMessage(err, msg, resultCode, errorMessage,
+                                          op.getMatchedDN());
         } else
         {
           msgID = MSGID_OPERATION_SUCCESSFUL;
@@ -746,7 +749,8 @@ public class LDAPDelete
       {
         debugCaught(DebugLogLevel.ERROR, le);
       }
-      err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
+      LDAPToolUtils.printErrorMessage(err, le.getMessage(), le.getResultCode(),
+                                      le.getErrorMessage(), le.getMatchedDN());
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
@@ -755,8 +759,11 @@ public class LDAPDelete
       {
         debugCaught(DebugLogLevel.ERROR, lce);
       }
-      err.println(wrapText(lce.getMessage(), MAX_LINE_WIDTH));
-      int code = lce.getErrorCode();
+      LDAPToolUtils.printErrorMessage(err, lce.getMessage(),
+                                      lce.getResultCode(),
+                                      lce.getErrorMessage(),
+                                      lce.getMatchedDN());
+      int code = lce.getResultCode();
       return code;
     } catch(Exception e)
     {

@@ -181,6 +181,7 @@ public class LDAPSearch
           {
             int resultCode = 0;
             String errorMessage = null;
+            DN matchedDN = null;
             ASN1Element element = connection.getASN1Reader().readElement();
             LDAPMessage responseMessage =
                  LDAPMessage.decode(ASN1Sequence.decodeAsSequence(element));
@@ -297,6 +298,7 @@ public class LDAPSearch
                      responseMessage.getSearchResultDoneProtocolOp();
                 resultCode = searchOp.getResultCode();
                 errorMessage = searchOp.getErrorMessage();
+                matchedDN = searchOp.getMatchedDN();
 
                 break;
               default:
@@ -310,11 +312,9 @@ public class LDAPSearch
             if(resultCode != SUCCESS && resultCode != REFERRAL)
             {
               int msgID = MSGID_OPERATION_FAILED;
-              if(errorMessage == null)
-              {
-                errorMessage = "Result Code:" + resultCode;
-              }
-              throw new LDAPException(resultCode, msgID, errorMessage);
+              String msg = getMessage(msgID, "SEARCH");
+              throw new LDAPException(resultCode, errorMessage, msgID, msg,
+                                      matchedDN, null);
             }
             else if (errorMessage != null)
             {
@@ -1454,7 +1454,9 @@ public class LDAPSearch
       {
         debugCaught(DebugLogLevel.ERROR, le);
       }
-      err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
+
+      LDAPToolUtils.printErrorMessage(err, le.getMessage(), le.getResultCode(),
+                                      le.getErrorMessage(), le.getMatchedDN());
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
@@ -1463,8 +1465,11 @@ public class LDAPSearch
       {
         debugCaught(DebugLogLevel.ERROR, lce);
       }
-      err.println(wrapText(lce.getMessage(), MAX_LINE_WIDTH));
-      int code = lce.getErrorCode();
+      LDAPToolUtils.printErrorMessage(err, lce.getMessage(),
+                                      lce.getResultCode(),
+                                      lce.getErrorMessage(),
+                                      lce.getMatchedDN());
+      int code = lce.getResultCode();
       return code;
     } catch(Exception e)
     {

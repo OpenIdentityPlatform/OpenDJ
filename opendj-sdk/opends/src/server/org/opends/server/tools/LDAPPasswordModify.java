@@ -592,7 +592,7 @@ public class LDAPPasswordModify
       int    msgID   = MSGID_LDAPPWMOD_CANNOT_CONNECT;
       String message = getMessage(msgID, lce.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return lce.getErrorCode();
+      return lce.getResultCode();
     }
 
     ASN1Reader reader = connection.getASN1Reader();

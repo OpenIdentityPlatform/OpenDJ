@@ -33,7 +33,11 @@ import java.io.PrintStream;
 
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.types.DN;
 
+import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -223,5 +227,44 @@ public class LDAPToolUtils
       }
   }
 
+  /**
+   * Prints a multi-line error message with the provided information to the
+   * given print stream.
+   *
+   * @param  err           The print stream to use to write the error message.
+   * @param  explanation   The general explanation to provide to the user, or
+   *                       {@code null} if there is none.
+   * @param  resultCode    The result code returned from the server, or -1 if
+   *                       there is none.
+   * @param  errorMessage  The additional information / error message returned
+   *                       from the server, or {@code null} if there was none.
+   * @param  matchedDN     The matched DN returned from the server, or
+   *                       {@code null} if there was none.
+   */
+  public static void printErrorMessage(PrintStream err, String explanation,
+                                       int resultCode, String errorMessage,
+                                       DN matchedDN)
+  {
+    if ((explanation != null) && (explanation.length() > 0))
+    {
+      err.println(explanation);
+    }
+
+    if (resultCode >= 0)
+    {
+      err.println(getMessage(MSGID_TOOL_RESULT_CODE, resultCode,
+                             LDAPResultCode.toString(resultCode)));
+    }
+
+    if ((errorMessage != null) && (errorMessage.length() > 0))
+    {
+      err.println(getMessage(MSGID_TOOL_ERROR_MESSAGE, errorMessage));
+    }
+
+    if (matchedDN != null)
+    {
+      err.println(getMessage(MSGID_TOOL_MATCHED_DN, matchedDN.toString()));
+    }
+  }
 }
 
