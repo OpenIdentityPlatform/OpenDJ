@@ -429,6 +429,33 @@ public class SchemaBackendTestCase
 
 
   /**
+   * Performs a set of searches in the schema backend to ensure that they
+   * correctly set the matched DN in the response.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSearchMatchedDN()
+         throws Exception
+  {
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    DN baseDN = DN.decode("o=bogus,cn=schema");
+    SearchFilter filter =
+         SearchFilter.createFilterFromString("(objectClass=*)");
+
+    for (SearchScope scope : SearchScope.values())
+    {
+      InternalSearchOperation searchOperation =
+           conn.processSearch(baseDN, scope, filter);
+      assertNotNull(searchOperation.getMatchedDN(),
+                    "No matched DN for scope " + scope);
+    }
+  }
+
+
+
+  /**
    * Tests the behavior of the schema backend with regard to the
    * ds-cfg-show-all-attributes configuration.
    *
