@@ -4078,11 +4078,17 @@ public class SchemaBackend
 
     boolean found = false;
     DN[] dnArray = baseDNs;
+    DN matchedDN = null;
     for (DN dn : dnArray)
     {
       if (dn.equals(baseDN))
       {
         found = true;
+        break;
+      }
+      else if (dn.isAncestorOf(baseDN))
+      {
+        matchedDN = dn;
         break;
       }
     }
@@ -4093,7 +4099,8 @@ public class SchemaBackend
       String message = getMessage(msgID, searchOperation.getConnectionID(),
                                   searchOperation.getOperationID(),
                                   String.valueOf(baseDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
+                                   matchedDN, null);
     }
 
 

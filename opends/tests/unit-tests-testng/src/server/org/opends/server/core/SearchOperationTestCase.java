@@ -854,4 +854,34 @@ public class SearchOperationTestCase extends OperationTestCase
     List<String> referrals = references.get(0).getReferralURLs();
     assertEquals(referrals.size(), 2);
   }
+
+  @Test
+  public void testSearchInternalMatchedDN() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+
+    TestCaseUtils.initializeTestBackend(true);
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              new ASN1OctetString("ou=nonexistent,o=test"),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(objectclass=*)"),
+              null, null);
+
+    searchOperation.run();
+
+    assertEquals(searchOperation.getResultCode(), ResultCode.NO_SUCH_OBJECT);
+    assertNotNull(searchOperation.getMatchedDN());
+  }
 }

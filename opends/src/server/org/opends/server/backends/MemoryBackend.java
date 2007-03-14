@@ -551,21 +551,35 @@ public class MemoryBackend
     SearchFilter filter = searchOperation.getFilter();
 
 
+    // Make sure the base entry exists if it's supposed to be in this backend.
+    Entry baseEntry = entryMap.get(baseDN);
+    if ((baseEntry == null) && handlesEntry(baseDN))
+    {
+      DN matchedDN = baseDN.getParentDNInSuffix();
+      while (matchedDN != null)
+      {
+        if (entryMap.containsKey(matchedDN))
+        {
+          break;
+        }
+
+        matchedDN = matchedDN.getParentDNInSuffix();
+      }
+
+      int    msgID   = MSGID_MEMORYBACKEND_ENTRY_DOESNT_EXIST;
+      String message = getMessage(msgID, String.valueOf(baseDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID,
+                                   matchedDN, null);
+    }
+
+
     // If it's a base-level search, then just get that entry and return it if it
     // matches the filter.
     if (scope == SearchScope.BASE_OBJECT)
     {
-      Entry entry = entryMap.get(baseDN);
-      if (entry == null)
+      if (filter.matchesEntry(baseEntry))
       {
-        int    msgID   = MSGID_MEMORYBACKEND_ENTRY_DOESNT_EXIST;
-        String message = getMessage(msgID, String.valueOf(baseDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
-      }
-
-      if (filter.matchesEntry(entry))
-      {
-        searchOperation.returnEntry(entry, new LinkedList<Control>());
+        searchOperation.returnEntry(baseEntry, new LinkedList<Control>());
       }
     }
     else
