@@ -27,15 +27,15 @@
 package org.opends.server.tools;
 
 
+import org.opends.server.types.DN;
+
+
 /**
  * This class defines an exception that may be thrown during the course of
  * creating an LDAP connection to the server.
  */
 public class LDAPConnectionException extends Exception
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class extends <CODE>java.lang.Exception</CODE>, which implements the
@@ -47,9 +47,22 @@ public class LDAPConnectionException extends Exception
 
 
   /**
-   * The error code associated with the exception.
+   * The LDAP result code associated with the exception.
    */
-  private int errorCode = 1;
+  private final int resultCode;
+
+
+  /**
+   * The matched DN associated with the exception.
+   */
+  private final DN matchedDN;
+
+
+  /**
+   * The server-provided error message for this exception.
+   */
+  private final String errorMessage;
+
 
   /**
    * Creates a new exception with the provided message.
@@ -60,20 +73,28 @@ public class LDAPConnectionException extends Exception
   {
     super(message);
 
+    resultCode   = -1;
+    matchedDN    = null;
+    errorMessage = null;
   }
 
 
   /**
    * Creates a new exception with the provided message.
    *
-   * @param  message    The message to use for this exception.
-   * @param  errorCode  The error code for this exception.
+   * @param  message       The message to use for this exception.
+   * @param  resultCode    The result code for this exception.
+   * @param  errorMessage  The server-provided error message for this exception.
    */
-  public LDAPConnectionException(String message, int errorCode)
+  public LDAPConnectionException(String message, int resultCode,
+                                 String errorMessage)
   {
     super(message);
 
-    this.errorCode = errorCode;
+    this.resultCode   = resultCode;
+    this.errorMessage = errorMessage;
+
+    matchedDN = null;
   }
 
 
@@ -89,7 +110,9 @@ public class LDAPConnectionException extends Exception
   {
     super(message, cause);
 
-
+    resultCode   = -1;
+    matchedDN    = null;
+    errorMessage = null;
   }
 
 
@@ -97,28 +120,80 @@ public class LDAPConnectionException extends Exception
    * Creates a new exception with the provided message and
    * underlying cause.
    *
-   * @param  message    The message to use for this exception.
-   * @param  errorCode  The error code for this exception.
-   * @param  cause      The underlying cause that triggered this
-   *                    exception.
+   * @param  message       The message to use for this exception.
+   * @param  resultCode    The result code for this exception.
+   * @param  errorMessage  The server-provided error message for this exception.
+   * @param  cause         The underlying cause that triggered this
+   *                       exception.
    */
-  public LDAPConnectionException(String message, int errorCode, Throwable cause)
+  public LDAPConnectionException(String message, int resultCode,
+                                 String errorMessage, Throwable cause)
   {
     super(message, cause);
 
-    this.errorCode = errorCode;
+    this.resultCode   = resultCode;
+    this.errorMessage = errorMessage;
 
+    matchedDN = null;
   }
 
 
   /**
-   * Return the error code associated with this exception.
+   * Creates a new exception with the provided message and
+   * underlying cause.
    *
-   * @return  The error code associated with this exception.
+   * @param  message       The explanation to use for this exception.
+   * @param  resultCode    The result code for this exception.
+   * @param  errorMessage  The server-provided error message for this
+   *                       exception.
+   * @param  matchedDN     The matched DN string for this exception.
+   * @param  cause         The underlying cause that triggered this
+   *                       exception.
    */
-  public int getErrorCode()
+  public LDAPConnectionException(String message, int resultCode,
+                                 String errorMessage, DN matchedDN,
+                                 Throwable cause)
   {
-    return this.errorCode;
+    super(message, cause);
+
+    this.resultCode   = resultCode;
+    this.errorMessage = errorMessage;
+    this.matchedDN    = matchedDN;
+  }
+
+
+  /**
+   * Return the result code associated with this exception.
+   *
+   * @return  The result code associated with this exception, or -1 if none was
+   *          provided.
+   */
+  public int getResultCode()
+  {
+    return this.resultCode;
+  }
+
+
+  /**
+   * Retrieves the server-provided error message associated with this exception.
+   *
+   * @return  The server-provided error message associated with this exception.
+   */
+  public String getErrorMessage()
+  {
+    return this.errorMessage;
+  }
+
+
+  /**
+   * Return the matched DN associated with this exception.
+   *
+   * @return  The matched DN associated with this exception, or {@code null} if
+   *          none was provided.
+   */
+  public DN getMatchedDN()
+  {
+    return this.matchedDN;
   }
 }
 

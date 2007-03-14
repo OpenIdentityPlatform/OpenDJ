@@ -1364,9 +1364,7 @@ public class ToolMessages
 
   /**
    * The message ID for the message that will be used if the simple bind attempt
-   * fails.  This takes three arguments, which are the integer and string
-   * representations of the result code and the error message from the bind
-   * response.
+   * fails.  This does not take any arguments.
    */
   public static final int MSGID_LDAPAUTH_SIMPLE_BIND_FAILED =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 141;
@@ -1426,9 +1424,7 @@ public class ToolMessages
 
   /**
    * The message ID for the message that will be used if a SASL bind attempt
-   * fails.  This takes four arguments, which are the SASL mechanism name,
-   * integer and string representations of the result code and the error message
-   * from the bind response.
+   * fails.  This takes a single argument, which is the SASL mechanism name.
    */
   public static final int MSGID_LDAPAUTH_SASL_BIND_FAILED =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 147;
@@ -1920,9 +1916,7 @@ public class ToolMessages
   /**
    * The message ID for the message that will be used if the Directory Server
    * sent a bind response that was neither "success" nor "SASL bind in
-   * progress".  This takes three arguments, which are the result code, a
-   * string representation of the result code, and the error message from the
-   * bind response (if any).
+   * progress".  This does not take any arguments.
    */
   public static final int MSGID_LDAPAUTH_GSSAPI_BIND_FAILED =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 195;
@@ -2012,9 +2006,7 @@ public class ToolMessages
 
   /**
    * The message ID for the message that will be used if the "Who Am I?" request
-   * was rejected by the server.  This takes three arguments, which are the
-   * result code from the response, a string representation of that result code,
-   * and the error message from the response.
+   * was rejected by the server.  This does not take any arguments.
    */
   public static final int MSGID_LDAPAUTH_WHOAMI_FAILED =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 204;
@@ -7694,6 +7686,34 @@ public class ToolMessages
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 809;
 
   /**
+   * The message ID for the message that will be used to print the result code
+   * for an error encountered in a client tool.  This takes two arguments,
+   * which are the integer and string representations of the result code.
+   */
+  public static final int MSGID_TOOL_RESULT_CODE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 810;
+
+  /**
+   * The message ID for the message that will be used to print the error message
+   * or additional information string returned by the server for an error
+   * encountered in a client tool.  This takes a single argument, which is the
+   * error message string.
+   */
+  public static final int MSGID_TOOL_ERROR_MESSAGE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 811;
+
+  /**
+   * The message ID for the message that will be used to print the matched DN
+   * returned by the server for an error  encountered in a client tool.  This
+   * takes a single argument, which is the string representation of the matched
+   * DN.
+   */
+  public static final int MSGID_TOOL_MATCHED_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 812;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -8101,7 +8121,7 @@ public class ToolMessages
     registerMessage(MSGID_PROCESSING_OPERATION,
                     "Processing %s request for %s.");
     registerMessage(MSGID_OPERATION_FAILED,
-                    "%s operation failed for DN %s. %s.");
+                    "%s operation failed.");
     registerMessage(MSGID_OPERATION_SUCCESSFUL,
                     "%s operation successful for DN %s.");
     registerMessage(MSGID_PROCESSING_COMPARE_OPERATION,
@@ -8239,8 +8259,7 @@ public class ToolMessages
                     "The Directory Server sent an unexpected response " +
                     "message to the client:  %s.");
     registerMessage(MSGID_LDAPAUTH_SIMPLE_BIND_FAILED,
-                    "The simple bind attempt failed:  result code %d (%s), " +
-                    "error message \"%s\".");
+                    "The simple bind attempt failed.");
     registerMessage(MSGID_LDAPAUTH_NO_SASL_MECHANISM,
                     "A SASL bind was requested but no SASL mechanism was " +
                     "specified.");
@@ -8256,8 +8275,7 @@ public class ToolMessages
     registerMessage(MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND,
                     "Cannot send the SASL %S bind request:  %s.");
     registerMessage(MSGID_LDAPAUTH_SASL_BIND_FAILED,
-                    "The SASL %s bind attempt failed:  result code %d (%s), " +
-                    "error message \"%s\".");
+                    "The SASL %s bind attempt failed.");
     registerMessage(MSGID_LDAPAUTH_NO_SASL_PROPERTIES,
                     "No SASL properties were provided for use with the %s " +
                     "mechanism.");
@@ -8425,8 +8443,7 @@ public class ToolMessages
                     "response to the client even though the client does not " +
                     "believe that the GSSAPI negotiation is complete.");
     registerMessage(MSGID_LDAPAUTH_GSSAPI_BIND_FAILED,
-                    "The GSSAPI bind attempt failed.  The result code was %d " +
-                    "(%s), and the error message was \"%s\".");
+                    "The GSSAPI bind attempt failed.");
     registerMessage(MSGID_LDAPAUTH_NONSASL_CALLBACK_INVOCATION,
                     "The LDAPAuthenticationHandler.handle() method was " +
                     "called for a non-SASL bind.  The backtrace for this " +
@@ -8449,8 +8466,7 @@ public class ToolMessages
                     "Server:  %s.");
     registerMessage(MSGID_LDAPAUTH_WHOAMI_FAILED,
                     "The 'Who Am I?' request was rejected by the Directory " +
-                    "Server with a result code of %d (%s) and and error " +
-                    "message of \"%s\".");
+                    "Server.");
 
 
     registerMessage(MSGID_DESCRIPTION_INVALID_VERSION,
@@ -9894,6 +9910,12 @@ public class ToolMessages
     registerMessage(MSGID_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE,
                     "SASL EXTERNAL authentication may only be used if a " +
                     "client certificate keystore is specified.");
+    registerMessage(MSGID_TOOL_RESULT_CODE,
+                    "Result Code:  %d (%s)");
+    registerMessage(MSGID_TOOL_ERROR_MESSAGE,
+                    "Additional Information:  %s");
+    registerMessage(MSGID_TOOL_MATCHED_DN,
+                    "Matched DN:  %s");
 
 
     registerMessage(MSGID_BACKUPDB_TOOL_DESCRIPTION,

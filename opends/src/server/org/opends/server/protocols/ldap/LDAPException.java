@@ -28,6 +28,7 @@ package org.opends.server.protocols.ldap;
 
 
 
+import org.opends.server.types.DN;
 
 
 
@@ -38,9 +39,6 @@ package org.opends.server.protocols.ldap;
 public class LDAPException
        extends Exception
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class extends <CODE>java.lang.Exception</CODE>, which implements the
@@ -52,12 +50,17 @@ public class LDAPException
 
 
 
-  // The message ID for the message associated with this initialization
-  // exception.
-  private int messageID;
+  // The matched DN associated with this LDAP exception.
+  private final DN matchedDN;
+
+  // The message ID for the message associated with this LDAP exception.
+  private final int messageID;
 
   // The LDAP result code associated with this exception.
-  private int resultCode;
+  private final int resultCode;
+
+  // The server-provided error message for this LDAP exception.
+  private final String errorMessage;
 
 
 
@@ -72,9 +75,33 @@ public class LDAPException
   {
     super(message);
 
-
     this.resultCode = resultCode;
     this.messageID  = messageID;
+
+    errorMessage = null;
+    matchedDN    = null;
+  }
+
+
+
+  /**
+   * Creates a new LDAP exception with the provided message.
+   *
+   * @param  resultCode    The LDAP result code associated with this exception.
+   * @param  errorMessage  The server-provided error message.
+   * @param  messageID     The unique identifier for the associated message.
+   * @param  message       The message that explains the problem that occurred.
+   */
+  public LDAPException(int resultCode, String errorMessage, int messageID,
+                       String message)
+  {
+    super(message);
+
+    this.resultCode   = resultCode;
+    this.errorMessage = errorMessage;
+    this.messageID    = messageID;
+
+    matchedDN    = null;
   }
 
 
@@ -93,9 +120,59 @@ public class LDAPException
   {
     super(message, cause);
 
-
     this.resultCode = resultCode;
     this.messageID  = messageID;
+
+    errorMessage = null;
+    matchedDN    = null;
+  }
+
+
+
+  /**
+   * Creates a new LDAP exception with the provided message and root cause.
+   *
+   * @param  resultCode    The LDAP result code associated with this exception.
+   * @param  errorMessage  The server-provided error message.
+   * @param  messageID     The unique identifier for the associated message.
+   * @param  message       The message that explains the problem that occurred.
+   * @param  cause         The exception that was caught to trigger this
+   *                       exception.
+   */
+  public LDAPException(int resultCode, String errorMessage, int messageID,
+                       String message, Throwable cause)
+  {
+    super(message, cause);
+
+    this.resultCode   = resultCode;
+    this.errorMessage = errorMessage;
+    this.messageID    = messageID;
+
+    matchedDN    = null;
+  }
+
+
+
+  /**
+   * Creates a new LDAP exception with the provided message and root cause.
+   *
+   * @param  resultCode    The LDAP result code associated with this exception.
+   * @param  errorMessage  The server-provided error message.
+   * @param  messageID     The unique identifier for the associated message.
+   * @param  message       The message that explains the problem that occurred.
+   * @param  matchedDN     The matched DN returned by the server.
+   * @param  cause         The exception that was caught to trigger this
+   *                       exception.
+   */
+  public LDAPException(int resultCode, String errorMessage, int messageID,
+                       String message, DN matchedDN, Throwable cause)
+  {
+    super(message, cause);
+
+    this.resultCode   = resultCode;
+    this.errorMessage = errorMessage;
+    this.messageID    = messageID;
+    this.matchedDN    = matchedDN;
   }
 
 
@@ -113,6 +190,19 @@ public class LDAPException
 
 
   /**
+   * Retrieves the server-provided error message for this exception.
+   *
+   * @return  The server-provided error message for this exception, or
+   *          {@code null} if none was given.
+   */
+  public String getErrorMessage()
+  {
+    return errorMessage;
+  }
+
+
+
+  /**
    * Retrieves the unique identifier for the associated message.
    *
    * @return  The unique identifier for the associated message.
@@ -120,6 +210,19 @@ public class LDAPException
   public int getMessageID()
   {
     return messageID;
+  }
+
+
+
+  /**
+   * Retrieves the matched DN for this exception.
+   *
+   * @return  The matched DN for this exception, or {@code null} if there is
+   *          none.
+   */
+  public DN getMatchedDN()
+  {
+    return matchedDN;
   }
 }
 

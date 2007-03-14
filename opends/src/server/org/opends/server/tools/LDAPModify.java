@@ -59,6 +59,7 @@ import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.DebugLogLevel;
@@ -345,9 +346,9 @@ public class LDAPModify
             debugCaught(DebugLogLevel.ERROR, ae);
           }
           msgID = MSGID_OPERATION_FAILED;
-          String message = getMessage(msgID, operationType, asn1OctetStr,
-                                      ae.getMessage());
+          String message = getMessage(msgID, operationType);
           err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
           if (!modifyOptions.continueOnError())
           {
             throw new IOException(ae.getMessage());
@@ -357,6 +358,7 @@ public class LDAPModify
 
         int resultCode = 0;
         String errorMessage = null;
+        DN matchedDN = null;
         List<String> referralURLs = null;
         switch(entry.getChangeOperationType())
         {
@@ -365,6 +367,7 @@ public class LDAPModify
               responseMessage.getAddResponseProtocolOp();
             resultCode = addOp.getResultCode();
             errorMessage = addOp.getErrorMessage();
+            matchedDN = addOp.getMatchedDN();
             referralURLs = addOp.getReferralURLs();
             break;
           case DELETE:
@@ -372,6 +375,7 @@ public class LDAPModify
               responseMessage.getDeleteResponseProtocolOp();
             resultCode = delOp.getResultCode();
             errorMessage = delOp.getErrorMessage();
+            matchedDN = delOp.getMatchedDN();
             referralURLs = delOp.getReferralURLs();
             break;
           case MODIFY:
@@ -379,6 +383,7 @@ public class LDAPModify
               responseMessage.getModifyResponseProtocolOp();
             resultCode = modOp.getResultCode();
             errorMessage = modOp.getErrorMessage();
+            matchedDN = modOp.getMatchedDN();
             referralURLs = modOp.getReferralURLs();
             break;
           case MODIFY_DN:
@@ -386,6 +391,7 @@ public class LDAPModify
               responseMessage.getModifyDNResponseProtocolOp();
             resultCode = modDNOp.getResultCode();
             errorMessage = modDNOp.getErrorMessage();
+            matchedDN = modDNOp.getMatchedDN();
             referralURLs = modDNOp.getReferralURLs();
             break;
           default:
@@ -394,20 +400,17 @@ public class LDAPModify
 
         if(resultCode != SUCCESS && resultCode != REFERRAL)
         {
-          if(errorMessage == null)
-          {
-            errorMessage = "Result code:" + resultCode;
-          }
           msgID = MSGID_OPERATION_FAILED;
-          String msg = getMessage(msgID, operationType, asn1OctetStr,
-                                  errorMessage);
+          String msg = getMessage(msgID, operationType);
 
           if(!modifyOptions.continueOnError())
           {
-            throw new LDAPException(resultCode, msgID, msg);
+            throw new LDAPException(resultCode, errorMessage, msgID, msg,
+                                    matchedDN, null);
           } else
           {
-            err.println(msg);
+            LDAPToolUtils.printErrorMessage(err, msg, resultCode, errorMessage,
+                                            matchedDN);
           }
         } else
         {
@@ -1099,7 +1102,8 @@ public class LDAPModify
       {
         debugCaught(DebugLogLevel.ERROR, le);
       }
-      err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
+      LDAPToolUtils.printErrorMessage(err, le.getMessage(), le.getResultCode(),
+                                      le.getErrorMessage(), le.getMatchedDN());
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
@@ -1108,8 +1112,11 @@ public class LDAPModify
       {
         debugCaught(DebugLogLevel.ERROR, lce);
       }
-      err.println(wrapText(lce.getMessage(), MAX_LINE_WIDTH));
-      int code = lce.getErrorCode();
+      LDAPToolUtils.printErrorMessage(err, lce.getMessage(),
+                                      lce.getResultCode(),
+                                      lce.getErrorMessage(),
+                                      lce.getMatchedDN());
+      int code = lce.getResultCode();
       return code;
     } catch(Exception e)
     {

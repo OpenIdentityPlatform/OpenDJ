@@ -221,8 +221,9 @@ public class LDAPCompare
         else
         {
           msgID = MSGID_OPERATION_FAILED;
-          String msg = getMessage(msgID, "COMPARE", line, ae.getMessage());
+          String msg = getMessage(msgID, "COMPARE");
           err.println(wrapText(msg, MAX_LINE_WIDTH));
+          err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
           return;
         }
       }
@@ -236,8 +237,9 @@ public class LDAPCompare
          && !compareOptions.continueOnError())
       {
         msgID = MSGID_OPERATION_FAILED;
-        String msg = getMessage(msgID, "COMPARE", line, errorMessage);
-        throw new LDAPException(resultCode, msgID, msg);
+        String msg = getMessage(msgID, "COMPARE");
+        throw new LDAPException(resultCode, errorMessage, msgID, msg,
+                                op.getMatchedDN(), null);
       } else
       {
         if(resultCode == COMPARE_FALSE)
@@ -251,8 +253,9 @@ public class LDAPCompare
         } else
         {
           msgID = MSGID_OPERATION_FAILED;
-          String msg = getMessage(msgID, "COMPARE", line, errorMessage);
-          err.println(wrapText(msg, MAX_LINE_WIDTH));
+          String msg = getMessage(msgID, "COMPARE");
+          LDAPToolUtils.printErrorMessage(err, msg, resultCode, errorMessage,
+                                          op.getMatchedDN());
         }
       }
     }
@@ -868,7 +871,8 @@ public class LDAPCompare
       {
         debugCaught(DebugLogLevel.ERROR, le);
       }
-      err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
+      LDAPToolUtils.printErrorMessage(err, le.getMessage(), le.getResultCode(),
+                                      le.getErrorMessage(), le.getMatchedDN());
       int code = le.getResultCode();
       return code;
     } catch(LDAPConnectionException lce)
@@ -877,8 +881,11 @@ public class LDAPCompare
       {
         debugCaught(DebugLogLevel.ERROR, lce);
       }
-      err.println(wrapText(lce.getMessage(), MAX_LINE_WIDTH));
-      int code = lce.getErrorCode();
+      LDAPToolUtils.printErrorMessage(err, lce.getMessage(),
+                                      lce.getResultCode(),
+                                      lce.getErrorMessage(),
+                                      lce.getMatchedDN());
+      int code = lce.getResultCode();
       return code;
     } catch(Exception e)
     {
