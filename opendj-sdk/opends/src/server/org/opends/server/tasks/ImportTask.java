@@ -528,7 +528,9 @@ public class ImportTask extends Task
       // Launch the import.
       try
       {
+        DirectoryServer.notifyImportBeginning(backend, importConfig);
         backend.importLDIF(configEntry, baseDNs, importConfig);
+        DirectoryServer.notifyImportEnded(backend, importConfig, true);
       }
       catch (DirectoryException de)
       {
@@ -537,6 +539,7 @@ public class ImportTask extends Task
           debugCaught(DebugLogLevel.ERROR, de);
         }
 
+        DirectoryServer.notifyImportEnded(backend, importConfig, false);
         int    msgID   = MSGID_LDIFIMPORT_ERROR_DURING_IMPORT;
         String message = getMessage(msgID, de.getErrorMessage());
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -550,6 +553,7 @@ public class ImportTask extends Task
           debugCaught(DebugLogLevel.ERROR, e);
         }
 
+        DirectoryServer.notifyImportEnded(backend, importConfig, false);
         int    msgID   = MSGID_LDIFIMPORT_ERROR_DURING_IMPORT;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,

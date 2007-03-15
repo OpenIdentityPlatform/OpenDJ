@@ -494,10 +494,13 @@ public class ExportTask extends Task
         // Launch the export.
         try
         {
+          DirectoryServer.notifyExportBeginning(backend, exportConfig);
           backend.exportLDIF(configEntry, baseDNs, exportConfig);
+          DirectoryServer.notifyExportEnded(backend, exportConfig, true);
         }
         catch (DirectoryException de)
         {
+          DirectoryServer.notifyExportEnded(backend, exportConfig, false);
           int    msgID   = MSGID_LDIFEXPORT_ERROR_DURING_EXPORT;
           String message = getMessage(msgID, de.getErrorMessage());
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -506,6 +509,7 @@ public class ExportTask extends Task
         }
         catch (Exception e)
         {
+          DirectoryServer.notifyExportEnded(backend, exportConfig, false);
           int    msgID   = MSGID_LDIFEXPORT_ERROR_DURING_EXPORT;
           String message = getMessage(msgID, stackTraceToSingleLineString(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,

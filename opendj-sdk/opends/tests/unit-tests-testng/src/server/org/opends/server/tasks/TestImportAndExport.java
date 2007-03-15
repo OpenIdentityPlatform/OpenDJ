@@ -33,8 +33,12 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.TestTaskListener;
 import org.opends.server.types.Entry;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.backends.task.TaskState;
+
+import static org.testng.Assert.*;
 
 import java.io.File;
 import java.util.UUID;
@@ -110,6 +114,8 @@ public class TestImportAndExport extends TasksTestCase
 
     // Create a temporary rejects file.
     rejectFile = File.createTempFile("import-test-rejects", ".ldif");
+
+    TestTaskListener.registerListeners();
   }
 
   @AfterClass
@@ -117,6 +123,7 @@ public class TestImportAndExport extends TasksTestCase
   {
     ldifFile.delete();
     rejectFile.delete();
+    TestTaskListener.deregisterListeners();
   }
 
   /**
@@ -291,7 +298,35 @@ public class TestImportAndExport extends TasksTestCase
   public void testImportExport(Entry taskEntry, TaskState expectedState)
        throws Exception
   {
+    int exportBeginCount = TestTaskListener.exportBeginCount.get();
+    int exportEndCount   = TestTaskListener.exportEndCount.get();
+    int importBeginCount = TestTaskListener.importBeginCount.get();
+    int importEndCount   = TestTaskListener.importEndCount.get();
+
+    ObjectClass exportClass =
+         DirectoryServer.getObjectClass("ds-task-export", true);
+
     testTask(taskEntry, expectedState, 60);
-  }
+     if ((expectedState == TaskState.COMPLETED_SUCCESSFULLY) ||
+        (expectedState == TaskState.COMPLETED_WITH_ERRORS))
+    {
+      if (taskEntry.hasObjectClass(exportClass))
+      {
+        assertEquals(TestTaskListener.exportBeginCount.get(),
+                     (exportBeginCount+1));
+        assertEquals(TestTaskListener.exportEndCount.get(), (exportEndCount+1));
+        assertEquals(TestTaskListener.exportBeginCount.get(),
+                     TestTaskListener.exportEndCount.get());
+      }
+      else
+      {
+        assertEquals(TestTaskListener.importBeginCount.get(),
+                     (importBeginCount+1));
+        assertEquals(TestTaskListener.importEndCount.get(), (importEndCount+1));
+        assertEquals(TestTaskListener.importBeginCount.get(),
+                     TestTaskListener.importEndCount.get());
+      }
+    }
+ }
 
 }
