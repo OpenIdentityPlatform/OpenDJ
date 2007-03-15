@@ -321,10 +321,13 @@ public class RestoreTask extends Task
           // Perform the restore.
           try
           {
+            DirectoryServer.notifyRestoreBeginning(backend, restoreConfig);
             backend.restoreBackup(configEntry, restoreConfig);
+            DirectoryServer.notifyRestoreEnded(backend, restoreConfig, true);
           }
           catch (DirectoryException de)
           {
+            DirectoryServer.notifyRestoreEnded(backend, restoreConfig, false);
             int    msgID   = MSGID_RESTOREDB_ERROR_DURING_BACKUP;
             String message = getMessage(msgID, backupID, backupDir.getPath(),
                                         de.getErrorMessage());
@@ -334,6 +337,7 @@ public class RestoreTask extends Task
           }
           catch (Exception e)
           {
+            DirectoryServer.notifyRestoreEnded(backend, restoreConfig, false);
             int    msgID   = MSGID_RESTOREDB_ERROR_DURING_BACKUP;
             String message = getMessage(msgID, backupID, backupDir.getPath(),
                                         stackTraceToSingleLineString(e));

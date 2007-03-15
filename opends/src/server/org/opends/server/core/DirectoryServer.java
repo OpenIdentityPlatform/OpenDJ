@@ -48,39 +48,7 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 
 
-import org.opends.server.api.AccountStatusNotificationHandler;
-import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.AlertHandler;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.Backend;
-import org.opends.server.api.BackendInitializationListener;
-import org.opends.server.api.CertificateMapper;
-import org.opends.server.api.ChangeNotificationListener;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ConfigHandler;
-import org.opends.server.api.ConfigurableComponent;
-import org.opends.server.api.ConnectionHandler;
-import org.opends.server.api.DirectoryServerMBean;
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.api.EntryCache;
-import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.api.IdentityMapper;
-import org.opends.server.api.InvokableComponent;
-import org.opends.server.api.KeyManagerProvider;
-import org.opends.server.api.MatchingRule;
-import org.opends.server.api.MonitorProvider;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.api.PasswordGenerator;
-import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.api.PasswordValidator;
-import org.opends.server.api.SASLMechanismHandler;
-import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.api.TrustManagerProvider;
-import org.opends.server.api.VirtualAttribute;
-import org.opends.server.api.WorkQueue;
+import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.StartupPluginResult;
 import org.opends.server.backends.RootDSEBackend;
@@ -93,67 +61,9 @@ import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.StartupErrorLogger;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
-import org.opends.server.schema.AttributeTypeSyntax;
-import org.opends.server.schema.BinarySyntax;
-import org.opends.server.schema.BooleanEqualityMatchingRule;
-import org.opends.server.schema.BooleanSyntax;
-import org.opends.server.schema.CaseExactEqualityMatchingRule;
-import org.opends.server.schema.CaseExactIA5EqualityMatchingRule;
-import org.opends.server.schema.CaseExactIA5SubstringMatchingRule;
-import org.opends.server.schema.CaseExactOrderingMatchingRule;
-import org.opends.server.schema.CaseExactSubstringMatchingRule;
-import org.opends.server.schema.CaseIgnoreEqualityMatchingRule;
-import org.opends.server.schema.CaseIgnoreIA5EqualityMatchingRule;
-import org.opends.server.schema.CaseIgnoreIA5SubstringMatchingRule;
-import org.opends.server.schema.CaseIgnoreOrderingMatchingRule;
-import org.opends.server.schema.CaseIgnoreSubstringMatchingRule;
-import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.schema.DistinguishedNameEqualityMatchingRule;
-import org.opends.server.schema.DistinguishedNameSyntax;
-import org.opends.server.schema.DoubleMetaphoneApproximateMatchingRule;
-import org.opends.server.schema.GeneralizedTimeEqualityMatchingRule;
-import org.opends.server.schema.GeneralizedTimeOrderingMatchingRule;
-import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.schema.IA5StringSyntax;
-import org.opends.server.schema.IntegerEqualityMatchingRule;
-import org.opends.server.schema.IntegerOrderingMatchingRule;
-import org.opends.server.schema.IntegerSyntax;
-import org.opends.server.schema.ObjectClassSyntax;
-import org.opends.server.schema.OctetStringEqualityMatchingRule;
-import org.opends.server.schema.OctetStringOrderingMatchingRule;
-import org.opends.server.schema.OctetStringSubstringMatchingRule;
-import org.opends.server.schema.ObjectIdentifierEqualityMatchingRule;
-import org.opends.server.schema.OIDSyntax;
-import org.opends.server.schema.TelephoneNumberEqualityMatchingRule;
-import org.opends.server.schema.TelephoneNumberSubstringMatchingRule;
-import org.opends.server.schema.TelephoneNumberSyntax;
+import org.opends.server.schema.*;
 import org.opends.server.tools.ConfigureWindowsService;
-import org.opends.server.types.AcceptRejectWarn;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeUsage;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.CryptoManager;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DITContentRule;
-import org.opends.server.types.DITStructureRule;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.MatchingRuleUse;
-import org.opends.server.types.Modification;
-import org.opends.server.types.NameForm;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ObjectClassType;
-import org.opends.server.types.OperatingSystem;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.Schema;
-import org.opends.server.types.WritabilityMode;
+import org.opends.server.types.*;
 import org.opends.server.util.MultiOutputStream;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.TimeThread;
@@ -393,6 +303,9 @@ public class DirectoryServer
   // The set of alert handlers registered with the Directory Server.
   private CopyOnWriteArrayList<AlertHandler> alertHandlers;
 
+  // The set of backup task listeners registered with the Directory Server.
+  private CopyOnWriteArrayList<BackupTaskListener> backupTaskListeners;
+
   // The set of change notification listeners registered with the Directory
   // Server.
   private CopyOnWriteArrayList<ChangeNotificationListener>
@@ -401,11 +314,20 @@ public class DirectoryServer
   // The set of connection handlers registered with the Directory Server.
   private CopyOnWriteArrayList<ConnectionHandler> connectionHandlers;
 
+  // The set of export task listeners registered with the Directory Server.
+  private CopyOnWriteArrayList<ExportTaskListener> exportTaskListeners;
+
+  // The set of import task listeners registered with the Directory Server.
+  private CopyOnWriteArrayList<ImportTaskListener> importTaskListeners;
+
   // The sets of mail server properties
   private CopyOnWriteArrayList<Properties> mailServerPropertySets;
 
   // The set of persistent searches registered with the Directory Server.
   private CopyOnWriteArrayList<PersistentSearch> persistentSearches;
+
+  // The set of restore task listeners registered with the Directory Server.
+  private CopyOnWriteArrayList<RestoreTaskListener> restoreTaskListeners;
 
   // The set of shutdown listeners that have been registered with the Directory
   // Server.
@@ -716,6 +638,14 @@ public class DirectoryServer
          new ConcurrentHashMap<String,SASLMechanismHandler>();
     directoryServer.authenticatedUsers = new AuthenticatedUsers();
     directoryServer.offlineSchemaChanges = new LinkedList<Modification>();
+    directoryServer.backupTaskListeners =
+         new CopyOnWriteArrayList<BackupTaskListener>();
+    directoryServer.restoreTaskListeners =
+         new CopyOnWriteArrayList<RestoreTaskListener>();
+    directoryServer.exportTaskListeners =
+         new CopyOnWriteArrayList<ExportTaskListener>();
+    directoryServer.importTaskListeners =
+         new CopyOnWriteArrayList<ImportTaskListener>();
   }
 
 
@@ -6871,6 +6801,339 @@ public class DirectoryServer
                                                             provider)
   {
     directoryServer.synchronizationProviders.remove(provider);
+  }
+
+
+
+  /**
+   * Registers the provided backup task listener with the Directory Server.
+   *
+   * @param  listener  The backup task listener to register with the Directory
+   *                   Server.
+   */
+  public static void registerBackupTaskListener(BackupTaskListener listener)
+  {
+    directoryServer.backupTaskListeners.addIfAbsent(listener);
+  }
+
+
+
+  /**
+   * Deregisters the provided backup task listener with the Directory Server.
+   *
+   * @param  listener  The backup task listener to deregister with the Directory
+   *                   Server.
+   */
+  public static void deregisterBackupTaskListener(BackupTaskListener listener)
+  {
+    directoryServer.backupTaskListeners.remove(listener);
+  }
+
+
+
+  /**
+   * Notifies the registered backup task listeners that the server will be
+   * beginning a backup task with the provided information.
+   *
+   * @param  backend  The backend in which the backup is to be performed.
+   * @param  config   The configuration for the backup to be performed.
+   */
+  public static void notifyBackupBeginning(Backend backend, BackupConfig config)
+  {
+    for (BackupTaskListener listener : directoryServer.backupTaskListeners)
+    {
+      try
+      {
+        listener.processBackupBegin(backend, config);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Notifies the registered backup task listeners that the server has completed
+   * processing on a backup task with the provided information.
+   *
+   * @param  backend     The backend in which the backup was performed.
+   * @param  config      The configuration for the backup that was performed.
+   * @param  successful  Indicates whether the backup completed successfully.
+   */
+  public static void notifyBackupEnded(Backend backend, BackupConfig config,
+                                       boolean successful)
+  {
+    for (BackupTaskListener listener : directoryServer.backupTaskListeners)
+    {
+      try
+      {
+        listener.processBackupEnd(backend, config, successful);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Registers the provided restore task listener with the Directory Server.
+   *
+   * @param  listener  The restore task listener to register with the Directory
+   *                   Server.
+   */
+  public static void registerRestoreTaskListener(RestoreTaskListener listener)
+  {
+    directoryServer.restoreTaskListeners.addIfAbsent(listener);
+  }
+
+
+
+  /**
+   * Deregisters the provided restore task listener with the Directory Server.
+   *
+   * @param  listener  The restore task listener to deregister with the
+   *                   Directory Server.
+   */
+  public static void deregisterRestoreTaskListener(RestoreTaskListener listener)
+  {
+    directoryServer.restoreTaskListeners.remove(listener);
+  }
+
+
+
+  /**
+   * Notifies the registered restore task listeners that the server will be
+   * beginning a restore task with the provided information.
+   *
+   * @param  backend  The backend in which the restore is to be performed.
+   * @param  config   The configuration for the restore to be performed.
+   */
+  public static void notifyRestoreBeginning(Backend backend,
+                                            RestoreConfig config)
+  {
+    for (RestoreTaskListener listener : directoryServer.restoreTaskListeners)
+    {
+      try
+      {
+        listener.processRestoreBegin(backend, config);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Notifies the registered restore task listeners that the server has
+   * completed processing on a restore task with the provided information.
+   *
+   * @param  backend     The backend in which the restore was performed.
+   * @param  config      The configuration for the restore that was performed.
+   * @param  successful  Indicates whether the restore completed successfully.
+   */
+  public static void notifyRestoreEnded(Backend backend, RestoreConfig config,
+                                        boolean successful)
+  {
+    for (RestoreTaskListener listener : directoryServer.restoreTaskListeners)
+    {
+      try
+      {
+        listener.processRestoreEnd(backend, config, successful);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Registers the provided LDIF export task listener with the Directory Server.
+   *
+   * @param  listener  The export task listener to register with the Directory
+   *                   Server.
+   */
+  public static void registerExportTaskListener(ExportTaskListener listener)
+  {
+    directoryServer.exportTaskListeners.addIfAbsent(listener);
+  }
+
+
+
+  /**
+   * Deregisters the provided LDIF export task listener with the Directory
+   * Server.
+   *
+   * @param  listener  The export task listener to deregister with the Directory
+   *                   Server.
+   */
+  public static void deregisterExportTaskListener(ExportTaskListener listener)
+  {
+    directoryServer.exportTaskListeners.remove(listener);
+  }
+
+
+
+  /**
+   * Notifies the registered LDIF export task listeners that the server will be
+   * beginning an export task with the provided information.
+   *
+   * @param  backend  The backend in which the export is to be performed.
+   * @param  config   The configuration for the export to be performed.
+   */
+  public static void notifyExportBeginning(Backend backend,
+                                           LDIFExportConfig config)
+  {
+    for (ExportTaskListener listener : directoryServer.exportTaskListeners)
+    {
+      try
+      {
+        listener.processExportBegin(backend, config);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Notifies the registered LDIF export task listeners that the server has
+   * completed processing on an export task with the provided information.
+   *
+   * @param  backend     The backend in which the export was performed.
+   * @param  config      The configuration for the export that was performed.
+   * @param  successful  Indicates whether the export completed successfully.
+   */
+  public static void notifyExportEnded(Backend backend, LDIFExportConfig config,
+                                       boolean successful)
+  {
+    for (ExportTaskListener listener : directoryServer.exportTaskListeners)
+    {
+      try
+      {
+        listener.processExportEnd(backend, config, successful);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Registers the provided LDIF import task listener with the Directory Server.
+   *
+   * @param  listener  The import task listener to register with the Directory
+   *                   Server.
+   */
+  public static void registerImportTaskListener(ImportTaskListener listener)
+  {
+    directoryServer.importTaskListeners.addIfAbsent(listener);
+  }
+
+
+
+  /**
+   * Deregisters the provided LDIF import task listener with the Directory
+   * Server.
+   *
+   * @param  listener  The import task listener to deregister with the Directory
+   *                   Server.
+   */
+  public static void deregisterImportTaskListener(ImportTaskListener listener)
+  {
+    directoryServer.importTaskListeners.remove(listener);
+  }
+
+
+
+  /**
+   * Notifies the registered LDIF import task listeners that the server will be
+   * beginning an import task with the provided information.
+   *
+   * @param  backend  The backend in which the import is to be performed.
+   * @param  config   The configuration for the import to be performed.
+   */
+  public static void notifyImportBeginning(Backend backend,
+                                           LDIFImportConfig config)
+  {
+    for (ImportTaskListener listener : directoryServer.importTaskListeners)
+    {
+      try
+      {
+        listener.processImportBegin(backend, config);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Notifies the registered LDIF import task listeners that the server has
+   * completed processing on an import task with the provided information.
+   *
+   * @param  backend     The backend in which the import was performed.
+   * @param  config      The configuration for the import that was performed.
+   * @param  successful  Indicates whether the import completed successfully.
+   */
+  public static void notifyImportEnded(Backend backend, LDIFImportConfig config,
+                                       boolean successful)
+  {
+    for (ImportTaskListener listener : directoryServer.importTaskListeners)
+    {
+      try
+      {
+        listener.processImportEnd(backend, config, successful);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
   }
 
 

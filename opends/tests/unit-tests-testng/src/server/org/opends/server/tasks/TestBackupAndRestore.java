@@ -30,10 +30,15 @@ package org.opends.server.tasks;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.opends.server.api.TestTaskListener;
 import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
+
+import static org.testng.Assert.*;
 
 import java.util.UUID;
 import java.io.File;
@@ -46,6 +51,13 @@ public class TestBackupAndRestore extends TasksTestCase
   @BeforeClass
   public final void setUp() throws Exception {
     TestCaseUtils.startServer();
+    TestTaskListener.registerListeners();
+  }
+
+
+  @AfterClass
+  public final void cleanUp() throws Exception {
+    TestTaskListener.deregisterListeners();
   }
 
 
@@ -229,7 +241,37 @@ public class TestBackupAndRestore extends TasksTestCase
   public void testBackups(Entry taskEntry, TaskState expectedState)
        throws Exception
   {
+    int backupBeginCount  = TestTaskListener.backupBeginCount.get();
+    int backupEndCount    = TestTaskListener.backupEndCount.get();
+    int restoreBeginCount = TestTaskListener.restoreBeginCount.get();
+    int restoreEndCount   = TestTaskListener.restoreEndCount.get();
+
+    ObjectClass backupClass =
+         DirectoryServer.getObjectClass("ds-task-backup", true);
+
     testTask(taskEntry, expectedState);
+    if ((expectedState == TaskState.COMPLETED_SUCCESSFULLY) ||
+        (expectedState == TaskState.COMPLETED_WITH_ERRORS))
+    {
+      if (taskEntry.hasObjectClass(backupClass))
+      {
+        // The backup task can back up multiple backends at the same time, so
+        // we the count may be incremented by more than one in those cases.
+        assertTrue(TestTaskListener.backupBeginCount.get() > backupBeginCount);
+        assertTrue(TestTaskListener.backupEndCount.get() > backupEndCount);
+        assertEquals(TestTaskListener.backupBeginCount.get(),
+                     TestTaskListener.backupEndCount.get());
+      }
+      else
+      {
+        assertEquals(TestTaskListener.restoreBeginCount.get(),
+                     (restoreBeginCount+1));
+        assertEquals(TestTaskListener.restoreEndCount.get(),
+                     (restoreEndCount+1));
+        assertEquals(TestTaskListener.restoreBeginCount.get(),
+                     TestTaskListener.restoreEndCount.get());
+      }
+    }
   }
 
 }

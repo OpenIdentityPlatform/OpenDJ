@@ -434,10 +434,13 @@ public class BackupTask extends Task
     // Perform the backup.
     try
     {
+      DirectoryServer.notifyBackupBeginning(b, backupConfig);
       b.createBackup(configEntry, backupConfig);
+      DirectoryServer.notifyBackupEnded(b, backupConfig, true);
     }
     catch (DirectoryException de)
     {
+      DirectoryServer.notifyBackupEnded(b, backupConfig, false);
       int msgID   = MSGID_BACKUPDB_ERROR_DURING_BACKUP;
       String message = getMessage(msgID, b.getBackendID(),
                                   de.getErrorMessage());
@@ -447,6 +450,7 @@ public class BackupTask extends Task
     }
     catch (Exception e)
     {
+      DirectoryServer.notifyBackupEnded(b, backupConfig, false);
       int msgID   = MSGID_BACKUPDB_ERROR_DURING_BACKUP;
       String message = getMessage(msgID, b.getBackendID(),
                                   stackTraceToSingleLineString(e));
