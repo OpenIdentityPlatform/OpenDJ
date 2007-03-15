@@ -538,7 +538,7 @@
   </target>
   <target name="uninstall-do-tar"
           description="Uninstall the staf"
-					if="staf.install.is.tar">
+          unless="staf.install.is.jar">
     <echo message="Uninstalling staf, please wait..."                        />
     <exec executable="${staf.install.dir}/STAFUninst"/>
     <sleep seconds="5" />
@@ -548,10 +548,6 @@
   <target name="uninstall-do" if="staf.installed">
     <condition property="staf.install.is.jar">
       <available file="${staf.install.dir}/_uninst/uninstall.jar"/>
-    </condition>
-    <condition property="staf.install.is.tar">
-      <available file="${staf.install.dir}/STAFUninst"/>
-      <!-- TODO - check on windows if there is a .exe extension -->
     </condition>
     <antcall target="uninstall-do-jar"/>
     <antcall target="uninstall-do-tar"/>
@@ -577,12 +573,15 @@
           if="staf.installed"
           unless="staf.running" >
 		<echo message="Starting staf daemon ... on ${os.myname}" />
+		<condition property="staf.spawn">
+			<not>
+				<isset property="staf.spawn"/>
+			</not>
+		</condition>
     <exec
       dir="${staf.bin.dir}"
       executable="${staf.daemon}"
-      ><!--
-      spawn="true">
-      -->
+      spawn="${staf.spawn}">
      <arg value="${staf.config}"/>
      <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
      <env key="LD_LIBRARY_PATH" path="${staf.install.dir}/lib"/>
@@ -598,7 +597,11 @@
 	<target name="start" depends="status-do">
 		<antcall target="start-do"/>
     <antcall target="start-dont"/>
-	</target>	
+	</target>
+	<target name="start-nodetach">
+		<property name="staf.spawn" value="false"/>
+		<antcall target="start"/>
+	</target>
 <!-- Start section - bottom    -->
   
 <!-- Stop section - top     -->
