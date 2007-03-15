@@ -1359,6 +1359,16 @@ public class LDAPSearch
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
 
+      if (noop.isPresent())
+      {
+        // We don't actually need to open a connection or perform the search,
+        // so we're done.  We should return 0 to either mean that the processing
+        // was successful or that there were no matching entries, based on
+        // countEntries.isPresent() (but in either case the return value should
+        // be zero).
+        return 0;
+      }
+
       AtomicInteger nextMessageID = new AtomicInteger(1);
       connection = new LDAPConnection(hostNameValue, portNumber,
                                       connectionOptions, out, err);
