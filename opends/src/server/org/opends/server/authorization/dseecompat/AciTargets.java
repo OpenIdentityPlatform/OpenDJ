@@ -441,18 +441,6 @@ public class AciTargets {
     }
 
     /*
-     * TODO Track DS 6.1 changes to ONELEVEL scope.
-     *
-     * The isTargetApplicable method appears to handle the ONELEVEL scope
-     * incorrectly.  The standard definition of onelevel only includes
-     * the immediate children of a given entry -- it does not include that
-     * entry itself.  It is a bug for the server to behave in any other way.
-     * Unfortunately, it does appear that the implementation you currently
-     * have matches the implementation in DS6. Nevertheless, I don't think
-     * that it is acceptable use this standard term in a nonstandard way and
-     * therefore we must change it to the standards-compliant interpretation
-     *  which does not include the parent.
-     *
      * TODO Investigate supporting alternative representations of the scope.
      *
      * Should we also consider supporting alternate representations of the
@@ -492,8 +480,13 @@ public class AciTargets {
                 return false;
             break;
         case SINGLE_LEVEL:
-            if((!targetDN.equals(entryDN)) &&
-                    (!entryDN.getParent().equals(targetDN)))
+            /**
+             * We use the standard definition of single level to mean the
+             * immediate children only -- not the target entry itself.
+             * Sun CR 6535035 has been raised on DSEE:
+             * Non-standard interpretation of onelevel in ACI targetScope.
+             */
+            if(!entryDN.getParent().equals(targetDN))
                 return false;
             break;
         case WHOLE_SUBTREE:
