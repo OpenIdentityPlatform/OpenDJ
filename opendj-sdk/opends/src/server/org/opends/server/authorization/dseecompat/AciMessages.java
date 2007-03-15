@@ -610,6 +610,16 @@ public class AciMessages {
         int MSGID_ACI_SYNTAX_INVALID_ATTRIBUTE_TYPE_NAME =
          CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 59;
 
+     /**
+      * The message ID for the message that will be used if a bind rule
+      * authmethod expression contains a SASL mechanism that is not currrently
+      * registered in the server.  This takes one argument, which is the
+      * SASL mechanism string parsed from the authmethod expression.
+      */
+     public static final
+        int MSGID_ACI_SYNTAX_DUBIOUS_AUTHMETHOD_SASL_MECHANISM =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_NOTICE | 60;
+
     /**
      * Associates a set of generic messages with the message IDs defined in
      * this class.
@@ -773,7 +783,14 @@ public class AciMessages {
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "authmethod expression value \"%s\" is invalid. A valid " +
                 "authmethod value is one of the following: none, simple," +
-                "SSL, sasl EXTERNAL, sasl DIGEST-MD5, or sasl GSSAPI.");
+                "SSL, or \"sasl mechanism\", where mechanism is one of the" +
+                "supported SASL mechanisms including CRAM-MD5, DIGEST-MD5, " +
+                "and GSSAPI.");
+
+        registerMessage(MSGID_ACI_SYNTAX_DUBIOUS_AUTHMETHOD_SASL_MECHANISM,
+                "The SASL mechanism \"%s\" provided in the Access Control " +
+                "Instruction (ACI) bind rule authmethod expression is not " +
+                "one of the currently registered mechanisms in the server");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_USERATTR_EXPRESSION,
                 "The provided Access Control Instruction (ACI) bind rule " +

@@ -110,12 +110,18 @@ public interface AciEvalContext
     public String getHostName();
 
     /**
-     * Get the authentication method.
-     * @param wantSSL The authmethod bind rule needs the SSL client auth
-     * status.
-     * @return An Enumeration of the auth method bound as.
+     * Determine whether the client connection has been authenticated using
+     * a specified authentication method.  This method is used for the
+     * authmethod bind rule keyword.
+     *
+     * @param authMethod The required authentication method.
+     * @param saslMech The required SASL mechanism if the authentication method
+     * is SASL.
+     * @return An evaluation result indicating whether the client connection
+     * has been authenticated using the required authentication method.
      */
-    public EnumAuthMethod getAuthenticationMethod(boolean wantSSL);
+    public EnumEvalResult hasAuthenticationMethod(EnumAuthMethod authMethod,
+                                                  String saslMech);
 
     /**
      * Get the  address of the bound connection.

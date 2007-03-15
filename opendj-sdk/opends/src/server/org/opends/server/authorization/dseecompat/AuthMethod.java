@@ -29,6 +29,10 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
+import org.opends.server.core.DirectoryServer;
+import static org.opends.server.loggers.Error.logError;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
 
 /**
  * The AuthMethod class represents an authmethod bind rule keyword expression.
@@ -40,6 +44,11 @@ public class AuthMethod implements KeywordBindRule {
      */
     private EnumAuthMethod authMethod=null;
 
+    /**
+     * The SASL mechanism if the authentication method is SASL.
+     */
+    private String saslMech = null;
+
     /*
      * Enumeration representing the bind rule operation type.
      */
@@ -48,73 +57,62 @@ public class AuthMethod implements KeywordBindRule {
     /**
      * Create a class representing an authmethod bind rule keyword from the
      * provided method and bind rule type.
-     * @param method An enumeration representing the method of the expression.
      * @param type An enumeration representing the type of the expression.
      */
-    private AuthMethod(EnumAuthMethod method, EnumBindRuleType type) {
+    private AuthMethod(EnumAuthMethod method, String saslMech,
+                       EnumBindRuleType type) {
         this.authMethod=method;
+        this.saslMech = saslMech;
         this.type=type;
     }
 
     /**
-     * Decode a string representing a authmethod bind rule.
+     * Decode a string representing an authmethod bind rule.
      * @param expr  The string representing the bind rule.
      * @param type An enumeration representing the bind rule type.
-     * @return  An keyword bind rule class that can be used to evaluate the
+     * @return  A keyword bind rule class that can be used to evaluate the
      * bind rule.
      * @throws AciException If the expression string is invalid.
      */
     public static KeywordBindRule decode(String expr, EnumBindRuleType type)
     throws AciException  {
-        EnumAuthMethod method=EnumAuthMethod.createAuthmethod(expr);
-        if (method == null)
-        {
-            int msgID = MSGID_ACI_SYNTAX_INVALID_AUTHMETHOD_EXPRESSION;
-            String message = getMessage(msgID, expr);
-            throw new AciException(msgID, message);
+      String lowerExpr = expr.toLowerCase();
+      if (lowerExpr.equals("none"))
+      {
+        return new AuthMethod(EnumAuthMethod.AUTHMETHOD_NONE, null, type);
+      }
+      else if (lowerExpr.equals("simple"))
+      {
+        return new AuthMethod(EnumAuthMethod.AUTHMETHOD_SIMPLE, null, type);
+      }
+      else if (lowerExpr.equals("ssl"))
+      {
+        return new AuthMethod(EnumAuthMethod.AUTHMETHOD_SSL, "EXTERNAL", type);
+      }
+      else if (expr.length() > 5 && lowerExpr.startsWith("sasl "))
+      {
+        String saslMech = expr.substring(5);
+        if (DirectoryServer.getSASLMechanismHandler(saslMech) == null) {
+          int msgID = MSGID_ACI_SYNTAX_DUBIOUS_AUTHMETHOD_SASL_MECHANISM;
+          logError(ErrorLogCategory.ACCESS_CONTROL,
+                   ErrorLogSeverity.NOTICE, msgID, saslMech);
         }
-        return new AuthMethod(method, type);
+        return new AuthMethod(EnumAuthMethod.AUTHMETHOD_SASL, saslMech, type);
+      }
+
+      int msgID = MSGID_ACI_SYNTAX_INVALID_AUTHMETHOD_EXPRESSION;
+      String message = getMessage(msgID, expr);
+      throw new AciException(msgID, message);
     }
 
-    /*
-     * TODO Evaluate if AUTHMETHOD_NONE processing is correct. This was fixed
-     * prior to Neil's review. Verify in a unit test.
-     *
-     * I'm not sure that the evaluate() method handles AUTHMETHOD_NONE
-     * correctly. My understanding is that it should only match in cases
-     * in which no authentication has been performed, but you have it
-     * always matching.
-     */
     /**
      * Evaluate authmethod bind rule using the provided evaluation context.
      * @param evalCtx  An evaluation context to use.
      * @return  An enumeration evaluation result.
      */
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
-        EnumEvalResult matched=EnumEvalResult.FALSE;
-        if(authMethod==EnumAuthMethod.AUTHMETHOD_NONE) {
-            matched=EnumEvalResult.TRUE;
-        } else if(authMethod==EnumAuthMethod.AUTHMETHOD_SIMPLE) {
-            if(evalCtx.getAuthenticationMethod(false)
-                    == EnumAuthMethod.AUTHMETHOD_SIMPLE){
-                matched=EnumEvalResult.TRUE;
-            }
-        } else if(authMethod == EnumAuthMethod.AUTHMETHOD_SSL) {
-            /*
-             * TODO Verfiy that SSL authemethod is correctly handled in a
-             * unit test.
-             * I'm not sure that the evaluate() method correctly handles
-             * SASL EXTERNAL in all cases.  My understanding is that in
-             * DS 5/6, an authmethod of SSL is the same as an authmethod of
-             * SASL EXTERNAL.  If that's true, then you don't properly handle
-             * that condition.
-             */
-            if(authMethod == evalCtx.getAuthenticationMethod(true))
-                    matched=EnumEvalResult.TRUE;
-        } else {
-            if(authMethod ==evalCtx.getAuthenticationMethod(false))
-                matched=EnumEvalResult.TRUE;
-        }
+        EnumEvalResult matched =
+             evalCtx.hasAuthenticationMethod(authMethod, saslMech);
         return matched.getRet(type, false);
     }
 }

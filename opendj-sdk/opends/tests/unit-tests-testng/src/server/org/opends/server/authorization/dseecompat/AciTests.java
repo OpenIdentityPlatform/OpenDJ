@@ -208,7 +208,7 @@ public class AciTests extends DirectoryServerTestCase {
 
   private static final String BIND_RULE_AUTHMETHOD_SIMPLE = "authmethod=\"simple\"";
   private static final String BIND_RULE_AUTHMETHOD_SSL = "authmethod=\"ssl\"";
-  private static final String BIND_RULE_AUTHMETHOD_SASL = "authmethod=\"sasl\"";
+  private static final String BIND_RULE_AUTHMETHOD_SASL_DIGEST_MD5 = "authmethod=\"sasl DIGEST-MD5\"";
 
   // Admin, but not anonymous
   private static final String BIND_RULE_USERDN_NOT_ADMIN = and(not(BIND_RULE_USERDN_ADMIN), BIND_RULE_AUTHMETHOD_SIMPLE);
@@ -372,6 +372,9 @@ public class AciTests extends DirectoryServerTestCase {
 
   private static final String ALLOW_ALL_TO_SSL =
           buildAciValue("name", "allow all to ssl", "targetattr", "*", "allow(all)", BIND_RULE_AUTHMETHOD_SSL);
+
+  private static final String ALLOW_ALL_TO_SASL_DIGEST_MD5 =
+          buildAciValue("name", "allow all to sasl DIGEST-MD5", "targetattr", "*", "allow(all)", BIND_RULE_AUTHMETHOD_SASL_DIGEST_MD5);
 
   private static final String DENY_ALL_TO_SIMPLE =
           buildAciValue("name", "deny all to simple", "targetattr", "*", "deny(all)", BIND_RULE_AUTHMETHOD_SIMPLE);
@@ -581,6 +584,7 @@ public class AciTests extends DirectoryServerTestCase {
      DENY_ALL_TO_DNS_LOCALHOST,
      buildAciValue("name", "deny all to example.com", "targetattr", "*", "deny(all)", "dns=\"*.example.com\""),
      ALLOW_ALL_TO_SSL,
+     ALLOW_ALL_TO_SASL_DIGEST_MD5,
      DENY_ALL_TO_SIMPLE,
      DENY_ALL_TODAY,
      DENY_ALL_TODAY_AND_TOMORROW,
@@ -1043,6 +1047,9 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String ALLOW_ALL_BASE_TO_SSL_AUTH =
           makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_SSL);
 
+  private static final String ALLOW_ALL_BASE_TO_SASL_DIGEST_MD5_AUTH =
+          makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_SASL_DIGEST_MD5);
+
   private static final String ALLOW_ALL_BASE_DENY_ALL_TO_SIMPLE_AUTH =
           makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_ALL) +
           makeAddAciLdif(OU_INNER_DN, DENY_ALL_TO_SIMPLE);
@@ -1215,6 +1222,7 @@ public class AciTests extends DirectoryServerTestCase {
             ALLOW_ALL_BASE_DENY_ALL_TO_MISC_AND_LOCALHOST,
             ALLOW_ALL_BASE_TO_NON_DNS_LOCALHOST,
             ALLOW_ALL_BASE_TO_SSL_AUTH,
+            ALLOW_ALL_BASE_TO_SASL_DIGEST_MD5_AUTH,
             ALLOW_ALL_BASE_DENY_ALL_TO_SIMPLE_AUTH,
             ALLOW_ALL_BASE_DENY_ALL_TODAY,
             ALLOW_ALL_BASE_DENY_ALL_TODAY_AND_TOMORROW,
