@@ -71,6 +71,10 @@ public class InstallException extends Exception
      */
     START_ERROR,
     /**
+     * Error enabling the Windows service.
+     */
+    WINDOWS_SERVICE_ERROR,
+    /**
      * A bug (for instance when we throw an IllegalStateException).
      */
     BUG

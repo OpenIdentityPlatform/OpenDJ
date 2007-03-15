@@ -28,10 +28,12 @@
 package org.opends.quicksetup.uninstaller;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +47,8 @@ import org.opends.quicksetup.event.UninstallProgressUpdateListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
+
+import org.opends.server.tools.ConfigureWindowsService;
 
 /**
  * This class is in charge of performing the uninstallation of Open DS.
@@ -65,6 +69,8 @@ public class Uninstaller
     new HashSet<UninstallProgressUpdateListener>();
 
   private UninstallException ue;
+
+  private Boolean isWindowsServiceEnabled;
 
   /**
    * Uninstaller constructor.
@@ -149,6 +155,8 @@ public class Uninstaller
         getFormattedSummary(getMsg("summary-uninstall-not-started")));
     hmSummary.put(UninstallProgressStep.STOPPING_SERVER,
         getFormattedSummary(getMsg("summary-stopping")));
+    hmSummary.put(UninstallProgressStep.DISABLING_WINDOWS_SERVICE,
+        getFormattedSummary(getMsg("summary-disabling-windows-service")));
     hmSummary.put(UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES,
         getFormattedSummary(getMsg("summary-deleting-external-db-files")));
     hmSummary.put(UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES,
@@ -163,7 +171,16 @@ public class Uninstaller
     {
       if (userData.getRemoveLibrariesAndTools())
       {
-        String[] arg = {getLibrariesPath()};
+        String[] arg = new String[1];
+        if (Utils.isWindows())
+        {
+            arg[0] = getUninstallBatFile()+getLineBreak()+
+            getTab()+getLibrariesPath();
+        }
+        else
+        {
+            arg[0] = getLibrariesPath();
+        }
         successMsg = getMsg(
             "summary-uninstall-finished-successfully-remove-jarfiles-cli",
             arg);
@@ -201,6 +218,7 @@ public class Uninstaller
     HashMap<UninstallProgressStep, Integer> hmTime =
         new HashMap<UninstallProgressStep, Integer>();
     hmTime.put(UninstallProgressStep.STOPPING_SERVER, 15);
+    hmTime.put(UninstallProgressStep.DISABLING_WINDOWS_SERVICE, 5);
     hmTime.put(UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES, 30);
     hmTime.put(UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES, 5);
     hmTime.put(UninstallProgressStep.REMOVING_EXTERNAL_REFERENCES, 5);
@@ -213,6 +231,11 @@ public class Uninstaller
     {
       totalTime += hmTime.get(UninstallProgressStep.STOPPING_SERVER);
       steps.add(UninstallProgressStep.STOPPING_SERVER);
+    }
+    if (isWindowsServiceEnabled())
+    {
+      totalTime += hmTime.get(UninstallProgressStep.DISABLING_WINDOWS_SERVICE);
+      steps.add(UninstallProgressStep.DISABLING_WINDOWS_SERVICE);
     }
     totalTime += hmTime.get(UninstallProgressStep.DELETING_INSTALLATION_FILES);
     steps.add(UninstallProgressStep.DELETING_INSTALLATION_FILES);
@@ -482,13 +505,29 @@ public class Uninstaller
    */
   private void doUninstall()
   {
+    PrintStream origErr = System.err;
+    PrintStream origOut = System.out;
     try
     {
+      PrintStream err = new ErrorPrintStream();
+      PrintStream out = new OutputPrintStream();
+      if (!Utils.isCli())
+      {
+          System.setErr(err);
+          System.setOut(out);
+      }
+
       boolean displaySeparator = false;
       if (getUserData().getStopServer())
       {
         status = UninstallProgressStep.STOPPING_SERVER;
         stopServer();
+        displaySeparator = true;
+      }
+      if (isWindowsServiceEnabled())
+      {
+        status = UninstallProgressStep.DISABLING_WINDOWS_SERVICE;
+        disableWindowsService();
         displaySeparator = true;
       }
 
@@ -561,6 +600,11 @@ public class Uninstaller
       status = UninstallProgressStep.FINISHED_WITH_ERROR;
       String msg = getFormattedError(ue, true);
       notifyListeners(msg);
+    }
+    if (!Utils.isCli())
+    {
+        System.setErr(origErr);
+        System.setOut(origOut);
     }
   }
 
@@ -882,6 +926,43 @@ public class Uninstaller
   }
 
   /**
+   * Returns the path to the quicksetup jar file.
+   * @return the path to the quicksetup jar file.
+   */
+  private String getQuicksetupJarPath()
+  {
+    return Utils.getPath(getLibrariesPath(), "quicksetup.jar");
+  }
+
+  /**
+   * Returns the path to the opends jar file.
+   * @return the path to the opends jar file.
+   */
+  private String getOpenDSJarPath()
+  {
+    return Utils.getPath(getLibrariesPath(), "OpenDS.jar");
+  }
+
+  /**
+   * Returns the path to the aspectj jar file.
+   * @return the path to the aspectj jar file.
+   */
+  private String getAspectJJarPath()
+  {
+    return Utils.getPath(getLibrariesPath(), "aspectjrt.jar");
+  }
+
+
+  /**
+   * Returns the path to the uninstall.bat file.
+   * @return the path to the uninstall.bat file.
+   */
+  private String getUninstallBatFile()
+  {
+    return Utils.getPath(Utils.getInstallPathFromClasspath(), "uninstall.bat");
+  }
+
+  /**
    * Returns the path to the backup files under the install path.
    * @return the path to the backup files under the install path.
    */
@@ -1142,7 +1223,11 @@ public class Uninstaller
    */
   class InstallationFilesToDeleteFilter implements FileFilter
   {
+    File quicksetupFile = new File(getQuicksetupJarPath());
+    File openDSFile = new File(getOpenDSJarPath());
     File librariesFile = new File(getLibrariesPath());
+
+    File uninstallBatFile = new File(getUninstallBatFile());
 
     File installationPath = new File(Utils.getInstallPathFromClasspath());
     /**
@@ -1171,8 +1256,15 @@ public class Uninstaller
       };
 
      boolean accept =
-          !installationPath.equals(file)&&
-          !equalsOrDescendant(file, librariesFile);
+          !installationPath.equals(file)
+              && !librariesFile.equals(file)
+              && !quicksetupFile.equals(file)
+              && !openDSFile.equals(file);
+
+     if (accept && Utils.isWindows() && Utils.isCli())
+     {
+         accept = !uninstallBatFile.equals(file);
+     }
 
      for (int i=0; i<uData.length && accept; i++)
      {
@@ -1181,6 +1273,164 @@ public class Uninstaller
      }
 
      return accept;
+    }
+  }
+
+  private boolean isWindowsServiceEnabled()
+  {
+    if (isWindowsServiceEnabled == null)
+    {
+      if (ConfigureWindowsService.serviceState(null, null) ==
+          ConfigureWindowsService.SERVICE_STATE_ENABLED)
+      {
+        isWindowsServiceEnabled = Boolean.TRUE;
+      }
+      else
+      {
+        isWindowsServiceEnabled = Boolean.FALSE;
+      }
+    }
+    return isWindowsServiceEnabled.booleanValue();
+  }
+
+  /**
+   * This methods disables this server as a Windows service.
+   * @throws UninstallException if something goes wrong.
+   */
+  protected void disableWindowsService() throws UninstallException
+  {
+    notifyListeners(getFormattedProgress(
+      getMsg("progress-disabling-windows-service")));
+    int code = ConfigureWindowsService.disableService(System.out, System.err);
+
+    String errorMessage = getMsg("error-disabling-windows-service");
+
+    switch (code)
+    {
+      case ConfigureWindowsService.SERVICE_DISABLE_SUCCESS:
+      break;
+      case ConfigureWindowsService.SERVICE_ALREADY_DISABLED:
+      break;
+      default:
+      throw new UninstallException(
+      UninstallException.Type.WINDOWS_SERVICE_ERROR, errorMessage, null);
+    }
+  }
+
+  /**
+   * This class is used to notify the UninstallProgressUpdateListeners of events
+   * that are written to the standard error.  These classes just create an
+   * ErrorPrintStream and then they do a call to System.err with it.
+   *
+   * The class just reads what is written to the standard error, obtains an
+   * formatted representation of it and then notifies the
+   * UninstallProgressUpdateListeners with the formatted messages.
+   *
+   */
+  protected class ErrorPrintStream extends PrintStream
+  {
+    private boolean isFirstLine;
+
+    /**
+     * Default constructor.
+     *
+     */
+    public ErrorPrintStream()
+    {
+      super(new ByteArrayOutputStream(), true);
+      isFirstLine = true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void println(String msg)
+    {
+      if (isFirstLine)
+      {
+        notifyListeners(getFormattedLogError(msg));
+      } else
+      {
+        notifyListeners(formatter.getLineBreak() + getFormattedLogError(msg));
+      }
+      isFirstLine = false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void write(byte[] b, int off, int len)
+    {
+      if (b == null)
+      {
+        throw new NullPointerException("b is null");
+      }
+
+      if (off + len > b.length)
+      {
+        throw new IndexOutOfBoundsException(
+            "len + off are bigger than the length of the byte array");
+      }
+      println(new String(b, off, len));
+    }
+  }
+
+  /**
+   * This class is used to notify the UninstallProgressUpdateListeners of events
+   * that are written to the standard output.  These classes just create an
+   * OutputPrintStream and then they do a call to System.out with it.
+   *
+   * The class just reads what is written to the standard output, obtains an
+   * formatted representation of it and then notifies the
+   * UninstallProgressUpdateListeners with the formatted messages.
+   *
+   */
+  protected class OutputPrintStream extends PrintStream
+  {
+    private boolean isFirstLine;
+
+    /**
+     * Default constructor.
+     *
+     */
+    public OutputPrintStream()
+    {
+      super(new ByteArrayOutputStream(), true);
+      isFirstLine = true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void println(String msg)
+    {
+      if (isFirstLine)
+      {
+        notifyListeners(getFormattedLog(msg));
+      } else
+      {
+        notifyListeners(formatter.getLineBreak() + getFormattedLog(msg));
+      }
+      isFirstLine = false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void write(byte[] b, int off, int len)
+    {
+      if (b == null)
+      {
+        throw new NullPointerException("b is null");
+      }
+
+      if (off + len > b.length)
+      {
+        throw new IndexOutOfBoundsException(
+            "len + off are bigger than the length of the byte array");
+      }
+
+      println(new String(b, off, len));
     }
   }
 }

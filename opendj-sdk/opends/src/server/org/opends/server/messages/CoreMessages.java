@@ -5984,8 +5984,6 @@ public class CoreMessages
   public static final int MSGID_DSCORE_DESCRIPTION_CHECK_STARTABILITY =
        CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 596;
 
-
-
   /**
    * The message ID for the message that will be used if an entry includes an
    * attribute with no values.  This takes two arguments, which are the DN of
@@ -5995,6 +5993,20 @@ public class CoreMessages
        CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 597;
 
 
+  /**
+   * The message ID for the message that will be used when the user asks to run
+   * the server in no-detach mode and the server is configured to run as a
+   * service.  This message does not take arguments.
+   */
+  public static final int MSGID_DSCORE_ERROR_NODETACH_AND_WINDOW_SERVICE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_FATAL_ERROR | 598;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * windowsNetStart command-line argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DSCORE_DESCRIPTION_WINDOWS_NET_START =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 599;
 
   /**
    * Associates a set of generic messages with the message IDs defined
@@ -7269,8 +7281,12 @@ public class CoreMessages
                     "information needed by the configuration handler to " +
                     "obtain the Directory Server configuration.");
     registerMessage(MSGID_DSCORE_DESCRIPTION_CHECK_STARTABILITY,
-                    "Used to determine whether to write a server PID file " +
-                    "and attempt to start the server.");
+                    "Used to determine whether a server can be started or not" +
+                    "and the mode to be used to start it.");
+    registerMessage(MSGID_DSCORE_DESCRIPTION_WINDOWS_NET_START,
+                    "Used by the window service code to inform that start-ds "+
+                    "is being called from the window services after a call "+
+                    "to net start");
     registerMessage(MSGID_DSCORE_DESCRIPTION_VERSION,
                     "Display Directory Server version information");
     registerMessage(MSGID_DSCORE_DESCRIPTION_FULLVERSION,
@@ -7290,6 +7306,9 @@ public class CoreMessages
     registerMessage(MSGID_DSCORE_ERROR_PARSING_ARGS,
                     "An error occurred while attempting to parse the " +
                     "provided set of command line arguments:  %s.");
+    registerMessage(MSGID_DSCORE_ERROR_NODETACH_AND_WINDOW_SERVICE,
+                    "OpenDS is configured to run as a window service and it "+
+                    "cannot run in no-detach mode.");
     registerMessage(MSGID_DSCORE_CANNOT_BOOTSTRAP,
                     "An error occurred while attempting to bootstrap the " +
                     "Directory Server:  %s.");
@@ -8151,6 +8170,10 @@ public class CoreMessages
     registerMessage(MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES,
                     "hasPrivilege determination for connID=%d opID=%d " +
                     "requesterDN=\"%s\" privilegeSet=\"%s\" result=%b");
+    registerMessage(MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to use the " +
+                    "proxied authorization control.");
+
     registerMessage(MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to use the " +
                     "proxied authorization control.");

@@ -7608,7 +7608,6 @@ public class ToolMessages
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 799;
 
 
-
   /**
    * The message ID for the message that will be used to prompt the user to
    * enter "yes" or "no".  This does not take any arguments.
@@ -7685,6 +7684,7 @@ public class ToolMessages
   public static final int MSGID_INSTALLDS_PROMPT_JMXPORT =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 809;
 
+
   /**
    * The message ID for the message that will be used to print the result code
    * for an error encountered in a client tool.  This takes two arguments,
@@ -7711,6 +7711,232 @@ public class ToolMessages
   public static final int MSGID_TOOL_MATCHED_DN =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 812;
 
+  /**
+   * The message ID for the message that will be used to inform that the windows
+   * service name for the OpenDS could not be found. This message takes no
+   * arguments.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_NOT_FOUND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 813;
+
+  /**
+   * The message ID for the message that will be used to inform that the windows
+   * service for OpenDS could not be started. This message takes no arguments.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_START_ERROR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 814;
+
+  /**
+   * The message ID for the message that will be used to inform that the windows
+   * service for OpenDS could not be stopped. This message takes no arguments.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_STOP_ERROR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 815;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * configure windows service tool.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIGURE_WINDOWS_SERVICE_TOOL_DESCRIPTION =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 816;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * showUsage argument.  This does not take any arguments.
+   */
+  public static final int
+        MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_SHOWUSAGE =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 817;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * enableService argument.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_ENABLE =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 818;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * disableService argument.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_DISABLE =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 819;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * serviceState argument.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_STATE =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 820;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the command-line arguments.  This takes a single argument,
+   * which is an explanation of the problem that occurred.
+   */
+  public static final int
+        MSGID_CONFIGURE_WINDOWS_SERVICE_CANNOT_INITIALIZE_ARGS =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 821;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * parsing the command-line arguments.  This takes a single argument, which is
+   * an explanation of the problem that occurred.
+   */
+  public static final int MSGID_CONFIGURE_WINDOWS_SERVICE_ERROR_PARSING_ARGS =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 822;
+
+  /**
+   * The message ID for the message that will be used if an error occurs if
+   * the user provided too many arguments.  This does not take any argument.
+   */
+  public static final int MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 823;
+
+  /**
+   * The message ID for the message that will be used if an error occurs if
+   * the user provided too few arguments.  This does not take any argument.
+   */
+  public static final int MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_FEW_ARGS =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 824;
+
+  /**
+   * The message ID for the message for the name of the Windows service.
+   * This does not take any argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_NAME =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 825;
+
+  /**
+   * The message ID for the message for the description of the Windows service.
+   * This does take the server path installation as argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_DESCRIPTION =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 826;
+
+  /**
+   * The message ID for the message to inform that the Windows service was
+   * successfully enabled.  This does not take any argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_SUCCESSULLY_ENABLED =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 827;
+
+  /**
+   * The message ID for the message to inform that the Windows service was
+   * already enabled.  This does not take any argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_ALREADY_ENABLED =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 828;
+
+  /**
+   * The message ID for the message to inform that the Windows service name was
+   * already in use.  This does not take any argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_NAME_ALREADY_IN_USE =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 829;
+
+  /**
+   * The message ID for the message to inform that the Windows service could not
+   * be enabled.  This does not take any argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_ENABLE_ERROR =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 830;
+
+  /**
+   * The message ID for the message to inform that the Windows service was
+   * successfully disabled.  This does not take any argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_SUCCESSULLY_DISABLED =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 831;
+
+  /**
+   * The message ID for the message to inform that the Windows service was
+   * already disabled.  This does not take any argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_ALREADY_DISABLED =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 832;
+
+  /**
+   * The message ID for the message to inform that the Windows service name was
+   * marked for deletion.  This does not take any argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_MARKED_FOR_DELETION =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 833;
+
+  /**
+   * The message ID for the message to inform that the Windows service could not
+   * be disabled.  This does not take any argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_DISABLE_ERROR =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 834;
+
+
+        /**
+   * The message ID for the message to inform that the Windows service is
+   * enabled.  This does take the name of the service as argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_ENABLED =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 835;
+
+  /**
+   * The message ID for the message to inform that the Windows service is
+   * disabled.  This does not take any argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_DISABLED =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 836;
+
+  /**
+   * The message ID for the message to inform that the Windows service state
+   * could not be retrieved.  This does not take any argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_STATE_ERROR =
+        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 837;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * windowsNetStop command-line argument.  This does not take any arguments.
+   */
+  public static final int MSGID_STOPDS_DESCRIPTION_WINDOWS_NET_STOP =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 838;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * outputFile argument.  It does not take any arguments.
+   */
+  public static final int MSGID_WAIT4DEL_DESCRIPTION_OUTPUT_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 839;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to open the output file for reading.  This takes two arguments,
+   * which are the path to the log file and a message explaining the problem
+   * that occurred.
+   */
+  public static final int MSGID_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 840;
+
+  /**
+   * The message ID for the message that will be used to tell that we are
+   * enabling OpenDS as a Windows service.
+   */
+  public static final int MSGID_INSTALLDS_ENABLING_WINDOWS_SERVICE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 841;
+
+
+  /**
+   * The message ID for the message that will be used to ask the user whether to
+   * enable OpenDS as a Windows service or not.  This does not take any
+   * argument.
+   */
+  public static final int MSGID_INSTALLDS_PROMPT_ENABLE_SERVICE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 842;
+
+  /**
+   * The message ID for the message for the description of the No Windows
+   * service.  This does not take any argument.
+   */
+  public static final int MSGID_INSTALLDS_DESCRIPTION_NO_WINDOWS_SERVICE =
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 843;
 
 
   /**
@@ -8922,7 +9148,12 @@ public class ToolMessages
                     "Attempt to automatically restart the server once it has " +
                     "stopped");
     registerMessage(MSGID_STOPDS_CHECK_STOPPABILITY,
-                    "Used to determine whether the server is stopped or not.");
+                    "Used to determine whether the server can be stopped "+
+                    "or not and the mode to be used to stop it.");
+    registerMessage(MSGID_STOPDS_DESCRIPTION_WINDOWS_NET_STOP,
+                    "Used by the window service code to inform that stop-ds "+
+                    "is being called from the window services after a call "+
+                    "to net stop");
     registerMessage(MSGID_STOPDS_DESCRIPTION_STOP_TIME,
                     "Time to begin the shutdown in YYYYMMDDhhmmss format " +
                     "(local time)");
@@ -9288,6 +9519,8 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_ROOTPWFILE,
                     "Specifies the path to a file containing the password " +
                     "for the initial root user for the Directory Server.");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_NO_WINDOWS_SERVICE,
+                    "Do not enable OpenDS to run as a Windows Service.");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_HELP,
                     "Displays usage information for this program.");
     registerMessage(MSGID_INSTALLDS_NO_CONFIG_FILE,
@@ -9330,6 +9563,8 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_PROMPT_JMXPORT,
                     "On which port would you like the Directory Server to " +
                     "accept connections from JMX clients?");
+    registerMessage(MSGID_INSTALLDS_PROMPT_ENABLE_SERVICE,
+                    "Enable OpenDS to run as a Windows Service?");
     registerMessage(MSGID_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT,
                     "ERROR:  Unable to bind to port %d.  This port may " +
                     "already be in use, or you may not have permission to " +
@@ -9418,6 +9653,8 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_CANNOT_CREATE_TEMPLATE_FILE,
                     "ERROR:  Cannot create the template file for generating " +
                     "sample data:  %s.");
+    registerMessage(MSGID_INSTALLDS_ENABLING_WINDOWS_SERVICE,
+                    "Enabling OpenDS as a Windows service....");
 
 
     registerMessage(MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT,
@@ -9844,6 +10081,9 @@ public class ToolMessages
     registerMessage(MSGID_WAIT4DEL_DESCRIPTION_LOG_FILE,
                     "Specifies the path to a file containing log output to " +
                     "monitor.");
+    registerMessage(MSGID_WAIT4DEL_DESCRIPTION_OUTPUT_FILE,
+                    "Specifies the path to a file to which the command will " +
+                    "write the output.");
     registerMessage(MSGID_WAIT4DEL_DESCRIPTION_TIMEOUT,
                     "The maximum length of time in seconds to wait for the " +
                     "target file to be deleted before exiting.");
@@ -9857,6 +10097,9 @@ public class ToolMessages
                     "arguments:  %s.");
     registerMessage(MSGID_WAIT4DEL_CANNOT_OPEN_LOG_FILE,
                     "WARNING:  Unable to open log file %s for reading:  %s.");
+    registerMessage(MSGID_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE,
+                    "WARNING:  Unable to open output file %s for writing:  "+
+                    "%s.");
 
 
     registerMessage(MSGID_LDAPCOMPARE_NO_DNS,
@@ -10081,6 +10324,97 @@ public class ToolMessages
                     "Please enter \"yes\" or \"no\":  ");
     registerMessage(MSGID_PROMPTTM_USER_REJECTED,
                     "The server certificate has been rejected by the user.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_NOT_FOUND,
+                    "Could not find the service name for OpenDS.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_START_ERROR,
+                    "An unexpected error occurred starting OpenDS as a "+
+                    "windows service");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_STOP_ERROR,
+                    "An unexpected error occurred stopping the OpenDS "+
+                    "windows service");
+
+    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_TOOL_DESCRIPTION,
+                    "This utility may be used to configure OpenDS as a "+
+                    "Windows service.");
+
+    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_SHOWUSAGE,
+                    "Display this usage information.");
+
+    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_ENABLE,
+                    "Enables OpenDS as a Windows service.");
+
+    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_DISABLE,
+                    "Disables OpenDS as a Windows service and stops the "+
+                    "server");
+
+    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_STATE,
+                    "Provides information about the state of OpenDS as a "+
+                    "Windows service.");
+
+    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_CANNOT_INITIALIZE_ARGS,
+                    "An unexpected error occurred while attempting to " +
+                    "initialize the command-line arguments:  %s.");
+
+    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_ERROR_PARSING_ARGS,
+                    "An error occurred while parsing the command-line " +
+                    "arguments:  %s.");
+
+    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS,
+                    "You can only provide one of the following arguments:"+
+                    EOL+"enableService, disableService or serviceState.");
+
+    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_FEW_ARGS,
+                    "You must provide at least one of the following arguments:"+
+                    EOL+"enableService, disableService or serviceState.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_NAME,
+                    "OpenDS");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_DESCRIPTION,
+                    "Open source Next Generation Directory Server.  "+
+                    "Installation path: %s");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_SUCCESSULLY_ENABLED,
+                    "OpenDS was successfully enabled as a Windows service.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_ALREADY_ENABLED,
+                    "OpenDS was already enabled as a Windows service.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_NAME_ALREADY_IN_USE,
+                    "OpenDS could not enabled as a Windows service.  The "+
+                    "service name is already in use.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_ENABLE_ERROR,
+                    "An unexpected error occurred trying to enable OpenDS as "+
+                    "a Windows service.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_SUCCESSULLY_DISABLED,
+                    "OpenDS was successfully disabled as a Windows service.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_ALREADY_DISABLED,
+                    "OpenDS was already disabled as a Windows service.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_MARKED_FOR_DELETION,
+                    "OpenDS has been marked for deletion as a Windows "+
+                    "Service.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_DISABLE_ERROR,
+                    "An unexpected error occurred trying to disable OpenDS as "+
+                    "a Windows service.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_ENABLED,
+                    "OpenDS is enabled as a Windows service.  The service "+
+                    "name for OpenDS is: %s");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_DISABLED,
+                    "OpenDS is disabled as a Windows service.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_STATE_ERROR,
+                    "An unexpected error occurred trying to retrieve the "+
+                    "state of OpenDS as a Windows service.");
   }
 }
 

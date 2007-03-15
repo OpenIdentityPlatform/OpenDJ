@@ -46,6 +46,7 @@ import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.SetupUtils;
 
+
 /**
  * This is an abstract class that is in charge of actually performing the
  * installation.
@@ -860,6 +861,18 @@ public abstract class Installer
   }
 
   /**
+   * This methods enables this server as a Windows service.
+   * @throws InstallException if something goes wrong.
+   */
+  protected void enableWindowsService() throws InstallException
+  {
+      notifyListeners(getFormattedProgress(
+        getMsg("progress-enabling-windows-service")));
+      InstallerHelper helper = new InstallerHelper();
+      helper.enableWindowsService();
+  }
+
+  /**
    * This methods starts the server.
    * @throws InstallException if something goes wrong.
    */
@@ -1043,6 +1056,8 @@ public abstract class Installer
             getMsg("summary-importing-automatically-generated")));
     hmSummary.put(InstallProgressStep.STARTING_SERVER,
         getFormattedSummary(getMsg("summary-starting")));
+    hmSummary.put(InstallProgressStep.ENABLING_WINDOWS_SERVICE,
+        getFormattedSummary(getMsg("summary-enabling-windows-service")));
 
     String cmd;
     if (Utils.isWindows())

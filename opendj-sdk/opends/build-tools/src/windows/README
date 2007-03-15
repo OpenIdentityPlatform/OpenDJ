@@ -27,37 +27,55 @@
  
  WHAT is winlauncher.exe
  ========================
- winlauncher.exe is a small windows executable that is intended to be used by
- the command line files to perform certain operations.  It is not intended to
- be a final user interface and that is one of the reasons why is placed under
- the lib subdirectory.
+winlauncher.exe is a small windows executable that is intended to be used by
+the command line files to perform certain operations.  It is not intended to
+be a final user interface and that is one of the reasons why is placed under
+the lib subdirectory.
 
- See the comments in winlauncher.c file for more information.
- 
- 
- INSTRUCTIONS TO COMPILE winlauncher
+See the comments in winlauncher.c file and common.c for more information.
+
+ WHAT is opends_service.exe
  ========================
- 
- Using Visual C++ and the command line  you must set your environment
- variables to point to your Visual Studio install.  You can set the environment
- variables by changing to the \bin subdirectory of your Visual C++ installation
- and running the VCVARS32.bat batch file.
- 
- This will basically update your PATH, INCLUDE and LIB environment variables
- to point to the correct paths of your Visual Studio install.
- 
-Go to the directory where the source files winlauncher.c and winlauncher.h are
-and launch the following command:
+opends_service.exe is a small windows executable that is intended to be used by
+the command line files to be able to run OpenDS as a windows service (or not
+to configure it as windows service).  It is not intended to be a final user
+interface and that is one of the reasons why is placed under the lib
+subdirectory.
 
-> cl winlauncher.c
+See the comments in service.c file and common.c for more information.
+
+
+ INSTRUCTIONS TO COMPILE winlauncher.exe
+ ========================
+
+Using Visual C++ and the command line  you must set your environment
+variables to point to your Visual Studio install.  You can set the environment
+variables by changing to the \bin subdirectory of your Visual C++ installation
+and running the VCVARS32.bat batch file.
+
+This will basically update your PATH, INCLUDE and LIB environment variables
+to point to the correct paths of your Visual Studio install.
+
+Go to the directory where the source files winlauncher.c, winlauncher.h,
+common.c and common.h are and launch the following command:
+
+> cl winlauncher.c common.c
 
 This will generate the binary winlauncher.exe.
+
+NOTE: An alternative to this mode is to compile winlauncher.exe using the
+Makefile by running:
+
+> nmake all
+
+(See INSTRUCTIONS TO COMPILE opends_service.exe for more information).
 
 ************************
 
 Using Visual C++ graphical interface you just must to Create a Project and add
-winlauncher.c and winlauncher.h to the project.   You can build winlauncher.c
-and then winlauncher.exe with the commands in the menu 'Build'.
+winlauncher.c, winlauncher.h, common.c and common.h to the project.
+You can build winlauncher.c and then winlauncher.exe with the commands in the
+menu 'Build'.
 
 ************************
 
@@ -67,6 +85,28 @@ binaries are on your PATH environment variable.
 Go to the directory where the source files winlauncher.c and winlauncher.h are
 and launch the following command:
 
-> gcc winlauncher.c -o winlauncher.exe
+> gcc common.c winlauncher.c -o winlauncher.exe
 
 This will generate the binary winlauncher.exe.
+
+
+ INSTRUCTIONS TO COMPILE opends_service.exe
+ ========================
+service.c (the main code file for opends_service.exe) uses windows resources and
+so 
+
+The fastest way of generating opends_service.exe is to do it using the command
+line.
+Using Visual C++ and the command line  you must set your environment
+variables to point to your Visual Studio install.  You can set the environment
+variables by changing to the \bin subdirectory of your Visual C++ installation
+and running the VCVARS32.bat batch file.
+
+Then go to the directory where the source files are and run the following
+command:
+
+> nmake all
+
+This command will generate both opends_service.exe and winlauncher.exe.
+
+See the comments in the file Makefile for more information.

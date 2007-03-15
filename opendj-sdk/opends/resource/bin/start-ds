@@ -114,39 +114,11 @@ ${JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
             --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability "${@}"
 EC=${?}
-if test ${EC} -ne 99
+if test ${EC} -eq 99
 then
-  exit ${EC}
-fi
-
-
-# See if an "-N" or a "--nodetach" argument was provided as a command-line
-# argument.  If it was, then don't use nohup to send to the  background, and
-# send all output to both the console and a lot file.
-NODETACH=0
-for ARG in "${@}"
-do
-  if test "${ARG}" = "-N"
-  then
-    NODETACH=1
-  else
-    ARG=`echo ${ARG} | tr '[A-Z]' '[a-z]'`
-    if test "${ARG}" = "--nodetach"
-    then
-      NODETACH=1
-    fi
-  fi
-done
-
-if test ${NODETACH} -eq 1
-then
-  echo $$ > "${PID_FILE}"
-  rm -f "${PID_FILE}" "${LOG_FILE}"
-  exec "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
-       org.opends.server.core.DirectoryServer \
-       --configClass org.opends.server.extensions.ConfigFileHandler \
-       --configFile "${CONFIG_FILE}" "${@}"
-else
+  #
+  # run detach
+  #
   touch "${STARTING_FILE}"
   nohup "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
        org.opends.server.core.DirectoryServer \
@@ -156,4 +128,23 @@ else
   "${JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
        --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}"
   exit ${?}
+else
+  if test ${EC} -eq 100
+  then
+    #
+    # run no detach
+    #
+    echo $$ > "${PID_FILE}"
+    rm -f "${PID_FILE}" "${LOG_FILE}"
+    exec "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+      org.opends.server.core.DirectoryServer \
+      --configClass org.opends.server.extensions.ConfigFileHandler \
+      --configFile "${CONFIG_FILE}" "${@}"
+  else
+    #
+    # an error or the server is already started.  Just return the code provided
+    # by checkstartability
+    #
+    exit ${EC}
+  fi
 fi

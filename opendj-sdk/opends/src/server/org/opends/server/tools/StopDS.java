@@ -40,6 +40,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.controls.ProxiedAuthV2Control;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -58,6 +59,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tasks.ShutdownTask;
 import org.opends.server.types.Control;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -84,7 +86,40 @@ public class StopDS
    */
   private static final String CLASS_NAME = "org.opends.server.tools.StopDS";
 
-
+  /**
+   * Return codes used when the hidden option --checkStoppability is used.
+   * NOTE: when checkStoppability is specified is recommended not to allocate
+   * a lot of memory for the JVM (Using -Xms and -Xmx options) as there might
+   * be calls to Runtime.exec.
+   */
+  /**
+   * The server is already stopped.
+   */
+  private static int SERVER_ALREADY_STOPPED = 98;
+  /**
+   * The server must be started.
+   */
+  private static int START_SERVER = 99;
+  /**
+   * The server must be stopped using a system call.
+   */
+  private static int STOP_USING_SYSTEM_CALL = 100;
+  /**
+   * The server must be restarted using system calls.
+   */
+  private static int RESTART_USING_SYSTEM_CALL = 101;
+  /**
+   * The server must be stopped using protocol.
+   */
+  private static int STOP_USING_PROTOCOL = 102;
+  /**
+   * The server must be stopped as a window service.
+   */
+  private static int STOP_AS_WINDOW_SERVICE = 103;
+  /**
+   * The server must be restarted as a window service.
+   */
+  private static int RESTART_AS_WINDOW_SERVICE = 104;
 
   /**
    * Invokes the <CODE>stopDS</CODE> method, passing it the provided command
@@ -165,6 +200,7 @@ public class StopDS
     ArgumentParser    argParser = new ArgumentParser(CLASS_NAME,
                                                      toolDescription, false);
     BooleanArgument   checkStoppability;
+    BooleanArgument   windowsNetStop;
     BooleanArgument   restart;
     BooleanArgument   showUsage;
     BooleanArgument   trustAll;
@@ -244,6 +280,11 @@ public class StopDS
               MSGID_STOPDS_CHECK_STOPPABILITY);
       checkStoppability.setHidden(true);
       argParser.addArgument(checkStoppability);
+
+      windowsNetStop = new BooleanArgument("windowsnetstop", null,
+          "windowsNetStop", MSGID_STOPDS_DESCRIPTION_WINDOWS_NET_STOP);
+      windowsNetStop.setHidden(true);
+      argParser.addArgument(windowsNetStop);
 
       restart = new BooleanArgument("restart", 'R', "restart",
                                     MSGID_STOPDS_DESCRIPTION_RESTART);
@@ -340,44 +381,8 @@ public class StopDS
 
     if (checkStoppability.isPresent())
     {
-      // This option should only be used if we want to check if the local
-      // server is running or not. If the server is running result code is 98.
-      // If the server is stopped the return code is 99.
-      String lockFile = LockFileManager.getServerLockFileName();
-      try
-        {
-          StringBuilder failureReason = new StringBuilder();
-          if (LockFileManager.acquireExclusiveLock(lockFile, failureReason))
-          {
-            // The server is not running: write a message informing of that
-            // in the standard out (this is not an error message).
-            int    msgID   = MSGID_STOPDS_SERVER_ALREADY_STOPPED;
-            String message = getMessage(msgID, null, null);
-            System.out.println(message);
-            LockFileManager.releaseLock(lockFile, failureReason);
-            System.exit(99);
-          }
-          else
-          {
-            // Display a message informing that we are going to the server.
-            int    msgID   = MSGID_STOPDS_GOING_TO_STOP;
-            String message = getMessage(msgID, null, null);
-            System.out.println(message);
-            // The server is running.
-            System.exit(98);
-          }
-        }
-        catch (Exception e)
-        {
-          // Display a message informing that we are going to the server.
-          int    msgID   = MSGID_STOPDS_GOING_TO_STOP;
-          String message = getMessage(msgID, null, null);
-          System.out.println(message);
-          // Assume that if we cannot acquire the lock file the server is
-          // running.
-          System.exit(98);
-        }
-      }
+      System.exit(checkStoppability(argParser));
+    }
 
     // If both a bind password and bind password file were provided, then return
     // an error.
@@ -749,6 +754,142 @@ public class StopDS
     }
 
     return addResponse.getResultCode();
+  }
+
+  /**
+   * Returns the error code that we return when we are checking the stoppability
+   * of the server.  This basically tells the invoker what must be done based
+   * on the different parameters passed.
+   * @param argParser the ArgumentParser with the arguments already parsed.
+   * @return the error code that we return when we are checking the stoppability
+   * of the server.
+   */
+  private static int checkStoppability(ArgumentParser argParser)
+  {
+    int returnValue;
+    boolean isServerRunning;
+
+    BooleanArgument restart =
+      (BooleanArgument)argParser.getArgumentForLongID("restart");
+    boolean restartPresent = restart.isPresent();
+    BooleanArgument windowsNetStop =
+      (BooleanArgument)argParser.getArgumentForLongID("windowsnetstop");
+    boolean windowsNetStopPresent = windowsNetStop.isPresent();
+
+    // Check if this is a stop through protocol.
+    LinkedList<Argument> list = argParser.getArgumentList();
+    boolean stopThroughProtocol = false;
+    for (Argument arg: list)
+    {
+      if (!"restart".equals(arg.getName()) &&
+          !"showusage".equals(arg.getName()) &&
+          !"checkstoppability".equals(arg.getName()) &&
+          !"windowsnetstop".equals(arg.getName()))
+      {
+        stopThroughProtocol |= arg.isPresent();
+      }
+    }
+
+    if (stopThroughProtocol)
+    {
+      // Assume that this is done on a remote server and do no more checks.
+      returnValue = STOP_USING_PROTOCOL;
+    }
+    else
+    {
+      String lockFile = LockFileManager.getServerLockFileName();
+      try
+      {
+        StringBuilder failureReason = new StringBuilder();
+        if (LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+        {
+          // The server is not running: write a message informing of that
+          // in the standard out (this is not an error message).
+          int    msgID   = MSGID_STOPDS_SERVER_ALREADY_STOPPED;
+          String message = getMessage(msgID, null, null);
+          System.out.println(message);
+          LockFileManager.releaseLock(lockFile, failureReason);
+          isServerRunning = false;
+        }
+        else
+        {
+          isServerRunning = true;
+        }
+      }
+      catch (Exception e)
+      {
+        // Assume that if we cannot acquire the lock file the server is
+        // running.
+        isServerRunning = true;
+      }
+
+      if (!isServerRunning)
+      {
+        if (restartPresent)
+        {
+          returnValue = START_SERVER;
+        }
+        else
+        {
+          returnValue = SERVER_ALREADY_STOPPED;
+        }
+      }
+      else
+      {
+        boolean configuredAsService =
+          DirectoryServer.isRunningAsWindowsService();
+
+        if (configuredAsService)
+        {
+          if (windowsNetStopPresent)
+          {
+            // stop-ds.bat is being called through net stop, so return
+            // STOP_USING_SYSTEM_CALL or RESTART_USING_SYSTEM_CALL so that the
+            // batch file actually stops the server.
+            if (restartPresent)
+            {
+              returnValue = RESTART_USING_SYSTEM_CALL;
+            }
+            else
+            {
+              returnValue = STOP_USING_SYSTEM_CALL;
+            }
+          }
+          else
+          {
+            if (restartPresent)
+            {
+              returnValue = RESTART_AS_WINDOW_SERVICE;
+            }
+            else
+            {
+              returnValue = STOP_AS_WINDOW_SERVICE;
+            }
+            // Display a message informing that we are going to the server.
+            int    msgID   = MSGID_STOPDS_GOING_TO_STOP;
+            String message = getMessage(msgID, null, null);
+            System.out.println(message);
+          }
+        }
+        else
+        {
+          // Display a message informing that we are going to the server.
+          int    msgID   = MSGID_STOPDS_GOING_TO_STOP;
+          String message = getMessage(msgID, null, null);
+          System.out.println(message);
+
+          if (restartPresent)
+          {
+            returnValue = RESTART_USING_SYSTEM_CALL;
+          }
+          else
+          {
+            returnValue = STOP_USING_SYSTEM_CALL;
+          }
+        }
+      }
+    }
+    return returnValue;
   }
 }
 

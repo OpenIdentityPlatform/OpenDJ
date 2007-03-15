@@ -57,60 +57,52 @@ goto end
 :setClassPath
 FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
 
+"%JAVA_BIN%" -Xms8M -Xmx8M %SCRIPT_NAME_ARG%  org.opends.server.tools.StopDS --checkStoppability %*
 
-set RESTART=0
-set NO_ARG_OR_ONLY_RESTART=1
-
-for %%x in (%*) DO set NO_ARG_OR_ONLY_RESTART=0
-if "%NO_ARG_OR_ONLY_RESTART%" == "1" goto execute
-
-for %%x in (%*) DO if "%%x" == "-R" set RESTART=1
-for %%x in (%*) DO if "%%x" == "--restart" set RESTART=1
-
-goto testParameter1
-
-:testParameter1
-if not "%1" == "-R" goto testParameter1b
-goto testParameter2
-
-:testParameter1b
-if not "%1" == "--restart" goto execute
-goto testParameter2
-
-:testParameter2
-if "%2" == "" set NO_ARG_OR_ONLY_RESTART=1
-if "%NO_ARG_OR_ONLY_RESTART%" == "1" goto execute
-if not "%2" == "-R" goto testParameter2b
-goto testParameter3
-
-:testParameter2b
-if not "%2" == "--restart" goto execute
-goto testParameter3
-
-:testParameter3
-if not "%3" == "" goto execute
-set NO_ARG_OR_ONLY_RESTART=1
-goto execute
-
-:execute
-if "%NO_ARG_OR_ONLY_RESTART%" == "0" goto stopWithLDAP
-
-rem  	Use the code in StopDS class to know if the server is already
-rem  	stopped.  An exit code of 99 means that the server is stopped.
-"%JAVA_BIN%" %JAVA_ARGS% %SCRIPT_NAME_ARG%  org.opends.server.tools.StopDS --checkStoppability
-if %errorlevel% == 99 goto serverStopped
-
-if not exist "%DIR_HOME%\logs\server.pid" goto stopWithLDAP
-"%DIR_HOME%\lib\winlauncher.exe" stop "%DIR_HOME%"
-if not %errorlevel% == 0 goto end
-
-:serverStopped
-if exist "%DIR_HOME%\logs\server.pid" erase "%DIR_HOME%\logs\server.pid"
-if "%RESTART%" == "1" "%DIR_HOME%\bin\start-ds.bat"
+if %errorlevel% == 98 goto serverAlreadyStopped
+if %errorlevel% == 99 goto startUsingSystemCall
+if %errorlevel% == 100 goto stopUsingSystemCall
+if %errorlevel% == 101 goto restartUsingSystemCall
+if %errorlevel% == 102 goto stopUsingProtocol
+if %errorlevel% == 103 goto stopAsWindowsService
+if %errorlevel% == 104 goto restartAsWindowsService
+rem An error or we display usage
 goto end
 
-:stopWithLDAP
+:serverAlreadyStopped
+if exist "%DIR_HOME%\logs\server.pid" erase "%DIR_HOME%\logs\server.pid"
+goto end
+
+:startUsingSystemCall
+"%DIR_HOME%\bin\start-ds.bat"
+goto end
+
+:stopUsingSystemCall
+"%DIR_HOME%\lib\winlauncher.exe" stop "%DIR_HOME%"
+goto end
+
+:restartUsingSystemCall
+"%DIR_HOME%\lib\winlauncher.exe" stop "%DIR_HOME%"
+if not %errorlevel% == 0 goto end
+goto startUsingSystemCall
+
+:stopUsingProtocol
 call "%~dP0\_client-script.bat" %*
+goto end
+
+:stopAsWindowsService
+"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StopWindowsService
+goto end
+
+:restartAsWindowsService
+"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StopWindowsService
+if not %errorlevel% == 0 goto end
+"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StartWindowsService
+"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.startingservice"
+rem Type the contents the winwervice.out file and delete it.
+if exist "%DIR_HOME%\logs\winservice.out" type "%DIR_HOME%\logs\winservice.out"
+if exist "%DIR_HOME%\logs\winservice.out" erase "%DIR_HOME%\logs\winservice.out"
+goto end
 
 :end
 

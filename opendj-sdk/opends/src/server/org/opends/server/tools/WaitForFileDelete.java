@@ -124,6 +124,7 @@ public class WaitForFileDelete
     IntegerArgument timeout        = null;
     StringArgument  logFilePath    = null;
     StringArgument  targetFilePath = null;
+    StringArgument  outputFilePath = null;
 
     String toolDescription = getMessage(MSGID_WAIT4DEL_TOOL_DESCRIPTION);
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
@@ -142,6 +143,13 @@ public class WaitForFileDelete
                                        true, "{path}", null, null,
                                        MSGID_WAIT4DEL_DESCRIPTION_LOG_FILE);
       argParser.addArgument(logFilePath);
+
+
+      outputFilePath = new StringArgument("outputfile", 'o', "outputFile",
+                                        false, false,
+                                        true, "{path}", null, null,
+                                        MSGID_WAIT4DEL_DESCRIPTION_OUTPUT_FILE);
+      argParser.addArgument(outputFilePath);
 
 
       timeout = new IntegerArgument("timeout", 't', "timeout", true, false,
@@ -222,6 +230,35 @@ public class WaitForFileDelete
     }
 
 
+    // If an output file was specified and we could open the log file, open it
+    // and append data to it.
+    RandomAccessFile outputFile = null;
+    long outputFileOffset = 0L;
+    if (logFile != null)
+    {
+      if (outputFilePath.isPresent())
+      {
+        try
+        {
+          File f = new File(outputFilePath.getValue());
+          if (f.exists())
+          {
+            outputFile = new RandomAccessFile(f, "rw");
+            outputFileOffset = outputFile.length();
+            outputFile.seek(outputFileOffset);
+          }
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE;
+          String message = getMessage(msgID, outputFilePath.getValue(),
+                                    String.valueOf(e));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+
+          outputFile = null;
+        }
+      }
+    }
     // Figure out when to stop waiting.
     long stopWaitingTime;
     try
@@ -257,8 +294,18 @@ public class WaitForFileDelete
             int bytesRead = logFile.read(logBuffer);
             if (bytesRead > 0)
             {
-              System.out.write(logBuffer, 0, bytesRead);
-              System.out.flush();
+              if (outputFile == null)
+              {
+                System.out.write(logBuffer, 0, bytesRead);
+                System.out.flush();
+              }
+              else
+              {
+                // Write on the file.
+                // TODO
+                outputFile.write(logBuffer, 0, bytesRead);
+
+              }
               logFileOffset += bytesRead;
             }
           }
@@ -283,6 +330,14 @@ public class WaitForFileDelete
       }
     }
 
+    if (outputFile != null)
+    {
+      try
+      {
+        outputFile.close();
+      }
+      catch (Throwable t) {}
+    }
 
     if (targetFile.exists())
     {

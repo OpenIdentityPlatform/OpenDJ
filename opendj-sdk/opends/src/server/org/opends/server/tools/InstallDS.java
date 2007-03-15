@@ -177,6 +177,7 @@ public class InstallDS
     BooleanArgument   showUsage;
     BooleanArgument   silentInstall;
     BooleanArgument   skipPortCheck;
+    BooleanArgument   noWindowsService;
     FileBasedArgument rootPWFile;
     IntegerArgument   ldapPort;
     IntegerArgument   jmxPort;
@@ -277,6 +278,14 @@ public class InstallDS
                             "rootUserPasswordFile", false, false, "{filename}",
                             null, null, MSGID_INSTALLDS_DESCRIPTION_ROOTPWFILE);
       argParser.addArgument(rootPWFile);
+
+      noWindowsService = new BooleanArgument("nowindowsservice", 'n',
+                                "noWindowsService",
+                                MSGID_INSTALLDS_DESCRIPTION_NO_WINDOWS_SERVICE);
+      if (SetupUtils.isWindows())
+      {
+        argParser.addArgument(noWindowsService);
+      }
 
       showUsage = new BooleanArgument("help", 'H', "help",
                                       MSGID_INSTALLDS_DESCRIPTION_HELP);
@@ -790,6 +799,24 @@ public class InstallDS
       }
     }
 
+    boolean enableService = false;
+    // If we are in Windows ask if the server must run as a windows service.
+    if (SetupUtils.isWindows())
+    {
+      if (silentInstall.isPresent())
+      {
+        enableService = !noWindowsService.isPresent();
+      }
+      else if (noWindowsService.isPresent())
+      {
+        enableService = false;
+      }
+      else
+      {
+        String message = getMessage(MSGID_INSTALLDS_PROMPT_ENABLE_SERVICE);
+        enableService = promptForBoolean(message, Boolean.TRUE);
+      }
+    }
 
     // At this point, we should be able to invoke the ConfigureDS utility to
     // apply the requested configuration.
@@ -976,6 +1003,24 @@ public class InstallDS
       SetupUtils.writeSetJavaHome(serverRoot);
     } catch (Exception e) {}
 
+    if (enableService)
+    {
+      String message = getMessage(MSGID_INSTALLDS_ENABLING_WINDOWS_SERVICE);
+      System.out.println(wrapText(message, MAX_LINE_WIDTH));
+      int code = ConfigureWindowsService.enableService(System.out,
+          System.err);
+
+      switch (code)
+      {
+      case ConfigureWindowsService.SERVICE_ENABLE_SUCCESS:
+        break;
+      case ConfigureWindowsService.SERVICE_ALREADY_ENABLED:
+        break;
+      default:
+        // It did not work.
+        return code;
+      }
+    }
 
     // If we've gotten here, then everything seems to have gone smoothly.
     if (! silentInstall.isPresent())

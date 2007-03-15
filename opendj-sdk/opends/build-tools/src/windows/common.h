@@ -16,7 +16,7 @@
 * file and include the License file at
 * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
 * add the following below this CDDL HEADER, with the fields enclosed
-* by brackets "[]" replaced with your own identifying information:
+* by brackets "[]" replaced with your own identifying * information:
 *      Portions Copyright [yyyy] [name of copyright owner]
 *
 * CDDL HEADER END
@@ -25,14 +25,11 @@
 *      Portions Copyright 2007 Sun Microsystems, Inc.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <process.h>
-#include "common.h"
+// Just some functions and constants to be used by winlauncher.c
+// and service.c
 
-#define PATH_SIZE 1024
-#define BUF_SIZE 1024
-#define COMMAND_SIZE 2048
+#include <Windows.h>
 
-
+int spawn(const char* command, BOOL background);
+BOOL createChildProcess(char* command, BOOL background,
+PROCESS_INFORMATION* procInfo);

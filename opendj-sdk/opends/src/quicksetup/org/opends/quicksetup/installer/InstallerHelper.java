@@ -84,6 +84,33 @@ class InstallerHelper implements JnlpProperties
         MSGID_DIRECTORY_SERVER_STARTED);
   }
 
+  /**
+   * This methods enables this server as a Windows service.
+   * @throws InstallException if something goes wrong.
+   */
+  protected void enableWindowsService() throws InstallException
+  {
+    int code = org.opends.server.tools.ConfigureWindowsService.enableService(
+    System.out, System.err);
+
+    String errorMessage = ResourceProvider.getInstance().getMsg(
+    "error-enabling-windows-service");
+
+    switch (code)
+    {
+      case
+      org.opends.server.tools.ConfigureWindowsService.SERVICE_ENABLE_SUCCESS:
+      break;
+      case
+      org.opends.server.tools.ConfigureWindowsService.SERVICE_ALREADY_ENABLED:
+      break;
+      default:
+      throw new InstallException(InstallException.Type.WINDOWS_SERVICE_ERROR,
+      errorMessage, null);
+    }
+  }
+
+
   private String getThrowableMsg(String key, Throwable t)
   {
     return getThrowableMsg(key, null, t);

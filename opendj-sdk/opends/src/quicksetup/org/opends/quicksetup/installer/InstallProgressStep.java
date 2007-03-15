@@ -68,6 +68,10 @@ public enum InstallProgressStep
    */
   STARTING_SERVER,
   /**
+   * Enabling Windows service.
+   */
+  ENABLING_WINDOWS_SERVICE,
+  /**
    * Installation finished successfully.
    */
   FINISHED_SUCCESSFULLY,

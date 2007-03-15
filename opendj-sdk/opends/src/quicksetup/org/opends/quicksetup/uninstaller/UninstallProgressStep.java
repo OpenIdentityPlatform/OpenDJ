@@ -43,6 +43,10 @@ public enum UninstallProgressStep
    */
   STOPPING_SERVER,
   /**
+   * Disabling Windows Service.
+   */
+  DISABLING_WINDOWS_SERVICE,
+  /**
    * Removing External Database files.
    */
   DELETING_EXTERNAL_DATABASE_FILES,
