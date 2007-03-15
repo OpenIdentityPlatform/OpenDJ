@@ -30,10 +30,10 @@ package org.opends.server.authorization.dseecompat;
 import org.opends.server.types.*;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Group;
+import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.Operation;
 import org.opends.server.extensions.TLSConnectionSecurityProvider;
-import org.opends.server.util.ServerConstants;
 import java.net.InetAddress;
 import java.util.LinkedList;
 
@@ -353,88 +353,63 @@ implements AciTargetMatchContext, AciEvalContext {
     }
 
     /**
-     * Try to determine the authentication information from the current
-     * client connection. The checks are for simple and SASL, anything else
-     * is not a match. If the bind rule requires any SSL client authentication
-     * information then the "wantSSL" flag should be set. This code is used by
-     * the authmethod bind rule keyword.
-     *
-     * @param wantSSL True if the bind rule needs the ssl client auth check.
-     * @return  Return an enumeration containing the authentication method
-     * type for this client connection.
+     * {@inheritDoc}
      */
-    public EnumAuthMethod getAuthenticationMethod(boolean wantSSL) {
-        EnumAuthMethod method=EnumAuthMethod.AUTHMETHOD_NOMATCH;
+    public EnumEvalResult hasAuthenticationMethod(EnumAuthMethod authMethod,
+                                                  String saslMech) {
+      EnumEvalResult matched=EnumEvalResult.FALSE;
+
+      if(authMethod==EnumAuthMethod.AUTHMETHOD_NONE) {
+        /**
+         * None actually means any, in that we don't care what method was used.
+         * This doesn't seem very intuitive or useful, but that's the way it is.
+         */
+        matched = EnumEvalResult.TRUE;
+      } else {
+        /*
+         * Some kind of authentication is required.
+         */
         AuthenticationInfo authInfo=clientConnection.getAuthenticationInfo();
         if(authInfo.isAuthenticated()) {
-            if(authInfo.hasAuthenticationType(AuthenticationType.SIMPLE))
-                method=EnumAuthMethod.AUTHMETHOD_SIMPLE;
-            else if(authInfo.hasAuthenticationType(AuthenticationType.SASL))
-                method=getSaslAuthenticationMethod(authInfo, wantSSL);
-            else
-                method=EnumAuthMethod.AUTHMETHOD_NOMATCH;
+          if(authMethod==EnumAuthMethod.AUTHMETHOD_SIMPLE) {
+            if(authInfo.hasAuthenticationType(AuthenticationType.SIMPLE)) {
+              matched = EnumEvalResult.TRUE;
+            }
+          } else if(authMethod == EnumAuthMethod.AUTHMETHOD_SSL) {
+            /*
+             * This means authentication using a certificate over TLS.
+             *
+             * We check the following:
+             * - SASL EXTERNAL has been used, and
+             * - TLS is the security provider, and
+             * - The client provided a certificate.
+             */
+            if (authInfo.hasAuthenticationType(AuthenticationType.SASL) &&
+                 authInfo.hasSASLMechanism(saslMech)) {
+              ConnectionSecurityProvider provider =
+                    clientConnection.getConnectionSecurityProvider();
+              if (provider instanceof TLSConnectionSecurityProvider) {
+                TLSConnectionSecurityProvider tlsProvider =
+                      (TLSConnectionSecurityProvider) provider;
+                 if (tlsProvider.getClientCertificateChain() != null) {
+                   matched = EnumEvalResult.TRUE;
+                 }
+              }
+            }
+          } else {
+            // A particular SASL mechanism.
+            if (authInfo.hasAuthenticationType(AuthenticationType.SASL) &&
+                 authInfo.hasSASLMechanism(saslMech)) {
+              matched = EnumEvalResult.TRUE;
+            }
+          }
         }
-        return method;
-    }
-
-    /*
-     * TODO This method needs to be tested.
-     * TODO Investigate multi-factor authentication.
-     *   Second, OpenDS is devised so that it could be possible to use
-     *   multi-factor or step-up authentication, in which the same client
-     *   has provided multiple forms of credentials, but this method
-     *   expects only a single authentication type.
-     */
-    /**
-     * This method attempts to figure out what the SASL method was/is or
-     * what the client auth is.
-     * @param authInfo The authentication information to use.
-     * @param wantSSL The bin drule wants the SSL client auth status.
-     * @return An enumeration containing the SASL bind information.
-     */
-    private EnumAuthMethod
-    getSaslAuthenticationMethod(AuthenticationInfo authInfo, boolean wantSSL) {
-        EnumAuthMethod method=EnumAuthMethod.AUTHMETHOD_NOMATCH;
-        if(authInfo.hasAuthenticationType(AuthenticationType.SASL)) {
-            if(authInfo.hasSASLMechanism(ServerConstants.
-                    SASL_MECHANISM_DIGEST_MD5))
-                method=EnumAuthMethod.AUTHMETHOD_SASL_MD5;
-            else if(authInfo.hasSASLMechanism(ServerConstants.
-                    SASL_MECHANISM_GSSAPI))
-                method=EnumAuthMethod.AUTHMETHOD_SASL_GSSAPI;
-            else if(authInfo.hasSASLMechanism(ServerConstants.
-                    SASL_MECHANISM_EXTERNAL)) {
-                /*
-                 * The bind rule wants ssl client auth information. Need the
-                 * security provider to see if the clientAuthPolicy is
-                 * required. If it is optional, we really can't determine if
-                 * the client auth.
-                */
-                if(wantSSL) {
-                    String mechName=
-                        clientConnection.getConnectionSecurityProvider().
-                                getSecurityMechanismName();
-                    if(mechName.equalsIgnoreCase("TLS")) {
-                        TLSConnectionSecurityProvider tlsProv=
-                            (TLSConnectionSecurityProvider)clientConnection.
-                                           getConnectionSecurityProvider();
-                        SSLClientAuthPolicy clientAuthPolicy=
-                            tlsProv.getSSLClientAuthPolicy();
-                        if(clientAuthPolicy == SSLClientAuthPolicy.REQUIRED)
-                            method=EnumAuthMethod.AUTHMETHOD_SSL;
-                    } else
-                       method=EnumAuthMethod.AUTHMETHOD_NOMATCH;
-                } else {
-                    method=EnumAuthMethod.AUTHMETHOD_SASL_EXTERNAL;
-                }
-            } else
-                method=EnumAuthMethod.AUTHMETHOD_NOMATCH;
-        }
-        return method;
+      }
+      return matched;
     }
 
     /**
-     * Convienance method that checks if the the clientDN is a member of the
+     * Convenience method that checks if the the clientDN is a member of the
      * specified group.
      * @param group The group to check membership in.
      * @return True if the clientDN is a member of the specified group.
