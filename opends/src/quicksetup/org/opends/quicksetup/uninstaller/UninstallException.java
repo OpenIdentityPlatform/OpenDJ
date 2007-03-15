@@ -56,6 +56,10 @@ public class UninstallException extends Exception
      */
     STOP_ERROR,
     /**
+     * Error disabling the Windows service.
+     */
+    WINDOWS_SERVICE_ERROR,
+    /**
      * A bug (for instance when we throw an IllegalStateException).
      */
     BUG

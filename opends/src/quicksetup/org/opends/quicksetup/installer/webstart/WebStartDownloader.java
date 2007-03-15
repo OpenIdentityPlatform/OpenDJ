@@ -244,6 +244,10 @@ public class WebStartDownloader implements DownloadServiceListener,
         {
           ratio = 110;
         }
+        else if (urls[i].endsWith("aspectjrt.jar"))
+        {
+          ratio = 10;
+        }
         else
         {
           ratio = (100 / urls.length);

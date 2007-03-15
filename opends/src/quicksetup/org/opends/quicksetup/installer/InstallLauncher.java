@@ -98,7 +98,16 @@ public class InstallLauncher
        * This is required because the usage message contains '{' characters that
        * mess up the MessageFormat.format method.
        */
-      String msg = getMsg("setup-launcher-usage");
+      String msg;
+
+      if (Utils.isWindows())
+      {
+        msg= getMsg("setup-launcher-usage-windows");
+      }
+      else
+      {
+        msg= getMsg("setup-launcher-usage-unix");
+      }
       msg = msg.replace("{0}", arg);
       System.err.println(msg);
       System.exit(1);

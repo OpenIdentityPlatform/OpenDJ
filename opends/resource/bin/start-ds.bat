@@ -58,13 +58,17 @@ set PATH=%SystemRoot%
 
 set SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=start-ds
 
-set NODETACH=0
-for %%x in (%*) DO if "%%x" == "-N" set NODETACH=1
-for %%x in (%*) DO if "%%x" == "--nodetach" set NODETACH=1
+"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --checkStartability %*
 
-if "%NODETACH%" == "1" goto runNoDetach
-goto runDetach
+if %errorlevel% == 98 goto serverAlreadyStarted
+if %errorlevel% == 99 goto runDetach
+if %errorlevel% == 100 goto runNoDetach
+if %errorlevel% == 101 goto runAsService
+if %errorlevel% == 102 goto runDetachCalledByWinService
+goto end
 
+:serverAlreadyStarted
+goto end
 
 :runNoDetach
 if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
@@ -74,14 +78,28 @@ goto end
 
 
 :runDetach
-"%JAVA_BIN%" %JAVA_ARGS%  org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --checkStartability %*
-if not %errorlevel% == 99 goto end
 if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
 if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
 "%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%JAVA_BIN%" %JAVA_ARGS%  org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out"
 goto end
 
+:runDetachCalledByWinService
+rem We write the output of the start command to the winwervice.out file.
+if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
+if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
+echo. > "%DIR_HOME%\logs\server.startingservice"
+echo. > "%DIR_HOME%\logs\winservice.out"
+"%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%JAVA_BIN%" %JAVA_ARGS%  org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out" --outputFile "%DIR_HOME%\logs\winservice.out"
+erase "%DIR_HOME%\logs\server.startingservice"
+goto end
 
+:runAsService
+"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StartWindowsService
+"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.startingservice"
+rem Type the contents the winwervice.out file and delete it.
+if exist "%DIR_HOME%\logs\winservice.out" type "%DIR_HOME%\logs\winservice.out"
+if exist "%DIR_HOME%\logs\winservice.out" erase "%DIR_HOME%\logs\winservice.out"
 :end
 

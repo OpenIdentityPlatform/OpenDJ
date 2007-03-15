@@ -142,6 +142,13 @@ public class OfflineInstaller extends Installer
 
       writeJavaHome();
 
+      if (Utils.isWindows())
+      {
+          notifyListeners(getTaskSeparator());
+          status = InstallProgressStep.ENABLING_WINDOWS_SERVICE;
+          enableWindowsService();
+      }
+
       if (getUserData().getStartServer())
       {
         notifyListeners(getTaskSeparator());
@@ -211,6 +218,7 @@ public class OfflineInstaller extends Installer
     hmTime.put(InstallProgressStep.IMPORTING_LDIF, 20);
     hmTime.put(InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED,
         20);
+    hmTime.put(InstallProgressStep.ENABLING_WINDOWS_SERVICE, 5);
     hmTime.put(InstallProgressStep.STARTING_SERVER, 10);
 
     int totalTime = 0;
@@ -233,6 +241,11 @@ public class OfflineInstaller extends Installer
       totalTime += hmTime.get(
               InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED);
       break;
+    }
+    if (Utils.isWindows())
+    {
+      totalTime += hmTime.get(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
+      steps.add(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
     }
     if (getUserData().getStartServer())
     {

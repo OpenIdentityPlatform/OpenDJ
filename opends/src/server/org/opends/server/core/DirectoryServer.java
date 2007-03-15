@@ -127,6 +127,7 @@ import org.opends.server.schema.OIDSyntax;
 import org.opends.server.schema.TelephoneNumberEqualityMatchingRule;
 import org.opends.server.schema.TelephoneNumberSubstringMatchingRule;
 import org.opends.server.schema.TelephoneNumberSyntax;
+import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
@@ -154,6 +155,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.MultiOutputStream;
+import org.opends.server.util.SetupUtils;
 import org.opends.server.util.TimeThread;
 import org.opends.server.util.Validator;
 import org.opends.server.util.args.ArgumentException;
@@ -205,6 +207,43 @@ public class DirectoryServer
   private static boolean serverLocked = false;
 
 
+  /**
+   * Return codes used when the hidden option --checkStartability is used.
+   * NOTE: when checkstartability is specified is recommended not to allocate
+   * a lot of memory for the JVM (Using -Xms and -Xmx options) as there might
+   * be calls to Runtime.exec.
+   */
+  /**
+   * Returned when the user specified the --checkStartability option with other
+   * options like printing the usage, dumping messages, displaying version, etc.
+   */
+  private static int NOTHING_TO_DO = 0;
+  /**
+   * Returned when the user specified the --checkStartability option with
+   * some incompatible arguments.
+   */
+  private static int CHECK_ERROR = 1;
+  /**
+   * The server is already started.
+   */
+  private static int SERVER_ALREADY_STARTED = 98;
+  /**
+   * The server must be started as detached process.
+   */
+  private static int START_AS_DETACH = 99;
+  /**
+   * The server must be started as a non-detached process.
+   */
+  private static int START_AS_NON_DETACH = 100;
+  /**
+   * The server must be started as a window service.
+   */
+  private static int START_AS_WINDOWS_SERVICE = 101;
+  /**
+   * The server must be started as detached and it is being called from the
+   * Windows Service.
+   */
+  private static int START_AS_DETACH_CALLED_FROM_WINDOWS_SERVICE = 102;
 
   // The policy to use regarding single structural objectclass enforcement.
   private AcceptRejectWarn singleStructuralClassPolicy;
@@ -2538,8 +2577,6 @@ public class DirectoryServer
       return directoryServer.configHandler.getServerRoot();
     }
   }
-
-
 
   /**
    * Retrieves the time that the Directory Server was started, in milliseconds
@@ -7662,6 +7699,7 @@ public class DirectoryServer
   {
     // Define the arguments that may be provided to the server.
     BooleanArgument checkStartability = null;
+    BooleanArgument windowsNetStart   = null;
     BooleanArgument displayUsage      = null;
     BooleanArgument dumpMessages      = null;
     BooleanArgument fullVersion       = null;
@@ -7704,6 +7742,12 @@ public class DirectoryServer
                               MSGID_DSCORE_DESCRIPTION_CHECK_STARTABILITY);
       checkStartability.setHidden(true);
       argParser.addArgument(checkStartability);
+
+      windowsNetStart = new BooleanArgument("windowsnetstart", null,
+                              "windowsNetStart",
+                              MSGID_DSCORE_DESCRIPTION_WINDOWS_NET_START);
+      windowsNetStart.setHidden(true);
+      argParser.addArgument(windowsNetStart);
 
 
       version = new BooleanArgument("version", 'v', "version",
@@ -7782,14 +7826,15 @@ public class DirectoryServer
       //   something else like display the version number.  In that case, we
       //   don't need to write the PID file at all and can just execute the
       //   intended command.  If that command was successful, then we'll have an
-      //   exit code of 0.  Otherwise, it will have an exit code that is
-      //   something other than 0, 98, or 99 to indicate that a problem
-      // occurred.
+      //   exit code of NOTHING_TO_DO (0).  Otherwise, it will have an exit code
+      //   that is something other than NOTHING_TO_DO, SERVER_ALREADY_STARTED,
+      //   START_AS_DETACH, START_AS_NON_DETACH, START_AS_WINDOWS_SERVICE to
+      //   indicate that a problem occurred.
       if (argParser.usageDisplayed())
       {
         // We're just trying to display usage, and that's already been done so
         // exit with a code of zero.
-        System.exit(0);
+        System.exit(NOTHING_TO_DO);
       }
       else if (fullVersion.isPresent() || version.isPresent() ||
                systemInfo.isPresent() || dumpMessages.isPresent())
@@ -7808,44 +7853,11 @@ public class DirectoryServer
         String[] newArgs = new String[newArgList.size()];
         newArgList.toArray(newArgs);
         main(newArgs);
-        System.exit(0);
+        System.exit(NOTHING_TO_DO);
       }
       else
       {
-        // We're trying to start the server, so see if it's already running by
-        // trying to grab an exclusive lock on the server lock file.  If it
-        // succeeds, then the server isn't running and we can try to start.
-        // Otherwise, the server is running and this attempt should fail.
-        String lockFile = LockFileManager.getServerLockFileName();
-        try
-        {
-          StringBuilder failureReason = new StringBuilder();
-          if (LockFileManager.acquireExclusiveLock(lockFile, failureReason))
-          {
-            // The server isn't running, so it can be started.
-            LockFileManager.releaseLock(lockFile, failureReason);
-            System.exit(99);
-          }
-          else
-          {
-            // The server's already running.
-            int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
-            String message = getMessage(msgID, lockFile,
-                                        String.valueOf(failureReason));
-            System.err.println(message);
-            System.exit(98);
-          }
-        }
-        catch (Exception e)
-        {
-          // We'll treat this as if the server is running because we won't
-          // be able to start it anyway.
-          int    msgID   = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
-          String message = getMessage(msgID, lockFile,
-                                      stackTraceToSingleLineString(e));
-          System.err.println(message);
-          System.exit(98);
-        }
+        System.exit(checkStartability(argParser));
       }
     }
     else if (argParser.usageDisplayed())
@@ -8159,5 +8171,134 @@ public class DirectoryServer
     RDN rdn = RDN.create(cnType, new AttributeValue(cnType, monitorName));
     return monitorRootDN.concat(rdn);
   }
+
+  /**
+   * Returns the error code that we return when we are checking the startability
+   * of the server.
+   * If there are conflicting arguments (like asking to run the server in non
+   * detach mode when the server is configured to run as a window service) it
+   * returns CHECK_ERROR (1).
+   * @param argParser the ArgumentParser with the arguments already parsed.
+   * @return the error code that we return when we are checking the startability
+   * of the server.
+   */
+  private static int checkStartability(ArgumentParser argParser)
+  {
+    int returnValue;
+    boolean isServerRunning;
+
+    BooleanArgument noDetach =
+      (BooleanArgument)argParser.getArgumentForLongID("nodetach");
+    BooleanArgument windowsNetStart =
+      (BooleanArgument)argParser.getArgumentForLongID("windowsnetstart");
+
+    boolean noDetachPresent = noDetach.isPresent();
+    boolean windowsNetStartPresent = windowsNetStart.isPresent();
+
+    // We're trying to start the server, so see if it's already running by
+    // trying to grab an exclusive lock on the server lock file.  If it
+    // succeeds, then the server isn't running and we can try to start.
+    // Otherwise, the server is running and this attempt should fail.
+    String lockFile = LockFileManager.getServerLockFileName();
+    try
+    {
+      StringBuilder failureReason = new StringBuilder();
+      if (LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+      {
+        // The server isn't running, so it can be started.
+        LockFileManager.releaseLock(lockFile, failureReason);
+        isServerRunning = false;
+      }
+      else
+      {
+        // The server's already running.
+        int msgID = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
+        String message = getMessage(msgID, lockFile,
+            String.valueOf(failureReason));
+        System.err.println(message);
+        isServerRunning = true;
+      }
+    }
+    catch (Exception e)
+    {
+      // We'll treat this as if the server is running because we won't
+      // be able to start it anyway.
+      int msgID = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
+      String message = getMessage(msgID, lockFile,
+          stackTraceToSingleLineString(e));
+      System.err.println(message);
+      isServerRunning = true;
+    }
+
+    if (isServerRunning)
+    {
+      returnValue = SERVER_ALREADY_STARTED;
+    }
+    else
+    {
+      boolean configuredAsService = isRunningAsWindowsService();
+
+      if (configuredAsService)
+      {
+        if (noDetachPresent)
+        {
+          // Conflicting arguments
+          returnValue = CHECK_ERROR;
+          int    msgID   = MSGID_DSCORE_ERROR_NODETACH_AND_WINDOW_SERVICE;
+          String message = getMessage(msgID, (Object[])null);
+
+          System.err.println(message);
+
+        }
+        else
+        {
+          if (windowsNetStartPresent)
+          {
+            // start-ds.bat is being called through net start, so return
+            // START_AS_DETACH_CALLED_FROM_WINDOWS_SERVICE so that the batch
+            // file actually starts the server.
+            returnValue = START_AS_DETACH_CALLED_FROM_WINDOWS_SERVICE;
+          }
+          else
+          {
+            returnValue = START_AS_WINDOWS_SERVICE;
+          }
+        }
+      }
+      else
+      {
+        if (noDetachPresent)
+        {
+          returnValue = START_AS_NON_DETACH;
+        }
+        else
+        {
+          returnValue = START_AS_DETACH;
+        }
+      }
+    }
+    return returnValue;
+  }
+
+  /**
+   * Returns true if this server is configured to run as a windows service.
+   * @return <CODE>true</CODE> if this server is configured to run as a windows
+   * service and <CODE>false</CODE> otherwise.
+   */
+  public static boolean isRunningAsWindowsService()
+  {
+    boolean isRunningAsWindowsService;
+    if (SetupUtils.isWindows())
+    {
+      isRunningAsWindowsService = ConfigureWindowsService.serviceState(null,
+      null) == ConfigureWindowsService.SERVICE_STATE_ENABLED;
+    }
+    else
+    {
+      isRunningAsWindowsService = false;
+    }
+    return isRunningAsWindowsService;
+  }
+
 }
 

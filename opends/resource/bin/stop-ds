@@ -105,87 +105,105 @@ SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
 export SCRIPT_NAME_ARG
 
 
-# If there were no arguments (or only the -R argument was passed) we assume that
-# the server to be stopped is the local server.  If this is the case we check if
-# the server is running or not.
-# If the server is running then try to stop the server with a kill command.  If
-# there are more arguments, try to stop the server using LDAP protocol.
-NO_ARG_OR_ONLY_RESTART=1
-RESTART=0
-for ARG in "${@}"
-do
-  if test "${ARG}" != "-R"
-  then
-    if test "${ARG}" != "--restart"
-    then
-        NO_ARG_OR_ONLY_RESTART=0
-    else
-        RESTART=1
-    fi
-  else
-    RESTART=1
-  fi
-done
+"${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+  org.opends.server.tools.StopDS --checkStoppability "${@}"
+EC=${?}
 
-if test ${NO_ARG_OR_ONLY_RESTART} -eq 1
+STOPPED=1
+EXIT_CODE=1
+MUST_START_USING_SYSTEM_CALL=1
+MUST_STOP_USING_SYSTEM_CALL=1
+
+if test ${EC} -eq 98
+#
+# Already stopped and nothing else to do.
+#
 then
-  # Use the code in StopDS class to know if the server is already
-  # stopped.  An exit code of 99 means that the server is stopped.
   STOPPED=0
-  "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
-     org.opends.server.tools.StopDS --checkStoppability
-  EC=${?}
-  if test ${EC} -ne 99
+else
+  if test ${EC} -eq 99
+  #
+  # Already stopped and must start locally.
+  #
   then
-    STOPPED=1
-  fi
-  
-  EXIT_CODE=0
-  if test "${STOPPED}" -eq 1
-  then
-    if test -f "${INSTANCE_ROOT}/logs/server.pid"
+    STOPPED=0
+    MUST_START_USING_SYSTEM_CALL=0
+  else
+    if test ${EC} -eq 100
     then
-        kill `cat "${INSTANCE_ROOT}/logs/server.pid"`
-        EXIT_CODE=${?}
-        if test "${EXIT_CODE}" -eq 0
+      #
+      # Stop using system call
+      #
+      MUST_STOP_USING_SYSTEM_CALL=0
+    else
+      if test ${EC} -eq 101
+      then
+        #
+        # Restart using system call
+        #
+        MUST_STOP_USING_SYSTEM_CALL=0
+        MUST_START_USING_SYSTEM_CALL=0
+      else
+        if test ${EC} -ne 102
         then
-            "${JAVA_BIN}" -Xms8M -Xmx8M \
-            org.opends.server.tools.WaitForFileDelete \
-            --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
-            --logFile "${INSTANCE_ROOT}/logs/errors"
-            EXIT_CODE=${?}
-            if test "${EXIT_CODE}" -eq 0
-            then
-                STOPPED=0
-            fi
+          exit ${EC}
         fi
+      fi
     fi
   fi
-  
-  # Delete the pid file if the server is stopped (this can occur if the process has
-  # been killed using kill -9).
-  if test "{$STOPPED}" -eq 0
-  then
-  	if test -f "${INSTANCE_ROOT}/logs/server.pid"
-  	then
-  		rm "${INSTANCE_ROOT}/logs/server.pid"
-    fi
-  fi
-  
-  # Now if the user wants to restart the server, try to restart it if the server
-  # is stopped.
-  if test "${RESTART}" -eq 1
-  then
-    if test "${STOPPED}" -eq 0
-    then
-        "${INSTANCE_ROOT}/bin/start-ds"
-        EXIT_CODE=${?}
-    fi
-  fi
-  exit ${EXIT_CODE}
 fi
 
+if test ${MUST_STOP_USING_SYSTEM_CALL} -eq 0
+then
+  if test -f "${INSTANCE_ROOT}/logs/server.pid"
+  then
+    kill `cat "${INSTANCE_ROOT}/logs/server.pid"`
+    EXIT_CODE=${?}
+    if test ${EXIT_CODE} -eq 0
+    then
+      "${JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
+        --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
+        --logFile "${INSTANCE_ROOT}/logs/errors"
+      EXIT_CODE=${?}
+      if test ${EXIT_CODE} -eq 0
+      then
+        STOPPED=0
+      fi
+    fi
+  fi
+fi
+
+# Delete the pid file if the server is stopped (this can occur if the process
+# has been killed using kill -9).
+if test ${STOPPED} -eq 0
+then
+  if test -f "${INSTANCE_ROOT}/logs/server.pid"
+  then
+    rm "${INSTANCE_ROOT}/logs/server.pid"
+  fi
+fi
+  
+# Now if the user wants to restart the server, try to restart it if the server
+# is stopped.
+if test ${MUST_START_USING_SYSTEM_CALL} -eq 0
+then
+  if test ${STOPPED} -eq 0
+  then
+    "${INSTANCE_ROOT}/bin/start-ds"
+    EXIT_CODE=${?}
+    exit ${EXIT_CODE}
+  fi
+#
+# The user does not want to start the server locally and it is already stopped.
+# Just exit.
+#
+else
+  if test ${STOPPED} -eq 0
+  then
+    exit 0
+  fi
+fi
 
 # If we've gotten here, then we should try to stop the server over LDAP.
 "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
-     org.opends.server.tools.StopDS "${@}"
+  org.opends.server.tools.StopDS "${@}"
