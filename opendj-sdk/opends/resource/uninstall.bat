@@ -52,8 +52,7 @@ echo        Please set it to a valid Java 5 installation.
 goto end
 
 :setClassPath
-call "%DIR_HOME%\bin\setcp.bat" %DIR_HOME%\lib\quicksetup.jar
-call "%DIR_HOME%\bin\setcp.bat" %DIR_HOME%\lib\OpenDS.jar
+FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
 
 set PATH=%SystemRoot%
 

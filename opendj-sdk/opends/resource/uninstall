@@ -115,9 +115,6 @@ else
   fi
 fi
 
-# Configure the appropriate CLASSPATH to run uninstall.
-CLASSPATH=${INSTANCE_ROOT}/lib/quicksetup.jar:${INSTANCE_ROOT}/lib/OpenDS.jar
-export CLASSPATH
 
 # Launch the uninstall process.
 "${JAVA_BIN}" org.opends.quicksetup.uninstaller.UninstallLauncher "${@}"

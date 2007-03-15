@@ -163,8 +163,7 @@ public class Uninstaller
     {
       if (userData.getRemoveLibrariesAndTools())
       {
-        String[] arg = {getTab()+getQuicksetupJarPath()+
-            getLineBreak()+getTab()+getOpenDSJarPath()};
+        String[] arg = {getLibrariesPath()};
         successMsg = getMsg(
             "summary-uninstall-finished-successfully-remove-jarfiles-cli",
             arg);
@@ -178,8 +177,7 @@ public class Uninstaller
     {
       if (userData.getRemoveLibrariesAndTools())
       {
-        String[] arg = {getTab()+getQuicksetupJarPath()+
-            getLineBreak()+getTab()+getOpenDSJarPath()};
+        String[] arg = {getLibrariesPath()};
         successMsg = getMsg(
             "summary-uninstall-finished-successfully-remove-jarfiles", arg);
       }
@@ -884,24 +882,6 @@ public class Uninstaller
   }
 
   /**
-   * Returns the path to the quicksetup jar file.
-   * @return the path to the quicksetup jar file.
-   */
-  private String getQuicksetupJarPath()
-  {
-    return Utils.getPath(getLibrariesPath(), "quicksetup.jar");
-  }
-
-  /**
-   * Returns the path to the open ds jar file.
-   * @return the path to the open ds jar file.
-   */
-  private String getOpenDSJarPath()
-  {
-    return Utils.getPath(getLibrariesPath(), "OpenDS.jar");
-  }
-
-  /**
    * Returns the path to the backup files under the install path.
    * @return the path to the backup files under the install path.
    */
@@ -1162,8 +1142,6 @@ public class Uninstaller
    */
   class InstallationFilesToDeleteFilter implements FileFilter
   {
-    File quicksetupFile = new File(getQuicksetupJarPath());
-    File openDSFile = new File(getOpenDSJarPath());
     File librariesFile = new File(getLibrariesPath());
 
     File installationPath = new File(Utils.getInstallPathFromClasspath());
@@ -1193,10 +1171,8 @@ public class Uninstaller
       };
 
      boolean accept =
-          !installationPath.equals(file)
-              && !librariesFile.equals(file)
-              && !quicksetupFile.equals(file)
-              && !openDSFile.equals(file);
+          !installationPath.equals(file)&&
+          !equalsOrDescendant(file, librariesFile);
 
      for (int i=0; i<uData.length && accept; i++)
      {
