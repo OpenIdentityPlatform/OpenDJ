@@ -566,6 +566,56 @@ public class LDAPSearchTestCase
 
 
   /**
+   * Tests a simple invocation using the "--noop" option with a valid argument
+   * set.
+   */
+  @Test()
+  public void testNoOpSearchValidArguments()
+  {
+    String[] args =
+    {
+      "-h", "doesnt.need.to.resolve",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "",
+      "-s", "base",
+      "--noop",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests a simple invocation using the "--noop" option with an invalid
+   * argument set.
+   */
+  @Test()
+  public void testNoOpSearchInvalidArguments()
+  {
+    String[] args =
+    {
+      "-h", "doesnt.need.to.resolve",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-V", "3",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "",
+      "-s", "invalid",
+      "--noop",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, System.err) == 0);
+  }
+
+
+
+  /**
    * Tests a simple LDAP search over SSL using blind trust.
    */
   @Test()
