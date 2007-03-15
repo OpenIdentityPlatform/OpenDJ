@@ -631,7 +631,7 @@ email.server.pwd=${email.server.pwd.input}
           mailhost="${email.server.host}"
           mailport="${email.server.port}"
           user="${email.server.user}"
-          passwrod="${email.server.pwd}"
+          password="${email.server.pwd}"
           messagefile="${staf.tmp.dir}/results.html"
           messagemimetype="text/html">
     </mail>
