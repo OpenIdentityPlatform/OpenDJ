@@ -375,7 +375,7 @@
 
   <!-- Compile the Directory Server source files. -->
   <target name="cleancompile"
-       depends="cleaninit,weave,compilequicksetup,compilestatuspanel"
+       depends="cleaninit,compilequicksetup,weave,compilestatuspanel"
        description="Recompile the Directory Server source files.">
   </target>
 
@@ -421,11 +421,20 @@
 
 
   <!-- Compile the Quick Setup source files. -->
-  <target name="compilequicksetup" depends="buildtools,weave"
+  <target name="compilequicksetup" depends="buildtools,compile"
           description="Compile the Quick Setup source files.">
 
     <mkdir dir="${quicksetup.classes.dir}" />
-    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
+  	<javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
+  	       optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+  	       target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+  	       memoryMaximumSize="${MEM}">
+  				<include name="**/org/opends/server/util/SetupUtils.java"/>
+  				<include name="**/org/opends/server/util/DynamicConstants.java"/>
+  				<include name="**/org/opends/server/types/OperatingSystem.java"/>
+  	   		<compilerarg value="-Xlint:all" />
+  	</javac>
+  	<javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
          optimize="true" debug="on" debuglevel="lines,source" source="1.5"
          target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
@@ -441,10 +450,6 @@
     <copy todir="${quicksetup.classes.dir}">
       <fileset dir="${quicksetup.src.dir}"
                includes="**/*.properties, **/*.gif, **/*.png" />
-    </copy>
-    <copy todir="${quicksetup.classes.dir}">
-      <fileset dir="${classes.dir}"
-               includes="**/DynamicConstants.class **/SetupUtils.class **/OperatingSystem.class" />
     </copy>
   </target>
 
@@ -521,6 +526,15 @@
 
     <!-- Recreate the quicksetup classes directory and recompile into it. -->
     <mkdir dir="${quicksetup.classes.dir}" />
+  	<javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
+  	  	       optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+  	  	       target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+  	  	       memoryMaximumSize="${MEM}">
+  	  	<include name="**/org/opends/server/util/SetupUtils.java"/>
+  	  	<include name="**/org/opends/server/util/DynamicConstants.java"/>
+  	  	<include name="**/org/opends/server/types/OperatingSystem.java"/>
+  	  	<compilerarg value="-Xlint:all" />
+  	</javac>
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}" optimize="true"
         debug="on" debuglevel="lines,source" source="1.5" target="1.5"
         deprecation="true" fork="true" memoryInitialSize="${MEM}"
@@ -539,11 +553,6 @@
     <copy todir="${quicksetup.classes.dir}">
         <fileset dir="${quicksetup.src.dir}"
             includes="**/*.properties, **/*.gif, **/*.png"/>
-    </copy>
-
-    <copy todir="${quicksetup.classes.dir}">
-        <fileset dir="${classes.dir}"
-            includes="**/DynamicConstants.class **/SetupUtils.class **/OperatingSystem.class"/>
     </copy>
 
     <!-- Generate the quicksetup.jar file -->
