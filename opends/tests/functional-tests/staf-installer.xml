@@ -343,7 +343,7 @@
   </target>
 
   <target name="run-tests-check" depends="run-tests-build-pkg">
-    <condition property="opends.port.ldap.taken">run
+    <condition property="opends.port.ldap.taken">
       <socket port="${opends.port.ldap}" server="${host.name}"/>
     </condition>
     <condition property="opends.port.ldaps.taken">
@@ -580,7 +580,9 @@
     <exec
       dir="${staf.bin.dir}"
       executable="${staf.daemon}"
+      ><!--
       spawn="true">
+      -->
      <arg value="${staf.config}"/>
      <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
      <env key="LD_LIBRARY_PATH" path="${staf.install.dir}/lib"/>
