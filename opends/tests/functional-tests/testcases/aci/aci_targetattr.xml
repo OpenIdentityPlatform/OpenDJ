@@ -41,6 +41,8 @@
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
           
+          <call function="'testSuite_Preamble'"/>
+          
           <!---
               Place suite-specific test information here.
               #@TestSuiteName             ACI Targetattr Tests
@@ -1327,6 +1329,8 @@
             </sequence>
             
           </testcase>
+          
+         <call function="'testSuite_Postamble'"/>          
 
         </sequence>
       

@@ -348,6 +348,8 @@
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
+        
+        <call function="'testSuite_Postamble'"/>
       
         </sequence>
     
