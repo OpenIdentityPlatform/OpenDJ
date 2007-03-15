@@ -37,6 +37,8 @@
     <property file="${project.home}//PRODUCT"/>
     <property name="product.name"
               value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}" />
+    <!-- load user properties first if they have been set -->
+    <property file="user.properties"/>
     <!-- this is the file where the default values are defined                -->
     <property file="staf-installer/staf-installer.properties"                  />
     
@@ -110,8 +112,7 @@
   <target name="download-do-prepare-check-proxy">
     <echo>Checking for proxy [${proxy.host}:${proxy.port}] as user [${proxy.user}].</echo>
     <echo>Note: If these values do not match your environment, </echo>
-    <echo>      please edit the following config file:</echo>
-    <echo>      [${basedir}${file.separator}staf-installer${file.separator}staf-installer.properties]</echo>
+    <echo>      please use the 'configure' target</echo>
     <condition property="proxy.enabled">
       <and>
         <not>
@@ -191,6 +192,12 @@
     <get src="${daily.package.url}"
          dest="${daily.package}"/>
   </target>
+  
+  <target name="remove-bits">
+    <delete dir="${bits.download.dir}"/>
+  </target>
+  
+  <target name="re-download" depends="remove-bits,download"/>
 <!-- Downloader section - bottom -->
 
 <!-- Installation section - top    -->
@@ -271,7 +278,7 @@
           if="bits.all.downloaded"/>
 <!-- Installation section - bottom -->
 
-<!-- Gui section - top -->
+<!-- Gui section - top    -->
   <target name="gui"
           depends="status-do"
           description="brings up the stax gui" >
@@ -291,7 +298,7 @@
     </exec>
   </target>
 <!-- Gui section - bottom -->
-<!-- Jvmlog section - top -->
+<!-- Jvmlog section - top    -->
   <target name="jvm-log"
           depends="status-do"
           description="brings up the jvmlog gui" >
@@ -312,6 +319,130 @@
   </target>
 <!-- Jvmlog section - bottom -->
 
+<!-- Configure section - top    -->
+  <target name="configure">
+    <echo>I. STAF configuration</echo>
+    <input
+      message="I [1/1] STAF port"
+      defaultvalue="${staf.port}"
+      addproperty="staf.port.input"
+    />
+    <input
+      message="I [2/2] Host name"
+      defaultvalue="${host.name}"
+      addproperty="host.name.input"
+    />
+    <echo>II. HTTP proxy (to download the framework and/or daily builds)</echo>
+    <input
+      message="II [1/4] Proxy host"
+      defaultvalue="${proxy.host}"
+      addproperty="proxy.host.input"
+    />
+    <input
+      message="II [2/4] Proxy port"
+      defaultvalue="${proxy.port}"
+      addproperty="proxy.port.input"
+    />
+    <input
+      message="II [3/4] Proxy user"
+      defaultvalue="${proxy.user}"
+      addproperty="proxy.user.input"
+    />
+    <input
+      message="II [4/4] Proxy password"
+      defaultvalue="${proxy.pass}"
+      addproperty="proxy.pass.input"
+    />
+    <echo>III. OpenDS configuration</echo>
+    <input
+      message="III [1/5] OpenDS ldap port"
+      defaultvalue="${opends.port.ldap}"
+      addproperty="opends.port.ldap.input"
+    />
+    <input
+      message="III [2/5] OpenDS secure ldap port"
+      defaultvalue="${opends.port.ldaps}"
+      addproperty="opends.port.ldaps.input"
+    />
+    <input
+      message="III [3/5] OpenDS jmx port"
+      defaultvalue="${opends.port.jmx}"
+      addproperty="opends.port.jmx.input"
+    />
+    <input
+      message="III [4/5] OpenDS admin DN (also called root DN)"
+      defaultvalue="${opends.admin.dn}"
+      addproperty="opends.admin.dn.input"
+    />
+    <input
+      message="III [5/5] OpenDS admin password"
+      defaultvalue="${opends.admin.pwd}"
+      addproperty="opends.admin.pwd.input"
+    />
+    <echo>IV. Email configuration</echo>
+    <input
+      message="IV [1/7] Send report email?"
+      defaultvalue="${email.enabled}"
+      validargs="y,n"
+      addproperty="email.enabled.input"
+    />
+    <input
+      message="IV [2/7] Email will appear to be from"
+      defaultvalue="${email.from}"
+      addproperty="email.from.input"
+    />
+    <input
+      message="IV [3/7] Send email to"
+      defaultvalue="${email.to}"
+      addproperty="email.to.input"
+    />
+    <input
+      message="IV [4/7] SMTP server host"
+      defaultvalue="${email.server.host}"
+      addproperty="email.server.host.input"
+    />
+    <input
+      message="IV [5/7] SMTP server port"
+      defaultvalue="${email.server.port}"
+      addproperty="email.server.port.input"
+    />
+    <input
+      message="IV [6/7] SMTP server user"
+      defaultvalue="${email.server.user}"
+      addproperty="email.server.user.input"
+    />
+    <input
+      message="IV [7/7] SMTP server password"
+      defaultvalue="${email.server.pwd}"
+      addproperty="email.server.pwd.input"
+    />
+
+    <echo>Saving ...</echo>
+    <echo
+      file="user.properties">staf.port=${staf.port.input}
+host.name=${host.name.input}
+proxy.host=${proxy.host.input}
+proxy.port=${proxy.port.input}
+proxy.user=${proxy.user.input}
+proxy.pass=${proxy.pass.input}
+opends.port.ldap=${opends.port.ldap.input}
+opends.port.ldaps=${opends.port.ldaps.input}
+opends.port.jmx=${opends.port.jmx.input}
+opends.admin.dn=${opends.admin.dn.input}
+opends.admin.pwd=${opends.admin.pwd.input}
+email.enabled=${email.enabled.input}
+email.from=${email.from.input}
+email.to=${email.to.input}
+email.server.host=${email.server.host.input}
+email.server.port=${email.server.port.input}
+email.server.user=${email.server.user.input}
+email.server.pwd=${email.server.pwd.input}
+</echo>
+  </target>
+  <target name="unconfigure">
+    <delete file="user.properties"/>
+  </target>
+<!-- Configure section - bottom -->
 
 <!-- Run tests section - top    -->
   <target name="run-tests-build-pkg" 
@@ -485,11 +616,22 @@
     </copy>
     <echo>You may access the tests report at</echo>
     <echo>${tests.run.dir}/${tests.run.time}/report/results.html</echo>
-    <mail from="arnaud@sun.com" 
-          tolist="arnaud@sun.com" 
+    <condition property="email.send">
+      <equals arg1="${email.enabled}" arg2="y" 
+              casesensitive="false" trim="true"/>
+    </condition>
+    <antcall target="send-report-email"/>
+  </target>
+
+  <target name="send-report-email" if="email.send">
+    <mail from="${email.from}" 
+          tolist="${email.to}" 
           subject="FT - ${daily.date} - ${os.name} - ${os.arch}"
           files="${staf.tmp.dir}/results.html"
-          mailhost="pecos.central.sun.com"
+          mailhost="${email.server.host}"
+          mailport="${email.server.port}"
+          user="${email.server.user}"
+          passwrod="${email.server.pwd}"
           messagefile="${staf.tmp.dir}/results.html"
           messagemimetype="text/html">
     </mail>
@@ -629,7 +771,7 @@
 	</target>
 <!-- Stop section - bottom  -->
 	
-<!-- Status section - top -->
+<!-- Status section - top    -->
   <!-- Bits status section - top -->
     <target name="status-archive-downloaded?" if="bits.all.downloaded.before">
       <echo>Staf bits are ready to be installed. Use 'install' target.</echo>
@@ -743,13 +885,15 @@
       <echo>Platform Supported       - ${is.platform.supported}</echo>
       <echo>Java Home                - ${java.home}</echo>
       <echo>Java Version             - ${java.version}</echo>
-<!--      <echo>PATH                     - ${path.current}</echo>
-      <echo>CLASSPATH                - ${e.CLASSPATH}</echo> -->
+      <!--
+      <echo>PATH                     - ${path.current}</echo>
+      <echo>CLASSPATH                - ${e.CLASSPATH}</echo> 
+      -->
       <antcall target="status-staf-installed?"     />
       <antcall target="status-staf-not-installed?" />
     </target>
   <!-- Status cli section - bottom -->
-<!--  Status section - bottom -->
+<!-- Status section - bottom -->
 
 <!-- Macros section - top -->
 	<target name="bootstrap">
