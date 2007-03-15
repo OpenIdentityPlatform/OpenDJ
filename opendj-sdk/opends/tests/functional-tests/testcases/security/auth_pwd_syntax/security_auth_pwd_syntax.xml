@@ -43,100 +43,77 @@
         
           <call function="'testSuite_Preamble'"/>
           
-          <parallel>
-          
-            <block name="'Block DS Process Active'">
-        
-              <!--- Start DS -->
-              <sequence>
-                <message>
-                   'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-                </message>
-        
-                <!--- Start DS -->
-                <call function="'StartDsWithScript'">
-                 { 'location'  : STAF_REMOTE_HOSTNAME }
-                </call>
-        
-                <call function="'checkRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
-        
-              </sequence>
-        
-             <!--- End Block DS Process Active -->
-             </block>
-        
-             <block name="'Block Clients'">
-        
-              <sequence>
-        
-                <!--- Check that DS started -->
-                <call function="'isAlive'">
-                  { 'noOfLoops'        : 5 ,
-                    'noOfMilliSeconds' : 2000 }
-                </call>
-        
-                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                  file="'%s/testcases/security/auth_pwd_syntax/security_setup_auth_pwd_syntax.xml' % (TESTS_DIR)"/>
-                <call function="'setup_auth_pwd_syntax'" />
-        
-                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                  file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_MD5_policy.xml' % (TESTS_DIR)"/>
-                <call function="'auth_pwd_syntax_MD5_policy'" />
-        
-                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                  file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA256_policy.xml' % (TESTS_DIR)"/>
-                <call function="'auth_pwd_syntax_SHA256_policy'" />
-        
-                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                  file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA384_policy.xml' % (TESTS_DIR)"/>
-                <call function="'auth_pwd_syntax_SHA384_policy'" />
-        
-                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                  file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA512_policy.xml' % (TESTS_DIR)"/>
-                <call function="'auth_pwd_syntax_SHA512_policy'" />
-        
-                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                  file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA1_policy.xml' % (TESTS_DIR)"/>
-                <call function="'auth_pwd_syntax_SHA1_policy'" />
-        
-                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                  file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_def_policy.xml' % (TESTS_DIR)"/>
-                <call function="'auth_pwd_syntax_def_policy'" />
-        
-                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                  file="'%s/testcases/security/auth_pwd_syntax/security_teardown_auth_pwd_syntax.xml' % (TESTS_DIR)"/>
-                <call function="'teardown_auth_pwd_syntax'" />
-        
-                <!--- Stop DS -->
-                <sequence>
-                  <message>
-                     'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
-                  </message>
-        
-                  <call function="'StopDsWithScript'">
-                      { 'location'  : STAF_REMOTE_HOSTNAME,
-                        'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                        'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                        'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
-                  </call>
-        
-                  <call function="'checkRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                  </call>
-                </sequence>
-        
-              </sequence>
-        
-            <!--- End Block Clients -->
-            </block>
+          <!--- Start DS -->
+          <message>
+             'Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
+          </message>
   
-          </parallel>
+          <!--- Start DS -->
+          <call function="'StartDsWithScript'">
+           { 'location'  : STAF_REMOTE_HOSTNAME }
+          </call>
   
+          <call function="'checkRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult }
+          </call>
+    
+          <!--- Check that DS started -->
+          <call function="'isAlive'">
+            { 'noOfLoops'        : 5 ,
+              'noOfMilliSeconds' : 2000 }
+          </call>
+  
+          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/auth_pwd_syntax/security_setup_auth_pwd_syntax.xml' % (TESTS_DIR)"/>
+          <call function="'setup_auth_pwd_syntax'" />
+  
+          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_MD5_policy.xml' % (TESTS_DIR)"/>
+          <call function="'auth_pwd_syntax_MD5_policy'" />
+  
+          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA256_policy.xml' % (TESTS_DIR)"/>
+          <call function="'auth_pwd_syntax_SHA256_policy'" />
+  
+          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA384_policy.xml' % (TESTS_DIR)"/>
+          <call function="'auth_pwd_syntax_SHA384_policy'" />
+  
+          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA512_policy.xml' % (TESTS_DIR)"/>
+          <call function="'auth_pwd_syntax_SHA512_policy'" />
+  
+          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA1_policy.xml' % (TESTS_DIR)"/>
+          <call function="'auth_pwd_syntax_SHA1_policy'" />
+  
+          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_def_policy.xml' % (TESTS_DIR)"/>
+          <call function="'auth_pwd_syntax_def_policy'" />
+  
+          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/auth_pwd_syntax/security_teardown_auth_pwd_syntax.xml' % (TESTS_DIR)"/>
+          <call function="'teardown_auth_pwd_syntax'" />
+  
+          <!--- Stop DS -->
+          <message>
+             'Stop DS running on port %s' % DIRECTORY_INSTANCE_PORT
+          </message>
+
+          <call function="'StopDsWithScript'">
+              { 'location'  : STAF_REMOTE_HOSTNAME,
+                'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+          </call>
+
+          <call function="'checkRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult }
+          </call>
+
           <call function="'testSuite_Postamble'"/>
         
         </sequence>
