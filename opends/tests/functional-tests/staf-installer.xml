@@ -620,10 +620,27 @@ email.server.pwd=${email.server.pwd.input}
       <equals arg1="${email.enabled}" arg2="y" 
               casesensitive="false" trim="true"/>
     </condition>
-    <antcall target="send-report-email"/>
+    <antcall target="send-mail"/>
   </target>
 
-  <target name="send-report-email" if="email.send">
+  <target name="send-email" if="email.send">
+    <condition property="email.send.auth">
+      <length string="${email.server.user}" when="greater" length="0"/>
+    </condition>
+    <antcall target="send-mail-noauth"/>
+    <antcall target="send-mail-withauth"/>
+  </target>
+  <target name="send-mail-noauth" if="email.send.noauth">
+    <mail from="${email.from}" 
+          tolist="${email.to}" 
+          subject="FT - ${daily.date} - ${os.name} - ${os.arch}"
+          files="${staf.tmp.dir}/results.html"
+          mailhost="${email.server.host}"
+          mailport="${email.server.port}"
+          messagefile="${staf.tmp.dir}/results.html"
+          messagemimetype="text/html" />
+  </target>
+  <target name="send-mail-withauth" unless="email.send.noauth">
     <mail from="${email.from}" 
           tolist="${email.to}" 
           subject="FT - ${daily.date} - ${os.name} - ${os.arch}"
@@ -633,8 +650,7 @@ email.server.pwd=${email.server.pwd.input}
           user="${email.server.user}"
           password="${email.server.pwd}"
           messagefile="${staf.tmp.dir}/results.html"
-          messagemimetype="text/html">
-    </mail>
+          messagemimetype="text/html" />
   </target>
   
   <target name="daily">
