@@ -41,8 +41,8 @@ set JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 
 :noJavaHome
-if not exist "%DIR_HOME%\bin\set-java-home.bat" goto noSetJavaHome
-call "%DIR_HOME%\bin\set-java-home.bat"
+if not exist "%DIR_HOME%\bat\set-java-home.bat" goto noSetJavaHome
+call "%DIR_HOME%\bat\set-java-home.bat"
 set JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 
@@ -53,7 +53,7 @@ goto end
 
 
 :setClassPath
-FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
+FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bat\setcp.bat" %%x
 
 set PATH=%SystemRoot%
 

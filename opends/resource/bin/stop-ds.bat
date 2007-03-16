@@ -44,8 +44,8 @@ set JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 
 :noJavaHome
-if not exist "%DIR_HOME%\bin\set-java-home.bat" goto noSetJavaHome
-call "%DIR_HOME%\bin\set-java-home.bat"
+if not exist "%DIR_HOME%\bat\set-java-home.bat" goto noSetJavaHome
+call "%DIR_HOME%\bat\set-java-home.bat"
 set JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 
@@ -55,7 +55,7 @@ echo        Please set it to a valid Java 5 installation.
 goto end
 
 :setClassPath
-FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bin\setcp.bat" %%x
+FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bat\setcp.bat" %%x
 
 "%JAVA_BIN%" -Xms8M -Xmx8M %SCRIPT_NAME_ARG%  org.opends.server.tools.StopDS --checkStoppability %*
 
@@ -74,7 +74,7 @@ if exist "%DIR_HOME%\logs\server.pid" erase "%DIR_HOME%\logs\server.pid"
 goto end
 
 :startUsingSystemCall
-"%DIR_HOME%\bin\start-ds.bat"
+"%DIR_HOME%\bat\start-ds.bat"
 goto end
 
 :stopUsingSystemCall
