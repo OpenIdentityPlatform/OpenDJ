@@ -52,8 +52,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchResultEntry;
@@ -61,12 +59,8 @@ import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -941,28 +935,30 @@ public abstract class ClientConnection
                               Operation operation)
   {
     boolean result = privileges.contains(privilege);
-    if (operation == null)
-    {
-      DN authDN = authenticationInfo.getAuthenticationDN();
 
-      int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE;
-      String message = getMessage(msgID, getConnectionID(), -1L,
-                                  String.valueOf(authDN),
-                                  privilege.getName(), result);
-      logError(ErrorLogCategory.ACCESS_CONTROL,
-               ErrorLogSeverity.INFORMATIONAL, message, msgID);
-    }
-    else
+    if (debugEnabled())
     {
-      DN authDN = authenticationInfo.getAuthenticationDN();
+      if (operation == null)
+      {
+        DN authDN = authenticationInfo.getAuthenticationDN();
 
-      int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE;
-      String message = getMessage(msgID, getConnectionID(),
-                                  operation.getOperationID(),
-                                  String.valueOf(authDN),
-                                  privilege.getName(), result);
-      logError(ErrorLogCategory.ACCESS_CONTROL,
-               ErrorLogSeverity.INFORMATIONAL, message, msgID);
+        int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE;
+        String message = getMessage(msgID, getConnectionID(), -1L,
+                                    String.valueOf(authDN),
+                                    privilege.getName(), result);
+        debugMessage(DebugLogLevel.INFO, message);
+      }
+      else
+      {
+        DN authDN = authenticationInfo.getAuthenticationDN();
+
+        int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE;
+        String message = getMessage(msgID, getConnectionID(),
+                                    operation.getOperationID(),
+                                    String.valueOf(authDN),
+                                    privilege.getName(), result);
+        debugMessage(DebugLogLevel.INFO, message);
+      }
     }
 
     return result;
@@ -988,52 +984,66 @@ public abstract class ClientConnection
                                   Operation operation)
   {
     HashSet<Privilege> privSet = this.privileges;
-    boolean result = true;
-    StringBuilder buffer = new StringBuilder();
-    buffer.append("{");
 
-    for (int i=0; i < privileges.length; i++)
+    if (debugEnabled())
     {
-      if (i > 0)
+      for (Privilege p : privileges)
       {
-        buffer.append(",");
+        if (! privSet.contains(p))
+        {
+          return false;
+        }
       }
 
-      buffer.append(privileges[i].getName());
-
-      if (! privSet.contains(privileges[i]))
-      {
-        result = false;
-      }
-    }
-
-    buffer.append(" }");
-
-    if (operation == null)
-    {
-      DN authDN = authenticationInfo.getAuthenticationDN();
-
-      int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES;
-      String message = getMessage(msgID, getConnectionID(), -1L,
-                                  String.valueOf(authDN),
-                                  buffer.toString(), result);
-      logError(ErrorLogCategory.ACCESS_CONTROL,
-               ErrorLogSeverity.INFORMATIONAL, message, msgID);
+      return true;
     }
     else
     {
-      DN authDN = authenticationInfo.getAuthenticationDN();
+      boolean result = true;
+      StringBuilder buffer = new StringBuilder();
+      buffer.append("{");
 
-      int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES;
-      String message = getMessage(msgID, getConnectionID(),
-                                  operation.getOperationID(),
-                                  String.valueOf(authDN),
-                                  buffer.toString(), result);
-      logError(ErrorLogCategory.ACCESS_CONTROL,
-               ErrorLogSeverity.INFORMATIONAL, message, msgID);
+      for (int i=0; i < privileges.length; i++)
+      {
+        if (i > 0)
+        {
+          buffer.append(",");
+        }
+
+        buffer.append(privileges[i].getName());
+
+        if (! privSet.contains(privileges[i]))
+        {
+          result = false;
+        }
+      }
+
+      buffer.append(" }");
+
+      if (operation == null)
+      {
+        DN authDN = authenticationInfo.getAuthenticationDN();
+
+        int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES;
+        String message = getMessage(msgID, getConnectionID(), -1L,
+                                    String.valueOf(authDN),
+                                    buffer.toString(), result);
+        debugMessage(DebugLogLevel.INFO, message);
+      }
+      else
+      {
+        DN authDN = authenticationInfo.getAuthenticationDN();
+
+        int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGES;
+        String message = getMessage(msgID, getConnectionID(),
+                                    operation.getOperationID(),
+                                    String.valueOf(authDN),
+                                    buffer.toString(), result);
+        debugMessage(DebugLogLevel.INFO, message);
+      }
+
+      return result;
     }
-
-    return result;
   }
 
 
