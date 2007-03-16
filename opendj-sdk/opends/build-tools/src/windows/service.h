@@ -92,7 +92,7 @@ typedef enum {
 ServiceReturnCode registerServiceHandler (char* serviceName,
 LPHANDLER_FUNCTION serviceHandler, SERVICE_STATUS_HANDLE* serviceStatusHandle);
 ServiceReturnCode serviceNameInUse(char* serviceName);
-ServiceReturnCode createServiceName(char* serviceName);
+ServiceReturnCode createServiceName(char* serviceName, char* baseName);
 ServiceReturnCode getServiceList(ServiceDescriptor** serviceList,
 int *nbServices);
 ServiceReturnCode createServiceBinPath(char* serviceBinPath);

@@ -39,6 +39,7 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
@@ -118,6 +119,27 @@ public class ConfigureWindowsService
   public static final int SERVICE_STATE_ERROR = 2;
 
   /**
+   * Return codes for the method cleanupService.
+   */
+  /**
+   * The service cleanup worked.
+   */
+  public static final int SERVICE_CLEANUP_SUCCESS = 0;
+  /**
+   * The service could not be found.
+   */
+  public static final int SERVICE_NOT_FOUND = 1;
+  /**
+   * An error occurred cleaning up the service.
+   */
+  public static final int SERVICE_CLEANUP_ERROR = 2;
+  /**
+   * The service is marked for deletion.
+   */
+  public static final int SERVICE_CLEANUP_MARKED_FOR_DELETION = 3;
+
+
+  /**
    * Configures the Windows service for this instance on this machine.
    * This tool allows to enable and disable OpenDS to run as a Windows service
    * and allows to know if OpenDS is running as a Windows service or not.
@@ -174,6 +196,7 @@ public class ConfigureWindowsService
     BooleanArgument enableService = null;
     BooleanArgument disableService = null;
     BooleanArgument serviceState = null;
+    StringArgument cleanupService = null;
     BooleanArgument showUsage = null;
 
     try
@@ -191,6 +214,11 @@ public class ConfigureWindowsService
           "serviceState",
           MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_STATE);
       argParser.addArgument(serviceState);
+
+      cleanupService = new StringArgument("cleanupservice", 'c',
+          "cleanupService", false, false, true, "{serviceName}", null, null,
+          MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP);
+      argParser.addArgument(cleanupService);
 
       showUsage = new BooleanArgument("showusage", 'H', "help",
           MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_SHOWUSAGE);
@@ -241,6 +269,10 @@ public class ConfigureWindowsService
       {
         nArgs++;
       }
+      if (cleanupService.isPresent())
+      {
+        nArgs++;
+      }
       if (nArgs > 1)
       {
         int msgID = MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS;
@@ -269,9 +301,13 @@ public class ConfigureWindowsService
       {
         returnValue = disableService(out, err);
       }
-      else
+      else if (serviceState.isPresent())
       {
         returnValue = serviceState(out, err);
+      }
+      else
+      {
+        returnValue = cleanupService(cleanupService.getValue(), out, err);
       }
     }
 
@@ -458,6 +494,68 @@ public class ConfigureWindowsService
       returnValue = SERVICE_DISABLE_ERROR;
       msg = getMessage(MSGID_WINDOWS_SERVICE_DISABLE_ERROR,
           (Object[])null);
+      err.println(msg);
+    }
+    return returnValue;
+  }
+
+  /**
+   * Cleans up a service for a given service name.
+   * @param serviceName the service name to be cleaned up.
+   * @param out the stream used to write the standard output.
+   * @param err the stream used to write the error output.
+   * @return <CODE>SERVICE_CLEANUP_SUCCESS</CODE>,
+   * <CODE>SERVICE_NOT_FOUND</CODE>,
+   * <CODE>SERVICE_MARKED_FOR_DELETION</CODE> or
+   * <CODE>SERVICE_CLEANUP_ERROR</CODE> depending on whether the service
+   * could be found or not.
+   */
+  public static int cleanupService(String serviceName, PrintStream out,
+      PrintStream err)
+  {
+    int returnValue;
+    String msg;
+    String[] cmd = {
+        getBinaryFullPath(),
+        "cleanup",
+        serviceName
+        };
+    try
+    {
+      int resultCode = Runtime.getRuntime().exec(cmd).waitFor();
+      switch (resultCode)
+      {
+      case 0:
+        returnValue = SERVICE_CLEANUP_SUCCESS;
+        msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_SUCCESS, serviceName);
+        out.println(msg);
+        break;
+      case 1:
+        returnValue = SERVICE_NOT_FOUND;
+        msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_NOT_FOUND, serviceName);
+        err.println(msg);
+        break;
+      case 2:
+        returnValue = SERVICE_CLEANUP_MARKED_FOR_DELETION;
+        msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_MARKED_FOR_DELETION,
+            serviceName);
+        out.println(msg);
+        break;
+      case 3:
+        returnValue = SERVICE_CLEANUP_ERROR;
+        msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_ERROR, serviceName);
+        err.println(msg);
+        break;
+      default:
+        returnValue = SERVICE_CLEANUP_ERROR;
+        msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_ERROR, serviceName);
+        err.println(msg);
+      }
+    }
+    catch (Throwable t)
+    {
+      returnValue = SERVICE_CLEANUP_ERROR;
+      msg = getMessage(MSGID_WINDOWS_SERVICE_CLEANUP_ERROR, serviceName);
       err.println(msg);
     }
     return returnValue;
