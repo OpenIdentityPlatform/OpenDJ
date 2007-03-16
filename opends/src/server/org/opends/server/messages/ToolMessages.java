@@ -7940,6 +7940,43 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message for the description of cleanup Windows
+   * service.  This does not take any argument.
+   */
+  public static final int MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 844;
+
+
+  /**
+   * The message ID to inform that the cleanup of the Windows service was
+   * successful.  This takes the service name as argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_CLEANUP_SUCCESS =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 845;
+
+  /**
+   * The message ID to inform that the service during the cleanup could not be
+   * found.  This takes the service name as argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_CLEANUP_NOT_FOUND =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 846;
+
+  /**
+   * The message ID to inform that the service has been marked for deletion.
+   * This takes the service name as argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_CLEANUP_MARKED_FOR_DELETION =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 847;
+
+  /**
+   * The message ID to inform that an error occurred during the service clean
+   * up.  This takes the service name as argument.
+   */
+  public static final int MSGID_WINDOWS_SERVICE_CLEANUP_ERROR =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 848;
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -10354,6 +10391,11 @@ public class ToolMessages
                     "Provides information about the state of OpenDS as a "+
                     "Windows service.");
 
+    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP,
+                    "Allows to disable the OpenDS service and to clean up the "+
+                    "windows registry information associated with the "+
+                    "provided service name.");
+
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
@@ -10364,11 +10406,13 @@ public class ToolMessages
 
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS,
                     "You can only provide one of the following arguments:"+
-                    EOL+"enableService, disableService or serviceState.");
+                    EOL+"enableService, disableService, serviceState or "+
+                    "cleanupService.");
 
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_FEW_ARGS,
                     "You must provide at least one of the following arguments:"+
-                    EOL+"enableService, disableService or serviceState.");
+                    EOL+"enableService, disableService or serviceState or "+
+                    "cleanupService.");
 
     registerMessage(MSGID_WINDOWS_SERVICE_NAME,
                     "OpenDS");
@@ -10415,6 +10459,18 @@ public class ToolMessages
     registerMessage(MSGID_WINDOWS_SERVICE_STATE_ERROR,
                     "An unexpected error occurred trying to retrieve the "+
                     "state of OpenDS as a Windows service.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_CLEANUP_SUCCESS,
+                    "Clean up of service %s was successful.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_CLEANUP_NOT_FOUND,
+                    "Could not find the service with name %s.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_CLEANUP_ERROR,
+                    "An unexpected error occurred cleaning up the service %s.");
+
+    registerMessage(MSGID_WINDOWS_SERVICE_CLEANUP_MARKED_FOR_DELETION,
+                    "Service %s has been marked for deletion.");
   }
 }
 

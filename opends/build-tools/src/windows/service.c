@@ -1373,8 +1373,8 @@ ServiceReturnCode serviceNameInUse(char* serviceName)
 // ---------------------------------------------------------------
 // Build a service name for OpenDS and make sure
 // the service name is unique on the system. To achieve this requirement
-// the service name looks like OpenDS for the first OpenDS and
-// OpenDS-n if there are more than one.
+// the service name looks like <baseName> for the first OpenDS and
+// <baseName>-n if there are more than one.
 //
 // The functions returns SERVICE_RETURN_OK if we could create a service
 // name and SERVICE_RETURN_ERROR otherwise.
@@ -1382,7 +1382,7 @@ ServiceReturnCode serviceNameInUse(char* serviceName)
 // minimum size must be of 256 (the maximum string length of a Service Name).
 // ---------------------------------------------------------------
 
-ServiceReturnCode createServiceName(char* serviceName)
+ServiceReturnCode createServiceName(char* serviceName, char* baseName)
 {
   ServiceReturnCode returnValue = SERVICE_RETURN_OK;
   int i = 1;
@@ -1392,11 +1392,11 @@ ServiceReturnCode createServiceName(char* serviceName)
   {
     if (i == 1)
     {
-      sprintf(serviceName, "OpenDS");
+      sprintf(serviceName, baseName);
     }
     else
     {
-      sprintf(serviceName, "OpenDS-%d", i);
+      sprintf(serviceName, "%s-%d", baseName, i);
     }
 
     nameInUseResult = serviceNameInUse(serviceName);
@@ -1445,8 +1445,8 @@ char* cmdToRun)
   // - serviceName is the service name
   char* serviceName = (char*) calloc(1, MAX_SERVICE_NAME);
 
-  // elaborate the service name
-  returnValue = createServiceName(serviceName);
+  // elaborate the service name based on the displayName provided
+  returnValue = createServiceName(serviceName, displayName);
 
   // create the service
   if (returnValue == SERVICE_RETURN_OK)
@@ -1468,7 +1468,7 @@ char* cmdToRun)
     myService = CreateService(
     scm,
     serviceName,                // name of service
-    displayName,                // service name to display
+    serviceName,                // service name to display
     SERVICE_ALL_ACCESS,         // desired access
     SERVICE_WIN32_OWN_PROCESS,  // service type
     SERVICE_AUTO_START,         // start service during
@@ -1753,7 +1753,45 @@ int serviceState()
   return returnCode;
 } // serviceState
 
+// ---------------------------------------------------------------
+// Function called to remove the service associated with a given
+// service name.
+// Returns 0 if the service was successfully removed.
+// Returns 1 if the service does not exist.
+// Returns 2 if the service was marked for deletion but is still in
+// use.
+// Returns 3 if an error occurred.
+// ---------------------------------------------------------------
+int removeServiceWithServiceName(char *serviceName)
+{
+  int returnCode = 0;
+  ServiceReturnCode code = serviceNameInUse(serviceName);
+  
+  if (code != SERVICE_IN_USE)
+  {
+    returnCode = 1;
+  }
+  else
+  {
+    code = removeServiceFromScm(serviceName);
 
+    switch (code)
+    {
+      case SERVICE_RETURN_OK:
+      removeRegistryKey(serviceName);
+      returnCode = 0;
+      break;
+      case SERVICE_MARKED_FOR_DELETION:
+      removeRegistryKey(serviceName);
+      returnCode = 2;
+      break;
+      default:
+      returnCode = 3;
+    }
+  }
+  
+  return returnCode;
+} // removeServiceWithServiceName
 
 // ---------------------------------------------------------------
 // Function called to remove the service for the OpenDS instance
@@ -1778,21 +1816,7 @@ int removeService()
     code = getServiceName(cmdToRun, serviceName);
     if (code == SERVICE_RETURN_OK)
     {
-      code = removeServiceFromScm(serviceName);
-
-      switch (code)
-      {
-        case SERVICE_RETURN_OK:
-        removeRegistryKey(serviceName);
-        returnCode = 0;
-        break;
-        case SERVICE_MARKED_FOR_DELETION:
-        removeRegistryKey(serviceName);
-        returnCode = 2;
-        break;
-        default:
-        returnCode = 3;
-      }
+      returnCode = removeServiceWithServiceName(serviceName);
     }
     else
     {
@@ -1806,6 +1830,7 @@ int removeService()
 
   return returnCode;
 } // removeService
+
 
 
 // ---------------------------------------------------------------
@@ -1916,105 +1941,6 @@ void updateDebugFlag(char* argv[], int argc, int startIndex)
   }
 }
 
-void formatMessage(DWORD msgId, int count, ...)
-{
-  char buf[2048];
-  int result;
-  va_list args;
-  char execName [MAX_PATH];
-  GetModuleFileName (
-  NULL,
-  execName,
-  MAX_PATH
-  );
-  if (count > 0)
-  {
-    va_start(args, count);
-
-    // Retrieve the English message string.
-    result = FormatMessage(
-    FORMAT_MESSAGE_FROM_HMODULE,
-    (LPBYTE)execName,
-    WIN_EVENT_ID_SERVER_STARTED, //msgId,
-    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-    (LPTSTR) &buf,
-    2048,
-    &args);
-  }
-  else
-  {
-    result = FormatMessage(
-    FORMAT_MESSAGE_FROM_HMODULE,
-    (LPBYTE)execName,
-    msgId,
-    LANG_NEUTRAL,
-    (LPTSTR) &buf,
-    2048,
-    NULL);
-  }
-  if (execName != NULL)
-  {
-    fprintf(stderr, "The module is [%s]\n", execName);
-  }
-  else
-  {
-    fprintf(stderr, "The module is NULL\n");
-  }
-  if (result > 0)
-  {
-    fprintf(stderr, "formatMessage worked: [%s]\n", buf);
-  }
-  else
-  {
-    fprintf(stderr, "formatMessage failed, error is: %d\n",
-    GetLastError());
-  }
-}
-
-void logMsgTest(char *serviceName)
-{
-  DWORD ids[] = {WIN_EVENT_ID_SERVER_STARTED, WIN_EVENT_ID_SERVER_STOP,
-    WIN_EVENT_ID_SERVER_START_FAILED, WIN_EVENT_ID_SERVER_STOP_FAILED,
-  WIN_EVENT_ID_DEBUG};
-
-  const char* args[] = {"c:\\temp\\OpenDS tarara"};
-  int evCount = 5;
-
-  int i;
-
-  _eventLog = registerEventLog(serviceName);
-
-  for (i = 0; i<evCount; i++)
-  {
-    if (i != 5)
-    {
-      formatMessage(ids[i], 1, args[0]);
-      if(reportLogEvent(EVENTLOG_SUCCESS, ids[i], 1, args))
-      {
-        fprintf(stderr, "reportLogEvent successful.\n");
-      }
-      else
-      {
-        fprintf(stderr, "reportLogEvent failed: %d.\n", GetLastError());
-      }
-    }
-    else
-    {
-      formatMessage(ids[i], 0);
-      if (reportLogEvent(EVENTLOG_SUCCESS, ids[i], 1, args))
-      {
-        fprintf(stderr, "reportLogEvent successful.\n");
-      }
-      else
-      {
-        fprintf(stderr, "reportLogEvent failed: %d.\n", GetLastError());
-      }
-    }
-  }
-
-  deregisterEventLog();
-}
-
 int main(int argc, char* argv[])
 {
   char* subcommand;
@@ -2022,7 +1948,8 @@ int main(int argc, char* argv[])
 
   if (argc <= 1)
   {
-    fprintf(stderr, "Subcommand required: create, state, remove or start\n");
+    fprintf(stderr,
+    "Subcommand required: create, state, remove, start or cleanup.\n");
     returnCode = -1;
   }
   else
@@ -2033,7 +1960,7 @@ int main(int argc, char* argv[])
       if (argc <= 4)
       {
         fprintf(stderr,
-        "Subcommand create requires instance dir, service name and description.\n");
+    "Subcommand create requires instance dir, service name and description.\n");
         returnCode = -1;
       }
       else
@@ -2049,7 +1976,7 @@ int main(int argc, char* argv[])
       if (argc <= 2)
       {
         fprintf(stderr,
-        "Subcommand state requires instance dir\n");
+        "Subcommand state requires instance dir.\n");
         returnCode = -1;
       }
       else
@@ -2065,7 +1992,7 @@ int main(int argc, char* argv[])
       if (argc <= 2)
       {
         fprintf(stderr,
-        "Subcommand remove requires instance dir\n");
+        "Subcommand remove requires instance dir.\n");
         returnCode = -1;
       }
       else
@@ -2081,7 +2008,7 @@ int main(int argc, char* argv[])
       if (argc <= 2)
       {
         fprintf(stderr,
-        "Subcommand start requires instancedir.\n");
+        "Subcommand start requires instance dir.\n");
         returnCode = -1;
       }
       else
@@ -2097,7 +2024,7 @@ int main(int argc, char* argv[])
       if (argc <= 2)
       {
         fprintf(stderr,
-        "Subcommand isrunning requires instancedir.\n");
+        "Subcommand isrunning requires instance dir.\n");
         returnCode = -1;
       }
       else
@@ -2119,42 +2046,23 @@ int main(int argc, char* argv[])
       }
 
     }
-    else if (strcmp(subcommand, "logevents") == 0)
+    else if (strcmp(subcommand, "cleanup") == 0)
     {
       if (argc <= 2)
       {
         fprintf(stderr,
-        "Subcommand logevents requires instancedir.\n");
+        "Subcommand cleanup requires service name.\n");
         returnCode = -1;
       }
       else
       {
-        ServiceReturnCode code;
-        char cmdToRun[MAX_PATH];
-        char serviceName[MAX_SERVICE_NAME];
-        _instanceDir = strdup(argv[2]);
-
-        code = createServiceBinPath(cmdToRun);
-
-        if (code == SERVICE_RETURN_OK)
-        {
-          code = getServiceName(cmdToRun, serviceName);
-        }
-
-        if (code == SERVICE_RETURN_OK)
-        {
-          logMsgTest(serviceName);
-          returnCode = 0;
-        }
-        else
-        {
-          returnCode = -1;
-        }
-
-        free(_instanceDir);
+        char* serviceName = strdup(argv[2]);
+        updateDebugFlag(argv, argc, 3);
+        returnCode = removeServiceWithServiceName(serviceName);
+        free(serviceName);
       }
-
     }
+
     else
     {
       fprintf(stderr, "Unknown subcommand: [%s]\n", subcommand);
