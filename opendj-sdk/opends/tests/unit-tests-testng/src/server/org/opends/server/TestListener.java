@@ -264,7 +264,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     }
 
     String systemErr = TestCaseUtils.getSystemErrContents();
-    if (systemOut.length() > 0) {
+    if (systemErr.length() > 0) {
       failureInfo.append(EOL + "System.err contents:" + EOL + systemErr);
     }
 
