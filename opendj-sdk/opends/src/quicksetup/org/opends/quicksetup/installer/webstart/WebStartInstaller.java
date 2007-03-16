@@ -626,16 +626,21 @@ public class WebStartInstaller extends Installer implements JnlpProperties
     String perm;
 
     File file = new File(path);
-    if (file.getParent().endsWith(File.separator + "bin"))
+    if (file.getParent().endsWith(
+        File.separator + Utils.getWindowsBinariesRelativePath()) ||
+        file.getParent().endsWith(
+        File.separator + Utils.getUNIXBinariesRelativePath()))
     {
       if (path.endsWith(".bat"))
       {
         perm = "644";
-      } else
+      }
+      else
       {
         perm = "755";
       }
-    } else if (path.endsWith(".sh"))
+    }
+    else if (path.endsWith(".sh"))
     {
       perm = "755";
     } else if (path.endsWith(Utils.getUnixSetupFileName()) ||

@@ -73,10 +73,16 @@ public class Utils
   private static final String[] OPEN_DS_JAR_RELATIVE_PATHS =
     { "lib/quicksetup.jar", "lib/OpenDS.jar", "lib/je.jar" };
 
+
   /**
-   * The relative path where all the binaries (scripts) are.
+   * The relative path where all the Windows binaries (batch files) are.
    */
-  private static final String BINARIES_PATH_RELATIVE = "bin";
+  private static final String WINDOWS_BINARIES_PATH_RELATIVE = "bat";
+
+  /**
+   * The relative path where all the UNIX binaries (scripts) are.
+   */
+  private static final String UNIX_BINARIES_PATH_RELATIVE = "bin";
 
   /**
    * The relative path where all the libraries (jar files) are.
@@ -964,7 +970,7 @@ public class Utils
       }
     }
     File f = new File(path).getAbsoluteFile();
-    File binariesDir = f.getParentFile();
+    File librariesDir = f.getParentFile();
 
     /*
      * Do a best effort to avoid having a relative representation (for
@@ -972,12 +978,12 @@ public class Utils
      */
     try
     {
-      installPath = binariesDir.getParentFile().getCanonicalPath();
+      installPath = librariesDir.getParentFile().getCanonicalPath();
     }
     catch (IOException ioe)
     {
       // Best effort
-      installPath = binariesDir.getParent();
+      installPath = librariesDir.getParent();
     }
     return installPath;
   }
@@ -1005,14 +1011,47 @@ public class Utils
 
 
   /**
-   * Returns the relative path of the directory containing the binaries of the
-   * Open DS installation.  The path is relative to the installation path.
-   * @return the relative path of the directory containing the binaries of the
-   * Open DS installation.
+   * Returns the relative path of the directory containing the Windows binaries
+   * of the Open DS installation.  The path is relative to the installation
+   * path.
+   * @return the relative path of the directory containing the Windows binaries
+   * of the Open DS installation.
+   */
+  public static String getWindowsBinariesRelativePath()
+  {
+    return WINDOWS_BINARIES_PATH_RELATIVE;
+  }
+
+  /**
+   * Returns the relative path of the directory containing the binaries/scripts
+   * of the Open DS installation.  The path is relative to the installation
+   * path.
+   * @return the relative path of the directory containing the binaries/scripts
+   * of the Open DS installation.
    */
   public static String getBinariesRelativePath()
   {
-    return BINARIES_PATH_RELATIVE;
+    String binPath;
+    if (isWindows())
+    {
+      binPath = getWindowsBinariesRelativePath();
+    }
+    else
+    {
+      binPath = getUNIXBinariesRelativePath();
+    }
+    return binPath;
+  }
+
+  /**
+   * Returns the relative path of the directory containing the UNIX binaries of
+   * the Open DS installation.  The path is relative to the installation path.
+   * @return the relative path of the directory containing the UNIX binaries of
+   * the Open DS installation.
+   */
+  public static String getUNIXBinariesRelativePath()
+  {
+    return UNIX_BINARIES_PATH_RELATIVE;
   }
 
   /**

@@ -605,7 +605,8 @@
 
     <mkdir dir="${pdir}"                 />
     <mkdir dir="${pdir}/bak"             />
-    <mkdir dir="${pdir}/bin"             />
+    <mkdir dir="${pdir}/bat"             />
+  	<mkdir dir="${pdir}/bin"             />
     <mkdir dir="${pdir}/classes"         />
     <mkdir dir="${pdir}/config"          />
     <mkdir dir="${pdir}/config/upgrade"  />
@@ -639,9 +640,11 @@
 
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat"
          eol="lf" />
-    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" includes="*.bat"
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" includes="*.bat,README_WINDOWS.txt"
          eol="crlf" />
-
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bat" includes="*.bat"
+         eol="crlf" />
+  	
     <copy todir="${pdir}/config">
       <fileset file="${config.dir}/*" />
     </copy>
