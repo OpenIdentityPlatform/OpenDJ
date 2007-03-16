@@ -755,15 +755,7 @@ public class ServerConstants
    * The name of the structural objectclass that will be used for the Directory
    * Server root DSE entry.
    */
-  public static final String OC_ROOT_DSE = "ds-rootDSE";
-
-
-
-  /**
-   * The name of the structural objectclass that will be used for the Directory
-   * Server root DSE entry, formatted in all lowercase.
-   */
-  public static final String OC_ROOT_DSE_LC = "ds-rootdse";
+  public static final String OC_ROOT_DSE = "ds-root-dse";
 
 
 

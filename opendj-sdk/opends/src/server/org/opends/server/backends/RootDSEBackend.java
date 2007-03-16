@@ -330,7 +330,7 @@ public class RootDSEBackend
     dseObjectClasses.put(topOC, OC_TOP);
 
     ObjectClass rootDSEOC =
-         DirectoryServer.getObjectClass(OC_ROOT_DSE_LC);
+         DirectoryServer.getObjectClass(OC_ROOT_DSE);
     if (rootDSEOC == null)
     {
       rootDSEOC = DirectoryServer.getDefaultObjectClass(OC_ROOT_DSE);
