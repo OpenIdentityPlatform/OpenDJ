@@ -1442,7 +1442,9 @@ public class AciTests extends DirectoryServerTestCase {
       diffFromExpected = diffLdif(params._expectedResultsLdif, searchResults);
 
       // Ignoring whitespace the diff should be empty.
-      Assert.assertTrue(diffFromExpected.replaceAll("\\s", "").length() == 0);
+      Assert.assertTrue(diffFromExpected.replaceAll("\\s", "").length() == 0,
+                        "Difference from expected results:" + EOL +
+                        diffFromExpected);
     } catch (Throwable e) {
         System.err.println(
               "Started with dit:\n" +
