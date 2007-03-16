@@ -623,7 +623,7 @@ email.server.pwd=${email.server.pwd.input}
     <antcall target="send-mail"/>
   </target>
 
-  <target name="send-email" if="email.send">
+  <target name="send-mail" if="email.send">
     <condition property="email.send.auth">
       <length string="${email.server.user}" when="greater" length="0"/>
     </condition>
