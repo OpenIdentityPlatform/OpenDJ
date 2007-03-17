@@ -621,6 +621,38 @@ public class AciMessages {
          CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_NOTICE | 60;
 
     /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * includes a dns hostname of "localhost" that does not match the canonical
+     * representation which means that it will likely never match.  This takes
+     * three arguments, which are the DNS bind rule expression, the hostname
+     * used in the access control rule, and the canonical hostname associated
+     * with that name.
+     */
+    public static final int MSGID_ACI_LOCALHOST_DOESNT_MATCH_CANONICAL_VALUE =
+        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 61;
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * includes a dns hostname that does not match the canonical representation,
+     * which means that it will likely never match.  This takes four arguments,
+     * which are the DNS bind rule expression, the hostname used in the access
+     * control rule, an IP address to which that name resolves, and the
+     * canonical hostname associated with that IP address.
+     */
+    public static final int MSGID_ACI_HOSTNAME_DOESNT_MATCH_CANONICAL_VALUE =
+        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 62;
+
+    /**
+     * The message ID for the message that will be used if an error occurs while
+     * attempting to determine whether a DNS hostname used in an access control
+     * rule matches its canonical representation.  This takes three arguments,
+     * which are the hostname used in the access control rule, the DNS bind rule
+     * expression, and a string representation of the exception that was caught.
+     */
+    public static final int MSGID_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME =
+        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 63;
+
+    /**
      * Associates a set of generic messages with the message IDs defined in
      * this class.
      */
@@ -757,6 +789,24 @@ public class AciMessages {
                 "keyword wild-card expression value requires the '*' " +
                 "character only be in the leftmost position of the " +
                 "domain name.");
+        registerMessage(MSGID_ACI_HOSTNAME_DOESNT_MATCH_CANONICAL_VALUE,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                "dns expression value \"%s\" references hostname %s, but " +
+                "the canonical representation for that hostname is " +
+                "configured to be %s.  The server will attempt to " +
+                "automatically interpret the correct localhost value.");
+        registerMessage(MSGID_ACI_HOSTNAME_DOESNT_MATCH_CANONICAL_VALUE,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                "dns expression value \"%s\" references hostname %s, which " +
+                "resolves to IP address %s, but the canonical hostname for " +
+                "that IP address is %s.  This likely means that the " +
+                "provided hostname will never match any clients.");
+        registerMessage(MSGID_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME,
+                "An error occurred while attempting to determine whether " +
+                "hostname %s referenced in dns expression bind rule \"%s\" " +
+                "used the correct canonical representation:  %s.  This " +
+                "likely means that the provided hostname will never match " +
+                "any clients.");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_DAYOFWEEK,
                 "The provided Access Control Instruction (ACI) bind rule " +
