@@ -25,22 +25,15 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
+
+
 /**
- * This package contains utilities that can are used by all the packages
- * below org.opends.server.synchronization.
- * <br>
- * The main classes of this core are :
- * <ul>
- * <li>
- * <A HREF="ChangeNumber.html"><B>ChangeNumber</B></A>
- * Define Change Numbers used to identify and to order the LDAP changes
- * </li>
- * <li>
- * <A HREF="ServerState.html"><B>ServerState</B></A>
- * This class is used to define and store the updatedness of any component
- * of the synchronization architecture (i.e : to know which changes
- * it has already processed).
- * </li>
- * </ul>
+ * This package provides classes for a tool which may be used to generate LDIF
+ * content based on user-defined templates.  Tags embedded in the template will
+ * be automatically replaced with other content, including randomly-generated
+ * data, sequentially-increasing values, values read from files, and other
+ * types of information.  The template can also define the DIT structure for the
+ * data to generate, as well as the number of entries of each type.
  */
-package org.opends.server.synchronization.common;
+package org.opends.server.tools.makeldif;
+

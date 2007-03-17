@@ -25,22 +25,15 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
+
+
 /**
- * This package contains utilities that can are used by all the packages
- * below org.opends.server.synchronization.
- * <br>
- * The main classes of this core are :
- * <ul>
- * <li>
- * <A HREF="ChangeNumber.html"><B>ChangeNumber</B></A>
- * Define Change Numbers used to identify and to order the LDAP changes
- * </li>
- * <li>
- * <A HREF="ServerState.html"><B>ServerState</B></A>
- * This class is used to define and store the updatedness of any component
- * of the synchronization architecture (i.e : to know which changes
- * it has already processed).
- * </li>
- * </ul>
+ * Contains implementations for a number of Directory Server data
+ * types.  Most, but not necessarily all, of these data types may be
+ * considered part of the public API for use when extending the
+ * Directory Server.  Please refer to the official documentation for
+ * authoritative information on what classes are considered part of
+ * the public API.
  */
-package org.opends.server.synchronization.common;
+package org.opends.server.types;
+
