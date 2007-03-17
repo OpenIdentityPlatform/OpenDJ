@@ -29,10 +29,17 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
+import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.util.StaticUtils.*;
+import java.net.InetAddress;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
 
 /**
  * This class implements the dns bind rule keyword.
@@ -101,6 +108,68 @@ public class DNS implements KeywordBindRule {
                     throw new AciException(msgID, message);
                 }
             }
+
+            // If the provided hostname does not contain any wildcard
+            // characters, then it must be the canonical hostname for the
+            // associated IP address.  If it is not, then it will not match the
+            // intended target, and we should generate a warning message to let
+            // the administrator know about it.  If the provided value does not
+            // match the canonical name for the associated IP address, and the
+            // given hostname is "localhost", then we should treat it specially
+            // and also match the canonical hostname.  This is necessary because
+            // "localhost" is likely to be very commonly used in these kinds of
+            // rules and on some systems the canonical representation is
+            // configured to be "localhost.localdomain" which may not be known
+            // to the administrator.
+            if (hn.indexOf("*") < 0)
+            {
+              try
+              {
+                for (InetAddress addr : InetAddress.getAllByName(hn))
+                {
+                  String canonicalName = addr.getCanonicalHostName();
+                  if (! hn.equalsIgnoreCase(canonicalName))
+                  {
+                    if (hn.equalsIgnoreCase("localhost") &&
+                        (! dns.contains(canonicalName)))
+                    {
+                      dns.add(canonicalName);
+
+                      int msgID =
+                           MSGID_ACI_LOCALHOST_DOESNT_MATCH_CANONICAL_VALUE;
+                      String message = getMessage(msgID, expr, hn,
+                                                  canonicalName);
+                      logError(ErrorLogCategory.ACCESS_CONTROL,
+                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    }
+                    else
+                    {
+                      int msgID =
+                           MSGID_ACI_HOSTNAME_DOESNT_MATCH_CANONICAL_VALUE;
+                      String message = getMessage(msgID, expr,
+                                                  hn, addr.getHostAddress(),
+                                                  addr.getCanonicalHostName());
+                      logError(ErrorLogCategory.ACCESS_CONTROL,
+                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    }
+                  }
+                }
+              }
+              catch (Exception e)
+              {
+                if (debugEnabled())
+                {
+                  debugCaught(DebugLogLevel.ERROR, e);
+                }
+
+                int msgID = MSGID_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME;
+                String message = getMessage(msgID, hn, expr,
+                                            stackTraceToSingleLineString(e));
+                logError(ErrorLogCategory.ACCESS_CONTROL,
+                         ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+              }
+            }
+
             dns.add(hn);
         }
         return new DNS(dns, type);
