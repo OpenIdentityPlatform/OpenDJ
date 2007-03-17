@@ -25,22 +25,17 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
+
+
 /**
- * This package contains utilities that can are used by all the packages
- * below org.opends.server.synchronization.
- * <br>
- * The main classes of this core are :
- * <ul>
- * <li>
- * <A HREF="ChangeNumber.html"><B>ChangeNumber</B></A>
- * Define Change Numbers used to identify and to order the LDAP changes
- * </li>
- * <li>
- * <A HREF="ServerState.html"><B>ServerState</B></A>
- * This class is used to define and store the updatedness of any component
- * of the synchronization architecture (i.e : to know which changes
- * it has already processed).
- * </li>
- * </ul>
+ * Contains implementations for various Directory Server tasks.  Tasks define
+ * administrative operations that can be invoked by adding an entry into the
+ * tasks backend.  Tasks may be scheduled to run immediately or at a specified
+ * time in the future, and tasks may also be invoked on a recurring basis.
+ * Tasks currently defined include those for exporting and importing backend
+ * contents to and from LDIF, backing up and restoring backend contents,
+ * stopping and restarting the Directory Server, and adding new files into the
+ * server schema.
  */
-package org.opends.server.synchronization.common;
+package org.opends.server.tasks;
+
