@@ -1857,5 +1857,67 @@ public class BindOperationTestCase
                                 new ASN1OctetString("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
+
+
+
+  /**
+   * Tests to ensure that performing multiple binds on a client connection will
+   * cause the connection to no longer be associated with the previous identity.
+   * This helps provide coverage for issue #1392.
+   *
+   * @throws  Exception
+   */
+  @Test()
+  public void testRebindClearsAuthInfo()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntry(
+      "dn: uid=rebind.test,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: rebind.test",
+      "givenName: Rebind",
+      "sn: Test",
+      "cn: Rebind Test",
+      "userPassword: password");
+    String dnString = "uid=rebind.test,o=test";
+    DN userDN = DN.decode(dnString);
+
+    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    ASN1Reader r = new ASN1Reader(s);
+    ASN1Writer w = new ASN1Writer(s);
+    r.setIOTimeout(6000);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(new ASN1OctetString(dnString),
+                                   3, new ASN1OctetString("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    w.writeElement(message.encode());
+
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), 0);
+
+    assertNotNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
+    assertEquals(DirectoryServer.getAuthenticatedUsers().get(userDN).size(),
+                 1);
+
+    bindRequest = new BindRequestProtocolOp(
+                           new ASN1OctetString("cn=Directory Manager"), 3,
+                           new ASN1OctetString("password"));
+    message = new LDAPMessage(1, bindRequest);
+    w.writeElement(message.encode());
+
+    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    bindResponse = message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), 0);
+
+    assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
+
+    s.close();
+  }
 }
 

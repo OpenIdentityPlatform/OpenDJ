@@ -59,9 +59,6 @@ import static org.opends.server.messages.MessageHandler.*;
 public class AuthenticatedUsers
        implements ChangeNotificationListener
 {
-
-
-
   // The mapping between authenticated user DNs and the associated client
   // connection objects.
   private ConcurrentHashMap<DN,CopyOnWriteArraySet<ClientConnection>>
@@ -125,6 +122,24 @@ public class AuthenticatedUsers
         userMap.remove(userDN);
       }
     }
+  }
+
+
+
+  /**
+   * Retrieves the set of client connections authenticated as the specified
+   * user.  This method is only intended for internal testing use and should not
+   * be called for any other purpose.
+   *
+   * @param  userDN  The DN of the user for which to retrieve the corresponding
+   *                 set of client connections.
+   *
+   * @return  The set of client connections authenticated as the specified user,
+   *          or {@code null} if there are none.
+   */
+  synchronized CopyOnWriteArraySet<ClientConnection> get(DN userDN)
+  {
+    return userMap.get(userDN);
   }
 
 

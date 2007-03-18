@@ -618,7 +618,7 @@ public abstract class ClientConnection
   {
     if (authenticationInfo == null)
     {
-      authenticationInfo = new AuthenticationInfo();
+      setAuthenticationInfo(new AuthenticationInfo());
     }
 
     authenticationInfo.setMustChangePassword(mustChangePassword);
@@ -881,22 +881,22 @@ public abstract class ClientConnection
       if ((authZEntry == null) ||
           (! authZEntry.getDN().equals(authNEntry.getDN())))
       {
-        authenticationInfo =
-             authenticationInfo.duplicate(newEntry, authZEntry);
+        setAuthenticationInfo(
+             authenticationInfo.duplicate(newEntry, authZEntry));
         updatePrivileges(newEntry, authenticationInfo.isRoot());
       }
       else
       {
-        authenticationInfo =
-             authenticationInfo.duplicate(newEntry, newEntry);
+        setAuthenticationInfo(
+             authenticationInfo.duplicate(newEntry, newEntry));
         updatePrivileges(newEntry, authenticationInfo.isRoot());
       }
     }
     else if ((authZEntry != null) &&
              (authZEntry.getDN().equals(oldEntry.getDN())))
     {
-      authenticationInfo =
-           authenticationInfo.duplicate(authNEntry, newEntry);
+      setAuthenticationInfo(
+           authenticationInfo.duplicate(authNEntry, newEntry));
     }
   }
 
@@ -910,7 +910,7 @@ public abstract class ClientConnection
    */
   public void setUnauthenticated()
   {
-    this.authenticationInfo = new AuthenticationInfo();
+    setAuthenticationInfo(new AuthenticationInfo());
     this.sizeLimit          = DirectoryServer.getSizeLimit();
     this.timeLimit          = DirectoryServer.getTimeLimit();
   }
