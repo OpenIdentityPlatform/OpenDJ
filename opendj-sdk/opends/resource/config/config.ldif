@@ -50,6 +50,7 @@ ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,
 dn: cn=Access Control Handler,cn=config
 objectClass: top
 objectClass: ds-cfg-access-control-handler
+objectClass: ds-cfg-dseecompat-access-control-handler
 cn: Access Control Handler
 ds-cfg-acl-handler-class: org.opends.server.authorization.dseecompat.AciProvider
 ds-cfg-acl-handler-enabled: false

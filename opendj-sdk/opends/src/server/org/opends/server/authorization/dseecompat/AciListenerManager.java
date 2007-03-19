@@ -42,7 +42,6 @@ import static org.opends.server.loggers.Error.logError;
 import org.opends.server.types.*;
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -97,10 +96,12 @@ public class AciListenerManager
      * @param entry The entry being deleted.
      */
     public void handleDeleteOperation(PostResponseDeleteOperation
-                                      deleteOperation, Entry entry) {
-       if(entry.hasOperationalAttribute(AciHandler.aciType)) {
-            aciList.removeAci(entry);
-       }
+            deleteOperation, Entry entry) {
+        boolean hasAci,  hasGlobalAci=false;
+        //This entry might have both global and aci attribute types.
+        if((hasAci=entry.hasOperationalAttribute(AciHandler.aciType)) ||
+                (hasGlobalAci=entry.hasAttribute(AciHandler.globalAciType)))
+            aciList.removeAci(entry, hasAci, hasGlobalAci);
     }
 
     /**
@@ -111,10 +112,11 @@ public class AciListenerManager
      */
     public void handleAddOperation(PostResponseAddOperation addOperation,
                                    Entry entry) {
-        if(entry.hasOperationalAttribute(AciHandler.aciType))
-        {
-            aciList.addAci(entry);
-        }
+        boolean hasAci, hasGlobalAci=false;
+        //This entry might have both global and aci attribute types.
+        if((hasAci=entry.hasOperationalAttribute(AciHandler.aciType)) ||
+                (hasGlobalAci=entry.hasAttribute(AciHandler.globalAciType)))
+            aciList.addAci(entry, hasAci, hasGlobalAci);
     }
 
     /**
@@ -128,23 +130,23 @@ public class AciListenerManager
     public void handleModifyOperation(PostResponseModifyOperation modOperation,
                                       Entry oldEntry, Entry newEntry)
     {
-      // A change to the ACI list is expensive so let's first make sure that
-      // the modification included changes to the ACI.
-      boolean hasAciMod = false;
-      List<Modification> mods = modOperation.getModifications();
-      for (Modification mod : mods)
-      {
-        if (mod.getAttribute().getAttributeType().equals(AciHandler.aciType))
-        {
-          hasAciMod = true;
-          break;
+        // A change to the ACI list is expensive so let's first make sure that
+        // the modification included changes to the ACI. We'll check for
+        //both "aci" attribute types and global "ds-cfg-global-aci" attribute
+        //types.
+        boolean hasAci = false, hasGlobalAci=false;
+        List<Modification> mods = modOperation.getModifications();
+        for (Modification mod : mods) {
+            AttributeType attributeType=mod.getAttribute().getAttributeType();
+            if (attributeType.equals(AciHandler.aciType))
+                hasAci = true;
+           else if(attributeType.equals(AciHandler.globalAciType))
+                hasGlobalAci=true;
+            if(hasAci && hasGlobalAci)
+               break;
         }
-      }
-
-      if (hasAciMod)
-      {
-        aciList.modAciOldNewEntry(oldEntry, newEntry);
-      }
+        if (hasAci || hasGlobalAci)
+            aciList.modAciOldNewEntry(oldEntry, newEntry, hasAci, hasGlobalAci);
     }
 
     /**
@@ -191,8 +193,7 @@ public class AciListenerManager
                   null, baseDN, SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES,
                   0, 0, false, aciFilter, attrs, null);
-        try
-        {
+        try  {
           backend.search(internalSearch);
         } catch (Exception e) {
           if (debugEnabled())

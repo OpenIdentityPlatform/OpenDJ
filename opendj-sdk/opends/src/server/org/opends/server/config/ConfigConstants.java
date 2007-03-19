@@ -2269,6 +2269,13 @@ public class ConfigConstants
        NAME_PREFIX_CFG + "acl-handler-enabled";
 
 
+    /**
+     * The name of the configuration attribute that specifies a global
+     * attribute access control instruction.
+     */
+    public static final String ATTR_AUTHZ_GLOBAL_ACI =
+        NAME_PREFIX_CFG + "global-aci";
+
 
   /**
    * The name of the configuration attribute that specifies the fully-qualified

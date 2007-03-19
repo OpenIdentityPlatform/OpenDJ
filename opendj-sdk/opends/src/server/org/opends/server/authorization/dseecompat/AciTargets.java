@@ -440,6 +440,21 @@ public class AciTargets {
          return  ((skipRights & rights) == rights);
     }
 
+
+    /**
+     * Wrapper class that passes an ACI, an ACI's targets and the specified
+     * target match context's resource entry DN to the main isTargetApplicable
+     * method.
+     * @param aci The ACI currently be matched.
+     * @param matchCtx The target match context to match against.
+     * @return True if the target matched the ACI.
+     */
+    public static boolean isTargetApplicable(Aci aci,
+                                             AciTargetMatchContext matchCtx) {
+        return isTargetApplicable(aci, aci.getTargets(),
+                                        matchCtx.getResourceEntry().getDN());
+    }
+
     /*
      * TODO Investigate supporting alternative representations of the scope.
      *
@@ -449,24 +464,24 @@ public class AciTargets {
      * abbreviations in widespread use for those terms?
      */
     /**
-     * Checks an provided ACI's target information against an target match
-     * context.
+     * Main target isApplicable method. This method performs the target keyword
+     * match functionality, which allows for directory entry "targeting" using
+     * the specifed ACI, ACI targets class and DN.
      * @param aci The ACI to match the target against.
-     * @param matchCtx The target match context to check the ACI against.
-     * @return True if the target matched the context.
+     * @param targets The targets to use in this evaluation.
+     * @param entryDN The DN to use in this evaluation.
+     * @return True if the ACI matched the target and DN.
      */
-    public static boolean isTargetApplicable(Aci aci,
-            AciTargetMatchContext matchCtx) {
-        boolean ret=true;
-        DN entryDN=matchCtx.getResourceEntry().getDN();
-        DN targetDN=aci.getDN();
-        AciTargets targets=aci.getTargets();
 
+    public static boolean isTargetApplicable(Aci aci,
+            AciTargets targets, DN entryDN) {
+        boolean ret=true;
+        DN targetDN=aci.getDN();
         /*
          * Scoping of the ACI uses either the DN of the entry
          * containing the ACI (aci.getDN above), or if the ACI item
-         * contains a simple target DN and a equality operator that
-         * target DN is used.
+         * contains a simple target DN and a equality operator, that
+         * simple target DN is used as the target DN.
          */
         if((targets.getTarget() != null) &&
                 (!targets.getTarget().isPattern())) {
@@ -474,6 +489,7 @@ public class AciTargets {
             if(op != EnumTargetOperator.NOT_EQUALITY)
                 targetDN=targets.getTarget().getDN();
         }
+        //Check if the scope is correct.
         switch(targets.getTargetScope()) {
         case BASE_OBJECT:
             if(!targetDN.equals(entryDN))

@@ -60,7 +60,7 @@ public class AciProvider  implements AccessControlProvider  {
      */
     public void initializeAccessControlHandler(ConfigEntry configEntry)
     throws ConfigException, InitializationException {
-        getInstance();
+         instance=new AciHandler(configEntry);
     }
 
     /**
@@ -68,9 +68,6 @@ public class AciProvider  implements AccessControlProvider  {
      * @return  A new AciHandler instance.
      */
     public  AccessControlHandler getInstance() {
-        if (instance == null) {
-            instance = new AciHandler();
-        }
         return instance;
     }
 

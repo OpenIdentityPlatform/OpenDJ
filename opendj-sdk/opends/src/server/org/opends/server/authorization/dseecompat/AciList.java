@@ -30,19 +30,11 @@ package org.opends.server.authorization.dseecompat;
 import static org.opends.server.authorization.dseecompat.AciMessages.*;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
 
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
+import java.util.*;
+
+import static org.opends.server.authorization.dseecompat.AciHandler.*;
+import org.opends.server.types.*;
 import org.opends.server.api.Backend;
 
 /**
@@ -58,9 +50,23 @@ public class AciList {
   private volatile LinkedHashMap<DN, List<Aci>> aciList =
        new LinkedHashMap<DN, List<Aci>>();
 
+  /*
+  * The configuration DN used to compare against the global ACI entry DN.
+  */
+  private DN configDN;
+
+  /**
+   * Constructor to create an ACI list to cache ACI attribute types.
+   * @param configDN The configuration entry DN.
+   */
+  public AciList(DN configDN) {
+     this.configDN=configDN;
+  }
+
   /**
    * Accessor to the ACI list intended to be called from within unsynchronized
    * read-only methods.
+   * @return   The current ACI list.
    */
   private LinkedHashMap<DN, List<Aci>> getList() {
     return aciList;
@@ -74,14 +80,13 @@ public class AciList {
     return new LinkedHashMap<DN, List<Aci>>(aciList);
   }
 
-  /*
-  * TODO Add support for global ACIs in config.ldif.
-  *
-  */
   /**
    * Using the base DN, return a list of ACIs that are candidates for
    * evaluation by walking up from the base DN towards the root of the
-   * DIT gathering ACIs on parents.
+   * DIT gathering ACIs on parents. Global ACIs use the NULL DN as the key
+   * and are included in the candidate set only if they have no
+   * "target" keyword rules, or if the target keyword rule matches for
+   * the specified base DN.
    *
    * @param baseDN  The DN to check.
    * @return A list of candidate ACIs that might be applicable.
@@ -93,12 +98,26 @@ public class AciList {
 
     // Save a reference to the current ACI list, in case it gets changed.
     LinkedHashMap<DN, List<Aci>> aciList = getList();
-
+    //Save the baseDN in case we need to evaluate a global ACI.
+    DN entryDN=baseDN;
     while(baseDN != null) {
       List<Aci> acis = aciList.get(baseDN);
-      if (acis != null)
-      {
-        candidates.addAll(acis);
+      if (acis != null) {
+       //Check if there are global ACIs. Global ACI has a NULL DN.
+       if(baseDN.isNullDN()) {
+           for(Aci aci : acis) {
+               AciTargets targets=aci.getTargets();
+               //If there is a target, evaluate it to see if this ACI should
+               //be included in the candidate set.
+               if(targets != null) {
+                   boolean ret=AciTargets.isTargetApplicable(aci, targets,
+                                                             entryDN);
+                   if(ret)
+                      candidates.add(aci);  //Add this ACI to the candidates.
+               }
+           }
+       } else
+           candidates.addAll(acis);
       }
       if(baseDN.isNullDN())
         break;
@@ -112,7 +131,9 @@ public class AciList {
   }
 
   /**
-   * Add all the ACI from a set of entries to the ACI list.
+   * Add all the ACI from a set of entries to the ACI list. There is no need
+   * to check for global ACIs since they are processe by the AciHandler at
+   * startup using the addACi single entry method.
    * @param entries The set of entries containing the "aci" attribute values.
    * @return The number of valid ACI attribute values added to the ACI list.
    */
@@ -135,39 +156,47 @@ public class AciList {
   }
 
   /**
-   * Add all of an entry's ACI attribute values to the ACI list.
-   * @param entry The entry containing the "aci" attribute values.
+   * Add all of an entry's ACI (global or regular) attribute values to the
+   * ACI list.
+   * @param entry The entry containing the ACI attributes.
+   * @param hasAci True if the "aci" attribute type was seen in the entry.
+   * @param hasGlobalAci True if the "ds-cfg-global-aci" attribute type was
+   * seen in the entry.
    * @return The number of valid ACI attribute values added to the ACI list.
    */
-  public synchronized int addAci(Entry entry) {
-    int validAcis;
-    DN dn=entry.getDN();
-    List<Attribute> attributeList =
-         entry.getOperationalAttribute(AciHandler.aciType);
-
-    if (attributeList == null) {
-      return 0;
-    }
+  public synchronized int addAci(Entry entry,  boolean hasAci,
+                                               boolean hasGlobalAci) {
+    int validAcis=0;
 
     // Copy the ACI list.
     LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
+    //Process global "ds-cfg-global-aci" attribute type. The oldentry
+    //DN is checked to verify it is equal to the config DN. If not those
+    //attributes are skipped.
+    if(hasGlobalAci && entry.getDN().equals(configDN)) {
+        List<Attribute> attributeList = entry.getAttribute(globalAciType);
+        validAcis = addAciAttributeList(aciCopy, DN.nullDN(), attributeList);
+    }
 
-    validAcis=addAciAttributeList(aciCopy, dn, attributeList);
-
+    if(hasAci) {
+        List<Attribute> attributeList = entry.getAttribute(aciType);
+        validAcis += addAciAttributeList(aciCopy, entry.getDN(), attributeList);
+    }
     // Replace the ACI list with the copy.
     aciList = aciCopy;
     return validAcis;
   }
 
   /**
-   * Add "aci" attribute type values to the ACI list. There is a chance
-   * that an ACI will throw an exception if it has an invalid syntax.
-   * If that happens a message will be logged and the ACI skipped.
+   * Add an ACI's attribute type values to the ACI list. There is a chance that
+   * an ACI will throw an exception if it has an invalid syntax. If that
+   * happens a message will be logged and the ACI skipped.  A count is
+   * returned of the number of valid ACIs added.
    * @param aciList The ACI list to which the ACI is to be added.
    * @param dn The DN to use as the key in the ACI list.
-   * @param attributeList List of attributes containing the "aci" attribute
+   * @param attributeList List of attributes containing the ACI attribute
    * values.
-   * @return The number of valid "aci" attribute values added to the ACI list.
+   * @return The number of valid attribute values added to the ACI list.
    */
   private static int addAciAttributeList(
        LinkedHashMap<DN,List<Aci>> aciList, DN dn,
@@ -209,26 +238,41 @@ public class AciList {
   /**
    * Remove all of the ACIs related to the old entry and then add all of the
    * ACIs related to the new entry. This method locks/unlocks the list.
-   * @param oldEntry The old entry possibly containing old "aci" attribute
+   * In the case of global ACIs the DN of the entry is checked to make sure it
+   * is equal to the config DN. If not, the global ACI attribute type is
+   * silently skipped.
+   * @param oldEntry The old entry possibly containing old ACI attribute
    * values.
-   * @param newEntry The new entry possibly containing new "aci" attribute
+   * @param newEntry The new entry possibly containing new ACI attribute
    * values.
+   * @param hasAci True if the "aci" attribute type was seen in the entry.
+   * @param hasGlobalAci True if the "ds-cfg-global-aci" attribute type was
+   * seen in the entry.
    */
-  public synchronized void modAciOldNewEntry(Entry oldEntry, Entry newEntry) {
-    if((oldEntry.hasOperationalAttribute(AciHandler.aciType)) ||
-         (newEntry.hasOperationalAttribute(AciHandler.aciType))) {
+  public synchronized void modAciOldNewEntry(Entry oldEntry, Entry newEntry,
+                                             boolean hasAci,
+                                             boolean hasGlobalAci) {
 
       // Copy the ACI list.
       LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
-
-      aciCopy.remove(oldEntry.getDN());
-      List<Attribute> attributeList =
-           newEntry.getOperationalAttribute(AciHandler.aciType);
-      addAciAttributeList(aciCopy,newEntry.getDN(),attributeList);
-
+      //Process "aci" attribute types.
+      if(hasAci) {
+          aciCopy.remove(oldEntry.getDN());
+          List<Attribute> attributeList =
+                  newEntry.getOperationalAttribute(aciType);
+          addAciAttributeList(aciCopy,newEntry.getDN(),attributeList);
+      }
+      //Process global "ds-cfg-global-aci" attribute type. The oldentry
+      //DN is checked to verify it is equal to the config DN. If not those
+      //attributes are skipped.
+      if(hasGlobalAci && oldEntry.getDN().equals(configDN)) {
+          aciCopy.remove(DN.nullDN());
+          List<Attribute> attributeList =
+                  newEntry.getAttribute(globalAciType);
+          addAciAttributeList(aciCopy, DN.nullDN(), attributeList);
+      }
       // Replace the ACI list with the copy.
       aciList = aciCopy;
-    }
   }
 
   /**
@@ -251,21 +295,30 @@ public class AciList {
   }
 
   /**
-   * Remove ACIs related to an entry.
-   * @param entry The entry to be removed.
-   * @return True if the ACI set was deleted.
+   * Remove global and regular ACIs from the list. It's possible that an entry
+   * could have both attribute types (aci and ds-cfg-global-aci). Global ACIs
+   * use the NULL DN for the key.  In the case of global ACIs the DN of the
+   * entry is checked to make sure it is equal to the config DN. If not, the
+   * global ACI attribute type is silently skipped.
+   * @param entry The entry containing the global ACIs.
+   * @param hasAci True if the "aci" attribute type was seen in the entry.
+   * @param hasGlobalAci True if the "ds-cfg-global-aci" attribute type was
+   * seen in the entry.
+   * @return  True if the ACI set was deleted.
    */
-  public synchronized boolean removeAci(Entry entry) {
-    // Copy the ACI list.
-    LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
+  public synchronized boolean removeAci(Entry entry,  boolean hasAci,
+                                                      boolean hasGlobalAci) {
+      // Copy the ACI list.
+      LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
 
-    boolean deleted = false;
-    if (aciCopy.remove(entry.getDN()) != null)
-      deleted = true;
-
-    // Replace the ACI list with the copy.
-    aciList = aciCopy;
-    return deleted;
+      if(hasGlobalAci && entry.getDN().equals(configDN) &&
+         aciCopy.remove(DN.nullDN()) == null)
+          return false;
+      if(hasAci && aciCopy.remove(entry.getDN()) == null)
+          return false;
+      // Replace the ACI list with the copy.
+      aciList = aciCopy;
+      return true;
   }
 
   /**
