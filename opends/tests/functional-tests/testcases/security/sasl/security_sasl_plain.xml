@@ -203,7 +203,7 @@
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
         <testcase name="'Security: SASL PLAIN: User With Duplicate uid (u:) Binding'">
           <sequence>
@@ -223,7 +223,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -280,7 +280,7 @@
             #@TestPreamble              none
             #@TestStep                  User bind with authid=[dn] format.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
         <testcase name="'Security: SASL PLAIN: User With Duplicate uid Binding'">
           <sequence>
@@ -300,7 +300,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>

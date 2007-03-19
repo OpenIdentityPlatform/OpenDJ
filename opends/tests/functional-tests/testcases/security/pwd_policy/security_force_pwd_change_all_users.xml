@@ -112,7 +112,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1  }
+                  'expected'   : 49  }
             </call>
             <call function="'testCase_Postamble'"/>
           </sequence>

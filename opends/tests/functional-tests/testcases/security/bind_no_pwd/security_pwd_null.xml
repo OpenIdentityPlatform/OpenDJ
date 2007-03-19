@@ -78,7 +78,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 53 }
             </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
@@ -209,7 +209,7 @@
         </testcase>
 
         <!--- Test Case : Reset Configuration -->
-        <testcase name="'Security: Bind No Pwd: Postamble Reset'">
+        <testcase name="'Security: Bind No Pwd: Postamble'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -244,7 +244,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 53 }
             </call>
             <call function="'testCase_Postamble'"/>
           </sequence>

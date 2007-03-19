@@ -108,7 +108,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -135,7 +135,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1  }
+                  'expected'   : 49  }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -177,7 +177,7 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 1">
+            <if expr="RC != 49">
                 <tcstatus result="'fail'"/>
             </if>
 
@@ -240,7 +240,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1}
+                  'expected'   : 49}
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -298,7 +298,7 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 1">
+            <if expr="RC != 49">
                 <tcstatus result="'fail'"/>
             </if>
 

@@ -182,7 +182,7 @@
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
           <testcase name="'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding'">
           <sequence>
@@ -202,7 +202,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -319,7 +319,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0 
                                         for all ldap operations except step 3.
-                                        In step 3, the ldap operation should return 1
+                                        In step 3, the ldap operation should return 49
                                         because the password is no longer stored as CLEAR.
           -->
         <testcase name="'Security: SASL CRAM-MD5: Postamble'">
@@ -372,7 +372,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>

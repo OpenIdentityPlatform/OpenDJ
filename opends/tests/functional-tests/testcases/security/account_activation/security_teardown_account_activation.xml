@@ -35,7 +35,7 @@
 
         <!--- Test Case : Password Policy Teardown -->
         <!--- Delete Branch -->
-        <testcase name="'Security: Acct Act: Postamble Reset'">
+        <testcase name="'Security: Acct Act: Reset'">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>

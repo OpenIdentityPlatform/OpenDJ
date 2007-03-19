@@ -106,7 +106,7 @@
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind'">
           <sequence>
@@ -126,7 +126,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -221,7 +221,7 @@
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format with an authzid of another unauthorized user.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
         <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind another authzid'">
           <sequence>
@@ -241,7 +241,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -337,7 +337,7 @@
             #@TestPreamble              none
             #@TestStep                  User bind with authid=u:[name] format with an authzid using the default, uid.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
         <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind authzid After Attr Change'">
           <sequence>
@@ -357,7 +357,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -530,7 +530,7 @@
             #@TestPreamble              none
             #@TestStep                  User bind with authid=dn:[DN] format and with authzid.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind authzid'">
           <sequence>
@@ -550,7 +550,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -646,7 +646,7 @@
             #@TestStep                  User bind with authid=u:[name] format 
                                         and the realm is specified.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind With Realm'">
           <sequence>
@@ -666,7 +666,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -844,7 +844,7 @@
             #@TestStep                  User bind with authid=u:[name] format 
                                         and an undefined realm is specified.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (u:) Bind With Undefined Realm'">
           <sequence>
@@ -864,7 +864,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -884,7 +884,7 @@
             #@TestStep                  User bind with authid=u:[name] format 
                                         and the realm is specified.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
         <testcase name="'Security: SASL DIGEST-MD5: User (u:) Bind With Undefined Realm'">
           <sequence>
@@ -904,7 +904,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -924,7 +924,7 @@
             #@TestStep                  User bind with authid=dn:[DN] format 
                                         and the realm is specified.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Dupe uid (dn:) Bind With Undefined Realm'">
           <sequence>
@@ -944,7 +944,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -964,7 +964,7 @@
             #@TestStep                  User bind with authid=dn:[DN] format 
                                         and the realm is specified.
             #@TestPostamble             none
-            #@TestResult                Success if OpenDS returns 1.
+            #@TestResult                Success if OpenDS returns 49.
         -->
         <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind With Undefined Realm'">
           <sequence>
@@ -984,7 +984,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -1009,7 +1009,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0 
                                         for all ldap operations except step 5.
-                                        In step 5, the ldap operation should return 1
+                                        In step 5, the ldap operation should return 49
                                         because the password is no longer stored as CLEAR.
         -->
         <testcase name="'Security: SASL DIGEST-MD5: Postamble'">
@@ -1096,7 +1096,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1}
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
