@@ -35,9 +35,17 @@ import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.types.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import org.opends.server.config.StringConfigAttribute;
+import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.InternalClientConnection;
+
+import java.util.*;
 
 /**
  * The AciHandler class performs the main processing for the
@@ -57,21 +65,138 @@ public class AciHandler extends AccessControlHandler
     public static AttributeType aciType;
 
     /**
-     * Constructor that creates the ACI list
-     * class that manages the ACI list. Instantiates and registers the change
-     * notification listener that is used to manage the ACI list on
-     * modifications and the backend initialization listener that is used to
-     * register/de-register aci attribute types in backends when backends
-     * are initialized/finalized.
+     * Attribute type corresponding to global "ds-cfg-global-aci" attribute.
+     */
+    public static AttributeType globalAciType;
+
+    /**
+     * This constructor instantiates the ACI handler class that performs the
+     * main processing for the dseecompat ACI package. It does the following
+     * initializations:
+     *
+     *  - Instantiates the ACI list cache.
+     *
+     *  - Instantiates and registers the change notification listener that is
+     *    used to manage the ACI list cache after ACI modifications have been
+     *    performed.
+     *
+     *  - Instantiates and registers the backend initialization listener that is
+     *    used to manage the ACI list cache when backends are
+     *    initialized/finalized.
+     *
+     *  - Processes all global attribute types found in the configuration entry
+     *    and adds them to the ACI list cache.
+     *
+     *  - Processes all "aci" attributes found in the "cn=config" naming
+     *    context and adds them to the ACI list cache.
+     *
+     * @param configEntry The configuration entry passed in from the provider.
+     * @throws InitializationException if there is a problem processing the
+     * config entry or config naming context.
     */
-    public AciHandler() {
-        aciList = new AciList();
+    public AciHandler(ConfigEntry configEntry) throws InitializationException  {
+        aciList = new AciList(configEntry.getDN());
         AciListenerManager aciListenerMgr =
             new AciListenerManager(aciList);
         DirectoryServer.registerChangeNotificationListener(aciListenerMgr);
         DirectoryServer.registerBackendInitializationListener(aciListenerMgr);
         if((aciType = DirectoryServer.getAttributeType("aci")) == null)
             aciType = DirectoryServer.getDefaultAttributeType("aci");
+        if((globalAciType =
+               DirectoryServer.getAttributeType(ATTR_AUTHZ_GLOBAL_ACI)) == null)
+            globalAciType =
+                 DirectoryServer.getDefaultAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
+        processGlobalAcis(configEntry);
+        processConfigAcis();
+    }
+
+    /**
+     * Process all global ACI attribute types found in the configuration
+     * entry and adds them to that ACI list cache. It also logs messages about
+     * the number of ACI attribute types added to the cache. This method is
+     * called once at startup.
+     * @param configEntry  The configuraion entry to search for global ACIs.
+     * @throws InitializationException If there is an error reading
+     * the global ACIs from the configuration entry.
+     */
+    private void processGlobalAcis(ConfigEntry configEntry)
+    throws InitializationException {
+        int msgID = MSGID_ACI_DESCRIPTION_GLOBAL_ACI;
+        StringConfigAttribute aciGlobalStub =
+                new StringConfigAttribute(ATTR_AUTHZ_GLOBAL_ACI,
+                        getMessage(msgID), false, true, false);
+        try {
+            StringConfigAttribute aciGlobalAttr =
+                    (StringConfigAttribute)
+                            configEntry.getConfigAttribute(aciGlobalStub);
+            if (aciGlobalAttr != null)   {
+                Attribute attr = new Attribute(globalAciType,
+                        globalAciType.toString(),
+                        aciGlobalAttr.getActiveValues());
+                Entry e = new Entry(configEntry.getDN(), null, null, null);
+                e.addAttribute(attr, new ArrayList<AttributeValue>());
+                int aciCount =  aciList.addAci(e, false, true);
+                msgID  = MSGID_ACI_ADD_LIST_GLOBAL_ACIS;
+                String message = getMessage(msgID, Integer.toString(aciCount));
+                logError(ErrorLogCategory.ACCESS_CONTROL,
+                        ErrorLogSeverity.NOTICE,
+                        message, msgID);
+            }  else {
+                msgID  = MSGID_ACI_ADD_LIST_NO_GLOBAL_ACIS;
+                String message = getMessage(msgID);
+                logError(ErrorLogCategory.ACCESS_CONTROL,
+                        ErrorLogSeverity.NOTICE, message, msgID);
+
+            }
+        }  catch (ConfigException e) {
+            if (debugEnabled())
+                debugCaught(DebugLogLevel.ERROR, e);
+            msgID = MSGID_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI;
+            String message =
+                    getMessage(msgID, String.valueOf(configEntry.getDN()),
+                    stackTraceToSingleLineString(e));
+            throw new InitializationException(msgID, message, e);
+        }
+    }
+
+    /**
+     * Process all ACIs under the "cn=config" naming context and adds them to
+     * the ACI list cache. It also logs messages about the number of ACIs added
+     * to the cache. This method is called once at startup.
+     * @throws InitializationException If there is an error searching for
+     * the ACIs in the naming context.
+     */
+    private void processConfigAcis() throws InitializationException {
+        try
+        {
+            DN configDN=DN.decode("cn=config");
+            LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
+            attrs.add("aci");
+            InternalClientConnection conn =
+                    InternalClientConnection.getRootConnection();
+            InternalSearchOperation op = conn.processSearch(configDN,
+                    SearchScope.WHOLE_SUBTREE,
+                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                    SearchFilter.createFilterFromString("aci=*"), attrs);
+            if(op.getSearchEntries().isEmpty()) {
+                int    msgID  = MSGID_ACI_ADD_LIST_NO_ACIS;
+                String message = getMessage(msgID, String.valueOf(configDN));
+                logError(ErrorLogCategory.ACCESS_CONTROL,
+                        ErrorLogSeverity.NOTICE, message, msgID);
+            } else {
+                int validAcis = aciList.addAci(op.getSearchEntries());
+                int    msgID  = MSGID_ACI_ADD_LIST_ACIS;
+                String message = getMessage(msgID, Integer.toString(validAcis),
+                        String.valueOf(configDN));
+                logError(ErrorLogCategory.ACCESS_CONTROL,
+                        ErrorLogSeverity.NOTICE,
+                        message, msgID);
+            }
+        } catch (DirectoryException e) {
+            int  msgID = MSGID_ACI_HANDLER_FAIL_PROCESS_ACI;
+            String message = getMessage(msgID, stackTraceToSingleLineString(e));
+            throw new InitializationException(msgID, message, e);
+        }
     }
 
     /**
@@ -180,20 +305,25 @@ public class AciHandler extends AccessControlHandler
                    If so, check the syntax of that attribute value. Fail the
                    the operation if the syntax check fails.
                    */
-                  if(modType.equals(aciType)) {
-                      try {
-                          Aci.decode(v.getValue(),dn);
-                      } catch (AciException ex) {
-                          int    msgID  = MSGID_ACI_MODIFY_FAILED_DECODE;
-                          String message = getMessage(msgID,
-                                  String.valueOf(dn),
-                                  ex.getMessage());
-                          logError(ErrorLogCategory.ACCESS_CONTROL,
+                   if(modType.equals(aciType)  ||
+                      modType.equals(globalAciType)) {
+                       try {
+                           //A global ACI needs a NULL DN, not the DN of the
+                           //modification.
+                           if(modType.equals(globalAciType))
+                               dn=DN.nullDN();
+                           Aci.decode(v.getValue(),dn);
+                       } catch (AciException ex) {
+                           int    msgID  = MSGID_ACI_MODIFY_FAILED_DECODE;
+                           String message = getMessage(msgID,
+                                   String.valueOf(dn),
+                                   ex.getMessage());
+                           logError(ErrorLogCategory.ACCESS_CONTROL,
                                    ErrorLogSeverity.SEVERE_WARNING,
                                    message, msgID);
-                          return false;
-                      }
-                  }
+                           return false;
+                       }
+                   }
                }
             }
         }

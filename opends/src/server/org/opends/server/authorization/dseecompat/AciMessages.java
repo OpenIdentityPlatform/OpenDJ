@@ -28,6 +28,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
 
 /**
  * The AciMessages class defines the set of message IDs and default format
@@ -653,6 +654,48 @@ public class AciMessages {
         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 63;
 
     /**
+     * The message ID for the message that will be used as the description of
+     * the configuration attribute specifying a global ACI.
+     */
+    public static final
+    int MSGID_ACI_DESCRIPTION_GLOBAL_ACI = CATEGORY_MASK_ACCESS_CONTROL | 64;
+
+
+    /**
+     * The message ID for the ACI message that will be generated the server
+     * searches an directory context for Global "aci" attribute types and
+     * finds none. This takes no arguments.
+     */
+    public static final int MSGID_ACI_ADD_LIST_NO_GLOBAL_ACIS =
+        CATEGORY_MASK_ACCESS_CONTROL | 65;
+
+    /**
+     * The message ID for the ACI message that will be generated the server
+     * searches the config entry for Global "aci" attribute types and
+     * finds some. This takes one argument, which is the number of
+     * valid Global ACIs decoded.
+     */
+    public static final int MSGID_ACI_ADD_LIST_GLOBAL_ACIS =
+        CATEGORY_MASK_ACCESS_CONTROL | 66;
+
+    /**
+     * The message ID for the ACI message that will be generated when the server
+     * searches the config entry for Global "aci" attribute types and
+     * an error occurs. This takes one argument, which is the DN of the
+     * access control configuration entry.
+     */
+    public static final int MSGID_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI =
+        CATEGORY_MASK_ACCESS_CONTROL | 67;
+
+    /**
+     * The message ID for the ACI message that will be generated when the server
+     * searches the config system for "aci" attribute types and
+     * an error occurs. This takes no arguments.
+     */
+    public static final int MSGID_ACI_HANDLER_FAIL_PROCESS_ACI =
+        CATEGORY_MASK_ACCESS_CONTROL | 68;
+
+    /**
      * Associates a set of generic messages with the message IDs defined in
      * this class.
      */
@@ -1033,6 +1076,26 @@ public class AciMessages {
              "with an ASCII letter and must contain only ASCII letters," +
               "digits or the \"-\" character.");
 
+        registerMessage(MSGID_ACI_DESCRIPTION_GLOBAL_ACI,
+             "Specifies a global Access Control Instruction (ACI) "  +
+             "attribute type that can be used to defined ACIs that have " +
+             "global scope accross naming contexts.");
+
+        registerMessage(MSGID_ACI_ADD_LIST_NO_GLOBAL_ACIS,
+            "No Global Access Control Instruction (ACI) attribute types were" +
+           " found.");
+
+        registerMessage(MSGID_ACI_ADD_LIST_GLOBAL_ACIS,
+                "Added %s Global Access Control Instruction (ACI) attribute " +
+                "types to the access control evaluation engine.");
+
+        registerMessage(MSGID_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI,
+         "An unexpected error occurred while processing the " +
+         ATTR_AUTHZ_GLOBAL_ACI + " attribute in configuration entry %s.");
+
+        registerMessage(MSGID_ACI_HANDLER_FAIL_PROCESS_ACI,
+         "An unexpected error occurred while processing the " +
+          " aci attributes in the configuration system.");
 
     }
 }
