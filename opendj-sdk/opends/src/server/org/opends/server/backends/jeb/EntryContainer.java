@@ -658,7 +658,8 @@ public class EntryContainer
 
     // Evaluate the search scope against the id2children and id2subtree indexes.
     boolean candidatesAreInScope = false;
-    if (entryIDList.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
+    if (entryIDList.isDefined() &&
+            entryIDList.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
     {
       // Read the ID from dn2id.
       EntryID baseID = dn2id.get(null, baseDN);
