@@ -38,6 +38,7 @@ import static org.testng.Assert.*;
 
 import static org.opends.server.synchronization.protocol.OperationContext.*;
 
+import org.opends.server.TestAccessLogger;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -113,14 +114,14 @@ public class ModifyConflictTest
      * simulate a modify-replace done at time t10
      */
     testModify(entry, hist, "description", ModificationType.REPLACE,
-        "init value", 10, true);
+               "init value", 10, true);
 
     /*
      * Now simulate an add at an earlier date that the previous replace
      * conflict resolution should remove it.
      */
     testModify(entry, hist, "description", ModificationType.ADD,
-        "older value", 1, false);
+               "older value", 1, false);
 
     /*
      * Now simulate an add at an earlier date that the previous replace
@@ -128,14 +129,81 @@ public class ModifyConflictTest
      * sure...)
      */
     testModify(entry, hist, "description", ModificationType.ADD,
-        "older value", 2, false);
+               "older value", 2, false);
 
     /*
      * Now simulate an add at a later date that the previous replace.
      * conflict resolution should keep it
      */
     testModify(entry, hist, "description", ModificationType.ADD, "new value",
-        11, true);
+               11, true);
+
+  }
+  
+  /**
+   * Test that conflict between modify-add and modify-replace for
+   * multi-valued attributes are handled correctly.
+   */
+  @Test()
+  public void addAndReplace() throws Exception
+  {
+    DN dn = DN.decode("dc=com");
+    Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
+    ObjectClass org = DirectoryServer.getObjectClass("organization");
+    objectClasses.put(org, "organization");
+
+    Entry entry = new Entry(dn, objectClasses, null, null);
+
+    // Construct a new random UUID. and add it into the entry
+    UUID uuid = UUID.randomUUID();
+
+    // Create the att values list of uuid
+    LinkedHashSet<AttributeValue> valuesUuid =
+      new LinkedHashSet<AttributeValue>(1);
+    valuesUuid.add(new AttributeValue(Historical.entryuuidAttrType,
+        new ASN1OctetString(uuid.toString())));
+    ArrayList<Attribute> uuidList = new ArrayList<Attribute>(1);
+    Attribute uuidAttr = new Attribute(Historical.entryuuidAttrType,
+        "entryUUID", valuesUuid);
+    uuidList.add(uuidAttr);
+
+    /*
+     * Add the uuid in the entry
+     */
+    Map<AttributeType, List<Attribute>> operationalAttributes = entry
+        .getOperationalAttributes();
+    operationalAttributes.put(Historical.entryuuidAttrType, uuidList);
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    /*
+     * simulate a modify-add done at time t10
+     */
+    testModify(entry, hist, "description", ModificationType.ADD,
+        "init value", 10, true);
+
+    /*
+     * Now simulate a replace at an earlier date that the previous replace
+     * conflict resolution should keep it.
+     */
+    testModify(entry, hist, "description", ModificationType.REPLACE,
+        "older value", 1, true);
+
+    /*
+     * Now simulate a replace at an earlier date that the previous replace
+     * conflict resolution should remove it. (a second time to make
+     * sure...)
+     */
+    testModify(entry, hist, "description", ModificationType.REPLACE,
+        "older value", 2, true);
+
+    /*
+     * Now simulate a replace at a later date that the previous replace.
+     * conflict resolution should keep it
+     */
+    testModify(entry, hist, "description", ModificationType.REPLACE,
+        "new value", 11, true);
 
   }
 
@@ -294,7 +362,6 @@ public class ModifyConflictTest
      */
     testModify(entry, hist, "description", ModificationType.ADD, "new value",
         11, true);
-
   }
 
   /**
@@ -412,6 +479,17 @@ public class ModifyConflictTest
     {
       testHistoricalAndFake(hist, entry);
     }
+    
+    /*
+     * Check that the encoding decoding of historical information
+     * works  by encoding decoding and checking that the result is the same
+     * as the initial value.
+     */
+    entry.removeAttribute(Historical.historicalAttrType);
+    entry.addAttribute(hist.encode(), null);
+    Historical hist2 = Historical.load(entry);
+    assertEquals(hist2.encode().toString(), hist.encode().toString());
+    
     /*
      * The last older change should have been detected as conflicting and
      * should be removed by the conflict resolution code.

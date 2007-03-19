@@ -27,6 +27,7 @@
 package org.opends.server.synchronization.plugin;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 
 import org.opends.server.synchronization.common.ChangeNumber;
@@ -121,19 +122,31 @@ public class AttrInfo
                                                             this.valuesInfo);
      return dup;
    }
+
    /**
-    * Delete all historical information for this attribute type.
-    * Replace it with delete attribute state information
+    * Delete all historical information that is older than
+    * the provided ChangeNumber for this attribute type.
+    * Add the delete attribute state information
     * @param CN time when the delete was done
     */
    void delete(ChangeNumber CN)
    {
-     if (this.valuesInfo != null)
-      this.valuesInfo.clear();
+     // iterate through the values in the valuesInfo
+     // and suppress all the values that have not been added
+     // after the date of this delete.
+     Iterator<ValueInfo> it = this.valuesInfo.iterator();
+     while (it.hasNext())
+     {
+       ValueInfo info = it.next();
+       if (CN.newerOrEquals(info.getValueUpdateTime()))
+         it.remove();
+     }
+
      if (CN.newer(deleteTime))
      {
        deleteTime = CN;
      }
+
      if (CN.newer(lastUpdateTime))
      {
        lastUpdateTime = CN;
