@@ -166,7 +166,7 @@
             #@TestStep                  New user without authpasswordobject binds.
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 65
-                                        and a search for the user returns 1.
+                                        and a search for the user returns 49.
         -->
         <testcase name="'Security: Auth Pwd Syntax: SHA256 Policy - Add User w/o Objectclass'">
           <sequence>
@@ -204,7 +204,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             <call function="'testCase_Postamble'"/>
      
@@ -224,7 +224,7 @@
             #@TestStep                  New user without password policy defined binds.
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 21
-                                        and a search for the user returns 1.
+                                        and a search for the user returns 49.
         -->
         <testcase name="'Security: Auth Pwd Syntax: SHA256 Policy - Add User w/o Pwd Policy'">
           <sequence>
@@ -262,7 +262,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             <call function="'testCase_Postamble'"/>
      

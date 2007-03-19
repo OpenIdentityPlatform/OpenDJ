@@ -128,7 +128,7 @@
             #@TestStep                  Anonymous bind to OpenDS.
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
-                                        for step 1 and returns 1 for step 2.
+                                        for step 1 and returns 7 for step 2.
           -->
         <testcase name="'Security: SASL ANON: Postamble'">
           <sequence>
@@ -164,7 +164,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 7 }
             </call>
             
             <call function="'testCase_Postamble'"/>

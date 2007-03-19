@@ -94,7 +94,7 @@
             #@TestResult                Success if OpenDS returns 0
                                         for ldapadd operation and the bind for the 
                                         new user. The bind by the old user should 
-                                        return 1.
+                                        return 49.
         -->
         <testcase name="'Security: Auth Pwd Syntax: Default Policy - Add Users'">
           <sequence>
@@ -150,7 +150,7 @@
             <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult ,
-                  'expected'   : 1 }
+                  'expected'   : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -206,7 +206,7 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 1">
+            <if expr="RC != 49">
                 <tcstatus result="'fail'"/>
             </if>
 
