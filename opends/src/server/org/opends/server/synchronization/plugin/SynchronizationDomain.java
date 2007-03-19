@@ -740,6 +740,9 @@ public class SynchronizationDomain extends DirectoryThread
     }
     else
     {
+      // This is a replayed operation, it is necessary to
+      // - check if the entry has been renamed
+      // - check for conflicts
       String modifiedEntryUUID = ctx.getEntryUid();
       String currentEntryUUID = Historical.getEntryUuid(modifiedEntry);
       if ((currentEntryUUID != null) &&
