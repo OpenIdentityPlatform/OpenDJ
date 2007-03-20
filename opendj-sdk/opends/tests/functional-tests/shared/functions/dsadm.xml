@@ -1801,7 +1801,8 @@
         <!-- Copy the schema-task ldif to remote host -->
         <message>'Copy schema task ldif file.'</message>
         <call function="'copyFile'">
-          { 'srcfile'    : '%s/schema-task.ldif' % TMP_DATA_DIR,
+          { 'location'   : STAXServiceMachine,
+            'srcfile'    : '%s/schema-task.ldif' % TMP_DATA_DIR,
             'destfile'   : '%s/schema-task.ldif' % STAGED_DATA_DIR,
             'remotehost' : STAF_REMOTE_HOSTNAME }
         </call>
@@ -1809,7 +1810,8 @@
         <!-- Copy the schema update ldif to remote host's config/schema directory -->
         <message>'Copy schema update ldif file.'</message>
         <call function="'copyFile'">
-          { 'srcfile'    : '%s/schema/ldifs/%s' % (STAGED_DATA_DIR,ldifFile),
+          { 'location'   : STAF_REMOTE_HOSTNAME,
+            'srcfile'    : '%s/schema/ldifs/%s' % (STAGED_DATA_DIR,ldifFile),
             'destfile'   : '%s/%s/config/schema/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,ldifFile),
             'remotehost' : STAF_REMOTE_HOSTNAME }
         </call>
