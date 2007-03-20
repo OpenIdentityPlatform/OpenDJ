@@ -52,6 +52,7 @@ import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.SearchResultEntry;
@@ -720,9 +721,14 @@ public class JmxClientConnection
    * @param  searchOperation  The search operation with which the entry is
    *                          associated.
    * @param  searchEntry      The search result entry to be sent to the client.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to send
+   *                              the entry to the client and the search should
+   *                              be terminated.
    */
   public void sendSearchEntry(SearchOperation searchOperation,
                               SearchResultEntry searchEntry)
+         throws DirectoryException
   {
     ((InternalSearchOperation) searchOperation).addSearchEntry(searchEntry);
   }
@@ -741,9 +747,14 @@ public class JmxClientConnection
    *          <CODE>false</CODE> if the client cannot handle referrals and no
    *          more attempts should be made to send them for the associated
    *          search operation.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to send
+   *                              the reference to the client and the search
+   *                              should be terminated.
    */
   public boolean sendSearchReference(SearchOperation searchOperation,
                                      SearchResultReference searchReference)
+         throws DirectoryException
   {
     ((InternalSearchOperation)
      searchOperation).addSearchReference(searchReference);

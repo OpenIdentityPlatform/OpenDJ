@@ -28,6 +28,7 @@ package org.opends.server.protocols.internal;
 
 
 
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
@@ -49,10 +50,17 @@ public interface InternalSearchListener
    *                          processed.
    * @param  searchEntry      The matching search result entry to be
    *                          processed.
+   *
+   * @throws  DirectoryException  If a problem occurred while handling
+   *                              the provided entry.  Search
+   *                              processing will be terminated, and
+   *                              the search operation will result
+   *                              will be set based on this exception.
    */
   public void handleInternalSearchEntry(
                    InternalSearchOperation searchOperation,
-                   SearchResultEntry searchEntry);
+                   SearchResultEntry searchEntry)
+         throws DirectoryException;
 
 
 
@@ -64,9 +72,16 @@ public interface InternalSearchListener
    *                          processed.
    * @param  searchReference  The search result reference to be
    *                          processed.
+   *
+   * @throws  DirectoryException  If a problem occurred while handling
+   *                              the provided entry.  Search
+   *                              processing will be terminated, and
+   *                              the search operation will result
+   *                              will be set based on this exception.
    */
   public void handleInternalSearchReference(
                    InternalSearchOperation searchOperation,
-                   SearchResultReference searchReference);
+                   SearchResultReference searchReference)
+         throws DirectoryException;
 }
 

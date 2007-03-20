@@ -195,10 +195,26 @@ public class ServerConstants
 
 
   /**
-   * The name of the standard "member" attribute type, formatted in all '
+   * The name of the standard "member" attribute type, formatted in all
    * lowercase characters.
    */
   public static final String ATTR_MEMBER = "member";
+
+
+
+  /**
+   * The name of the standard "memberURL" attribute type, formatted in camel
+   * case.
+   */
+  public static final String ATTR_MEMBER_URL = "memberURL";
+
+
+
+  /**
+   * The name of the standard "memberURL" attribute type, formatted in all
+   * lowercase characters.
+   */
+  public static final String ATTR_MEMBER_URL_LC = "memberurl";
 
 
 
@@ -628,6 +644,22 @@ public class ServerConstants
    * all lowercase characters.
    */
   public static final String OC_GROUP_OF_UNIQUE_NAMES_LC = "groupofuniquenames";
+
+
+
+  /**
+   * The name of the standard "groupOfURLs" object class, formatted in camel
+   * case.
+   */
+  public static final String OC_GROUP_OF_URLS = "groupOfURLs";
+
+
+
+  /**
+   * The name of the standard "groupOfURLs" object class, formatted in all
+   * lowercase characters.
+   */
+  public static final String OC_GROUP_OF_URLS_LC = "groupofurls";
 
 
 

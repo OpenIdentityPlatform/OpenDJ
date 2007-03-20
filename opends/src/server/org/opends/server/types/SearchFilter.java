@@ -63,9 +63,6 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class SearchFilter
 {
-
-
-
   // The attribute type for this filter.
   private final AttributeType attributeType;
 
@@ -174,7 +171,7 @@ public class SearchFilter
    *
    * @return  The constructed search filter.
    */
-  public static SearchFilter createANDFilter(List<SearchFilter>
+  public static SearchFilter createANDFilter(Collection<SearchFilter>
                                                   filterComponents)
   {
     return new SearchFilter(FilterType.AND, filterComponents, null,
@@ -192,7 +189,7 @@ public class SearchFilter
    *
    * @return  The constructed search filter.
    */
-  public static SearchFilter createORFilter(List<SearchFilter>
+  public static SearchFilter createORFilter(Collection<SearchFilter>
                                                  filterComponents)
   {
     return new SearchFilter(FilterType.OR, filterComponents, null,
