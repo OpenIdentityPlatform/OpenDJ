@@ -54,7 +54,7 @@
           <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
-                #@TestMarker                ACI Targetattr Tests
+                #@TestMarker                ACI Targetfilter Tests - syntax
                 #@TestName                  Preamble
                 #@TestIssue                 436
                 #@TestPurpose               Test default aci settings
@@ -1758,7 +1758,7 @@
                 <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetattr Tests
+              #@TestMarker                ACI Targetfilter Tests - syntax
               #@TestName                  Postamble
               #@TestIssue                 436
               #@TestPurpose               Test default aci settings
