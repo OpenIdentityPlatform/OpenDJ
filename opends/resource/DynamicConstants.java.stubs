@@ -117,6 +117,12 @@ public class DynamicConstants
   public static final long REVISION_NUMBER = ${REVISION_NUMBER};
 
   /**
+   * Indicates wheater this build includes AspectJ weaving for the debug logging
+   * framework.
+   */
+  public static final boolean WEAVE_ENABLED = ${WEAVE_ENABLED};
+
+  /**
    * A compact version string for this product, suitable for use in path
    * names and similar cases.
    */

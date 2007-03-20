@@ -227,7 +227,7 @@ public class DebugConfiguration extends LoggerConfiguration
   {
 
     String enabledProp = System.getProperty(PROPERTY_DEBUG_ENABLED);
-    if(DynamicConstants.DEBUG_BUILD && (enabledProp != null &&
+    if(DynamicConstants.WEAVE_ENABLED && (enabledProp != null &&
         (enabledProp.startsWith("T") || enabledProp.startsWith("t") ||
             enabledProp.startsWith("Y") || enabledProp.startsWith("y"))))
     {

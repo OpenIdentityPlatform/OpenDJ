@@ -405,6 +405,7 @@ public class Tracer
    * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param ex the exception thrown.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @AfterThrowing(pointcut = "shouldTrace() && tracedThrownMethod()",
                  throwing = "ex")
   public void traceThrown(JoinPoint.StaticPart thisJoinPointStaticPart,
@@ -432,6 +433,7 @@ public class Tracer
    * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logVerboseMethod() && args(msg)")
   public void traceVerbose(JoinPoint.EnclosingStaticPart
                              thisEnclosingJoinPointStaticPart,
@@ -462,6 +464,7 @@ public class Tracer
    * @param msg message to format and log.
    * @param msgArgs arguments to place into the format string.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logVerboseMethod() && args(msg, msgArgs)")
   public void traceVerbose(JoinPoint.EnclosingStaticPart
                              thisEnclosingJoinPointStaticPart,
@@ -491,6 +494,7 @@ public class Tracer
    * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logInfoMethod() && args(msg)")
   public void traceInfo(JoinPoint.EnclosingStaticPart
                           thisEnclosingJoinPointStaticPart,
@@ -521,6 +525,7 @@ public class Tracer
    * @param msg message to format and log.
    * @param msgArgs arguments to place into the format string.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logInfoMethod() && args(msg, msgArgs)")
   public void traceInfo(JoinPoint.EnclosingStaticPart
                           thisEnclosingJoinPointStaticPart,
@@ -550,6 +555,7 @@ public class Tracer
    * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logWarningMethod() && args(msg)")
   public void traceWarning(JoinPoint.EnclosingStaticPart
                              thisEnclosingJoinPointStaticPart,
@@ -581,6 +587,7 @@ public class Tracer
    * @param msg message to format and log.
    * @param msgArgs arguments to place into the format string.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logWarningMethod() && args(msg, msgArgs)")
   public void traceWarning(JoinPoint.EnclosingStaticPart
                              thisEnclosingJoinPointStaticPart,
@@ -610,6 +617,7 @@ public class Tracer
    * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logErrorMethod() && args(msg)")
   public void traceError(JoinPoint.EnclosingStaticPart
                            thisEnclosingJoinPointStaticPart,
@@ -641,6 +649,7 @@ public class Tracer
    * @param msg message to format and log.
    * @param msgArgs arguments to place into the format string.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logErrorMethod() && args(msg, msgArgs)")
   public void traceError(JoinPoint.EnclosingStaticPart
                            thisEnclosingJoinPointStaticPart,
@@ -671,6 +680,7 @@ public class Tracer
    * @param level the level of the log message.
    * @param msg message to format and log.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logMessageMethod() && args(level, msg)")
   public void traceMessage(JoinPoint.EnclosingStaticPart
                              thisEnclosingJoinPointStaticPart,
@@ -701,6 +711,7 @@ public class Tracer
    * @param msg message to format and log.
    * @param msgArgs arguments to place into the format string.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logMessageMethod() && args(level, msg, msgArgs)")
   public void traceMessage(JoinPoint.EnclosingStaticPart
                              thisEnclosingJoinPointStaticPart,
@@ -730,6 +741,7 @@ public class Tracer
    * @param level the level of the log message.
    * @param ex the exception thrown.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logThrownMethod() && args(level, ex)")
   public void traceThrown(JoinPoint.EnclosingStaticPart
                             thisEnclosingJoinPointStaticPart,
@@ -759,6 +771,7 @@ public class Tracer
    * @param level the level of the log message.
    * @param ex the exception caught.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logCaughtMethod() && args(level, ex)")
   public void traceCaught(JoinPoint.EnclosingStaticPart
                             thisEnclosingJoinPointStaticPart,
@@ -792,6 +805,7 @@ public class Tracer
    * @param key  the key to dump.
    * @param data the data to dump.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logJEAccessMethod() && args(level, status, " +
       "database, txn, key, data)")
   public void traceJEAccess(JoinPoint.EnclosingStaticPart
@@ -877,6 +891,7 @@ public class Tracer
    * @param level the level of the log message.
    * @param data the data to dump.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logDataMethod() && args(level, data)")
   public void traceData(JoinPoint.EnclosingStaticPart
                           thisEnclosingJoinPointStaticPart,
@@ -917,6 +932,7 @@ public class Tracer
    * @param level the level of the log message.
    * @param element the protocol element to dump.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logProtocolElementMethod() && args(level, element)")
   public void traceProtocolElement(JoinPoint.EnclosingStaticPart
                                      thisEnclosingJoinPointStaticPart,
@@ -953,6 +969,7 @@ public class Tracer
    * @param level the level of the log message.
    * @param buffer the data to dump.
    */
+  @SuppressAjWarnings({"adviceDidNotMatch"})
   @Around("shouldTrace() && logDataMethod() && args(level, buffer)")
   public void traceData(JoinPoint.EnclosingStaticPart
                           thisEnclosingJoinPointStaticPart,
@@ -1212,7 +1229,7 @@ public class Tracer
   public @interface NoExitDebugTracing {}
 
   /**
-   * Methods annotated with @TraceThrown will not be weaved by AspectJ with
+   * Methods annotated with @TraceThrown will be weaved by AspectJ with
    * debug logging statements when an exception is thrown from the method.
    */
   public @interface TraceThrown {}

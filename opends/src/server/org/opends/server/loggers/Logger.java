@@ -113,5 +113,7 @@ public abstract class Logger
       this.publishers = config.getPublishers();
       this.handler = config.getErrorHandler();
     }
+
+    enabled = newEnabled;
   }
 }
