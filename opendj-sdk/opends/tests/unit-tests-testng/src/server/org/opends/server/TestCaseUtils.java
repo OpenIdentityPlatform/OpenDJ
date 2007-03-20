@@ -153,6 +153,7 @@ public final class TestCaseUtils {
     String debugTarget = System.getProperty("org.opends.test.debug.target");
     if(debugTarget != null)
     {
+      System.setProperty("org.opends.server.debug.enabled", "true");
       System.setProperty("org.opends.server.debug.target.1", debugTarget);
     }
     DebugConfiguration testDebugConfig =

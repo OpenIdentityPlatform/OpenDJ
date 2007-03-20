@@ -187,14 +187,16 @@
       <format property="timestamp" pattern="yyyyMMddHHmmss" />
     </tstamp>
 
-    <condition property="DEBUG_BUILD" value="true">
+    <condition property="DEBUG_BUILD" value="false">
       <not>
         <isset property="DEBUG_BUILD" />
       </not>
     </condition>
 
-    <condition property="weave.enabled" value="true">
-      <equals arg1="${DEBUG_BUILD}" arg2="true" />
+    <condition property="WEAVE_ENABLED" value="false">
+      <not>
+        <isset property="WEAVE_ENABLED" />
+      </not>
     </condition>
 
     <condition property="MEM" value="128M">
@@ -247,7 +249,8 @@
       Be warned that the .stubs file references the following properties
       PRODUCT_NAME, SHORT_NAME, MAJOR_VERSION, MINOR_VERSION, POINT_VERSION,
       VERSION_QUALIFIER, FIX_IDS, timestamp, user.name, java.version,
-      java.vendor, java.vm.version, JVM_VENDOR, DEBUG_BUILD, REVISION_NUMBER
+      java.vendor, java.vm.version, JVM_VENDOR, DEBUG_BUILD, REVISION_NUMBER,
+      WEAVE_ENABLED
       If you change the name of any of those properties in this build.xml
       you'll need to relfect the same change in the .stubs file
     -->
@@ -383,7 +386,7 @@
 
   <!-- Compile the Directory Server source files. -->
   <target name="cleancompile"
-       depends="cleaninit,compilequicksetup,weave,compilestatuspanel"
+       depends="cleaninit,compilequicksetup,compile,compilestatuspanel"
        description="Recompile the Directory Server source files.">
   </target>
 
@@ -409,7 +412,15 @@
     </javac>
   </target>
 
-  <target name="weave" if="weave.enabled" depends="compile">
+  <target name="prepweave">
+    <condition property="weave.enabled" value="true">
+      <and>
+        <equals arg1="${WEAVE_ENABLED}" arg2="true" />
+      </and>
+    </condition>
+  </target>
+
+  <target name="weave" if="weave.enabled" depends="compile, prepweave">
     <taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
       <classpath>
         <pathelement location="${aj.lib.dir}/aspectjtools.jar" />
@@ -843,7 +854,7 @@
 
 
   <!-- Prepare to execute the Directory Server TestNG unit tests. -->
-  <target name="testinit" depends="buildtools,weave"
+  <target name="testinit" depends="buildtools,compile, weave"
          description="Prepare to execute the Directory Server TestNG unit tests.">
 
     <!-- If we are to perform coverage tests, then set that up. -->
@@ -1027,7 +1038,7 @@
 
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="test"
-          depends="testinit,runtests"
+          depends="prepdefaulttest,testinit,runtests"
           description="Execute the Directory Server TestNG unit tests in text mode.  Set '-Dorg.opends.test.suppressOutput=false' to see the output from the unit tests.  Set '-Dtest.failures=true' to run only the tests that failed previously.">
   </target>
 
@@ -1057,7 +1068,7 @@
     <echo message="  -Dtest.failed=true"/>
     <echo message="      runs only the tests that failed last time"/>
     <echo message=""/>
-    <echo message="  -DDEBUG_BUILD=false" />
+    <echo message="  -DWEAVE_ENABLED=false" />
     <echo message="      builds the server without the debug logging facility." />
     <echo message="      No debug logging messages will be included on test failures." />
     <echo message=""/>
@@ -1073,17 +1084,17 @@
     <echo message="  -Dtest.packages=org.opends.server.api"/>
     <echo message="      for example runs only the tests in the api package"/>
     <echo message="      For multiple packages, separate them with a ',' and "/>
-    <echo message="      quote the entire value"/>
+    <echo message="      quote the entire value. Debug logging is disabled."/>
     <echo message=""/>
     <echo message="  -Dtest.classes=org.opends.server.types.TestDN"/>
     <echo message="      for example only runs the TestDN class"/>
     <echo message="      For multiple classes, separate them with a ',' and "/>
-    <echo message="      quote the entire value"/>
+    <echo message="      quote the entire value. Debug logging is disabled."/>
     <echo message=""/>
     <echo message="  -Dtest.methods=org.opends.server.types.TestDN.testGetRDN"/>
     <echo message="      for example only runs the testGetRDN method"/>
     <echo message="      For multiple methods, separate them with a ',' and "/>
-    <echo message="      quote the entire value"/>
+    <echo message="      quote the entire value. Debug logging is disabled."/>
     <echo message=""/>
     <echo message="  -Dtest.diff.srcpath=src/server/org/opends/server/core"/>
     <echo message="      for example includes only the classes in"/>
@@ -1206,7 +1217,53 @@
   </target>
 
   <target name="prepdefaultalltest">
-    <property name="test.groups" value="" />
+    <condition property="WEAVE_ENABLED" value="true">
+      <not>
+        <or>
+          <isset property="WEAVE_ENABLED" />
+          <isset property="test.groups" />
+          <isset property="test.packages" />
+          <isset property="test.classes" />
+          <isset property="test.methods" />
+        </or>
+      </not>
+    </condition>
+
+    <condition property="test.groups" value="">
+      <not>
+        <or>
+          <isset property="test.groups" />
+          <isset property="test.packages" />
+          <isset property="test.classes" />
+          <isset property="test.methods" />
+        </or>
+      </not>
+    </condition>
+  </target>
+
+  <target name="prepdefaulttest">
+   <condition property="WEAVE_ENABLED" value="true">
+      <not>
+        <or>
+          <isset property="WEAVE_ENABLED" />
+          <isset property="test.groups" />
+          <isset property="test.packages" />
+          <isset property="test.classes" />
+          <isset property="test.methods" />
+        </or>
+      </not>
+    </condition>
+
+    <condition property="test.groups" value="exclude=slow">
+      <not>
+        <or>
+          <isset property="test.groups" />
+          <isset property="test.packages" />
+          <isset property="test.classes" />
+          <isset property="test.methods" />
+        </or>
+      </not>
+    </condition>
   </target>
 
   <target name="testreport"
