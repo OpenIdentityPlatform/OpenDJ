@@ -624,8 +624,16 @@ email.server.pwd=${email.server.pwd.input}
   </target>
 
   <target name="send-mail" if="email.send">
-    <condition property="email.send.auth">
-      <length string="${email.server.user}" when="greater" length="0"/>
+    <condition property="email.send.noauth">
+      <or>
+        <not>
+          <isset property="email.server.user"/>
+        </not>
+        <not>
+          <length string="${email.server.user}" when="greater"
+                  trim="true" length="0"/>
+        </not>
+      </or>
     </condition>
     <antcall target="send-mail-noauth"/>
     <antcall target="send-mail-withauth"/>
@@ -955,4 +963,5 @@ email.server.pwd=${email.server.pwd.input}
   <target name="properties">
     <echoproperties/>
   </target>
+  
 </project>
