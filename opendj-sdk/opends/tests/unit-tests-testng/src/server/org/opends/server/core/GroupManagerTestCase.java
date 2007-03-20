@@ -28,6 +28,7 @@ package org.opends.server.core;
 
 
 
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -40,11 +41,14 @@ import org.opends.server.api.Group;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.extensions.DynamicGroup;
+import org.opends.server.extensions.StaticGroup;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.MemberList;
@@ -93,7 +97,18 @@ public class GroupManagerTestCase
   {
     GroupManager groupManager = DirectoryServer.getGroupManager();
 
-    assertTrue(groupManager.getGroupImplementations().iterator().hasNext());
+    LinkedHashSet<Class> groupClasses = new LinkedHashSet<Class>();
+    groupClasses.add(StaticGroup.class);
+    groupClasses.add(DynamicGroup.class);
+
+    for (Group g : groupManager.getGroupImplementations())
+    {
+      assertTrue(groupClasses.remove(g.getClass()),
+                 "Group class " + g.getClass() + " isn't registered");
+    }
+
+    assertTrue(groupClasses.isEmpty(),
+               "Unexpected group class(es) registered:  " + groupClasses);
   }
 
 
@@ -170,6 +185,7 @@ public class GroupManagerTestCase
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);
+    assertEquals(groupInstance.getGroupDN(), groupDN);
     assertTrue(groupInstance.isMember(user1DN));
     assertTrue(groupInstance.isMember(user2DN));
     assertFalse(groupInstance.isMember(user3DN));
@@ -1075,6 +1091,598 @@ public class GroupManagerTestCase
 
     // Delete the group and make sure the group manager gets updated
     // accordingly.
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNull(groupManager.getGroupInstance(groupDN));
+  }
+
+
+
+  /**
+   * Invokes general group API methods on a dynamic group.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testGenericDynamicGroupAPI()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+
+    TestCaseUtils.addEntries(
+      "dn: ou=People,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: People",
+      "",
+      "dn: ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: Groups",
+      "",
+      "dn: uid=user.1,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.1",
+      "givenName: User",
+      "sn: 1",
+      "cn: User 1",
+      "userPassword: password",
+      "",
+      "dn: uid=user.2,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.2",
+      "givenName: User",
+      "sn: 2",
+      "cn: User 2",
+      "userPassword: password",
+      "",
+      "dn: uid=user.3,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.3",
+      "givenName: User",
+      "sn: 3",
+      "cn: User 3",
+      "userPassword: password",
+      "",
+      "dn: cn=Test Group of URLs,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfURLs",
+      "cn: Test Group of URLs",
+      "memberURL: ldap:///o=test??sub?(sn<=2)");
+
+    DN groupDN = DN.decode("cn=Test Group of URLs,ou=Groups,o=test");
+    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
+    DN bogusDN = DN.decode("uid=bogus,ou=People,o=test");
+
+    Group groupInstance = groupManager.getGroupInstance(groupDN);
+    assertNotNull(groupInstance);
+    assertEquals(groupInstance.getGroupDN(), groupDN);
+    assertTrue(groupInstance.isMember(user1DN));
+    assertTrue(groupInstance.isMember(user2DN));
+    assertFalse(groupInstance.isMember(user3DN));
+    assertFalse(groupInstance.isMember(bogusDN));
+
+    assertFalse(groupInstance.supportsNestedGroups());
+    assertTrue(groupInstance.getNestedGroupDNs().isEmpty());
+
+    try
+    {
+      groupInstance.addNestedGroup(DN.decode("uid=test,ou=People,o=test"));
+      throw new AssertionError("Expected addNestedGroup to fail but it " +
+                               "didn't");
+    } catch (UnsupportedOperationException uoe) {}
+
+    try
+    {
+      groupInstance.removeNestedGroup(
+           DN.decode("uid=test,ou=People,o=test"));
+      throw new AssertionError("Expected removeNestedGroup to fail but " +
+                               "it didn't");
+    } catch (UnsupportedOperationException uoe) {}
+
+
+    assertFalse(groupInstance.mayAlterMemberList());
+
+    try
+    {
+      Entry user3Entry = DirectoryServer.getEntry(user3DN);
+      groupInstance.addMember(user3Entry);
+      throw new AssertionError("Expected addMember to fail but it didn't");
+    } catch (UnsupportedOperationException uoe) {}
+
+    try
+    {
+      groupInstance.removeMember(user2DN);
+      throw new AssertionError("Expected removeMember to fail but it didn't");
+    } catch (UnsupportedOperationException uoe) {}
+
+    groupInstance.toString(new StringBuilder());
+
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNull(groupManager.getGroupInstance(groupDN));
+  }
+
+
+
+  /**
+   * Tests to ensure that an attempt to add a dynamic group with a malformed URL
+   * will cause it to be decoded as a group but any operations attempted with it
+   * will fail with an exception.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDynamicGroupMalformedURL()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+
+    TestCaseUtils.addEntries(
+      "dn: ou=People,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: People",
+      "",
+      "dn: ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: Groups",
+      "",
+      "dn: uid=user.1,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.1",
+      "givenName: User",
+      "sn: 1",
+      "cn: User 1",
+      "userPassword: password",
+      "",
+      "dn: cn=Test Malformed URL,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfURLs",
+      "cn: Test Malformed URL",
+      "memberURL: ldap:///o=test??sub?(malformed)");
+
+    DN groupDN = DN.decode("cn=Test Malformed URL,ou=Groups,o=test");
+
+    Group groupInstance = groupManager.getGroupInstance(groupDN);
+    assertNotNull(groupInstance);
+
+    DynamicGroup dynamicGroup = (DynamicGroup) groupInstance;
+    assertTrue(dynamicGroup.getMemberURLs().isEmpty());
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNull(groupManager.getGroupInstance(groupDN));
+  }
+
+
+
+  /**
+   * Tests the {@code getMembers()} method for a dynamic group, using the
+   * variant that doesn't take any arguments.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testGetMembersSimple()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+
+    TestCaseUtils.addEntries(
+      "dn: ou=People,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: People",
+      "",
+      "dn: ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: Groups",
+      "",
+      "dn: uid=user.1,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.1",
+      "givenName: User",
+      "sn: 1",
+      "cn: User 1",
+      "userPassword: password",
+      "",
+      "dn: uid=user.2,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.2",
+      "givenName: User",
+      "sn: 2",
+      "cn: User 2",
+      "userPassword: password",
+      "",
+      "dn: uid=user.3,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.3",
+      "givenName: User",
+      "sn: 3",
+      "cn: User 3",
+      "userPassword: password",
+      "",
+      "dn: cn=Test Group of URLs,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfURLs",
+      "cn: Test Group of URLs",
+      "memberURL: ldap:///o=test??sub?(sn<=2)");
+
+    DN groupDN = DN.decode("cn=Test Group of URLs,ou=Groups,o=test");
+    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+
+    Group groupInstance = groupManager.getGroupInstance(groupDN);
+    assertNotNull(groupInstance);
+
+
+    LinkedHashSet<DN> memberSet = new LinkedHashSet<DN>();
+    memberSet.add(user1DN);
+    memberSet.add(user2DN);
+
+    MemberList memberList = groupInstance.getMembers();
+    assertNotNull(memberList);
+    while (memberList.hasMoreMembers())
+    {
+      DN memberDN = memberList.nextMemberDN();
+      assertTrue(memberSet.remove(memberDN),
+                 "Returned unexpected member " + memberDN.toString());
+    }
+    memberList.close();
+    assertTrue(memberSet.isEmpty(),
+               "Expected member set to be empty but it was not:  " + memberSet);
+
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNull(groupManager.getGroupInstance(groupDN));
+  }
+
+
+
+  /**
+   * Tests the {@code getMembers()} method for a dynamic group, using the
+   * variant that takes base, scope, and filter arguments.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testGetMembersComplex()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+
+    TestCaseUtils.addEntries(
+      "dn: ou=People,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: People",
+      "",
+      "dn: ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: Groups",
+      "",
+      "dn: uid=user.1,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.1",
+      "givenName: User",
+      "sn: 1",
+      "cn: User 1",
+      "userPassword: password",
+      "",
+      "dn: uid=user.2,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.2",
+      "givenName: User",
+      "sn: 2",
+      "cn: User 2",
+      "userPassword: password",
+      "",
+      "dn: uid=user.3,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.3",
+      "givenName: User",
+      "sn: 3",
+      "cn: User 3",
+      "userPassword: password",
+      "",
+      "dn: cn=Test Group of URLs,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfURLs",
+      "cn: Test Group of URLs",
+      "memberURL: ldap:///o=test??sub?(sn<=2)");
+
+    DN groupDN = DN.decode("cn=Test Group of URLs,ou=Groups,o=test");
+    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+
+    Group groupInstance = groupManager.getGroupInstance(groupDN);
+    assertNotNull(groupInstance);
+
+
+    LinkedHashSet<DN> memberSet = new LinkedHashSet<DN>();
+    memberSet.add(user1DN);
+
+    MemberList memberList = groupInstance.getMembers(
+                                 DN.decode("ou=people,o=test"),
+                                 SearchScope.SINGLE_LEVEL,
+                                 SearchFilter.createFilterFromString("(sn=1)"));
+    assertNotNull(memberList);
+    while (memberList.hasMoreMembers())
+    {
+      DN memberDN = memberList.nextMemberDN();
+      assertTrue(memberSet.remove(memberDN),
+                 "Returned unexpected member " + memberDN.toString());
+    }
+    memberList.close();
+    assertTrue(memberSet.isEmpty(),
+               "Expected member set to be empty but it was not:  " + memberSet);
+
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNull(groupManager.getGroupInstance(groupDN));
+  }
+
+
+
+  /**
+   * Tests the {@code getMembers()} method for a dynamic group that contains
+   * multiple member URLs containing non-overlapping criteria.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testGetMembersMultipleDistinctURLs()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+
+    TestCaseUtils.addEntries(
+      "dn: ou=People,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: People",
+      "",
+      "dn: ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: Groups",
+      "",
+      "dn: uid=user.1,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.1",
+      "givenName: User",
+      "sn: 1",
+      "cn: User 1",
+      "userPassword: password",
+      "",
+      "dn: uid=user.2,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.2",
+      "givenName: User",
+      "sn: 2",
+      "cn: User 2",
+      "userPassword: password",
+      "",
+      "dn: uid=user.3,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.3",
+      "givenName: User",
+      "sn: 3",
+      "cn: User 3",
+      "userPassword: password",
+      "",
+      "dn: cn=Test Group of URLs,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfURLs",
+      "cn: Test Group of URLs",
+      "memberURL: ldap:///o=test??sub?(sn=1)",
+      "memberURL: ldap:///o=test??sub?(sn=2)");
+
+    DN groupDN = DN.decode("cn=Test Group of URLs,ou=Groups,o=test");
+    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+
+    Group groupInstance = groupManager.getGroupInstance(groupDN);
+    assertNotNull(groupInstance);
+    groupInstance.toString();
+
+
+    LinkedHashSet<DN> memberSet = new LinkedHashSet<DN>();
+    memberSet.add(user1DN);
+    memberSet.add(user2DN);
+
+    MemberList memberList = groupInstance.getMembers();
+    assertNotNull(memberList);
+    while (memberList.hasMoreMembers())
+    {
+      DN memberDN = memberList.nextMemberDN();
+      assertTrue(memberSet.remove(memberDN),
+                 "Returned unexpected member " + memberDN.toString());
+    }
+    memberList.close();
+    assertTrue(memberSet.isEmpty(),
+               "Expected member set to be empty but it was not:  " + memberSet);
+
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNull(groupManager.getGroupInstance(groupDN));
+  }
+
+
+
+  /**
+   * Tests the {@code getMembers()} method for a dynamic group that contains
+   * multiple member URLs containing overlapping criteria.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testGetMembersMultipleOverlappingURLs()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
+
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+
+    TestCaseUtils.addEntries(
+      "dn: ou=People,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: People",
+      "",
+      "dn: ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: Groups",
+      "",
+      "dn: uid=user.1,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.1",
+      "givenName: User",
+      "sn: 1",
+      "cn: User 1",
+      "userPassword: password",
+      "",
+      "dn: uid=user.2,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.2",
+      "givenName: User",
+      "sn: 2",
+      "cn: User 2",
+      "userPassword: password",
+      "",
+      "dn: uid=user.3,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.3",
+      "givenName: User",
+      "sn: 3",
+      "cn: User 3",
+      "userPassword: password",
+      "",
+      "dn: cn=Test Group of URLs,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfURLs",
+      "cn: Test Group of URLs",
+      "memberURL: ldap:///dc=example,dc=com??sub?(cn=nonexistent)",
+      "memberURL: ldap:///uid=user.2,ou=People,o=test??sub?(sn=2)",
+      "memberURL: ldap:///o=test??sub?(sn=1)",
+      "memberURL: ldap:///ou=People,o=test??subordinate?(!(sn=3))");
+
+    DN groupDN = DN.decode("cn=Test Group of URLs,ou=Groups,o=test");
+    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+
+    Group groupInstance = groupManager.getGroupInstance(groupDN);
+    assertNotNull(groupInstance);
+    groupInstance.toString();
+
+
+    LinkedHashSet<DN> memberSet = new LinkedHashSet<DN>();
+    memberSet.add(user1DN);
+    memberSet.add(user2DN);
+
+    MemberList memberList =
+         groupInstance.getMembers(DN.nullDN(), SearchScope.WHOLE_SUBTREE,
+              SearchFilter.createFilterFromString("(objectClass=*)"));
+    assertNotNull(memberList);
+    while (memberList.hasMoreMembers())
+    {
+      DN memberDN = memberList.nextMemberDN();
+      assertTrue(memberSet.remove(memberDN),
+                 "Returned unexpected member " + memberDN.toString());
+    }
+    memberList.close();
+    assertTrue(memberSet.isEmpty(),
+               "Expected member set to be empty but it was not:  " + memberSet);
+
+
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation = conn.processDelete(groupDN);

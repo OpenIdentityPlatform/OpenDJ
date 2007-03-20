@@ -412,10 +412,15 @@ public abstract class ClientConnection
    *                          entry is associated.
    * @param  searchEntry      The search result entry to be sent to
    *                          the client.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to send the entry to the client and
+   *                              the search should be terminated.
    */
   public abstract void sendSearchEntry(
                             SearchOperation searchOperation,
-                            SearchResultEntry searchEntry);
+                            SearchResultEntry searchEntry)
+         throws DirectoryException;
 
 
 
@@ -431,10 +436,15 @@ public abstract class ClientConnection
    *          referrals, or <CODE>false</CODE> if the client cannot
    *          handle referrals and no more attempts should be made to
    *          send them for the associated search operation.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to send the reference to the client
+   *                              and the search should be terminated.
    */
   public abstract boolean sendSearchReference(
                                SearchOperation searchOperation,
-                               SearchResultReference searchReference);
+                               SearchResultReference searchReference)
+         throws DirectoryException;
 
 
 

@@ -425,6 +425,13 @@ objectClass: top
 objectClass: ds-cfg-branch
 cn: Group Implementations
 
+dn: cn=Dynamic,cn=Group Implementations,cn=config
+objectClass: top
+objectClass: ds-cfg-group-implementation
+cn: Dynamic
+ds-cfg-group-implementation-class: org.opends.server.extensions.DynamicGroup
+ds-cfg-group-implementation-enabled: true
+
 dn: cn=Static,cn=Group Implementations,cn=config
 objectClass: top
 objectClass: ds-cfg-group-implementation

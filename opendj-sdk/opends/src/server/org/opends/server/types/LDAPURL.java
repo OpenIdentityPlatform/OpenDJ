@@ -35,9 +35,7 @@ import java.util.StringTokenizer;
 
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -53,9 +51,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LDAPURL
 {
-
-
-
   /**
    * The default scheme that will be used if none is provided.
    */
@@ -1302,6 +1297,34 @@ public class LDAPURL
   public LinkedList<String> getExtensions()
   {
     return extensions;
+  }
+
+
+
+  /**
+   * Indicates whether the provided entry matches the criteria defined
+   * in this LDAP URL.
+   *
+   * @param  entry  The entry for which to make the determination.
+   *
+   * @return  {@code true} if the provided entry does match the
+   *          criteria specified in this LDAP URL, or {@code false} if
+   *          it does not.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to make the determination.
+   */
+  public boolean matchesEntry(Entry entry)
+         throws DirectoryException
+  {
+    SearchScope scope = getScope();
+    if (scope == null)
+    {
+      scope = SearchScope.BASE_OBJECT;
+    }
+
+    return (entry.matchesBaseAndScope(getBaseDN(), scope) &&
+            getFilter().matchesEntry(entry));
   }
 
 

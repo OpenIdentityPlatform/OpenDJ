@@ -39,11 +39,11 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
-
 
 
 
@@ -57,9 +57,6 @@ import org.opends.server.types.SearchScope;
 public class InternalSearchOperation
        extends SearchOperation
 {
-
-
-
   // The internal search listener for this search, if one was
   // provided.
   private InternalSearchListener searchListener;
@@ -226,8 +223,13 @@ public class InternalSearchOperation
    *
    * @param  searchEntry  The search result entry returned for this
    *                      search.
+   *
+   * @throws  DirectoryException  If a problem occurs while processing
+   *                              the provided entry and the search
+   *                              should be terminated.
    */
   public void addSearchEntry(SearchResultEntry searchEntry)
+         throws DirectoryException
   {
     if (searchListener == null)
     {
@@ -263,9 +265,14 @@ public class InternalSearchOperation
    *
    * @param  searchReference  The search result reference returned for
    *                          this search.
+   *
+   * @throws  DirectoryException  If a problem occurs while processing
+   *                              the provided reference and the
+   *                              search should be terminated.
    */
   public void addSearchReference(
                    SearchResultReference searchReference)
+         throws DirectoryException
   {
     if (searchListener == null)
     {

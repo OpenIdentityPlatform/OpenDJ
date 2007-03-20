@@ -1115,14 +1115,26 @@ public class SearchOperation
     // Send the entry to the client.
     if (pluginResult.sendEntry())
     {
-      clientConnection.sendSearchEntry(this, searchEntry);
+      try
+      {
+        clientConnection.sendSearchEntry(this, searchEntry);
 
-      // Log the entry sent to the client.
-      logSearchResultEntry(this, searchEntry);
+        // Log the entry sent to the client.
+        logSearchResultEntry(this, searchEntry);
 
-      entriesSent++;
+        entriesSent++;
+      }
+      catch (DirectoryException de)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, de);
+        }
+
+        setResponseData(de);
+        return false;
+      }
     }
-
 
     return pluginResult.continueSearch();
   }
@@ -1201,19 +1213,32 @@ public class SearchOperation
     // to send any more.
     if (pluginResult.sendReference())
     {
-      if (clientConnection.sendSearchReference(this, reference))
+      try
       {
-        // Log the entry sent to the client.
-        logSearchResultReference(this, reference);
-        referencesSent++;
+        if (clientConnection.sendSearchReference(this, reference))
+        {
+          // Log the entry sent to the client.
+          logSearchResultReference(this, reference);
+          referencesSent++;
 
-        // FIXME -- Should the size limit apply here?
+          // FIXME -- Should the size limit apply here?
+        }
+        else
+        {
+          // We know that the client can't handle referrals, so we won't try to
+          // send it any more.
+          clientAcceptsReferrals = false;
+        }
       }
-      else
+      catch (DirectoryException de)
       {
-        // We know that the client can't handle referrals, so we won't try to
-        // send it any more.
-        clientAcceptsReferrals = false;
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, de);
+        }
+
+        setResponseData(de);
+        return false;
       }
     }
 

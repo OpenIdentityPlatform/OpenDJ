@@ -4704,6 +4704,71 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode a memberURL value as an LDAP URL.  This takes three
+   * arguments, which are the value that could not be decoded, the DN of the
+   * entry containing the value, and a message explaining the problem that
+   * occurred.
+   */
+  public static final int MSGID_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 447;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * use nesting in conjunction with a dynamic group.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_DYNAMICGROUP_NESTING_NOT_SUPPORTED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 448;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * alter the set of members in a dynamic group.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 449;
+
+
+
+  /**
+   * The message ID for the message that will be used if a dynamic group
+   * includes a member URL with a base DN that doesn't exist.  This takes two
+   * arguments, which are the base DN and the DN of the dynamic group entry.
+   */
+  public static final int MSGID_DYNAMICGROUP_NONEXISTENT_BASE_DN =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_WARNING | 450;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * processing an internal search to determine dynamic group membership.  This
+   * takes five arguments, which are the search base DN, the search filter,
+   * the DN of the dynamic group entry, the result code for the search, and the
+   * error message for the search.
+   */
+  public static final int MSGID_DYNAMICGROUP_INTERNAL_SEARCH_FAILED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 451;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to return an entry for a user that matches a set of dynamic group
+   * criteria.  This takes two arguments, which are the DN of the entry that
+   * could not be returned and the DN of the dynamic group entry.
+   */
+  public static final int MSGID_DYNAMICGROUP_CANNOT_RETURN_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 452;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6791,6 +6856,27 @@ public class ExtensionsMessages
     registerMessage(MSGID_FCM_MULTIPLE_MATCHING_ENTRIES,
                     "The certificate with fingerprint %s could not be mapped " +
                     "to exactly one user.  It maps to both %s and %s.");
+
+
+    registerMessage(MSGID_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL,
+                    "Unable to decode value \"%s\" in entry \"%s\" as an " +
+                    "LDAP URL:  %s.");
+    registerMessage(MSGID_DYNAMICGROUP_NESTING_NOT_SUPPORTED,
+                    "Dynamic groups do not support nested groups.");
+    registerMessage(MSGID_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED,
+                    "Dynamic groups do not support explicitly altering their " +
+                    "membership.");
+    registerMessage(MSGID_DYNAMICGROUP_NONEXISTENT_BASE_DN,
+                    "Base DN %s specified in dynamic group %s does not exist " +
+                    "in the server.");
+    registerMessage(MSGID_DYNAMICGROUP_INTERNAL_SEARCH_FAILED,
+                    "An error occurred while attempting perform an internal " +
+                    "search with base DN %s and filter %s to resolve the " +
+                    "member list for dynamic group %s:  result code %s, " +
+                    "error message %s.");
+    registerMessage(MSGID_DYNAMICGROUP_CANNOT_RETURN_ENTRY,
+                    "The server encountered a timeout while attempting to " +
+                    "add user %s to the member list for dynamic group %s.");
   }
 }
 
