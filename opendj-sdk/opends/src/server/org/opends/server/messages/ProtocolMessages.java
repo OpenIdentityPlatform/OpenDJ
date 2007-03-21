@@ -4348,6 +4348,17 @@ public class ProtocolMessages
 
 
   /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to configure the connection security provider for a new
+   * connection.  This takes a single argument, which is a string representation
+   * of the exception that was caught.
+   */
+  public static final int MSGID_LDAP_CONNHANDLER_CANNOT_SET_SECURITY_PROVIDER =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 401;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5230,6 +5241,10 @@ public class ProtocolMessages
                     "The connection attempt from client %s to %s has been " +
                     "rejected because the client was not included in one of " +
                     "the allowed address ranges.");
+    registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_SET_SECURITY_PROVIDER,
+                    "An error occurred while attempting to configure the " +
+                    "connection security provider for the client " +
+                    "connection:  %s.");
     registerMessage(MSGID_LDAP_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT,
                     "An internal error prevented the Directory Server from " +
                     "properly registering the client connection from %s to " +

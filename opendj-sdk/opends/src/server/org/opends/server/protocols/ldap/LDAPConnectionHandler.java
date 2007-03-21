@@ -1485,11 +1485,29 @@ public class LDAPConnectionHandler
                   }
                   clientChannel.socket().setKeepAlive(useKeepAlive);
                   clientChannel.socket().setTcpNoDelay(useTCPNoDelay);
-                  ConnectionSecurityProvider connectionSecurityProvider =
-                       securityProvider.newInstance(clientConnection,
-                                                    clientChannel);
-                  clientConnection.setConnectionSecurityProvider(
-                       connectionSecurityProvider);
+
+                  try
+                  {
+                    ConnectionSecurityProvider connectionSecurityProvider =
+                         securityProvider.newInstance(clientConnection,
+                                                      clientChannel);
+                    clientConnection.setConnectionSecurityProvider(
+                         connectionSecurityProvider);
+                  }
+                  catch (Exception e)
+                  {
+                    if (debugEnabled())
+                    {
+                      debugCaught(DebugLogLevel.ERROR, e);
+                    }
+
+                    clientConnection.disconnect(
+                         DisconnectReason.SECURITY_PROBLEM, false,
+                         MSGID_LDAP_CONNHANDLER_CANNOT_SET_SECURITY_PROVIDER,
+                         String.valueOf(e));
+                    iterator.remove();
+                    continue;
+                  }
 
 
                   // Check to see if the core server rejected the connection
