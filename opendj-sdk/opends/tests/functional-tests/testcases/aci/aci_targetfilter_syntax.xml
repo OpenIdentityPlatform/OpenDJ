@@ -48,7 +48,7 @@
                 #@TestSuiteName             ACI Targetfilter Tests - syntax
                 #@TestSuitePurpose          Test the basic ACI Targetfilter Support. (allow(read))
                 #@TestSuiteGroup            Basic ACI Targetfilter Tests allow(read)
-                #@TestScript                aci_targetfilter.xml
+                #@TestScript                aci_targetfilter_syntax.xml
           -->
       
           <!---
@@ -1054,6 +1054,198 @@
             </sequence>
           </testcase>
         
+        <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestName                  Targetfilter (not equals) with three statements with or, one statement true
+              #@TestIssue                 436
+              #@TestPurpose               Test with a targetfilter with not equals three statements with or and one statement is true
+              #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with or.
+              #@TestStep                  Client searches entry which should be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which should not be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which is outside of the scope of the aci.
+              #@TestStep                  Remove aci.
+              #@TestStep                  Client searches entry which was previously allowed with the targetfilter.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          Entry is returned only for step 2 
+                                          and only with the appropriate attributes.
+          -->
+        <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+        <!-- cross reference to DS6 docs -->
+          <testcase name="'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true, preamble adding aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_targetfilter/add_aci3a.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true, user searching non-targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'roomnumber:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'telephonenumber:' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true, user searching non-targeted entry outside of the scope of the aci'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true, admin deleting aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_target/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true, user searching previously targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+        
        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -1327,8 +1519,6 @@
             </sequence>
           </testcase>
         
-        
-        
        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -1522,6 +1712,966 @@
           </testcase>
         
        <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestName                  Targetfilter (not equals) with three statements with and, all statements true 
+              #@TestIssue                 436
+              #@TestPurpose               Test with a targetfilter with not equals three statements with and and all statements are true
+              #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with and.
+              #@TestStep                  Client searches entry which should be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which should not be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which is outside of the scope of the aci.
+              #@TestStep                  Remove aci.
+              #@TestStep                  Client searches entry which was previously allowed with the targetfilter.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          Entry is returned only for step 2 
+                                          and only with the appropriate attributes.
+          -->
+        <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+        <!-- cross reference to DS6 docs -->
+          <testcase name="'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true, preamble adding aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_targetfilter/add_aci6a.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true, user searching non-targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'roomnumber:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'telephonenumber:' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true, user searching non-targeted entry outside of the scope of the aci'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true, admin deleting aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_target/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true, user searching previously targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+        
+        <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestName                  Targetfilter with three statements with wildcard and or, one statement true
+              #@TestIssue                 436
+              #@TestPurpose               Test with a targetfilter with three statements with wildcard and or and one statement is true
+              #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with wildcard and or.
+              #@TestStep                  Client searches entry which should be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which should not be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which is outside of the scope of the aci.
+              #@TestStep                  Remove aci.
+              #@TestStep                  Client searches entry which was previously allowed with the targetfilter.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          Entry is returned only for step 1 
+                                          and only with the appropriate attributes.
+          -->
+        <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+        <!-- cross reference to DS6 docs -->
+          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true, preamble adding aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_targetfilter/add_aci10.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'roomnumber:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'telephonenumber:' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true, user searching non-targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true, user searching non-targeted entry outside of the scope of the aci'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true, admin deleting aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_target/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true, user searching previously targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+        
+       <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestName                  Targetfilter with three statements with two wildcards and or, one statement true
+              #@TestIssue                 436
+              #@TestPurpose               Test with a targetfilter with three statements with two wildcards and or and one statement is true
+              #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with wildcard and or.
+              #@TestStep                  Client searches entry which should be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which should not be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which is outside of the scope of the aci.
+              #@TestStep                  Remove aci.
+              #@TestStep                  Client searches entry which was previously allowed with the targetfilter.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          Entry is returned only for step 1 
+                                          and only with the appropriate attributes.
+          -->
+        <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+        <!-- cross reference to DS6 docs -->
+          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true, preamble adding aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_targetfilter/add_aci11.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'roomnumber:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'telephonenumber:' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true, user searching non-targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true, user searching non-targeted entry outside of the scope of the aci'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true, admin deleting aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_target/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true, user searching previously targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+        
+        <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestName                  Targetfilter with three statements with wildcard and and, all statements true
+              #@TestIssue                 436
+              #@TestPurpose               Test with a targetfilter with three statements with wildcard with and and all statements true
+              #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with wildcard with and.
+              #@TestStep                  Client searches entry which should be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which should not be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which is outside of the scope of the aci.
+              #@TestStep                  Remove aci.
+              #@TestStep                  Client searches entry which was previously allowed with the targetfilter.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          Entry is returned only for step 1 
+                                          and only with the appropriate attributes.
+          -->
+        <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+        <!-- cross reference to DS6 docs -->
+          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true, preamble adding aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_targetfilter/add_aci12.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'roomnumber:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'telephonenumber:' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true, user searching non-targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true, user searching non-targeted entry outside of the scope of the aci'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true, admin deleting aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_target/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true, user searching previously targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+        
+        <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestName                  Targetfilter with three statements with three wildcards and and, all statements true
+              #@TestIssue                 436
+              #@TestPurpose               Test with a targetfilter with three statements with three wildcards with and and all statements true
+              #@TestPreamble              Admin adds an aci with the targetfilter containing three statements with three wildcards with and.
+              #@TestStep                  Client searches entry which should be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which should not be allowed with the targetfilter.
+              #@TestStep                  Client searches entry which is outside of the scope of the aci.
+              #@TestStep                  Remove aci.
+              #@TestStep                  Client searches entry which was previously allowed with the targetfilter.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          Entry is returned only for step 1 
+                                          and only with the appropriate attributes.
+          -->
+        <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+        <!-- cross reference to DS6 docs -->
+          <testcase name="'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true, preamble adding aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_targetfilter/add_aci13.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'roomnumber:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'telephonenumber:' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true, user searching non-targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true, user searching non-targeted entry outside of the scope of the aci'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true, admin deleting aci'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'     : '%s/aci/aci_target/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true, user searching previously targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+
+        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
               #@TestMarker                ACI Targetfilter Tests - syntax
