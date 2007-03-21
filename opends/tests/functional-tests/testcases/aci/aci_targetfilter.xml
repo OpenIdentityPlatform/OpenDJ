@@ -27,13 +27,13 @@
  ! -->
 <stax>
 
-  <defaultcall function="aci_targetfilter_syntax"/>
+  <defaultcall function="aci_targetfilter"/>
 
-  <function name="aci_targetfilter_syntax">
+  <function name="aci_targetfilter">
   
     <sequence>
 
-      <block name="'aci-targetfilter-syntax'">
+      <block name="'aci-targetfilter'">
       
         <sequence>
   
@@ -45,7 +45,7 @@
           
           <!---
                 Place suite-specific test information here.
-                #@TestSuiteName             ACI Targetfilter Tests - syntax
+                #@TestSuiteName             ACI Targetfilter Tests 
                 #@TestSuitePurpose          Test the basic ACI Targetfilter Support. (allow(read))
                 #@TestSuiteGroup            Basic ACI Targetfilter Tests allow(read)
                 #@TestScript                aci_targetfilter_syntax.xml
@@ -54,7 +54,7 @@
           <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
-                #@TestMarker                ACI Targetfilter Tests - syntax
+                #@TestMarker                ACI Targetfilter Tests 
                 #@TestName                  Preamble
                 #@TestIssue                 436
                 #@TestPurpose               Test default aci settings
@@ -127,7 +127,7 @@
          <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
-                #@TestMarker                ACI Targetfilter Tests - syntax
+                #@TestMarker                ACI Targetfilter Tests 
                 #@TestName                  Targetfilter with one statement
                 #@TestIssue                 436
                 #@TestPurpose               Test with a targetfilter with one statement
@@ -320,7 +320,7 @@
          <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
-                #@TestMarker                ACI Targetfilter Tests - syntax
+                #@TestMarker                ACI Targetfilter Tests 
                 #@TestName                  Targetfilter with one statement 2
                 #@TestIssue                 436
                 #@TestPurpose               Test with a targetfilter with one statement
@@ -512,7 +512,7 @@
          <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
-                #@TestMarker                ACI Targetfilter Tests - syntax
+                #@TestMarker                ACI Targetfilter Tests 
                 #@TestName                  Targetfilter with one statement 3
                 #@TestIssue                 436
                 #@TestPurpose               Test with a targetfilter with one statement
@@ -673,7 +673,7 @@
        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter set to negative of one statement
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with (not equals) one statement
@@ -865,7 +865,7 @@
        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter with three statements with or, one statement true
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with three statements with or and one statement is true
@@ -1057,7 +1057,7 @@
         <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter (not equals) with three statements with or, one statement true
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with not equals three statements with or and one statement is true
@@ -1249,7 +1249,7 @@
        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter with three statements with or, no statement true 
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with three statements with or and no statement is true
@@ -1386,7 +1386,7 @@
        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter with three statements with and, one statement true
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with three statements with and and one statement is true
@@ -1522,7 +1522,7 @@
        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter with three statements with and, all statements true 
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with three statements with and and all statements are true
@@ -1714,7 +1714,7 @@
        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter (not equals) with three statements with and, all statements true 
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with not equals three statements with and and all statements are true
@@ -1906,7 +1906,7 @@
         <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter with three statements with wildcard and or, one statement true
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with three statements with wildcard and or and one statement is true
@@ -2098,7 +2098,7 @@
        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter with three statements with two wildcards and or, one statement true
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with three statements with two wildcards and or and one statement is true
@@ -2290,7 +2290,7 @@
         <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter with three statements with wildcard and and, all statements true
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with three statements with wildcard with and and all statements true
@@ -2482,7 +2482,7 @@
         <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter with three statements with three wildcards and and, all statements true
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with three statements with three wildcards with and and all statements true
@@ -2674,7 +2674,7 @@
         <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter with extra spaces 
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with extra spaces
@@ -2782,7 +2782,7 @@
        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter with missing quotes
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with missing quotes
@@ -2845,7 +2845,7 @@
        <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Targetfilter with misplaced quotes
               #@TestIssue                 436
               #@TestPurpose               Test with a targetfilter with misplaced quotes
@@ -2908,7 +2908,7 @@
                 <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
-              #@TestMarker                ACI Targetfilter Tests - syntax
+              #@TestMarker                ACI Targetfilter Tests 
               #@TestName                  Postamble
               #@TestIssue                 436
               #@TestPurpose               Test default aci settings
