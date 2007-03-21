@@ -30,10 +30,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDIFModify;
-import org.opends.server.tools.LDAPSearch;
-import org.opends.server.tools.LDIFDiff;
+import org.opends.server.tools.*;
 import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.BeforeMethod;
@@ -43,7 +40,7 @@ import org.testng.Assert;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-
+import static org.opends.server.config.ConfigConstants.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -87,11 +84,9 @@ import java.text.SimpleDateFormat;
 public class AciTests extends DirectoryServerTestCase {
 // TODO: test modify use cases
 // TODO: test searches where we expect a subset of attributes and entries
-// TODO: test compare
 // TODO: test delete
 // TODO: test more combinations of attributes
 // TODO: test multiple permission bind rules in the same ACI
-// TODO: test groupdn and roledn
 // TODO: test more invalid filters.  We should have at least one for each concept in the spec.
 // TODO: test more with network addresses once this is working
 // TODO: test ipv6
@@ -156,9 +151,23 @@ public class AciTests extends DirectoryServerTestCase {
 //
 // -----------------------------------------------------------------------------
 
+  private static final String MONITOR_DN = "cn=monitor";
   private static final String OU_BASE_DN = "ou=acitest,dc=example,dc=com";
+  private static final String OU_GROUPS_DN = "ou=groups,dc=example,dc=com";
+ //These entries are used to test groupdn, roledn and userattr stuff.
+  private static final String OU_GROUP_1_DN = "cn=group1," + OU_GROUPS_DN;
+  private static final String OU_GROUP_2_DN = "cn=group2," + OU_GROUPS_DN;
+  //End group entries.
+  private static final String MANAGER_DN = "cn=the managers,dc=example,dc=com";
+  //These entries are going to be used to test userattr parent stuff.
+  private static final String SALES_DN = "cn=sales dept," + MANAGER_DN;
+  private static final String SALES_USER_1 = "cn=sales1 person," + SALES_DN;
+  private static final String SALES_USER_2 = "cn=sales2 person," + SALES_DN;
+  private static final String SALES_USER_3 = "cn=sales3 person," + SALES_DN;
+  private static final String LEVEL_1_USER_URL =
+                               "ldap:///??base?(cn=level1 user)";
   private static final String LDAP_URL_OU_BASE = "ldap:///" + OU_BASE_DN;
-
+ //End userattr entries.
   private static final String OU_INNER_DN = "ou=inner," + OU_BASE_DN;
   private static final String LDAP_URL_OU_INNER = "ldap:///" + OU_INNER_DN;
 
@@ -172,11 +181,19 @@ public class AciTests extends DirectoryServerTestCase {
   // We need to delete all of these between each test.  This list needs to be
   // bottom up so that it can be handed to LDAPDelete.
   private static final String[] ALL_TEST_ENTRY_DNS_BOTTOM_UP = {
+    SALES_USER_1,
+    SALES_USER_2,
+    SALES_USER_3,
     LEVEL_3_USER_DN,
     LEVEL_2_USER_DN,
     LEVEL_1_USER_DN,
+    SALES_DN,
+    OU_GROUP_2_DN,
+    OU_GROUP_1_DN,
     OU_LEAF_DN,
     OU_INNER_DN,
+    MANAGER_DN,
+    OU_GROUPS_DN,
     OU_BASE_DN,
     ADMIN_DN,
     USER_DN
@@ -185,6 +202,7 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String BIND_RULE_USERDN_SELF = "userdn=\"ldap:///self\"";
   private static final String BIND_RULE_USERDN_ALL = "userdn=\"ldap:///all\"";
   private static final String BIND_RULE_USERDN_ADMIN = "userdn=\"ldap:///" + ADMIN_DN + "\"";
+  private static final String BIND_RULE_USERDN_LEVEL_1 = "userdn=\"ldap:///" + LEVEL_1_USER_DN + "\"";
   private static final String BIND_RULE_USERDN_ANYONE = "userdn=\"ldap:///anyone\"";
   private static final String BIND_RULE_USERDN_PARENT = "userdn=\"ldap:///parent\"";
   private static final String BIND_RULE_USERDN_CN_RDN = "userdn=\"ldap:///CN=*,dc=example,dc=com\"";
@@ -192,6 +210,10 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String BIND_RULE_USERDN_UID_OR_CN_RDN = "userdn=\"ldap:///uid=*,dc=example,dc=com || ldap:///cn=*,dc=example,dc=com\"";
   private static final String BIND_RULE_USERDN_ALL_CN_ADMINS = "userdn=\"ldap:///dc=example,dc=com??sub?(cn=*admin*)\"";
   private static final String BIND_RULE_USERDN_TOP_LEVEL_CN_ADMINS = "userdn=\"ldap:///dc=example,dc=com??one?(cn=*admin*)\"";  // TODO: this might be invalid?
+  private static final String BIND_RULE_GROUPDN_GROUP_1 =
+                                    "groupdn=\"ldap:///" + OU_GROUP_1_DN + "\"";
+   private static final String BIND_RULE_ROLEDN_GROUP_1 =
+                                     "roledn=\"ldap:///" + OU_GROUP_1_DN + "\"";
 
   private static final String BIND_RULE_IP_LOCALHOST = "ip=\"127.0.0.1\"";
   private static final String BIND_RULE_IP_LOCALHOST_WITH_MASK = "ip=\"127.0.0.1+255.255.255.254\"";
@@ -248,6 +270,7 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String BIND_RULE_INVALID_DAY = "dayofweek=\"sumday\"";
 
   private static final String BIND_RULE_ONLY_AT_NOON = "timeofday=\"1200\"";
+
   private static final String BIND_RULE_NOT_AT_NOON = "timeofday!=\"1200\"";
   private static final String BIND_RULE_AFTERNOON = "timeofday>\"1200\"";
   private static final String BIND_RULE_NOON_AND_AFTER = "timeofday>=\"1200\"";
@@ -272,13 +295,24 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String SELF_MODIFY_ACI = "aci: (targetattr=\"*\")(version 3.0; acl \"self modify\";allow(all) userdn=\"userdn=\"ldap:///self\";)";
 
   private static final String ALLOW_ALL_TO_ALL =
-          buildAciValue("name", "allow all", "targetattr", "*", "allow(all)", BIND_RULE_USERDN_ALL);
+             buildAciValue("name", "allow all", "targetattr", "*", "allow(all)", BIND_RULE_USERDN_ALL);
+
+  private static final String ALLOW_ALL_TO_COMPARE =
+             buildAciValue("name", "allow compare", "targetattr", "*", "target", "ldap:///cn=*," + OU_LEAF_DN, "allow(compare)", BIND_RULE_USERDN_ALL);
 
   private static final String ALLOW_ALL_TO_ADMIN =
           buildAciValue("name", "allow all to admin", "targetattr", "*", "allow(all)", BIND_RULE_USERDN_ADMIN);
 
   private static final String ALLOW_ALL_TO_ANYONE =
           buildAciValue("name", "allow all to anyone", "targetattr", "*", "allow(all)", BIND_RULE_USERDN_ANYONE);
+
+  private static final String ALLOW_SEARCH_TO_GROUP1_GROUPDN =
+          buildAciValue("name", "allow search to group1 groupdn", "targetattr",
+                        "*", "allow(search, read)", BIND_RULE_GROUPDN_GROUP_1);
+
+  private static final String ALLOW_SEARCH_TO_GROUP1_ROLEDN =
+          buildAciValue("name", "allow search to group1 roledn", "targetattr",
+                        "*", "allow(search, read)", BIND_RULE_ROLEDN_GROUP_1);
 
   private static final String ALLOW_SEARCH_TO_ADMIN =
           buildAciValue("name", "allow search to admin", "targetattr", "*", "allow(search, read)", BIND_RULE_USERDN_ADMIN);
@@ -630,14 +664,14 @@ public class AciTests extends DirectoryServerTestCase {
           buildAciValue("name", "bad_format", "targetattrfilters",TARG_ATTR_FILTERS_BAD_FORMAT, "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "too_many_lists", "targetattrfilters",TARG_ATTR_FILTERS_TOO_MANY_LISTS, "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "bad_tok", "targetattrfilters",TARG_ATTR_FILTERS_BAD_TOK, "allow (write)", BIND_RULE_USERDN_SELF),
-
-
+          buildAciValue("name", "bad_targetfilter", "targetfilter","this is a bad filter", "allow (write)", BIND_RULE_USERDN_SELF),
          buildAciValue("name", "bad targetScope", "targetScope", "sub_tree", "allow (write)", BIND_RULE_USERDN_SELF),
          buildAciValue("name", "bad right", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all, foo)", BIND_RULE_USERDN_SELF),
          buildAciValue("name", "bad access type", "targetattr", "*", "allows (read, write, add, delete, search, compare, selfwrite, all)", BIND_RULE_USERDN_SELF),
          //no name
          buildAciValue("targetattr", "*", "allows (read, write, add, delete, search, compare, selfwrite, all)", BIND_RULE_USERDN_SELF),
-
+         buildAciValue("name", "bad groupdn url", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all)", "groupdn=\"ldap:///bogus\""),
+         buildAciValue("name", "bad groupdn url2", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all)", "groupdn=\"ldap1:///bogus\""),
 // </PASSES>
   };
 
@@ -881,6 +915,7 @@ public class AciTests extends DirectoryServerTestCase {
 // -----------------------------------------------------------------------------
 
 
+
   private static final String BASE_OU_LDIF__SEARCH_TESTS = makeOuLdif(OU_BASE_DN, "acitest");
   private static final String INNER_OU_LDIF__SEARCH_TESTS = makeOuLdif(OU_INNER_DN, "inner");
   private static final String LEAF_OU_LDIF__SEARCH_TESTS = makeOuLdif(OU_LEAF_DN, "leaf");
@@ -891,7 +926,77 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String LEVEL_2_USER_LDIF__SEARCH_TESTS = makeUserLdif(LEVEL_2_USER_DN, "level2", "user", "pa$$word");
   private static final String LEVEL_3_USER_LDIF__SEARCH_TESTS = makeUserLdif(LEVEL_3_USER_DN, "level3", "user", "pa$$word");
 
-  // TODO: need some groups and nested groups here eventually.
+
+    private static final String SALES_USER_1__SEARCH_TESTS =
+            makeUserLdif(SALES_USER_1, "sales1", "person", "pa$$word" );
+
+    private static final String SALES_USER_2__SEARCH_TESTS =
+            makeUserLdif(SALES_USER_2, "sales2", "person", "pa$$word" );
+
+    private static final String SALES_USER_3__SEARCH_TESTS =
+            makeUserLdif(SALES_USER_3, "sales3", "person", "pa$$word" );
+
+    private static final String MANAGER__SEARCH_TESTS =
+            makeUserLdif(MANAGER_DN, "the", "managers", "pa$$word",
+                         ADMIN_DN, OU_GROUP_2_DN );
+
+    private static final String SALES__SEARCH_TESTS =
+            makeUserLdif(SALES_DN, "sales", "dept", "pa$$word",
+                        LEVEL_2_USER_DN, LEVEL_1_USER_URL);
+
+  //LDIF entries used to test group stuff.
+  private static final String GROUP_LDIF__SEARCH_TESTS =
+                                             makeOuLdif(OU_GROUPS_DN, "groups");
+  private static final
+  String GROUP_1_LDIF__SEARCH_TESTS = makeGroupLdif(OU_GROUP_1_DN,
+                                                    LEVEL_1_USER_DN,
+                                                    LEVEL_3_USER_DN);
+
+ private static final
+ String GROUP_2_LDIF__SEARCH_TESTS = makeGroupLdif(OU_GROUP_2_DN,
+                                                   LEVEL_2_USER_DN,
+                                                   ADMIN_DN);
+ //ACI are used to test global ACI stuff.
+ private static final String ACCESS_HANDLER_DN =
+                                          "cn=Access Control Handler,cn=config";
+
+ private static final String GLOBAL_ALLOW_ALL_TO_ADMIN_ACI =
+       buildGlobalAciValue("name", "allow all to admin", "targetattr",
+                                     "*", "allow(all)", BIND_RULE_USERDN_ADMIN);
+
+ private static final String GLOBAL_ALLOW_MONITOR_TO_ADMIN_ACI =
+       buildGlobalAciValue("name", "monitor all to admin", "targetattr",
+                                     "*", "target", "ldap:///cn=monitor",
+                                     "allow(all)", BIND_RULE_USERDN_ADMIN);
+
+ private static final String GLOBAL_ALLOW_BASE_DN_TO_LEVEL_1_ACI =
+       buildGlobalAciValue("name", "monitor all to admin", "targetattr",
+                                     "*", "target", "ldap:///" + OU_BASE_DN,
+                                     "allow(all)", BIND_RULE_USERDN_LEVEL_1);
+
+ private static final String ALLOW_ALL_GLOBAL_TO_ADMIN_MOD =
+                  makeAttrAddAciLdif(ATTR_AUTHZ_GLOBAL_ACI,ACCESS_HANDLER_DN,
+                                       GLOBAL_ALLOW_ALL_TO_ADMIN_ACI);
+
+ private static final String GLOBAL_MODS =
+                  makeAttrAddAciLdif(ATTR_AUTHZ_GLOBAL_ACI,ACCESS_HANDLER_DN,
+                                       GLOBAL_ALLOW_MONITOR_TO_ADMIN_ACI,
+                                       GLOBAL_ALLOW_BASE_DN_TO_LEVEL_1_ACI);
+
+ //ACI used to test LDAP compare.
+ private static final
+ String COMPARE_ACI =  makeAddAciLdif(OU_LEAF_DN,
+                                       ALLOW_ALL_TO_COMPARE);
+
+//ACI used in testing the groupdn/roledn bind rule keywords.
+
+ private static final
+ String GROUP1_ROLEDN_MODS =  makeAddAciLdif(OU_LEAF_DN,
+                                         ALLOW_SEARCH_TO_GROUP1_ROLEDN);
+
+   private static final
+ String GROUP1_GROUPDN_MODS =  makeAddAciLdif(OU_LEAF_DN,
+                                         ALLOW_SEARCH_TO_GROUP1_GROUPDN);
 
   // ou=leaf,ou=inner,ou=acitest,dc=example,dc=com and everything under it
   private static final String LEAF_OU_FULL_LDIF__SEARCH_TESTS =
@@ -914,6 +1019,21 @@ public class AciTests extends DirectoryServerTestCase {
           ADMIN_LDIF__SEARCH_TESTS +
           USER_LDIF__SEARCH_TESTS +
           BASE_OU_FULL_LDIF__SEARCH_TESTS;
+
+   private static final String BASIC_LDIF__GROUP_SEARCH_TESTS =
+            ADMIN_LDIF__SEARCH_TESTS +
+            USER_LDIF__SEARCH_TESTS +
+            BASE_OU_LDIF__SEARCH_TESTS  +
+            MANAGER__SEARCH_TESTS +
+            SALES__SEARCH_TESTS +
+            SALES_USER_1__SEARCH_TESTS +
+            SALES_USER_2__SEARCH_TESTS +
+            SALES_USER_3__SEARCH_TESTS +
+            GROUP_LDIF__SEARCH_TESTS +
+            GROUP_1_LDIF__SEARCH_TESTS +
+            GROUP_2_LDIF__SEARCH_TESTS +
+            LEVEL_1_USER_LDIF__SEARCH_TESTS +
+            INNER_OU_FULL_LDIF__SEARCH_TESTS;
 
   private static final String NO_ACIS_LDIF = "";
 
@@ -1344,6 +1464,16 @@ public class AciTests extends DirectoryServerTestCase {
       " -s " + _searchScope +
       " \"" + _searchFilter + "\"";
     }
+
+    public String[] getLdapCompareArgs(String attrAssertion) {
+      return new String[] {
+         "-h", "127.0.0.1",
+         "-p", getServerLdapPort(),
+         "-D", _bindDn,
+         "-w", _bindPw,
+        attrAssertion,
+        _searchBaseDn};
+    }
   }
 
   private static class SearchTestParams {
@@ -1425,6 +1555,97 @@ public class AciTests extends DirectoryServerTestCase {
     }
   }
 
+ /**
+  * Test LDAP compare.
+  * @throws Throwable If the search returned is not valid for the ACI.
+ */
+ @Test()
+  public void testCompare() throws Throwable {
+      SingleSearchParams adminParam =
+              new SingleSearchParams(ADMIN_DN, ADMIN_PW, LEVEL_3_USER_DN,
+                      OBJECTCLASS_STAR, SCOPE_BASE,
+                      null, null, null);
+      try {
+          addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+          modEntries(COMPARE_ACI, DIR_MGR_DN, DIR_MGR_PW);
+          String userResults =
+                  ldapCompare(adminParam.getLdapCompareArgs("cn:level3 user"));
+          Assert.assertFalse(userResults.equals(""));
+      } catch(Throwable e) {
+          throw e;
+      }
+  }
+
+ /**
+  * Test group and role bind rule ACI keywords. Both groupdn and roledn keywords
+  * funnel through the same code so the results should be the same.
+  * @throws Throwable
+ */
+    @Test()
+ public void testGroupAcis()  throws Throwable {
+     //group2   fail
+     SingleSearchParams adminParam =
+             new SingleSearchParams(ADMIN_DN, ADMIN_PW, LEVEL_3_USER_DN,
+                                    OBJECTCLASS_STAR, SCOPE_BASE,
+                                    null, null, null);
+     //group1  pass
+     SingleSearchParams userParam =
+              new SingleSearchParams(LEVEL_1_USER_DN,
+                                     "pa$$word", LEVEL_3_USER_DN,
+                                     OBJECTCLASS_STAR, SCOPE_BASE,
+                                     null, null, null);
+        try {
+            addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+            modEntries(GROUP1_ROLEDN_MODS, DIR_MGR_DN, DIR_MGR_PW);
+            String userResults = ldapSearch(userParam.getLdapSearchArgs());
+            Assert.assertFalse(userResults.equals(""));
+            String adminResults = ldapSearch(adminParam.getLdapSearchArgs());
+            Assert.assertTrue(adminResults.equals(""));
+            deleteAttrFromEntry(OU_LEAF_DN, "aci");
+            modEntries(GROUP1_GROUPDN_MODS, DIR_MGR_DN, DIR_MGR_PW);
+            userResults = ldapSearch(userParam.getLdapSearchArgs());
+            Assert.assertFalse(userResults.equals(""));
+            adminResults = ldapSearch(adminParam.getLdapSearchArgs());
+            Assert.assertTrue(adminResults.equals(""));
+        } catch(Throwable e) {
+                throw e;
+        }
+ }
+
+    /**
+     * Test global ACI. Two ACIs are used, one protecting "cn=monitor" and the
+     * other the test DIT.
+     *
+     * @throws Throwable
+     */
+    @Test()
+ public void testGlobalAcis()  throws Throwable {
+     SingleSearchParams monitorParam =
+             new SingleSearchParams(ADMIN_DN, ADMIN_PW, MONITOR_DN,
+                                    OBJECTCLASS_STAR, SCOPE_BASE,
+                                    null, null, null);
+      SingleSearchParams baseParam =
+              new SingleSearchParams(LEVEL_1_USER_DN,
+                                     "pa$$word", OU_BASE_DN,
+                                     OBJECTCLASS_STAR, SCOPE_BASE,
+                                     null, null, null);
+      try {
+        addEntries(BASIC_LDIF__SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+        modEntries(GLOBAL_MODS, DIR_MGR_DN, DIR_MGR_PW);
+        String monitorResults = ldapSearch(monitorParam.getLdapSearchArgs());
+        Assert.assertFalse(monitorResults.equals(""));
+        String baseResults = ldapSearch(baseParam.getLdapSearchArgs());
+        Assert.assertFalse(baseResults.equals(""));
+        deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+        monitorResults = ldapSearch(monitorParam.getLdapSearchArgs());
+        Assert.assertTrue(monitorResults.equals(""));
+        baseResults = ldapSearch(baseParam.getLdapSearchArgs());
+        Assert.assertTrue(baseResults.equals(""));
+      } catch (Throwable e) {
+           throw e;
+       }
+ }
+
   @Test(dataProvider = "searchTestParams")
   public void testSearchWithAcis(SingleSearchParams params) throws Throwable {
     if (TESTS_ARE_DISABLED) {  // This is a hack to make sure we can disable the tests.
@@ -1473,57 +1694,100 @@ public class AciTests extends DirectoryServerTestCase {
    * This is a bit of a kludge, but it does help us from having nested "\"",
    * and it does allow us to more easily generate combinations of acis.
    */
-  private static String buildAciValue(String... aciFields) {
-    StringBuilder aci = new StringBuilder("aci: ");
 
-    // Go through target* first
-    for (int i = 0; i < aciFields.length - 1; i += 2) {
-      String aciField = aciFields[i];
-      String aciValue = aciFields[i+1];
 
-      if (aciField.startsWith("targ")) {
-        if (!aciField.endsWith("=")) {  // We allow = or more importantly != to be included with the target
-          aciField += "=";
-        }
-        aci.append("(" + aciField + "\"" + aciValue + "\")" + EOL + " ");
-      }
-    }
-
-    aci.append("(version 3.0;acl ");
-
-    // Try to get the name
-    for (int i = 0; i < aciFields.length - 1; i += 2) {
-      String aciField = aciFields[i];
-      String aciValue = aciFields[i+1];
-
-      if (aciField.equals("name")) {
-        aci.append("\"" + aciValue + "\"");
-      }
-    }
-
-    aci.append("; ");
-
-    // Anything else is permission and a bindRule
-    for (int i = 0; i < aciFields.length - 1; i += 2) {
-      String permission = aciFields[i];
-      String bindRule = aciFields[i+1];
-
-      if (!permission.startsWith("targ") && !permission.equals("name")) {
-        aci.append(EOL + " " + permission + " " + bindRule + ";");
-      }
-    }
-
-    aci.append(")");
-
-    return aci.toString();
+    /**
+     * Create an ACI string with the specifed variable string list. The method
+     * uses the global ACI attribute type name, instead of "aci".
+     * @param aciFields The fields to use to build the ACI.
+     * @return  An ACI string.
+     */
+    private static String buildGlobalAciValue(String... aciFields) {
+     return(_buildAciValue(ATTR_AUTHZ_GLOBAL_ACI + ": ", aciFields));
   }
 
-  private static String makeAddAciLdif(String dn, String aci) {
-    return TestCaseUtils.makeLdif(
-          "dn: " + dn,
-          "changetype: modify",
-          "add: aci",
-          aci);
+  private static String buildAciValue(String... aciFields) {
+     return(_buildAciValue("aci:", aciFields));
+  }
+
+  /**
+ * Build the value for the aci from the specified fields.
+ *
+ * This is a bit of a kludge, but it does help us from having nested "\"",
+ * and it does allow us to more easily generate combinations of acis.
+ */
+private static String _buildAciValue(String attr, String... aciFields) {
+  StringBuilder aci = new StringBuilder(attr);
+
+  // Go through target* first
+  for (int i = 0; i < aciFields.length - 1; i += 2) {
+    String aciField = aciFields[i];
+    String aciValue = aciFields[i+1];
+
+    if (aciField.startsWith("targ")) {
+      if (!aciField.endsWith("=")) {  // We allow = or more importantly != to be included with the target
+        aciField += "=";
+      }
+      aci.append("(" + aciField + "\"" + aciValue + "\")" + EOL + " ");
+    }
+  }
+
+  aci.append("(version 3.0;acl ");
+
+  // Try to get the name
+  for (int i = 0; i < aciFields.length - 1; i += 2) {
+    String aciField = aciFields[i];
+    String aciValue = aciFields[i+1];
+
+    if (aciField.equals("name")) {
+      aci.append("\"" + aciValue + "\"");
+    }
+  }
+
+  aci.append("; ");
+
+  // Anything else is permission and a bindRule
+  for (int i = 0; i < aciFields.length - 1; i += 2) {
+    String permission = aciFields[i];
+    String bindRule = aciFields[i+1];
+
+    if (!permission.startsWith("targ") && !permission.equals("name")) {
+      aci.append(EOL + " " + permission + " " + bindRule + ";");
+    }
+  }
+
+  aci.append(")");
+
+  return aci.toString();
+}
+
+
+    /**
+     * Create a ldif entry with the specified variable ACI list. This method
+     * allows the attribute type to be specified in an argument.
+     * @param attr The attribute type name to use for the aci attribute.
+     * @param dn  The dn to use.
+     * @param acis  A variable list of ACI strings.
+     * @return A ldif entry string.
+     */
+    private static String makeAttrAddAciLdif(String attr, String dn,
+                                              String... acis) {
+    return _makeAddAciLdif(attr,dn,acis);
+  }
+
+  private static String makeAddAciLdif(String dn, String... acis) {
+    return _makeAddAciLdif("aci" ,dn,acis);
+  }
+
+  private static String _makeAddAciLdif(String attr, String dn, String... acis) {
+    StringBuilder ldif = new StringBuilder();
+    ldif.append("dn: " + dn).append(EOL);
+    ldif.append("changetype: modify").append(EOL);
+    ldif.append("add: " + attr).append(EOL);
+    for(String aci : acis)
+        ldif.append(aci).append(EOL);
+    ldif.append(EOL);
+    return ldif.toString();
   }
 
   /**
@@ -1567,24 +1831,32 @@ public class AciTests extends DirectoryServerTestCase {
     return getOutputStreamContents();
   }
 
+ private String ldapCompare(String[] args) throws Exception {
+    clearOutputStream();
+    int retVal =
+            LDAPCompare.mainCompare(args, false, getOutputStream(),
+                                    getOutputStream());
+    Assert.assertEquals(0, retVal,  "Non-zero return code because, error: " + getOutputStreamContents());
+    return getOutputStreamContents();
+  }
   /**
    *
    */
-  private void modEntries(String ldif, String bindDn, String bindPassword) throws Exception {
-    modEntries(ldif, bindDn, bindPassword, true);
+  private void
+  modEntries(String ldif, String bindDn, String bindPassword)
+          throws Exception {
+    modEntries(ldif, bindDn, bindPassword, true, false);
   }
 
   /**
    *
    */
   private void modEntriesExpectFailure(String ldif, String bindDn, String bindPassword) throws Exception {
-    modEntries(ldif, bindDn, bindPassword, false);
+    modEntries(ldif, bindDn, bindPassword, false, false);
   }
 
-  /**
-   *
-   */
-  private void modEntries(String ldif, String bindDn, String bindPassword, boolean expectSuccess) throws Exception {
+  private void _modEntries(String ldif, String bindDn, String bindPassword,
+                          boolean expectSuccess) throws Exception {
     File tempFile = getTemporaryLdifFile();
     TestCaseUtils.writeFile(tempFile, ldif);
 
@@ -1600,31 +1872,52 @@ public class AciTests extends DirectoryServerTestCase {
     ldapModify(args, expectSuccess);
   }
 
-  private void deleteAllTestEntries() throws Exception {
-    // TODO: make this actually do a search first!
-    StringBuilder ldif = new StringBuilder();
-    for (String dn: ALL_TEST_ENTRY_DNS_BOTTOM_UP) {
-      ldif.append(TestCaseUtils.makeLdif(
-              "dn: " + dn,
-              "changetype: delete"
-      ));
+    private void modEntries(String ldif, String bindDn, String bindPassword,
+                          boolean expectSuccess, boolean contFlag)
+    throws Exception {
+    File tempFile = getTemporaryLdifFile();
+    TestCaseUtils.writeFile(tempFile, ldif);
+    ArrayList<String> argList=new ArrayList<String>();
+    argList.add("-h");
+    argList.add("127.0.0.1");
+    argList.add("-p");
+    argList.add(getServerLdapPort());
+    argList.add("-D");
+    argList.add(bindDn);
+    argList.add("-w");
+    argList.add(bindPassword);
+    argList.add("-f");
+    argList.add(tempFile.getAbsolutePath());
+    if(contFlag)
+        argList.add("-c");
+    String[] args = new String[argList.size()];
+    ldapModify(argList.toArray(args), expectSuccess);
+  }
+
+    private void deleteAllTestEntries() throws Exception {
+        deleteEntries(ALL_TEST_ENTRY_DNS_BOTTOM_UP);
     }
 
-    // I don't like copying this, but it's necessary since we want to continue on failure.
-    File tempFile = getTemporaryLdifFile();
-    TestCaseUtils.writeFile(tempFile, ldif.toString());
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", getServerLdapPort(),
-      "-D", DIR_MGR_DN,
-      "-w", DIR_MGR_PW,
-      "-f", tempFile.getAbsolutePath(),
-      "-c"
-    };
+    private void deleteAttrFromEntry(String dn, String attr) throws Exception {
+        StringBuilder ldif = new StringBuilder();
+        ldif.append(TestCaseUtils.makeLdif(
+                "dn: "  + dn,
+                "changetype: modify",
+                "delete: " + attr));
+        modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW, true, false);
+    }
 
-    ldapModify(args, true);
-  }
+    private void deleteEntries(String[] entries) throws Exception {
+        // TODO: make this actually do a search first!
+        StringBuilder ldif = new StringBuilder();
+        for (String dn: entries) {
+            ldif.append(TestCaseUtils.makeLdif(
+                    "dn: " + dn,
+                    "changetype: delete"
+            ));
+        }
+        modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW, true, true);
+    }
 
   /**
    * Return the difference between two ldif files.
@@ -1738,6 +2031,52 @@ public class AciTests extends DirectoryServerTestCase {
             "userpassword: " + password);
   }
 
+    private static String makeUserLdif(String dn, String givenName, String sn,
+                                       String password, String... attrs) {
+        StringBuilder ldif = new StringBuilder();
+        String cn = givenName + " " + sn;
+        // Enforce this since it's awkward to build the dn here too
+        Assert.assertTrue(dn.startsWith("cn=" + cn));
+        ldif.append("dn: ").append(dn).append(EOL);
+        ldif.append("objectclass: inetorgperson").append(EOL);
+        ldif.append("objectclass: organizationalperson").append(EOL);
+        ldif.append("objectclass: person").append(EOL);
+        ldif.append("objectclass: top").append(EOL);
+        ldif.append("cn: ").append(cn).append(EOL);
+        ldif.append("sn: ").append(sn).append(EOL);
+        ldif.append("givenName: ").append(givenName).append(EOL);
+        ldif.append("userpassword: ").append(password).append(EOL);
+        for(String attr : attrs) {
+            if(attr.startsWith("ldap://"))
+                ldif.append("labeledURI: ").append(attr).append(EOL);
+            else if(attr.startsWith("cn=group"))
+                ldif.append("seeAlso: ").append(attr).append(EOL);
+            else
+               ldif.append("manager: ").append(attr).append(EOL);
+        }
+        ldif.append(EOL);
+        return ldif.toString();
+    }
+
+
+    /**
+     * Makes a group ldif entry using the the specified DN and members.
+     * @param dn The dn to use in building the ldif.
+     * @param members A variable list of member strings.
+     * @return   The ldif entry string.
+     */
+    private static String makeGroupLdif(String dn,  String... members) {
+    StringBuilder ldif = new StringBuilder();
+    ldif.append("dn: " + dn).append(EOL);
+    ldif.append("objectclass: groupOfNames").append(EOL);
+    ldif.append("objectclass: top").append(EOL);
+    for(String member : members)
+        ldif.append("member: " + member).append(EOL);
+    ldif.append(EOL);
+    return ldif.toString();
+  }
+
+
   private static String makeOuLdif(String dn, String ou) {
     Assert.assertTrue(dn.startsWith("ou=" + ou));  // Enforce this since it's awkward to build the dn here too
     return TestCaseUtils.makeLdif(
@@ -1803,19 +2142,19 @@ public class AciTests extends DirectoryServerTestCase {
     }
   }
 
-  private static final String and(String bindRule1, String bindRule2) {
+  private static String and(String bindRule1, String bindRule2) {
     return "(" + bindRule1 + " and " + bindRule2 + ")";
   }
 
-  private static final String or(String bindRule1, String bindRule2) {
+  private static  String or(String bindRule1, String bindRule2) {
     return "(" + bindRule1 + " or " + bindRule2 + ")";
   }
 
-  private static final String not(String bindRule) {
+  private static  String not(String bindRule) {
     return "not " + bindRule;
   }
 
-  private static final String getServerLdapPort() {
+  private static String getServerLdapPort() {
     return String.valueOf(TestCaseUtils.getServerLdapPort());
   }
 }
