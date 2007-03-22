@@ -52,7 +52,7 @@ objectClass: top
 objectClass: ds-cfg-access-control-handler
 objectClass: ds-cfg-dseecompat-access-control-handler
 ds-cfg-global-aci: (targetattr!="userPassword||authPassword")(version 3.0; acl "Anonymous read access"; allow (read,search,compare) userdn="ldap:///anyone";)
-ds-cfg-global-aci: (targetattr="*")(version 3.0; acl "Self entry modification"; allow (write) userdn="ldap:///self";) 
+ds-cfg-global-aci: (targetattr="*")(version 3.0; acl "Self entry modification"; allow (write) userdn="ldap:///self";)
 cn: Access Control Handler
 ds-cfg-acl-handler-class: org.opends.server.authorization.dseecompat.AciProvider
 ds-cfg-acl-handler-enabled: true
