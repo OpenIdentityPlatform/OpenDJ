@@ -2,11 +2,6 @@ dn: cn=config
 changetype: modify
 replace: ds-cfg-notify-abandoned-operations
 ds-cfg-notify-abandoned-operations: true
-
-dn: cn=Access Control Handler,cn=config
-changetype: modify
-replace: ds-cfg-acl-handler-enabled
-ds-cfg-acl-handler-enabled: true
 -
 
 dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config

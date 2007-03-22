@@ -31,10 +31,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.tools.*;
-import org.testng.annotations.Test;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.*;
 import static org.testng.Assert.assertEquals;
 import org.testng.Assert;
 import static org.opends.server.util.ServerConstants.EOL;
@@ -481,7 +478,14 @@ public class AciTests extends DirectoryServerTestCase {
   @BeforeClass
   public void setupClass() throws Exception {
     TestCaseUtils.startServer();
+    deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI, true);
     TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+  }
+
+   @AfterClass
+   public void tearDown() throws Exception {
+     modEntries(GLOBAL_DEFAULT_ACIS, DIR_MGR_DN, DIR_MGR_PW);
   }
 
   @BeforeMethod
@@ -982,6 +986,23 @@ public class AciTests extends DirectoryServerTestCase {
                   makeAttrAddAciLdif(ATTR_AUTHZ_GLOBAL_ACI,ACCESS_HANDLER_DN,
                                        GLOBAL_ALLOW_MONITOR_TO_ADMIN_ACI,
                                        GLOBAL_ALLOW_BASE_DN_TO_LEVEL_1_ACI);
+
+    //Global defauls
+private static final String GLOBAL_ANONYMOUS_READ_ACI =
+       buildGlobalAciValue("name", "Anonymous read access", "targetattr!=",
+                                     "userPassword||authPassword",
+                                     "allow(read, search, compare)", BIND_RULE_USERDN_ANYONE);
+
+private static final String GLOBAL_SELF_WRITE_ACI =
+       buildGlobalAciValue("name", "Self entry modification", "targetattr",
+                                     "*",
+                                     "allow(write)", BIND_RULE_USERDN_SELF);
+
+
+private static final String GLOBAL_DEFAULT_ACIS =
+                     makeAttrAddAciLdif(ATTR_AUTHZ_GLOBAL_ACI,ACCESS_HANDLER_DN,
+                                        GLOBAL_ANONYMOUS_READ_ACI,
+                                        GLOBAL_SELF_WRITE_ACI);
 
  //ACI used to test LDAP compare.
  private static final
@@ -1601,7 +1622,7 @@ public class AciTests extends DirectoryServerTestCase {
             Assert.assertFalse(userResults.equals(""));
             String adminResults = ldapSearch(adminParam.getLdapSearchArgs());
             Assert.assertTrue(adminResults.equals(""));
-            deleteAttrFromEntry(OU_LEAF_DN, "aci");
+            deleteAttrFromEntry(OU_LEAF_DN, "aci", true);
             modEntries(GROUP1_GROUPDN_MODS, DIR_MGR_DN, DIR_MGR_PW);
             userResults = ldapSearch(userParam.getLdapSearchArgs());
             Assert.assertFalse(userResults.equals(""));
@@ -1636,7 +1657,7 @@ public class AciTests extends DirectoryServerTestCase {
         Assert.assertFalse(monitorResults.equals(""));
         String baseResults = ldapSearch(baseParam.getLdapSearchArgs());
         Assert.assertFalse(baseResults.equals(""));
-        deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+        deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI, true);
         monitorResults = ldapSearch(monitorParam.getLdapSearchArgs());
         Assert.assertTrue(monitorResults.equals(""));
         baseResults = ldapSearch(baseParam.getLdapSearchArgs());
@@ -1877,7 +1898,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
     throws Exception {
     File tempFile = getTemporaryLdifFile();
     TestCaseUtils.writeFile(tempFile, ldif);
-    ArrayList<String> argList=new ArrayList<String>();
+    ArrayList<String> argList=new ArrayList<String>(20);
     argList.add("-h");
     argList.add("127.0.0.1");
     argList.add("-p");
@@ -1898,13 +1919,13 @@ private static String _buildAciValue(String attr, String... aciFields) {
         deleteEntries(ALL_TEST_ENTRY_DNS_BOTTOM_UP);
     }
 
-    private void deleteAttrFromEntry(String dn, String attr) throws Exception {
+    private void deleteAttrFromEntry(String dn, String attr, boolean errorOk) throws Exception {
         StringBuilder ldif = new StringBuilder();
         ldif.append(TestCaseUtils.makeLdif(
                 "dn: "  + dn,
                 "changetype: modify",
                 "delete: " + attr));
-        modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW, true, false);
+        modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW, errorOk, false);
     }
 
     private void deleteEntries(String[] entries) throws Exception {
