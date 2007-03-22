@@ -255,7 +255,7 @@ public class SchemaSynchronizationTest extends SynchronizationTestCase
    * It causes schema tests in org.opends.server.core.AddOperationTestCase
    * to fail when running the build test target.
    */
-  @Test(enabled=false, dependsOnMethods = { "replaySchemaChange" })
+  @Test(enabled=true, dependsOnMethods = { "replaySchemaChange" })
   public void pushSchemaFilesChange() throws Exception
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,

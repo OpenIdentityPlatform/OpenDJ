@@ -323,7 +323,21 @@ public class ChangelogDB
         if (cursor.getSearchKey(key, data, LockMode.DEFAULT) !=
           OperationStatus.SUCCESS)
         {
-          throw new Exception("ChangeNumber not available");
+          if (cursor.getSearchKeyRange(key, data, LockMode.DEFAULT) !=
+            OperationStatus.SUCCESS)
+          {
+              throw new Exception("ChangeNumber not available");
+          }
+          else
+          {
+            DatabaseEntry key = new DatabaseEntry();
+            DatabaseEntry data = new DatabaseEntry();
+            if (cursor.getPrev(key, data, LockMode.DEFAULT) !=
+             OperationStatus.SUCCESS)
+           {
+             cursor = db.openCursor(txn, null);
+           }
+          }
         }
       }
     }
