@@ -27,7 +27,7 @@
 
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.loggers.Error.logError;

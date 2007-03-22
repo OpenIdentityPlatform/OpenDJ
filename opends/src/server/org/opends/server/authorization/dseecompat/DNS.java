@@ -27,7 +27,7 @@
 
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -140,7 +140,7 @@ public class DNS implements KeywordBindRule {
                       String message = getMessage(msgID, expr, hn,
                                                   canonicalName);
                       logError(ErrorLogCategory.ACCESS_CONTROL,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                               ErrorLogSeverity.INFORMATIONAL, message, msgID);
                     }
                     else
                     {
@@ -150,7 +150,7 @@ public class DNS implements KeywordBindRule {
                                                   hn, addr.getHostAddress(),
                                                   addr.getCanonicalHostName());
                       logError(ErrorLogCategory.ACCESS_CONTROL,
-                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                               ErrorLogSeverity.INFORMATIONAL, message, msgID);
                     }
                   }
                 }
@@ -166,7 +166,7 @@ public class DNS implements KeywordBindRule {
                 String message = getMessage(msgID, hn, expr,
                                             stackTraceToSingleLineString(e));
                 logError(ErrorLogCategory.ACCESS_CONTROL,
-                         ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                         ErrorLogSeverity.INFORMATIONAL, message, msgID);
               }
             }
 

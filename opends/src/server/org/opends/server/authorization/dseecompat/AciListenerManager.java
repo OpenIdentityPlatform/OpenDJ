@@ -40,7 +40,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.Error.logError;
 import org.opends.server.types.*;
-import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -207,7 +207,7 @@ public class AciListenerManager
           int    msgID  = MSGID_ACI_ADD_LIST_NO_ACIS;
           String message = getMessage(msgID, String.valueOf(baseDN));
           logError(ErrorLogCategory.ACCESS_CONTROL,
-                   ErrorLogSeverity.NOTICE, message, msgID);
+                   ErrorLogSeverity.INFORMATIONAL, message, msgID);
         } else {
           int validAcis = aciList.addAci(
                internalSearch.getSearchEntries());
@@ -215,7 +215,7 @@ public class AciListenerManager
           String message = getMessage(msgID, Integer.toString(validAcis),
                                       String.valueOf(baseDN));
           logError(ErrorLogCategory.ACCESS_CONTROL,
-                   ErrorLogSeverity.NOTICE,
+                   ErrorLogSeverity.INFORMATIONAL,
                    message, msgID);
         }
       }

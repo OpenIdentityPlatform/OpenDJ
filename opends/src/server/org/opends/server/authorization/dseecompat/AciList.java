@@ -27,7 +27,7 @@
 
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 
@@ -226,7 +226,7 @@ public class AciList {
           String message = getMessage(msgID,
                                       ex.getMessage());
           logError(ErrorLogCategory.ACCESS_CONTROL,
-                   ErrorLogSeverity.SEVERE_WARNING,
+                   ErrorLogSeverity.INFORMATIONAL,
                    message, msgID);
         }
       }

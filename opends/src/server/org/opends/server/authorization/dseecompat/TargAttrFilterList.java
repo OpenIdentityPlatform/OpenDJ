@@ -31,7 +31,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.core.DirectoryServer;
-import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 

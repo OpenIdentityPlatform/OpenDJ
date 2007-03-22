@@ -27,7 +27,7 @@
 
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.util.TimeThread;
 import java.util.regex.Pattern;
