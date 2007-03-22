@@ -81,6 +81,8 @@ public class ChangelogTest extends SynchronizationTestCase
   private ChangeNumber firstChangeNumberServer2 = null;
   private ChangeNumber secondChangeNumberServer2 = null;
 
+  private ChangeNumber unknownChangeNumberServer1;
+
 
   /**
    * Before starting the tests, start the server and configure a
@@ -148,6 +150,16 @@ public class ChangelogTest extends SynchronizationTestCase
        */
       firstChangeNumberServer2 = new ChangeNumber(time+ 1, 1, (short) 2);
       secondChangeNumberServer2 = new ChangeNumber(time + 3, 2, (short) 2);
+      
+      /*
+       * Create a ChangeNumber between firstChangeNumberServer1 and  
+       * secondChangeNumberServer1 that will not be used to create a
+       * change sent to the changelog server but that will be used
+       * in the Server State when opening a connection to the 
+       * Changelog Server to make sure that the Changelog server is 
+       * able to accept such clients.
+       */
+      unknownChangeNumberServer1 = new ChangeNumber(time+1, 1, (short) 1);
 
       /*
        * Send and receive a Delete Msg from server 1 to server 2
@@ -305,6 +317,23 @@ public class ChangelogTest extends SynchronizationTestCase
     ServerState state = new ServerState();
     state.update(firstChangeNumberServer1);
     state.update(firstChangeNumberServer2);
+
+    newClientWithChanges(state, secondChangeNumberServer1);
+  }
+  
+  /**
+   * Test with a client that has already seen a Change that the
+   * Changelog server has not seen.
+   */
+  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
+  public void newClientWithUnknownChanges() throws Exception
+  {
+    /*
+     * Create a ServerState with wrongChangeNumberServer1
+     */
+    ServerState state = new ServerState();
+    state.update(unknownChangeNumberServer1);
+    state.update(secondChangeNumberServer2);
 
     newClientWithChanges(state, secondChangeNumberServer1);
   }

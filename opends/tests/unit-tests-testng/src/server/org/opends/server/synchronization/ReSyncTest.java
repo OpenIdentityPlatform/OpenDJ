@@ -116,15 +116,17 @@ public class ReSyncTest extends SynchronizationTestCase
         + "cn: example\n"
         + "ds-cfg-synchronization-dn: dc=example,dc=com\n"
         + "ds-cfg-changelog-server: localhost:"+ changelogPort + "\n"
-        + "ds-cfg-directory-server-id: 1\n";
+        + "ds-cfg-directory-server-id: 123\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
     configureSynchronization();
 
+    // Give some time to the synchronization to setup 
+    Thread.sleep(1000);
+    
     // Create a dummy entry
     addEntry("dn: dc=dummy, dc=example,dc=com\n"
         + "objectClass: top\n" + "objectClass: domain\n");
-
   }
 
   /**
@@ -153,7 +155,7 @@ public class ReSyncTest extends SynchronizationTestCase
   /**
    * Test re-synchronization after after backup/restore
    */
-  @Test(enabled=false)
+  @Test(enabled=true, groups="slow")
   public void testResyncAfterRestore() throws Exception
   {
     /*
@@ -208,7 +210,7 @@ public class ReSyncTest extends SynchronizationTestCase
   /**
    * Test re-synchronization after after backup/restore
    */
-  @Test(enabled=false)
+  @Test(enabled=true, groups="slow")
   public void testResyncAfterImport() throws Exception
   {
     /*
