@@ -25,6 +25,16 @@
 #
 #      Portions Copyright 2007 Sun Microsystems, Inc.
 
+def retrieve_aci(filename):
+    aci_file = open(filename,"r")
+    ret_str = "none"
+
+    for line in aci_file.readlines():
+        aci_index = line.find("aci:")
+        if aci_index > -1:
+            ret_str = line
+    return ret_str
+
 def write_ldaps_ldif_file(path, port):
     ldif_file = open(path + "/ldaps_port.ldif","w")
 
