@@ -521,9 +521,16 @@ public abstract class ClientConnection
                                boolean sendNotification,
                                int messageID, Object... arguments)
   {
-    String message = getMessage(messageID, arguments);
-    disconnect(disconnectReason, sendNotification, message,
-               messageID);
+    if (messageID <= 0)
+    {
+      disconnect(disconnectReason, sendNotification, null, -1);
+    }
+    else
+    {
+      String message = getMessage(messageID, arguments);
+      disconnect(disconnectReason, sendNotification, message,
+                 messageID);
+    }
   }
 
 
