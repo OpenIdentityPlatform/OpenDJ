@@ -832,7 +832,7 @@ public class AciMessages {
                 "keyword wild-card expression value requires the '*' " +
                 "character only be in the leftmost position of the " +
                 "domain name.");
-        registerMessage(MSGID_ACI_HOSTNAME_DOESNT_MATCH_CANONICAL_VALUE,
+        registerMessage(MSGID_ACI_LOCALHOST_DOESNT_MATCH_CANONICAL_VALUE,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "dns expression value \"%s\" references hostname %s, but " +
                 "the canonical representation for that hostname is " +
