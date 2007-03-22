@@ -30,7 +30,7 @@ package org.opends.server.authorization.dseecompat;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.messages.AciMessages.*;
 import java.util.regex.Pattern;
 
 /**

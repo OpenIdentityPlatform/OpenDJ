@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.server.authorization.dseecompat;
+package org.opends.server.messages;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;

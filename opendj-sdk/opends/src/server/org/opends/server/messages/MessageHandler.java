@@ -28,7 +28,7 @@ package org.opends.server.messages;
 
 
 
-import org.opends.server.authorization.dseecompat.AciMessages;
+import org.opends.server.messages.AciMessages;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.IllegalFormatException;

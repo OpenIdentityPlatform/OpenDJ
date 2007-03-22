@@ -28,7 +28,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.api.AccessControlHandler;
-import static org.opends.server.authorization.dseecompat.AciMessages.*;
+import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import org.opends.server.core.*;
 import static org.opends.server.loggers.Error.logError;
@@ -139,13 +139,13 @@ public class AciHandler extends AccessControlHandler
                 msgID  = MSGID_ACI_ADD_LIST_GLOBAL_ACIS;
                 String message = getMessage(msgID, Integer.toString(aciCount));
                 logError(ErrorLogCategory.ACCESS_CONTROL,
-                        ErrorLogSeverity.NOTICE,
+                        ErrorLogSeverity.INFORMATIONAL,
                         message, msgID);
             }  else {
                 msgID  = MSGID_ACI_ADD_LIST_NO_GLOBAL_ACIS;
                 String message = getMessage(msgID);
                 logError(ErrorLogCategory.ACCESS_CONTROL,
-                        ErrorLogSeverity.NOTICE, message, msgID);
+                        ErrorLogSeverity.INFORMATIONAL, message, msgID);
 
             }
         }  catch (ConfigException e) {
@@ -182,14 +182,14 @@ public class AciHandler extends AccessControlHandler
                 int    msgID  = MSGID_ACI_ADD_LIST_NO_ACIS;
                 String message = getMessage(msgID, String.valueOf(configDN));
                 logError(ErrorLogCategory.ACCESS_CONTROL,
-                        ErrorLogSeverity.NOTICE, message, msgID);
+                        ErrorLogSeverity.INFORMATIONAL, message, msgID);
             } else {
                 int validAcis = aciList.addAci(op.getSearchEntries());
                 int    msgID  = MSGID_ACI_ADD_LIST_ACIS;
                 String message = getMessage(msgID, Integer.toString(validAcis),
                         String.valueOf(configDN));
                 logError(ErrorLogCategory.ACCESS_CONTROL,
-                        ErrorLogSeverity.NOTICE,
+                        ErrorLogSeverity.INFORMATIONAL,
                         message, msgID);
             }
         } catch (DirectoryException e) {
@@ -231,7 +231,7 @@ public class AciHandler extends AccessControlHandler
                                 String.valueOf(container.getResourceDN()),
                                 String.valueOf(container.getClientDN()));
                 logError(ErrorLogCategory.ACCESS_CONTROL,
-                         ErrorLogSeverity.SEVERE_WARNING,
+                         ErrorLogSeverity.INFORMATIONAL,
                          message, msgID);
                 return false;
               }
@@ -319,7 +319,7 @@ public class AciHandler extends AccessControlHandler
                                    String.valueOf(dn),
                                    ex.getMessage());
                            logError(ErrorLogCategory.ACCESS_CONTROL,
-                                   ErrorLogSeverity.SEVERE_WARNING,
+                                   ErrorLogSeverity.INFORMATIONAL,
                                    message, msgID);
                            return false;
                        }
@@ -622,7 +622,7 @@ public class AciHandler extends AccessControlHandler
                                       String.valueOf(entry.getDN()),
                                       String.valueOf(clientDN));
           logError(ErrorLogCategory.ACCESS_CONTROL,
-                   ErrorLogSeverity.SEVERE_WARNING,
+                   ErrorLogSeverity.INFORMATIONAL,
                    message, msgID);
           return false;
         }
@@ -641,7 +641,7 @@ public class AciHandler extends AccessControlHandler
                                           String.valueOf(entry.getDN()),
                                           ex.getMessage());
               logError(ErrorLogCategory.ACCESS_CONTROL,
-                       ErrorLogSeverity.SEVERE_WARNING,
+                       ErrorLogSeverity.INFORMATIONAL,
                        message, msgID);
               return false;
             }
