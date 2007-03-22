@@ -147,8 +147,14 @@
           <testcase name="'ACI: Targetattr: Targetattr Equals One Attribute'">
             <sequence>
               <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targetattr/add_aci1.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+              </script>
+        
               <message>
-                 'ACI: Targetattr: Targetattr Equals One Attribute, preamble adding aci'
+                 'ACI: Targetattr: Targetattr Equals One Attribute, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -156,7 +162,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci1.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 0">
@@ -302,8 +308,14 @@
           <testcase name="'ACI: Targetattr: Targetattr Not Equals One Attribute'">
             <sequence>
               <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targetattr/add_aci2.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+              </script>
+        
               <message>
-                 'ACI: Targetattr: Targetattr Not Equals One Attribute, preamble adding aci'
+                 'ACI: Targetattr: Targetattr Not Equals One Attribute, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -311,7 +323,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci2.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 0">
@@ -457,8 +469,14 @@
           <testcase name="'ACI: Targetattr: Targetattr Equals Three Attributes'">
             <sequence>
               <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targetattr/add_aci3.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+              </script>
+        
               <message>
-                 'ACI: Targetattr: Targetattr Equals Three Attributes, preamble adding aci'
+                 'ACI: Targetattr: Targetattr Equals Three Attributes, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -466,7 +484,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci3.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 0">
@@ -631,8 +649,14 @@
           <testcase name="'ACI: Targetattr: Targetattr Not Equals Three Attributes'">
             <sequence>
               <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targetattr/add_aci4.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+              </script>
+        
               <message>
-                 'ACI: Targetattr: Targetattr Not Equals Three Attributes, preamble adding aci'
+                 'ACI: Targetattr: Targetattr Not Equals Three Attributes, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -640,7 +664,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci4.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 0">
@@ -800,8 +824,14 @@
           <testcase name="'ACI: Targetattr: Bad Targetattr'">
             <sequence>
               <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targetattr/add_aci5.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+              </script>
+        
               <message>
-                 'ACI: Targetattr: Bad Targetattr, preamble adding aci'
+                 'ACI: Targetattr: Bad Targetattr, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -809,7 +839,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci5.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 0">
@@ -940,8 +970,14 @@
           <testcase name="'ACI: Targetattr: Multiple Targets'">
             <sequence>
               <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targetattr/add_aci6.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+              </script>
+        
               <message>
-                 'ACI: Targetattr: Multiple Targetattrs - add aci'
+                 'ACI: Targetattr: Multiple Targetattrs - add aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -949,7 +985,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci6.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 21">
@@ -1000,8 +1036,14 @@
           <testcase name="'ACI: Targetattr: Keyword Targetattr Mispelled'">
             <sequence>
               <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targetattr/add_aci7.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+              </script>
+        
               <message>
-                 'ACI: Targetattr: Keyword Targetattr Mispelled - add aci'
+                 'ACI: Targetattr: Keyword Targetattr Mispelled - add aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -1009,7 +1051,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci7.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 21">
@@ -1060,8 +1102,14 @@
           <testcase name="'ACI: Targetattr: Targetattr With Missing Quotes'">
             <sequence>
               <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targetattr/add_aci8.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+              </script>
+        
               <message>
-                 'ACI: Targetattr: Targetattr With Missing Quotes - add aci'
+                 'ACI: Targetattr: Targetattr With Missing Quotes - add aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -1069,7 +1117,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci8.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 21">
@@ -1125,8 +1173,14 @@
           <testcase name="'ACI: Targetattr: Targetattr With Spaces'">
             <sequence>
               <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targetattr/add_aci9.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+              </script>
+        
               <message>
-                 'ACI: Targetattr: Targetattr With Spaces, preamble adding aci'
+                 'ACI: Targetattr: Targetattr With Spaces, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -1134,7 +1188,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/add_aci9.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 0">

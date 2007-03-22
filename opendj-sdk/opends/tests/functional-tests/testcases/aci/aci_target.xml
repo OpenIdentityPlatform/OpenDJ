@@ -149,8 +149,14 @@
             <testcase name="'ACI: Target: Target Equals DN'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci1.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
                 <message>
-                   'ACI: Target: Target Equals DN, preamble adding aci'
+                   'ACI: Target: Target Equals DN, preamble adding aci,\n %s' % curr_aci
                 </message>
     
                 <call function="'modifyEntry'">
@@ -158,7 +164,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_target/add_aci1.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
                 </call>
     
                 <if expr="RC != 0">
@@ -286,8 +292,14 @@
             <testcase name="'ACI: Target: Target Equals DN - new branch'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
+
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_entries1.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
                 <message>
-                   'ACI: Target: Target Equals DN - new branch, preamble adding entries'
+                   'ACI: Target: Target Equals DN - new branch, preamble adding entries,\n %s' % curr_aci
                 </message>
     
                 <call function="'addEntry'">
@@ -295,7 +307,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeAdded'   : '%s/aci/aci_target/add_entries1.ldif' % STAGED_DATA_DIR }
+                    'entryToBeAdded'   : '%s' % curr_aci_ldif_file }
                 </call>
     
                 <if expr="RC != 0">
@@ -441,8 +453,14 @@
             <testcase name="'ACI: Target: Target Equals DN With Trailing Wildcard'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
+
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci3.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
                 <message>
-                   'ACI: Target: Target Equals DN with trailing wildcard, preamble adding aci'
+                   'ACI: Target: Target Equals DN with trailing wildcard, preamble adding aci,\n %s' % curr_aci
                 </message>
     
                 <call function="'modifyEntry'">
@@ -450,7 +468,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_target/add_aci3.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
                 </call>
     
                 <if expr="RC != 0">
@@ -577,8 +595,14 @@
             <testcase name="'ACI: Target: Target Equals DN With Leading Wildcard'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
+
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci4.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
                 <message>
-                   'ACI: Target: Target Equals DN with leading wildcard, preamble adding aci'
+                   'ACI: Target: Target Equals DN with leading wildcard, preamble adding aci,\n %s' % curr_aci
                 </message>
     
                 <call function="'modifyEntry'">
@@ -586,7 +610,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_target/add_aci4.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
                 </call>
     
                 <if expr="RC != 0">
@@ -713,8 +737,14 @@
             <testcase name="'ACI: Target: Target Equals DN With Internal Wildcard'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
+
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci5.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
                 <message>
-                   'ACI: Target: Target Equals DN with internal wildcard, preamble adding aci'
+                   'ACI: Target: Target Equals DN with internal wildcard, preamble adding aci,\n %s' % curr_aci
                 </message>
     
                 <call function="'modifyEntry'">
@@ -722,7 +752,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_target/add_aci5.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
                 </call>
     
                 <if expr="RC != 0">
@@ -849,8 +879,14 @@
             <testcase name="'ACI: Target: Target Equals DN With Multiple Wildcards'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
+
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci6.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
                 <message>
-                   'ACI: Target: Target Equals DN with multiple wildcards, preamble adding aci'
+                   'ACI: Target: Target Equals DN with multiple wildcards, preamble adding aci,\n %s' % curr_aci
                 </message>
     
                 <call function="'modifyEntry'">
@@ -858,7 +894,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_target/add_aci6.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
                 </call>
     
                 <if expr="RC != 0">
@@ -982,8 +1018,14 @@
             <testcase name="'ACI: Target: Target Equals DN With Keyword self'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
+
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci8.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
                 <message>
-                   'ACI: Target: Target Equals DN With Keyword self - add aci'
+                   'ACI: Target: Target Equals DN With Keyword self - add aci,\n %s' % curr_aci
                 </message>
     
                 <call function="'modifyEntry'">
@@ -991,7 +1033,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_target/add_aci8.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
                 </call>
     
                 <if expr="RC != 21">
@@ -1046,8 +1088,14 @@
             <testcase name="'ACI: Target: Target Equals DN Above Entry'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
+
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci9.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
                 <message>
-                   'ACI: Target: Target Equals DN Above Entry - add aci'
+                   'ACI: Target: Target Equals DN Above Entry - add aci,\n %s' % curr_aci
                 </message>
     
                 <call function="'modifyEntry'">
@@ -1055,7 +1103,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_target/add_aci9.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
                 </call>
     
                 <if expr="RC != 50">
@@ -1111,8 +1159,14 @@
             <testcase name="'ACI: Target: Target Equals DN Below Entry'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
+
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci9a.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
                 <message>
-                   'ACI: Target: Target Equals DN Below Entry - add aci'
+                   'ACI: Target: Target Equals DN Below Entry - add aci,\n %s' % curr_aci
                 </message>
   
               <call function="'modifyEntry'">
@@ -1120,7 +1174,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_target/add_aci9a.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 0">
@@ -1246,8 +1300,14 @@
           <testcase name="'ACI: Target: Multiple Targets'">
             <sequence>
               <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci10.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+              </script>
+        
               <message>
-                 'ACI: Target: Multiple Targets - add aci'
+                 'ACI: Target: Multiple Targets - add aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -1255,7 +1315,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_target/add_aci10.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 21">
@@ -1311,8 +1371,14 @@
           <testcase name="'ACI: Target: Keyword Target Misspelled'">
             <sequence>
               <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci11.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+              </script>
+        
               <message>
-                 'ACI: Target: Keyword Target Misspelled - add aci'
+                 'ACI: Target: Keyword Target Misspelled - add aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -1320,7 +1386,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_target/add_aci11.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s' % curr_aci_ldif_file }
               </call>
   
               <if expr="RC != 21">
