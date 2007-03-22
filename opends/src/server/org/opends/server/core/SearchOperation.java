@@ -2097,10 +2097,19 @@ searchProcessing:
     processingStopTime = System.currentTimeMillis();
 
 
-    // Send the search result done message to the client.
+    // If everything is successful to this point and it is not a persistent
+    // search, then send the search result done message to the client.
+    // Otherwise, we'll want to make the size and time limit values unlimited
+    // to ensure that the remainder of the persistent search isn't subject to
+    // those restrictions.
     if (sendResponse)
     {
       sendSearchResultDone();
+    }
+    else
+    {
+      sizeLimit = 0;
+      timeLimit = 0;
     }
   }
 
