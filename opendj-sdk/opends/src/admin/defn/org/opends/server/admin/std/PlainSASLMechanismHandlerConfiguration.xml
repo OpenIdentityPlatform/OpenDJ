@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:managed-object name="plain-sasl-mechanism-handler" 
+  plural-name="plain-sasl-mechanism-handlers"
+  package="org.opends.server.admin.std" extends="sasl-mechanism-handler"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to perform all processing related to SASL PLAIN authentication.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.45</ldap:oid>
+      <ldap:name>ds-cfg-plain-sasl-mechanism-handler</ldap:name>
+      <ldap:superior>ds-cfg-sasl-mechanism-handler</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="identity-mapper-dn" mandatory="true">
+    <adm:synopsis>
+      Specifies the DN of the identity mapper to use.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the DN of the configuration entry for the identity mapper that
+      should be used to match client authentication and authorization IDs to
+      user entries.
+    </adm:description>
+    <adm:syntax>
+      <adm:dn>
+        <adm:base>cn=identity mappers,cn=config</adm:base>
+      </adm:dn>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.148</ldap:oid>
+        <ldap:name>ds-cfg-identity-mapper-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

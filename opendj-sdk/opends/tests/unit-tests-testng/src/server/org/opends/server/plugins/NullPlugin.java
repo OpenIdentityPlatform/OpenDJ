@@ -32,10 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1Long;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -52,7 +52,7 @@ import org.opends.server.types.operation.*;
  * implementation (which will throw exceptions for all plugin operations).
  */
 public class NullPlugin
-       extends DirectoryServerPlugin
+       extends DirectoryServerPlugin<PluginCfg>
 {
   /**
    * Creates a new instance of this Directory Server plugin.  Every
@@ -73,7 +73,7 @@ public class NullPlugin
    */
   @Override()
   public void initializePlugin(Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
+                               PluginCfg configuration)
   {
     // No implementation required.
   }

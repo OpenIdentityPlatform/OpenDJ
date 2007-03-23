@@ -30,6 +30,7 @@ package org.opends.server.api;
 
 import javax.net.ssl.KeyManager;
 
+import org.opends.server.admin.std.server.KeyManagerCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
@@ -41,8 +42,13 @@ import org.opends.server.types.InitializationException;
  * This class defines an API that may be used to obtain a set of
  * <CODE>javax.net.ssl.KeyManager</CODE> objects for use when
  * performing SSL communication.
+ *
+ * @param <T>
+ *          The type of key manager provider configuration handled by
+ *          this key manager provider implementation.
  */
 public abstract class KeyManagerProvider
+    <T extends KeyManagerCfg>
 {
   /**
    * Initializes this key manager provider based on the information in
@@ -65,6 +71,27 @@ public abstract class KeyManagerProvider
   public abstract void initializeKeyManagerProvider(
                             ConfigEntry configEntry)
          throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Initializes this key manager provider based on the information in
+   * the provided key manager provider configuration.
+   *
+   * @param configuration
+   *          The key manager provider configuration that contains the
+   *          information to use to initialize this key manager
+   *          provider.
+   * @throws ConfigException
+   *           If an unrecoverable problem arises in the process of
+   *           performing the initialization as a result of the server
+   *           configuration.
+   * @throws InitializationException
+   *           If a problem occurs during initialization that is not
+   *           related to the server configuration.
+   */
+  public abstract void initializeKeyManagerProvider(T configuration)
+      throws ConfigException, InitializationException;
 
 
 

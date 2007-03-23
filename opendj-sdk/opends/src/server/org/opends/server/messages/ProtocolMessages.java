@@ -4331,7 +4331,7 @@ public class ProtocolMessages
    * arguments, which are the DN of the configuration entry and the provided key
    * manager provider DN.
    */
-  public static final int MSGID_JMX_CONNHANDLER_INVALID_KEY_MANAGER_DN =
+  public static final int MSGID_JMX_CONNHANDLER_INVALID_KEYMANAGER_DN =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 399;
 
 
@@ -6132,7 +6132,7 @@ public class ProtocolMessages
             "connections or performing StartTLS negotiation.  " +
             "Changes to this configuration attribute will take effect " +
             "immediately.");
-    registerMessage(MSGID_JMX_CONNHANDLER_INVALID_KEY_MANAGER_DN,
+    registerMessage(MSGID_JMX_CONNHANDLER_INVALID_KEYMANAGER_DN,
             "An error occurred while processing the " + ATTR_KEYMANAGER_DN +
             " attribute in configuration entry %s, because the provided " +
             "key manager DN %s does not refer to an enabled key manager " +

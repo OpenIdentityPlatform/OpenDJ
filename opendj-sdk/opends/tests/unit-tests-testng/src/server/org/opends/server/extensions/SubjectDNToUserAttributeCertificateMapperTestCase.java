@@ -38,6 +38,11 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.
+            SubjectDNToUserAttributeCertificateMapperCfgDefn;
+import org.opends.server.admin.std.server.
+            SubjectDNToUserAttributeCertificateMapperCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -145,13 +150,14 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
   public void testInvalidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=Certificate Mappers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    SubjectDNToUserAttributeCertificateMapperCfg configuration =
+       AdminTestCaseUtils.getConfiguration(
+            SubjectDNToUserAttributeCertificateMapperCfgDefn.
+                 getInstance(), e);
 
     SubjectDNToUserAttributeCertificateMapper mapper =
          new SubjectDNToUserAttributeCertificateMapper();
-    mapper.initializeCertificateMapper(configEntry);
+    mapper.initializeCertificateMapper(configuration);
   }
 
 

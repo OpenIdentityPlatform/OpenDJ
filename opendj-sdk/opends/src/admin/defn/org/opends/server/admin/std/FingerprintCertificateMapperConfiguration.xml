@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="fingerprint-certificate-mapper"
+  plural-name="fingerprint-certificate-mappers"
+  package="org.opends.server.admin.std" extends="certificate-mapper"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    maps client certificates to user entries by looking for the MD5 or SHA1
+    fingerprint in a specified attribute of user entries.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.86</ldap:oid>
+      <ldap:name>ds-cfg-fingerprint-certificate-mapper</ldap:name>
+      <ldap:superior>ds-cfg-certificate-mapper</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="fingerprint-attribute" mandatory="true">
+    <adm:synopsis>
+      Specifies the attribute in which to look for the fingerprint.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the name or OID of the attribute whose value should exactly
+      match the MD5 or SHA1 representation of the certificate fingerprint.
+    </adm:description>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.317</ldap:oid>
+        <ldap:name>ds-cfg-certificate-fingerprint-attribute-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="fingerprint-algorithm" mandatory="true">
+    <adm:synopsis>
+      Specifies the certificate fingerprint algorithm.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the name of the digest algorithm that should be used to
+      compute the fingerprint of client certificates.  The value must be either
+      "MD5" or "SHA1".
+    </adm:description>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="md5">
+          <adm:synopsis>
+            Use the MD5 digest algorithm to compute certificate fingerprints.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="sha1">
+          <adm:synopsis>
+            Use the SHA-1 digest algorithm to compute certificate fingerprints.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.318</ldap:oid>
+        <ldap:name>ds-cfg-certificate-fingerprint-algorithm</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="user-base-dn" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the set of base DNs below which to search for users.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the base DN(s) that should be used when performing searches to
+      map the client certificate to a user entry.  If no values are provided,
+      then the server will search below all public naming contexts.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The server will perform the search in all public naming contexts.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.313</ldap:oid>
+        <ldap:name>ds-cfg-certificate-user-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

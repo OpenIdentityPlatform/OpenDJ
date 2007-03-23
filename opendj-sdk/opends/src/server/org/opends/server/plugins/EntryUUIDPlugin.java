@@ -36,11 +36,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.LDIFPluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -68,11 +68,8 @@ import static org.opends.server.util.StaticUtils.*;
  * will have identical entryUUID values.
  */
 public final class EntryUUIDPlugin
-       extends DirectoryServerPlugin
+       extends DirectoryServerPlugin<PluginCfg>
 {
-
-
-
   /**
    * The name of the entryUUID attribute type.
    */
@@ -94,7 +91,6 @@ public final class EntryUUIDPlugin
   public EntryUUIDPlugin()
   {
     super();
-
 
 
     // Get the entryUUID attribute type.  This needs to be done in the
@@ -126,7 +122,7 @@ public final class EntryUUIDPlugin
    */
   @Override()
   public final void initializePlugin(Set<PluginType> pluginTypes,
-                                     ConfigEntry configEntry)
+                                     PluginCfg configuration)
          throws ConfigException
   {
     // Make sure that the plugin has been enabled for the appropriate types.

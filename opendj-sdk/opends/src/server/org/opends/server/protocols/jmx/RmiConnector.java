@@ -44,6 +44,7 @@ import javax.management.remote.rmi.RMIConnectorServer;
 
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.JMXMBean;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.NullKeyManagerProvider;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
@@ -207,7 +208,7 @@ public class RmiConnector
    */
   private void startCommonRegistry() throws Exception
   {
-    int registryPort = jmxConnectionHandler.listenPort;
+    int registryPort = jmxConnectionHandler.getListenPort();
 
     //
     // create our local RMI registry if it does not exist already
@@ -294,7 +295,7 @@ public class RmiConnector
       // ---------------------
       DirectoryRMIClientSocketFactory rmiClientSockeyFactory = null;
       DirectoryRMIServerSocketFactory rmiServerSockeyFactory = null;
-      if (jmxConnectionHandler.useSSL)
+      if (jmxConnectionHandler.isUseSSL())
       {
         if (debugEnabled())
         {
@@ -307,14 +308,15 @@ public class RmiConnector
         //
         // Get a Server socket factory
         KeyManager[] keyManagers;
-        KeyManagerProvider provider = jmxConnectionHandler.keyManagerProvider;
-        if (provider == null)
-        {
+        KeyManagerProvider provider = DirectoryServer
+            .getKeyManagerProvider(jmxConnectionHandler
+                .getKeyManagerProviderDN());
+        if (provider == null) {
           keyManagers = new NullKeyManagerProvider().getKeyManagers();
         }
         else
         {
-          String nickname = jmxConnectionHandler.sslServerCertNickname;
+          String nickname = jmxConnectionHandler.getSSLServerCertNickname();
           if (nickname == null)
           {
             keyManagers = provider.getKeyManagers();
@@ -374,7 +376,7 @@ public class RmiConnector
       // Create the JMX Service URL
       String uri = "org.opends.server.protocols.jmx.client-unknown";
       String serviceUrl = "service:jmx:rmi:///jndi/rmi://"
-          + registryClientAddress + ":" + jmxConnectionHandler.listenPort
+          + registryClientAddress + ":" + jmxConnectionHandler.getListenPort()
           + "/" + uri;
       JMXServiceURL url = new JMXServiceURL(serviceUrl);
 

@@ -32,10 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -55,7 +55,7 @@ import org.opends.server.types.operation.PreOperationModifyOperation;
  * operations, it can add modifications.
  */
 public class UpdatePreOpPlugin
-       extends DirectoryServerPlugin
+       extends DirectoryServerPlugin<PluginCfg>
 {
   /**
    * The singleton instance of this test password validator.
@@ -101,7 +101,7 @@ public class UpdatePreOpPlugin
    */
   @Override()
   public void initializePlugin(Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
+                               PluginCfg configuration)
          throws ConfigException
   {
     // This plugin may only be used as a pre-operation plugin.

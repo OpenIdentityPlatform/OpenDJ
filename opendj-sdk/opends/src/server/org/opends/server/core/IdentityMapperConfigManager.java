@@ -28,22 +28,21 @@ package org.opends.server.core;
 
 
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.api.ConfigurableComponent;
-import org.opends.server.api.ConfigHandler;
+import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.std.meta.IdentityMapperCfgDefn;
+import org.opends.server.admin.std.server.IdentityMapperCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.IdentityMapper;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
@@ -51,14 +50,9 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -70,17 +64,14 @@ import static org.opends.server.util.StaticUtils.*;
  * or modifications to any identity mappers while the server is running.
  */
 public class IdentityMapperConfigManager
-       implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
+       implements ConfigurationChangeListener<IdentityMapperCfg>,
+                  ConfigurationAddListener<IdentityMapperCfg>,
+                  ConfigurationDeleteListener<IdentityMapperCfg>
+
 {
-
-
-
   // A mapping between the DNs of the config entries and the associated identity
   // mappers.
   private ConcurrentHashMap<DN,IdentityMapper> identityMappers;
-
-  // The configuration handler for the Directory Server.
-  private ConfigHandler configHandler;
 
 
 
@@ -89,7 +80,6 @@ public class IdentityMapperConfigManager
    */
   public IdentityMapperConfigManager()
   {
-    configHandler   = DirectoryServer.getConfigHandler();
     identityMappers = new ConcurrentHashMap<DN,IdentityMapper>();
   }
 
@@ -109,99 +99,43 @@ public class IdentityMapperConfigManager
   public void initializeIdentityMappers()
          throws ConfigException, InitializationException
   {
-    // First, get the configuration base entry.
-    ConfigEntry baseEntry;
-    try
+    // Get the root configuration object.
+    ServerManagementContext managementContext =
+         ServerManagementContext.getInstance();
+    RootCfg rootConfiguration =
+         managementContext.getRootConfiguration();
+
+
+    // Register as an add and delete listener with the root configuration so we
+    // can be notified if any identity mapper entries are added or removed.
+    rootConfiguration.addIdentityMapperAddListener(this);
+    rootConfiguration.addIdentityMapperDeleteListener(this);
+
+
+    //Initialize the existing identity mappers.
+    for (String mapperName : rootConfiguration.listIdentityMappers())
     {
-      DN mapperBase = DN.decode(DN_IDMAPPER_CONFIG_BASE);
-      baseEntry = configHandler.getConfigEntry(mapperBase);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      IdentityMapperCfg mapperConfiguration =
+           rootConfiguration.getIdentityMapper(mapperName);
+      mapperConfiguration.addChangeListener(this);
+
+      if (mapperConfiguration.isEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CONFIG_IDMAPPER_CANNOT_GET_BASE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new ConfigException(msgID, message, e);
-    }
-
-    if (baseEntry == null)
-    {
-      // The identity mapper base entry does not exist.  This is not acceptable,
-      // so throw an exception.
-      int    msgID   = MSGID_CONFIG_IDMAPPER_BASE_DOES_NOT_EXIST;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
-    }
-
-
-    // Register add and delete listeners with the identity mapper base entry.
-    // We don't care about modifications to it.
-    baseEntry.registerAddListener(this);
-    baseEntry.registerDeleteListener(this);
-
-
-    // See if the base entry has any children.  If not, then we don't need to do
-    // anything else.
-    if (! baseEntry.hasChildren())
-    {
-      return;
-    }
-
-
-    // Iterate through the child entries and process them as identity mapper
-    // configuration entries.
-    for (ConfigEntry childEntry : baseEntry.getChildren().values())
-    {
-      childEntry.registerChangeListener(this);
-
-      StringBuilder unacceptableReason = new StringBuilder();
-      if (! configAddIsAcceptable(childEntry, unacceptableReason))
-      {
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 MSGID_CONFIG_IDMAPPER_ENTRY_UNACCEPTABLE,
-                 childEntry.getDN().toString(), unacceptableReason.toString());
-        continue;
-      }
-
-      try
-      {
-        ConfigChangeResult result = applyConfigurationAdd(childEntry);
-        if (result.getResultCode() != ResultCode.SUCCESS)
+        String className = mapperConfiguration.getMapperClass();
+        try
         {
-          StringBuilder buffer = new StringBuilder();
-
-          List<String> resultMessages = result.getMessages();
-          if ((resultMessages == null) || (resultMessages.isEmpty()))
-          {
-            buffer.append(getMessage(MSGID_CONFIG_UNKNOWN_UNACCEPTABLE_REASON));
-          }
-          else
-          {
-            Iterator<String> iterator = resultMessages.iterator();
-
-            buffer.append(iterator.next());
-            while (iterator.hasNext())
-            {
-              buffer.append(EOL);
-              buffer.append(iterator.next());
-            }
-          }
-
+          IdentityMapper mapper = loadMapper(className, mapperConfiguration);
+          identityMappers.put(mapperConfiguration.dn(), mapper);
+          DirectoryServer.registerIdentityMapper(mapperConfiguration.dn(),
+                                                 mapper);
+        }
+        catch (InitializationException ie)
+        {
           logError(ErrorLogCategory.CONFIGURATION,
                    ErrorLogSeverity.SEVERE_ERROR,
-                   MSGID_CONFIG_IDMAPPER_CANNOT_CREATE_MAPPER,
-                   childEntry.getDN().toString(), buffer.toString());
+                   ie.getMessage(), ie.getMessageID());
+          continue;
         }
-      }
-      catch (Exception e)
-      {
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 MSGID_CONFIG_IDMAPPER_CANNOT_CREATE_MAPPER,
-                 childEntry.getDN().toString(), String.valueOf(e));
       }
     }
 
@@ -226,754 +160,273 @@ public class IdentityMapperConfigManager
 
 
   /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * modification is acceptable to this change listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested update.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed change is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
-  public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
+  public boolean isConfigurationAddAcceptable(
+                      IdentityMapperCfg configuration,
+                      List<String> unacceptableReasons)
   {
-    // Make sure that the entry has an appropriate objectclass for an identity
-    // mapper.
-    if (! configEntry.hasObjectClass(OC_IDENTITY_MAPPER))
+    if (configuration.isEnabled())
     {
-      int    msgID   = MSGID_CONFIG_IDMAPPER_INVALID_OBJECTCLASS;
-      String message = getMessage(msgID, configEntry.getDN().toString());
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // Make sure that the entry specifies the identity mapper class name.
-    StringConfigAttribute classNameAttr;
-    try
-    {
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_IDMAPPER_CLASS,
-                    getMessage(MSGID_CONFIG_IDMAPPER_DESCRIPTION_CLASS_NAME),
-                    true, false, true);
-      classNameAttr = (StringConfigAttribute)
-                      configEntry.getConfigAttribute(classStub);
-
-      if (classNameAttr == null)
+      // Get the name of the class and make sure we can instantiate it as an
+      // identity mapper.
+      String className = configuration.getMapperClass();
+      try
       {
-        int msgID = MSGID_CONFIG_IDMAPPER_NO_CLASS_NAME;
-        String message = getMessage(msgID, configEntry.getDN().toString());
-        unacceptableReason.append(message);
+        loadMapper(className, null);
+      }
+      catch (InitializationException ie)
+      {
+        unacceptableReasons.add(ie.getMessage());
         return false;
       }
     }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_CLASS_NAME;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-    Class mapperClass;
-    try
-    {
-      // FIXME -- Should this be done with a custom class loader?
-      mapperClass = Class.forName(classNameAttr.pendingValue());
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_CLASS_NAME;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-    try
-    {
-      IdentityMapper mapper =
-           (IdentityMapper) mapperClass.newInstance();
-    }
-    catch(Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_CLASS;
-      String message = getMessage(msgID, mapperClass.getName(),
-                                  String.valueOf(configEntry.getDN()),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // See if this identity mapper should be enabled.
-    BooleanConfigAttribute enabledAttr;
-    try
-    {
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_IDMAPPER_ENABLED,
-                    getMessage(MSGID_CONFIG_IDMAPPER_DESCRIPTION_ENABLED),
-                               false);
-      enabledAttr = (BooleanConfigAttribute)
-                    configEntry.getConfigAttribute(enabledStub);
-
-      if (enabledAttr == null)
-      {
-        int msgID = MSGID_CONFIG_IDMAPPER_NO_ENABLED_ATTR;
-        String message = getMessage(msgID, configEntry.getDN().toString());
-        unacceptableReason.append(message);
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_ENABLED_VALUE;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // If we've gotten here then the identity mapper entry appears to be
-    // acceptable.
+    // If we've gotten here, then it's fine.
     return true;
   }
 
 
 
   /**
-   * Attempts to apply a new configuration to this Directory Server component
-   * based on the provided changed entry.
-   *
-   * @param  configEntry  The configuration entry that containing the updated
-   *                      configuration for this component.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
+  public ConfigChangeResult applyConfigurationAdd(
+                                 IdentityMapperCfg configuration)
   {
-    DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
 
+    configuration.addChangeListener(this);
 
-    // Make sure that the entry has an appropriate objectclass for an identity
-    // mapper.
-    if (! configEntry.hasObjectClass(OC_IDENTITY_MAPPER))
+    if (! configuration.isEnabled())
     {
-      int    msgID   = MSGID_CONFIG_IDMAPPER_INVALID_OBJECTCLASS;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-      resultCode = ResultCode.UNWILLING_TO_PERFORM;
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
+    IdentityMapper identityMapper = null;
 
-    // Get the corresponding identity mapper if it is active.
-    IdentityMapper mapper = identityMappers.get(configEntryDN);
-
-
-    // See if this identity mapper should be enabled or disabled.
-    boolean needsEnabled = false;
-    BooleanConfigAttribute enabledAttr;
+    // Get the name of the class and make sure we can instantiate it as an
+    // identity mapper.
+    String className = configuration.getMapperClass();
     try
     {
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_IDMAPPER_ENABLED,
-                    getMessage(MSGID_CONFIG_IDMAPPER_DESCRIPTION_ENABLED),
-                               false);
-      enabledAttr = (BooleanConfigAttribute)
-                    configEntry.getConfigAttribute(enabledStub);
-
-      if (enabledAttr == null)
-      {
-        int msgID = MSGID_CONFIG_IDMAPPER_NO_ENABLED_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-      if (enabledAttr.activeValue())
-      {
-        if (mapper == null)
-        {
-          needsEnabled = true;
-        }
-        else
-        {
-          // The identity mapper is already active, so no action is required.
-        }
-      }
-      else
-      {
-        if (mapper == null)
-        {
-          // The identity mapper is already disabled, so no action is required
-          // and we can short-circuit out of this processing.
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-        else
-        {
-          // The identity mapper is active, so it needs to be disabled.  Do this
-          // and return that we were successful.
-          identityMappers.remove(configEntryDN);
-          mapper.finalizeIdentityMapper();
-          DirectoryServer.deregisterIdentityMapper(configEntryDN);
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-      }
+      identityMapper = loadMapper(className, configuration);
     }
-    catch (Exception e)
+    catch (InitializationException ie)
     {
-      if (debugEnabled())
+      if (resultCode == ResultCode.SUCCESS)
       {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_ENABLED_VALUE;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // Make sure that the entry specifies the identity mapper class name.  If it
-    // has changed, then we will not try to dynamically apply it.
-    String className;
-    try
-    {
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_IDMAPPER_CLASS,
-                    getMessage(MSGID_CONFIG_IDMAPPER_DESCRIPTION_CLASS_NAME),
-                    true, false, true);
-      StringConfigAttribute classNameAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-
-      if (classNameAttr == null)
-      {
-        int msgID = MSGID_CONFIG_IDMAPPER_NO_CLASS_NAME;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-      className = classNameAttr.pendingValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_CLASS_NAME;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    boolean classChanged = false;
-    String  oldClassName = null;
-    if (mapper != null)
-    {
-      oldClassName = mapper.getClass().getName();
-      classChanged = (! className.equals(oldClassName));
-    }
-
-
-    if (classChanged)
-    {
-      // This will not be applied dynamically.  Add a message to the response
-      // and indicate that admin action is required.
-      adminActionRequired = true;
-      messages.add(getMessage(MSGID_CONFIG_IDMAPPER_CLASS_ACTION_REQUIRED,
-                              String.valueOf(oldClassName),
-                              String.valueOf(className),
-                              String.valueOf(configEntryDN)));
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    if (needsEnabled)
-    {
-      try
-      {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class mapperClass = Class.forName(className);
-        mapper = (IdentityMapper) mapperClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int msgID = MSGID_CONFIG_IDMAPPER_INVALID_CLASS;
-        messages.add(getMessage(msgID, className,
-                                String.valueOf(configEntryDN),
-                                String.valueOf(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
       }
 
-      try
-      {
-        mapper.initializeIdentityMapper(configEntry);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int msgID = MSGID_CONFIG_IDMAPPER_INITIALIZATION_FAILED;
-        messages.add(getMessage(msgID, className,
-                                String.valueOf(configEntryDN),
-                                String.valueOf(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-
-      identityMappers.put(configEntryDN, mapper);
-      DirectoryServer.registerIdentityMapper(configEntryDN, mapper);
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      messages.add(ie.getMessage());
     }
 
+    if (resultCode == ResultCode.SUCCESS)
+    {
+      identityMappers.put(configuration.dn(), identityMapper);
+      DirectoryServer.registerIdentityMapper(configuration.dn(),
+                                             identityMapper);
+    }
 
-    // If we've gotten here, then there haven't been any changes to anything
-    // that we care about.
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
 
 
   /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * add is acceptable to this add listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested add.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed entry is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
-  public boolean configAddIsAcceptable(ConfigEntry configEntry,
-                                       StringBuilder unacceptableReason)
+  public boolean isConfigurationDeleteAcceptable(
+                      IdentityMapperCfg configuration,
+                      List<String> unacceptableReasons)
   {
-    // Make sure that no entry already exists with the specified DN.
-    DN configEntryDN = configEntry.getDN();
-    if (identityMappers.containsKey(configEntryDN))
-    {
-      int    msgID   = MSGID_CONFIG_IDMAPPER_EXISTS;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // Make sure that the entry has an appropriate objectclass for an identity
-    // mapper.
-    if (! configEntry.hasObjectClass(OC_IDENTITY_MAPPER))
-    {
-      int    msgID   = MSGID_CONFIG_IDMAPPER_INVALID_OBJECTCLASS;
-      String message = getMessage(msgID, configEntry.getDN().toString());
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // Make sure that the entry specifies the identity mapper class.
-    StringConfigAttribute classNameAttr;
-    try
-    {
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_IDMAPPER_CLASS,
-                    getMessage(MSGID_CONFIG_IDMAPPER_DESCRIPTION_CLASS_NAME),
-                    true, false, true);
-      classNameAttr = (StringConfigAttribute)
-                      configEntry.getConfigAttribute(classStub);
-
-      if (classNameAttr == null)
-      {
-        int msgID = MSGID_CONFIG_IDMAPPER_NO_CLASS_NAME;
-        String message = getMessage(msgID, configEntry.getDN().toString());
-        unacceptableReason.append(message);
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_CLASS_NAME;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-    Class mapperClass;
-    try
-    {
-      // FIXME -- Should this be done with a custom class loader?
-      mapperClass = Class.forName(classNameAttr.pendingValue());
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_CLASS_NAME;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-    IdentityMapper identityMapper;
-    try
-    {
-      identityMapper = (IdentityMapper) mapperClass.newInstance();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_CLASS;
-      String message = getMessage(msgID, mapperClass.getName(),
-                                  String.valueOf(configEntryDN),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // If the identity mapper is a configurable component, then make sure that
-    // its configuration is valid.
-    if (identityMapper instanceof ConfigurableComponent)
-    {
-      ConfigurableComponent cc = (ConfigurableComponent) identityMapper;
-      LinkedList<String> errorMessages = new LinkedList<String>();
-      if (! cc.hasAcceptableConfiguration(configEntry, errorMessages))
-      {
-        if (errorMessages.isEmpty())
-        {
-          int msgID = MSGID_CONFIG_IDMAPPER_UNACCEPTABLE_CONFIG;
-          unacceptableReason.append(getMessage(msgID,
-                                               String.valueOf(configEntryDN)));
-        }
-        else
-        {
-          Iterator<String> iterator = errorMessages.iterator();
-          unacceptableReason.append(iterator.next());
-          while (iterator.hasNext())
-          {
-            unacceptableReason.append("  ");
-            unacceptableReason.append(iterator.next());
-          }
-        }
-
-        return false;
-      }
-    }
-
-
-    // See if this identity mapper should be enabled.
-    BooleanConfigAttribute enabledAttr;
-    try
-    {
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_IDMAPPER_ENABLED,
-                    getMessage(MSGID_CONFIG_IDMAPPER_DESCRIPTION_ENABLED),
-                               false);
-      enabledAttr = (BooleanConfigAttribute)
-                    configEntry.getConfigAttribute(enabledStub);
-
-      if (enabledAttr == null)
-      {
-        int msgID = MSGID_CONFIG_IDMAPPER_NO_ENABLED_ATTR;
-        String message = getMessage(msgID, configEntry.getDN().toString());
-        unacceptableReason.append(message);
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_ENABLED_VALUE;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // If we've gotten here then the identity mapper entry appears to be
-    // acceptable.
+    // FIXME -- We should try to perform some check to determine whether the
+    // identity mapper is in use.
     return true;
   }
 
 
 
   /**
-   * Attempts to apply a new configuration based on the provided added entry.
-   *
-   * @param  configEntry  The new configuration entry that contains the
-   *                      configuration to apply.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
+  public ConfigChangeResult applyConfigurationDelete(
+                                 IdentityMapperCfg configuration)
   {
-    DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
 
+    DirectoryServer.deregisterIdentityMapper(configuration.dn());
 
-    // Make sure that the entry has an appropriate objectclass for an identity
-    // mapper.
-    if (! configEntry.hasObjectClass(OC_IDENTITY_MAPPER))
-    {
-      int    msgID   = MSGID_CONFIG_IDMAPPER_INVALID_OBJECTCLASS;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-      resultCode = ResultCode.UNWILLING_TO_PERFORM;
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // See if this identity mapper should be enabled or disabled.
-    BooleanConfigAttribute enabledAttr;
-    try
-    {
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_IDMAPPER_ENABLED,
-                    getMessage(MSGID_CONFIG_IDMAPPER_DESCRIPTION_ENABLED),
-                               false);
-      enabledAttr = (BooleanConfigAttribute)
-                    configEntry.getConfigAttribute(enabledStub);
-
-      if (enabledAttr == null)
-      {
-        // The attribute doesn't exist, so it will be disabled by default.
-        int msgID = MSGID_CONFIG_IDMAPPER_NO_ENABLED_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-        resultCode = ResultCode.SUCCESS;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else if (! enabledAttr.activeValue())
-      {
-        // It is explicitly configured as disabled, so we don't need to do
-        // anything.
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_ENABLED_VALUE;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // Make sure that the entry specifies the identity mapper class name.
-    String className;
-    try
-    {
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_IDMAPPER_CLASS,
-                    getMessage(MSGID_CONFIG_IDMAPPER_DESCRIPTION_CLASS_NAME),
-                    true, false, true);
-      StringConfigAttribute classNameAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-
-      if (classNameAttr == null)
-      {
-        int msgID = MSGID_CONFIG_IDMAPPER_NO_CLASS_NAME;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-      className = classNameAttr.pendingValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_CLASS_NAME;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // Load and initialize the identity mapper class, and register it with the
-    // Directory Server.
-    IdentityMapper identityMapper;
-    try
-    {
-      // FIXME -- Should this be done with a dynamic class loader?
-      Class mapperClass = Class.forName(className);
-      identityMapper = (IdentityMapper) mapperClass.newInstance();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INVALID_CLASS;
-      messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-    try
-    {
-      identityMapper.initializeIdentityMapper(configEntry);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_IDMAPPER_INITIALIZATION_FAILED;
-      messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    identityMappers.put(configEntryDN, identityMapper);
-    DirectoryServer.registerIdentityMapper(configEntryDN, identityMapper);
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-
-
-  /**
-   * Indicates whether it is acceptable to remove the provided configuration
-   * entry.
-   *
-   * @param  configEntry         The configuration entry that will be removed
-   *                             from the configuration.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed delete is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry may be removed from the
-   *          configuration, or <CODE>false</CODE> if not.
-   */
-  public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
-  {
-    // A delete should always be acceptable, so just return true.
-    return true;
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration based on the provided deleted entry.
-   *
-   * @param  configEntry  The new configuration entry that has been deleted.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
-  {
-    DN         configEntryDN       = configEntry.getDN();
-    ResultCode resultCode          = ResultCode.SUCCESS;
-    boolean    adminActionRequired = false;
-
-
-    // See if the entry is registered as an identity mapper.  If so, deregister
-    // it and stop the mapper.
-    DirectoryServer.deregisterIdentityMapper(configEntryDN);
-    IdentityMapper identityMapper = identityMappers.remove(configEntryDN);
+    IdentityMapper identityMapper = identityMappers.remove(configuration.dn());
     if (identityMapper != null)
     {
       identityMapper.finalizeIdentityMapper();
     }
 
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired);
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+                      IdentityMapperCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    if (configuration.isEnabled())
+    {
+      // Get the name of the class and make sure we can instantiate it as an
+      // identity mapper.
+      String className = configuration.getMapperClass();
+      try
+      {
+        loadMapper(className, null);
+      }
+      catch (InitializationException ie)
+      {
+        unacceptableReasons.add(ie.getMessage());
+        return false;
+      }
+    }
+
+    // If we've gotten here, then it's fine.
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+                                 IdentityMapperCfg configuration)
+  {
+    ResultCode        resultCode          = ResultCode.SUCCESS;
+    boolean           adminActionRequired = false;
+    ArrayList<String> messages            = new ArrayList<String>();
+
+
+    // Get the existing mapper if it's already enabled.
+    IdentityMapper existingMapper = identityMappers.get(configuration.dn());
+
+
+    // If the new configuration has the mapper disabled, then disable it if it
+    // is enabled, or do nothing if it's already disabled.
+    if (! configuration.isEnabled())
+    {
+      if (existingMapper != null)
+      {
+        DirectoryServer.deregisterIdentityMapper(configuration.dn());
+
+        IdentityMapper identityMapper =
+             identityMappers.remove(configuration.dn());
+        if (identityMapper != null)
+        {
+          identityMapper.finalizeIdentityMapper();
+        }
+      }
+
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    }
+
+
+    // Get the class for the identity mapper.  If the mapper is already enabled,
+    // then we shouldn't do anything with it although if the class has changed
+    // then we'll at least need to indicate that administrative action is
+    // required.  If the mapper is disabled, then instantiate the class and
+    // initialize and register it as an identity mapper.
+    String className = configuration.getMapperClass();
+    if (existingMapper != null)
+    {
+      if (! className.equals(existingMapper.getClass().getName()))
+      {
+        adminActionRequired = true;
+      }
+
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    }
+
+    IdentityMapper identityMapper = null;
+    try
+    {
+      identityMapper = loadMapper(className, configuration);
+    }
+    catch (InitializationException ie)
+    {
+      if (resultCode == ResultCode.SUCCESS)
+      {
+        resultCode = DirectoryServer.getServerErrorResultCode();
+      }
+
+      messages.add(ie.getMessage());
+    }
+
+    if (resultCode == ResultCode.SUCCESS)
+    {
+      identityMappers.put(configuration.dn(), identityMapper);
+      DirectoryServer.registerIdentityMapper(configuration.dn(),
+                                             identityMapper);
+    }
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+
+
+  /**
+   * Loads the specified class, instantiates it as an identity mapper, and
+   * optionally initializes that instance.
+   *
+   * @param  className      The fully-qualified name of the identity mapper
+   *                        class to load, instantiate, and initialize.
+   * @param  configuration  The configuration to use to initialize the identity
+   *                        mapper, or {@code null} if the identity mapper
+   *                        should not be initialized.
+   *
+   * @return  The possibly initialized identity mapper.
+   *
+   * @throws  InitializationException  If a problem occurred while attempting to
+   *                                   initialize the identity mapper.
+   */
+  private IdentityMapper loadMapper(String className,
+                                    IdentityMapperCfg configuration)
+          throws InitializationException
+  {
+    try
+    {
+      IdentityMapperCfgDefn definition =
+           IdentityMapperCfgDefn.getInstance();
+      ClassPropertyDefinition propertyDefinition =
+           definition.getMapperClassPropertyDefinition();
+      Class<? extends IdentityMapper> mapperClass =
+           propertyDefinition.loadClass(className, IdentityMapper.class);
+      IdentityMapper mapper = mapperClass.newInstance();
+
+      if (configuration != null)
+      {
+        Method method =
+             mapper.getClass().getMethod("initializeIdentityMapper",
+                  configuration.definition().getServerConfigurationClass());
+        method.invoke(mapper, configuration);
+      }
+
+      return mapper;
+    }
+    catch (Exception e)
+    {
+      int msgID = MSGID_CONFIG_IDMAPPER_INITIALIZATION_FAILED;
+      String message = getMessage(msgID, className,
+                                  String.valueOf(configuration.dn()),
+                                  stackTraceToSingleLineString(e));
+      throw new InitializationException(msgID, message, e);
+    }
   }
 }
 

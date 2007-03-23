@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
@@ -39,7 +40,6 @@ import org.opends.server.api.plugin.PostOperationPluginResult;
 import org.opends.server.api.plugin.PostResponsePluginResult;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.api.plugin.PreParsePluginResult;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -65,7 +65,7 @@ import org.opends.server.types.operation.*;
  * </UL>
  */
 public class DisconnectClientPlugin
-       extends DirectoryServerPlugin
+       extends DirectoryServerPlugin<PluginCfg>
 {
   /**
    * The OID for the disconnect request control, which is used to flag
@@ -95,7 +95,7 @@ public class DisconnectClientPlugin
    */
   @Override()
   public void initializePlugin(Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
+                               PluginCfg configuration)
          throws ConfigException
   {
     // This plugin may only be used as a pre-parse, pre-operation,

@@ -128,6 +128,11 @@
 
   <property file="PRODUCT"                                                />
 
+  <!-- Properties for administration framework code generation. -->
+  <property name="admin.defn.dir"  location="src/admin/defn" />
+  <property name="admin.src.dir"   location="src/admin/generated" />
+  <property name="admin.rules.dir" location="resource/admin" />
+
   <!-- Create a package bundle containing the DSML library. -->
   <target name="dsml" depends="predsml,package"
        description="Build a Directory Server package bundle with DSML.">
@@ -167,13 +172,14 @@
 
 
   <!-- Remove all dynamically-generated build files. -->
-  <target name="clean"
+  <target name="clean" depends="cleanadmin"
        description="Clean up any files generated during the build process">
 
     <delete dir="${build.dir}"           />
-    <delete file="${dynconstants.file}"  />                           <fileset dir="${lib.dir}">
-        <include name="*.jar" />
-      </fileset>
+    <delete file="${dynconstants.file}"  />
+    <fileset dir="${lib.dir}">
+      <include name="*.jar" />
+    </fileset>
   </target>
 
 
@@ -282,8 +288,10 @@
     </taskdef>
 
     <checkcopyrightdates>
-      <fileset dir="${basedir}" includes="**/*.java" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.java" excludes="build/**/*,src/admin/generated/**/*" />
       <fileset dir="${basedir}" includes="**/*.xml" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.xsd" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.xsl" excludes="build/**/*" />
       <fileset dir="${basedir}" includes="**/*.html" excludes="build/**/*" />
       <fileset dir="${basedir}" includes="**/*.sh" excludes="build/**/*" />
       <fileset dir="${basedir}" includes="**/*.bat" excludes="build/**/* " />
@@ -296,7 +304,6 @@
       <fileset dir="${scripts.dir}" includes="**/*" />
     </checkcopyrightdates>
   </target>
-
 
 
 
@@ -316,8 +323,10 @@
     </taskdef>
 
     <checkeolstyle>
-      <fileset dir="${basedir}" includes="**/*.java" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.java" excludes="build/**/*,src/admin/generated/**/*" />
       <fileset dir="${basedir}" includes="**/*.xml" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.xsd" excludes="build/**/*" />
+      <fileset dir="${basedir}" includes="**/*.xsl" excludes="build/**/*" />
       <fileset dir="${basedir}" includes="**/*.html" excludes="build/**/*" />
       <fileset dir="${basedir}" includes="**/*.sh" excludes="build/**/*" />
       <fileset dir="${basedir}" includes="**/*.bat" excludes="build/**/* " />
@@ -392,12 +401,12 @@
 
   <!-- Compile the Directory Server source files. -->
   <target name="compile"
-       depends="init,dynamicconstants"
+       depends="init,dynamicconstants,compileadmin"
        description="Compile the Directory Server source files.">
 
     <mkdir dir="${classes.dir}" />
 
-    <javac srcdir="${src.dir}" destdir="${classes.dir}" optimize="true"
+    <javac srcdir="${src.dir}:${admin.src.dir}" destdir="${classes.dir}" optimize="true"
          excludes="**/package-info.java"
          debug="on" debuglevel="lines,vars,source" source="1.5" target="1.5"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
@@ -444,16 +453,16 @@
           description="Compile the Quick Setup source files.">
 
     <mkdir dir="${quicksetup.classes.dir}" />
-  	<javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
-  	       optimize="true" debug="on" debuglevel="lines,source" source="1.5"
-  	       target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
-  	       memoryMaximumSize="${MEM}">
-  				<include name="**/org/opends/server/util/SetupUtils.java"/>
-  				<include name="**/org/opends/server/util/DynamicConstants.java"/>
-  				<include name="**/org/opends/server/types/OperatingSystem.java"/>
-  	   		<compilerarg value="-Xlint:all" />
-  	</javac>
-  	<javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
+    <javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
+               optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+               target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+               memoryMaximumSize="${MEM}">
+      <include name="**/org/opends/server/util/SetupUtils.java"/>
+      <include name="**/org/opends/server/util/DynamicConstants.java"/>
+      <include name="**/org/opends/server/types/OperatingSystem.java"/>
+      <compilerarg value="-Xlint:all" />
+    </javac>
+    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
          optimize="true" debug="on" debuglevel="lines,source" source="1.5"
          target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
@@ -524,9 +533,12 @@
     <delete file="${package.dir}/lib/quicksetup.jar" />
     <delete file="${package.dir}/lib/statuspanel.jar" />
 
+    <!-- Regenerate configuration files if necessary -->
+    <antcall target="compileadmin" />
+
     <!-- Recreate the classes directory and recompile into it. -->
     <mkdir dir="${classes.dir}" />
-    <javac srcdir="${src.dir}" destdir="${classes.dir}" optimize="true"
+    <javac srcdir="${src.dir}:${admin.src.dir}" destdir="${classes.dir}" optimize="true"
          debug="on" debuglevel="lines,source" source="1.5" target="1.5"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
@@ -545,32 +557,32 @@
 
     <!-- Recreate the quicksetup classes directory and recompile into it. -->
     <mkdir dir="${quicksetup.classes.dir}" />
-  	<javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
-  	  	       optimize="true" debug="on" debuglevel="lines,source" source="1.5"
-  	  	       target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
-  	  	       memoryMaximumSize="${MEM}">
-  	  	<include name="**/org/opends/server/util/SetupUtils.java"/>
-  	  	<include name="**/org/opends/server/util/DynamicConstants.java"/>
-  	  	<include name="**/org/opends/server/types/OperatingSystem.java"/>
-  	  	<compilerarg value="-Xlint:all" />
-  	</javac>
+    <javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
+                       optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+                       target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+                       memoryMaximumSize="${MEM}">
+      <include name="**/org/opends/server/util/SetupUtils.java"/>
+      <include name="**/org/opends/server/util/DynamicConstants.java"/>
+      <include name="**/org/opends/server/types/OperatingSystem.java"/>
+      <compilerarg value="-Xlint:all" />
+    </javac>
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}" optimize="true"
         debug="on" debuglevel="lines,source" source="1.5" target="1.5"
         deprecation="true" fork="true" memoryInitialSize="${MEM}"
         memoryMaximumSize="${MEM}">
-        <compilerarg value="-Xlint:all" />
-        <classpath>
-            <fileset dir="${build.dir}/build-tools">
-                <include name="build-tools.jar" />
-            </fileset>
-            <fileset dir="${pdir}/lib">
-                <include name="OpenDS.jar" />
-            </fileset>
-        </classpath>
+      <compilerarg value="-Xlint:all" />
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="build-tools.jar" />
+        </fileset>
+        <fileset dir="${pdir}/lib">
+          <include name="OpenDS.jar" />
+        </fileset>
+      </classpath>
     </javac>
 
     <copy todir="${quicksetup.classes.dir}">
-        <fileset dir="${quicksetup.src.dir}"
+      <fileset dir="${quicksetup.src.dir}"
             includes="**/*.properties, **/*.gif, **/*.png"/>
     </copy>
 
@@ -584,22 +596,25 @@
         debug="on" debuglevel="lines,source" source="1.5" target="1.5"
         deprecation="true" fork="true" memoryInitialSize="${MEM}"
         memoryMaximumSize="${MEM}">
-        <compilerarg value="-Xlint:all" />
-        <classpath>
-            <fileset dir="${pdir}/lib">
-                <include name="OpenDS.jar" />
-            </fileset>
-        </classpath>
+      <compilerarg value="-Xlint:all" />
+      <classpath>
+        <fileset dir="${pdir}/lib">
+          <include name="OpenDS.jar" />
+        </fileset>
+      </classpath>
     </javac>
 
     <copy todir="${statuspanel.classes.dir}">
-        <fileset dir="${statuspanel.src.dir}"
+      <fileset dir="${statuspanel.src.dir}"
             includes="**/*.properties, **/*.gif, **/*.png"/>
     </copy>
 
-   <!-- Generate the statuspanel.jar file -->
-   <jar jarfile="${pdir}/lib/statuspanel.jar"
+    <!-- Generate the statuspanel.jar file -->
+    <jar jarfile="${pdir}/lib/statuspanel.jar"
         basedir="${statuspanel.classes.dir}" compress="true" index="true" />
+
+    <!-- Regenerate example plugin. -->
+    <antcall target="example-plugin" />
   </target>
 
 
@@ -617,7 +632,7 @@
     <mkdir dir="${pdir}"                 />
     <mkdir dir="${pdir}/bak"             />
     <mkdir dir="${pdir}/bat"             />
-  	<mkdir dir="${pdir}/bin"             />
+    <mkdir dir="${pdir}/bin"             />
     <mkdir dir="${pdir}/classes"         />
     <mkdir dir="${pdir}/config"          />
     <mkdir dir="${pdir}/config/upgrade"  />
@@ -629,6 +644,7 @@
     <mkdir dir="${pdir}/ldif"            />
     <mkdir dir="${pdir}/legal-notices"   />
     <mkdir dir="${pdir}/lib"             />
+    <mkdir dir="${pdir}/lib/extensions"  />
     <mkdir dir="${pdir}/locks"           />
     <mkdir dir="${pdir}/logs"            />
 
@@ -644,18 +660,18 @@
     <copy todir="${pdir}/lib">
       <fileset file="${lib.dir}/*.jar" />
     </copy>
-  	
-  	<copy todir="${pdir}/lib">
-  	  <fileset file="${lib.dir}/*.exe" />
-  	</copy>
 
-    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat"
-         eol="lf" />
-    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" includes="*.bat,README_WINDOWS.txt"
-         eol="crlf" />
+    <copy todir="${pdir}/lib">
+      <fileset file="${lib.dir}/*.exe" />
+    </copy>
+
+    <antcall target="example-plugin" />
+
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat" eol="lf" />
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" includes="*.bat,README_WINDOWS.txt" eol="crlf" />
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bat" includes="*.bat"
          eol="crlf" />
-  	
+
     <copy todir="${pdir}/config">
       <fileset file="${config.dir}/*" />
     </copy>
@@ -808,7 +824,7 @@
 
 
   <!-- Generate JavaDoc documentation from the source files -->
-  <target name="javadoc" depends="dsml"
+  <target name="javadoc" depends="dsml,compileadmin"
        description="Generate JavaDoc documentation.">
 
     <mkdir dir="${javadoc.dir}" />
@@ -830,6 +846,7 @@
       </classpath>
 
       <packageset dir="${src.dir}" />
+      <packageset dir="${admin.src.dir}" />
       <packageset dir="${dsml.src.dir}" />
     </javadoc>
   </target>
@@ -946,14 +963,14 @@
     <antcall target="testinit.checkFailedTestsOnly"/>
   </target>
 
- <!-- If we were asked to run only the tests that failed,
+  <!-- If we were asked to run only the tests that failed,
       then we overwrite the testng.xml that we just generated
       with testng-failed.xml, which TestNG generated. -->
   <target name="testinit.checkFailedTestsOnly" if="test.failures">
     <!-- Ensure that some of the tests failed last time. -->
-    <available property="testng-failed.xml.exists" 
+    <available property="testng-failed.xml.exists"
                file="${unittest.report.dir}/testng-failed.xml"/>
-    <fail message="No unit tests failed in the previous run." 
+    <fail message="No unit tests failed in the previous run."
           unless="testng-failed.xml.exists"/>
 
     <!-- We replace the 'Failed suite [OpenDS]' with 'OpenDS' so we
@@ -968,7 +985,7 @@
     <copy file="${unittest.report.dir}/testng-failed.xml"
           tofile="${unittest.resource.dir}/testng.xml"
           overwrite="true"/>
-  
+
     <echo message="Will run the failed unit tests only"/>
   </target>
 
@@ -1110,7 +1127,7 @@
     <antcall target="testhelp"/>
 
     <mkdir dir="${unittest.report.dir}" />
-    
+
     <taskdef resource="testngtasks">
       <classpath>
         <fileset dir="${testng.lib.dir}">
@@ -1149,7 +1166,7 @@
       <fileset dir="${unittest.report.dir}" includes="*"/>
     </delete>
 
-    <!-- Our testng listener will remove this file if all of the 
+    <!-- Our testng listener will remove this file if all of the
          tests passed.  This allows us to generate the coverage
          report even if the tests failed and still fail the build. -->
     <touch file="${unittest.report.dir}/.tests-failed-marker"/>
@@ -1190,7 +1207,7 @@
     <!-- Our testng listener will create this file if any of the
          tests failed.  This allows us to generate the coverage
          report even if the tests failed. -->
-    <available property="testng.tests.failed" 
+    <available property="testng.tests.failed"
                file="${unittest.report.dir}/.tests-failed-marker"/>
 
     <!-- Delete all of the report suite sub-directories since we only
@@ -1200,8 +1217,8 @@
     <emma enabled="${coverage.enabled}" >
       <report sourcepath="${src.dir}" >
         <fileset dir="${coverage.data.dir}" >
-           <include name="unit.emma"     />
-           <include name="metadata.emma" />
+          <include name="unit.emma"     />
+          <include name="metadata.emma" />
         </fileset>
 
         <txt  outfile="${coverage.report.dir}/coverage.txt" />
@@ -1279,13 +1296,13 @@
   </target>
 
 
-    <target name="integration-tests"
+  <target name="integration-tests"
             description="Builds the integration tests"
             >
-        <ant dir="${functest.testng.dir}" inheritall="false"/>
-    </target>
+    <ant dir="${functest.testng.dir}" inheritall="false"/>
+  </target>
 
-    
+
   <target name="buildtools"
         description="Builds the build tools">
 
@@ -1324,5 +1341,106 @@
     <jar jarfile="${build.dir}/build-tools/build-tools.jar"
          basedir="${buildtools.classes.dir}" compress="true" index="true" />
   </target>
-        
+
+  <!-- Code generation for core administration components. -->
+  <target name="compileadmin" depends="validateadmin" description="Code generation for configuration Object.">
+    <!-- Generate introspection API for core administration components. -->
+    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml" style="${admin.rules.dir}/metaMO.xsl">
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.java" />
+      <param name="base-dir" expression="${admin.defn.dir}" />
+    </xslt>
+
+    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/Package.xml" style="${admin.rules.dir}/package-info.xsl">
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/meta/package-info.java" />
+      <param name="type" expression="meta" />
+    </xslt>
+
+    <!-- Generate client API for core administration components. -->
+    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml" style="${admin.rules.dir}/clientMO.xsl">
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/client/\2CfgClient.java" />
+      <param name="base-dir" expression="${admin.defn.dir}" />
+    </xslt>
+
+    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/Package.xml" style="${admin.rules.dir}/package-info.xsl">
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/client/package-info.java" />
+      <param name="type" expression="client" />
+    </xslt>
+
+    <!-- Generate server API for core administration components. -->
+    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml" style="${admin.rules.dir}/serverMO.xsl">
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/server/\2Cfg.java" />
+      <param name="base-dir" expression="${admin.defn.dir}" />
+    </xslt>
+
+    <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/Package.xml" style="${admin.rules.dir}/package-info.xsl">
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/server/package-info.java" />
+      <param name="type" expression="server" />
+    </xslt>
+
+    <!-- Generate LDAP profile for core administration components. -->
+    <mkdir dir="${classes.dir}" />
+    <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/profiles/ldap" includes="**/*Configuration.xml" style="${admin.rules.dir}/ldapMOProfile.xsl">
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
+      <param name="base-dir" expression="${admin.defn.dir}" />
+    </xslt>
+
+    <!-- Generate manifest file for core administration components. -->
+    <tempfile property="admin.temp.dir" destDir="${build.dir}" prefix="tmp" />
+    <mkdir dir="${admin.temp.dir}" />
+    <xslt basedir="${admin.defn.dir}" destdir="${admin.temp.dir}" extension=".manifest" includes="**/*Configuration.xml" style="${admin.rules.dir}/manifestMO.xsl"/>
+    <concat destfile="${classes.dir}/admin/core.manifest">
+      <fileset dir="${admin.temp.dir}" includes="**/*.manifest" />
+    </concat>
+    <delete dir="${admin.temp.dir}" />
+  </target>
+
+  <!-- Remove all dynamically-generated build files. -->
+  <target name="cleanadmin" description="Clean up any generated source files for admin">
+    <delete includeemptydirs="true">
+      <fileset dir="${admin.src.dir}" includes="**/*" />
+    </delete>
+  </target>
+
+  <!-- Validate core administration component XML definition files. -->
+  <target name="validateadmin" description="Validate core administration component XML definition files.">
+    <schemavalidate>
+      <fileset dir="${admin.defn.dir}" includes="**/*.xml" />
+      <schema namespace="http://www.opends.org/admin" file="${admin.rules.dir}/admin.xsd"/>
+      <schema namespace="http://www.opends.org/admin-ldap" file="${admin.rules.dir}/admin-ldap.xsd"/>
+    </schemavalidate>
+  </target>
+
+  <!-- Generate example plugin package. -->
+  <target name="example-plugin" if="pdir">
+    <!-- Create folder hierarchy in temporary directory. -->
+    <tempfile property="plugin.temp.dir" destDir="${build.dir}" prefix="tmp"/>
+    <mkdir dir="${plugin.temp.dir}/example-plugin" />
+    <mkdir dir="${plugin.temp.dir}/example-plugin/src" />
+    <mkdir dir="${plugin.temp.dir}/example-plugin/src-generated" />
+    <mkdir dir="${plugin.temp.dir}/example-plugin/lib" />
+    <mkdir dir="${plugin.temp.dir}/example-plugin/ext" />
+    <mkdir dir="${plugin.temp.dir}/example-plugin/resource" />
+    <mkdir dir="${plugin.temp.dir}/example-plugin/resource/admin" />
+    <mkdir dir="${plugin.temp.dir}/example-plugin/resource/config" />
+    <mkdir dir="${plugin.temp.dir}/example-plugin/resource/schema" />
+    <copy todir="${plugin.temp.dir}/example-plugin/src">
+      <fileset dir="${admin.defn.dir}" includes="**/*.xml" />
+    </copy>
+    <copy todir="${plugin.temp.dir}/example-plugin/resource/admin">
+      <fileset dir="${admin.rules.dir}" excludes="example-plugin/**" />
+    </copy>
+    <copy todir="${plugin.temp.dir}/example-plugin" file="${admin.rules.dir}/example-plugin/build.xml" />
+    <copy todir="${plugin.temp.dir}/example-plugin" file="${admin.rules.dir}/example-plugin/README" />
+    <copy todir="${plugin.temp.dir}/example-plugin/resource/schema" file="${admin.rules.dir}/example-plugin/99-example-plugin.ldif" />
+    <copy todir="${plugin.temp.dir}/example-plugin/resource/config" file="${admin.rules.dir}/example-plugin/example-plugin.ldif" />
+    <copy todir="${plugin.temp.dir}/example-plugin/src/com/example/opends">
+      <fileset dir="${admin.rules.dir}/example-plugin" includes="*.java,*.xml" excludes="build.xml" />
+    </copy>
+
+    <!-- Package up the plugin in the OpenDS package folder. -->
+    <zip destfile="${pdir}/example-plugin.zip">
+      <zipfileset dir="${plugin.temp.dir}" filemode="644" dirmode="755" />
+    </zip>
+    <delete dir="${plugin.temp.dir}" />
+  </target>
 </project>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="jmx-connection-handler"
+  plural-name="jmx-connection-handlers"
+  package="org.opends.server.admin.std" extends="connection-handler"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to interact with clients using the Java Management
+    Extensions (JMX) protocol.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.63</ldap:oid>
+      <ldap:name>ds-cfg-jmx-connection-handler</ldap:name>
+      <ldap:superior>ds-cfg-connection-handler</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-reference name="listen-port" />
+  <adm:property-reference name="use-ssl" />
+  <adm:property-reference name="ssl-cert-nickname" />
+  <adm:property-reference name="key-manager-provider-dn" />
+</adm:managed-object>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:root-managed-object xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The root configuration provides an entry point to the rest of the
+    <adm:product-name />
+    configuration.
+  </adm:synopsis>
+  <adm:relation name="global-configuration"
+    managed-object-name="global">
+    <adm:one-to-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=config</ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="connection-handler">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=connection handlers, cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="identity-mapper">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Identity Mappers,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="certificate-mapper">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Certificate Mappers,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="sasl-mechanism-handler">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=SASL Mechanisms,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="password-validator">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Password Validators,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="plugin">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Plugins,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:product-name>OpenDS Directory Server</adm:product-name>
+</adm:root-managed-object>

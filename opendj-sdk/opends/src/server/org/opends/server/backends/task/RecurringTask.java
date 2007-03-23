@@ -206,8 +206,7 @@ public class RecurringTask
     Class taskClass;
     try
     {
-      // FIXME -- Should this use a custom class loader?
-      taskClass = Class.forName(taskClassName);
+      taskClass = DirectoryServer.loadClass(taskClassName);
     }
     catch (Exception e)
     {

@@ -47,7 +47,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 
-
+import org.opends.server.admin.ClassLoaderProvider;
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.StartupPluginResult;
@@ -264,7 +265,9 @@ public class DirectoryServer
   // The set of password validators registered with the Directory Server, as a
   // mapping between the DN of the associated configuration entry and the
   // validator implementation.
-  private ConcurrentHashMap<DN,PasswordValidator> passwordValidators;
+  private ConcurrentHashMap<DN,
+               PasswordValidator<? extends PasswordValidatorCfg>>
+               passwordValidators;
 
   // The set of trust manager providers registered with the server.
   private ConcurrentHashMap<DN,TrustManagerProvider> trustManagerProviders;
@@ -593,7 +596,8 @@ public class DirectoryServer
     directoryServer.authPasswordStorageSchemes =
          new ConcurrentHashMap<String,PasswordStorageScheme>();
     directoryServer.passwordValidators =
-         new ConcurrentHashMap<DN,PasswordValidator>();
+         new ConcurrentHashMap<DN,
+              PasswordValidator<? extends PasswordValidatorCfg>>();
     directoryServer.accountStatusNotificationHandlers =
          new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
     directoryServer.rootDNs = new CopyOnWriteArraySet<DN>();
@@ -732,6 +736,10 @@ public class DirectoryServer
     // make it possible to process internal operations before the plugins have
     // been loaded.
     pluginConfigManager = new PluginConfigManager();
+
+
+    // Make sure that administration framework definition classes are loaded.
+    ClassLoaderProvider.getInstance().enable();
 
 
     // If we have gotten here, then the configuration should be properly
@@ -2490,7 +2498,13 @@ public class DirectoryServer
   {
     if (directoryServer.configHandler == null)
     {
-      String serverRoot = System.getenv(ENV_VAR_INSTANCE_ROOT);
+      String serverRoot = System.getProperty(PROPERTY_SERVER_ROOT);
+
+      if (serverRoot == null)
+      {
+        serverRoot = System.getenv(ENV_VAR_INSTANCE_ROOT);
+      }
+
       if (serverRoot != null)
       {
         return serverRoot;
@@ -3970,6 +3984,257 @@ public class DirectoryServer
     {
       mBean.addConfigurableComponent(component);
     }
+
+
+
+    // This is all code used to dynamically generate an admin definition from
+    // the configurable component.  We'll only generate it if the
+    // org.opends.server.dumpComponents property is set to "true".
+    String propValue = System.getProperty("org.opends.server.dumpComponents");
+    if ((propValue == null) || (! propValue.equals("true")))
+    {
+      return;
+    }
+
+    try
+    {
+      DN entryDN = component.getConfigurableComponentEntryDN();
+      ConfigEntry configEntry =
+           directoryServer.configHandler.getConfigEntry(entryDN);
+      ObjectClass structuralClass =
+           configEntry.getEntry().getStructuralObjectClass();
+      ObjectClass superiorClass = structuralClass.getSuperiorClass();
+
+      String baseName;
+      String primaryName = structuralClass.getPrimaryName();
+      if (primaryName.startsWith("ds-cfg-"))
+      {
+        baseName = primaryName.substring(7);
+      }
+      else
+      {
+        baseName = "___NAME___";
+      }
+
+
+      LinkedList<String> lines = new LinkedList<String>();
+      lines.add("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+      lines.add("<adm:managed-object name=\"" + baseName + "\" plural-name=\"" +
+                baseName + "s\"");
+      lines.add("  package=\"org.opends.server.admin.std\"");
+      lines.add("  xmlns:adm=\"http://www.opends.org/admin\"");
+      lines.add("  xmlns:ldap=\"http://www.opends.org/admin-ldap\"");
+      lines.add("  <adm:synopsis>");
+      lines.add("    ___SYNOPSIS___");
+      lines.add("  </adm:synopsis>");
+
+
+      // Write information about the object class.
+      lines.add("  <adm:profile name=\"ldap\">");
+      lines.add("    <ldap:object-class>");
+      lines.add("      <ldap:oid>" + structuralClass.getOID() + "</ldap:oid>");
+      lines.add("      <ldap:name>" + primaryName + "</ldap:name>");
+
+      if (superiorClass != null)
+      {
+        lines.add("      <ldap:superior>" + superiorClass.getNameOrOID() +
+                  "</ldap:superior>");
+      }
+
+      lines.add("    </ldap:object-class>");
+      lines.add("  </adm:profile>");
+
+
+      // Write information about all of the configuration attributes.
+      for (org.opends.server.config.ConfigAttribute attr :
+           component.getConfigurationAttributes())
+      {
+        if (attr instanceof org.opends.server.config.ReadOnlyConfigAttribute)
+        {
+          continue;
+        }
+
+        primaryName = attr.getName();
+        AttributeType type = getAttributeType(toLowerCase(primaryName), true);
+        if (primaryName.startsWith("ds-cfg-"))
+        {
+          baseName = primaryName.substring(7);
+        }
+        else
+        {
+          baseName = "___NAME___";
+        }
+
+        lines.add("  <adm:property name=\"" + baseName + "\" mandatory=\"" +
+                  String.valueOf(attr.isRequired()) + "\">");
+        lines.add("    <adm:synopsis>");
+        lines.add("      ___SYNOPSIS___");
+        lines.add("    </adm:synopsis>");
+        lines.add("    <adm:description>");
+
+        String description = attr.getDescription();
+        int startPos = 0;
+        while (startPos < description.length())
+        {
+          StringBuilder buffer = new StringBuilder();
+          buffer.append("      ");
+          int remaining = description.length() - startPos;
+          if (remaining <= 73)
+          {
+            buffer.append(description.substring(startPos));
+            startPos += remaining;
+          }
+          else
+          {
+            int endPos = startPos + 72;
+            while ((endPos > startPos) && (description.charAt(endPos) != ' '))
+            {
+              endPos--;
+            }
+            if (description.charAt(endPos) == ' ')
+            {
+              buffer.append(description.substring(startPos, endPos));
+              startPos = endPos + 1;
+            }
+            else
+            {
+              buffer.append(description.substring(startPos));
+              startPos += remaining;
+            }
+          }
+
+          lines.add(buffer.toString());
+        }
+
+        lines.add("    </adm:description>");
+        lines.add("    <adm:syntax>");
+
+        if (attr instanceof org.opends.server.config.BooleanConfigAttribute)
+        {
+          lines.add("      <adm:boolean />");
+        }
+        else if (attr instanceof org.opends.server.config.DNConfigAttribute)
+        {
+          lines.add("      <adm:dn />");
+        }
+        else if (attr instanceof
+                 org.opends.server.config.IntegerConfigAttribute)
+        {
+          org.opends.server.config.IntegerConfigAttribute intAttr =
+               (org.opends.server.config.IntegerConfigAttribute) attr;
+          String lineStr = "      <adm:integer ";
+          if (intAttr.hasLowerBound())
+          {
+            lineStr += " lower-limit=\"" + intAttr.getLowerBound() + "\" ";
+          }
+
+          if (intAttr.hasUpperBound())
+          {
+            lineStr += " upper-limit=\"" + intAttr.getUpperBound() + "\" ";
+          }
+
+          lineStr += "/>";
+          lines.add(lineStr);
+        }
+        else if (attr instanceof
+                 org.opends.server.config.IntegerWithUnitConfigAttribute)
+        {
+          lines.add("     <!-- ___INTEGER_WITH_UNIT_TYPE___ -->");
+          lines.add("      <adm:string />");
+        }
+        else if (attr instanceof
+                 org.opends.server.config.MultiChoiceConfigAttribute)
+        {
+          lines.add("      <adm:enumeration>");
+
+          org.opends.server.config.MultiChoiceConfigAttribute mcAttr =
+               (org.opends.server.config.MultiChoiceConfigAttribute) attr;
+          for (String allowedValue : mcAttr.allowedValues())
+          {
+            lines.add("        <adm:value name=\"" + allowedValue + "\">");
+            lines.add("          <adm:synopsis>");
+            lines.add("            ___SYNOPSIS___");
+            lines.add("          </adm:synopsis>");
+            lines.add("        </adm:value>");
+          }
+
+          lines.add("      </adm:enumeration>");
+        }
+        else if (attr instanceof
+                 org.opends.server.config.StringConfigAttribute)
+        {
+          lines.add("      <adm:string />");
+        }
+        else
+        {
+          lines.add("     <!-- ___UNKNOWN_CONFIG_ATTR_TYPE___ -->");
+          lines.add("      <adm:string />");
+        }
+
+        lines.add("    </adm:syntax>");
+        lines.add("    <adm:profile name=\"ldap\">");
+        lines.add("      <ldap:attribute>");
+        lines.add("        <ldap:oid>" + type.getOID() + "</ldap:oid>");
+        lines.add("        <ldap:name>" + primaryName + "</ldap:name>");
+        lines.add("      </ldap:attribute>");
+        lines.add("    </adm:profile>");
+        lines.add("  </adm:property>");
+      }
+
+      lines.add("</adm:managed-object>");
+
+
+      File parentDir = new File("/tmp/admin-framework");
+      if (! parentDir.exists())
+      {
+        parentDir.mkdirs();
+      }
+
+      String dnString = entryDN.toNormalizedString();
+      StringBuilder filename = new StringBuilder();
+      filename.append(parentDir.getAbsolutePath());
+      filename.append("/");
+      for (int i=0; i < dnString.length(); i++)
+      {
+        char c = dnString.charAt(i);
+        if (Character.isLetter(c) || Character.isDigit(c))
+        {
+          filename.append(c);
+        }
+        else
+        {
+          filename.append('_');
+        }
+      }
+      filename.append(".xml");
+
+      java.io.BufferedWriter bw =
+           new java.io.BufferedWriter(new java.io.FileWriter(
+                                               filename.toString()));
+      for (String line : lines)
+      {
+        bw.write(line);
+        bw.newLine();
+      }
+      bw.flush();
+      bw.close();
+
+      System.err.println();
+      System.err.println();
+      System.err.println("---------- Registered Configurable Component " +
+                         "----------");
+      for (String line : lines)
+      {
+        System.err.println(line);
+      }
+
+      System.err.println();
+      System.err.println();
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+    }
   }
 
 
@@ -4282,7 +4547,10 @@ public class DirectoryServer
    * @return  The set of password validators that have been registered for use
    *          with the Directory Server.
    */
-  public static ConcurrentHashMap<DN,PasswordValidator> getPasswordValidators()
+  public static
+       ConcurrentHashMap<DN,
+            PasswordValidator<? extends PasswordValidatorCfg>>
+            getPasswordValidators()
   {
     return directoryServer.passwordValidators;
   }
@@ -4299,7 +4567,8 @@ public class DirectoryServer
    * @return  The requested password validator, or <CODE>null</CODE> if no such
    *          validator is defined.
    */
-  public static PasswordValidator getPasswordValidator(DN configEntryDN)
+  public static PasswordValidator<? extends PasswordValidatorCfg>
+                     getPasswordValidator(DN configEntryDN)
   {
     return directoryServer.passwordValidators.get(configEntryDN);
   }
@@ -4315,8 +4584,10 @@ public class DirectoryServer
    * @param  validator      The password validator to register with the
    *                        Directory Server.
    */
-  public static void registerPasswordValidator(DN configEntryDN,
-                                               PasswordValidator validator)
+  public static void
+       registerPasswordValidator(DN configEntryDN,
+            PasswordValidator<? extends PasswordValidatorCfg>
+            validator)
   {
     directoryServer.passwordValidators.put(configEntryDN, validator);
   }
@@ -6508,7 +6779,7 @@ public class DirectoryServer
       Class workQueueClass ;
       try
       {
-        workQueueClass = Class.forName(classAttr.activeValue());
+        workQueueClass = DirectoryServer.loadClass(classAttr.activeValue());
       }
       catch (Exception e)
       {
@@ -8435,6 +8706,56 @@ public class DirectoryServer
     return monitorRootDN.concat(rdn);
   }
 
+
+
+  /**
+   * Gets the class loader to be used with this directory server
+   * application.
+   * <p>
+   * The class loader will automatically load classes from plugins
+   * where required.
+   *
+   * @return Returns the class loader to be used with this directory
+   *         server application.
+   */
+  public static ClassLoader getClassLoader()
+  {
+    return ClassLoaderProvider.getInstance().getClassLoader();
+  }
+
+
+
+  /**
+   * Loads the named class using this directory server application's
+   * class loader.
+   * <p>
+   * This method provided as a convenience and is equivalent to
+   * calling:
+   *
+   * <pre>
+   * Class.forName(name, true, DirectoryServer.getClassLoader());
+   * </pre>
+   *
+   * @param name
+   *          The fully qualified name of the desired class.
+   * @return Returns the class object representing the desired class.
+   * @throws LinkageError
+   *           If the linkage fails.
+   * @throws ExceptionInInitializerError
+   *           If the initialization provoked by this method fails.
+   * @throws ClassNotFoundException
+   *           If the class cannot be located by the specified class
+   *           loader.
+   * @see Class#forName(String, boolean, ClassLoader)
+   */
+  public static Class<?> loadClass(String name) throws LinkageError,
+      ExceptionInInitializerError, ClassNotFoundException
+  {
+    return Class.forName(name, true, DirectoryServer.getClassLoader());
+  }
+
+
+
   /**
    * Returns the error code that we return when we are checking the startability
    * of the server.
@@ -8562,6 +8883,5 @@ public class DirectoryServer
     }
     return isRunningAsWindowsService;
   }
-
 }
 

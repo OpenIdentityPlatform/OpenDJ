@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
@@ -3209,7 +3210,7 @@ public class PasswordPolicyState
   {
     for (DN validatorDN : passwordPolicy.getPasswordValidators().keySet())
     {
-      PasswordValidator validator =
+      PasswordValidator<? extends PasswordValidatorCfg> validator =
            passwordPolicy.getPasswordValidators().get(validatorDN);
 
       if (! validator.passwordIsAcceptable(newPassword, currentPasswords,

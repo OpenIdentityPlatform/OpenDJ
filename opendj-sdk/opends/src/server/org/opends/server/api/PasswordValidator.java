@@ -30,7 +30,8 @@ package org.opends.server.api;
 
 import java.util.Set;
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.
+            PasswordValidatorCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.Operation;
 import org.opends.server.types.ByteString;
@@ -39,24 +40,23 @@ import org.opends.server.types.InitializationException;
 
 
 
-
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that may be used to
  * determine whether a proposed password is acceptable for a user.
+ *
+ * @param  <T>  The type of configuration handled by this password
+ *              validator.
  */
 public abstract class PasswordValidator
+       <T extends PasswordValidatorCfg>
 {
-
-
-
   /**
    * Initializes this password validator based on the information in
    * the provided configuration entry.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      password validator.
+   * @param  configuration  The configuration to use to initialize
+   *                        this password validator.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -67,8 +67,7 @@ public abstract class PasswordValidator
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializePasswordValidator(
-                            ConfigEntry configEntry)
+  public abstract void initializePasswordValidator(T configuration)
          throws ConfigException, InitializationException;
 
 

@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="ldap-connection-handler"
+  plural-name="ldap-connection-handlers"
+  package="org.opends.server.admin.std" extends="connection-handler"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to interact with clients using LDAP. In particular, it
+    provides full support for LDAPv3 and limited support for LDAPv2.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.14</ldap:oid>
+      <ldap:name>ds-cfg-ldap-connection-handler</ldap:name>
+      <ldap:superior>ds-cfg-connection-handler</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-reference name="listen-port" />
+  <adm:property-reference name="use-ssl" />
+  <adm:property-reference name="ssl-cert-nickname" />
+  <adm:property-reference name="key-manager-provider-dn" />
+  <adm:property-reference name="trust-manager-provider-dn" />
+  <adm:property name="listen-addresses" multi-valued="true">
+    <adm:synopsis>
+      Specifies the address or set of addresses on which this
+      <adm:user-friendly-name />
+      should listen for connections from LDAP clients.
+    </adm:synopsis>
+    <adm:description>
+      Multiple addresses may be provided as separate values for this
+      attribute. If no values are provided, then the
+      <adm:user-friendly-name />
+      will listen on all interfaces.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0.0.0.0</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:ip-address />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.56</ldap:oid>
+        <ldap:name>ds-cfg-listen-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="allow-ldap-v2">
+    <adm:synopsis>
+      Indicates whether connections from LDAPv2 clients will be allowed.
+    </adm:synopsis>
+    <adm:description>
+      If LDAPv2 clients will be allowed, then only a minimal degree of
+      special support will be provided for them to ensure that
+      LDAPv3-specific protocol elements (e.g., Configuration Guide 25
+      controls, extended response messages, intermediate response
+      messages, referrals, etc.) are not sent to an LDAPv2 client.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.7</ldap:oid>
+        <ldap:name>ds-cfg-allow-ldapv2</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="keep-stats">
+    <adm:synopsis>
+      Indicates whether the
+      <adm:user-friendly-name />
+      should keep statistics.
+    </adm:synopsis>
+    <adm:description>
+      If enabled, the
+      <adm:user-friendly-name />
+      will maintain statistics about the number and types of operations
+      requested over LDAP and the amount of data sent and received.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.47</ldap:oid>
+        <ldap:name>ds-cfg-keep-stats</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="use-tcp-keep-alive">
+    <adm:synopsis>
+      Indicates whether the
+      <adm:user-friendly-name />
+      should use TCP keep-alive.
+    </adm:synopsis>
+    <adm:description>
+      If enabled, the SO_KEEPALIVE socket option to indicate that TCP
+      keepalive messages should periodically be sent to the client to
+      verify that the associated connection is still valid. This may
+      also help prevent cases in which intermediate network hardware
+      could silently drop an otherwise idle client connection, provided
+      that the keepalive interval configured in the underlying operating
+      system is smaller than the timeout enforced by the network
+      hardware.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.138</ldap:oid>
+        <ldap:name>ds-cfg-use-tcp-keepalive</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="use-tcp-no-delay">
+    <adm:synopsis>
+      Indicates whether the
+      <adm:user-friendly-name />
+      should use TCP no-delay.
+    </adm:synopsis>
+    <adm:description>
+      If enabled, the TCP_NODELAY socket option will be used to ensure
+      that response messages to the client are sent immediately rather
+      than potentially waiting to determine whether additional response
+      messages can be sent in the same packet. In most cases, using the
+      TCP_NODELAY socket option will provide better performance and
+      lower response times, but disabling it may help for some cases in
+      which the server will send a large number of entries to a client
+      in response to a search request.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.139</ldap:oid>
+        <ldap:name>ds-cfg-use-tcp-nodelay</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="allow-tcp-reuse-address">
+    <adm:synopsis>
+      Indicates whether the
+      <adm:user-friendly-name />
+      should reuse socket descriptors.
+    </adm:synopsis>
+    <adm:description>
+      If enabled, the SO_REUSEADDR socket option will be used on the
+      server listen socket to potentially allow the reuse of socket
+      descriptors for clients in a TIME_WAIT state. This may help the
+      server avoid temporarily running out of socket descriptors in
+      cases in which a very large number of short-lived connections have
+      been established from the same client system.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.9</ldap:oid>
+        <ldap:name>ds-cfg-allow-tcp-reuse-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="send-rejection-notice">
+    <adm:synopsis>
+      Indicates whether the
+      <adm:user-friendly-name />
+      should send a notice of disconnection extended response message to
+      the client if a new connection is rejected for some reason.
+    </adm:synopsis>
+    <adm:description>
+      The extended response message may provide an explanation
+      indicating the reason that the connection was rejected.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.114</ldap:oid>
+        <ldap:name>ds-cfg-send-rejection-notice</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="max-request-size">
+    <adm:synopsis>
+      Specifies the size of the largest LDAP request message that will
+      be allowed by this
+      <adm:user-friendly-name />
+      .
+    </adm:synopsis>
+    <adm:description>
+      This property is analogous to the maxBERSize configuration
+      attribute of the Sun Java System Directory Server. This can help
+      prevent denial-of-service attacks by clients that indicate they
+      will send extremely large requests to the server causing it to
+      attempt to allocate large amounts of memory.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>5mib</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:size upper-limit="2147483647b"></adm:size>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.67</ldap:oid>
+        <ldap:name>ds-cfg-max-request-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="num-request-handlers">
+    <adm:synopsis>
+      Specifies the number of request handlers that will be used to read
+      requests from clients.
+    </adm:synopsis>
+    <adm:description>
+      The
+      <adm:user-friendly-name />
+      uses one thread to accept new connections from clients, but uses
+      one or more additional threads to read requests from existing
+      client connections. This can help ensure that new requests are
+      read efficiently and that the connection handler itself does not
+      become a bottleneck when the server is under heavy load from many
+      clients at the same time.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.72</ldap:oid>
+        <ldap:name>ds-cfg-num-request-handlers</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="allow-start-tls">
+    <adm:synopsis>
+      Indicates whether clients will be allowed to use StartTLS.
+    </adm:synopsis>
+    <adm:description>
+      If enabled, the
+      <adm:user-friendly-name />
+      will allow clients to use the StartTLS extended operation to
+      initiate secure communication over an otherwise insecure channel.
+      Note that this will only be allowed if the
+      <adm:user-friendly-name />
+      is not configured to use SSL, and if the server is configured with
+      a valid key manager provider and a valid trust manager provider.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.8</ldap:oid>
+        <ldap:name>ds-cfg-allow-start-tls</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="ssl-client-auth-policy">
+    <adm:synopsis>
+      Specifies the policy that the
+      <adm:user-friendly-name />
+      should use regarding client SSL certificates.
+    </adm:synopsis>
+    <adm:description>
+      This is only applicable if clients are allowed to use SSL.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>optional</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="disabled">
+          <adm:synopsis>
+            Clients will not be required to provide their own
+            certificates when performing SSL negotiation.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="optional">
+          <adm:synopsis>
+            Clients will be requested to provide their own certificates
+            when performing SSL negotiation, but will still accept the
+            connection even if the client does not provide a
+            certificate.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="required">
+          <adm:synopsis>
+            Clients will be required to provide their own certificates
+            when performing SSL negotiation, and will be refused access
+            if the do not provide a certificate.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.119</ldap:oid>
+        <ldap:name>ds-cfg-ssl-client-auth-policy</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="accept-backlog">
+    <adm:synopsis>
+      Specifies the maximum number of pending connection attempts that
+      will be allowed to queue up in the accept backlog before the
+      server starts rejecting new connection attempts.
+    </adm:synopsis>
+    <adm:description>
+      This is primarily an issue for cases in which a large number of
+      connections are established to the server in a very short period
+      of time (e.g., a benchmark utility that creates a large number of
+      client threads that each have their own connection to the server)
+      and the connection handler is unable to keep up with the rate at
+      which the new connections are established.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>128</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1">
+        <adm:unit-synopsis>connections</adm:unit-synopsis>
+      </adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.153</ldap:oid>
+        <ldap:name>ds-cfg-accept-backlog</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="ssl-protocols" multi-valued="true">
+    <adm:TODO>No LDAP OID is assigned for this yet!</adm:TODO>
+    <adm:synopsis>
+      Specifies the names of the SSL protocols that will be allowed for
+      use in SSL or StartTLS communication.
+    </adm:synopsis>
+    <adm:description>
+      Changes to this configuration attribute will take immediately but
+      will only impact new SSL/TLS-based sessions created after the
+      change.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Uses the default set of SSL protocols provided by the server's
+          JVM.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.9999</ldap:oid>
+        <ldap:name>ds-cfg-ssl-protocols</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="ssl-cipher-suites" multi-valued="true">
+    <adm:TODO>No LDAP OID is assigned for this yet!</adm:TODO>
+    <adm:synopsis>
+      Specifies the names of the SSL cipher suites that will be allowed
+      for use in SSL or StartTLS communication.
+    </adm:synopsis>
+    <adm:description>
+      Changes to this configuration attribute will take immediately but
+      will only impact new SSL/TLS-based sessions created after the
+      change.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Uses the default set of SSL cipher suites provided by the
+          server's JVM.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.9999</ldap:oid>
+        <ldap:name>ds-cfg-ssl-protocols</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

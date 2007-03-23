@@ -274,8 +274,7 @@ public class SynchronizationProviderConfigManager
       Class providerClass;
       try
       {
-        // FIXME -- Should we use a custom class loader for this?
-        providerClass = Class.forName(providerClassName);
+        providerClass = DirectoryServer.loadClass(providerClassName);
       }
       catch (Exception e)
       {
@@ -485,8 +484,7 @@ public class SynchronizationProviderConfigManager
       Class providerClass;
       try
       {
-        // FIXME -- Should we use a custom class loader for this?
-        providerClass = Class.forName(className);
+        providerClass = DirectoryServer.loadClass(className);
       }
       catch (Exception e)
       {
@@ -687,8 +685,7 @@ public class SynchronizationProviderConfigManager
       Class providerClass = null;
       try
       {
-        // FIXME -- Should we use a custom class loader for this?
-        providerClass = Class.forName(className);
+        providerClass = DirectoryServer.loadClass(className);
       }
       catch (Exception e)
       {

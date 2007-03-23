@@ -30,10 +30,10 @@ package org.opends.server.plugins;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreParsePluginResult;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryConfig;
@@ -57,11 +57,8 @@ import static org.opends.server.util.StaticUtils.*;
  * object class identifier from an attribute descriptions.
  */
 public final class LDAPADListPlugin
-       extends DirectoryServerPlugin
+       extends DirectoryServerPlugin<PluginCfg>
 {
-
-
-
   /**
    * Creates a new instance of this Directory Server plugin.  Every plugin must
    * implement a default constructor (it is the only one that will be used to
@@ -81,14 +78,14 @@ public final class LDAPADListPlugin
    */
   @Override()
   public final void initializePlugin(Set<PluginType> pluginTypes,
-                                     ConfigEntry configEntry)
+                                     PluginCfg configuration)
          throws ConfigException
   {
     // The set of plugin types must contain only the pre-parse search element.
     if (pluginTypes.isEmpty())
     {
       int    msgID   = MSGID_PLUGIN_ADLIST_NO_PLUGIN_TYPES;
-      String message = getMessage(msgID, String.valueOf(configEntry.getDN()));
+      String message = getMessage(msgID, String.valueOf(configuration.dn()));
       throw new ConfigException(msgID, message);
     }
     else
@@ -99,7 +96,7 @@ public final class LDAPADListPlugin
         {
           int    msgID   = MSGID_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE;
           String message = getMessage(msgID,
-                                      String.valueOf(configEntry.getDN()),
+                                      String.valueOf(configuration.dn()),
                                       String.valueOf(t));
           throw new ConfigException(msgID, message);
         }

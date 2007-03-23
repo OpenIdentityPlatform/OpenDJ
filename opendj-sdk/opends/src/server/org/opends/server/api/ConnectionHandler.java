@@ -29,7 +29,8 @@ package org.opends.server.api;
 
 
 import java.util.Collection;
-import org.opends.server.config.ConfigEntry;
+
+import org.opends.server.admin.std.server.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.types.HostPort;
@@ -37,16 +38,17 @@ import org.opends.server.types.InitializationException;
 
 
 
-
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server connection handler.
+ *
+ * @param <T>
+ *          The type of connection handler configuration handled by
+ *          this connection handler implementation.
  */
 public abstract class ConnectionHandler
-       extends DirectoryThread
-{
-
-
+    <T extends ConnectionHandlerCfg>
+    extends DirectoryThread {
 
   // The monitor associated with this connection handler.
   private ConnectionHandlerMonitor monitor;
@@ -54,15 +56,15 @@ public abstract class ConnectionHandler
 
 
   /**
-   * Creates a new instance of this connection handler.  This must be
+   * Creates a new instance of this connection handler. This must be
    * called by all connection handlers, and all connection handlers
    * must provide default constructors (i.e., those that do not take
    * any arguments) that invoke this constructor.
    *
-   * @param  threadName  The name to use for this thread.
+   * @param threadName
+   *          The name to use for this thread.
    */
-  protected ConnectionHandler(String threadName)
-  {
+  protected ConnectionHandler(String threadName) {
     super(threadName);
 
     monitor = null;
@@ -71,46 +73,24 @@ public abstract class ConnectionHandler
 
 
   /**
-   * Initializes this connection handler based on the information in
-   * the provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      connection handler.
-   *
-   * @throws  ConfigException  If there is a problem with the
-   *                           configuration for this connection
-   *                           handler.
-   *
-   * @throws  InitializationException  If a problem occurs while
-   *                                   attempting to initialize this
-   *                                   connection handler.
-   */
-  public abstract void initializeConnectionHandler(
-                            ConfigEntry configEntry)
-         throws ConfigException, InitializationException;
-
-
-
-  /**
    * Closes this connection handler so that it will no longer accept
-   * new client connections.  It may or may not disconnect existing
-   * client connections based on the provided flag.  Note, however,
+   * new client connections. It may or may not disconnect existing
+   * client connections based on the provided flag. Note, however,
    * that some connection handler implementations may not have any way
    * to continue processing requests from existing connections, in
    * which case they should always be closed regardless of the value
    * of the <CODE>closeConnections</CODE> flag.
    *
-   * @param  finalizeReason    The reason that this connection handler
-   *                           should be finalized.
-   * @param  closeConnections  Indicates whether any established
-   *                           client connections associated with the
-   *                           connection handler should also be
-   *                           closed.
+   * @param finalizeReason
+   *          The reason that this connection handler should be
+   *          finalized.
+   * @param closeConnections
+   *          Indicates whether any established client connections
+   *          associated with the connection handler should also be
+   *          closed.
    */
   public abstract void finalizeConnectionHandler(
-                            String finalizeReason,
-                            boolean closeConnections);
+      String finalizeReason, boolean closeConnections);
 
 
 
@@ -156,10 +136,31 @@ public abstract class ConnectionHandler
    * Retrieves the set of active client connections that have been
    * established through this connection handler.
    *
-   * @return  The set of active client connections that have been
-   *          established through this connection handler.
+   * @return The set of active client connections that have been
+   *         established through this connection handler.
    */
   public abstract Collection<ClientConnection> getClientConnections();
+
+
+
+  /**
+   * Initializes this connection handler provider based on the
+   * information in the provided connection handler configuration.
+   *
+   * @param configuration
+   *          The connection handler configuration that contains the
+   *          information to use to initialize this connection
+   *          handler.
+   * @throws ConfigException
+   *           If an unrecoverable problem arises in the process of
+   *           performing the initialization as a result of the server
+   *           configuration.
+   * @throws InitializationException
+   *           If a problem occurs during initialization that is not
+   *           related to the server configuration.
+   */
+  public abstract void initializeConnectionHandler(T configuration)
+      throws ConfigException, InitializationException;
 
 
 
@@ -201,10 +202,9 @@ public abstract class ConnectionHandler
   /**
    * Retrieves a string representation of this connection handler.
    *
-   * @return  A string representation of this connection handler.
+   * @return A string representation of this connection handler.
    */
-  public String toString()
-  {
+  public String toString() {
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
@@ -216,9 +216,8 @@ public abstract class ConnectionHandler
    * Appends a string representation of this connection handler to the
    * provided buffer.
    *
-   * @param  buffer  The buffer to which the information should be
-   *                 appended.
+   * @param buffer
+   *          The buffer to which the information should be appended.
    */
   public abstract void toString(StringBuilder buffer);
 }
-

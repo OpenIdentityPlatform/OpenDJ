@@ -59,7 +59,6 @@ import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -273,8 +272,7 @@ public class PasswordGeneratorConfigManager
     Class generatorClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      generatorClass = Class.forName(classNameAttr.pendingValue());
+      generatorClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -519,8 +517,7 @@ public class PasswordGeneratorConfigManager
     {
       try
       {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class generatorClass = Class.forName(className);
+        Class generatorClass = DirectoryServer.loadClass(className);
         generator = (PasswordGenerator) generatorClass.newInstance();
       }
       catch (Exception e)
@@ -647,8 +644,7 @@ public class PasswordGeneratorConfigManager
     Class generatorClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      generatorClass = Class.forName(classNameAttr.pendingValue());
+      generatorClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -868,8 +864,7 @@ public class PasswordGeneratorConfigManager
     PasswordGenerator generator;
     try
     {
-      // FIXME -- Should this be done with a dynamic class loader?
-      Class generatorClass = Class.forName(className);
+      Class generatorClass = DirectoryServer.loadClass(className);
       generator = (PasswordGenerator) generatorClass.newInstance();
     }
     catch (Exception e)

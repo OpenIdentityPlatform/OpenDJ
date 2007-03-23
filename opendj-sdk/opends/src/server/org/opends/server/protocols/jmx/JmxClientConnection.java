@@ -121,7 +121,7 @@ public class JmxClientConnection
     nextOperationID  = new AtomicLong(0);
 
     this.jmxConnectionHandler = jmxConnectionHandler;
-    jmxConnectionHandler.connectionList.add(this) ;
+    jmxConnectionHandler.registerClientConnection(this);
 
     setAuthenticationInfo(authInfo);
 
@@ -152,7 +152,7 @@ public class JmxClientConnection
 
     //
     // Register the Jmx Notification listener (this)
-    jmxConnectionHandler.rmiConnector.jmxRmiConnectorNoClientCertificate
+    jmxConnectionHandler.getRMIConnector().jmxRmiConnectorNoClientCertificate
         .addNotificationListener(this, null, null);
   }
 

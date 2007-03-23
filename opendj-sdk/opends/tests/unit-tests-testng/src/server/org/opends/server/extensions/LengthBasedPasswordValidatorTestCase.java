@@ -37,6 +37,11 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.
+            LengthBasedPasswordValidatorCfgDefn;
+import org.opends.server.admin.std.server.
+            LengthBasedPasswordValidatorCfg;
+import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -200,14 +205,13 @@ public class LengthBasedPasswordValidatorTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=Password Validators,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    LengthBasedPasswordValidatorCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              LengthBasedPasswordValidatorCfgDefn.getInstance(),
+              e);
 
-    LengthBasedPasswordValidator validator =
-         new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configEntry);
-    validator.finalizePasswordValidator();
+    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
+    validator.initializePasswordValidator(configuration);
   }
 
 
@@ -302,13 +306,13 @@ public class LengthBasedPasswordValidatorTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=Password Validators,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    LengthBasedPasswordValidatorCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              LengthBasedPasswordValidatorCfgDefn.getInstance(),
+              e);
 
-    LengthBasedPasswordValidator validator =
-         new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configEntry);
+    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
+    validator.initializePasswordValidator(configuration);
   }
 
 
@@ -349,13 +353,13 @@ public class LengthBasedPasswordValidatorTestCase
          "ds-cfg-minimum-password-length: 0",
          "ds-cfg-maximum-password-length: 0");
 
-    DN parentDN = DN.decode("cn=Password Validators,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(validatorEntry, parentEntry);
+    LengthBasedPasswordValidatorCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              LengthBasedPasswordValidatorCfgDefn.getInstance(),
+              validatorEntry);
 
-    LengthBasedPasswordValidator validator =
-         new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configEntry);
+    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
+    validator.initializePasswordValidator(configuration);
 
     StringBuilder buffer = new StringBuilder();
     for (int i=0; i < 20; i++)
@@ -422,13 +426,13 @@ public class LengthBasedPasswordValidatorTestCase
          "ds-cfg-minimum-password-length: 10",
          "ds-cfg-maximum-password-length: 0");
 
-    DN parentDN = DN.decode("cn=Password Validators,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(validatorEntry, parentEntry);
+    LengthBasedPasswordValidatorCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              LengthBasedPasswordValidatorCfgDefn.getInstance(),
+              validatorEntry);
 
-    LengthBasedPasswordValidator validator =
-         new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configEntry);
+    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
+    validator.initializePasswordValidator(configuration);
 
     StringBuilder buffer = new StringBuilder();
     for (int i=0; i < 20; i++)
@@ -497,13 +501,13 @@ public class LengthBasedPasswordValidatorTestCase
          "ds-cfg-minimum-password-length: 0",
          "ds-cfg-maximum-password-length: 10");
 
-    DN parentDN = DN.decode("cn=Password Validators,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(validatorEntry, parentEntry);
+    LengthBasedPasswordValidatorCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              LengthBasedPasswordValidatorCfgDefn.getInstance(),
+              validatorEntry);
 
-    LengthBasedPasswordValidator validator =
-         new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configEntry);
+    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
+    validator.initializePasswordValidator(configuration);
 
     StringBuilder buffer = new StringBuilder();
     for (int i=0; i < 20; i++)
@@ -572,13 +576,13 @@ public class LengthBasedPasswordValidatorTestCase
          "ds-cfg-minimum-password-length: 6",
          "ds-cfg-maximum-password-length: 10");
 
-    DN parentDN = DN.decode("cn=Password Validators,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(validatorEntry, parentEntry);
+    LengthBasedPasswordValidatorCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              LengthBasedPasswordValidatorCfgDefn.getInstance(),
+              validatorEntry);
 
-    LengthBasedPasswordValidator validator =
-         new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configEntry);
+    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
+    validator.initializePasswordValidator(configuration);
 
     StringBuilder buffer = new StringBuilder();
     for (int i=0; i < 20; i++)

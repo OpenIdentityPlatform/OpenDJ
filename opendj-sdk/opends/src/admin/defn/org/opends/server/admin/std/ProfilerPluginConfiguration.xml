@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:managed-object name="profiler-plugin" 
+  plural-name="profiler-plugins"
+  package="org.opends.server.admin.std" extends="plugin"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to capture profiling information about operations performed inside
+    the JVM while the Directory Server is running.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.38</ldap:oid>
+      <ldap:name>ds-cfg-profiler-plugin</ldap:name>
+      <ldap:superior>ds-cfg-plugin</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="profile-sample-interval" mandatory="true">
+    <adm:synopsis>
+      Specifies the profiler sample interval.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the sample interval that should be used when capturing
+      profiling information in the server.  Changes to this configuration
+      attribute will take effect the next time the profiler is started.
+    </adm:description>
+    <adm:syntax>
+      <adm:duration lower-limit="1" base-unit="ms" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.85</ldap:oid>
+        <ldap:name>ds-cfg-profile-sample-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="profile-directory" mandatory="true">
+    <adm:synopsis>
+      Specifies the directory for writing profile information.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the path to the directory into which profile information will
+      be written.  The directory must exist and the Directory Server must have
+      permission to create new files in it.  Changes to this configuration
+      attribute will take effect immediately.
+    </adm:description>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.83</ldap:oid>
+        <ldap:name>ds-cfg-profile-directory</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="enable-profiling-on-startup" mandatory="true">
+    <adm:synopsis>
+      Indicates whether to automatically begin capturing profile data when the
+      server is started.
+    </adm:synopsis>
+    <adm:description>
+      Indicates whether the profiler plugin should start collecting data
+      automatically when the Directory Server is started.  This will only be
+      read when the server is started, and any changes will take effect on the
+      next restart.
+    </adm:description>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.33</ldap:oid>
+        <ldap:name>ds-cfg-enable-profiling-on-startup</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="profile-action" mandatory="false">
+    <adm:synopsis>
+      Specifies the action that should be taken by the profiler.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the action that should be taken by the profiler.  A value of
+      "start" will cause the profiler thread to start collecting data if it is
+      not already active.  A value of "stop" will cause the profiler thread to
+      stop collecting data and write it do disk, and a value of "cancel" will
+      cause the profiler thread to stop collecting data and discard anything
+      that has been captured.  These operations will occur immediately.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>none</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="none">
+          <adm:synopsis>
+            Do not take any action.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="start">
+          <adm:synopsis>
+            Start collecting profile data.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="stop">
+          <adm:synopsis>
+            Stop collecting profile data and write what has been captured to
+            a file in the profile directory.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="cancel">
+          <adm:synopsis>
+            Stop collecting profile data and discard what has been captured.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.82</ldap:oid>
+        <ldap:name>ds-cfg-profile-action</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

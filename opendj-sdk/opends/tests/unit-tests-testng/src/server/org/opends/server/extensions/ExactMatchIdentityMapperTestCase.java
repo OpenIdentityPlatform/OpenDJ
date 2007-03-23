@@ -36,6 +36,10 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.
+            ExactMatchIdentityMapperCfgDefn;
+import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
@@ -180,12 +184,11 @@ public class ExactMatchIdentityMapperTestCase
   public void testValidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=Identity Mappers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
-
+    ExactMatchIdentityMapperCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              ExactMatchIdentityMapperCfgDefn.getInstance(), e);
     ExactMatchIdentityMapper mapper = new ExactMatchIdentityMapper();
-    mapper.initializeIdentityMapper(configEntry);
+    mapper.initializeIdentityMapper(configuration);
     mapper.finalizeIdentityMapper();
   }
 
@@ -291,12 +294,11 @@ public class ExactMatchIdentityMapperTestCase
   public void testInalidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=Identity Mappers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
-
+    ExactMatchIdentityMapperCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              ExactMatchIdentityMapperCfgDefn.getInstance(), e);
     ExactMatchIdentityMapper mapper = new ExactMatchIdentityMapper();
-    mapper.initializeIdentityMapper(configEntry);
+    mapper.initializeIdentityMapper(configuration);
   }
 
 
@@ -342,12 +344,12 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-identity-mapper-enabled: true",
          "ds-cfg-match-attribute: uid");
 
-    DN parentDN = DN.decode("cn=Identity Mappers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(mapperEntry, parentEntry);
-
+    ExactMatchIdentityMapperCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              ExactMatchIdentityMapperCfgDefn.getInstance(),
+              mapperEntry);
     ExactMatchIdentityMapper mapper = new ExactMatchIdentityMapper();
-    mapper.initializeIdentityMapper(configEntry);
+    mapper.initializeIdentityMapper(configuration);
 
 
     // Create a user entry and add it to the directory.
@@ -408,12 +410,12 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: o=test");
 
-    DN parentDN = DN.decode("cn=Identity Mappers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(mapperEntry, parentEntry);
-
+    ExactMatchIdentityMapperCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              ExactMatchIdentityMapperCfgDefn.getInstance(),
+              mapperEntry);
     ExactMatchIdentityMapper mapper = new ExactMatchIdentityMapper();
-    mapper.initializeIdentityMapper(configEntry);
+    mapper.initializeIdentityMapper(configuration);
 
 
     // Create a user entry and add it to the directory.
@@ -475,12 +477,12 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: o=notdefined");
 
-    DN parentDN = DN.decode("cn=Identity Mappers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(mapperEntry, parentEntry);
-
+    ExactMatchIdentityMapperCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              ExactMatchIdentityMapperCfgDefn.getInstance(),
+              mapperEntry);
     ExactMatchIdentityMapper mapper = new ExactMatchIdentityMapper();
-    mapper.initializeIdentityMapper(configEntry);
+    mapper.initializeIdentityMapper(configuration);
 
 
     // Create a user entry and add it to the directory.
@@ -538,12 +540,12 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: o=test");
 
-    DN parentDN = DN.decode("cn=Identity Mappers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(mapperEntry, parentEntry);
-
+    ExactMatchIdentityMapperCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              ExactMatchIdentityMapperCfgDefn.getInstance(),
+              mapperEntry);
     ExactMatchIdentityMapper mapper = new ExactMatchIdentityMapper();
-    mapper.initializeIdentityMapper(configEntry);
+    mapper.initializeIdentityMapper(configuration);
 
 
     // Create a user entry and add it to the directory.
@@ -601,12 +603,12 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-match-attribute: cn",
          "ds-cfg-match-base-dn: o=test");
 
-    DN parentDN = DN.decode("cn=Identity Mappers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(mapperEntry, parentEntry);
-
+    ExactMatchIdentityMapperCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              ExactMatchIdentityMapperCfgDefn.getInstance(),
+              mapperEntry);
     ExactMatchIdentityMapper mapper = new ExactMatchIdentityMapper();
-    mapper.initializeIdentityMapper(configEntry);
+    mapper.initializeIdentityMapper(configuration);
 
 
     // Create two user entries and add them to the directory.
@@ -686,12 +688,12 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-attribute: cn");
 
-    DN parentDN = DN.decode("cn=Identity Mappers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(mapperEntry, parentEntry);
-
+    ExactMatchIdentityMapperCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              ExactMatchIdentityMapperCfgDefn.getInstance(),
+              mapperEntry);
     ExactMatchIdentityMapper mapper = new ExactMatchIdentityMapper();
-    mapper.initializeIdentityMapper(configEntry);
+    mapper.initializeIdentityMapper(configuration);
 
 
     // Create a user entry and add it to the directory.
@@ -752,12 +754,12 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-attribute: cn");
 
-    DN parentDN = DN.decode("cn=Identity Mappers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(mapperEntry, parentEntry);
-
+    ExactMatchIdentityMapperCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              ExactMatchIdentityMapperCfgDefn.getInstance(),
+              mapperEntry);
     ExactMatchIdentityMapper mapper = new ExactMatchIdentityMapper();
-    mapper.initializeIdentityMapper(configEntry);
+    mapper.initializeIdentityMapper(configuration);
 
 
     // Create a user entry and add it to the directory.
@@ -818,12 +820,12 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-attribute: cn");
 
-    DN parentDN = DN.decode("cn=Identity Mappers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(mapperEntry, parentEntry);
-
+    ExactMatchIdentityMapperCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              ExactMatchIdentityMapperCfgDefn.getInstance(),
+              mapperEntry);
     ExactMatchIdentityMapper mapper = new ExactMatchIdentityMapper();
-    mapper.initializeIdentityMapper(configEntry);
+    mapper.initializeIdentityMapper(configuration);
 
 
     // Create a user entry and add it to the directory.

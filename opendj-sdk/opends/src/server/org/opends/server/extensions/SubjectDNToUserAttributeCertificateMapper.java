@@ -32,16 +32,14 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import javax.security.auth.x500.X500Principal;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Collection;
 import java.util.List;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.
+            SubjectDNToUserAttributeCertificateMapperCfg;
 import org.opends.server.api.CertificateMapper;
-import org.opends.server.api.ConfigurableComponent;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.DNConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -57,7 +55,6 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
@@ -74,20 +71,19 @@ import static org.opends.server.util.StaticUtils.*;
  * one matching user entry for the mapping to be successful.
  */
 public class SubjectDNToUserAttributeCertificateMapper
-       extends CertificateMapper
-       implements ConfigurableComponent
+       extends CertificateMapper<
+                    SubjectDNToUserAttributeCertificateMapperCfg>
+       implements ConfigurationChangeListener<
+                       SubjectDNToUserAttributeCertificateMapperCfg>
 {
-
-
-
   // The attribute type that will be used to map the certificate's subject.
   private AttributeType subjectAttributeType;
 
   // The DN of the configuration entry for this certificate mapper.
   private DN configEntryDN;
 
-  // The set of base DNs below which the search will be performed.
-  private DN[] baseDNs;
+  // The current configuration for this certificate mapper.
+  private SubjectDNToUserAttributeCertificateMapperCfg currentConfig;
 
 
 
@@ -99,7 +95,6 @@ public class SubjectDNToUserAttributeCertificateMapper
   public SubjectDNToUserAttributeCertificateMapper()
   {
     super();
-
   }
 
 
@@ -107,91 +102,28 @@ public class SubjectDNToUserAttributeCertificateMapper
   /**
    * {@inheritDoc}
    */
-  public void initializeCertificateMapper(ConfigEntry configEntry)
+  public void initializeCertificateMapper(
+                   SubjectDNToUserAttributeCertificateMapperCfg
+                        configuration)
          throws ConfigException, InitializationException
   {
-    this.configEntryDN = configEntry.getDN();
+    configuration.addSubjectDNToUserAttributeChangeListener(this);
 
-    // Get the attribute type that will be used to hold the certificate subject.
-    int msgID = MSGID_SDTUACM_DESCRIPTION_SUBJECT_ATTR;
-    StringConfigAttribute attrStub =
-         new StringConfigAttribute(ATTR_CERTIFICATE_SUBJECT_ATTR,
-                                   getMessage(msgID), true, false, false);
-    try
-    {
-      StringConfigAttribute attrAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(attrStub);
-      if (attrAttr == null)
-      {
-        msgID = MSGID_SDTUACM_NO_SUBJECT_ATTR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    ATTR_CERTIFICATE_SUBJECT_ATTR);
-        throw new ConfigException(msgID, message);
-      }
-      else
-      {
-        String attrName  = attrAttr.pendingValue();
-        String lowerName = toLowerCase(attrName);
-        subjectAttributeType =
-             DirectoryServer.getAttributeType(lowerName, false);
-        if (subjectAttributeType == null)
-        {
-          msgID = MSGID_SDTUACM_NO_SUCH_ATTR;
-          String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                      attrName);
-          throw new ConfigException(msgID, message);
-        }
-      }
-    }
-    catch (ConfigException ce)
-    {
-      throw ce;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
+    currentConfig = configuration;
+    configEntryDN = configuration.dn();
 
-      msgID = MSGID_SDTUACM_CANNOT_GET_SUBJECT_ATTR;
+
+    // Get the attribute type that will be used to hold the fingerprint.
+    String attrName = configuration.getSubjectAttribute();
+    subjectAttributeType =
+         DirectoryServer.getAttributeType(toLowerCase(attrName), false);
+    if (subjectAttributeType == null)
+    {
+      int    msgID   = MSGID_SDTUACM_NO_SUCH_ATTR;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+                                  attrName);
+      throw new ConfigException(msgID, message);
     }
-
-
-    // Get the set of base DNs below which to perform the searches.
-    baseDNs = null;
-    msgID = MSGID_SDTUACM_DESCRIPTION_BASE_DN;
-    DNConfigAttribute baseStub =
-         new DNConfigAttribute(ATTR_CERTIFICATE_SUBJECT_BASEDN,
-                               getMessage(msgID), false, true, false);
-    try
-    {
-      DNConfigAttribute baseAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseStub);
-      if (baseAttr != null)
-      {
-        List<DN> dnList = baseAttr.activeValues();
-        baseDNs = new DN[dnList.size()];
-        dnList.toArray(baseDNs);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_SDTUACM_CANNOT_GET_BASE_DN;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
-    }
-
-    DirectoryServer.registerConfigurableComponent(this);
   }
 
 
@@ -201,7 +133,7 @@ public class SubjectDNToUserAttributeCertificateMapper
    */
   public void finalizeCertificateMapper()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig.removeSubjectDNToUserAttributeChangeListener(this);
   }
 
 
@@ -212,6 +144,11 @@ public class SubjectDNToUserAttributeCertificateMapper
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
+    SubjectDNToUserAttributeCertificateMapperCfg config =
+         currentConfig;
+    AttributeType subjectAttributeType = this.subjectAttributeType;
+
+
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
     {
@@ -254,11 +191,10 @@ public class SubjectDNToUserAttributeCertificateMapper
 
     // If we have an explicit set of base DNs, then use it.  Otherwise, use the
     // set of public naming contexts in the server.
-    DN[] bases = baseDNs;
-    if (bases == null)
+    Collection<DN> baseDNs = config.getUserBaseDN();
+    if ((baseDNs == null) || baseDNs.isEmpty())
     {
-      bases = new DN[0];
-      bases = DirectoryServer.getPublicNamingContexts().keySet().toArray(bases);
+      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
 
 
@@ -267,7 +203,7 @@ public class SubjectDNToUserAttributeCertificateMapper
     Entry userEntry = null;
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    for (DN baseDN : bases)
+    for (DN baseDN : baseDNs)
     {
       InternalSearchOperation searchOperation =
            conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE, filter);
@@ -298,147 +234,25 @@ public class SubjectDNToUserAttributeCertificateMapper
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this
-   * component is associated.
-   *
-   * @return  The DN of the configuration entry with which this
-   *          component is associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
+  public boolean isConfigurationChangeAcceptable(
+                      SubjectDNToUserAttributeCertificateMapperCfg
+                           configuration,
+                      List<String> unacceptableReasons)
   {
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated
-   * with this configurable component.
-   *
-   * @return  The set of configuration attributes that are associated
-   *          with this configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-    int msgID = MSGID_SDTUACM_DESCRIPTION_SUBJECT_ATTR;
-    attrList.add(new StringConfigAttribute(ATTR_CERTIFICATE_SUBJECT_ATTR,
-                          getMessage(msgID), true, false, false,
-                          subjectAttributeType.getNameOrOID()));
-
-    LinkedList<DN> dnList = new LinkedList<DN>();
-    if (baseDNs != null)
-    {
-      for (DN baseDN : baseDNs)
-      {
-        dnList.add(baseDN);
-      }
-    }
-
-    msgID = MSGID_SDTUACM_DESCRIPTION_BASE_DN;
-    attrList.add(new DNConfigAttribute(ATTR_CERTIFICATE_SUBJECT_BASEDN,
-                                       getMessage(msgID), false, true, false,
-                                       dnList));
-
-    return attrList;
-  }
-
-
-
-  /**
-   * Indicates whether the provided configuration entry has an
-   * acceptable configuration for this component.  If it does not,
-   * then detailed information about the problem(s) should be added to
-   * the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to
-   *                              make the determination.
-   * @param  unacceptableReasons  A list that can be used to hold
-   *                              messages about why the provided
-   *                              entry does not have an acceptable
-   *                              configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an
-   *          acceptable configuration for this component, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
-  {
-    DN configEntryDN = configEntry.getDN();
     boolean configAcceptable = true;
 
-
-    // Get the attribute type that will be used to hold the certificate subject.
-    int msgID = MSGID_SDTUACM_DESCRIPTION_SUBJECT_ATTR;
-    StringConfigAttribute attrStub =
-         new StringConfigAttribute(ATTR_CERTIFICATE_SUBJECT_ATTR,
-                                   getMessage(msgID), true, false, false);
-    try
+    // Make sure that the subject attribute is defined in the server schema.
+    String attrName = configuration.getSubjectAttribute();
+    AttributeType newSubjectType =
+                       DirectoryServer.getAttributeType(toLowerCase(attrName),
+                                       false);
+    if (newSubjectType == null)
     {
-      StringConfigAttribute attrAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(attrStub);
-      if (attrAttr == null)
-      {
-        msgID = MSGID_SDTUACM_NO_SUBJECT_ATTR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    ATTR_CERTIFICATE_SUBJECT_ATTR);
-        unacceptableReasons.add(message);
-        configAcceptable = false;
-      }
-      else
-      {
-        String attrName  = attrAttr.pendingValue();
-        String lowerName = toLowerCase(attrName);
-        AttributeType attrType =
-             DirectoryServer.getAttributeType(lowerName, false);
-        if (attrType == null)
-        {
-          msgID = MSGID_SDTUACM_NO_SUCH_ATTR;
-          String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                      attrName);
-          unacceptableReasons.add(message);
-          configAcceptable = false;
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_SDTUACM_CANNOT_GET_SUBJECT_ATTR;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      unacceptableReasons.add(message);
-      configAcceptable = false;
-    }
-
-
-    // Get the set of base DNs below which to perform the searches.
-    msgID = MSGID_SDTUACM_DESCRIPTION_BASE_DN;
-    DNConfigAttribute baseStub =
-         new DNConfigAttribute(ATTR_CERTIFICATE_SUBJECT_BASEDN,
-                               getMessage(msgID), false, true, false);
-    try
-    {
-      DNConfigAttribute baseAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseStub);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_SDTUACM_CANNOT_GET_BASE_DN;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(getMessage(MSGID_SDTUACM_NO_SUCH_ATTR,
+                                         String.valueOf(configEntryDN),
+                                         attrName));
       configAcceptable = false;
     }
 
@@ -449,133 +263,42 @@ public class SubjectDNToUserAttributeCertificateMapper
 
 
   /**
-   * Makes a best-effort attempt to apply the configuration contained
-   * in the provided entry.  Information about the result of this
-   * processing should be added to the provided message list.
-   * Information should always be added to this list if a
-   * configuration change could not be applied.  If detailed results
-   * are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not
-   * changed) should also be included.
-   *
-   * @param  configEntry      The entry containing the new
-   *                          configuration to apply for this
-   *                          component.
-   * @param  detailedResults  Indicates whether detailed information
-   *                          about the processing should be added to
-   *                          the list.
-   *
-   * @return  Information about the result of the configuration
-   *          update.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange(
+              SubjectDNToUserAttributeCertificateMapperCfg
+                   configuration)
   {
-    DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
-    ArrayList<String> messages            = new ArrayList<String>();
     boolean           adminActionRequired = false;
+    ArrayList<String> messages            = new ArrayList<String>();
 
 
-    // Get the attribute type that will be used to hold the certificate subject.
-    AttributeType newAttributeType = null;
-    int msgID = MSGID_SDTUACM_DESCRIPTION_SUBJECT_ATTR;
-    StringConfigAttribute attrStub =
-         new StringConfigAttribute(ATTR_CERTIFICATE_SUBJECT_ATTR,
-                                   getMessage(msgID), true, false, false);
-    try
+    // Make sure that the fingerprint attribute is defined in the server schema.
+    String attrName = configuration.getSubjectAttribute();
+    AttributeType newSubjectType =
+                       DirectoryServer.getAttributeType(toLowerCase(attrName),
+                                       false);
+    if (newSubjectType == null)
     {
-      StringConfigAttribute attrAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(attrStub);
-      if (attrAttr == null)
-      {
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-        }
-
-        msgID = MSGID_SDTUACM_NO_SUBJECT_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                ATTR_CERTIFICATE_SUBJECT_ATTR));
-      }
-      else
-      {
-        String attrName  = attrAttr.pendingValue();
-        String lowerName = toLowerCase(attrName);
-        newAttributeType = DirectoryServer.getAttributeType(lowerName, false);
-        if (subjectAttributeType == null)
-        {
-          if (resultCode == ResultCode.SUCCESS)
-          {
-            resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
-          }
-
-          msgID = MSGID_SDTUACM_NO_SUCH_ATTR;
-          messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                  attrName));
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
       if (resultCode == ResultCode.SUCCESS)
       {
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
+        resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
       }
 
-      msgID = MSGID_SDTUACM_CANNOT_GET_SUBJECT_ATTR;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
-    }
-
-
-    // Get the set of base DNs below which to perform the searches.
-    DN[] newBaseDNs = null;
-    msgID = MSGID_SDTUACM_DESCRIPTION_BASE_DN;
-    DNConfigAttribute baseStub =
-         new DNConfigAttribute(ATTR_CERTIFICATE_SUBJECT_BASEDN,
-                               getMessage(msgID), false, true, false);
-    try
-    {
-      DNConfigAttribute baseAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseStub);
-      if (baseAttr != null)
-      {
-        List<DN> dnList = baseAttr.activeValues();
-        newBaseDNs = new DN[dnList.size()];
-        dnList.toArray(newBaseDNs);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-      }
-
-      msgID = MSGID_SDTUACM_CANNOT_GET_BASE_DN;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+      messages.add(getMessage(MSGID_SDTUACM_NO_SUCH_ATTR,
+                              String.valueOf(configEntryDN), attrName));
     }
 
 
     if (resultCode == ResultCode.SUCCESS)
     {
-      subjectAttributeType = newAttributeType;
-      baseDNs              = newBaseDNs;
+      subjectAttributeType = newSubjectType;
+      currentConfig        = configuration;
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+
+   return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }
 

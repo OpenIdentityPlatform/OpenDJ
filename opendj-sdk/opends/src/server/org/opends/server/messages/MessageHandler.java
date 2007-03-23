@@ -63,6 +63,7 @@ import java.util.IllegalFormatException;
  *   <LI>00A -- Directory Server tools</LI>
  *   <LI>00B -- Task processing</LI>
      <LI>00C -- Access Control</LI>
+     <LI>00D -- Administration framework</LI>
  *   <LI>800 through FFE -- Reserved for third-party modules</LI>
  *   <LI>FFF -- User-defined processing</LI>
  * </UL>
@@ -186,6 +187,14 @@ public class MessageHandler
 
 
   /**
+   * The category bitmask used for messages associated with the
+   * administration framework.
+   */
+  public static final int CATEGORY_MASK_ADMIN = 0x00D00000;
+
+
+
+  /**
    * The category bitmask that will be used for messages associated with
    * third-party (including user-defined) modules.
    */
@@ -281,6 +290,7 @@ public class MessageHandler
     BackendMessages.registerMessages();
     ToolMessages.registerMessages();
     TaskMessages.registerMessages();
+    AdminMessages.registerMessages();
     AciMessages.registerMessages();
   }
 

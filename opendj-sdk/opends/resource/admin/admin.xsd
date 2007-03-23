@@ -1,0 +1,1490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://www.opends.org/admin"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified"
+  xmlns:tns="http://www.opends.org/admin">
+  <xsd:import namespace="http://www.opends.org/admin-ldap"
+    schemaLocation="admin-ldap.xsd" />
+  <xsd:import namespace="http://www.opends.org/admin-preprocessor"
+    schemaLocation="admin-preprocessor.xsd" />
+  <xsd:annotation>
+    <xsd:documentation>
+      This schema defines the XML schema elements and attributes which
+      should be used to specify the server's configuration model.
+      Broadly speaking, there are three main components to this schema:
+      managed objects, properties, and relations. Using these components
+      it is possible to model the server's configuration based on its
+      configurable components (managed objects), their configurable
+      attributes (properties), and their relationships with other
+      configurable components (relations).
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:complexType name="managed-object-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines the structure of a configurable component within the
+        configuration. A managed object comprises of zero or more
+        properties, and zero or more relations with other managed
+        objects. A managed object can be abstract, indicating that it
+        cannot be instantiated directly, and that it is intended as a
+        base definition from which other child managed objects inherit
+        their behavior. Conversely, a managed object can be derived from
+        a parent managed object definition. In this case, the managed
+        object will inherit the properties and relations defined by the
+        parent. Multiple levels of inheritance are supported, but
+        multiple inheritance is not.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="TODO" minOccurs="0" type="xsd:string"
+        maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            An annotation specifying remaining work or unsolved problems
+            relating to this managed object definition. Its use is
+            primarily for development purposes and should not be
+            processed by applications.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="synopsis" type="tns:rich-description-type">
+        <xsd:annotation>
+          <xsd:documentation>
+            A brief description of this managed object. The description
+            should describe, preferably in one sentence, the purpose of
+            this managed object. The synopsis should be suitable for use
+            in applications such as tool-tips, CLI help, and the summary
+            description in Javadoc. It is possible to embed rich content
+            including XHTML markup (this will only be used where
+            supported).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="description" minOccurs="0"
+        type="tns:rich-description-type">
+        <xsd:annotation>
+          <xsd:documentation>
+            A detailed description of this managed object. The
+            description should describe in detail the purpose of this
+            managed object. The description should be suitable for use
+            in applications such as manual pages or detailed help. It
+            does not need to repeat anything described in the synopsis
+            as applications should normally display the two together. It
+            is possible to embed rich content including XHTML markup
+            (this will only be used where supported).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="profile" type="tns:profile-type" minOccurs="0"
+        maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            An annotation relating to this managed object. Annotations
+            can define additional information which cannot be directly
+            represented using this XML schema. The additional
+            information can relate to specific applications such as LDAP
+            (e.g. LDAP object classes), CLIs (e.g. sub-command name),
+            GUIs (e.g. how properties should be arranged and grouped in
+            a window).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="relation" maxOccurs="unbounded" minOccurs="0"
+        type="tns:relation-type">
+        <xsd:annotation>
+          <xsd:documentation>
+            Specifies a composition relationship between this managed
+            object and other "child" managed objects. The relationship
+            can be a singleton relationship (i.e. one to one), an
+            optional relationship (i.e. one to zero or one), or a one to
+            many relationship.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:choice minOccurs="0" maxOccurs="unbounded">
+        <xsd:element name="property" type="tns:property-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              Defines a configurable property of this managed object. A
+              property's value or values affects the behavior of this
+              managed object. Various different types of properties are
+              supported, for example, strings, integers, etc. A property
+              definition must not override a property defined elsewhere
+              in this managed object or property inherited from a parent
+              definition.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="property-reference"
+          type="tns:property-reference-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              A reference to a common property definition defined in a
+              package, which should be part of this managed object's
+              definition.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+      </xsd:choice>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="rich-description-type" mixed="true">
+    <xsd:annotation>
+      <xsd:documentation>
+        An internationalized description string which can contain XHTML
+        markup.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+      <xsd:any namespace="http://www.w3.org/1999/xhtml"
+        processContents="lax" />
+      <xsd:element name="product-name">
+        <xsd:annotation>
+          <xsd:documentation>
+            The name of the product associated with this definition.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="user-friendly-name">
+        <xsd:annotation>
+          <xsd:documentation>
+            The name of the managed object associated with this
+            definition.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="user-friendly-plural-name">
+        <xsd:annotation>
+          <xsd:documentation>
+            The plural name of the managed object associated with this
+            definition.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+    </xsd:choice>
+  </xsd:complexType>
+  <xsd:complexType name="description-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        An internationalized description string which cannot contain
+        XHTML markup.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:token" />
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="property-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines a configurable property of a managed object. A
+        property's value or values affects the behavior of the
+        associated managed object. Various different types of properties
+        are supported, for example, strings, integers, etc. A property
+        definition must not override a property defined elsewhere in the
+        managed object or property inherited from a parent managed
+        object.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="TODO" minOccurs="0" type="xsd:string"
+        maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            An annotation specifying remaining work or unsolved problems
+            relating to this property definition. Its use is primarily
+            for development purposes and should not be processed by
+            applications.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="synopsis" type="tns:rich-description-type">
+        <xsd:annotation>
+          <xsd:documentation>
+            A brief description of this property. The description should
+            describe, preferably in one sentence, the purpose of this
+            property. It does not need to provide details regarding
+            default behavior, syntax, nor how changes take effect (e.g.
+            immediately, post-restart, etc). The synopsis should be
+            suitable for use in applications such as tool-tips, CLI
+            help, and the summary description in Javadoc. It is possible
+            to embed rich content including XHTML markup (this will only
+            be used where supported).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="description" minOccurs="0"
+        type="tns:rich-description-type">
+        <xsd:annotation>
+          <xsd:documentation>
+            A detailed description of this property. The description
+            should describe in detail the purpose of this property. The
+            description should be suitable for use in applications such
+            as manual pages or detailed help. It does not need to repeat
+            anything described in the synopsis as applications should
+            normally display the two together. In addition, it does not
+            need to provide details regarding default behavior, syntax,
+            nor how changes take effect (e.g. immediately, post-restart,
+            etc). It is possible to embed rich content including XHTML
+            markup (this will only be used where supported).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="requires-admin-action"
+        type="tns:admin-action-type" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            Defines an optional action which administators must perform
+            after they have modified this property. By default
+            modifications to properties are assumed to take effect
+            immediately and require no additional administrative action.
+            Developers should be aware that, where feasible, they should
+            implement components such that property modifications
+            require no additional administrative action. This is
+            required in order to minimize server downtime during
+            administration and provide a more user-friendly experience.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="default-behavior" type="tns:default-type"
+        minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            Defines a default behavior for the property when it has no
+            values specified. All properties must have a default
+            behavior defined unless they are mandatory.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="syntax" type="tns:syntax-type">
+        <xsd:annotation>
+          <xsd:documentation>
+            Defines the syntax of this property. This includes the data
+            type used for the property and additional constraints (e.g.
+            upper/lower bounds).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="profile" type="tns:profile-type" minOccurs="0"
+        maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            An annotation relating to this property. Annotations can
+            define additional information which cannot be directly
+            represented using this XML schema. The additional
+            information can relate to specific applications such as LDAP
+            (e.g. LDAP attributes), CLIs (e.g. operand name), GUIs (e.g.
+            how properties should be arranged and grouped in a window).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="tns:name-type" use="required">
+      <xsd:annotation>
+        <xsd:documentation>
+          The name of this property. The name should describe as
+          concisely as possible the purpose of this property and should
+          be suitable for use in Java method names (e.g. getters and
+          setters). The property name should be a string comprising of
+          short lower-case words joined with hyphens "-". For example,
+          "use-ssl".
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="multi-valued" type="xsd:boolean" use="optional"
+      default="false">
+      <xsd:annotation>
+        <xsd:documentation>
+          Indicates whether or not this property is multi-valued. By
+          default, properties are single-valued.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="read-only" type="xsd:boolean" use="optional"
+      default="false">
+      <xsd:annotation>
+        <xsd:documentation>
+          Indicates whether or not this property is read-only. By
+          default, properties are modifiable. Read-only monitoring
+          information is a good use-case for read-only properties.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="mandatory" type="xsd:boolean" use="optional"
+      default="false">
+      <xsd:annotation>
+        <xsd:documentation>
+          Indicates whether or not this property is mandatory. Mandatory
+          properties are those properties which have no sensible default
+          behavior and must, therefore, be specified by administrators.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="hidden" type="xsd:boolean" use="optional"
+      default="false">
+      <xsd:annotation>
+        <xsd:documentation>
+          Indicates whether or not this property should be hidden from
+          client applications. Hidden properties should rarely be used
+          but are sometimes required in order to provide functionality
+          that needs to be exposed in management APIs but not in
+          front-ends such as CLIs.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:complexType name="property-reference-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        A reference to a common property definition defined in a
+        package, which should be part of a managed object's definition.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="requires-admin-action"
+        type="tns:admin-action-type" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            Optionally override the administrative action defined in the
+            referenced property definition. An administrative action
+            defines an optional action which administators must perform
+            after they have modified this property. By default
+            modifications to properties are assumed to take effect
+            immediately and require no additional administrative action.
+            Developers should be aware that, where feasible, they should
+            implement components such that property modifications
+            require no additional administrative action. This is
+            required in order to minimize server downtime during
+            administration and provide a more user-friendly experience.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="default-behavior" type="tns:default-type"
+        minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            Optionally override the default behavior defined in the
+            referenced property definition. The default behavior is
+            applicable when the property has no values specified. All
+            properties must have a default behavior defined unless they
+            are mandatory.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="tns:name-type" use="required">
+      <xsd:annotation>
+        <xsd:documentation>
+          The name of the referenced property.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="package" type="tns:package-type">
+      <xsd:annotation>
+        <xsd:documentation>
+          The package containing the referenced property. By default,
+          the package in which this managed object is defined will be
+          used.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:complexType name="relation-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        Specifies a relationship between a managed object and other
+        managed objects. The relationship can be a singleton
+        relationship (i.e. one to one), an optional relationship (i.e.
+        one to zero or one), or a one to many relationship. Both
+        compositions (the default) and aggregations are supported.
+        Aggregations are defined by specifying the path to the
+        referenced managed objects in the aggregation attribute.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="TODO" minOccurs="0" type="xsd:string"
+        maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            An annotation specifying remaining work or unsolved problems
+            relating to this relation definition. Its use is primarily
+            for development purposes and should not be processed by
+            applications.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="synopsis" type="tns:rich-description-type"
+        minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            An optional brief description of this relation. The
+            description should describe, preferably in one sentence, the
+            purpose of this relation. If a synopsis is not defined this
+            relation will inherit the synopsis of the referenced managed
+            object. If present, the synopsis should be suitable for use
+            in applications such as tool-tips, CLI help, and the summary
+            description in Javadoc. It is possible to embed rich content
+            including XHTML markup (this will only be used where
+            supported).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="description" minOccurs="0"
+        type="tns:rich-description-type">
+        <xsd:annotation>
+          <xsd:documentation>
+            An optional detailed description of this relation. The
+            description should describe in detail the purpose of this
+            relation. The description should be suitable for use in
+            applications such as manual pages or detailed help. It does
+            not need to repeat anything described in the synopsis as
+            applications should normally display the two together. If a
+            description is not defined this relation will inherit the
+            description of the referenced managed object. It is possible
+            to embed rich content including XHTML markup (this will only
+            be used where supported).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:choice>
+        <xsd:element name="one-to-one">
+          <xsd:annotation>
+            <xsd:documentation>
+              Specifies a one to one (singleton) relationship with
+              another type of managed object.
+            </xsd:documentation>
+          </xsd:annotation>
+          <xsd:complexType />
+        </xsd:element>
+        <xsd:element name="one-to-zero-or-one">
+          <xsd:annotation>
+            <xsd:documentation>
+              Specifies a one to zero or one (optional) relationship
+              with another type of managed object.
+            </xsd:documentation>
+          </xsd:annotation>
+          <xsd:complexType />
+        </xsd:element>
+        <xsd:element name="one-to-many">
+          <xsd:annotation>
+            <xsd:documentation>
+              Specifies a one to many (instantiable) relationship with
+              another type of managed object.
+            </xsd:documentation>
+          </xsd:annotation>
+          <xsd:complexType>
+            <xsd:attribute name="plural-name" type="tns:name-type"
+              use="optional">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Specifies the plural name of this relation if
+                  different from the plural name of the referenced
+                  managed object type.
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:attribute>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:choice>
+      <xsd:sequence>
+        <xsd:element name="profile" type="tns:profile-type"
+          minOccurs="0" maxOccurs="unbounded">
+          <xsd:annotation>
+            <xsd:documentation>
+              An annotation relating to this relation. Annotations can
+              define additional information which cannot be directly
+              represented using this XML schema. The additional
+              information can relate to specific applications such as
+              LDAP (e.g. an LDAP RDN representing the entry beneath
+              which managed objects should be located).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="tns:name-type" use="required">
+      <xsd:annotation>
+        <xsd:documentation>
+          The name of this relation. The name should describe as
+          concisely as possible the purpose of this relation and should
+          be suitable for use in Java method names (e.g. getters and
+          setters). The property name should be a string comprising of
+          short lower-case words joined with hyphens "-". For example,
+          "key-manager-provider". Usually the name will correspond to
+          the name of the referenced type of managed object. If it this
+          is not the case, then the type of referenced managed object
+          should be specified using the "managed-object-name" attribute.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="aggregation" type="tns:path-type"
+      use="optional">
+      <xsd:annotation>
+        <xsd:documentation>
+          For aggregation relations, the path locating the relation
+          beneath which the referenced (aggregated) managed objects can
+          be found. If this attribute is not specified, the relation is
+          a composition by default.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="managed-object-name" type="tns:name-type"
+      use="optional">
+      <xsd:annotation>
+        <xsd:documentation>
+          The type of managed object referenced by this relation if
+          different from this relation's name.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="managed-object-package" type="tns:package-type"
+      use="optional">
+      <xsd:annotation>
+        <xsd:documentation>
+          The package containing the referenced managed object
+          definition if it is not the same as this managed object's
+          package.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:complexType name="admin-action-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines an optional action which administators must perform
+        after they have modified a property. By default modifications to
+        properties are assumed to take effect immediately and require no
+        additional administrative action. Developers should be aware
+        that, where feasible, they should implement components such that
+        property modifications require no additional administrative
+        action. This is required in order to minimize server downtime
+        during administration and provide a more user-friendly
+        experience.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:choice>
+      <xsd:element name="none">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used when no administrator action is required after
+            modifications to a property.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="server-restart">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used when modifications to a property require a server
+            restart in order to take effect.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="component-restart">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used when modifications to a property require a component
+            restart in order to take effect (usually by disabling and
+            re-enabling the component).
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="other">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used when modifications to a property require an additional
+            administrative action in order to take effect. This should
+            be used when neither a server restart nor a component
+            restart are applicable.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="synopsis"
+              type="tns:rich-description-type">
+              <xsd:annotation>
+                <xsd:documentation>
+                  A brief description of this required administrative
+                  action. The description should describe, preferably in
+                  one sentence, what additional administrator action is
+                  required when this property is modified. If present,
+                  the synopsis should be suitable for use in
+                  applications such as tool-tips, CLI help, and the
+                  summary description in Javadoc. It is possible to
+                  embed rich content including XHTML markup (this will
+                  only be used where supported).
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="profile" type="tns:profile-type"
+              minOccurs="0" maxOccurs="unbounded">
+              <xsd:annotation>
+                <xsd:documentation>
+                  An annotation relating to this administrative action.
+                  Annotations can define additional information which
+                  cannot be directly represented using this XML schema.
+                  The additional information can relate to specific
+                  applications.
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:choice>
+  </xsd:complexType>
+  <xsd:complexType name="default-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines a default behavior for a property when it has no values
+        specified. All properties must have a default behavior defined
+        unless they are mandatory.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:choice>
+      <xsd:element name="undefined">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used when a property has no tangible default behavior - its
+            default behavior is undefined.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="alias">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used when a property defaults to some special behavior that
+            cannot be represented using property values.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="synopsis"
+              type="tns:rich-description-type">
+              <xsd:annotation>
+                <xsd:documentation>
+                  A brief description of this default behavior. The
+                  description should describe, preferably in one
+                  sentence, the default behavior. If present, the
+                  synopsis should be suitable for use in applications
+                  such as tool-tips, CLI help, and the summary
+                  description in Javadoc. It is possible to embed rich
+                  content including XHTML markup (this will only be used
+                  where supported).
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="profile" type="tns:profile-type"
+              minOccurs="0" maxOccurs="unbounded">
+              <xsd:annotation>
+                <xsd:documentation>
+                  An annotation relating to this default behavior.
+                  Annotations can define additional information which
+                  cannot be directly represented using this XML schema.
+                  The additional information can relate to specific
+                  applications.
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="defined">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used when a property defaults to one or more real values of
+            the property.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="value" minOccurs="1"
+              maxOccurs="unbounded" type="xsd:string">
+              <xsd:annotation>
+                <xsd:documentation>
+                  The string representation of a value of this property.
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="inherited">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used when a property defaults one or more values taken from
+            a property in another managed object.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:choice>
+            <xsd:element name="relative">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Used when the managed object providing the default
+                  values is located relative to this managed object.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:complexType>
+                <xsd:attribute name="offset" use="required">
+                  <xsd:annotation>
+                    <xsd:documentation>
+                      The relative location of the managed object (where
+                      0 is this managed object, 1 is the parent, and 2
+                      is the grand-parent).
+                    </xsd:documentation>
+                  </xsd:annotation>
+                  <xsd:simpleType>
+                    <xsd:restriction base="xsd:integer">
+                      <xsd:minInclusive value="0" />
+                    </xsd:restriction>
+                  </xsd:simpleType>
+                </xsd:attribute>
+                <xsd:attribute name="property-name" type="tns:name-type"
+                  use="required">
+                  <xsd:annotation>
+                    <xsd:documentation>
+                      The name of the property containing the default
+                      values.
+                    </xsd:documentation>
+                  </xsd:annotation>
+                </xsd:attribute>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="absolute">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Used when the managed object providing the default
+                  values is in a known absolute location.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="path">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        TODO: not sure what form this will take.
+                      </xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType />
+                  </xsd:element>
+                </xsd:sequence>
+                <xsd:attribute name="property-name" type="tns:name-type"
+                  use="required">
+                  <xsd:annotation>
+                    <xsd:documentation>
+                      The name of the property containing the default
+                      values.
+                    </xsd:documentation>
+                  </xsd:annotation>
+                </xsd:attribute>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:choice>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:choice>
+  </xsd:complexType>
+  <xsd:complexType name="syntax-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines the syntax of a property. This includes the data type
+        used for the property and additional constraints on the values
+        it contains (e.g. upper/lower bounds).
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:choice>
+      <xsd:element name="attribute-type">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain LDAP attribute type names.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which are best represented using boolean
+            on/off type values.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="dn">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain LDAP distinguished names.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="base" minOccurs="0" type="xsd:string">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Indicates that values of this property must be
+                  immediately subordinate to the specified base DN.
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="oid">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain LDAP object identifiers
+            (e.g. attribute names, object classes, controls, etc).
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="java-class">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which reference a Java class. These are
+            typically used in plugins where the java class property
+            identifies a class implementing the plugin's functionality.
+            It is possible to restrict the values of this property using
+            the instance-of attribute. Note that it is only possible to
+            validate values on the server, since client applications
+            don't necessarily have the same classes on their class-path.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="instance-of" minOccurs="0"
+              maxOccurs="unbounded">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Indicates that values of this property must implement
+                  the specified Java interface. Note that it is only
+                  possible to perform validation on the server, since
+                  client applications don't necessarily have the same
+                  classes on their class-path.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                  <xsd:whiteSpace value="collapse" />
+                  <xsd:pattern
+                    value="([A-Za-z][A-Za-z0-9_]*\.)*[A-Za-z][A-Za-z0-9_]*" />
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="integer">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain integer values. Where
+            appropriate it is possible to provide a description of the
+            units for values of this property (e.g. "number of
+            threads").
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="unit-synopsis" minOccurs="0"
+              type="tns:rich-description-type">
+              <xsd:annotation>
+                <xsd:documentation>
+                  An optional description of the units for this value of
+                  this property (e.g. "number of threads"). The
+                  description should describe the unit, preferably in
+                  one sentence. If present, the description should be
+                  suitable for use in applications such as tool-tips,
+                  CLI help, and the summary description in Javadoc. It
+                  is possible to embed rich content including XHTML
+                  markup (this will only be used where supported).
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+          </xsd:sequence>
+          <xsd:attribute name="allow-unlimited" type="xsd:boolean"
+            use="optional" default="true">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates whether or not this property supports a
+                special value representing infinity. This is useful
+                where properties are used to constrain some behavior and
+                the administrator wishes to remove the constraint (e.g.
+                number of simultaneous client connections).
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="lower-limit" type="xsd:integer"
+            use="optional" default="0">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates a lower limit for this integer property.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="upper-limit" type="xsd:integer"
+            use="optional">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates an upper limit for this integer property.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="ip-address">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain IP addresses. IPv4 and
+            IPv6 address forms are supported. In addition name
+            resolution is performed when non-numeric addresses are
+            specified.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="ip-address-mask">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain IP address masks. IPv4 and
+            IPv6 address mask forms are supported.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="size">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which represent a computer storage size.
+            Sizes can be specified using both decimal and binary units.
+            For example, "1kb" represents 1000 bytes, and "1kib"
+            represents 1024 bytes. Values must always specify the unit
+            and can included a fractionaly part (e.g. 1.5mb). Both short
+            and long unit names are supported (e.g. "kb" and
+            "kilobytes").
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:attribute name="allow-unlimited" type="xsd:boolean"
+            use="optional" default="false">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates whether or not this property supports a
+                special value representing infinity. This is useful
+                where properties are used to constrain some behavior and
+                the administrator wishes to remove the constraint (e.g.
+                maximum log size).
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="lower-limit" type="xsd:string"
+            use="optional" default="0">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates a lower limit for this size property.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="upper-limit" type="xsd:string"
+            use="optional">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates an upper limit for this size property.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="duration">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain a time duration.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:attribute name="base-unit" use="optional" default="s">
+            <xsd:annotation>
+              <xsd:documentation>
+                Specifies the minimum granularity which can be used to
+                specify duration property values. For example, if the
+                base unit is in seconds then values represented in
+                milliseconds will not be permitted. The default base
+                unit is seconds.
+              </xsd:documentation>
+            </xsd:annotation>
+            <xsd:simpleType>
+              <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="ms" />
+                <xsd:enumeration value="s" />
+                <xsd:enumeration value="m" />
+                <xsd:enumeration value="h" />
+                <xsd:enumeration value="d" />
+                <xsd:enumeration value="w" />
+              </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="maximum-unit" use="optional">
+            <xsd:annotation>
+              <xsd:documentation>
+                Specifies the biggest duration unit which can be used to
+                specify duration property values. Values presented in
+                units greater than this unit will not be permitted.
+                There is no default maximum unit.
+              </xsd:documentation>
+            </xsd:annotation>
+            <xsd:simpleType>
+              <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="ms" />
+                <xsd:enumeration value="s" />
+                <xsd:enumeration value="m" />
+                <xsd:enumeration value="h" />
+                <xsd:enumeration value="d" />
+                <xsd:enumeration value="w" />
+              </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="allow-unlimited" type="xsd:boolean"
+            use="optional" default="false">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates whether or not this property supports a
+                special value representing infinity. This is useful
+                where properties are used to constrain some behavior and
+                the administrator wishes to remove the constraint (e.g.
+                connection time-out).
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="lower-limit" type="xsd:string"
+            use="optional" default="0">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates a lower limit for this duration property.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="upper-limit" type="xsd:string"
+            use="optional">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates an upper limit for this duration property.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="password">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain passwords. Values will be
+            represented using strings which are then encrypted.
+            Typically password properties are write-only and should
+            never be displayed in client applications (even during
+            creation).
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="enumeration">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain values taken from a finite
+            set of values. There must be at least one possible value
+            defined.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="value" minOccurs="1"
+              maxOccurs="unbounded">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Defines one of the possible values that this property
+                  can contain.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="synopsis"
+                    type="tns:rich-description-type">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        A description of this enumeration value. The
+                        description should describe the behavior
+                        indicated by the value preferably in one
+                        sentence. The description should be suitable for
+                        use in applications such as tool-tips, CLI help,
+                        and the summary description in Javadoc. It is
+                        possible to embed rich content including XHTML
+                        markup (this will only be used where supported).
+                      </xsd:documentation>
+                    </xsd:annotation>
+                  </xsd:element>
+                </xsd:sequence>
+                <xsd:attribute name="name" use="required"
+                  type="tns:name-type">
+                  <xsd:annotation>
+                    <xsd:documentation>
+                      The name of this enumeration value. The name
+                      should describe as concisely as possible the
+                      behavior indicated by this value and should be
+                      suitable for use in Java source code (e.g.
+                      enumerations). The enumeration value name should
+                      be a string comprising of short lower-case words
+                      joined with hyphens "-". For example, "optional".
+                    </xsd:documentation>
+                  </xsd:annotation>
+                </xsd:attribute>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="string">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain string values. It is
+            possible to contrain the permitted set of values using a
+            regular expression.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="pattern" minOccurs="0">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Constrains the permitted set of values using a regular
+                  expression. All values of this property must match the
+                  provided regular expression.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="regex" type="xsd:string">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        The regular expression conforming to the syntax
+                        supported by the Java "java.util.regex.Pattern"
+                        class.
+                      </xsd:documentation>
+                    </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element name="synopsis"
+                    type="tns:rich-description-type">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        An description of the regular expression (e.g.
+                        "email address"). The description should
+                        describe the type of string represented by the
+                        regular expression, preferably in one sentence.
+                        If present, the description should be suitable
+                        for use in applications such as tool-tips, CLI
+                        help, and the summary description in Javadoc. It
+                        is possible to embed rich content including
+                        XHTML markup (this will only be used where
+                        supported).
+                      </xsd:documentation>
+                    </xsd:annotation>
+                  </xsd:element>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:choice>
+  </xsd:complexType>
+  <xsd:simpleType name="name-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        An identifier name comprising of a 1 or more sequences of lower
+        case letters or digits separated by a single hyphen '-'. The
+        first sequence must begin with a letter.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="[a-z][a-z0-9]*(-[a-z0-9]+)*" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="package-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        An identifier name comprising of a 1 or more sequences of lower
+        case letters or digits separated by a single dot '.'. The first
+        sequence must begin with a letter.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="[a-z][a-z0-9]*(\.[a-z0-9]+)*" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="path-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        A managed object path which can be used to specify the location
+        of refererenced managed objects. A managed object path has a
+        similar syntax to unix file system paths, and comprises of zero
+        or more path elements separated by a forward slash "/". The root
+        configuration is referenced using the path "/". Subsequent path
+        elements name either a relation or its subordinate named managed
+        object (for one-to-many relations). For example, the path
+        "/connection-handlers/LDAP connection handler" references the
+        LDAP connection handler managed object referenced by the root
+        configuration's connection-handlers relation.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="/([^/]+(/[^/]+)*)?"></xsd:pattern>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="profile-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        An annotation relating to the associated element. Annotations
+        can define additional information which cannot be directly
+        represented using this XML schema. The additional information
+        can relate to specific applications such as CLIs, GUIs, etc.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:any processContents="strict" maxOccurs="unbounded" />
+    </xsd:sequence>
+    <xsd:attribute name="name" type="tns:name-type" use="required">
+      <xsd:annotation>
+        <xsd:documentation>
+          The name of this profile e.g. "ldap".
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="root-managed-object">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines the root managed object and its relationships with
+        top-level managed objects. The root managed object serves as a
+        single point of access to the rest of the configuration. It is
+        essentially a virtual managed object and has no properties of
+        its own, just relationships. There can only be a single root
+        managed object defined per configuration model.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="tns:managed-object-type">
+          <xsd:sequence>
+            <xsd:element name="product-name">
+              <xsd:annotation>
+                <xsd:documentation>
+                  The name of the product associated with this
+                  configuration model.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                  <xsd:whiteSpace value="collapse" />
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+          </xsd:sequence>
+          <xsd:attribute name="name" type="tns:name-type"
+            fixed="root">
+            <xsd:annotation>
+              <xsd:documentation>
+                The name of this root managed object, which is always
+                "root".
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="package" type="tns:package-type"
+            fixed="org.opends.server.admin.std">
+            <xsd:annotation>
+              <xsd:documentation>
+                The package containing this root managed object, which
+                is always "org.opends.server.admin.std".
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="managed-object">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines the structure of a configurable component within the
+        configuration. A managed object comprises of zero or more
+        properties, and zero or more relations with other managed
+        objects. A managed object can be abstract, indicating that it
+        cannot be instantiated directly, and that it is intended as a
+        base definition from which other child managed objects inherit
+        their behavior. Conversely, a managed object can be derived from
+        a parent managed object definition. In this case, the managed
+        object will inherit the properties and relations defined by the
+        parent. Multiple levels of inheritance are supported, but
+        multiple inheritance is not.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="tns:managed-object-type">
+          <xsd:attribute name="name" type="tns:name-type"
+            use="required">
+            <xsd:annotation>
+              <xsd:documentation>
+                The name of this managed object. The name should
+                describe as concisely as possible the role of this
+                managed object and should be suitable for use in Java
+                method names (e.g. class names). The managed object name
+                should be a string comprising of short lower-case words
+                joined with hyphens "-". For example,
+                "ldap-connection-handler". NOTE: a managed object name
+                must end in the name of the definition's uppermost
+                super-type. For example, "ldap-connection-handler" is a
+                sub-type of "connection-handler" and therefore ends in
+                "-connection-handler".
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="plural-name" type="tns:name-type"
+            use="required">
+            <xsd:annotation>
+              <xsd:documentation>
+                The plural name of this managed object. The plural name
+                should correspond to the singular name defined in the
+                "name" attribute and it should be suitable for use in
+                Java method names (e.g. getters). The managed object
+                plural name should be a string comprising of short
+                lower-case words joined with hyphens "-". For example,
+                "ldap-connection-handlers".
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="package" type="tns:package-type"
+            use="required">
+            <xsd:annotation>
+              <xsd:documentation>
+                The package containing this managed object.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="abstract" type="xsd:boolean"
+            use="optional" default="false">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates whether or not this managed object is
+                abstract. Abstract managed objects cannot be
+                instantiated directly and are intended for use as base
+                definitions for inheritance.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="extends" type="tns:name-type"
+            use="optional">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates whether or not this managed object is inherits
+                from a parent managed object and, if so, the name of the
+                parent. If specified, this managed object will inherit
+                all of the properties and relations defined in the
+                parent managed object.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="parent-package" type="tns:package-type"
+            use="optional">
+            <xsd:annotation>
+              <xsd:documentation>
+                The package containing the parent managed object. By
+                default, the package in which this managed object is
+                defined will be used.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="package">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines a common information associated with all managed objects
+        defined in the containing package. A package definition
+        comprises of a description of the package together with common
+        property definitions which can be referenced from within managed
+        objects using "property-reference" elements. Sharing property
+        definitions in this way makes maintenance easier in situations
+        where the property definition needs modifying, since all
+        referencing managed objects will automatically inherit the
+        changes.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="TODO" minOccurs="0" type="xsd:string"
+          maxOccurs="unbounded">
+          <xsd:annotation>
+            <xsd:documentation>
+              An annotation specifying remaining work or unsolved
+              problems relating to this package definition. Its use is
+              primarily for development purposes and should not be
+              processed by applications.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="synopsis" type="tns:rich-description-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              A brief description of this package. The description
+              should describe, preferably in one sentence, the purpose
+              of this package, for example, the type of managed objects
+              it defines. The synopsis should be suitable for use in
+              applications such as tool-tips, CLI help, and the summary
+              description in Javadoc. It is possible to embed rich
+              content including XHTML markup (this will only be used
+              where supported).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="description" minOccurs="0"
+          type="tns:rich-description-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              A detailed description of this package. The description
+              should describe in detail the purpose of this package. The
+              description should be suitable for use in applications
+              such as manual pages or detailed help. It does not need to
+              repeat anything described in the synopsis as applications
+              should normally display the two together. It is possible
+              to embed rich content including XHTML markup (this will
+              only be used where supported).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="property" minOccurs="0" maxOccurs="unbounded"
+          type="tns:property-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              Defines a common configurable property for this package.
+              Managed objects can inherit this property definition by
+              referencing it using a "property-reference" element.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="name" type="tns:package-type"
+        use="required">
+        <xsd:annotation>
+          <xsd:documentation>
+            The package containing this package definition.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

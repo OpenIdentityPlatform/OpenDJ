@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="pkcs11-key-manager"
+  plural-name="pkcs11-key-managers"
+  package="org.opends.server.admin.std" extends="key-manager"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:TODO>
+    The key manager must be able to get a pin from somewhere. It looks
+    in property, then an environment variable, then a file, and finally
+    in a configuration attribute. At least one must be present. Can we
+    express this ordering and this "at least one" constraint? Perhaps
+    support a "one-of" element which can be used to group a set of
+    properties.
+  </adm:TODO>
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    provider provides the ability for the server to access the private
+    key information through the PKCS11 interface. This standard
+    interface is used by cryptographic accelerators and hardware
+    security modules.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.21</ldap:oid>
+      <ldap:name>ds-cfg-pkcs11-key-manager-provider</ldap:name>
+      <ldap:superior>ds-cfg-key-manager-provider</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-reference name="key-store-pin" />
+  <adm:property-reference name="key-store-pin-property" />
+  <adm:property-reference name="key-store-pin-environment-variable" />
+  <adm:property-reference name="key-store-pin-file" />
+</adm:managed-object>

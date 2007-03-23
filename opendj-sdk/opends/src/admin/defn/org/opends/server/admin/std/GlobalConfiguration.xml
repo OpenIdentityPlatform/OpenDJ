@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:managed-object name="global" plural-name="globals"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The global configuration contains properties that affect the overall
+    operation of the
+    <adm:product-name />
+    .
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.13</ldap:oid>
+      <ldap:name>ds-cfg-root-config</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="check-schema" mandatory="true">
+    <adm:synopsis>
+      Indicates whether schema enforcement is active.
+    </adm:synopsis>
+    <adm:description>
+      This property indicates whether the
+      <adm:product-name />
+      should ensure that all operations result in entries that are valid
+      according to the defined server schema. It is strongly recommended
+      that this option be left enabled to prevent the inadvertent
+      addition of invalid data into the server.
+    </adm:description>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.24</ldap:oid>
+        <ldap:name>ds-cfg-check-schema</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

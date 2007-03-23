@@ -344,8 +344,7 @@ public class LoggerConfigManager
     Class loggerClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      loggerClass = Class.forName(classNameAttr.pendingValue());
+      loggerClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -658,8 +657,7 @@ public class LoggerConfigManager
       {
         try
         {
-          // FIXME -- Should this be done with a dynamic class loader?
-          Class loggerClass = Class.forName(className);
+          Class loggerClass = DirectoryServer.loadClass(className);
           accessLogger = (AccessLogger) loggerClass.newInstance();
         }
         catch (Exception e)
@@ -707,8 +705,7 @@ public class LoggerConfigManager
       {
         try
         {
-          // FIXME -- Should this be done with a dynamic class loader?
-          Class loggerClass = Class.forName(className);
+          Class loggerClass = DirectoryServer.loadClass(className);
           errorLogger = (ErrorLogger) loggerClass.newInstance();
         }
         catch (Exception e)
@@ -857,8 +854,7 @@ public class LoggerConfigManager
     Class loggerClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      loggerClass = Class.forName(classNameAttr.pendingValue());
+      loggerClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -1122,8 +1118,7 @@ public class LoggerConfigManager
 
       try
       {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class loggerClass = Class.forName(className);
+        Class loggerClass = DirectoryServer.loadClass(className);
         accessLogger = (AccessLogger) loggerClass.newInstance();
       }
       catch (Exception e)
@@ -1176,8 +1171,7 @@ public class LoggerConfigManager
 
       try
       {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class loggerClass = Class.forName(className);
+        Class loggerClass = DirectoryServer.loadClass(className);
         errorLogger = (ErrorLogger) loggerClass.newInstance();
       }
       catch (Exception e)

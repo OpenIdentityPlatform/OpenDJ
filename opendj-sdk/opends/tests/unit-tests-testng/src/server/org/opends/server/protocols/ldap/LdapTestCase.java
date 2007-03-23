@@ -29,7 +29,10 @@ package org.opends.server.protocols.ldap ;
 import static org.opends.server.config.ConfigConstants.ATTR_LISTEN_PORT;
 import org.opends.server.types.Entry;
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
+import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
+import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1Boolean;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Long;
@@ -152,7 +155,7 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
    * entry.
    * 
    * @param handlerEntry The entry to be used to configure the handle.
-   * @return
+   * @return Returns the new LDAP connection handler.
    * @throws Exception if the handler cannot be initialized.
    */
   static LDAPConnectionHandler 
@@ -163,18 +166,35 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
 	  long serverLdapPort = serverLdapSocket.getLocalPort();
 	  Attribute a=new Attribute(ATTR_LISTEN_PORT, String.valueOf(serverLdapPort));
 	  handlerEntry.addAttribute(a,null);
-	  String LDAPClassName=LDAPConnectionHandler.class.getName();
-	  Class LDAPConnHandlerClass = Class.forName(LDAPClassName);
-	  LDAPConnectionHandler LDAPConnHandler = 
-		  (LDAPConnectionHandler) LDAPConnHandlerClass.newInstance();
-	  LDAPConnHandler.initializeConnectionHandler(new ConfigEntry(handlerEntry, null ));
-	  return LDAPConnHandler;
+    LDAPConnectionHandlerCfg config =
+      getConfiguration(handlerEntry);
+    LDAPConnectionHandler handler = new LDAPConnectionHandler();
+    handler.initializeConnectionHandler(config);
+	  return handler;
+  }
+
+  /**
+   * Decode an LDAP connection handler configuration entry.
+   * 
+   * @param handlerEntry
+   *          The configuration entry.
+   * @return Returns the decoded LDAP connection handler
+   *         configuration.
+   * @throws ConfigException
+   *           If the configuration entry could not be decoded.
+   */
+  static LDAPConnectionHandlerCfg getConfiguration(
+      Entry handlerEntry) throws ConfigException {
+    return AdminTestCaseUtils.getConfiguration(
+        LDAPConnectionHandlerCfgDefn
+            .getInstance(), handlerEntry);
   }
   
   /**
- * @return A free port number.
- * @throws Exception if socket cannot be created or bound to.
- */
+   * @return A free port number.
+   * @throws Exception
+   *           if socket cannot be created or bound to.
+   */
 static long
   getFreePort() throws Exception {
 	  ServerSocket serverLdapSocket = new ServerSocket();

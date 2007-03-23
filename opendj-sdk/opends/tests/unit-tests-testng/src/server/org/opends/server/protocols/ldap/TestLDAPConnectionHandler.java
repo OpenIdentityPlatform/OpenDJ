@@ -34,11 +34,13 @@ import java.util.Collection;
 
 import static org.opends.server.config.ConfigConstants.*;
 
+import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.*;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
@@ -99,7 +101,6 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 		LDAPConnectionHandler LDAPConnHandler=getLDAPHandlerInstance(LDAPHandlerEntry);
 		LDAPConnHandler.allowLDAPv2();
 		LDAPConnHandler.allowStartTLS();
-		LDAPConnHandler.setKeepStats(false);
 		LDAPConnHandler.keepStats();
 		LDAPConnHandler.toString(new StringBuilder());
 		LDAPConnHandler.toString();
@@ -107,8 +108,6 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 		LinkedHashMap<String,String> alerts = LDAPConnHandler.getAlerts();
 		String c=LDAPConnHandler.getClassName();
 		DN dn = LDAPConnHandler.getComponentEntryDN();
-		DN dn1 = LDAPConnHandler.getConfigurableComponentEntryDN();
-		List<ConfigAttribute> atts = LDAPConnHandler.getConfigurationAttributes();
 		String[] cips = LDAPConnHandler.getEnabledSSLCipherSuites();
 		String[] protos = LDAPConnHandler.getEnabledSSLProtocols();
 		int maxReqSize = LDAPConnHandler.getMaxRequestSize();
@@ -133,7 +132,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 		LDAPConnHandler.processServerShutdown(reasonMsg);
 	}
 
-	@Test()
+	@Test(expectedExceptions=ConfigException.class)
 	/**
 	 *  Start a handler an then give its hasAcceptableConfiguration a ConfigEntry with
 	 *  numerous invalid cases and single-valued attrs with duplicate values.
@@ -165,8 +164,8 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 				"ds-cfg-use-ssl: false",
 				"ds-cfg-ssl-client-auth-policy: optional",
 		"ds-cfg-ssl-cert-nickname: server-cert");
-		LDAPConnectionHandler LDAPConnHandler=getLDAPHandlerInstance(BadHandlerEntry);
-		//Add some invalid attrs and some duplicate attrs 
+		
+    // Add some invalid attrs and some duplicate attrs 
 		Attribute a2=new Attribute(ATTR_LISTEN_PORT, String.valueOf(389));
 		Attribute a2a=new Attribute(ATTR_LISTEN_PORT, String.valueOf(70000));
 		Attribute a3=new Attribute(ATTR_LISTEN_ADDRESS, "localhost");
@@ -199,12 +198,8 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 		BadHandlerEntry.addAttribute(a13, null);
 		BadHandlerEntry.addAttribute(a14, null);
 		BadHandlerEntry.addAttribute(a15, null);
-		LinkedList<String> reasons = new LinkedList<String>();
-		ConfigEntry BadConfigEntry=new ConfigEntry(BadHandlerEntry, null );
-		boolean ret=LDAPConnHandler.hasAcceptableConfiguration(BadConfigEntry, reasons);
-		LDAPConnHandler.finalizeConnectionHandler(reasonMsg, true);
-		LDAPConnHandler.processServerShutdown(reasonMsg);
-		assertFalse(ret);
+    
+		LdapTestCase.getConfiguration(BadHandlerEntry);
 	}
 
 	/**
@@ -313,12 +308,12 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
 		GoodHandlerEntry.addAttribute(a14, null);
 		GoodHandlerEntry.addAttribute(a15, null);
 		LinkedList<String> reasons = new LinkedList<String>();
-		ConfigEntry newConfigEntry=new ConfigEntry(GoodHandlerEntry, null );
+    LDAPConnectionHandlerCfg config = LdapTestCase.getConfiguration(GoodHandlerEntry);
 		//see if we're ok
-		boolean ret=LDAPConnHandler.hasAcceptableConfiguration(newConfigEntry, reasons);
+		boolean ret=LDAPConnHandler.isConfigurationChangeAcceptable(config, reasons);
 		assertTrue(ret);	
 		//apply it
-		LDAPConnHandler.applyNewConfiguration(newConfigEntry, true);
+		LDAPConnHandler.applyConfigurationChange(config);
 		LDAPConnHandler.finalizeConnectionHandler(reasonMsg, true);
 
 	}

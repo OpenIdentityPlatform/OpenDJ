@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="exact-match-identity-mapper"
+  plural-name="exact-match-identity-mappers"
+  package="org.opends.server.admin.std" extends="identity-mapper"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    maps an identifier string to user entries by searching for the entry
+    containing a specified attribute whose value is the provided identifer.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.45</ldap:oid>
+      <ldap:name>ds-cfg-exact-match-identity-mapper</ldap:name>
+      <ldap:superior>ds-cfg-identity-mapper</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="match-attribute" mandatory="true" multi-valued="true">
+    <adm:synopsis>
+      Specifies the attribute to use to perform the mapping.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the name or OID of the attribute whose value should exactly
+      match the ID string provided to this identity mapper.  At least one
+      value must be provided.  All values must refer to the name or OID of an
+      attribute type defined in the Directory Server schema.  If multiple
+      attribute type names or OIDs are provided, then at least one of those
+      attributes must contain the provided ID string value in exactly one
+      entry.
+    </adm:description>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.146</ldap:oid>
+        <ldap:name>ds-cfg-match-attribute</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="match-base-dn" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the set of base DNs below which to search for users.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the base DN(s) that should be used when performing searches to
+      map the provided ID string to a user entry.  If no values are provided,
+      then the server will search below all public naming contexts.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The server will search below all public naming contexts.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.147</ldap:oid>
+        <ldap:name>ds-cfg-match-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

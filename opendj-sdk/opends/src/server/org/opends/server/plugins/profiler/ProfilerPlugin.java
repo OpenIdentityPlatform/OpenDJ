@@ -30,24 +30,15 @@ package org.opends.server.plugins.profiler;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.api.ConfigurableComponent;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.ProfilerPluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.StartupPluginResult;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.IntegerWithUnitConfigAttribute;
-import org.opends.server.config.MultiChoiceConfigAttribute;
-import org.opends.server.config.ReadOnlyConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
@@ -56,14 +47,12 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -78,12 +67,9 @@ import static org.opends.server.util.StaticUtils.*;
  * time.
  */
 public final class ProfilerPlugin
-       extends DirectoryServerPlugin
-       implements ConfigurableComponent
+       extends DirectoryServerPlugin<ProfilerPluginCfg>
+       implements ConfigurationChangeListener<ProfilerPluginCfg>
 {
-
-
-
   /**
    * The value to use for the profiler action when no action is necessary.
    */
@@ -115,44 +101,14 @@ public final class ProfilerPlugin
 
 
 
-  /**
-   * The set of time units that will be used for expressing the task retention
-   * time.
-   */
-  private static final LinkedHashMap<String,Double> timeUnits =
-       new LinkedHashMap<String,Double>();
-
-
-
-  // Indicates whether the profiler should be started automatically when the
-  // Directory Server is started.
-  private boolean autoStart;
-
   // The DN of the configuration entry for this plugin.
   private DN configEntryDN;
 
-  // The set of profiler actions that a client may request.
-  private LinkedHashSet<String> profilerActions;
-
-  // The sample interval to use when capturing stack traces.
-  private long sampleInterval;
+  // The current configuration for this plugin.
+  private ProfilerPluginCfg currentConfig;
 
   // The thread that is actually capturing the profile information.
   private ProfilerThread profilerThread;
-
-  // The path to the directory into which the captured information should be
-  // written.
-  private String profileDirectory;
-
-
-
-  static
-  {
-    timeUnits.put(TIME_UNIT_MILLISECONDS_ABBR, 1D);
-    timeUnits.put(TIME_UNIT_MILLISECONDS_FULL, 1D);
-    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1000D);
-    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1000D);
-  }
 
 
 
@@ -175,19 +131,13 @@ public final class ProfilerPlugin
    */
   @Override()
   public final void initializePlugin(Set<PluginType> pluginTypes,
-                                     ConfigEntry configEntry)
+                                     ProfilerPluginCfg configuration)
          throws ConfigException
   {
-    // Initialize the set of profiler actions.
-    profilerActions = new LinkedHashSet<String>(4);
-    profilerActions.add(PROFILE_ACTION_NONE);
-    profilerActions.add(PROFILE_ACTION_START);
-    profilerActions.add(PROFILE_ACTION_STOP);
-    profilerActions.add(PROFILE_ACTION_CANCEL);
+    configuration.addProfilerChangeListener(this);
 
-
-    // Get and store the DN of the associated configuration entry.
-    configEntryDN = configEntry.getDN();
+    currentConfig = configuration;
+    configEntryDN = configuration.dn();
 
 
     // Make sure that this plugin is only registered as a startup plugin.
@@ -212,114 +162,15 @@ public final class ProfilerPlugin
     }
 
 
-    // Get the name of the profile directory from the config entry.  We may
-    // override this value when reading the stop request, but if that attribute
-    // is missing or we get a request to finalize while the profiler is still
-    // active, then we will want to know it ahead of time.  If there is no
-    // value, then just use the current working directory.
-    profileDirectory = System.getProperty("user.dir");
-
-    int msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_PROFILE_DIR;
-    StringConfigAttribute profileDirStub =
-         new StringConfigAttribute(ATTR_PROFILE_DIR, getMessage(msgID), true,
-                                   false, false);
-    try
+    // Make sure that the profile directory exists.
+    File profileDirectory = getFileForPath(configuration.getProfileDirectory());
+    if (! (profileDirectory.exists() && profileDirectory.isDirectory()))
     {
-      StringConfigAttribute profileDirAttr =
-           (StringConfigAttribute)
-           configEntry.getConfigAttribute(profileDirStub);
-      if (profileDirAttr != null)
-      {
-        profileDirectory =
-             getFileForPath(profileDirAttr.activeValue()).getAbsolutePath();
-      }
+      int    msgID   = MSGID_PLUGIN_PROFILER_INVALID_PROFILE_DIR;
+      String message = getMessage(msgID, profileDirectory.getAbsolutePath(),
+                                  String.valueOf(configEntryDN));
+      throw new ConfigException(msgID, message);
     }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_PROFILE_DIR;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e),
-                                  profileDirectory);
-      logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
-    }
-
-
-    // Determine whether the plugin should start capturing data automatically
-    // when the server is starting.
-    autoStart = false;
-
-    msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_AUTOSTART;
-    BooleanConfigAttribute autoStartStub =
-         new BooleanConfigAttribute(ATTR_PROFILE_AUTOSTART, getMessage(msgID),
-                                    false);
-    try
-    {
-      BooleanConfigAttribute autoStartAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(autoStartStub);
-      if (autoStartAttr != null)
-      {
-        autoStart = autoStartAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_AUTOSTART;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
-    }
-
-
-    // Determine the sample interval that should be used when capturing stack
-    // traces.
-    sampleInterval = DEFAULT_PROFILE_INTERVAL;
-
-    msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_INTERVAL;
-    IntegerWithUnitConfigAttribute intervalStub =
-         new IntegerWithUnitConfigAttribute(ATTR_PROFILE_INTERVAL,
-                                            getMessage(msgID), false, timeUnits,
-                                            true, 1, false, 0);
-    try
-    {
-      IntegerWithUnitConfigAttribute intervalAttr =
-           (IntegerWithUnitConfigAttribute)
-           configEntry.getConfigAttribute(intervalStub);
-      if (intervalAttr != null)
-      {
-        sampleInterval = intervalAttr.activeCalculatedValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_INTERVAL;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e),
-                                  sampleInterval);
-      logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
-    }
-
-
-    // Register with the Directory Server as a configurable component.
-    DirectoryConfig.registerConfigurableComponent(this);
   }
 
 
@@ -330,6 +181,8 @@ public final class ProfilerPlugin
   @Override()
   public final void finalizePlugin()
   {
+    currentConfig.removeProfilerChangeListener(this);
+
     // If the profiler thread is still active, then cause it to dump the
     // information it has captured and exit.
     synchronized (this)
@@ -338,8 +191,8 @@ public final class ProfilerPlugin
       {
         profilerThread.stopProfiling();
 
-        String filename = profileDirectory + File.separator + "profile." +
-                          TimeThread.getGMTTime();
+        String filename = currentConfig.getProfileDirectory() + File.separator +
+                          "profile." + TimeThread.getGMTTime();
         try
         {
           profilerThread.writeCaptureData(filename);
@@ -360,9 +213,6 @@ public final class ProfilerPlugin
         }
       }
     }
-
-
-    DirectoryConfig.deregisterConfigurableComponent(this);
   }
 
 
@@ -373,10 +223,12 @@ public final class ProfilerPlugin
   @Override()
   public final StartupPluginResult doStartup()
   {
+    ProfilerPluginCfg config = currentConfig;
+
     // If the profiler should be started automatically, then do so now.
-    if (autoStart)
+    if (config.isEnableProfilingOnStartup())
     {
-      profilerThread = new ProfilerThread(sampleInterval);
+      profilerThread = new ProfilerThread(config.getProfileSampleInterval());
       profilerThread.start();
     }
 
@@ -388,465 +240,143 @@ public final class ProfilerPlugin
   /**
    * {@inheritDoc}
    */
-  public final DN getConfigurableComponentEntryDN()
+  public boolean isConfigurationChangeAcceptable(
+                      ProfilerPluginCfg configuration,
+                      List<String> unacceptableReasons)
   {
-    return configEntryDN;
+    boolean configAcceptable = true;
+
+    // Make sure that the profile directory exists.
+    File profileDirectory = getFileForPath(configuration.getProfileDirectory());
+    if (! (profileDirectory.exists() && profileDirectory.isDirectory()))
+    {
+      int msgID = MSGID_PLUGIN_PROFILER_INVALID_PROFILE_DIR;
+      unacceptableReasons.add(getMessage(msgID,
+                                         profileDirectory.getAbsolutePath(),
+                                         String.valueOf(configEntryDN)));
+      configAcceptable = false;
+    }
+
+    return configAcceptable;
   }
 
 
 
   /**
-   * {@inheritDoc}
+   * Applies the configuration changes to this change listener.
+   *
+   * @param configuration
+   *          The new configuration containing the changes.
+   * @return Returns information about the result of changing the
+   *         configuration.
    */
-  public final List<ConfigAttribute> getConfigurationAttributes()
-  {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-
-    int msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_INTERVAL;
-    IntegerWithUnitConfigAttribute intervalAttr =
-         new IntegerWithUnitConfigAttribute(ATTR_PROFILE_INTERVAL,
-                                            getMessage(msgID), false, timeUnits,
-                                            true, 1, false, 0, sampleInterval,
-                                            TIME_UNIT_MILLISECONDS_FULL);
-    attrList.add(intervalAttr);
-
-
-    msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_PROFILE_DIR;
-    StringConfigAttribute profileDirAttr =
-         new StringConfigAttribute(ATTR_PROFILE_DIR, getMessage(msgID), true,
-                                   false, false, profileDirectory);
-    attrList.add(profileDirAttr);
-
-
-    msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_AUTOSTART;
-    BooleanConfigAttribute autoStartAttr =
-         new BooleanConfigAttribute(ATTR_PROFILE_AUTOSTART, getMessage(msgID),
-                                    false, autoStart);
-    attrList.add(autoStartAttr);
-
-
-    msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_STATE;
-    String stateStr = (profilerThread == null) ? "disabled" : "enabled";
-    ReadOnlyConfigAttribute stateAttr =
-         new ReadOnlyConfigAttribute(ATTR_PROFILE_STATE, getMessage(msgID),
-                                     stateStr);
-    attrList.add(stateAttr);
-
-
-    msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_ACTION;
-    MultiChoiceConfigAttribute actionAttr =
-         new MultiChoiceConfigAttribute(ATTR_PROFILE_ACTION, getMessage(msgID),
-                                        true, false, false, profilerActions,
-                                        PROFILE_ACTION_NONE);
-    attrList.add(actionAttr);
-
-
-    return attrList;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                            List<String> unacceptableReasons)
-  {
-    // See if there is an acceptable value for the sample interval.
-    int msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_INTERVAL;
-    IntegerWithUnitConfigAttribute intervalStub =
-         new IntegerWithUnitConfigAttribute(ATTR_PROFILE_INTERVAL,
-                                            getMessage(msgID), false, timeUnits,
-                                            true, 1, false, 0);
-    try
-    {
-      IntegerWithUnitConfigAttribute intervalAttr =
-           (IntegerWithUnitConfigAttribute)
-           configEntry.getConfigAttribute(intervalStub);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_INTERVAL;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         stackTraceToSingleLineString(e),
-                                         sampleInterval));
-      return false;
-    }
-
-
-    // See if there is an acceptable value for the profiler directory.
-    msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_PROFILE_DIR;
-    StringConfigAttribute profileDirStub =
-         new StringConfigAttribute(ATTR_PROFILE_DIR, getMessage(msgID), true,
-                                   false, false);
-    try
-    {
-      StringConfigAttribute profileDirAttr =
-           (StringConfigAttribute)
-           configEntry.getConfigAttribute(profileDirStub);
-      if (profileDirAttr != null)
-      {
-        File dirFile = getFileForPath(profileDirAttr.activeValue());
-        if (! (dirFile.exists() && dirFile.isDirectory()))
-        {
-          msgID = MSGID_PLUGIN_PROFILER_INVALID_PROFILE_DIR;
-          unacceptableReasons.add(getMessage(msgID,
-                                             profileDirAttr.activeValue(),
-                                             String.valueOf(configEntryDN)));
-          return false;
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_PROFILE_DIR;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         stackTraceToSingleLineString(e),
-                                         sampleInterval));
-      return false;
-    }
-
-
-    // See if there is an acceptable value for the autostart flag.
-    msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_AUTOSTART;
-    BooleanConfigAttribute autoStartStub =
-         new BooleanConfigAttribute(ATTR_PROFILE_AUTOSTART, getMessage(msgID),
-                                    false);
-    try
-    {
-      BooleanConfigAttribute autoStartAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(autoStartStub);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_AUTOSTART;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // See if there is an acceptable value for the profiler action.
-    msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_ACTION;
-    MultiChoiceConfigAttribute actionStub =
-         new MultiChoiceConfigAttribute(ATTR_PROFILE_ACTION, getMessage(msgID),
-                                        false, false, false, profilerActions);
-    try
-    {
-      MultiChoiceConfigAttribute actionAttr =
-           (MultiChoiceConfigAttribute)
-           configEntry.getConfigAttribute(actionStub);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_ACTION;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // If we've gotten here, then everything looks OK.
-    return true;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                        boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange(
+                                 ProfilerPluginCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
 
+    currentConfig = configuration;
 
-    // Check to see if the sample interval needs to change and apply it as
-    // necessary.
-    int msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_INTERVAL;
-    IntegerWithUnitConfigAttribute intervalStub =
-         new IntegerWithUnitConfigAttribute(ATTR_PROFILE_INTERVAL,
-                                            getMessage(msgID), false, timeUnits,
-                                            true, 1, false, 0);
-    try
+    // See if we need to perform any action.
+    switch (configuration.getProfileAction())
     {
-      IntegerWithUnitConfigAttribute intervalAttr =
-           (IntegerWithUnitConfigAttribute)
-           configEntry.getConfigAttribute(intervalStub);
-      if (intervalAttr != null)
-      {
-        long newInterval = intervalAttr.pendingCalculatedValue();
-        if (newInterval != sampleInterval)
+      case START:
+        // See if the profiler thread is running.  If so, then don't do
+        // anything.  Otherwise, start it.
+        synchronized (this)
         {
-          sampleInterval = newInterval;
-
-          if (detailedResults)
+          if (profilerThread == null)
           {
-            msgID = MSGID_PLUGIN_PROFILER_UPDATED_INTERVAL;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                    sampleInterval));
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
+            profilerThread =
+                 new ProfilerThread(configuration.getProfileSampleInterval());
+            profilerThread.start();
 
-      msgID = MSGID_PLUGIN_PROFILER_CANNOT_UPDATE_INTERVAL;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryConfig.getServerErrorResultCode();
-    }
-
-
-
-    // Check to see if the profile directory needs to change.
-    msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_PROFILE_DIR;
-    StringConfigAttribute profileDirStub =
-         new StringConfigAttribute(ATTR_PROFILE_DIR, getMessage(msgID), true,
-                                   false, false);
-    try
-    {
-      StringConfigAttribute profileDirAttr =
-           (StringConfigAttribute)
-           configEntry.getConfigAttribute(profileDirStub);
-      if (profileDirAttr != null)
-      {
-        String dirString = profileDirAttr.pendingValue();
-        if (! dirString.equals(profileDirectory))
-        {
-          File dirFile = getFileForPath(dirString);
-          if (! (dirFile.exists() && dirFile.isDirectory()))
-          {
-            msgID = MSGID_PLUGIN_PROFILER_INVALID_PROFILE_DIR;
-            messages.add(getMessage(msgID, dirString,
-                                    String.valueOf(configEntryDN)));
-
-            resultCode = DirectoryConfig.getServerErrorResultCode();
+            int msgID = MSGID_PLUGIN_PROFILER_STARTED_PROFILING;
+            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
           }
           else
           {
-            profileDirectory = dirFile.getAbsolutePath();
+            int msgID = MSGID_PLUGIN_PROFILER_ALREADY_PROFILING;
+            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+          }
+        }
+        break;
 
-            if (detailedResults)
+      case STOP:
+        // See if the profiler thread is running.  If so, then stop it and write
+        // the information captured to disk.  Otherwise, don't do anything.
+        synchronized (this)
+        {
+          if (profilerThread == null)
+          {
+            int msgID = MSGID_PLUGIN_PROFILER_NOT_RUNNING;
+            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+          }
+          else
+          {
+            profilerThread.stopProfiling();
+
+            int msgID = MSGID_PLUGIN_PROFILER_STOPPED_PROFILING;
+            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+
+            String filename =
+                 getFileForPath(
+                      configuration.getProfileDirectory()).getAbsolutePath() +
+                 File.separator + "profile." + TimeThread.getGMTTime();
+
+            try
             {
-              msgID = MSGID_PLUGIN_PROFILER_UPDATED_DIRECTORY;
+              profilerThread.writeCaptureData(filename);
+
+              msgID = MSGID_PLUGIN_PROFILER_WROTE_PROFILE_DATA;
               messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                      profileDirectory));
+                                      filename));
             }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                debugCaught(DebugLogLevel.ERROR, e);
+              }
+
+              msgID = MSGID_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA;
+              messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                                      filename,
+                                      stackTraceToSingleLineString(e)));
+
+              resultCode = DirectoryConfig.getServerErrorResultCode();
+            }
+
+            profilerThread = null;
           }
         }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
+        break;
 
-      msgID = MSGID_PLUGIN_PROFILER_CANNOT_UPDATE_DIRECTORY;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
-
-      resultCode = DirectoryConfig.getServerErrorResultCode();
-    }
-
-
-    // Check to see if we need to invoke some profiler action.   We will only
-    // try to take action if we haven't seen any problems with other parameters.
-    msgID = MSGID_PLUGIN_PROFILER_DESCRIPTION_ACTION;
-    MultiChoiceConfigAttribute actionStub =
-         new MultiChoiceConfigAttribute(ATTR_PROFILE_ACTION, getMessage(msgID),
-                                        false, false, false, profilerActions);
-    try
-    {
-      MultiChoiceConfigAttribute actionAttr =
-           (MultiChoiceConfigAttribute)
-           configEntry.getConfigAttribute(actionStub);
-
-      if (actionAttr != null)
-      {
-        if (resultCode == ResultCode.SUCCESS)
+      case CANCEL:
+        // See if the profiler thread is running.  If so, then stop it but don't
+        // write anything to disk.  Otherwise, don't do anything.
+        synchronized (this)
         {
-          String action = actionAttr.pendingValue().toLowerCase();
-          if (action.equals(PROFILE_ACTION_NONE))
+          if (profilerThread == null)
           {
-            // We don't need to do anything at all.
-          }
-          else if (action.equals(PROFILE_ACTION_START))
-          {
-            // See if the profiler thread is running.  If so, then don't do
-            // anything.  Otherwise, start it.
-            synchronized (this)
-            {
-              if (profilerThread == null)
-              {
-                profilerThread = new ProfilerThread(sampleInterval);
-                profilerThread.start();
-
-                if (detailedResults)
-                {
-                  msgID = MSGID_PLUGIN_PROFILER_STARTED_PROFILING;
-                  messages.add(getMessage(msgID,
-                                          String.valueOf(configEntryDN)));
-                }
-              }
-              else
-              {
-                msgID = MSGID_PLUGIN_PROFILER_ALREADY_PROFILING;
-                messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-              }
-            }
-          }
-          else if (action.equals(PROFILE_ACTION_STOP))
-          {
-            // See if the profiler thread is running.  If so, then stop it and
-            // write the information captured to disk.  Otherwise, don't do
-            // anything.
-            synchronized (this)
-            {
-              if (profilerThread == null)
-              {
-                msgID = MSGID_PLUGIN_PROFILER_NOT_RUNNING;
-                messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-              }
-              else
-              {
-                profilerThread.stopProfiling();
-
-                if (detailedResults)
-                {
-                  msgID = MSGID_PLUGIN_PROFILER_STOPPED_PROFILING;
-                  messages.add(getMessage(msgID,
-                                          String.valueOf(configEntryDN)));
-                }
-
-                String filename = profileDirectory + File.separator +
-                                  "profile." + TimeThread.getGMTTime();
-
-                try
-                {
-                  profilerThread.writeCaptureData(filename);
-
-                  if (detailedResults)
-                  {
-                    msgID = MSGID_PLUGIN_PROFILER_WROTE_PROFILE_DATA;
-                    messages.add(getMessage(msgID,
-                                            String.valueOf(configEntryDN),
-                                            filename));
-                  }
-                }
-                catch (Exception e)
-                {
-                  if (debugEnabled())
-                  {
-                    debugCaught(DebugLogLevel.ERROR, e);
-                  }
-
-                  msgID = MSGID_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA;
-                  messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                          filename,
-                                          stackTraceToSingleLineString(e)));
-
-                  resultCode = DirectoryConfig.getServerErrorResultCode();
-                }
-
-                profilerThread = null;
-              }
-            }
-          }
-          else if (action.equals(PROFILE_ACTION_CANCEL))
-          {
-            // See if the profiler thread is running.  If so, then stop it but
-            // don't write anything to disk.  Otherwise, don't do anything.
-            synchronized (this)
-            {
-              if (profilerThread == null)
-              {
-                msgID = MSGID_PLUGIN_PROFILER_NOT_RUNNING;
-                messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-              }
-              else
-              {
-                profilerThread.stopProfiling();
-
-                if (detailedResults)
-                {
-                  msgID = MSGID_PLUGIN_PROFILER_STOPPED_PROFILING;
-                  messages.add(getMessage(msgID,
-                                          String.valueOf(configEntryDN)));
-                }
-
-                profilerThread = null;
-              }
-            }
+            int msgID = MSGID_PLUGIN_PROFILER_NOT_RUNNING;
+            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
           }
           else
           {
-            // This was an unrecognized action.  We won't do anything.
-            msgID = MSGID_PLUGIN_PROFILER_UNKNOWN_ACTION;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                    action));
+            profilerThread.stopProfiling();
 
-            resultCode = DirectoryConfig.getServerErrorResultCode();
+            int msgID = MSGID_PLUGIN_PROFILER_STOPPED_PROFILING;
+            messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
+
+            profilerThread = null;
           }
         }
-        else
-        {
-          msgID = MSGID_PLUGIN_PROFILER_SKIPPING_ACTION;
-          messages.add(getMessage(msgID, actionAttr.pendingValue(),
-                                  String.valueOf(configEntryDN)));
-        }
-
-        configEntry.removeConfigAttribute(ATTR_PROFILE_ACTION.toLowerCase());
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_PLUGIN_PROFILER_CANNOT_PERFORM_ACTION;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
-
-      resultCode = DirectoryConfig.getServerErrorResultCode();
+        break;
     }
 
-
-    // Return the result of the processing.
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }
-

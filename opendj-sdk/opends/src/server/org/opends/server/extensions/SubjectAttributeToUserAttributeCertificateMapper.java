@@ -32,17 +32,16 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import javax.security.auth.x500.X500Principal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.
+            SubjectAttributeToUserAttributeCertificateMapperCfg;
 import org.opends.server.api.CertificateMapper;
-import org.opends.server.api.ConfigurableComponent;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.DNConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -58,7 +57,6 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
@@ -77,20 +75,20 @@ import static org.opends.server.util.StaticUtils.*;
  * to search for matching user entries.
  */
 public class SubjectAttributeToUserAttributeCertificateMapper
-       extends CertificateMapper
-       implements ConfigurableComponent
+       extends CertificateMapper<
+               SubjectAttributeToUserAttributeCertificateMapperCfg>
+       implements ConfigurationChangeListener<
+                  SubjectAttributeToUserAttributeCertificateMapperCfg>
 {
-
-
-
   // The DN of the configuration entry for this certificate mapper.
   private DN configEntryDN;
 
-  // The set of base DNs below which the search will be performed.
-  private DN[] baseDNs;
-
   // The mappings between certificate attribute names and user attribute types.
   private LinkedHashMap<String,AttributeType> attributeMap;
+
+  // The current configuration for this certificate mapper.
+  private SubjectAttributeToUserAttributeCertificateMapperCfg
+               currentConfig;
 
 
 
@@ -102,7 +100,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   public SubjectAttributeToUserAttributeCertificateMapper()
   {
     super();
-
   }
 
 
@@ -110,136 +107,74 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   /**
    * {@inheritDoc}
    */
-  public void initializeCertificateMapper(ConfigEntry configEntry)
+  public void initializeCertificateMapper(
+                   SubjectAttributeToUserAttributeCertificateMapperCfg
+                        configuration)
          throws ConfigException, InitializationException
   {
-    this.configEntryDN = configEntry.getDN();
+    configuration
+        .addSubjectAttributeToUserAttributeChangeListener(this);
 
-    // Get the attribute that will be used to map subject attributes to user
-    // attributes.
-    attributeMap = new LinkedHashMap<String,AttributeType>();
-    int msgID = MSGID_SATUACM_DESCRIPTION_ATTR_MAP;
-    StringConfigAttribute mapStub =
-         new StringConfigAttribute(ATTR_CERTIFICATE_SUBJECT_ATTR_MAP,
-                                   getMessage(msgID), true, true, false);
-    try
+    currentConfig = configuration;
+    configEntryDN = configuration.dn();
+
+    // Get and validate the subject attribute to user attribute mappings.
+    LinkedHashMap<String,AttributeType> attributeMap =
+         new LinkedHashMap<String,AttributeType>();
+    for (String mapStr : configuration.getSubjectAttributeMapping())
     {
-      StringConfigAttribute mapAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(mapStub);
-      if (mapAttr == null)
+      String lowerMap = toLowerCase(mapStr);
+      int colonPos = lowerMap.indexOf(':');
+      if (colonPos <= 0)
       {
-        msgID = MSGID_SATUACM_NO_MAP_ATTR;
+        int    msgID   = MSGID_SATUACM_INVALID_MAP_FORMAT;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    ATTR_CERTIFICATE_SUBJECT_ATTR_MAP);
+                                    mapStr);
         throw new ConfigException(msgID, message);
       }
-      else
+
+      String certAttrName = lowerMap.substring(0, colonPos).trim();
+      String userAttrName = lowerMap.substring(colonPos+1).trim();
+      if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
       {
-        for (String mapStr : mapAttr.pendingValues())
+        int    msgID   = MSGID_SATUACM_INVALID_MAP_FORMAT;
+        String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                    mapStr);
+        throw new ConfigException(msgID, message);
+      }
+
+      if (attributeMap.containsKey(certAttrName))
+      {
+        int    msgID   = MSGID_SATUACM_DUPLICATE_CERT_ATTR;
+        String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                    certAttrName);
+        throw new ConfigException(msgID, message);
+      }
+
+      AttributeType userAttrType =
+           DirectoryServer.getAttributeType(userAttrName, false);
+      if (userAttrType == null)
+      {
+        int    msgID   = MSGID_SATUACM_NO_SUCH_ATTR;
+        String message = getMessage(msgID, mapStr,
+                                    String.valueOf(configEntryDN),
+                                    userAttrName);
+        throw new ConfigException(msgID, message);
+      }
+
+      for (AttributeType attrType : attributeMap.values())
+      {
+        if (attrType.equals(userAttrType))
         {
-          String lowerMap = toLowerCase(mapStr);
-          int colonPos = lowerMap.indexOf(':');
-          if (colonPos <= 0)
-          {
-            msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        mapStr);
-            throw new ConfigException(msgID, message);
-          }
-
-          String certAttrName = lowerMap.substring(0, colonPos).trim();
-          String userAttrName = lowerMap.substring(colonPos+1).trim();
-          if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
-          {
-            msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        mapStr);
-            throw new ConfigException(msgID, message);
-          }
-
-          if (attributeMap.containsKey(certAttrName))
-          {
-            msgID = MSGID_SATUACM_DUPLICATE_CERT_ATTR;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        certAttrName);
-            throw new ConfigException(msgID, message);
-          }
-
-          AttributeType userAttrType =
-               DirectoryServer.getAttributeType(userAttrName, false);
-          if (userAttrType == null)
-          {
-            msgID = MSGID_SATUACM_NO_SUCH_ATTR;
-            String message = getMessage(msgID, mapStr,
-                                        String.valueOf(configEntryDN),
-                                        userAttrName);
-            throw new ConfigException(msgID, message);
-          }
-
-          for (AttributeType attrType : attributeMap.values())
-          {
-            if (attrType.equals(userAttrType))
-            {
-              msgID = MSGID_SATUACM_DUPLICATE_USER_ATTR;
-              String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                          attrType.getNameOrOID());
-              throw new ConfigException(msgID, message);
-            }
-          }
-
-          attributeMap.put(certAttrName, userAttrType);
+          int    msgID   = MSGID_SATUACM_DUPLICATE_USER_ATTR;
+          String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                      attrType.getNameOrOID());
+          throw new ConfigException(msgID, message);
         }
       }
-    }
-    catch (ConfigException ce)
-    {
-      throw ce;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      msgID = MSGID_SATUACM_CANNOT_GET_ATTR_MAP;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      attributeMap.put(certAttrName, userAttrType);
     }
-
-
-    // Get the set of base DNs below which to perform the searches.
-    baseDNs = null;
-    msgID = MSGID_SATUACM_DESCRIPTION_BASE_DN;
-    DNConfigAttribute baseStub =
-         new DNConfigAttribute(ATTR_CERTIFICATE_SUBJECT_BASEDN,
-                               getMessage(msgID), false, true, false);
-    try
-    {
-      DNConfigAttribute baseAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseStub);
-      if (baseAttr != null)
-      {
-        List<DN> dnList = baseAttr.activeValues();
-        baseDNs = new DN[dnList.size()];
-        dnList.toArray(baseDNs);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_SATUACM_CANNOT_GET_BASE_DN;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
-    }
-
-    DirectoryServer.registerConfigurableComponent(this);
   }
 
 
@@ -249,7 +184,8 @@ public class SubjectAttributeToUserAttributeCertificateMapper
    */
   public void finalizeCertificateMapper()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig
+        .removeSubjectAttributeToUserAttributeChangeListener(this);
   }
 
 
@@ -260,6 +196,11 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
+    SubjectAttributeToUserAttributeCertificateMapperCfg config =
+         currentConfig;
+    LinkedHashMap<String,AttributeType> attributeMap = this.attributeMap;
+
+
     // Make sure that a peer certificate was provided.
     if ((certificateChain == null) || (certificateChain.length == 0))
     {
@@ -337,11 +278,10 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
     // If we have an explicit set of base DNs, then use it.  Otherwise, use the
     // set of public naming contexts in the server.
-    DN[] bases = baseDNs;
-    if (bases == null)
+    Collection<DN> baseDNs = config.getUserBaseDN();
+    if ((baseDNs == null) || baseDNs.isEmpty())
     {
-      bases = new DN[0];
-      bases = DirectoryServer.getPublicNamingContexts().keySet().toArray(bases);
+      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
 
 
@@ -350,7 +290,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     Entry userEntry = null;
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    for (DN baseDN : bases)
+    for (DN baseDN : baseDNs)
     {
       InternalSearchOperation searchOperation =
            conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE, filter);
@@ -381,218 +321,78 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this
-   * component is associated.
-   *
-   * @return  The DN of the configuration entry with which this
-   *          component is associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
+  public boolean isConfigurationChangeAcceptable(
+              SubjectAttributeToUserAttributeCertificateMapperCfg
+                   configuration,
+              List<String> unacceptableReasons)
   {
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated
-   * with this configurable component.
-   *
-   * @return  The set of configuration attributes that are associated
-   *          with this configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-    LinkedList<String> mapValues = new LinkedList<String>();
-    for (String certAttrName : attributeMap.keySet())
-    {
-      AttributeType certAttrType = attributeMap.get(certAttrName);
-      mapValues.add(certAttrName + ":" + certAttrType.getNameOrOID());
-    }
-
-    int msgID = MSGID_SATUACM_DESCRIPTION_ATTR_MAP;
-    attrList.add(new StringConfigAttribute(ATTR_CERTIFICATE_SUBJECT_ATTR_MAP,
-                                           getMessage(msgID), true, false,
-                                           false, mapValues));
-
-    LinkedList<DN> dnList = new LinkedList<DN>();
-    if (baseDNs != null)
-    {
-      for (DN baseDN : baseDNs)
-      {
-        dnList.add(baseDN);
-      }
-    }
-
-    msgID = MSGID_SATUACM_DESCRIPTION_BASE_DN;
-    attrList.add(new DNConfigAttribute(ATTR_CERTIFICATE_SUBJECT_BASEDN,
-                                       getMessage(msgID), false, true, false,
-                                       dnList));
-
-    return attrList;
-  }
-
-
-
-  /**
-   * Indicates whether the provided configuration entry has an
-   * acceptable configuration for this component.  If it does not,
-   * then detailed information about the problem(s) should be added to
-   * the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to
-   *                              make the determination.
-   * @param  unacceptableReasons  A list that can be used to hold
-   *                              messages about why the provided
-   *                              entry does not have an acceptable
-   *                              configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an
-   *          acceptable configuration for this component, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
-  {
-    DN configEntryDN = configEntry.getDN();
     boolean configAcceptable = true;
 
-
-    // Get the attribute that will be used to map subject attributes to user
-    // attributes.
+    // Get and validate the subject attribute to user attribute mappings.
     LinkedHashMap<String,AttributeType> newAttributeMap =
          new LinkedHashMap<String,AttributeType>();
-    int msgID = MSGID_SATUACM_DESCRIPTION_ATTR_MAP;
-    StringConfigAttribute mapStub =
-         new StringConfigAttribute(ATTR_CERTIFICATE_SUBJECT_ATTR_MAP,
-                                   getMessage(msgID), true, true, false);
-    try
-    {
-      StringConfigAttribute mapAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(mapStub);
-      if (mapAttr == null)
-      {
-        msgID = MSGID_SATUACM_NO_MAP_ATTR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    ATTR_CERTIFICATE_SUBJECT_ATTR_MAP);
-        unacceptableReasons.add(message);
-        configAcceptable = false;
-      }
-      else
-      {
 mapLoop:
-        for (String mapStr : mapAttr.pendingValues())
+    for (String mapStr : configuration.getSubjectAttributeMapping())
+    {
+      String lowerMap = toLowerCase(mapStr);
+      int colonPos = lowerMap.indexOf(':');
+      if (colonPos <= 0)
+      {
+        int msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
+        unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
+                                           mapStr));
+        configAcceptable = false;
+        break;
+      }
+
+      String certAttrName = lowerMap.substring(0, colonPos).trim();
+      String userAttrName = lowerMap.substring(colonPos+1).trim();
+      if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
+      {
+        int msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
+        unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
+                                           mapStr));
+        configAcceptable = false;
+        break;
+      }
+
+      if (newAttributeMap.containsKey(certAttrName))
+      {
+        int msgID = MSGID_SATUACM_DUPLICATE_CERT_ATTR;
+        unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
+                                           certAttrName));
+        configAcceptable = false;
+        break;
+      }
+
+      AttributeType userAttrType =
+           DirectoryServer.getAttributeType(userAttrName, false);
+      if (userAttrType == null)
+      {
+        int msgID = MSGID_SATUACM_NO_SUCH_ATTR;
+        unacceptableReasons.add(getMessage(msgID, mapStr,
+                                           String.valueOf(configEntryDN),
+                                           userAttrName));
+        configAcceptable = false;
+        break;
+      }
+
+      for (AttributeType attrType : newAttributeMap.values())
+      {
+        if (attrType.equals(userAttrType))
         {
-          String lowerMap = toLowerCase(mapStr);
-          int colonPos = lowerMap.indexOf(':');
-          if (colonPos <= 0)
-          {
-            msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        mapStr);
-            unacceptableReasons.add(message);
-            configAcceptable = false;
-            continue;
-          }
-
-          String certAttrName = lowerMap.substring(0, colonPos).trim();
-          String userAttrName = lowerMap.substring(colonPos+1).trim();
-          if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
-          {
-            msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        mapStr);
-            unacceptableReasons.add(message);
-            configAcceptable = false;
-            continue;
-          }
-
-          if (newAttributeMap.containsKey(certAttrName))
-          {
-            msgID = MSGID_SATUACM_DUPLICATE_CERT_ATTR;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        certAttrName);
-            unacceptableReasons.add(message);
-            configAcceptable = false;
-            continue;
-          }
-
-          AttributeType userAttrType =
-               DirectoryServer.getAttributeType(userAttrName, false);
-          if (userAttrType == null)
-          {
-            msgID = MSGID_SATUACM_NO_SUCH_ATTR;
-            String message = getMessage(msgID, mapStr,
-                                        String.valueOf(configEntryDN),
-                                        userAttrName);
-            unacceptableReasons.add(message);
-            configAcceptable = false;
-            continue;
-          }
-
-          for (AttributeType attrType : newAttributeMap.values())
-          {
-            if (attrType.equals(userAttrType))
-            {
-              msgID = MSGID_SATUACM_DUPLICATE_USER_ATTR;
-              String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                          attrType.getNameOrOID());
-              unacceptableReasons.add(message);
-              configAcceptable = false;
-              continue mapLoop;
-            }
-          }
-
-          newAttributeMap.put(certAttrName, userAttrType);
+          int msgID = MSGID_SATUACM_DUPLICATE_USER_ATTR;
+          unacceptableReasons.add(getMessage(msgID,
+                                             String.valueOf(configEntryDN),
+                                             attrType.getNameOrOID()));
+          configAcceptable = false;
+          break mapLoop;
         }
       }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      msgID = MSGID_SATUACM_CANNOT_GET_ATTR_MAP;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      unacceptableReasons.add(message);
-      configAcceptable = false;
-    }
-
-
-    // Get the set of base DNs below which to perform the searches.
-    DN[] newBaseDNs = null;
-    msgID = MSGID_SATUACM_DESCRIPTION_BASE_DN;
-    DNConfigAttribute baseStub =
-         new DNConfigAttribute(ATTR_CERTIFICATE_SUBJECT_BASEDN,
-                               getMessage(msgID), false, true, false);
-    try
-    {
-      DNConfigAttribute baseAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseStub);
-      if (baseAttr != null)
-      {
-        List<DN> dnList = baseAttr.activeValues();
-        newBaseDNs = new DN[dnList.size()];
-        dnList.toArray(newBaseDNs);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_SATUACM_CANNOT_GET_BASE_DN;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      unacceptableReasons.add(message);
-      configAcceptable = false;
+      newAttributeMap.put(certAttrName, userAttrType);
     }
 
 
@@ -602,201 +402,107 @@ mapLoop:
 
 
   /**
-   * Makes a best-effort attempt to apply the configuration contained
-   * in the provided entry.  Information about the result of this
-   * processing should be added to the provided message list.
-   * Information should always be added to this list if a
-   * configuration change could not be applied.  If detailed results
-   * are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not
-   * changed) should also be included.
-   *
-   * @param  configEntry      The entry containing the new
-   *                          configuration to apply for this
-   *                          component.
-   * @param  detailedResults  Indicates whether detailed information
-   *                          about the processing should be added to
-   *                          the list.
-   *
-   * @return  Information about the result of the configuration
-   *          update.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange(
+              SubjectAttributeToUserAttributeCertificateMapperCfg
+                   configuration)
   {
-    DN                configEntryDN       = configEntry.getDN();
     ResultCode        resultCode          = ResultCode.SUCCESS;
-    ArrayList<String> messages            = new ArrayList<String>();
     boolean           adminActionRequired = false;
+    ArrayList<String> messages            = new ArrayList<String>();
 
 
-    // Get the attribute that will be used to map subject attributes to user
-    // attributes.
+    // Get and validate the subject attribute to user attribute mappings.
     LinkedHashMap<String,AttributeType> newAttributeMap =
          new LinkedHashMap<String,AttributeType>();
-    int msgID = MSGID_SATUACM_DESCRIPTION_ATTR_MAP;
-    StringConfigAttribute mapStub =
-         new StringConfigAttribute(ATTR_CERTIFICATE_SUBJECT_ATTR_MAP,
-                                   getMessage(msgID), true, true, false);
-    try
+mapLoop:
+    for (String mapStr : configuration.getSubjectAttributeMapping())
     {
-      StringConfigAttribute mapAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(mapStub);
-      if (mapAttr == null)
+      String lowerMap = toLowerCase(mapStr);
+      int colonPos = lowerMap.indexOf(':');
+      if (colonPos <= 0)
       {
         if (resultCode == ResultCode.SUCCESS)
         {
-          resultCode = ResultCode.OBJECTCLASS_VIOLATION;
+          resultCode = ResultCode.CONSTRAINT_VIOLATION;
         }
 
-        msgID = MSGID_SATUACM_NO_MAP_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                ATTR_CERTIFICATE_SUBJECT_ATTR_MAP));
+        int msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
+        messages.add(getMessage(msgID, String.valueOf(configEntryDN), mapStr));
+        break;
       }
-      else
+
+      String certAttrName = lowerMap.substring(0, colonPos).trim();
+      String userAttrName = lowerMap.substring(colonPos+1).trim();
+      if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
       {
-mapLoop:
-        for (String mapStr : mapAttr.pendingValues())
+        if (resultCode == ResultCode.SUCCESS)
         {
-          String lowerMap = toLowerCase(mapStr);
-          int colonPos = lowerMap.indexOf(':');
-          if (colonPos <= 0)
-          {
-            if (resultCode == ResultCode.SUCCESS)
-            {
-              resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-            }
+          resultCode = ResultCode.CONSTRAINT_VIOLATION;
+        }
 
-            msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                    mapStr));
-            break;
+        int msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
+        messages.add(getMessage(msgID, String.valueOf(configEntryDN), mapStr));
+        break;
+      }
+
+      if (newAttributeMap.containsKey(certAttrName))
+      {
+        if (resultCode == ResultCode.SUCCESS)
+        {
+          resultCode = ResultCode.CONSTRAINT_VIOLATION;
+        }
+
+        int msgID = MSGID_SATUACM_DUPLICATE_CERT_ATTR;
+        messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                                certAttrName));
+        break;
+      }
+
+      AttributeType userAttrType =
+           DirectoryServer.getAttributeType(userAttrName, false);
+      if (userAttrType == null)
+      {
+        if (resultCode == ResultCode.SUCCESS)
+        {
+          resultCode = ResultCode.CONSTRAINT_VIOLATION;
+        }
+
+        int msgID = MSGID_SATUACM_NO_SUCH_ATTR;
+        messages.add(getMessage(msgID, mapStr, String.valueOf(configEntryDN),
+                                userAttrName));
+        break;
+      }
+
+      for (AttributeType attrType : newAttributeMap.values())
+      {
+        if (attrType.equals(userAttrType))
+        {
+          if (resultCode == ResultCode.SUCCESS)
+          {
+            resultCode = ResultCode.CONSTRAINT_VIOLATION;
           }
 
-          String certAttrName = lowerMap.substring(0, colonPos).trim();
-          String userAttrName = lowerMap.substring(colonPos+1).trim();
-          if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
-          {
-            if (resultCode == ResultCode.SUCCESS)
-            {
-              resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-            }
-
-            msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                    mapStr));
-            break;
-          }
-
-          if (newAttributeMap.containsKey(certAttrName))
-          {
-            if (resultCode == ResultCode.SUCCESS)
-            {
-              resultCode = ResultCode.CONSTRAINT_VIOLATION;
-            }
-
-            msgID = MSGID_SATUACM_DUPLICATE_CERT_ATTR;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                    certAttrName));
-            break;
-          }
-
-          AttributeType userAttrType =
-               DirectoryServer.getAttributeType(userAttrName, false);
-          if (userAttrType == null)
-          {
-            if (resultCode == ResultCode.SUCCESS)
-            {
-              resultCode = ResultCode.NO_SUCH_ATTRIBUTE;
-            }
-
-            msgID = MSGID_SATUACM_NO_SUCH_ATTR;
-            messages.add(getMessage(msgID, mapStr,
-                                    String.valueOf(configEntryDN),
-                                    userAttrName));
-            break;
-          }
-
-          for (AttributeType attrType : newAttributeMap.values())
-          {
-            if (attrType.equals(userAttrType))
-            {
-              if (resultCode == ResultCode.SUCCESS)
-              {
-                resultCode = ResultCode.CONSTRAINT_VIOLATION;
-              }
-
-              msgID = MSGID_SATUACM_DUPLICATE_USER_ATTR;
-              messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                      attrType.getNameOrOID()));
-              break mapLoop;
-            }
-          }
-
-          newAttributeMap.put(certAttrName, userAttrType);
+          int msgID = MSGID_SATUACM_DUPLICATE_USER_ATTR;
+          messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                                  attrType.getNameOrOID()));
+          break mapLoop;
         }
       }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      msgID = MSGID_SATUACM_CANNOT_GET_ATTR_MAP;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
-    }
-
-
-    // Get the set of base DNs below which to perform the searches.
-    DN[] newBaseDNs = null;
-    msgID = MSGID_SATUACM_DESCRIPTION_BASE_DN;
-    DNConfigAttribute baseStub =
-         new DNConfigAttribute(ATTR_CERTIFICATE_SUBJECT_BASEDN,
-                               getMessage(msgID), false, true, false);
-    try
-    {
-      DNConfigAttribute baseAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseStub);
-      if (baseAttr != null)
-      {
-        List<DN> dnList = baseAttr.activeValues();
-        newBaseDNs = new DN[dnList.size()];
-        dnList.toArray(newBaseDNs);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      msgID = MSGID_SATUACM_CANNOT_GET_BASE_DN;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+      newAttributeMap.put(certAttrName, userAttrType);
     }
 
 
     if (resultCode == ResultCode.SUCCESS)
     {
-      attributeMap = newAttributeMap;
-      baseDNs      = newBaseDNs;
+      attributeMap  = newAttributeMap;
+      currentConfig = configuration;
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+
+   return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }
 

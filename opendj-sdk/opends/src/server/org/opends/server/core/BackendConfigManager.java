@@ -446,8 +446,7 @@ public class BackendConfigManager
       Backend backend;
       try
       {
-        // FIXME -- Should we use a custom class loader for this?
-        Class backendClass = Class.forName(className);
+        Class backendClass = DirectoryServer.loadClass(className);
         backend = (Backend) backendClass.newInstance();
       }
       catch (Exception e)
@@ -890,8 +889,7 @@ public class BackendConfigManager
 
     try
     {
-      // FIXME -- Should we use a custom class loader for this?
-      Class backendClass = Class.forName(className);
+      Class backendClass = DirectoryServer.loadClass(className);
       if (! Backend.class.isAssignableFrom(backendClass))
       {
         msgID = MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND;
@@ -1270,8 +1268,7 @@ public class BackendConfigManager
         // implementation.
         try
         {
-          // FIXME -- Should we use a custom class loader for this?
-          Class backendClass = Class.forName(className);
+          Class backendClass = DirectoryServer.loadClass(className);
           if (Backend.class.isAssignableFrom(backendClass))
           {
             // It appears to be a valid backend class.  We'll return that the
@@ -1320,8 +1317,7 @@ public class BackendConfigManager
     {
       try
       {
-        // FIXME -- Should we use a custom class loader for this?
-        Class backendClass = Class.forName(className);
+        Class backendClass = DirectoryServer.loadClass(className);
         backend = (Backend) backendClass.newInstance();
       }
       catch (Exception e)
@@ -1730,8 +1726,7 @@ public class BackendConfigManager
     Backend backend;
     try
     {
-      // FIXME -- Should we use a custom class loader for this?
-      Class backendClass = Class.forName(className);
+      Class backendClass = DirectoryServer.loadClass(className);
       backend = (Backend) backendClass.newInstance();
     }
     catch (Exception e)
@@ -2107,8 +2102,7 @@ public class BackendConfigManager
     Backend backend;
     try
     {
-      // FIXME -- Should we use a custom class loader for this?
-      Class backendClass = Class.forName(className);
+      Class backendClass = DirectoryServer.loadClass(className);
       backend = (Backend) backendClass.newInstance();
     }
     catch (Exception e)
@@ -2408,7 +2402,7 @@ public class BackendConfigManager
     {
       int msgID = MSGID_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES;
       messages.add(getMessage(msgID, String.valueOf(backendDN)));
-      resultCode = resultCode.UNWILLING_TO_PERFORM;
+      resultCode = ResultCode.UNWILLING_TO_PERFORM;
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
   }

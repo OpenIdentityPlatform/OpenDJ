@@ -59,7 +59,6 @@ import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -273,8 +272,7 @@ public class TrustManagerProviderConfigManager
     Class providerClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      providerClass = Class.forName(classNameAttr.pendingValue());
+      providerClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -517,8 +515,7 @@ public class TrustManagerProviderConfigManager
     {
       try
       {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class providerClass = Class.forName(className);
+        Class providerClass = DirectoryServer.loadClass(className);
         provider = (TrustManagerProvider) providerClass.newInstance();
       }
       catch (Exception e)
@@ -645,8 +642,7 @@ public class TrustManagerProviderConfigManager
     Class providerClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      providerClass = Class.forName(classNameAttr.pendingValue());
+      providerClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -872,8 +868,7 @@ public class TrustManagerProviderConfigManager
     TrustManagerProvider provider;
     try
     {
-      // FIXME -- Should this be done with a dynamic class loader?
-      Class providerClass = Class.forName(className);
+      Class providerClass = DirectoryServer.loadClass(className);
       provider = (TrustManagerProvider) providerClass.newInstance();
     }
     catch (Exception e)

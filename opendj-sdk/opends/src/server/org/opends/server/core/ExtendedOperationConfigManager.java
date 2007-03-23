@@ -274,8 +274,7 @@ public class ExtendedOperationConfigManager
     Class handlerClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      handlerClass = Class.forName(classNameAttr.pendingValue());
+      handlerClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -517,8 +516,7 @@ public class ExtendedOperationConfigManager
     {
       try
       {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class handlerClass = Class.forName(className);
+        Class handlerClass = DirectoryServer.loadClass(className);
         handler = (ExtendedOperationHandler) handlerClass.newInstance();
       }
       catch (Exception e)
@@ -665,8 +663,7 @@ public class ExtendedOperationConfigManager
     Class handlerClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      handlerClass = Class.forName(classNameAttr.pendingValue());
+      handlerClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -886,8 +883,7 @@ public class ExtendedOperationConfigManager
     ExtendedOperationHandler handler;
     try
     {
-      // FIXME -- Should this be done with a dynamic class loader?
-      Class handlerClass = Class.forName(className);
+      Class handlerClass = DirectoryServer.loadClass(className);
       handler = (ExtendedOperationHandler) handlerClass.newInstance();
     }
     catch (Exception e)

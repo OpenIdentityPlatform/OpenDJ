@@ -28,8 +28,8 @@ package org.opends.server.extensions;
 
 
 
+import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.SASLMechanismHandler;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
@@ -55,11 +55,8 @@ import static org.opends.server.util.ServerConstants.*;
  * then that trace information will be written to the server error log.
  */
 public class AnonymousSASLMechanismHandler
-       extends SASLMechanismHandler
+       extends SASLMechanismHandler<SASLMechanismHandlerCfg>
 {
-
-
-
   /**
    * Creates a new instance of this SASL mechanism handler.  No initialization
    * should be done in this method, as it should all be performed in the
@@ -68,7 +65,6 @@ public class AnonymousSASLMechanismHandler
   public AnonymousSASLMechanismHandler()
   {
     super();
-
   }
 
 
@@ -77,7 +73,8 @@ public class AnonymousSASLMechanismHandler
    * {@inheritDoc}
    */
   @Override()
-  public void initializeSASLMechanismHandler(ConfigEntry configEntry)
+  public void initializeSASLMechanismHandler(SASLMechanismHandlerCfg
+                                                  configuration)
          throws ConfigException, InitializationException
   {
     // No real implementation is required.  Simply register with the Directory

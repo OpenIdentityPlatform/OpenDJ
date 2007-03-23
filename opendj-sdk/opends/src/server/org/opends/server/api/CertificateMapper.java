@@ -30,7 +30,8 @@ package org.opends.server.api;
 
 import java.security.cert.Certificate;
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.
+            CertificateMapperCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -44,19 +45,19 @@ import org.opends.server.types.InitializationException;
  * implemented by a Directory Server module that implements the
  * functionality required to uniquely map an SSL client certificate to
  * a Directory Server user entry.
+ *
+ * @param  <T>  The type of configuration handled by this certificate
+ *              mapper.
  */
 public abstract class CertificateMapper
+       <T extends CertificateMapperCfg>
 {
-
-
-
   /**
    * Initializes this certificate mapper based on the information in
    * the provided configuration entry.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      certificate mapper.
+   * @param  configuration  The configuration that should be used to
+   *                        intialize this certificate mapper.
    *
    * @throws  ConfigException  If the provided entry does not contain
    *                           a valid certificate mapper
@@ -67,8 +68,7 @@ public abstract class CertificateMapper
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializeCertificateMapper(
-                            ConfigEntry configEntry)
+  public abstract void initializeCertificateMapper(T configuration)
          throws ConfigException, InitializationException;
 
 

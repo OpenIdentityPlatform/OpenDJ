@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="plugin"
+  plural-name="plugins"
+  package="org.opends.server.admin.std" abstract="false"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    <adm:user-friendly-plural-name />
+    provide a mechanism for executing custom code at specified points in
+    operation processing and in the course of other events like connection
+    establishment and termination, server startup and shutdown, and LDIF import
+    and export.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.37</ldap:oid>
+      <ldap:name>ds-cfg-plugin</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="enabled" mandatory="true">
+    <adm:synopsis>
+      Indicate whether the
+      <adm:user-friendly-name />
+      is enabled for use.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.80</ldap:oid>
+        <ldap:name>ds-cfg-plugin-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="plugin-class" mandatory="true">
+    <adm:synopsis>
+      The fully-qualified name of the Java class that provides the
+      <adm:user-friendly-name />
+      implementation.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:java-class>
+        <adm:instance-of>
+          org.opends.server.api.plugin.DirectoryServerPlugin
+        </adm:instance-of>
+      </adm:java-class>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.79</ldap:oid>
+        <ldap:name>ds-cfg-plugin-class</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="plugin-type" mandatory="true" multi-valued="true">
+    <adm:synopsis>
+      The plugin types, which define the conditions under which this plugin
+      should be invoked.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="startup">
+          <adm:synopsis>
+            Invoked during the Directory Server startup process.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="shutdown">
+          <adm:synopsis>
+            Invoked during a graceful Directory Server shutdown.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postconnect">
+          <adm:synopsis>
+            Invoked whenever a new connection is established to the server.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postdisconnect">
+          <adm:synopsis>
+            Invoked whenever an existing connection is terminated (by either
+            the client or the server).
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="ldifimport">
+          <adm:synopsis>
+            Invoked for each entry read during an LDIF import.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="ldifexport">
+          <adm:synopsis>
+            Invoked for each operation to be written during an LDIF export.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preparseabandon">
+          <adm:synopsis>
+            Invoked prior to parsing an abandon request.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preparseadd">
+          <adm:synopsis>
+            Invoked prior to parsing an add request.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preparsebind">
+          <adm:synopsis>
+            Invoked prior to parsing a bind request.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preparsecompare">
+          <adm:synopsis>
+            Invoked prior to parsing a compare request.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preparsedelete">
+          <adm:synopsis>
+            Invoked prior to parsing a delete request.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preparseextended">
+          <adm:synopsis>
+            Invoked prior to parsing an extended request.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preparsemodify">
+          <adm:synopsis>
+            Invoked prior to parsing a modify request.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preparsemodifydn">
+          <adm:synopsis>
+            Invoked prior to parsing a modify DN request.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preparsesearch">
+          <adm:synopsis>
+            Invoked prior to parsing a search request.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preparseunbind">
+          <adm:synopsis>
+            Invoked prior to parsing an unbind request.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preoperationadd">
+          <adm:synopsis>
+            Invoked prior to performing the core add processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preoperationbind">
+          <adm:synopsis>
+            Invoked prior to performing the core bind processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preoperationcompare">
+          <adm:synopsis>
+            Invoked prior to performing the core compare processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preoperationdelete">
+          <adm:synopsis>
+            Invoked prior to performing the core delete processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preoperationextended">
+          <adm:synopsis>
+            Invoked prior to performing the core extended processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preoperationmodify">
+          <adm:synopsis>
+            Invoked prior to performing the core modify processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preoperationmodifydn">
+          <adm:synopsis>
+            Invoked prior to performing the core modify DN processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="preoperationsearch">
+          <adm:synopsis>
+            Invoked prior to performing the core search processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postoperationabandon">
+          <adm:synopsis>
+            Invoked after completing the abandon processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postoperationadd">
+          <adm:synopsis>
+            Invoked after completing the core add processing but before sending
+            the response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postoperationbind">
+          <adm:synopsis>
+            Invoked after completing the core bind processing but before
+            sending the response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postoperationcompare">
+          <adm:synopsis>
+            Invoked after completing the core compare processing but before
+            sending the response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postoperationdelete">
+          <adm:synopsis>
+            Invoked after completing the core delete processing but before
+            sending the response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postoperationextended">
+          <adm:synopsis>
+            Invoked after completing the core extended processing but before
+            sending the response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postoperationmodify">
+          <adm:synopsis>
+            Invoked after completing the core modify processing but before
+            sending the response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postoperationmodifydn">
+          <adm:synopsis>
+            Invoked after completing the core modify DN processing but before
+            sending the response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postoperationsearch">
+          <adm:synopsis>
+            Invoked after completing the core search processing but before
+            sending the response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postoperationunbind">
+          <adm:synopsis>
+            Invoked after completing the unbind processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postresponseadd">
+          <adm:synopsis>
+            Invoked after sending the add response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postresponsebind">
+          <adm:synopsis>
+            Invoked after sending the bind response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postresponsecompare">
+          <adm:synopsis>
+            Invoked after sending the compare response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postresponsedelete">
+          <adm:synopsis>
+            Invoked after sending the delete response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postresponseextended">
+          <adm:synopsis>
+            Invoked after sending the extended response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postresponsemodify">
+          <adm:synopsis>
+            Invoked after sending the modify response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postresponsemodifydn">
+          <adm:synopsis>
+            Invoked after sending the modify DN response to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="postresponsesearch">
+          <adm:synopsis>
+            Invoked after sending the search result done message to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="searchresultentry">
+          <adm:synopsis>
+            Invoked before sending a search result entry to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="searchresultreference">
+          <adm:synopsis>
+            Invoked before sending a search result reference to the client.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="intermediateresponse">
+          <adm:synopsis>
+            Invoked before sending an intermediate repsonse message to the
+            client.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.81</ldap:oid>
+        <ldap:name>ds-cfg-plugin-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

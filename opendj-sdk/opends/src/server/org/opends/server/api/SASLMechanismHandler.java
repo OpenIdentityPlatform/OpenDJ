@@ -28,7 +28,8 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.
+            SASLMechanismHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.types.InitializationException;
@@ -40,21 +41,21 @@ import org.opends.server.types.InitializationException;
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that implements the
  * functionality required for one or more SASL mechanisms.
+ *
+ * @param  <T>  The type of configuration handled by this SASL
+ *              mechanism handler.
  */
 public abstract class SASLMechanismHandler
+       <T extends SASLMechanismHandlerCfg>
 {
-
-
-
   /**
    * Initializes this SASL mechanism handler based on the information
    * in the provided configuration entry.  It should also register
    * itself with the Directory Server for the particular kinds of SASL
    * mechanisms that it will process.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this SASL
-   *                      mechanism handler.
+   * @param  configuration  The configuration to use to initialize
+   *                        this SASL mechanism handler.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -65,8 +66,7 @@ public abstract class SASLMechanismHandler
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializeSASLMechanismHandler(
-                            ConfigEntry configEntry)
+  public abstract void initializeSASLMechanismHandler(T configuration)
          throws ConfigException, InitializationException;
 
 

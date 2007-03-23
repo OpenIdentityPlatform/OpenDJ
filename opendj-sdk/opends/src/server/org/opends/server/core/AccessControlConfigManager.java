@@ -507,7 +507,7 @@ public final class AccessControlConfigManager
         // Load the access control implementation class.
         String className = classAttr.activeValue();
         try {
-          return Class.forName(className).asSubclass(
+          return DirectoryServer.loadClass(className).asSubclass(
               AccessControlProvider.class);
         } catch (ClassNotFoundException e) {
           if (debugEnabled())

@@ -2379,7 +2379,7 @@ addProcessing:
         // There are never any current passwords for an add operation.
         HashSet<ByteString> currentPasswords = new HashSet<ByteString>(0);
         StringBuilder invalidReason = new StringBuilder();
-        for (PasswordValidator validator :
+        for (PasswordValidator<?> validator :
              passwordPolicy.getPasswordValidators().values())
         {
           if (! validator.passwordIsAcceptable(value, currentPasswords, this,

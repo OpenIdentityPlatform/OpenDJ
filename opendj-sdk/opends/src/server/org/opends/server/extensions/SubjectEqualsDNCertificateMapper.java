@@ -33,8 +33,8 @@ import java.security.cert.X509Certificate;
 import javax.security.auth.x500.X500Principal;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.server.admin.std.server.CertificateMapperCfg;
 import org.opends.server.api.CertificateMapper;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
@@ -59,11 +59,8 @@ import static org.opends.server.util.StaticUtils.*;
  * exactly matches the DN of a user in the Directory Server.
  */
 public class SubjectEqualsDNCertificateMapper
-       extends CertificateMapper
+       extends CertificateMapper<CertificateMapperCfg>
 {
-
-
-
   /**
    * Creates a new instance of this certificate mapper.  Note that all actual
    * initialization should be done in the
@@ -78,20 +75,10 @@ public class SubjectEqualsDNCertificateMapper
 
 
   /**
-   * Initializes this certificate mapper based on the information in the
-   * provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this certificate mapper.
-   *
-   * @throws  ConfigException  If the provided entry does not contain a valid
-   *                           certificate mapper configuration.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
-  public void initializeCertificateMapper(ConfigEntry configEntry)
+  public void initializeCertificateMapper(CertificateMapperCfg
+                                               configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.
