@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://www.opends.org/admin-ldap"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified"
+  xmlns:tns="http://www.opends.org/admin-ldap">
+  <xsd:annotation>
+    <xsd:documentation>
+      This schema defines the elements and attributes of the "ldap"
+      profile. This profile specifies the relationship between managed
+      objects and their representation in LDAP. For example, each
+      managed object is associated with an LDAP object class and each
+      property is associated with an LDAP attribute. Using this profile
+      it should also be possible to generate the LDAP configuration
+      schema.
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:simpleType name="oid-type">
+    <xsd:annotation>
+      <xsd:documentation>A numeric OID.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="([0-9]+(\.[0-9]+)*)|([a-zA-Z][a-zA-Z0-9\-_]*-oid)" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="name-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        A LDAP attribute type or object class name.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="[a-zA-Z][a-zA-Z0-9\-_]*" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:element name="object-class">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines which LDAP object class a managed object should be
+        mapped to.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="oid" type="tns:oid-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              The numeric OID of the LDAP object class.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="name" type="tns:name-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              The name of the LDAP object class.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="superior" type="tns:name-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              The name of the parent LDAP object class.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="attribute">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines which LDAP attribute a managed object property should be
+        mapped to.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="oid" type="tns:oid-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              The numeric OID of the LDAP attribute.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="name" type="tns:name-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              The name of the LDAP attribute.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="rdn-sequence" type="xsd:token">
+    <xsd:annotation>
+      <xsd:documentation>A sequence of RDNs.</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+</xsd:schema>

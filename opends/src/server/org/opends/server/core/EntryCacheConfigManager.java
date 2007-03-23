@@ -270,8 +270,7 @@ public class EntryCacheConfigManager
     Class cacheClass;
     try
     {
-      // FIXME -- Should we use a custom class loader for this?
-      cacheClass = Class.forName(className);
+      cacheClass = DirectoryServer.loadClass(className);
     }
     catch (Exception e)
     {

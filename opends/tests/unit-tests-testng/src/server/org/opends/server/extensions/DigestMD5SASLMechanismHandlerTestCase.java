@@ -36,6 +36,11 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.
+            DigestMD5SASLMechanismHandlerCfgDefn;
+import org.opends.server.admin.std.server.
+            DigestMD5SASLMechanismHandlerCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -141,12 +146,13 @@ public class DigestMD5SASLMechanismHandlerTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=SASL Mechanisms,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    DigestMD5SASLMechanismHandlerCfg configuration =
+       AdminTestCaseUtils.getConfiguration(
+            DigestMD5SASLMechanismHandlerCfgDefn.getInstance(),
+            e);
 
     DigestMD5SASLMechanismHandler handler = new DigestMD5SASLMechanismHandler();
-    handler.initializeSASLMechanismHandler(configEntry);
+    handler.initializeSASLMechanismHandler(configuration);
   }
 
 

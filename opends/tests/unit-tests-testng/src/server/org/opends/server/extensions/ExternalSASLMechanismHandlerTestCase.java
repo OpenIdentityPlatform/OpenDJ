@@ -40,6 +40,11 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.
+            ExternalSASLMechanismHandlerCfgDefn;
+import org.opends.server.admin.std.server.
+            ExternalSASLMechanismHandlerCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -145,12 +150,13 @@ public class ExternalSASLMechanismHandlerTestCase
   public void testInvalidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=SASL Mechanisms,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    ExternalSASLMechanismHandlerCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              ExternalSASLMechanismHandlerCfgDefn.getInstance(),
+              e);
 
     ExternalSASLMechanismHandler handler = new ExternalSASLMechanismHandler();
-    handler.initializeSASLMechanismHandler(configEntry);
+    handler.initializeSASLMechanismHandler(configuration);
   }
 
 

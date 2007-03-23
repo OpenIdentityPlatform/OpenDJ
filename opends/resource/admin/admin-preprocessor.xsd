@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://www.opends.org/admin-preprocessor"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:admin="http://www.opends.org/admin"
+  elementFormDefault="qualified"
+  xmlns:tns="http://www.opends.org/admin-preprocessor">
+  <xsd:import namespace="http://www.opends.org/admin"
+    schemaLocation="admin.xsd" />
+  <xsd:annotation>
+    <xsd:documentation>
+      This schema defines the elements and attributes which are added to
+      managed object definitions and property definitions in the
+      "preprocessor" profile.
+    </xsd:documentation>
+    <xsd:documentation>
+      Managed object definitions are annotated by listing the parent
+      managed objects which the definition inherits from. This can be
+      used to enforce a simple managed object naming scheme where
+      sub-definitions use the uppermost definition's name as a suffix.
+      For example, "ldap-connection-handler" is derived from
+      "connection-handler", and therefore has the suffix
+      "-connection-handler". Applications can take advantage of this
+      naming schema to shorten sub-definition names where appropriate.
+      For example, a CLI which supports creation of connection handlers,
+      can use remove the suffix from "ldap-connection-handler" in order
+      to derive a "type", in this case "ldap".
+    </xsd:documentation>
+    <xsd:documentation>
+      Each property definition is annotated as follows: firstly a
+      "managed-object" element is added defining the name and package of
+      the managed object which defines the property (i.e. this will be a
+      parent managed object for inherited properties). Secondly, if the
+      property is referenced from a Property.xml file, an additional
+      "package" element is appended identifying the referenced package.
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="managed-object">
+    <xsd:annotation>
+      <xsd:documentation>
+        Specifies the name and package of the managed object definition
+        which defines a property definition.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:attribute name="name" type="admin:name-type"
+        use="required">
+        <xsd:annotation>
+          <xsd:documentation>
+            The name of the managed object.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="package" type="admin:package-type"
+        use="required">
+        <xsd:annotation>
+          <xsd:documentation>
+            The name of the package containing the managed object.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="package">
+    <xsd:annotation>
+      <xsd:documentation>
+        This optional element specifies, for referenced property
+        definitions (i.e. those defined in a Package.xml file), the name
+        of the package defining the definition.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:attribute name="name" type="admin:package-type"
+        use="required">
+        <xsd:annotation>
+          <xsd:documentation>
+            The name of the package.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="parent-managed-object">
+    <xsd:annotation>
+      <xsd:documentation>
+        Specifies the name and package of a parent managed object
+        definition. Elements are order such that the immediate parent is
+        the first node in document order and the last element represents
+        the uppermost definition in the inheritance hierarchy.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:attribute name="name" type="admin:name-type"
+        use="required">
+        <xsd:annotation>
+          <xsd:documentation>
+            The name of the parent managed object.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="package" type="admin:package-type"
+        use="required">
+        <xsd:annotation>
+          <xsd:documentation>
+            The name of the package containing the parent managed
+            object.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

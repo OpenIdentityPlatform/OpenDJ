@@ -40,6 +40,7 @@ import java.util.List;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 
+import org.opends.server.admin.std.server.PKCS11KeyManagerCfg;
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.ConfigAttribute;
@@ -68,9 +69,9 @@ import static org.opends.server.util.StaticUtils.*;
  * PKCS#11 device.  It will use the Java PKCS#11 interface, which may need to be
  * configured on the underlying system.
  */
-public class PKCS11KeyManagerProvider
-       extends KeyManagerProvider
-       implements ConfigurableComponent
+public class PKCS11KeyManagerProvider extends
+    KeyManagerProvider<PKCS11KeyManagerCfg> implements
+    ConfigurableComponent
 {
 
 
@@ -367,9 +368,116 @@ pinSelection:
 
 
 
+
   /**
-   * Performs any finalization that may be necessary for this key manager
-   * provider.
+   * {@inheritDoc}
+   */
+  @Override
+  public void initializeKeyManagerProvider(
+      PKCS11KeyManagerCfg configuration)
+      throws ConfigException, InitializationException {
+    // Store the DN of the configuration entry.
+    configEntryDN = configuration.dn();
+
+    // Get the PIN needed to access the contents of the PKCS#11
+    // keystore. We will offer several places to look for the PIN, and
+    // we will do so in the following order:
+    //
+    // - In a specified Java property
+    // - In a specified environment variable
+    // - In a specified file on the server filesystem.
+    // - As the value of a configuration attribute.
+    //
+    // In any case, the PIN must be in the clear.
+    keyStorePIN = null;
+    keyStorePINEnVar = null;
+    keyStorePINFile = null;
+    keyStorePINProperty = null;
+
+    if (configuration.getKeyStorePinProperty() != null) {
+      String propertyName = configuration.getKeyStorePinProperty();
+      String pinStr = System.getProperty(propertyName);
+
+      if (pinStr == null) {
+        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET;
+        String message = getMessage(msgID, String
+            .valueOf(propertyName), String.valueOf(configEntryDN));
+        throw new InitializationException(msgID, message);
+      }
+
+      keyStorePIN = pinStr.toCharArray();
+      keyStorePINProperty = propertyName;
+    } else if (configuration.getKeyStorePinEnvironmentVariable() != null) {
+      String enVarName = configuration
+          .getKeyStorePinEnvironmentVariable();
+      String pinStr = System.getenv(enVarName);
+
+      if (pinStr == null) {
+        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET;
+        String message = getMessage(msgID, String.valueOf(enVarName),
+            String.valueOf(configEntryDN));
+        throw new InitializationException(msgID, message);
+      }
+
+      keyStorePIN = pinStr.toCharArray();
+      keyStorePINEnVar = enVarName;
+    } else if (configuration.getKeyStorePinFile() != null) {
+      String fileName = configuration.getKeyStorePinFile();
+      File pinFile = getFileForPath(fileName);
+
+      if (!pinFile.exists()) {
+        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE;
+        String message = getMessage(msgID, String.valueOf(fileName),
+            String.valueOf(configEntryDN));
+        throw new InitializationException(msgID, message);
+      }
+
+      String pinStr;
+      try {
+        BufferedReader br = new BufferedReader(
+            new FileReader(pinFile));
+        pinStr = br.readLine();
+        br.close();
+      } catch (IOException ioe) {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, ioe);
+        }
+
+        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ;
+        String message = getMessage(msgID, String.valueOf(fileName),
+            String.valueOf(configEntryDN),
+            stackTraceToSingleLineString(ioe));
+        throw new InitializationException(msgID, message, ioe);
+      }
+
+      if (pinStr == null) {
+        int msgID = MSGID_PKCS11_KEYMANAGER_PIN_FILE_EMPTY;
+        String message = getMessage(msgID, String.valueOf(fileName),
+            String.valueOf(configEntryDN));
+        throw new InitializationException(msgID, message);
+      }
+
+      keyStorePIN = pinStr.toCharArray();
+      keyStorePINFile = fileName;
+    } else if (configuration.getKeyStorePin() != null) {
+      keyStorePIN = configuration.getKeyStorePin().toCharArray();
+    } else {
+      // Pin wasn't defined anywhere.
+      int msgID = MSGID_PKCS11_KEYMANAGER_NO_PIN;
+      String message = getMessage(msgID, String
+          .valueOf(configEntryDN));
+      throw new ConfigException(msgID, message);
+    }
+
+    DirectoryServer.registerConfigurableComponent(this);
+  }
+
+
+
+  /**
+   * Performs any finalization that may be necessary for this key
+   * manager provider.
    */
   public void finalizeKeyManagerProvider()
   {

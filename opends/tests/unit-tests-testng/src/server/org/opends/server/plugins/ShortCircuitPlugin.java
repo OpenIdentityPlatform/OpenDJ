@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
@@ -59,7 +60,7 @@ import org.opends.server.types.operation.*;
  * also be registered for operations regardless of controls.
  */
 public class ShortCircuitPlugin
-       extends DirectoryServerPlugin
+       extends DirectoryServerPlugin<PluginCfg>
 {
   /**
    * The OID for the short circuit request control, which is used to flag
@@ -89,7 +90,7 @@ public class ShortCircuitPlugin
    */
   @Override()
   public void initializePlugin(Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
+                               PluginCfg configuration)
          throws ConfigException
   {
     // This plugin may only be used as a pre-parse or pre-operation plugin.

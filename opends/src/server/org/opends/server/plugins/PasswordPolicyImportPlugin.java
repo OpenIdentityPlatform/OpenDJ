@@ -36,11 +36,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.LDIFPluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
@@ -71,11 +71,8 @@ import static org.opends.server.util.StaticUtils.*;
  * that all of the password values are properly encoded before they are stored.
  */
 public final class PasswordPolicyImportPlugin
-       extends DirectoryServerPlugin
+       extends DirectoryServerPlugin<PluginCfg>
 {
-
-
-
   // The sets of password storage schemes for the auth password attributes.
   private final HashMap<AttributeType,PasswordStorageScheme[]>
                      authPasswordSchemes;
@@ -95,7 +92,6 @@ public final class PasswordPolicyImportPlugin
   public PasswordPolicyImportPlugin()
   {
     super();
-
 
 
     // Get the password policies from the Directory Server configuration.  This
@@ -176,7 +172,7 @@ public final class PasswordPolicyImportPlugin
    */
   @Override()
   public final void initializePlugin(Set<PluginType> pluginTypes,
-                                     ConfigEntry configEntry)
+                                     PluginCfg configuration)
          throws ConfigException
   {
     // Make sure that the plugin has been enabled for the appropriate types.

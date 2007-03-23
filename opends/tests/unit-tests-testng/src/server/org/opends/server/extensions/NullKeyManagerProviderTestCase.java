@@ -28,14 +28,12 @@ package org.opends.server.extensions;
 
 
 
-import java.security.cert.X509Certificate;
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertNotNull;
 
 import org.opends.server.TestCaseUtils;
-
-import static org.testng.Assert.*;
+import org.opends.server.config.ConfigEntry;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 
 
@@ -70,7 +68,7 @@ public class NullKeyManagerProviderTestCase
          throws Exception
   {
     NullKeyManagerProvider provider = new NullKeyManagerProvider();
-    provider.initializeKeyManagerProvider(null);
+    provider.initializeKeyManagerProvider((ConfigEntry) null);
     assertNotNull(provider.getKeyManagers());
     provider.finalizeKeyManagerProvider();
   }

@@ -37,9 +37,11 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.PluginCfgDefn;
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
@@ -162,12 +164,13 @@ public class LastModPluginTestCase
     }
 
 
-    ConfigEntry parentEntry =
-         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    PluginCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              PluginCfgDefn.getInstance(), e);
 
     LastModPlugin plugin = new LastModPlugin();
-    plugin.initializePlugin(pluginTypes, configEntry);
+    plugin.initializePlugin(pluginTypes, configuration);
+    plugin.finalizePlugin();
   }
 
 
@@ -210,12 +213,13 @@ public class LastModPluginTestCase
     }
 
 
-    ConfigEntry parentEntry =
-         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    PluginCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              PluginCfgDefn.getInstance(), e);
 
     LastModPlugin plugin = new LastModPlugin();
-    plugin.initializePlugin(pluginTypes, configEntry);
+    plugin.initializePlugin(pluginTypes, configuration);
+    plugin.finalizePlugin();
 
 
     DirectoryServer.registerAttributeType(ctType, false);
@@ -291,12 +295,13 @@ public class LastModPluginTestCase
     }
 
 
-    ConfigEntry parentEntry =
-         DirectoryConfig.getConfigEntry(DN.decode("cn=Plugins,cn=config"));
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    PluginCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              PluginCfgDefn.getInstance(), e);
 
     LastModPlugin plugin = new LastModPlugin();
-    plugin.initializePlugin(pluginTypes, configEntry);
+    plugin.initializePlugin(pluginTypes, configuration);
+    plugin.finalizePlugin();
   }
 
 

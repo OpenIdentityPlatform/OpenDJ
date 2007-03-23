@@ -31,6 +31,7 @@ package org.opends.server.plugins;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
@@ -45,7 +46,6 @@ import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.api.plugin.SearchEntryPluginResult;
 import org.opends.server.api.plugin.SearchReferencePluginResult;
 import org.opends.server.api.plugin.StartupPluginResult;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
@@ -79,7 +79,7 @@ import org.opends.server.types.operation.*;
  * </UL>
  */
 public class InvocationCounterPlugin
-       extends DirectoryServerPlugin
+       extends DirectoryServerPlugin<PluginCfg>
 {
   // Define the counters that will be used to keep track of everything.
   private static AtomicInteger preParseCounter        = new AtomicInteger(0);
@@ -118,7 +118,7 @@ public class InvocationCounterPlugin
    */
   @Override()
   public void initializePlugin(Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
+                               PluginCfg configuration)
   {
     // No implementation required.
   }

@@ -32,10 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1Long;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -55,7 +55,7 @@ import org.opends.server.types.operation.*;
  * will respond to it accordingly.
  */
 public class DelayPreOpPlugin
-       extends DirectoryServerPlugin
+       extends DirectoryServerPlugin<PluginCfg>
 {
   /**
    * The OID for the delay request control, which is used to flag operations
@@ -84,7 +84,7 @@ public class DelayPreOpPlugin
    */
   @Override()
   public void initializePlugin(Set<PluginType> pluginTypes,
-                               ConfigEntry configEntry)
+                               PluginCfg configuration)
          throws ConfigException
   {
     // This plugin may only be used as a pre-operation plugin.

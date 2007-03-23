@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="connection-handler"
+  plural-name="connection-handlers"
+  package="org.opends.server.admin.std" abstract="true"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    <adm:user-friendly-plural-name />
+    are responsible for handling all interaction with the clients,
+    including accepting the connections, reading requests, and sending
+    responses.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.13</ldap:oid>
+      <ldap:name>ds-cfg-connection-handler</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="enabled" mandatory="true">
+    <adm:synopsis>
+      Indicate whether the
+      <adm:user-friendly-name />
+      is enabled for use.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.24</ldap:oid>
+        <ldap:name>ds-cfg-connection-handler-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="java-implementation-class" mandatory="true">
+    <adm:synopsis>
+      The fully-qualified name of the Java class that provides the
+      <adm:user-friendly-name />
+      implementation.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:java-class>
+        <adm:instance-of>
+          org.opends.server.api.ConnectionHandler
+        </adm:instance-of>
+      </adm:java-class>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.23</ldap:oid>
+        <ldap:name>ds-cfg-connection-handler-class</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="allowed-clients" multi-valued="true">
+    <adm:synopsis>
+      This property specifies a set of address masks that may be used to
+      determine the addresses of the clients that are allowed to
+      establish connections to this connection handler.
+    </adm:synopsis>
+    <adm:description>
+      Changes to this configuration attribute will take effect
+      immediately but will not interfere with connections that may
+      already be established.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          All clients with addresses that do not match an address on the
+          deny list will be allowed.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:ip-address-mask />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.6</ldap:oid>
+        <ldap:name>ds-cfg-allowed-client</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="denied-clients" multi-valued="true">
+    <adm:synopsis>
+      This property specifies a set of address masks that may be used to
+      determine the addresses of the clients that are not allowed to
+      establish connections to this connection handler.
+    </adm:synopsis>
+    <adm:description>
+      If both allowed and denied client masks are defined and a client
+      connection matches one or more masks in both lists, then the
+      connection will be denied. If only a denied list is specified,
+      then any client not matching a mask in that list will be allowed.
+      Changes to this configuration attribute will take effect
+      immediately but will not interfere with connections that may
+      already be established.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          All clients with addresses that do match an address on the
+          allow list will be allowed.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:ip-address-mask />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.32</ldap:oid>
+        <ldap:name>ds-cfg-denied-client</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

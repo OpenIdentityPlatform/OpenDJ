@@ -31,6 +31,7 @@ package org.opends.server.protocols.internal;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import org.opends.server.admin.std.server.*;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.config.ConfigEntry;
@@ -226,6 +227,18 @@ public class InternalConnectionHandler
   public void toString(StringBuilder buffer)
   {
     buffer.append("Internal Connection Handler");
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void initializeConnectionHandler(
+      ConnectionHandlerCfg configuration)
+      throws ConfigException, InitializationException {
+    // No implementation required.
   }
 }
 

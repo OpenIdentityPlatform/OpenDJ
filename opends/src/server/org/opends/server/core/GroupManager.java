@@ -372,8 +372,7 @@ public class GroupManager
     Class groupClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      groupClass = Class.forName(classNameAttr.pendingValue());
+      groupClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -626,8 +625,7 @@ public class GroupManager
     {
       try
       {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class groupClass = Class.forName(className);
+        Class groupClass = DirectoryServer.loadClass(className);
         groupImplementation = (Group) groupClass.newInstance();
       }
       catch (Exception e)
@@ -756,8 +754,7 @@ public class GroupManager
     Class groupClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      groupClass = Class.forName(classNameAttr.pendingValue());
+      groupClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -977,8 +974,7 @@ public class GroupManager
     Group groupImplementation;
     try
     {
-      // FIXME -- Should this be done with a dynamic class loader?
-      Class groupClass = Class.forName(className);
+      Class groupClass = DirectoryServer.loadClass(className);
       groupImplementation = (Group) groupClass.newInstance();
     }
     catch (Exception e)

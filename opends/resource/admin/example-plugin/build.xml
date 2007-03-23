@@ -1,0 +1,237 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+
+<project name="Directory Server Extension" basedir="." default="package">
+  <description>
+    This is the build script for an OpenDS Directory Server extension.
+  </description>
+
+  <!-- CONFIGURE: The name of the extension's Jar file. -->
+  <property name="pkg.name" value="example-plugin" />
+
+  <!-- CONFIGURE: The description of this extension - used in the Javadoc title. -->
+  <property name="pkg.description" value="Example Plugin" />
+
+  <!-- CONFIGURE: The path of the OpenDS installation. -->
+  <property name="opends.install.dir" location=".." />
+
+  <!-- General properties - should not need changing. -->
+  <property name="build.dir" location="build" />
+  <property name="src.dir" location="src" />
+  <property name="src.gen.dir" location="src-generated" />
+  <property name="lib.dir" location="lib" />
+  <property name="ext.dir" location="ext" />
+  <property name="resource.dir" location="resource" />
+  <property name="admin.dir" location="${resource.dir}/admin" />
+  <property name="config.dir" location="${resource.dir}/config" />
+  <property name="schema.dir" location="${resource.dir}/schema" />
+  <property name="classes.dir" location="${build.dir}/classes" />
+  <property name="javadoc.dir" location="${build.dir}/javadoc" />
+  <property name="package.dir" location="${build.dir}/package" />
+  <property name="jar.file" value="${pkg.name}.jar" />
+
+  <!-- Location of OpenDS components - should not need changing. -->
+  <property name="opends.lib.dir" location="${opends.install.dir}/lib" />
+  <property name="opends.config.dir" location="${opends.install.dir}/config" />
+  <property name="opends.schema.dir" location="${opends.config.dir}/schema" />
+  <property name="opends.extensions.dir" location="${opends.lib.dir}/extensions" />
+
+  <!-- Display help information. -->
+  <target name="help">
+    <echo message="Ant options to control the build:" />
+    <echo message="" />
+    <echo message="  -Dopends.install.dir=path" />
+    <echo message="      The path of the OpenDS installation [default: ${opends.install.dir}]." />
+    <echo message="" />
+    <echo message="  -Dpkg.name=name" />
+    <echo message="      The name of the extension's Jar file [default: ${pkg.name}]." />
+    <echo message="" />
+    <echo message="  -Dpkg.description=description" />
+    <echo message="      The description of this extension - used in the Javadoc title [default: ${pkg.description}]." />
+    <echo message="" />
+  </target>
+
+  <!-- Clean up any files generated during the build process. -->
+  <target name="clean" description="Clean up any files generated during the build process.">
+    <delete dir="${build.dir}" />
+    <delete includeemptydirs="true">
+      <fileset dir="${src.gen.dir}" includes="**/*" />
+    </delete>
+  </target>
+
+  <!-- Compile the Directory Server extension source files. -->
+  <target name="compile" depends="init,compileadmin" description="Compile the Directory Server extension source files.">
+    <mkdir dir="${classes.dir}" />
+    <javac srcdir="${src.dir}:${src.gen.dir}" destdir="${classes.dir}" optimize="true" excludes="**/package-info.java" debug="on" debuglevel="lines,source" source="1.5" target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+        <fileset dir="${opends.lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </javac>
+  </target>
+
+  <!-- Generate JavaDoc documentation from the source files. -->
+  <target name="javadoc" depends="init,compile" description="Generate JavaDoc documentation.">
+    <mkdir dir="${javadoc.dir}" />
+    <javadoc destdir="${javadoc.dir}" source="1.5" additionalparam="-quiet" linksource="yes" windowtitle="${pkg.description} API Documentation" maxmemory="${MEM}">
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+        <fileset dir="${opends.lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+        <dirset dir="${classes.dir}" />
+      </classpath>
+      <packageset dir="${src.dir}" />
+      <packageset dir="${src.gen.dir}" />
+    </javadoc>
+  </target>
+
+  <!-- Package the Directory Server extension for distribution. -->
+  <target name="package" depends="clean,compile" description="Package the Directory Server extension for distribution.">
+    <mkdir dir="${package.dir}" />
+    <jar jarfile="${package.dir}/${jar.file}" basedir="${classes.dir}" compress="true" index="true" />
+  </target>
+
+  <!-- Install the Directory Server extension in an existing OpenDS installation. -->
+  <target name="install" depends="package" description="Install the Directory Server extension in an existing OpenDS installation.">
+    <mkdir dir="${opends.lib.dir}" />
+    <copy todir="${opends.lib.dir}">
+      <fileset file="${lib.dir}/*.jar" />
+    </copy>
+    <mkdir dir="${opends.extensions.dir}" />
+    <copy todir="${opends.extensions.dir}">
+      <fileset file="${package.dir}/*.jar" />
+    </copy>
+    <copy todir="${opends.config.dir}">
+      <fileset file="${config.dir}/*.ldif" />
+    </copy>
+    <copy todir="${opends.schema.dir}">
+      <fileset file="${schema.dir}/*.ldif" />
+    </copy>
+  </target>
+
+  <!-- Perform common initialization common to several targets. -->
+  <target name="init">
+    <tstamp>
+      <format property="timestamp" pattern="yyyyMMddHHmmss" />
+    </tstamp>
+    <condition property="DEBUG_BUILD" value="false">
+      <not>
+        <isset property="DEBUG_BUILD" />
+      </not>
+    </condition>
+    <condition property="MEM" value="128M">
+      <not>
+        <isset property="MEM" />
+      </not>
+    </condition>
+  </target>
+
+  <!-- Compile the Directory Server extension configuration definition files. -->
+  <target name="compileadmin" depends="validateadmin" description="Compile the Directory Server extension configuration definition files.">
+    <!-- Compile the Directory Server extension configuration meta classes. -->
+    <xslt basedir="${src.dir}" destdir="${src.gen.dir}" style="${admin.dir}/metaMO.xsl">
+      <include name="**/*Configuration.xml" />
+      <exclude name="org/opends/server/admin/std/*.xml" />
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.java" />
+      <param name="base-dir" expression="${src.dir}" />
+    </xslt>
+
+    <xslt basedir="${src.dir}" destdir="${src.gen.dir}" style="${admin.dir}/package-info.xsl">
+      <include name="**/Package.xml" />
+      <exclude name="org/opends/server/admin/std/*.xml" />
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/meta/package-info.java" />
+      <param name="type" expression="meta" />
+    </xslt>
+
+    <!-- Compile the Directory Server extension configuration client classes. -->
+    <xslt basedir="${src.dir}" destdir="${src.gen.dir}" style="${admin.dir}/clientMO.xsl">
+      <include name="**/*Configuration.xml" />
+      <exclude name="org/opends/server/admin/std/*.xml" />
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/client/\2CfgClient.java" />
+      <param name="base-dir" expression="${src.dir}" />
+    </xslt>
+
+    <xslt basedir="${src.dir}" destdir="${src.gen.dir}" style="${admin.dir}/package-info.xsl">
+      <include name="**/Package.xml" />
+      <exclude name="org/opends/server/admin/std/*.xml" />
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/client/package-info.java" />
+      <param name="type" expression="client" />
+    </xslt>
+
+    <!-- Compile the Directory Server extension configuration server classes. -->
+    <xslt basedir="${src.dir}" destdir="${src.gen.dir}" style="${admin.dir}/serverMO.xsl">
+      <include name="**/*Configuration.xml" />
+      <exclude name="org/opends/server/admin/std/*.xml" />
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/server/\2Cfg.java" />
+      <param name="base-dir" expression="${src.dir}" />
+    </xslt>
+
+    <xslt basedir="${src.dir}" destdir="${src.gen.dir}" style="${admin.dir}/package-info.xsl">
+      <include name="**/Package.xml" />
+      <exclude name="org/opends/server/admin/std/*.xml" />
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/server/package-info.java" />
+      <param name="type" expression="server" />
+    </xslt>
+
+    <!-- Compile the Directory Server extension configuration ldap profile property files. -->
+    <xslt basedir="${src.dir}" destdir="${classes.dir}/admin/profiles/ldap" style="${admin.dir}/ldapMOProfile.xsl">
+      <include name="**/*Configuration.xml" />
+      <exclude name="org/opends/server/admin/std/*.xml" />
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
+      <param name="base-dir" expression="${src.dir}" />
+    </xslt>
+
+    <!-- Compile the Directory Server extension configuration manifest file. -->
+    <tempfile property="admin.temp.dir" destDir="${classes.dir}" />
+    <mkdir dir="${admin.temp.dir}" />
+    <xslt basedir="${src.dir}" destdir="${admin.temp.dir}" extension=".manifest" style="${admin.dir}/manifestMO.xsl">
+      <include name="**/*Configuration.xml" />
+      <exclude name="org/opends/server/admin/std/*.xml" />
+    </xslt>
+    <concat destfile="${classes.dir}/admin/extension.manifest">
+      <fileset dir="${admin.temp.dir}" includes="**/*.manifest" />
+    </concat>
+    <delete dir="${admin.temp.dir}" />
+  </target>
+
+  <!-- Validate the Directory Server extension configuration definitions. -->
+  <target name="validateadmin" description="Validate the Directory Server extension configuration definitions.">
+    <schemavalidate>
+      <fileset dir="${src.dir}" includes="**/*.xml" />
+      <schema namespace="http://www.opends.org/admin" file="${admin.dir}/admin.xsd" />
+      <schema namespace="http://www.opends.org/admin-ldap" file="${admin.dir}/admin-ldap.xsd" />
+    </schemavalidate>
+  </target>
+</project>

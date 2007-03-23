@@ -61,6 +61,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
+
 /**
  * This class defines a utility that will be used to manage the set of
  * key manager providers defined in the Directory Server.  It will initialize
@@ -271,8 +272,7 @@ public class KeyManagerProviderConfigManager
     Class providerClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      providerClass = Class.forName(classNameAttr.pendingValue());
+      providerClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -290,8 +290,7 @@ public class KeyManagerProviderConfigManager
 
     try
     {
-      KeyManagerProvider provider =
-           (KeyManagerProvider) providerClass.newInstance();
+      providerClass.newInstance();
     }
     catch(Exception e)
     {
@@ -515,8 +514,7 @@ public class KeyManagerProviderConfigManager
     {
       try
       {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class providerClass = Class.forName(className);
+        Class providerClass = DirectoryServer.loadClass(className);
         provider = (KeyManagerProvider) providerClass.newInstance();
       }
       catch (Exception e)
@@ -643,8 +641,7 @@ public class KeyManagerProviderConfigManager
     Class providerClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      providerClass = Class.forName(classNameAttr.pendingValue());
+      providerClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -870,8 +867,7 @@ public class KeyManagerProviderConfigManager
     KeyManagerProvider provider;
     try
     {
-      // FIXME -- Should this be done with a dynamic class loader?
-      Class providerClass = Class.forName(className);
+      Class providerClass = DirectoryServer.loadClass(className);
       provider = (KeyManagerProvider) providerClass.newInstance();
     }
     catch (Exception e)

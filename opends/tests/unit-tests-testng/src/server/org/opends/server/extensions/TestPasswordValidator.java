@@ -30,6 +30,7 @@ package org.opends.server.extensions;
 
 import java.util.Set;
 
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.Operation;
@@ -46,7 +47,7 @@ import org.opends.server.types.InitializationException;
  * return.
  */
 public class TestPasswordValidator
-       extends PasswordValidator
+       extends PasswordValidator<PasswordValidatorCfg>
 {
   /**
    * The singleton instance of this test password validator.
@@ -91,7 +92,8 @@ public class TestPasswordValidator
    * {@inheritDoc}
    */
   @Override()
-  public void initializePasswordValidator(ConfigEntry configEntry)
+  public void initializePasswordValidator(
+                   PasswordValidatorCfg configuration)
          throws InitializationException
   {
     if (instance == null)

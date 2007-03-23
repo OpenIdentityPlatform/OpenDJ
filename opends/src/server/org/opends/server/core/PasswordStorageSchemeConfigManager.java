@@ -272,8 +272,7 @@ public class PasswordStorageSchemeConfigManager
     Class schemeClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      schemeClass = Class.forName(classNameAttr.pendingValue());
+      schemeClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -519,8 +518,7 @@ public class PasswordStorageSchemeConfigManager
     {
       try
       {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class schemeClass = Class.forName(className);
+        Class schemeClass = DirectoryServer.loadClass(className);
         scheme = (PasswordStorageScheme) schemeClass.newInstance();
       }
       catch (Exception e)
@@ -647,8 +645,7 @@ public class PasswordStorageSchemeConfigManager
     Class schemeClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      schemeClass = Class.forName(classNameAttr.pendingValue());
+      schemeClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -869,8 +866,7 @@ public class PasswordStorageSchemeConfigManager
     PasswordStorageScheme storageScheme;
     try
     {
-      // FIXME -- Should this be done with a dynamic class loader?
-      Class schemeClass = Class.forName(className);
+      Class schemeClass = DirectoryServer.loadClass(className);
       storageScheme = (PasswordStorageScheme) schemeClass.newInstance();
     }
     catch (Exception e)

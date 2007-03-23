@@ -28,12 +28,11 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.IdentityMapperCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-
 
 
 
@@ -45,19 +44,18 @@ import org.opends.server.types.InitializationException;
  * mechanisms to identify the user that is authenticating to the
  * server.  It may also be used in other areas, like in conjunction
  * with the proxied authorization control.
+ *
+ * @param  <T>  The type of configuration handled by this identity
+ *              mapper.
  */
 public abstract class IdentityMapper
+       <T extends IdentityMapperCfg>
 {
-
-
-
   /**
    * Initializes this identity mapper based on the information in the
    * provided configuration entry.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      identity mapper.
+   * @param  configuration  The configuration for the identity mapper.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -68,8 +66,7 @@ public abstract class IdentityMapper
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializeIdentityMapper(
-                            ConfigEntry configEntry)
+  public abstract void initializeIdentityMapper(T configuration)
          throws ConfigException, InitializationException;
 
 

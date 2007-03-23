@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:managed-object name="gssapi-sasl-mechanism-handler" 
+  plural-name="gssapi-sasl-mechanism-handlers"
+  package="org.opends.server.admin.std" extends="sasl-mechanism-handler"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to perform all processing related to SASL GSSAPI authentication
+    using Kerberos V5.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.48</ldap:oid>
+      <ldap:name>ds-cfg-gssapi-sasl-mechanism-handler</ldap:name>
+      <ldap:superior>ds-cfg-sasl-mechanism-handler</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="realm" mandatory="false">
+    <adm:synopsis>
+      Specifies the realm that should be used for GSSAPI authentication.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the realm that should be used by the server for GSSAPI
+      authentication.  If this is not provided, then the server will attempt to
+      determine the realm from the Kerberos configuration of the underlying
+      system.  Changes to this configuration attribute will take effect
+      immediately.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The server will attempt to determine the realm from the underlying
+          system configuration.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.86</ldap:oid>
+        <ldap:name>ds-cfg-realm</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="kdc-address" mandatory="false">
+    <adm:synopsis>
+      Specifies the address of the KDC that should be used for Kerberos
+      processing.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the address of the KDC that should be used for Kerberos
+      processing.  If provided, this should be a fully-qualified DNS-resolvable
+      name.  If this is not provided, then the server will attempt to determine
+      the KDC address from the Kerberos configuration of the underlying system.
+      Changes to this configuration attribute will take effect immediately.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The server will attempt to determine the KDC address from the
+          underlying system configuration.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.45</ldap:oid>
+        <ldap:name>ds-cfg-kdc-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="keytab" mandatory="false">
+    <adm:synopsis>
+      Specifies the path to the keytab file that should be used for Kerberos
+      processing.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the path to the keytab file that should be used for Kerberos
+      processing.  If provided, this should be either an absolute path or one
+      that is relative to the server instance root.  If this is not provided,
+      then the server will attempt to use the default keytab from the
+      underlying system configuration.  Changes to this configuration attribute
+      will take effect immediately.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The server will attempt to use the system-wide default keytab.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.46</ldap:oid>
+        <ldap:name>ds-cfg-keytab</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="server-fqdn" mandatory="false">
+    <adm:synopsis>
+      Specifies the fully-qualified domain name for the system.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the DNS-resolvable fully-qualified domain name for the system.
+      If this is not provided, then the server will attempt to determine this
+      dynamically.  Changes to this configuration attribute will take effect
+      immediately.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The server will attempt to dynamically determine the fully-qualified
+          domain name.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.115</ldap:oid>
+        <ldap:name>ds-cfg-server-fqdn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="identity-mapper-dn" mandatory="true">
+    <adm:synopsis>
+      Specifies the DN of the identity mapper to use.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the DN of the configuration entry for the identity mapper that
+      should be used to match the Kerberos principal to a user entry.
+    </adm:description>
+    <adm:syntax>
+      <adm:dn>
+        <adm:base>cn=identity mappers,cn=config</adm:base>
+      </adm:dn>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.148</ldap:oid>
+        <ldap:name>ds-cfg-identity-mapper-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

@@ -59,7 +59,6 @@ import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -278,8 +277,7 @@ public class AccountStatusNotificationHandlerConfigManager
     Class handlerClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      handlerClass = Class.forName(classNameAttr.pendingValue());
+      handlerClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -526,8 +524,7 @@ public class AccountStatusNotificationHandlerConfigManager
     {
       try
       {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class handlerClass = Class.forName(className);
+        Class handlerClass = DirectoryServer.loadClass(className);
         handler = (AccountStatusNotificationHandler) handlerClass.newInstance();
       }
       catch (Exception e)
@@ -655,8 +652,7 @@ public class AccountStatusNotificationHandlerConfigManager
     Class handlerClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      handlerClass = Class.forName(classNameAttr.pendingValue());
+      handlerClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -877,8 +873,7 @@ public class AccountStatusNotificationHandlerConfigManager
     AccountStatusNotificationHandler handler;
     try
     {
-      // FIXME -- Should this be done with a dynamic class loader?
-      Class handlerClass = Class.forName(className);
+      Class handlerClass = DirectoryServer.loadClass(className);
       handler = (AccountStatusNotificationHandler) handlerClass.newInstance();
     }
     catch (Exception e)

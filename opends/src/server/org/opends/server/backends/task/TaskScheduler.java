@@ -1830,8 +1830,7 @@ public class TaskScheduler
     Class taskClass;
     try
     {
-      // FIXME -- Should we use a custom class loader for this?
-      taskClass = Class.forName(taskClassName);
+      taskClass = DirectoryServer.loadClass(taskClassName);
     }
     catch (Exception e)
     {

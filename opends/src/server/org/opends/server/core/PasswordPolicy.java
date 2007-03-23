@@ -39,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
@@ -144,8 +145,11 @@ public class PasswordPolicy
             new ConcurrentHashMap<DN, AccountStatusNotificationHandler>();
 
   // The set of password validators that will be used with this password policy.
-  private ConcurrentHashMap<DN,PasswordValidator> passwordValidators =
-       new ConcurrentHashMap<DN,PasswordValidator>();
+  private ConcurrentHashMap<DN,
+               PasswordValidator<? extends PasswordValidatorCfg>>
+               passwordValidators =
+               new ConcurrentHashMap<DN,PasswordValidator<? extends
+                        PasswordValidatorCfg>>();
 
   // The set of default password storage schemes for this password policy.
   private CopyOnWriteArrayList<PasswordStorageScheme> defaultStorageSchemes =
@@ -435,12 +439,16 @@ public class PasswordPolicy
            (DNConfigAttribute) configEntry.getConfigAttribute(validatorStub);
       if (validatorAttr != null)
       {
-        ConcurrentHashMap<DN,PasswordValidator> validators =
-             new ConcurrentHashMap<DN,PasswordValidator>();
+        ConcurrentHashMap<DN,
+             PasswordValidator<? extends PasswordValidatorCfg>>
+             validators =
+                  new ConcurrentHashMap<DN,
+                       PasswordValidator<? extends
+                            PasswordValidatorCfg>>();
         for (DN validatorDN : validatorAttr.pendingValues())
         {
-          PasswordValidator validator =
-               DirectoryServer.getPasswordValidator(validatorDN);
+          PasswordValidator<? extends PasswordValidatorCfg>
+               validator = DirectoryServer.getPasswordValidator(validatorDN);
           if (validator == null)
           {
             msgID = MSGID_PWPOLICY_NO_SUCH_VALIDATOR;
@@ -1553,7 +1561,9 @@ public class PasswordPolicy
    *
    * @return  The set of password validators for this password policy.
    */
-  public ConcurrentHashMap<DN,PasswordValidator> getPasswordValidators()
+  public ConcurrentHashMap<DN,
+              PasswordValidator<? extends PasswordValidatorCfg>>
+              getPasswordValidators()
   {
     return passwordValidators;
   }

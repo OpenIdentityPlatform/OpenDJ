@@ -73,7 +73,7 @@ public class ConnectionHandlerMonitor
   private AttributeType protocolType;
 
   // The connection handler with which this monitor is associated.
-  private ConnectionHandler connectionHandler;
+  private ConnectionHandler<?> connectionHandler;
 
   // The name for this monitor.
   private String monitorName;

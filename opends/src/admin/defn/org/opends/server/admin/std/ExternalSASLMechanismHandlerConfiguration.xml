@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:managed-object name="external-sasl-mechanism-handler" 
+  plural-name="external-sasl-mechanism-handlers"
+  package="org.opends.server.admin.std" extends="sasl-mechanism-handler"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to perform all processing related to SASL EXTERNAL authentication.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.44</ldap:oid>
+      <ldap:name>ds-cfg-external-sasl-mechanism-handler</ldap:name>
+      <ldap:superior>ds-cfg-sasl-mechanism-handler</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="certificate-validation-policy" mandatory="true">
+    <adm:synopsis>
+      Indicates whether to attempt to validate the peer certificate against a
+      value held in the user's entry.
+    </adm:synopsis>
+    <adm:description>
+      Indicates whether the SASL EXTERNAL mechanism handler should attempt to
+      validate the peer certificate against a certificate in the corresponding
+      user's entry.  The value must be one of "true" (which will always
+      attempt to validate the certificate and will fail if no certificates are
+      present), "false" (which will never attempt to validate the peer
+      certificate), and "ifpresent" (which will validate the peer certificate
+      if there are one or more certificates in the user's entry, but will not
+      fail if there are no certificates in the entry.  Changes to this
+      configuration attribute will take effect immediately.
+    </adm:description>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="always">
+          <adm:synopsis>
+            Always require the peer certificate to be present in the user's
+            entry.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="ifpresent">
+          <adm:synopsis>
+            If the user's entry contains one or more certificates, require that
+            one of them match the peer certificate.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="never">
+          <adm:synopsis>
+            Do not look for the peer certificate to be present in the user's
+            entry.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.22</ldap:oid>
+        <ldap:name>ds-cfg-client-certificate-validation-policy</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="certificate-attribute" mandatory="false">
+    <adm:synopsis>
+      Specifies the attribute that should hold user certificates.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the name of the attribute that will be used to hold the
+      certificate information in user entries for the purpose of validation. 
+      This must specify the name of a valid attribute type defined in the
+      server schema.  Changes to this configuration attribute will take effect
+      immediately.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>userCertificate</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.18</ldap:oid>
+        <ldap:name>ds-cfg-certificate-attribute</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="certificate-mapper-dn" mandatory="true">
+    <adm:synopsis>
+      Specifies the DN of the certificate mapper to use.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the DN of the configuration entry for the certificate mapper
+      that should be used to match client certificates to user entries.
+    </adm:description>
+    <adm:syntax>
+      <adm:dn>
+        <adm:base>cn=certificate mappers,cn=config</adm:base>
+      </adm:dn>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.309</ldap:oid>
+        <ldap:name>ds-cfg-certificate-mapper-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

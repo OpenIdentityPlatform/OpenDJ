@@ -33,6 +33,7 @@ import java.util.Collection;
 import org.testng.annotations.Test;
 
 import org.opends.server.api.ClientConnection;
+import org.opends.server.config.ConfigEntry;
 
 import static org.testng.Assert.*;
 
@@ -57,7 +58,7 @@ public class InternalConnectionHandlerTestCase
     InternalConnectionHandler handler = InternalConnectionHandler.getInstance();
     assertNotNull(handler);
 
-    handler.initializeConnectionHandler(null);
+    handler.initializeConnectionHandler((ConfigEntry) null);
   }
 
 

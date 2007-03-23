@@ -28,17 +28,24 @@ package org.opends.server.core;
 
 
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.PluginCfgDefn;
+import org.opends.server.admin.std.server.PluginCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.IntermediateResponsePluginResult;
 import org.opends.server.api.plugin.LDIFPluginResult;
@@ -52,11 +59,7 @@ import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.api.plugin.SearchEntryPluginResult;
 import org.opends.server.api.plugin.SearchReferencePluginResult;
 import org.opends.server.api.plugin.StartupPluginResult;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.MultiChoiceConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
@@ -68,11 +71,9 @@ import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
@@ -92,11 +93,10 @@ import static org.opends.server.util.StaticUtils.*;
  * also provides methods for invoking all the plugins of a given type.
  */
 public class PluginConfigManager
-       implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
+       implements ConfigurationAddListener<PluginCfg>,
+                  ConfigurationDeleteListener<PluginCfg>,
+                  ConfigurationChangeListener<PluginCfg>
 {
-
-
-
   // Arrays for holding the plugins of each type.
   private DirectoryServerPlugin[] startupPlugins;
   private DirectoryServerPlugin[] shutdownPlugins;
@@ -147,7 +147,9 @@ public class PluginConfigManager
 
   // The mapping between the DN of a plugin entry and the plugin instance loaded
   // from that entry.
-  private ConcurrentHashMap<DN,DirectoryServerPlugin> registeredPlugins;
+  private ConcurrentHashMap<DN,
+               DirectoryServerPlugin<? extends PluginCfg>>
+                    registeredPlugins;
 
   // The lock that will provide threadsafe access to the sets of registered
   // plugins.
@@ -208,7 +210,8 @@ public class PluginConfigManager
     searchResultReferencePlugins = new DirectoryServerPlugin[0];
     intermediateResponsePlugins  = new DirectoryServerPlugin[0];
     registeredPlugins            =
-         new ConcurrentHashMap<DN,DirectoryServerPlugin>();
+         new ConcurrentHashMap<DN,
+                  DirectoryServerPlugin<? extends PluginCfg>>();
   }
 
 
@@ -238,298 +241,186 @@ public class PluginConfigManager
     registeredPlugins.clear();
 
 
-    // Get the configuration entry that is the root of all the plugins in the
-    // server.
-    ConfigEntry pluginRoot;
+    // Get the root configuration object.
+    ServerManagementContext managementContext =
+         ServerManagementContext.getInstance();
+    RootCfg rootConfiguration =
+         managementContext.getRootConfiguration();
+
+
+    // Register as an add and delete listener with the root configuration so we
+    // can be notified if any plugin entries are added or removed.
+    rootConfiguration.addPluginAddListener(this);
+    rootConfiguration.addPluginDeleteListener(this);
+
+
+    //Initialize the existing plugins.
+    for (String pluginName : rootConfiguration.listPlugins())
+    {
+      PluginCfg pluginConfiguration =
+           rootConfiguration.getPlugin(pluginName);
+
+      if (! pluginConfiguration.isEnabled())
+      {
+        continue;
+      }
+
+      // Create a set of plugin types for the plugin.
+      HashSet<PluginType> initTypes = new HashSet<PluginType>();
+      for (PluginCfgDefn.PluginType pluginType :
+           pluginConfiguration.getPluginType())
+      {
+        PluginType t = getPluginType(pluginType);
+        if ((pluginTypes == null) || pluginTypes.contains(t))
+        {
+          initTypes.add(t);
+        }
+      }
+
+      if (initTypes.isEmpty())
+      {
+        continue;
+      }
+
+      pluginConfiguration.addChangeListener(this);
+
+      try
+      {
+        DirectoryServerPlugin<? extends PluginCfg> plugin =
+             loadPlugin(pluginConfiguration.getPluginClass(), initTypes,
+                        pluginConfiguration);
+        registerPlugin(plugin, pluginConfiguration.dn(), initTypes);
+      }
+      catch (InitializationException ie)
+      {
+        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+                 ie.getMessage(), ie.getMessageID());
+        continue;
+      }
+    }
+  }
+
+
+
+  /**
+   * Loads the specified class, instantiates it as a plugin, and optionally
+   * initializes that plugin.
+   *
+   * @param  className      The fully-qualified name of the plugin class to
+   *                        load, instantiate, and initialize.
+   * @param  pluginTypes    The set of plugin types for the plugins to
+   *                        initialize, or {@code null} to initialize all types
+   *                        of plugins defined in the server configuration.  In
+   *                        general, this should only be non-null for cases in
+   *                        which the server is running in a special mode that
+   *                        only uses a minimal set of plugins (e.g., LDIF
+   *                        import or export).
+   * @param  configuration  The configuration to use to initialize the plugin,
+   *                        or {@code null} if the plugin should not be
+   *                        initialized.
+   *
+   * @return  The possibly initialized plugin.
+   *
+   * @throws  InitializationException  If a problem occurred while attempting to
+   *                                   initialize the plugin.
+   */
+  private DirectoryServerPlugin<? extends PluginCfg>
+               loadPlugin(String className, Set<PluginType> pluginTypes,
+                          PluginCfg configuration)
+          throws InitializationException
+  {
     try
     {
-      DN pluginRootDN = DN.decode(DN_PLUGIN_BASE);
-      pluginRoot = DirectoryServer.getConfigEntry(pluginRootDN);
+      PluginCfgDefn definition =
+           PluginCfgDefn.getInstance();
+      ClassPropertyDefinition propertyDefinition =
+           definition.getPluginClassPropertyDefinition();
+      Class<? extends DirectoryServerPlugin> pluginClass =
+           propertyDefinition.loadClass(className, DirectoryServerPlugin.class);
+      DirectoryServerPlugin<? extends PluginCfg> plugin =
+           (DirectoryServerPlugin<? extends PluginCfg>)
+           pluginClass.newInstance();
+
+      if (configuration != null)
+      {
+        Method method =
+             plugin.getClass().getMethod("initializePlugin", Set.class,
+                  configuration.definition().getServerConfigurationClass());
+        method.invoke(plugin, pluginTypes, configuration);
+      }
+
+      return plugin;
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_GET_CONFIG_BASE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
+      int msgID = MSGID_CONFIG_PLUGIN_CANNOT_INITIALIZE;
+      String message = getMessage(msgID, className,
+                                  String.valueOf(configuration.dn()),
+                                  stackTraceToSingleLineString(e));
+      throw new InitializationException(msgID, message, e);
     }
+  }
 
 
-    // If the configuration root entry is null, then assume it doesn't exist.
-    // In that case, then fail.  At least that entry must exist in the
-    // configuration, even if there are no plugins defined below it.
-    if (pluginRoot == null)
+
+  /**
+   * Gets the OpenDS plugin type object that corresponds to the configuration
+   * counterpart.
+   *
+   * @param  configPluginType  The configuration plugin type for which to
+   *                           retrieve the OpenDS plugin type.
+   */
+  private PluginType getPluginType(PluginCfgDefn.PluginType
+                                        configPluginType)
+  {
+    switch (configPluginType)
     {
-      int    msgID   = MSGID_CONFIG_PLUGIN_BASE_DOES_NOT_EXIST;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
-    }
-
-
-    // Register add and delete listeners for the base entry so that we can be
-    // notified of added or removed plugins.
-    pluginRoot.registerAddListener(this);
-    pluginRoot.registerDeleteListener(this);
-
-
-    // Iterate through the set of immediate children below the plugin config
-    // root.
-parsePluginEntry:
-    for (ConfigEntry entry : pluginRoot.getChildren().values())
-    {
-      DN entryDN = entry.getDN();
-
-
-      // Register as a change listener for this backend entry so that we will
-      // be notified of any changes that may be made to it.
-      entry.registerChangeListener(this);
-
-
-      // Check to see if this entry appears to contain a plugin configuration.
-      // If not, then log a warning and skip it.
-      try
-      {
-        SearchFilter filter =
-             SearchFilter.createFilterFromString("(objectClass=" +
-                                                 OC_PLUGIN + ")");
-        if (! filter.matchesEntry(entry.getEntry()))
-        {
-          int msgID = MSGID_CONFIG_PLUGIN_ENTRY_DOES_NOT_HAVE_PLUGIN_CONFIG;
-          String message = getMessage(msgID, String.valueOf(entryDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          continue;
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int msgID = MSGID_CONFIG_PLUGIN_ERROR_INTERACTING_WITH_PLUGIN_ENTRY;
-        String message = getMessage(msgID, String.valueOf(entryDN),
-                                    stackTraceToSingleLineString(e));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          continue;
-      }
-
-
-      // See if the entry contains an attribute that indicates whether the
-      // plugin should be enabled.  If it does not, or if it is not set to
-      // "true", then skip it.
-      int msgID = MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_ENABLED;
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_PLUGIN_ENABLED, getMessage(msgID),
-                                      false);
-      try
-      {
-        BooleanConfigAttribute enabledAttr =
-             (BooleanConfigAttribute) entry.getConfigAttribute(enabledStub);
-        if (enabledAttr == null)
-        {
-          // The attribute is not present, so this plugin will be disabled.
-          // Log a message and continue.
-          msgID = MSGID_CONFIG_PLUGIN_NO_ENABLED_ATTR;
-          String message = getMessage(msgID, String.valueOf(entryDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          continue;
-        }
-        else if (! enabledAttr.activeValue())
-        {
-          // The plugin is explicitly disabled.  Log a mild warning and
-          // continue.
-          msgID = MSGID_CONFIG_PLUGIN_DISABLED;
-          String message = getMessage(msgID, String.valueOf(entryDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.INFORMATIONAL, message, msgID);
-          continue;
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_PLUGIN_UNABLE_TO_DETERMINE_ENABLED_STATE;
-        String message = getMessage(msgID, String.valueOf(entryDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // Get the set of plugin types for this entry.  There must be at least one
-      // plugin type specified, and all plugin type names must be valid.
-      HashSet<PluginType> types = new HashSet<PluginType>();
-      msgID = MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_PLUGIN_TYPE;
-      MultiChoiceConfigAttribute typesStub =
-           new MultiChoiceConfigAttribute(ATTR_PLUGIN_TYPE, getMessage(msgID),
-                                          true, true, true,
-                                          PluginType.getPluginTypeNames());
-      try
-      {
-        MultiChoiceConfigAttribute typesAttr =
-             (MultiChoiceConfigAttribute) entry.getConfigAttribute(typesStub);
-        if ((typesAttr == null) || typesAttr.activeValues().isEmpty())
-        {
-          msgID = MSGID_CONFIG_PLUGIN_NO_PLUGIN_TYPES;
-          String message = getMessage(msgID, String.valueOf(entryDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-          continue;
-        }
-        else
-        {
-          for (String s : typesAttr.activeValues())
-          {
-            PluginType t = PluginType.forName(s.toLowerCase());
-            if (t == null)
-            {
-              msgID = MSGID_CONFIG_PLUGIN_INVALID_PLUGIN_TYPE;
-              String message = getMessage(msgID, String.valueOf(entryDN), s);
-              logError(ErrorLogCategory.CONFIGURATION,
-                       ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-              continue parsePluginEntry;
-            }
-            else
-            {
-              if ((pluginTypes == null) || pluginTypes.contains(t))
-              {
-                types.add(t);
-              }
-            }
-          }
-
-          if (types.isEmpty())
-          {
-            // This means that the plugin doesn't have any of the types that
-            // we are interested in so we don't need to initialize it.
-            continue;
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_PLUGIN_TYPES;
-        String message = getMessage(msgID, String.valueOf(entryDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // FIXME -- We need configuration attributes that can be used to define
-      // the order in which plugins are loaded and/or executed.
-
-
-      // See if the entry contains an attribute that specifies the class name
-      // for the plugin implementation.  If it does, then load it and make sure
-      // that it's a valid plugin implementation.  If there is no such
-      // attribute, the specified class cannot be loaded, or it does not contain
-      // a valid plugin implementation, then log an error and skip it.
-      String className;
-      msgID = MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_CLASS;
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_PLUGIN_CLASS, getMessage(msgID),
-                                     true, false, true);
-      try
-      {
-        StringConfigAttribute classAttr =
-             (StringConfigAttribute) entry.getConfigAttribute(classStub);
-        if (classAttr == null)
-        {
-          msgID = MSGID_CONFIG_PLUGIN_NO_CLASS_ATTR;
-          String message = getMessage(msgID, String.valueOf(entryDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-          continue;
-        }
-        else
-        {
-          className = classAttr.activeValue();
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
-        String message = getMessage(msgID, String.valueOf(entryDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-      DirectoryServerPlugin plugin;
-      try
-      {
-        // FIXME --Should we use a custom class loader for this?
-        Class pluginClass = Class.forName(className);
-        plugin = (DirectoryServerPlugin) pluginClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_PLUGIN_CANNOT_INSTANTIATE;
-        String message = getMessage(msgID, String.valueOf(className),
-                                    String.valueOf(entryDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // Perform the necessary initialization for the plugin entry.
-      try
-      {
-        plugin.initializeInternal(entryDN, types);
-        plugin.initializePlugin(types, entry);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_PLUGIN_CANNOT_INITIALIZE;
-        String message = getMessage(msgID, String.valueOf(className),
-                                    String.valueOf(entryDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // Register the plugin with the server.
-      registerPlugin(plugin, entryDN, types);
+      case STARTUP:                return PluginType.STARTUP;
+      case SHUTDOWN:               return PluginType.SHUTDOWN;
+      case POSTCONNECT:            return PluginType.POST_CONNECT;
+      case POSTDISCONNECT:         return PluginType.POST_DISCONNECT;
+      case LDIFIMPORT:             return PluginType.LDIF_IMPORT;
+      case LDIFEXPORT:             return PluginType.LDIF_EXPORT;
+      case PREPARSEABANDON:        return PluginType.PRE_PARSE_ABANDON;
+      case PREPARSEADD:            return PluginType.PRE_PARSE_ADD;
+      case PREPARSEBIND:           return PluginType.PRE_PARSE_BIND;
+      case PREPARSECOMPARE:        return PluginType.PRE_PARSE_COMPARE;
+      case PREPARSEDELETE:         return PluginType.PRE_PARSE_DELETE;
+      case PREPARSEEXTENDED:       return PluginType.PRE_PARSE_EXTENDED;
+      case PREPARSEMODIFY:         return PluginType.PRE_PARSE_MODIFY;
+      case PREPARSEMODIFYDN:       return PluginType.PRE_PARSE_MODIFY_DN;
+      case PREPARSESEARCH:         return PluginType.PRE_PARSE_SEARCH;
+      case PREPARSEUNBIND:         return PluginType.PRE_PARSE_UNBIND;
+      case PREOPERATIONADD:        return PluginType.PRE_OPERATION_ADD;
+      case PREOPERATIONBIND:       return PluginType.PRE_OPERATION_BIND;
+      case PREOPERATIONCOMPARE:    return PluginType.PRE_OPERATION_COMPARE;
+      case PREOPERATIONDELETE:     return PluginType.PRE_OPERATION_DELETE;
+      case PREOPERATIONEXTENDED:   return PluginType.PRE_OPERATION_EXTENDED;
+      case PREOPERATIONMODIFY:     return PluginType.PRE_OPERATION_MODIFY;
+      case PREOPERATIONMODIFYDN:   return PluginType.PRE_OPERATION_MODIFY_DN;
+      case PREOPERATIONSEARCH:     return PluginType.PRE_OPERATION_SEARCH;
+      case POSTOPERATIONABANDON:   return PluginType.POST_OPERATION_ABANDON;
+      case POSTOPERATIONADD:       return PluginType.POST_OPERATION_ADD;
+      case POSTOPERATIONBIND:      return PluginType.POST_OPERATION_BIND;
+      case POSTOPERATIONCOMPARE:   return PluginType.POST_OPERATION_COMPARE;
+      case POSTOPERATIONDELETE:    return PluginType.POST_OPERATION_DELETE;
+      case POSTOPERATIONEXTENDED:  return PluginType.POST_OPERATION_EXTENDED;
+      case POSTOPERATIONMODIFY:    return PluginType.POST_OPERATION_MODIFY;
+      case POSTOPERATIONMODIFYDN:  return PluginType.POST_OPERATION_MODIFY_DN;
+      case POSTOPERATIONSEARCH:    return PluginType.POST_OPERATION_SEARCH;
+      case POSTOPERATIONUNBIND:    return PluginType.POST_OPERATION_UNBIND;
+      case POSTRESPONSEADD:        return PluginType.POST_RESPONSE_ADD;
+      case POSTRESPONSEBIND:       return PluginType.POST_RESPONSE_BIND;
+      case POSTRESPONSECOMPARE:    return PluginType.POST_RESPONSE_COMPARE;
+      case POSTRESPONSEDELETE:     return PluginType.POST_RESPONSE_DELETE;
+      case POSTRESPONSEEXTENDED:   return PluginType.POST_RESPONSE_EXTENDED;
+      case POSTRESPONSEMODIFY:     return PluginType.POST_RESPONSE_MODIFY;
+      case POSTRESPONSEMODIFYDN:   return PluginType.POST_RESPONSE_MODIFY_DN;
+      case POSTRESPONSESEARCH:     return PluginType.POST_RESPONSE_SEARCH;
+      case SEARCHRESULTENTRY:      return PluginType.SEARCH_RESULT_ENTRY;
+      case SEARCHRESULTREFERENCE:  return PluginType.SEARCH_RESULT_REFERENCE;
+      case INTERMEDIATERESPONSE:   return PluginType.INTERMEDIATE_RESPONSE;
+      default:                     return null;
     }
   }
 
@@ -544,7 +435,7 @@ parsePluginEntry:
 
     try
     {
-      Iterator<DirectoryServerPlugin> iterator =
+      Iterator<DirectoryServerPlugin<? extends PluginCfg>> iterator =
            registeredPlugins.values().iterator();
       while (iterator.hasNext())
       {
@@ -578,7 +469,9 @@ parsePluginEntry:
    * @return  The set of plugins that have been registered with the Directory
    *          Server.
    */
-  public ConcurrentHashMap<DN,DirectoryServerPlugin> getRegisteredPlugins()
+  public ConcurrentHashMap<DN,
+              DirectoryServerPlugin<? extends PluginCfg>>
+                   getRegisteredPlugins()
   {
     return registeredPlugins;
   }
@@ -602,540 +495,6 @@ parsePluginEntry:
 
 
   /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * modification is acceptable to this change listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested update.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed change is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
-   */
-  public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
-  {
-    // Make sure that the entry has an appropriate objectclass for a plugin.
-    if (! configEntry.hasObjectClass(OC_PLUGIN))
-    {
-      int    msgID   = MSGID_CONFIG_PLUGIN_ENTRY_DOES_NOT_HAVE_PLUGIN_CONFIG;
-      String message = getMessage(msgID, configEntry.getDN().toString());
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // Make sure that the entry specifies the plugin class name.
-    StringConfigAttribute classNameAttr;
-    try
-    {
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_PLUGIN_CLASS,
-                    getMessage(MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_CLASS),
-                    true, false, true);
-      classNameAttr = (StringConfigAttribute)
-                      configEntry.getConfigAttribute(classStub);
-
-      if (classNameAttr == null)
-      {
-        int    msgID   = MSGID_CONFIG_PLUGIN_NO_CLASS_ATTR;
-        String message = getMessage(msgID, configEntry.getDN().toString());
-        unacceptableReason.append(message);
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-    Class pluginClass;
-    try
-    {
-      // FIXME -- Should this be done with a custom class loader?
-      pluginClass = Class.forName(classNameAttr.pendingValue());
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-    try
-    {
-      DirectoryServerPlugin plugin =
-           (DirectoryServerPlugin) pluginClass.newInstance();
-    }
-    catch(Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_INSTANTIATE;
-      String message = getMessage(msgID, pluginClass.getName(),
-                                  String.valueOf(configEntry.getDN()),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // See if this plugin should be enabled.
-    BooleanConfigAttribute enabledAttr;
-    try
-    {
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_PLUGIN_ENABLED,
-                    getMessage(MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_ENABLED),
-                               false);
-      enabledAttr = (BooleanConfigAttribute)
-                    configEntry.getConfigAttribute(enabledStub);
-
-      if (enabledAttr == null)
-      {
-        int    msgID   = MSGID_CONFIG_PLUGIN_NO_ENABLED_ATTR;
-        String message = getMessage(msgID, configEntry.getDN().toString());
-        unacceptableReason.append(message);
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CONFIG_PLUGIN_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // See the plugin types specified for this plugin and make sure that they
-    // are valid.
-    MultiChoiceConfigAttribute typesAttr;
-    try
-    {
-      MultiChoiceConfigAttribute typesStub =
-           new MultiChoiceConfigAttribute(ATTR_PLUGIN_TYPE,
-                getMessage(MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_PLUGIN_TYPE),
-                true, true, true, PluginType.getPluginTypeNames());
-      typesAttr = (MultiChoiceConfigAttribute)
-                  configEntry.getConfigAttribute(typesStub);
-
-      if (typesAttr == null)
-      {
-        int    msgID   = MSGID_CONFIG_PLUGIN_NO_PLUGIN_TYPES;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()));
-        unacceptableReason.append(message);
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CONFIG_PLUGIN_CANNOT_GET_PLUGIN_TYPES;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // If we've gotten here then the plugin entry appears to be acceptable.
-    return true;
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration to this Directory Server component
-   * based on the provided changed entry.
-   *
-   * @param  configEntry  The configuration entry that containing the updated
-   *                      configuration for this component.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
-  {
-    DN                configEntryDN       = configEntry.getDN();
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-
-
-    // Make sure that the entry has an appropriate objectclass for a plugin.
-    if (! configEntry.hasObjectClass(OC_PLUGIN))
-    {
-      int    msgID   = MSGID_CONFIG_PLUGIN_ENTRY_DOES_NOT_HAVE_PLUGIN_CONFIG;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-      resultCode = ResultCode.UNWILLING_TO_PERFORM;
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // Get the corresponding plugin if it is active.
-    DirectoryServerPlugin plugin = registeredPlugins.get(configEntryDN);
-
-
-    // See if this plugin should be enabled or disabled.
-    boolean needsEnabled = false;
-    BooleanConfigAttribute enabledAttr;
-    try
-    {
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_PLUGIN_ENABLED,
-                    getMessage(MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_ENABLED),
-                               false);
-      enabledAttr = (BooleanConfigAttribute)
-                    configEntry.getConfigAttribute(enabledStub);
-
-      if (enabledAttr == null)
-      {
-        int msgID = MSGID_CONFIG_PLUGIN_NO_ENABLED_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-      if (enabledAttr.activeValue())
-      {
-        if (plugin == null)
-        {
-          needsEnabled = true;
-        }
-        else
-        {
-          // The plugin is already active, so no action is required.
-        }
-      }
-      else
-      {
-        if (plugin == null)
-        {
-          // The plugin is already disabled, so no action is required and we
-          // can short-circuit out of this processing.
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-        else
-        {
-          // The plugin is active, so it needs to be disabled.  Do this and
-          // return that we were successful.
-          deregisterPlugin(configEntryDN);
-          plugin.finalizePlugin();
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PLUGIN_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // Make sure that the entry specifies the set of plugin types.  If it has
-    // changed, then we will not try to dynamically apply it.
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    try
-    {
-      MultiChoiceConfigAttribute typesStub =
-           new MultiChoiceConfigAttribute(ATTR_PLUGIN_TYPE,
-                getMessage(MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_PLUGIN_TYPE),
-                true, true, true, PluginType.getPluginTypeNames());
-      MultiChoiceConfigAttribute typesAttr =
-           (MultiChoiceConfigAttribute)
-           configEntry.getConfigAttribute(typesStub);
-      if (typesAttr == null)
-      {
-        int msgID = MSGID_CONFIG_PLUGIN_NO_PLUGIN_TYPES;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else
-      {
-        for (String s : typesAttr.activeValues())
-        {
-          PluginType t = PluginType.forName(s.toLowerCase());
-          if (t == null)
-          {
-            int msgID = MSGID_CONFIG_PLUGIN_INVALID_PLUGIN_TYPE;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN), s));
-            resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-            return new ConfigChangeResult(resultCode, adminActionRequired,
-                                          messages);
-          }
-          else
-          {
-            pluginTypes.add(t);
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_PLUGIN_TYPES;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // Make sure that the entry specifies the plugin class name.  If it has
-    // changed, then we will not try to dynamically apply it.
-    String className;
-    try
-    {
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_PLUGIN_CLASS,
-                    getMessage(MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_CLASS),
-                    true, false, true);
-      StringConfigAttribute classNameAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-
-      if (classNameAttr == null)
-      {
-        int msgID = MSGID_CONFIG_PLUGIN_NO_CLASS_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-      className = classNameAttr.pendingValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    boolean classChanged = false;
-    String  oldClassName = null;
-    if (plugin != null)
-    {
-      oldClassName = plugin.getClass().getName();
-      classChanged = (! className.equals(oldClassName));
-    }
-
-
-    if (classChanged)
-    {
-      // This will not be applied dynamically.  Add a message to the response
-      // and indicate that admin action is required.
-      adminActionRequired = true;
-      messages.add(getMessage(MSGID_CONFIG_PLUGIN_CLASS_ACTION_REQUIRED,
-                              String.valueOf(oldClassName),
-                              String.valueOf(className),
-                              String.valueOf(configEntryDN)));
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    if (needsEnabled)
-    {
-      try
-      {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class pluginClass = Class.forName(className);
-        plugin = (DirectoryServerPlugin) pluginClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int msgID = MSGID_CONFIG_PLUGIN_CANNOT_INSTANTIATE;
-        messages.add(getMessage(msgID, className,
-                                String.valueOf(configEntryDN),
-                                String.valueOf(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-      try
-      {
-        plugin.initializeInternal(configEntryDN, pluginTypes);
-        plugin.initializePlugin(pluginTypes, configEntry);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int msgID = MSGID_CONFIG_PLUGIN_CANNOT_INITIALIZE;
-        messages.add(getMessage(msgID, className,
-                                String.valueOf(configEntryDN),
-                                String.valueOf(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-
-      registerPlugin(plugin, configEntryDN, pluginTypes);
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // If we've gotten here, then there haven't been any changes to anything
-    // that we care about.
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-
-
-  /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * add is acceptable to this add listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested add.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed entry is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
-   */
-  public boolean configAddIsAcceptable(ConfigEntry configEntry,
-                                       StringBuilder unacceptableReason)
-  {
-    // NYI
-    return false;
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration based on the provided added entry.
-   *
-   * @param  configEntry  The new configuration entry that contains the
-   *                      configuration to apply.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
-  {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-
-
-    // NYI
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-
-
-  /**
-   * Indicates whether it is acceptable to remove the provided configuration
-   * entry.
-   *
-   * @param  configEntry         The configuration entry that will be removed
-   *                             from the configuration.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed delete is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry may be removed from the
-   *          configuration, or <CODE>false</CODE> if not.
-   */
-  public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
-  {
-    // NYI
-    return false;
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration based on the provided deleted entry.
-   *
-   * @param  configEntry  The new configuration entry that has been deleted.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
-  {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-
-
-    // NYI
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-
-
-  /**
    * Registers the provided plugin with this plugin config manager and ensures
    * that it will be invoked in the specified ways.
    *
@@ -1145,8 +504,9 @@ parsePluginEntry:
    * @param  pluginTypes    The plugin types that will be used to control the
    *                        points at which the provided plugin is invoked.
    */
-  private void registerPlugin(DirectoryServerPlugin plugin, DN pluginEntryDN,
-                              HashSet<PluginType> pluginTypes)
+  private void registerPlugin(
+                    DirectoryServerPlugin<? extends PluginCfg> plugin,
+                    DN pluginEntryDN, Set<PluginType> pluginTypes)
   {
     pluginLock.lock();
 
@@ -1368,9 +728,10 @@ parsePluginEntry:
   {
     pluginLock.lock();
 
+    DirectoryServerPlugin<? extends PluginCfg> plugin;
     try
     {
-      DirectoryServerPlugin plugin = registeredPlugins.remove(configEntryDN);
+      plugin = registeredPlugins.remove(configEntryDN);
       if (plugin == null)
       {
         return;
@@ -1556,6 +917,8 @@ parsePluginEntry:
     {
       pluginLock.unlock();
     }
+
+    plugin.finalizePlugin();
   }
 
 
@@ -5117,6 +4480,240 @@ parsePluginEntry:
     }
 
     return result;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationAddAcceptable(PluginCfg configuration,
+                                              List<String> unacceptableReasons)
+  {
+    if (configuration.isEnabled())
+    {
+      // Create a set of plugin types for the plugin.
+      HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
+      for (PluginCfgDefn.PluginType pluginType :
+           configuration.getPluginType())
+      {
+        pluginTypes.add(getPluginType(pluginType));
+      }
+
+      // Get the name of the class and make sure we can instantiate it as a
+      // plugin.
+      String className = configuration.getPluginClass();
+      try
+      {
+        loadPlugin(className, pluginTypes, null);
+      }
+      catch (InitializationException ie)
+      {
+        unacceptableReasons.add(ie.getMessage());
+        return false;
+      }
+    }
+
+    // If we've gotten here, then it's fine.
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationAdd(
+                                 PluginCfg configuration)
+  {
+    ResultCode        resultCode          = ResultCode.SUCCESS;
+    boolean           adminActionRequired = false;
+    ArrayList<String> messages            = new ArrayList<String>();
+
+    configuration.addChangeListener(this);
+
+    if (! configuration.isEnabled())
+    {
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    }
+
+    // Create a set of plugin types for the plugin.
+    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
+    for (PluginCfgDefn.PluginType pluginType :
+         configuration.getPluginType())
+    {
+      pluginTypes.add(getPluginType(pluginType));
+    }
+
+    // Get the name of the class and make sure we can instantiate it as a
+    // plugin.
+    DirectoryServerPlugin<? extends PluginCfg> plugin = null;
+    String className = configuration.getPluginClass();
+    try
+    {
+      plugin = loadPlugin(className, pluginTypes, configuration);
+    }
+    catch (InitializationException ie)
+    {
+      if (resultCode == ResultCode.SUCCESS)
+      {
+        resultCode = DirectoryServer.getServerErrorResultCode();
+      }
+
+      messages.add(ie.getMessage());
+    }
+
+    if (resultCode == ResultCode.SUCCESS)
+    {
+      registerPlugin(plugin, configuration.dn(), pluginTypes);
+    }
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationDeleteAcceptable(
+                      PluginCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // We will always allow plugins to be removed.
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationDelete(
+                                 PluginCfg configuration)
+  {
+    ResultCode        resultCode          = ResultCode.SUCCESS;
+    boolean           adminActionRequired = false;
+    ArrayList<String> messages            = new ArrayList<String>();
+
+    deregisterPlugin(configuration.dn());
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+                      PluginCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    if (configuration.isEnabled())
+    {
+      // Create a set of plugin types for the plugin.
+      HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
+      for (PluginCfgDefn.PluginType pluginType :
+           configuration.getPluginType())
+      {
+        pluginTypes.add(getPluginType(pluginType));
+      }
+
+      // Get the name of the class and make sure we can instantiate it as a
+      // plugin.
+      String className = configuration.getPluginClass();
+      try
+      {
+        loadPlugin(className, pluginTypes, null);
+      }
+      catch (InitializationException ie)
+      {
+        unacceptableReasons.add(ie.getMessage());
+        return false;
+      }
+    }
+
+    // If we've gotten here, then it's fine.
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+                                 PluginCfg configuration)
+  {
+    ResultCode        resultCode          = ResultCode.SUCCESS;
+    boolean           adminActionRequired = false;
+    ArrayList<String> messages            = new ArrayList<String>();
+
+
+    // Get the existing plugin if it's already enabled.
+    DirectoryServerPlugin existingPlugin =
+         registeredPlugins.get(configuration.dn());
+
+
+    // If the new configuration has the plugin disabled, then deregister it if
+    // it is enabled, or do nothing if it's already disabled.
+    if (! configuration.isEnabled())
+    {
+      if (existingPlugin != null)
+      {
+        deregisterPlugin(configuration.dn());
+      }
+
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    }
+
+
+    // Get the class for the identity mapper.  If the mapper is already enabled,
+    // then we shouldn't do anything with it although if the class has changed
+    // then we'll at least need to indicate that administrative action is
+    // required.  If the mapper is disabled, then instantiate the class and
+    // initialize and register it as an identity mapper.
+    String className = configuration.getPluginClass();
+    if (existingPlugin != null)
+    {
+      if (! className.equals(existingPlugin.getClass().getName()))
+      {
+        adminActionRequired = true;
+      }
+
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    }
+
+    // Create a set of plugin types for the plugin.
+    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
+    for (PluginCfgDefn.PluginType pluginType :
+         configuration.getPluginType())
+    {
+      pluginTypes.add(getPluginType(pluginType));
+    }
+
+    DirectoryServerPlugin<? extends PluginCfg> plugin = null;
+    try
+    {
+      plugin = loadPlugin(className, pluginTypes, configuration);
+    }
+    catch (InitializationException ie)
+    {
+      if (resultCode == ResultCode.SUCCESS)
+      {
+        resultCode = DirectoryServer.getServerErrorResultCode();
+      }
+
+      messages.add(ie.getMessage());
+    }
+
+    if (resultCode == ResultCode.SUCCESS)
+    {
+      registerPlugin(plugin, configuration.dn(), pluginTypes);
+    }
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }
 

@@ -272,8 +272,7 @@ public class MonitorConfigManager
     Class monitorClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      monitorClass = Class.forName(classNameAttr.pendingValue());
+      monitorClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -513,8 +512,7 @@ public class MonitorConfigManager
     {
       try
       {
-        // FIXME -- Should this be done with a dynamic class loader?
-        Class monitorClass = Class.forName(className);
+        Class monitorClass = DirectoryServer.loadClass(className);
         monitor = (MonitorProvider) monitorClass.newInstance();
       }
       catch (Exception e)
@@ -641,8 +639,7 @@ public class MonitorConfigManager
     Class monitorClass;
     try
     {
-      // FIXME -- Should this be done with a custom class loader?
-      monitorClass = Class.forName(classNameAttr.pendingValue());
+      monitorClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
     }
     catch (Exception e)
     {
@@ -862,8 +859,7 @@ public class MonitorConfigManager
     MonitorProvider monitor;
     try
     {
-      // FIXME -- Should this be done with a dynamic class loader?
-      Class monitorClass = Class.forName(className);
+      Class monitorClass = DirectoryServer.loadClass(className);
       monitor = (MonitorProvider) monitorClass.newInstance();
     }
     catch (Exception e)

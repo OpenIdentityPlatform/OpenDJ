@@ -333,8 +333,7 @@ public class SchemaConfigManager
       MatchingRule matchingRule;
       try
       {
-        // FIXME -- Should we use a custom class loader for this?
-        Class matchingRuleClass = Class.forName(className);
+        Class matchingRuleClass = DirectoryServer.loadClass(className);
         matchingRule = (MatchingRule) matchingRuleClass.newInstance();
       }
       catch (Exception e)
@@ -577,8 +576,7 @@ public class SchemaConfigManager
       AttributeSyntax syntax;
       try
       {
-        // FIXME -- Should we use a custom class loader for this?
-        Class syntaxClass = Class.forName(className);
+        Class syntaxClass = DirectoryServer.loadClass(className);
         syntax = (AttributeSyntax) syntaxClass.newInstance();
       }
       catch (Exception e)

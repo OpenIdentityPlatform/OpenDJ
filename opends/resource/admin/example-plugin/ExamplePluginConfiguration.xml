@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="example-plugin" plural-name="example-plugins"
+  package="com.example.opends" extends="plugin"
+  parent-package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>An example "Hello World" plugin.</adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>ds-cfg-example-plugin-oid</ldap:oid>
+      <ldap:name>ds-cfg-example-plugin</ldap:name>
+      <ldap:superior>ds-cfg-plugin</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="message">
+    <adm:synopsis>The message to be logged.</adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>Hello World</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>ds-cfg-example-plugin-message-oid</ldap:oid>
+        <ldap:name>ds-cfg-example-plugin-message</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

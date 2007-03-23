@@ -30,6 +30,7 @@ package org.opends.server.extensions;
 
 import javax.net.ssl.KeyManager;
 
+import org.opends.server.admin.std.server.KeyManagerCfg;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
@@ -80,6 +81,18 @@ public class NullKeyManagerProvider
   public void initializeKeyManagerProvider(ConfigEntry configEntry)
          throws ConfigException, InitializationException
   {
+    // No implementation is required.
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void initializeKeyManagerProvider(
+      KeyManagerCfg configuration) throws ConfigException,
+      InitializationException {
     // No implementation is required.
   }
 

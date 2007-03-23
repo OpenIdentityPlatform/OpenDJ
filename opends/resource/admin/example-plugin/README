@@ -1,0 +1,48 @@
+This folder contains source code for an example "Hello World" style
+plugin. It features a plugin which has a configurable message (the
+default being "Hello World") which is displayed as a notice message
+when an OpenDS instance is started.
+
+In order to build and use this example plugin, perform the following
+steps (presumably you are already at step 4):
+ 
+  1. In the top-level source folder for OpenDS, first build and
+     package OpenDS:
+
+     ./build.sh
+
+  2. Next go into the packages folder:
+
+     cd build/package/OpenDS-0.1
+
+  3. Then unzip the example-plugin.zip (in place):
+
+     unzip example-plugin.zip
+
+  4. Go into the example-plugin source folder:
+
+     cd example-plugin
+
+  5. And build the plugin (this requires Ant in your path):
+
+     ant install
+
+  6. This will copy the following files into the parent OpenDS
+     installation:
+
+     lib/extensions/example-plugin.jar
+     config/example-plugin.ldif
+     config/schema/99-example-plugin.ldif
+
+  7. Add the plugin's config to the server configuration. The
+     following instruction assumes usage of the Unix 'cat'
+     command, but obviously ldapadd can be used:
+
+     cd ../config
+     cat example-plugin.ldif >> config.ldif
+
+  8. Start the server and look for the "hello world" notice in the start
+     up log:
+     
+     cd ..
+     ./bin/start-ds
