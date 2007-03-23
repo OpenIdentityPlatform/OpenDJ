@@ -52,7 +52,7 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.opends.server.admin.std.meta.RootConfigurationDefinition;
+import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.ErrorLogCategory;
@@ -388,7 +388,7 @@ public final class AdminClassLoaderProvider {
    */
   private void initializeCoreComponents()
       throws InitializationException {
-    InputStream is = RootConfigurationDefinition.class
+    InputStream is = RootCfgDefn.class
         .getResourceAsStream("/admin/" + CORE_MANIFEST);
 
     if (is == null) {
