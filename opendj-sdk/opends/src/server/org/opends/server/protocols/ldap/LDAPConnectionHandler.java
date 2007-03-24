@@ -484,7 +484,7 @@ public final class LDAPConnectionHandler extends
    *         allowed by this connection handler.
    */
   public int getMaxRequestSize() {
-    return (int) ((long) currentConfig.getMaxRequestSize());
+    return (int) currentConfig.getMaxRequestSize();
   }
 
 
