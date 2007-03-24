@@ -821,35 +821,33 @@
       <xsl:with-param name="value" select="$this-name" />
     </xsl:call-template>
   </xsl:variable>
+  <xsl:variable name="_top-name"
+    select="$this/adm:profile[@name='preprocessor']/admpp:parent-managed-object[last()]/@name" />
+  <xsl:variable name="_top-length" select="string-length($_top-name)" />
+  <xsl:variable name="_this-length" select="string-length($this-name)" />
+  <xsl:variable name="_diff" select="$_this-length - $_top-length" />
+  <xsl:variable name="_start"
+    select="substring($this-name, 1, $_diff - 1)" />
+  <xsl:variable name="_middle"
+    select="substring($this-name, $_diff, 1)" />
+  <xsl:variable name="_end"
+    select="substring($this-name, $_diff + 1, $_top-length)" />
   <xsl:variable name="this-short-name">
-    <xsl:variable name="top-name"
-      select="$this/adm:profile[@name='preprocessor']/admpp:parent-managed-object[last()]/@name" />
     <xsl:choose>
       <xsl:when test="$this-is-root">
         <xsl:value-of select="''" />
       </xsl:when>
-      <xsl:when test="not($top-name)">
+      <xsl:when test="not($_top-name)">
         <xsl:value-of select="''" />
       </xsl:when>
       <xsl:otherwise>
-        <xsl:variable name="top-length"
-          select="string-length($top-name)" />
-        <xsl:variable name="this-length"
-          select="string-length($this-name)" />
-        <xsl:variable name="diff" select="$this-length - $top-length" />
-        <xsl:variable name="start"
-          select="substring($this-name, 1, $diff - 1)" />
-        <xsl:variable name="middle"
-          select="substring($this-name, $diff, 1)" />
-        <xsl:variable name="end"
-          select="substring($this-name, $diff + 1, $top-length)" />
-        <xsl:if test="$middle != '-' or $end != $top-name">
+        <xsl:if test="$_middle != '-' or $_end != $_top-name">
           <xsl:message terminate="yes">
             <xsl:value-of
-              select="concat('The managed object ', $this-name, ' should end with ', $top-name)" />
+              select="concat('The managed object ', $this-name, ' should end with ', $_top-name)" />
           </xsl:message>
         </xsl:if>
-        <xsl:value-of select="$start" />
+        <xsl:value-of select="$_start" />
       </xsl:otherwise>
     </xsl:choose>
   </xsl:variable>
