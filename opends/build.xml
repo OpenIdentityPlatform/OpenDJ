@@ -1082,6 +1082,10 @@
     <echo message="  -Dorg.opends.test.suppressOutput=false"/>
     <echo message="      writes the unit test output to the screen"/>
     <echo message=""/>
+    <echo message="  -Dorg.opends.test.pauseOnFailure=true"/>
+    <echo message="      pauses the test suite whenever a failure occurs allowing you to inspect"/>
+    <echo message="      the server more closely in the failure state"/>
+    <echo message=""/>
     <echo message="  -Dtest.failed=true"/>
     <echo message="      runs only the tests that failed last time"/>
     <echo message=""/>
@@ -1151,6 +1155,14 @@
       </not>
     </condition>
 
+    <!-- This sets org.opends.test.pauseOnFailure if and only if it's not
+         already set. -->
+    <condition property="org.opends.test.pauseOnFailure" value="false">
+      <not>
+        <isset property="org.opends.test.pauseOnFailure" />
+      </not>
+    </condition>
+
     <!-- This sets org.opends.test.debug.target if and only if its's not
          alreadly set. -->
     <condition property="org.opends.test.debug.target"
@@ -1198,6 +1210,7 @@
       <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}" />
       <jvmarg value="-Dorg.opends.server.RunningUnitTests=true" />
       <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
+      <jvmarg value="-Dorg.opends.test.pauseOnFailure=${org.opends.test.pauseOnFailure}" />
       <jvmarg value="-Dorg.opends.test.debug.target=${org.opends.test.debug.target}" />
       <jvmarg value="-Xms${MEM}" />
       <jvmarg value="-Xmx${MEM}" />
