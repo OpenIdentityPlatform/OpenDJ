@@ -274,6 +274,37 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     originalSystemErr.print(DIVIDER_LINE + EOL + EOL);
 
     _bufferedTestFailures.append(failureInfo);
+
+    String pauseStr = System.getProperty("org.opends.test.pauseOnFailure");
+    if ((pauseStr != null) && pauseStr.equalsIgnoreCase("true"))
+    {
+      File tempFile = null;
+      try
+      {
+        tempFile = File.createTempFile("testfailure", "watchdog");
+        tempFile.deleteOnExit();
+        originalSystemErr.println("**** Pausing test execution until file " +
+                                  tempFile.getCanonicalPath() + " is removed.");
+      }
+      catch (Exception e)
+      {
+        originalSystemErr.println("**** ERROR:  Could not create a watchdog " +
+             "file.  Pausing test execution indefinitely.");
+        originalSystemErr.println("**** You will have to manually kill the " +
+             "JVM when you're done investigating the problem.");
+      }
+
+      while ((tempFile == null) || tempFile.exists())
+      {
+        try
+        {
+          Thread.sleep(100);
+        } catch (Exception e) {}
+      }
+
+      originalSystemErr.println("**** Watchdog file removed.  Resuming test " +
+                                "case execution.");
+    }
   }
 
   private String getTestngLessStack(Throwable t) {
