@@ -527,6 +527,10 @@ public class Uninstaller
       if (isWindowsServiceEnabled())
       {
         status = UninstallProgressStep.DISABLING_WINDOWS_SERVICE;
+        if (displaySeparator)
+        {
+          notifyListeners(getTaskSeparator());
+        }
         disableWindowsService();
         displaySeparator = true;
       }
@@ -943,14 +947,7 @@ public class Uninstaller
     return Utils.getPath(getLibrariesPath(), "OpenDS.jar");
   }
 
-  /**
-   * Returns the path to the aspectj jar file.
-   * @return the path to the aspectj jar file.
-   */
-  private String getAspectJJarPath()
-  {
-    return Utils.getPath(getLibrariesPath(), "aspectjrt.jar");
-  }
+
 
 
   /**
@@ -1183,7 +1180,7 @@ public class Uninstaller
             String line = reader.readLine();
             while (line != null)
             {
-              StringBuffer buf = new StringBuffer();
+              StringBuilder buf = new StringBuilder();
               if (!isFirstLine)
               {
                 buf.append(formatter.getLineBreak());
@@ -1257,7 +1254,7 @@ public class Uninstaller
 
      boolean accept =
           !installationPath.equals(file)
-              && !librariesFile.equals(file)
+              && !equalsOrDescendant(file, librariesFile)
               && !quicksetupFile.equals(file)
               && !openDSFile.equals(file);
 
@@ -1434,3 +1431,4 @@ public class Uninstaller
     }
   }
 }
+

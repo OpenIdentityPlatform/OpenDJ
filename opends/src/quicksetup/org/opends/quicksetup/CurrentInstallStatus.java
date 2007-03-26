@@ -253,7 +253,6 @@ public class CurrentInstallStatus
     }
     catch (Throwable t)
     {
-      t.printStackTrace();
       // Assume that if we cannot acquire the lock file the server is
       // running.
       isServerRunning = true;
