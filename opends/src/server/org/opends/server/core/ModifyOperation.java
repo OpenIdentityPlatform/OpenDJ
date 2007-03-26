@@ -1889,7 +1889,7 @@ modifyProcessing:
                 if (missingValues.isEmpty())
                 {
                   RDN rdn = modifiedEntry.getDN().getRDN();
-                  if (rdn.hasAttributeType(t) &&
+                  if ((rdn != null) && rdn.hasAttributeType(t) &&
                       (! modifiedEntry.hasValue(t, a.getOptions(),
                                                 rdn.getAttributeValue(t))))
                   {
@@ -1964,7 +1964,7 @@ modifyProcessing:
               {
                 modifiedEntry.removeAttribute(t, a.getOptions());
                 RDN rdn = modifiedEntry.getDN().getRDN();
-                if (rdn.hasAttributeType(t) &&
+                if ((rdn != null) && rdn.hasAttributeType(t) &&
                     (! modifiedEntry.hasValue(t, a.getOptions(),
                                               rdn.getAttributeValue(t))))
                 {
@@ -2042,7 +2042,7 @@ modifyProcessing:
                 modifiedEntry.putAttribute(t, attrList);
 
                 RDN rdn = modifiedEntry.getDN().getRDN();
-                if (rdn.hasAttributeType(t) &&
+                if ((rdn != null) && rdn.hasAttributeType(t) &&
                     (! modifiedEntry.hasValue(t, a.getOptions(),
                                               rdn.getAttributeValue(t))))
                 {
@@ -2067,7 +2067,7 @@ modifyProcessing:
                 modifiedEntry.putAttribute(t, attrList);
 
                 RDN rdn = modifiedEntry.getDN().getRDN();
-                if (rdn.hasAttributeType(t) &&
+                if ((rdn != null) && rdn.hasAttributeType(t) &&
                     (! modifiedEntry.hasValue(t, a.getOptions(),
                                               rdn.getAttributeValue(t))))
                 {
@@ -2102,7 +2102,7 @@ modifyProcessing:
               }
 
               RDN rdn = modifiedEntry.getDN().getRDN();
-              if (rdn.hasAttributeType(t) &&
+              if ((rdn != null) && rdn.hasAttributeType(t) &&
                   (! modifiedEntry.hasValue(t, a.getOptions(),
                                             rdn.getAttributeValue(t))))
               {
@@ -2119,7 +2119,7 @@ modifyProcessing:
             case INCREMENT:
               // The specified attribute type must not be an RDN attribute.
               rdn = modifiedEntry.getDN().getRDN();
-              if (rdn.hasAttributeType(t))
+              if ((rdn != null) && rdn.hasAttributeType(t))
               {
                 setResultCode(ResultCode.NOT_ALLOWED_ON_RDN);
                 appendErrorMessage(getMessage(MSGID_MODIFY_INCREMENT_RDN,
