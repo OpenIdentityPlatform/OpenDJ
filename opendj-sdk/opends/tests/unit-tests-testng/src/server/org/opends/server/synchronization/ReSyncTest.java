@@ -42,7 +42,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.synchronization.plugin.MultimasterSynchronization;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -169,10 +168,6 @@ public class ReSyncTest extends SynchronizationTestCase
     // we do test something.
     connection.processDelete(DN.decode("dc=foo, dc=example,dc=com"));
 
-    MultimasterSynchronization.notificationBackupStart(
-        DN.decode("dc=example,dc=com")); // TEMPORARY UNTIL core server
-                                        // sends a notification
-
     task("dn: ds-task-id=" + UUID.randomUUID()
         +  ",cn=Scheduled Tasks,cn=Tasks\n"
         + "objectclass: top\n"
@@ -185,9 +180,6 @@ public class ReSyncTest extends SynchronizationTestCase
     addEntry("dn: dc=foo, dc=example,dc=com\n"
         + "objectClass: top\n" + "objectClass: domain\n");
 
-    MultimasterSynchronization.notificationRestoreStart(
-        DN.decode("dc=example,dc=com"));// TEMPORARY UNTIL core server
-                                       //  sends a notification
     task("dn: ds-task-id=" + UUID.randomUUID()
         + ",cn=Scheduled Tasks,cn=Tasks\n"
         + "objectclass: top\n"
@@ -196,10 +188,6 @@ public class ReSyncTest extends SynchronizationTestCase
         + "ds-task-class-name: org.opends.server.tasks.RestoreTask\n"
         + "ds-backup-directory-path: bak" + File.separator
         + "userRoot\n");
-
-    MultimasterSynchronization.notificationRestoreEnd(
-        DN.decode("dc=example,dc=com"));// TEMPORARY UNTIL core server
-                                       // sends a notification
 
    if (getEntry(DN.decode("dc=foo, dc=example,dc=com"), 30000, true) == null)
      fail("The Directory has not been resynchronized after the restore.");
@@ -224,10 +212,6 @@ public class ReSyncTest extends SynchronizationTestCase
     // we do test something.
     connection.processDelete(DN.decode("dc=foo, dc=example,dc=com"));
 
-    MultimasterSynchronization.notificationBackupStart(
-        DN.decode("dc=example,dc=com")); // TEMPORARY UNTIL core server
-                                        // sends a notification
-
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
     String path = buildRoot + File.separator + "build" +
                   File.separator + "unit-tests" + File.separator +
@@ -245,9 +229,6 @@ public class ReSyncTest extends SynchronizationTestCase
     addEntry("dn: dc=foo, dc=example,dc=com\n"
         + "objectClass: top\n" + "objectClass: domain\n");
 
-    MultimasterSynchronization.notificationRestoreStart(
-        DN.decode("dc=example,dc=com"));// TEMPORARY UNTIL core server
-                                       //  sends a notification
     task("dn: ds-task-id=" + UUID.randomUUID()
         + ",cn=Scheduled Tasks,cn=Tasks\n"
         + "objectclass: top\n"
@@ -257,10 +238,6 @@ public class ReSyncTest extends SynchronizationTestCase
         + "ds-task-import-backend-id: userRoot\n"
         + "ds-task-import-ldif-file: " + path + "\n"
         + "ds-task-import-reject-file: " + path + "reject\n");
-
-    MultimasterSynchronization.notificationRestoreEnd(
-        DN.decode("dc=example,dc=com"));// TEMPORARY UNTIL core server
-                                       //  sends a notification
 
    if (getEntry(DN.decode("dc=foo, dc=example,dc=com"), 30000, true) == null)
      fail("The Directory has not been resynchronized after the restore.");
