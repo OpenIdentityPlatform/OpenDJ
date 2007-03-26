@@ -150,7 +150,7 @@
 
   <!-- The build target that should be used for nightly builds. -->
   <target name="nightly"
-       depends="checkstyle,dsml,javadoc,coverage,testall"
+       depends="enableweave,checkstyle,dsml,javadoc,coverage,testall"
        description="Perform all processing needed for nightly builds." />
 
 
@@ -165,7 +165,7 @@
 
   <!-- The build target that should be used to build everything. -->
   <target name="all"
-       depends="checkstyle,clean,copyrightdates,eolstyle,dsml,javadoc,testallwithcoverage"
+       depends="enableweave,checkstyle,clean,copyrightdates,eolstyle,dsml,javadoc,testallwithcoverage"
        description="Build using all defined targets." />
 
 
@@ -395,7 +395,7 @@
 
   <!-- Compile the Directory Server source files. -->
   <target name="cleancompile"
-       depends="cleaninit,compilequicksetup,compile,compilestatuspanel"
+       depends="cleaninit,compilequicksetup,weave,compilestatuspanel"
        description="Recompile the Directory Server source files.">
   </target>
 
@@ -423,9 +423,7 @@
 
   <target name="prepweave">
     <condition property="weave.enabled" value="true">
-      <and>
         <equals arg1="${WEAVE_ENABLED}" arg2="true" />
-      </and>
     </condition>
   </target>
 
@@ -449,7 +447,7 @@
 
 
   <!-- Compile the Quick Setup source files. -->
-  <target name="compilequicksetup" depends="buildtools,compile"
+  <target name="compilequicksetup" depends="buildtools,weave"
           description="Compile the Quick Setup source files.">
 
     <mkdir dir="${quicksetup.classes.dir}" />
@@ -871,7 +869,7 @@
 
 
   <!-- Prepare to execute the Directory Server TestNG unit tests. -->
-  <target name="testinit" depends="buildtools,compile, weave"
+  <target name="testinit" depends="buildtools, weave"
          description="Prepare to execute the Directory Server TestNG unit tests.">
 
     <!-- If we are to perform coverage tests, then set that up. -->
@@ -1048,14 +1046,14 @@
 
   <!-- Execute all of the Directory Server TestNG unit tests in text mode. -->
   <target name="testall"
-          depends="enableTestNGAssertions,prepdefaultalltest,testinit,runtests"
+          depends="enableweave,enableTestNGAssertions,prepdefaultalltest,testinit,runtests"
           description="Run all of the TestNG tests (including 'slow' ones) with assertions enabled.  See 'testwithcoverage' for properties you can set.">
   </target>
 
 
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="test"
-          depends="prepdefaulttest,testinit,runtests"
+          depends="enableweave,testinit,runtests"
           description="Execute the Directory Server TestNG unit tests in text mode.  Set '-Dorg.opends.test.suppressOutput=false' to see the output from the unit tests.  Set '-Dtest.failures=true' to run only the tests that failed previously.">
   </target>
 
@@ -1247,18 +1245,6 @@
   </target>
 
   <target name="prepdefaultalltest">
-    <condition property="WEAVE_ENABLED" value="true">
-      <not>
-        <or>
-          <isset property="WEAVE_ENABLED" />
-          <isset property="test.groups" />
-          <isset property="test.packages" />
-          <isset property="test.classes" />
-          <isset property="test.methods" />
-        </or>
-      </not>
-    </condition>
-
     <condition property="test.groups" value="">
       <not>
         <or>
@@ -1271,29 +1257,12 @@
     </condition>
   </target>
 
-  <target name="prepdefaulttest">
+  <target name="enableweave">
    <condition property="WEAVE_ENABLED" value="true">
-      <not>
-        <or>
-          <isset property="WEAVE_ENABLED" />
-          <isset property="test.groups" />
-          <isset property="test.packages" />
-          <isset property="test.classes" />
-          <isset property="test.methods" />
-        </or>
-      </not>
-    </condition>
-
-    <condition property="test.groups" value="exclude=slow">
-      <not>
-        <or>
-          <isset property="test.groups" />
-          <isset property="test.packages" />
-          <isset property="test.classes" />
-          <isset property="test.methods" />
-        </or>
-      </not>
-    </condition>
+     <not>
+        <isset property="WEAVE_ENABLED" />
+     </not>
+   </condition>
   </target>
 
   <target name="testreport"
