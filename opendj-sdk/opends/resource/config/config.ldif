@@ -1098,6 +1098,15 @@ ds-cfg-password-validator-enabled: true
 ds-cfg-minimum-password-length: 6
 ds-cfg-maximum-password-length: 0
 
+dn: cn=Similarity-Based Password Validator,cn=Password Validators,cn=config
+objectClass: top
+objectClass: ds-cfg-password-validator
+objectClass: ds-cfg-similarity-based-password-validator
+cn: Similarity-Based Password Validator
+ds-cfg-password-validator-class: org.opends.server.extensions.SimilarityBasedPasswordValidator
+ds-cfg-password-validator-enabled: true
+ds-cfg-minimum-password-difference: 3
+
 dn: cn=Plugins,cn=config
 objectClass: top
 objectClass: ds-cfg-branch

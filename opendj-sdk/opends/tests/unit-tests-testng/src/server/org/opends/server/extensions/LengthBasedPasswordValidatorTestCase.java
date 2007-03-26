@@ -217,7 +217,7 @@ public class LengthBasedPasswordValidatorTestCase
 
 
   /**
-   * Retrieves a set of invvalid configuration entries.
+   * Retrieves a set of invalid configuration entries.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */

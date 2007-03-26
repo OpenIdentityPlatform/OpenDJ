@@ -1419,6 +1419,12 @@ public class ConfigConstants
   public static final String ATTR_PASSWORD_MIN_LENGTH =
        NAME_PREFIX_CFG + "minimum-password-length";
 
+  /**
+   * The name of the configuration attribute that specifies the minimum allowed
+   * difference for a password.
+   */
+  public static final String ATTR_PASSWORD_MIN_DIFFERENCE =
+       NAME_PREFIX_CFG + "minimum-password-difference";
 
 
   /**
