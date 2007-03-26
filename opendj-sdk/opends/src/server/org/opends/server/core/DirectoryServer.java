@@ -738,10 +738,6 @@ public class DirectoryServer
     pluginConfigManager = new PluginConfigManager();
 
 
-    // Make sure that administration framework definition classes are loaded.
-    ClassLoaderProvider.getInstance().enable();
-
-
     // If we have gotten here, then the configuration should be properly
     // bootstrapped.
     synchronized (directoryServer)
@@ -808,6 +804,14 @@ public class DirectoryServer
   {
     this.configClass = configClass;
     this.configFile  = configFile;
+
+
+    // Make sure that administration framework definition classes are loaded.
+    ClassLoaderProvider provider = ClassLoaderProvider.getInstance();
+    if (! provider.isEnabled())
+    {
+      provider.enable();
+    }
 
 
     // Load and instantiate the configuration handler class.
