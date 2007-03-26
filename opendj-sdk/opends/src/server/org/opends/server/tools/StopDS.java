@@ -823,9 +823,23 @@ public class StopDS
         isServerRunning = true;
       }
 
+      boolean configuredAsService =
+          DirectoryServer.isRunningAsWindowsService();
+
       if (!isServerRunning)
       {
-        if (restartPresent)
+        if (configuredAsService && !windowsNetStopPresent)
+        {
+          if (restartPresent)
+          {
+            returnValue = RESTART_AS_WINDOW_SERVICE;
+          }
+          else
+          {
+            returnValue = STOP_AS_WINDOW_SERVICE;
+          }
+        }
+        else if (restartPresent)
         {
           returnValue = START_SERVER;
         }
@@ -836,9 +850,6 @@ public class StopDS
       }
       else
       {
-        boolean configuredAsService =
-          DirectoryServer.isRunningAsWindowsService();
-
         if (configuredAsService)
         {
           if (windowsNetStopPresent)
