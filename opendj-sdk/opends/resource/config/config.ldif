@@ -1098,6 +1098,16 @@ ds-cfg-password-validator-enabled: true
 ds-cfg-minimum-password-length: 6
 ds-cfg-maximum-password-length: 0
 
+dn: cn=Repeated Characters,cn=Password Validators,cn=config
+objectClass: top
+objectClass: ds-cfg-password-validator
+objectClass: ds-cfg-repeated-characters-password-validator
+cn: Repeated Characters
+ds-cfg-password-validator-class: org.opends.server.extensions.RepeatedCharactersPasswordValidator
+ds-cfg-password-validator-enabled: true
+ds-cfg-maximum-consecutive-length: 2
+ds-cfg-case-sensitive-validation: false
+
 dn: cn=Similarity-Based Password Validator,cn=Password Validators,cn=config
 objectClass: top
 objectClass: ds-cfg-password-validator
@@ -1106,6 +1116,16 @@ cn: Similarity-Based Password Validator
 ds-cfg-password-validator-class: org.opends.server.extensions.SimilarityBasedPasswordValidator
 ds-cfg-password-validator-enabled: true
 ds-cfg-minimum-password-difference: 3
+
+dn: cn=Unique Characters,cn=Password Validators,cn=config
+objectClass: top
+objectClass: ds-cfg-password-validator
+objectClass: ds-cfg-unique-characters-password-validator
+cn: Unique Characters
+ds-cfg-password-validator-class: org.opends.server.extensions.UniqueCharactersPasswordValidator
+ds-cfg-password-validator-enabled: true
+ds-cfg-minimum-unique-characters: 5
+ds-cfg-case-sensitive-validation: false
 
 dn: cn=Plugins,cn=config
 objectClass: top
