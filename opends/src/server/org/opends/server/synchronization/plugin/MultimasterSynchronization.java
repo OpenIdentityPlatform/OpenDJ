@@ -30,9 +30,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.opends.server.api.Backend;
+import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
+import org.opends.server.api.ExportTaskListener;
+import org.opends.server.api.ImportTaskListener;
+import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
@@ -47,8 +52,12 @@ import org.opends.server.types.Entry;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
+import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
+import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SynchronizationProviderResult;
 
@@ -63,7 +72,10 @@ import static org.opends.server.synchronization.common.LogMessages.*;
  * as pre-op, conflictRsolution, and post-op.
  */
 public class MultimasterSynchronization extends SynchronizationProvider
-       implements ConfigAddListener, ConfigDeleteListener, ConfigChangeListener
+       implements ConfigAddListener, ConfigDeleteListener, ConfigChangeListener,
+       BackupTaskListener, RestoreTaskListener, ImportTaskListener,
+       ExportTaskListener
+
 {
   static String CHANGELOG_DN = "cn=Changelog Server," +
     "cn=Multimaster Synchronization, cn=Synchronization Providers, cn=config";
@@ -131,6 +143,11 @@ public class MultimasterSynchronization extends SynchronizationProvider
     {
       processSchemaChange(offlineSchemaChanges);
     }
+
+    DirectoryServer.registerBackupTaskListener(this);
+    DirectoryServer.registerRestoreTaskListener(this);
+    DirectoryServer.registerExportTaskListener(this);
+    DirectoryServer.registerImportTaskListener(this);
   }
 
   /**
@@ -453,6 +470,11 @@ public class MultimasterSynchronization extends SynchronizationProvider
     // shutdown the Changelog Service if necessary
     if (changelog != null)
       changelog.shutdown();
+
+    DirectoryServer.deregisterBackupTaskListener(this);
+    DirectoryServer.deregisterRestoreTaskListener(this);
+    DirectoryServer.deregisterExportTaskListener(this);
+    DirectoryServer.deregisterImportTaskListener(this);
   }
 
   /**
@@ -504,51 +526,6 @@ public class MultimasterSynchronization extends SynchronizationProvider
     return;
   }
 
-
-  /**
-   * Handle a Notification of restore start from the core server.
-   *
-   * @param dn The baseDn of the restore.
-   */
-  public static void notificationRestoreStart(DN dn)
-  {
-    SynchronizationDomain domain = findDomain(dn, null);
-    domain.disable();
-  }
-
-  /**
-   * Handle a Notification of restore end from the core server.
-   *
-   * @param dn The baseDn of the restore.
-   */
-  public static void notificationRestoreEnd(DN dn)
-  {
-    SynchronizationDomain domain = findDomain(dn, null);
-    domain.enable();
-  }
-
-  /**
-   * Handle a Notification of backup start from the core server.
-   *
-   * @param dn The baseDn of the backup.
-   */
-  public static void notificationBackupStart(DN dn)
-  {
-    SynchronizationDomain domain = findDomain(dn, null);
-    domain.backupStart();
-  }
-
-  /**
-   * Handle a Notification of backup end from the core server.
-   *
-   * @param dn The baseDn of the backup.
-   */
-  public static void notificationBackupEnd(DN dn)
-  {
-    SynchronizationDomain domain = findDomain(dn, null);
-    domain.backupEnd();
-  }
-
   /**
    * This method is called whenever the server detects a modification
    * of the schema done by directly modifying the backing files
@@ -565,6 +542,114 @@ public class MultimasterSynchronization extends SynchronizationProvider
       findDomain(DirectoryServer.getSchemaDN(), null);
     if (domain != null)
       domain.synchronizeModifications(modifications);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processBackupBegin(Backend backend, BackupConfig config)
+  {
+    for (DN dn : backend.getBaseDNs())
+    {
+      SynchronizationDomain domain = findDomain(dn, null);
+      if (domain != null)
+        domain.backupStart();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processBackupEnd(Backend backend, BackupConfig config,
+                               boolean successful)
+  {
+    for (DN dn : backend.getBaseDNs())
+    {
+      SynchronizationDomain domain = findDomain(dn, null);
+      if (domain != null)
+        domain.backupEnd();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processRestoreBegin(Backend backend, RestoreConfig config)
+  {
+    for (DN dn : backend.getBaseDNs())
+    {
+      SynchronizationDomain domain = findDomain(dn, null);
+      if (domain != null)
+        domain.disable();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processRestoreEnd(Backend backend, RestoreConfig config,
+                                boolean successful)
+  {
+    for (DN dn : backend.getBaseDNs())
+    {
+      SynchronizationDomain domain = findDomain(dn, null);
+      if (domain != null)
+        domain.enable();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processImportBegin(Backend backend, LDIFImportConfig config)
+  {
+    for (DN dn : backend.getBaseDNs())
+    {
+      SynchronizationDomain domain = findDomain(dn, null);
+      if (domain != null)
+        domain.disable();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processImportEnd(Backend backend, LDIFImportConfig config,
+                               boolean successful)
+  {
+    for (DN dn : backend.getBaseDNs())
+    {
+      SynchronizationDomain domain = findDomain(dn, null);
+      if (domain != null)
+        domain.enable();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processExportBegin(Backend backend, LDIFExportConfig config)
+  {
+    for (DN dn : backend.getBaseDNs())
+    {
+      SynchronizationDomain domain = findDomain(dn, null);
+      if (domain != null)
+        domain.backupStart();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processExportEnd(Backend backend, LDIFExportConfig config,
+                               boolean successful)
+  {
+    for (DN dn : backend.getBaseDNs())
+    {
+      SynchronizationDomain domain = findDomain(dn, null);
+      if (domain != null)
+        domain.backupEnd();
+    }
   }
 }
 

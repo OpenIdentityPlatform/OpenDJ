@@ -289,6 +289,11 @@ public class RestoreTask extends Task
     RestoreConfig restoreConfig = new RestoreConfig(backupDir, backupID,
                                                     verifyOnly);
 
+    // Notify the task listeners that a restore is going to start
+    // this must be done before disabling the backend to allow
+    // listener to get access to the backend configuration
+    // and to take appropriate actions.
+    DirectoryServer.notifyRestoreBeginning(backend, restoreConfig);
 
     // Disable the backend.
     try
@@ -307,7 +312,6 @@ public class RestoreTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-
     // From here we must make sure to re-enable the backend before returning.
     boolean errorsEncountered = false;
     try
@@ -321,9 +325,7 @@ public class RestoreTask extends Task
           // Perform the restore.
           try
           {
-            DirectoryServer.notifyRestoreBeginning(backend, restoreConfig);
             backend.restoreBackup(configEntry, restoreConfig);
-            DirectoryServer.notifyRestoreEnded(backend, restoreConfig, true);
           }
           catch (DirectoryException de)
           {
@@ -362,6 +364,10 @@ public class RestoreTask extends Task
       try
       {
         TaskUtils.setBackendEnabled(configEntry, true);
+        // it is necessary to retrieve the backend structure again
+        // because disabling and enabling it again may have resulted
+        // in a new backend being registered to the server.
+        backend = DirectoryServer.getBackend(backendID);
       }
       catch (DirectoryException e)
       {
@@ -374,6 +380,7 @@ public class RestoreTask extends Task
                  e.getErrorMessage(), e.getErrorMessageID());
         errorsEncountered = true;
       }
+      DirectoryServer.notifyRestoreEnded(backend, restoreConfig, true);
     }
 
     if (errorsEncountered)

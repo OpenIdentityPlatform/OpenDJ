@@ -46,7 +46,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.synchronization.common.ChangeNumberGenerator;
 import org.opends.server.synchronization.plugin.ChangelogBroker;
-import org.opends.server.synchronization.plugin.MultimasterSynchronization;
 import org.opends.server.synchronization.protocol.ModifyMsg;
 import org.opends.server.synchronization.protocol.SynchronizationMessage;
 import org.opends.server.types.Attribute;

@@ -32,7 +32,6 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
@@ -473,6 +472,11 @@ public class ImportTask extends Task
     DN[] baseDNs = new DN[defaultIncludeBranches.size()];
     defaultIncludeBranches.toArray(baseDNs);
 
+    // Notify the task listeners that an import is going to start
+    // this must be done before disabling the backend to allow
+    // listeners to get access to the backend configuration
+    // and to take appropriate actions.
+    DirectoryServer.notifyImportBeginning(backend, importConfig);
 
     // Disable the backend.
     try
@@ -528,9 +532,7 @@ public class ImportTask extends Task
       // Launch the import.
       try
       {
-        DirectoryServer.notifyImportBeginning(backend, importConfig);
         backend.importLDIF(configEntry, baseDNs, importConfig);
-        DirectoryServer.notifyImportEnded(backend, importConfig, true);
       }
       catch (DirectoryException de)
       {
@@ -600,6 +602,10 @@ public class ImportTask extends Task
       try
       {
         TaskUtils.setBackendEnabled(configEntry, true);
+        // It is necessary to retrieve the backend structure again
+        // because disabling and enabling it again may have resulted
+        // in a new backend being registered to the server.
+        backend = DirectoryServer.getBackend(backendID);
       }
       catch (DirectoryException e)
       {
@@ -612,6 +618,7 @@ public class ImportTask extends Task
                  e.getErrorMessage(), e.getErrorMessageID());
         return TaskState.STOPPED_BY_ERROR;
       }
+      DirectoryServer.notifyImportEnded(backend, importConfig, true);
     }
 
 
