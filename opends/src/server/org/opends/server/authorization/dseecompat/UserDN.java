@@ -32,7 +32,6 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 
 import java.util.*;
 import org.opends.server.types.*;
-import org.opends.server.core.DirectoryServer;
 
 /**
  * This class represents the userdn keyword in a bind rule.
@@ -54,11 +53,6 @@ public class UserDN implements KeywordBindRule {
      */
     private EnumBindRuleType type=null;
 
-    /*
-     * Used to evaluate a userdn that has a pattern  (wild-card).
-     */
-    private AttributeType userDNAttrType;
-
     /**
      * Constructor that creates the userdn class. It also sets up an attribute
      * type ("userdn") needed  for wild-card matching.
@@ -69,9 +63,6 @@ public class UserDN implements KeywordBindRule {
     private UserDN(EnumBindRuleType type, List<UserDNTypeURL> urlList) {
        this.type=type;
        this.urlList=urlList;
-       userDNAttrType = DirectoryServer.getAttributeType("userdn");
-       if (userDNAttrType == null)
-          userDNAttrType = DirectoryServer.getDefaultAttributeType("userdn");
     }
 
     /**
@@ -267,51 +258,22 @@ public class UserDN implements KeywordBindRule {
         return matched;
     }
 
-    /*
-     * TODO Evaluate making this more efficient.
-     *
-     * The evalDNPattern() method looks like it suffers from the
-     * same problem as the matchesPattern() method in the Target
-     * class.  Creating a dummy entry and attempting to do substring
-     * matching on a DN is a pretty expensive and error-prone approach.
-     * Using a regular expression would likely be much more efficient and
-     *  should be simpler.
-     */
     /**
-     * This method evaluates a DN pattern userdn expression. It creates a
-     * dummy entry and a substring filter and applies the filter to the
-     * entry.
+     * This method evaluates a DN pattern userdn expression.
      * @param evalCtx  The evaluation context to use.
      * @param url The LDAP URL containing the pattern.
      * @return An enumeration evaluation result.
      */
     private EnumEvalResult evalDNPattern(AciEvalContext evalCtx, LDAPURL url) {
-        boolean rc;
-        EnumEvalResult ret=EnumEvalResult.TRUE;
-        String urlDN;
-        SearchFilter filter;
+        PatternDN pattern;
         try {
-            urlDN=url.getBaseDN().toNormalizedString();
-            String pattern="userdn="+urlDN;
-            filter=SearchFilter.createFilterFromString(pattern);
+          pattern = PatternDN.decode(url.getRawBaseDN());
         } catch (DirectoryException ex) {
-            return EnumEvalResult.FALSE;
+          return EnumEvalResult.FALSE;
         }
-        LinkedHashSet<AttributeValue> vals =
-                new LinkedHashSet<AttributeValue>();
-        String userDNStr=evalCtx.getClientDN().toNormalizedString();
-        vals.add(new AttributeValue(userDNAttrType, userDNStr));
-        Attribute attr = new Attribute(userDNAttrType, "userdn", vals);
-        Entry e = new Entry(DN.nullDN(), null, null, null);
-        e.addAttribute(attr,new ArrayList<AttributeValue>());
-        try {
-            rc=filter.matchesEntry(e);
-        } catch (DirectoryException ex) {
-            return EnumEvalResult.FALSE;
-        }
-        if(!rc)
-            ret=EnumEvalResult.FALSE;
-        return ret;
+
+        return pattern.matchesDN(evalCtx.getClientDN()) ?
+             EnumEvalResult.TRUE : EnumEvalResult.FALSE;
     }
 
 
