@@ -4767,6 +4767,44 @@ public class ExtensionsMessages
        CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 452;
 
 
+  /**
+   * The message ID for the message that will be used as the description of the
+   * minimum difference configuration attribute.  It does not take any
+   * arguments.
+   */
+  public static final int
+       MSGID_PWDIFFERENCEVALIDATOR_DESCRIPTION_MIN_DIFFERENCE =
+            CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 453;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to determine the minimum password difference.  This takes a
+   * single argument, which is a string representation of the exception that was
+   * caught.
+   */
+  public static final int
+       MSGID_PWDIFFERENCEVALIDATOR_CANNOT_DETERMINE_MIN_DIFFERENCE =
+            CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 454;
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * minimum password length has been updated.  This takes a single argument,
+   * which is the new minimum length.
+   */
+  public static final int MSGID_PWDIFFERENCEVALIDATOR_UPDATED_MIN_DIFFERENCE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 455;
+
+
+  /**
+   * The message ID for the message that will be used if a provided password is
+   * too short.  This takes a single argument, which is the minimum required
+   * password length.
+   */
+  public static final int MSGID_PWDIFFERENCEVALIDATOR_TOO_SMALL =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 456;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -6599,6 +6637,21 @@ public class ExtensionsMessages
                     "The minimum password length has been updated to %d.");
     registerMessage(MSGID_PWLENGTHVALIDATOR_UPDATED_MAX_LENGTH,
                     "The maximum password length has been updated to %d.");
+    registerMessage(MSGID_PWDIFFERENCEVALIDATOR_DESCRIPTION_MIN_DIFFERENCE,
+                    "Specifies the minimum difference that a " +
+                    "password will be allowed to have.  A value of zero " +
+                    "indicates that there is no minimum difference.  Changes " +
+                    "to this configuration attribute will take effect " +
+                    "immediately.");
+    registerMessage(MSGID_PWDIFFERENCEVALIDATOR_CANNOT_DETERMINE_MIN_DIFFERENCE,
+                    "An error occurred while attempting to determine the " +
+                    "minimum allowed password difference from the " +
+                    ATTR_PASSWORD_MIN_DIFFERENCE + " attribute:  %s.");
+    registerMessage(MSGID_PWDIFFERENCEVALIDATOR_TOO_SMALL,
+                    "The provided password differs less than the minimum " +
+                    "required difference of %d characters.");
+    registerMessage(MSGID_PWDIFFERENCEVALIDATOR_UPDATED_MIN_DIFFERENCE,
+                    "The minimum password difference has been updated to %d.");
 
 
     registerMessage(MSGID_RANDOMPWGEN_DESCRIPTION_CHARSET,
