@@ -30,57 +30,38 @@ package org.opends.server.authorization.dseecompat;
 import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.regex.Pattern;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPURL;
-import org.opends.server.types.SearchFilter;
 
 /**
  * A class representing an ACI target keyword.
  */
 public class Target
 {
-    /*
+    /**
      * Enumeration representing the target operator.
      */
     private EnumTargetOperator operator = EnumTargetOperator.EQUALITY;
 
-    /*
-     * The target URL.
-     */
-    private LDAPURL targetURL = null;
-
-    /*
-     * The DN of the above URL.
-     */
-    private DN urlDN=null;
-
-    /*
-     * True of a wild-card pattern was seen.
+    /**
+     * True if the URL contained a DN wild-card pattern.
      */
     private boolean isPattern=false;
 
-    /*
-     * Filter used to apply to an dummy entry when a wild-card pattern is
-     * used.
+    /**
+     * The target DN from the URL or null if it was a wild-card pattern.
      */
-    private SearchFilter filter=null;
+    private DN urlDN=null;
+
+    /**
+     * The pattern matcher for a wild-card pattern or null if the URL
+     * contained an ordinary DN.
+     */
+    private PatternDN patternDN =null;
 
     /*
-     * Attribute type that is used to create the pattern attribute.
-     *  See matchesPattern method.
-     */
-    private AttributeType targetType;
-
-      /*
      * TODO Save aciDN parameter and use it in matchesPattern re-write.
      *
      * Should the aciDN argument provided to the constructor be stored so that
@@ -88,20 +69,6 @@ public class Target
      * considered a potential match if it is at or below the entry containing
      * the ACI.
      *
-     * TODO Evaluate re-writing pattern (substring) determination code. The
-     * current code is similar to current DS6 implementation.
-     *
-     * I'm confused by the part of the constructor that generates a search
-     * filter. First, there is no substring matching rule defined for the
-     * DN syntax in the official standard, so technically trying to perform
-     * substring matching against DNs is illegal.  Although we do try to use
-     * the caseIgnoreSubstringsMatch rule, it is extremely unreliable for DNs
-     * because it's just not possible to do substring matching correctly in all
-     * cases for them.  Also, the logic in place there will only generate a
-     * filter if the DN contains a wildcard, and if it starts with a wildcard
-     * (which is handled by the targetDN.startsWith("*") clause), then you'll
-     * end up with something like "(target=**dc=example,dc=com)", which isn't
-     *  legal.
      */
     /**
      * This constructor parses the target string.
@@ -119,19 +86,12 @@ public class Target
               String message = getMessage(msgID, target);
               throw new AciException(msgID, message);
           }
-          targetURL =  LDAPURL.decode(target, false);
-          urlDN=targetURL.getBaseDN();
-          String targetDN=urlDN.toNormalizedString();
-          if((targetDN.startsWith("*")) ||
-             (targetDN.indexOf("*") != -1)) {
+          LDAPURL targetURL =  LDAPURL.decode(target, false);
+          if(targetURL.getRawBaseDN().indexOf("*") != -1) {
               this.isPattern=true;
-              String pattern="target=*"+targetDN;
-              filter=SearchFilter.createFilterFromString(pattern);
-              targetType = DirectoryServer.getAttributeType("target");
-              if (targetType == null)
-                  targetType =
-                          DirectoryServer.getDefaultAttributeType("target");
+              patternDN = PatternDN.decode(targetURL.getRawBaseDN());
           } else {
+              urlDN=targetURL.getBaseDN();
               if(!urlDN.isDescendantOf(aciDN)) {
                   int msgID = MSGID_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF;
                   String message = getMessage(msgID,
@@ -172,7 +132,7 @@ public class Target
 
     /**
      * Returns the URL DN of the expression.
-     * @return A DN of the URL.
+     * @return A DN of the URL or null if the URL contained a DN pattern.
      */
     public DN getDN() {
         return urlDN;
@@ -180,44 +140,18 @@ public class Target
 
     /**
      * Returns boolean if a pattern was seen during parsing.
-     * @return  True if the DN is a wild-card.
+     * @return  True if the URL contained a DN pattern.
      */
     public boolean isPattern() {
         return isPattern;
     }
 
-    /*
-     * TODO Evaluate re-writing this method. Evaluate if we want to dis-allow
-     * wild-card matching in the suffix part of the dn.
-     *
-     * The matchesPattern() method really needs to be rewritten.  It's using a
-     * very inefficient and very error-prone method to make the determination.
-     * If you're really going to attempt pattern matching on a DN, then I'd
-     * suggest trying a regular expression against the normalized DN rather
-     * than a filter.
-     */
     /**
-     * This method tries to match a pattern against a DN. It builds an entry
-     * with a target attribute containing the pattern and then matches against
-     * it.
+     * This method tries to match a pattern against a DN.
      * @param dn  The DN to try an match.
      * @return True if the pattern matches.
      */
     public boolean matchesPattern(DN dn) {
-        boolean ret;
-        String targetDN=dn.toNormalizedString();
-        LinkedHashSet<AttributeValue> values =
-            new LinkedHashSet<AttributeValue>();
-        values.add(new AttributeValue(targetType, targetDN));
-        Attribute attr = new Attribute(targetType, "target", values);
-        Entry e = new Entry(DN.nullDN(), null, null, null);
-        e.addAttribute(attr,new ArrayList<AttributeValue>());
-        try {
-            ret=filter.matchesEntry(e);
-        } catch (DirectoryException ex) {
-            //TODO information message?
-            return false;
-        }
-        return  ret;
+        return patternDN.matchesDN(dn);
     }
 }
