@@ -1091,6 +1091,18 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.321
   NAME 'ds-cfg-minimum-password-difference' 
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE 
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.322
+  NAME 'ds-cfg-minimum-unique-characters' 
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE 
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.323
+  NAME 'ds-cfg-maximum-consecutive-length' 
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE 
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.324
+  NAME 'ds-cfg-case-sensitive-validation' 
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE 
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1510,4 +1522,14 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.88
   NAME 'ds-cfg-similarity-based-password-validator'
   SUP ds-cfg-password-validator STRUCTURAL
   MUST ds-cfg-minimum-password-difference X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.89
+  NAME 'ds-cfg-unique-characters-password-validator'
+  SUP ds-cfg-password-validator STRUCTURAL
+  MUST ( ds-cfg-minimum-unique-characters $ ds-cfg-case-sensitive-validation )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.90
+  NAME 'ds-cfg-repeated-characters-password-validator'
+  SUP ds-cfg-password-validator STRUCTURAL
+  MUST ( ds-cfg-maximum-consecutive-length $ ds-cfg-case-sensitive-validation )
+  X-ORIGIN 'OpenDS Directory Server' )
 

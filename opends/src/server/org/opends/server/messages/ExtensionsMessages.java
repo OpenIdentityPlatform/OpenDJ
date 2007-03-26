@@ -4807,6 +4807,25 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if the same character
+   * appears too many times in consecutive order in a given password.  This
+   * takes a single argument, which is the maximum number of times a character
+   * may appear in consecutive order.
+   */
+  public static final int MSGID_REPEATEDCHARS_VALIDATOR_TOO_MANY_CONSECUTIVE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 457;
+
+
+  /**
+   * The message ID for the message that will be used if a given password does
+   * not have enough unique characters.  This takes a single argument, which is
+   * the minimum number of unique characters that a password may contain.
+   */
+  public static final int MSGID_UNIQUECHARS_VALIDATOR_NOT_ENOUGH_UNIQUE_CHARS =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 458;
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6930,6 +6949,19 @@ public class ExtensionsMessages
     registerMessage(MSGID_DYNAMICGROUP_CANNOT_RETURN_ENTRY,
                     "The server encountered a timeout while attempting to " +
                     "add user %s to the member list for dynamic group %s.");
+
+
+    registerMessage(MSGID_REPEATEDCHARS_VALIDATOR_TOO_MANY_CONSECUTIVE,
+                    "The provided password contained too many instances " +
+                    "of the same character appearing consecutively.  The " +
+                    "maximum number of times the same character may appear " +
+                    "consecutively in a password is %d.");
+
+
+    registerMessage(MSGID_UNIQUECHARS_VALIDATOR_NOT_ENOUGH_UNIQUE_CHARS,
+                    "The provided password does not contain enough unique " +
+                    "characters.  The minimum number of unique characters " +
+                    "that may appear in a user password is %d.");
   }
 }
 
