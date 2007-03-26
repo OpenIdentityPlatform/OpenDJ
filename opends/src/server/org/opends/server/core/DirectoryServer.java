@@ -8814,14 +8814,21 @@ public class DirectoryServer
       isServerRunning = true;
     }
 
+    boolean configuredAsService = isRunningAsWindowsService();
+
     if (isServerRunning)
     {
-      returnValue = SERVER_ALREADY_STARTED;
+      if (configuredAsService && !windowsNetStartPresent)
+      {
+        returnValue = START_AS_WINDOWS_SERVICE;
+      }
+      else
+      {
+        returnValue = SERVER_ALREADY_STARTED;
+      }
     }
     else
     {
-      boolean configuredAsService = isRunningAsWindowsService();
-
       if (configuredAsService)
       {
         if (noDetachPresent)
