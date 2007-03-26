@@ -27,9 +27,9 @@
 
 package org.opends.quicksetup.uninstaller;
 
-import java.io.BufferedReader;
+
 import java.io.ByteArrayOutputStream;
-import java.io.FileReader;
+
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -288,34 +288,7 @@ class UninstallCli
     return response;
   }
 
-  /**
-   * Interactively prompts (on standard output) the user to provide a string
-   * value.  Any non-empty string will be allowed (the empty string will
-   * indicate that the default should be used).
-   *
-   * @param  prompt        The prompt to present to the user.
-   * @param  defaultValue  The default value returned if the user clicks enter.
-   *
-   * @return  The string value read from the user.
-   */
-  private String promptForString(String prompt, String defaultValue)
-  {
-    System.out.println();
 
-    String response = null;
-    String msg = getMsg("cli-uninstall-string-prompt",
-        new String[] {prompt, defaultValue});
-
-    System.out.print(msg);
-    System.out.flush();
-
-    response = readLine();
-    if (response.equals(""))
-    {
-      response = defaultValue;
-    }
-    return response;
-  }
 
   /**
    * Reads a line of text from standard input.
@@ -577,7 +550,7 @@ class UninstallCli
   {
     boolean cancelled = false;
 
-    if (installStatus.isServerRunning())
+    if (CurrentInstallStatus.isServerRunning())
     {
         if (!silentUninstall)
         {
@@ -588,7 +561,7 @@ class UninstallCli
         if (!cancelled)
         {
             /* During all the confirmations, the server might be stopped. */
-            userData.setStopServer(installStatus.isServerRunning());
+            userData.setStopServer(CurrentInstallStatus.isServerRunning());
         }
     }
     else
@@ -636,9 +609,6 @@ class UninstallCli
   private void validateArguments(UserUninstallData userData,
       String[] args) throws UserUninstallDataException
   {
-    String directoryManagerPwd = null;
-    String directoryManagerPwdFile = null;
-
     ArrayList<String> errors = new ArrayList<String>();
 
     for (int i=0; i<args.length; i++)
@@ -665,77 +635,6 @@ class UninstallCli
       throw new UserUninstallDataException(null, msg);
     }
   }
-
-  /**
-   * Interactively prompts (on standard output) the user to provide a string
-   * value.
-   *
-   * @param  prompt  The prompt to present to the user.
-   *
-   * @return  The string value read from the user.
-   */
-  private String promptForPassword(String prompt)
-  {
-    char[] password = null;
-    while ((password == null) || (password.length == 0))
-    {
-      System.out.println();
-      System.out.print(prompt);
-      System.out.flush();
-
-      password = org.opends.server.util.PasswordReader.readPassword();
-    }
-
-    return new String(password);
-  }
-
-  /**
-   * Returns the password stored in a file.  Returns <CODE>null</CODE> if no
-   * password is found.
-   * @param path the path of the file containing the password.
-   * @return the password stored in a file.  Returns <CODE>null</CODE> if no
-   * password is found.
-   */
-  private String readPwdFromFile(String path)
-  {
-    String pwd = null;
-    BufferedReader reader = null;
-    try
-    {
-      reader = new BufferedReader(new FileReader(path));
-      pwd = reader.readLine();
-    }
-    catch (Exception e)
-    {
-    }
-    finally
-    {
-      try
-      {
-        if (reader != null)
-        {
-          reader.close();
-        }
-      } catch (Exception e) {}
-    }
-    return pwd;
-  }
-
-  /**
-   * Method used to know if we can connect as administrator in a server with a
-   * given password and dn.
-   * @param ldapUrl the ldap URL of the server.
-   * @param dn the dn to be used.
-   * @param pwd the password to be used.
-   * @return <CODE>true</CODE> if we can connect and read the configuration and
-   * <CODE>false</CODE> otherwise.
-   */
-  private boolean canConnectAsAdministrativeUser(String ldapUrl, String dn,
-      String pwd)
-  {
-    return Utils.canConnectAsAdministrativeUser(ldapUrl, dn, pwd);
-  }
-
 
   /**
    *  Ask for confirmation to stop server.

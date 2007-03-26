@@ -138,10 +138,11 @@ public class LockFileManager
 
 
       // Open the file for reading and get the corresponding file channel.
-      FileChannel channel;
+      FileChannel channel = null;
+      RandomAccessFile raf = null;
       try
       {
-        RandomAccessFile raf = new RandomAccessFile(lockFile, "r");
+        raf = new RandomAccessFile(lockFile, "r");
         channel = raf.getChannel();
       }
       catch (Exception e)
@@ -154,6 +155,17 @@ public class LockFileManager
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_OPEN;
         failureReason.append(getMessage(msgID, lockFile,
                                         stackTraceToSingleLineString(e)));
+
+        if (raf != null)
+        {
+          try
+          {
+            raf.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
         return false;
       }
 
@@ -174,6 +186,26 @@ public class LockFileManager
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_LOCK;
         failureReason.append(getMessage(msgID,
                                         stackTraceToSingleLineString(e)));
+        if (channel != null)
+        {
+          try
+          {
+            channel.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+        if (raf != null)
+        {
+          try
+          {
+            raf.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
         return false;
       }
 
@@ -184,6 +216,26 @@ public class LockFileManager
       {
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_NOT_GRANTED;
         failureReason.append(getMessage(msgID, lockFile));
+        if (channel != null)
+        {
+          try
+          {
+            channel.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+        if (raf != null)
+        {
+          try
+          {
+            raf.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
         return false;
       }
       else
@@ -263,10 +315,11 @@ public class LockFileManager
 
 
       // Open the file read+write and get the corresponding file channel.
-      FileChannel channel;
+      FileChannel channel = null;
+      RandomAccessFile raf = null;
       try
       {
-        RandomAccessFile raf = new RandomAccessFile(lockFile, "rw");
+        raf = new RandomAccessFile(lockFile, "rw");
         channel = raf.getChannel();
       }
       catch (Exception e)
@@ -279,6 +332,16 @@ public class LockFileManager
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_OPEN;
         failureReason.append(getMessage(msgID, lockFile,
                                         stackTraceToSingleLineString(e)));
+        if (raf != null)
+        {
+          try
+          {
+            raf.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
         return false;
       }
 
@@ -299,6 +362,27 @@ public class LockFileManager
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_LOCK;
         failureReason.append(getMessage(msgID, lockFile,
                                         stackTraceToSingleLineString(e)));
+        if (channel != null)
+        {
+          try
+          {
+            channel.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+        if (raf != null)
+        {
+          try
+          {
+            raf.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+
         return false;
       }
 
@@ -309,6 +393,26 @@ public class LockFileManager
       {
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_NOT_GRANTED;
         failureReason.append(getMessage(msgID, lockFile));
+        if (channel != null)
+        {
+          try
+          {
+            channel.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+        if (raf != null)
+        {
+          try
+          {
+            raf.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
         return false;
       }
       else
