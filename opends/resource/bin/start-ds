@@ -135,7 +135,7 @@ else
     # run no detach
     #
     echo $$ > "${PID_FILE}"
-    rm -f "${PID_FILE}" "${LOG_FILE}"
+    rm -f "${LOG_FILE}"
     exec "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
       org.opends.server.core.DirectoryServer \
       --configClass org.opends.server.extensions.ConfigFileHandler \
