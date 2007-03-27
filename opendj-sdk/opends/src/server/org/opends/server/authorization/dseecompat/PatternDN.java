@@ -103,6 +103,32 @@ public class PatternDN
   }
 
   /**
+   * Create a new DN pattern matcher to match a suffix.
+   * @param pattern The suffix pattern string.
+   * @throws org.opends.server.types.DirectoryException If the pattern string
+   * is not valid.
+   * @return A new DN pattern matcher.
+   */
+  public static PatternDN decodeSuffix(String pattern) throws DirectoryException
+  {
+    AttributeType fakeType =
+         DirectoryServer.getAttributeType(PATTERN_DN_FAKE_TYPE_NAME);
+    if (fakeType == null)
+    {
+       fakeType =
+            DirectoryServer.getDefaultAttributeType(PATTERN_DN_FAKE_TYPE_NAME);
+    }
+
+    SearchFilter filter;
+    DN patternDN = DN.decode(pattern);
+    String filterStr = PATTERN_DN_FAKE_TYPE_NAME + "=*" +
+         patternDN.toNormalizedString();
+    filter=SearchFilter.createFilterFromString(filterStr);
+
+    return new PatternDN(fakeType, filter);
+  }
+
+  /**
    * Determine whether a given DN matches this pattern.
    * @param dn The DN to be matched.
    * @return true if the DN matches the pattern.

@@ -132,9 +132,44 @@ public class TargetTestCase extends DirectoryServerTestCase
 //              "uid=bjensen,ou=people,dc=example,dc=com",
 //         },
          // </FAIL>
+         {
+              "ou=aci branch,o=ACI Tests,dc=example,dc=com",
+              "(target=\"ldap:///ou=Peo*,ou=aci branch, o=ACI Tests," +
+                   "dc=example,dc=com\")(targetattr=\"*\")" +
+                   "(version 3.0; acl \"add_aci3\"; allow" +
+                   "(search,read) userdn=\"ldap:///all\";)",
+              "uid=scarter,ou=People,ou=aci branch,o=ACI Tests," +
+                   "dc=example,dc=com",
+         },
+         {
+              "ou=aci branch,o=ACI Tests,dc=example,dc=com",
+              "(target=\"ldap:///ou=*eople,ou=aci branch,o=ACI Tests," +
+                   "dc=example,dc=com\")(targetattr=\"*\")" +
+                   "(version 3.0; acl \"add_aci3\"; allow" +
+                   "(search,read) userdn=\"ldap:///all\";)",
+              "uid=scarter,ou=People,ou=aci branch,o=ACI Tests," +
+                   "dc=example,dc=com",
+         },
+         {
+              "ou=aci branch,o=ACI Tests,dc=example,dc=com",
+              "(target=\"ldap:///ou=Pe*le,ou=aci branch,o=ACI Tests," +
+                   "dc=example,dc=com\")(targetattr=\"*\")" +
+                   "(version 3.0; acl \"add_aci3\"; allow" +
+                   "(search,read) userdn=\"ldap:///all\";)",
+              "uid=scarter,ou=People,ou=aci branch,o=ACI Tests," +
+                   "dc=example,dc=com",
+         },
+         {
+              "ou=aci branch,o=ACI Tests,dc=example,dc=com",
+              "(target=\"ldap:///ou=Pe*l*,ou=aci branch,o=ACI Tests," +
+                   "dc=example,dc=com\")(targetattr=\"*\")" +
+                   "(version 3.0; acl \"add_aci3\"; allow" +
+                   "(search,read) userdn=\"ldap:///all\";)",
+              "uid=scarter,ou=People,ou=aci branch,o=ACI Tests," +
+                   "dc=example,dc=com",
+         },
     };
   }
-
 
   @DataProvider
   public Object[][] nonApplicableTargets()

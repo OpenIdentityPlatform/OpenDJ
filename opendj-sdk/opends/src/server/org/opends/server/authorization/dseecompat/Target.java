@@ -89,7 +89,7 @@ public class Target
           LDAPURL targetURL =  LDAPURL.decode(target, false);
           if(targetURL.getRawBaseDN().indexOf("*") != -1) {
               this.isPattern=true;
-              patternDN = PatternDN.decode(targetURL.getRawBaseDN());
+              patternDN = PatternDN.decodeSuffix(targetURL.getRawBaseDN());
           } else {
               urlDN=targetURL.getBaseDN();
               if(!urlDN.isDescendantOf(aciDN)) {
