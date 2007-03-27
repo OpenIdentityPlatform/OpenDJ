@@ -577,31 +577,42 @@ public final class LDAPConnectionHandler extends
           ErrorLogSeverity.SEVERE_WARNING, message, msgID);
     }
 
-    // Validate the key manager provider DN.
-    DN keyManagerProviderDN = config.getKeyManagerProviderDN();
-    if (keyManagerProviderDN != null) {
-      KeyManagerProvider provider = DirectoryServer
-          .getKeyManagerProvider(keyManagerProviderDN);
-      if (provider == null) {
-        int msgID = MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN;
-        String message = getMessage(msgID, String
-            .valueOf(config.dn()), String
-            .valueOf(keyManagerProviderDN));
+    if (config.isAllowStartTLS() || config.isUseSSL())
+    {
+      // Validate the key manager provider DN.
+      DN keyManagerProviderDN = config.getKeyManagerProviderDN();
+      if (keyManagerProviderDN == null) {
+        int msgID = MSGID_LDAP_CONNHANDLER_NO_KEYMANAGER_DN;
+        String message = getMessage(msgID, String.valueOf(config.dn()));
         throw new ConfigException(msgID, message);
+      } else {
+        KeyManagerProvider provider = DirectoryServer
+            .getKeyManagerProvider(keyManagerProviderDN);
+        if (provider == null) {
+          int msgID = MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN;
+          String message = getMessage(msgID, String
+              .valueOf(config.dn()), String
+              .valueOf(keyManagerProviderDN));
+          throw new ConfigException(msgID, message);
+        }
       }
-    }
 
-    // Validate the trust manager provider DN.
-    DN trustManagerProviderDN = config.getTrustManagerProviderDN();
-    if (trustManagerProviderDN != null) {
-      TrustManagerProvider provider = DirectoryServer
-          .getTrustManagerProvider(trustManagerProviderDN);
-      if (provider == null) {
-        int msgID = MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN;
-        String message = getMessage(msgID, String
-            .valueOf(config.dn()), String
-            .valueOf(trustManagerProviderDN));
+      // Validate the trust manager provider DN.
+      DN trustManagerProviderDN = config.getTrustManagerProviderDN();
+      if (trustManagerProviderDN == null) {
+        int msgID = MSGID_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN;
+        String message = getMessage(msgID, String.valueOf(config.dn()));
         throw new ConfigException(msgID, message);
+      } else {
+        TrustManagerProvider provider = DirectoryServer
+            .getTrustManagerProvider(trustManagerProviderDN);
+        if (provider == null) {
+          int msgID = MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN;
+          String message = getMessage(msgID, String
+              .valueOf(config.dn()), String
+              .valueOf(trustManagerProviderDN));
+          throw new ConfigException(msgID, message);
+        }
       }
     }
 
@@ -739,31 +750,44 @@ public final class LDAPConnectionHandler extends
       isAcceptable = false;
     }
 
-    // Validate the key manager provider DN.
-    DN keyManagerProviderDN = config.getKeyManagerProviderDN();
-    if (keyManagerProviderDN != null) {
-      KeyManagerProvider provider = DirectoryServer
-          .getKeyManagerProvider(keyManagerProviderDN);
-      if (provider == null) {
-        int msgID = MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN;
-        unacceptableReasons.add(getMessage(msgID, String
-            .valueOf(config.dn()), String
-            .valueOf(keyManagerProviderDN)));
+    if (config.isAllowStartTLS() || config.isUseSSL())
+    {
+      // Validate the key manager provider DN.
+      DN keyManagerProviderDN = config.getKeyManagerProviderDN();
+      if (keyManagerProviderDN == null) {
+        int msgID = MSGID_LDAP_CONNHANDLER_NO_KEYMANAGER_DN;
+        String message = getMessage(msgID, String.valueOf(config.dn()));
+        unacceptableReasons.add(message);
         isAcceptable = false;
+      } else {
+        KeyManagerProvider provider = DirectoryServer
+            .getKeyManagerProvider(keyManagerProviderDN);
+        if (provider == null) {
+          int msgID = MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN;
+          unacceptableReasons.add(getMessage(msgID, String
+              .valueOf(config.dn()), String
+              .valueOf(keyManagerProviderDN)));
+          isAcceptable = false;
+        }
       }
-    }
 
-    // Validate the trust manager provider DN.
-    DN trustManagerProviderDN = config.getTrustManagerProviderDN();
-    if (trustManagerProviderDN != null) {
-      TrustManagerProvider provider = DirectoryServer
-          .getTrustManagerProvider(trustManagerProviderDN);
-      if (provider == null) {
-        int msgID = MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN;
-        unacceptableReasons.add(getMessage(msgID, String
-            .valueOf(config.dn()), String
-            .valueOf(trustManagerProviderDN)));
+      // Validate the trust manager provider DN.
+      DN trustManagerProviderDN = config.getTrustManagerProviderDN();
+      if (trustManagerProviderDN == null) {
+        int msgID = MSGID_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN;
+        String message = getMessage(msgID, String.valueOf(config.dn()));
+        unacceptableReasons.add(message);
         isAcceptable = false;
+      } else {
+        TrustManagerProvider provider = DirectoryServer
+            .getTrustManagerProvider(trustManagerProviderDN);
+        if (provider == null) {
+          int msgID = MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN;
+          unacceptableReasons.add(getMessage(msgID, String
+              .valueOf(config.dn()), String
+              .valueOf(trustManagerProviderDN)));
+          isAcceptable = false;
+        }
       }
     }
 
