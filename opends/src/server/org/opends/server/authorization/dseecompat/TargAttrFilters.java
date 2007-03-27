@@ -269,8 +269,7 @@ public class TargAttrFilters {
             SearchFilter filter = filterList.get(attrType);
             attrMatched=matchFilterAttributeValue(attrType, value, filter);
             //This flag causes any targattr checks to be bypassed in AciTargets.
-      //      if(attrMatched)
-                matchCtx.setTargAttrFiltersMatch(true);
+            matchCtx.setTargAttrFiltersMatch(true);
             if(op.equals(EnumTargetOperator.NOT_EQUALITY))
                 attrMatched = !attrMatched;
         }
