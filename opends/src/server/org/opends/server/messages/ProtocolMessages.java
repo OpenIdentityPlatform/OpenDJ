@@ -4359,6 +4359,28 @@ public class ProtocolMessages
 
 
   /**
+   * The message ID for the message that will be used if either SSL or StartTLS
+   * support is enabled but no key manager provider is configured for the
+   * connection handler.  This takes a single argument, which is the DN of the
+   * connection handler configuration entry.
+   */
+  public static final int MSGID_LDAP_CONNHANDLER_NO_KEYMANAGER_DN =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 402;
+
+
+
+  /**
+   * The message ID for the message that will be used if either SSL or StartTLS
+   * support is enabled but no trust manager provider is configured for the
+   * connection handler.  This takes a single argument, which is the DN of the
+   * connection handler configuration entry.
+   */
+  public static final int MSGID_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 403;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5523,6 +5545,16 @@ public class ProtocolMessages
                     "operation.  These options may not be used at the same " +
                     "time, so clients will not be allowed to use the " +
                     "StartTLS operation.");
+    registerMessage(MSGID_LDAP_CONNHANDLER_NO_KEYMANAGER_DN,
+                    "The LDAP connection handler defined in configuration " +
+                    "entry %s is configured to use either SSL or StartTLS, " +
+                    "but does not specify which key manager provider should " +
+                    "be used.");
+    registerMessage(MSGID_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN,
+                    "The LDAP connection handler defined in configuration " +
+                    "entry %s is configured to use either SSL or StartTLS, " +
+                    "but does not specify which trust manager provider " +
+                    "should be used.");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_STARTTLS,
                     "An unexpected error occurred while processing the " +
                     ATTR_ALLOW_STARTTLS + " attribute in configuration entry " +
