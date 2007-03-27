@@ -223,10 +223,11 @@ public class TargAttrFilters {
         int mask=ACI_NULL;
         //Set up the wanted mask by evaluating both the target match
         //context's rights and the mask.
-        if(matchCtx.hasRights(ACI_ADD) &&
+        if((matchCtx.hasRights(ACI_WRITE_ADD) || matchCtx.hasRights(ACI_ADD)) &&
                 hasMask(TARGATTRFILTERS_ADD))
             mask=TARGATTRFILTERS_ADD;
-        else if(matchCtx.hasRights(ACI_DELETE) &&
+        else if((matchCtx.hasRights(ACI_WRITE_DELETE) ||
+                 matchCtx.hasRights(ACI_DELETE)) &&
                 hasMask(TARGATTRFILTERS_DELETE))
             mask=TARGATTRFILTERS_DELETE;
         //Check the first list first, it always has to be there. If it doesn't
@@ -268,7 +269,7 @@ public class TargAttrFilters {
             SearchFilter filter = filterList.get(attrType);
             attrMatched=matchFilterAttributeValue(attrType, value, filter);
             //This flag causes any targattr checks to be bypassed in AciTargets.
-            if(attrMatched)
+      //      if(attrMatched)
                 matchCtx.setTargAttrFiltersMatch(true);
             if(op.equals(EnumTargetOperator.NOT_EQUALITY))
                 attrMatched = !attrMatched;
