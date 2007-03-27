@@ -1232,7 +1232,6 @@ modifyProcessing:
         boolean currentPasswordProvided = false;
         boolean isEnabled = true;
         boolean enabledStateChanged = false;
-        boolean wasLocked = false;
         int numPasswords;
         if (currentEntry.hasAttribute(
                 pwPolicyState.getPolicy().getPasswordAttribute()))
@@ -1274,44 +1273,6 @@ modifyProcessing:
 
               break;
             }
-          }
-
-          if (passwordChanged)
-          {
-            // See if the account was locked for any reason.
-            wasLocked = pwPolicyState.lockedDueToIdleInterval() ||
-                        pwPolicyState.lockedDueToMaximumResetAge() ||
-                        pwPolicyState.lockedDueToFailures();
-
-            // Update the password policy state attributes in the user's entry.
-            // If the modification fails, then these changes won't be applied.
-            pwPolicyState.setPasswordChangedTime();
-            pwPolicyState.clearFailureLockout();
-            pwPolicyState.clearGraceLoginTimes();
-            pwPolicyState.clearWarnedTime();
-
-            if (pwPolicyState.getPolicy().forceChangeOnAdd() ||
-                pwPolicyState.getPolicy().forceChangeOnReset())
-            {
-              pwPolicyState.setMustChangePassword(! selfChange);
-            }
-
-            if (pwPolicyState.getPolicy().getRequireChangeByTime() > 0)
-            {
-              pwPolicyState.setRequiredChangeTime();
-            }
-
-            modifications.addAll(pwPolicyState.getModifications());
-          }
-          else if(pwPolicyState.mustChangePassword())
-          {
-            // The user will not be allowed to do anything else before
-            // the password gets changed.
-            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-
-            int msgID = MSGID_MODIFY_MUST_CHANGE_PASSWORD;
-            appendErrorMessage(getMessage(msgID));
-            break modifyProcessing;
           }
         }
 
@@ -2375,6 +2336,45 @@ modifyProcessing:
           break modifyProcessing;
         }
 
+        boolean wasLocked = false;
+        if (passwordChanged)
+        {
+            // See if the account was locked for any reason.
+            wasLocked = pwPolicyState.lockedDueToIdleInterval() ||
+                    pwPolicyState.lockedDueToMaximumResetAge() ||
+                    pwPolicyState.lockedDueToFailures();
+
+            // Update the password policy state attributes in the user's entry.
+            // If the modification fails, then these changes won't be applied.
+            pwPolicyState.setPasswordChangedTime();
+            pwPolicyState.clearFailureLockout();
+            pwPolicyState.clearGraceLoginTimes();
+           pwPolicyState.clearWarnedTime();
+
+            if (pwPolicyState.getPolicy().forceChangeOnAdd() ||
+                    pwPolicyState.getPolicy().forceChangeOnReset())
+            {
+                pwPolicyState.setMustChangePassword(! selfChange);
+            }
+
+            if (pwPolicyState.getPolicy().getRequireChangeByTime() > 0)
+            {
+                pwPolicyState.setRequiredChangeTime();
+            }
+
+            modifications.addAll(pwPolicyState.getModifications());
+        }
+        else if(pwPolicyState.mustChangePassword())
+        {
+            // The user will not be allowed to do anything else before
+            // the password gets changed.
+            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+            int msgID = MSGID_MODIFY_MUST_CHANGE_PASSWORD;
+            appendErrorMessage(getMessage(msgID));
+            break modifyProcessing;
+        }
+
         // Make sure that the new entry is valid per the server schema.
         if (DirectoryServer.checkSchema())
         {
@@ -2389,7 +2389,6 @@ modifyProcessing:
             break modifyProcessing;
           }
         }
-
 
         // Check for and handle a request to cancel this operation.
         if (cancelRequest != null)
