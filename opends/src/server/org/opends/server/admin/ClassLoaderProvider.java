@@ -248,8 +248,8 @@ public final class ClassLoaderProvider {
 
 
   /**
-   * Enable this class loader provider using the default parent class
-   * loader.
+   * Enable this class loader provider using the application's
+   * class loader as the parent class loader
    *
    * @throws InitializationException
    *           If the class loader provider could not initialize
@@ -259,7 +259,7 @@ public final class ClassLoaderProvider {
    */
   public synchronized void enable() throws InitializationException,
       IllegalStateException {
-    enable(null);
+    enable(RootCfgDefn.class.getClassLoader());
   }
 
 
