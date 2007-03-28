@@ -249,7 +249,7 @@ public final class ClassLoaderProvider {
 
   /**
    * Enable this class loader provider using the application's
-   * class loader as the parent class loader
+   * class loader as the parent class loader.
    *
    * @throws InitializationException
    *           If the class loader provider could not initialize
