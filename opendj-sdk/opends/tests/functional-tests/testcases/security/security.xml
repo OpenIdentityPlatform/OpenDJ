@@ -51,12 +51,10 @@
             file="'%s/testcases/security/pkcs12/security_pkcs12.xml' % (TESTS_DIR)"/>
           <call function="'security_pkcs12'" />
           
-  <!-- The startTLS tests are commented out waiting for a resolution to Issue 1294. -->
-  <!--
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/security/startTLS/security_startTLS.xml' % (TESTS_DIR)"/>
           <call function="'security_startTLS'" />
-  -->
+ 
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/security/sasl/security_sasl.xml' % (TESTS_DIR)"/>
           <call function="'security_sasl'" />
