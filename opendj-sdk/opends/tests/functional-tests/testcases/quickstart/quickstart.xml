@@ -74,23 +74,6 @@
                 'result'     : STAXResult }
           </call>
           
-          <message>
-             'Quickstart: Adding ACI that is a workaround for Issue 1433'
-          </message>
-          
-          <call function="'addEntry'">
-            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeAdded'   : '%s/quickstart/add_aci_workaround.ldif' % STAGED_DATA_DIR }
-          </call>
-          
-          <call function="'checkRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
-          
           <!--- Stop DS -->
           <message>
              'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
