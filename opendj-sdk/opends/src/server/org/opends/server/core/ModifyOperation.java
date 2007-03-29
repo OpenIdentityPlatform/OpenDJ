@@ -2361,8 +2361,13 @@ modifyProcessing:
             {
                 pwPolicyState.setRequiredChangeTime();
             }
-
-            modifications.addAll(pwPolicyState.getModifications());
+            //Apply pwd Policy modifications to modified entry.
+            try {
+             modifiedEntry.applyModifications(pwPolicyState.getModifications());
+            } catch (DirectoryException e) {
+                //Should not happen.
+                throw new RuntimeException(e);
+            }
         }
         else if(pwPolicyState.mustChangePassword())
         {
