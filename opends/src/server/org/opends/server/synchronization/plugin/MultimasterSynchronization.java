@@ -485,7 +485,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
    *             Can be null is the request has no associated operation.
    * @return     The Synchronization domain for this DN.
    */
-  public static SynchronizationDomain findDomain(DN dn, Operation op)
+  private static SynchronizationDomain findDomain(DN dn, Operation op)
   {
     /*
      * Don't run the special synchronization code on Operation that are

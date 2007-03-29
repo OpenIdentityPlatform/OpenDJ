@@ -27,8 +27,6 @@
 package org.opends.server.synchronization.plugin;
 
 import static org.opends.server.loggers.Error.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.synchronization.common.LogMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -347,10 +345,6 @@ public class ChangelogBroker implements InternalSearchListener
           {
             if (session != null)
             {
-              logError(ErrorLogCategory.SYNCHRONIZATION,
-                  ErrorLogSeverity.NOTICE,
-                  "Broker : connect closing session" , 1);
-
               session.close();
               session = null;
             }
@@ -504,7 +498,6 @@ public class ChangelogBroker implements InternalSearchListener
       try
       {
         SynchronizationMessage msg = session.receive();
-
         if (msg instanceof WindowMessage)
         {
           WindowMessage windowMsg = (WindowMessage) msg;
@@ -551,11 +544,6 @@ public class ChangelogBroker implements InternalSearchListener
     connected = false;
     try
     {
-      if (debugEnabled())
-      {
-        debugInfo("ChangelogBroker Stop Closing session");
-      }
-
       session.close();
     } catch (IOException e)
     {}
@@ -693,13 +681,5 @@ public class ChangelogBroker implements InternalSearchListener
   public int getNumLostConnections()
   {
     return numLostConnections;
-  }
-
-  private void log(String message)
-  {
-    int    msgID   = MSGID_UNKNOWN_TYPE;
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-           ErrorLogSeverity.SEVERE_ERROR,
-           message, msgID);
   }
 }
