@@ -611,7 +611,7 @@ public class ChangelogTest extends SynchronizationTestCase
           + "ds-cfg-changelog-server: localhost:" + ((i == 0) ? changelogPorts[1] : changelogPorts[0]) + "\n"
           + "ds-cfg-changelog-server-id: " + changelogIds[0] + "\n"
           + "ds-cfg-window-size: 100" + "\n"
-          + "ds-cfg-changelog-db-directory: changelogDb"+i;
+          + "ds-cfg-changelog-db-dirname: changelogDb"+i;
         Entry tmp = TestCaseUtils.entryFromLdifString(changelogLdif);
         ConfigEntry changelogConfig = new ConfigEntry(tmp, null);
         changelogs[i] = new Changelog(changelogConfig);

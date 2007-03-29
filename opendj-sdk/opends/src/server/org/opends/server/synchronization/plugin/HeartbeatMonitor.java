@@ -27,13 +27,11 @@
 
 package org.opends.server.synchronization.plugin;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-
-import java.io.IOException;
-
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.synchronization.protocol.ProtocolSession;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import java.io.IOException;
 
 /**
  * This class implements a thread to monitor heartbeat messages from the
@@ -105,9 +103,6 @@ public class HeartbeatMonitor extends DirectoryThread
         long lastReceiveTime = session.getLastReceiveTime();
         if (now > lastReceiveTime + 2 * heartbeatInterval)
         {
-          debugInfo("Heartbeat monitor is closing the broker session " +
-          "because it could not detect a heartbeat.");
-
           // Heartbeat is well overdue so the server is assumed to be dead.
           if (debugEnabled())
           {

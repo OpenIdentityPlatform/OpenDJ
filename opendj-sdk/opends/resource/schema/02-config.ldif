@@ -1045,10 +1045,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.305
   NAME 'ds-cfg-heartbeat-interval'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.306
-  NAME 'ds-cfg-changelog-db-directory'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.307
   NAME 'ds-privilege-name' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   USAGE directoryOperation X-ORIGIN 'OpenDS Directory Server' )
@@ -1106,22 +1102,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.323
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.324
   NAME 'ds-cfg-case-sensitive-validation' 
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE 
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.332
-  NAME 'ds-task-initialize-domain-dn'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.333
-  NAME 'ds-task-initialize-replica-server-id'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.334
-  NAME 'ds-task-unprocessed-entry-count'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.335
-  NAME 'ds-task-processed-entry-count'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
@@ -1445,8 +1425,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.65 NAME
   'ds-cfg-synchronization-changelog-server-config' SUP top
   STRUCTURAL MUST (ds-cfg-changelog-server-id $ ds-cfg-changelog-port )
   MAY ( ds-cfg-changelog-server $ cn $ ds-cfg-window-size $
-  ds-cfg-changelog-max-queue-size $ds-cfg-changelog-db-directory )
-  X-ORIGIN 'OpenDS Directory Server' )
+  ds-cfg-changelog-max-queue-size ) X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.66 NAME 'ds-backup-directory'
   SUP top STRUCTURAL MUST ( ds-backup-directory-path $ ds-backup-backend-dn )
   X-ORIGIN 'OpenDS Directory Server' )
@@ -1553,14 +1532,4 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.90
   SUP ds-cfg-password-validator STRUCTURAL
   MUST ( ds-cfg-maximum-consecutive-length $ ds-cfg-case-sensitive-validation )
   X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.91
-  NAME 'ds-task-initialize-from-remote-replica' SUP ds-task
-  MUST ( ds-task-initialize-domain-dn $ ds-task-initialize-replica-server-id )
-  MAY ( ds-task-processed-entry-count $ ds-task-unprocessed-entry-count )
-  X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.92
-  NAME 'ds-task-initialize-remote-replica' SUP ds-task
-  MUST ( ds-task-initialize-domain-dn $ ds-task-initialize-replica-server-id )
-  MAY ( ds-task-processed-entry-count $ ds-task-unprocessed-entry-count )
-  X-ORIGIN 'OpenDS Directory Server' )  
 

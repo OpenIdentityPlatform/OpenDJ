@@ -26,17 +26,15 @@
  */
 package org.opends.server.synchronization.protocol;
 
-import static org.opends.server.synchronization.protocol.OperationContext.SYNCHROCONTEXT;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.UUID;
 import java.util.zip.DataFormatException;
+
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -58,8 +56,8 @@ import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
 import org.opends.server.util.TimeThread;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+
+import static org.opends.server.synchronization.protocol.OperationContext.*;
 
 /**
  * Test the contructors, encoders and decoders of the synchronization
@@ -520,104 +518,6 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     WindowMessage newMsg = new WindowMessage(msg.getBytes());
     assertEquals(msg.getNumAck(), newMsg.getNumAck());
   }
-
-  /**
-   * Test that EntryMessage encoding and decoding works
-   * by checking that : msg == new EntryMessageTest(msg.getBytes()).
-   */
-  @Test()
-  public void EntryMessageTest() throws Exception
-  {
-    String taskInitFromS2 = new String(
-        "dn: ds-task-id=" + UUID.randomUUID() +
-        ",cn=Scheduled Tasks,cn=Tasks\n" +
-        "objectclass: top\n" +
-        "objectclass: ds-task\n" +
-        "objectclass: ds-task-initialize\n" +
-        "ds-task-class-name: org.opends.server.tasks.InitializeTask" +
-        "ds-task-initialize-domain-dn: dc=example,dc=com" +
-        "ds-task-initialize-source: 1");
-    short sender = 1;
-    short target = 2;
-    byte[] entry = taskInitFromS2.getBytes();
-    EntryMessage msg = new EntryMessage(sender, target, entry);
-    EntryMessage newMsg = new EntryMessage(msg.getBytes());
-    assertEquals(msg.getsenderID(), newMsg.getsenderID());
-    assertEquals(msg.getDestination(), newMsg.getDestination());
-    assertEquals(msg.getEntryBytes(), newMsg.getEntryBytes());
-  }
-
-  /**
-   * Test that InitializeRequestMessage encoding and decoding works
-   */
-  @Test()
-  public void InitializeRequestMessageTest() throws Exception
-  {
-    short sender = 1;
-    short target = 2;
-    InitializeRequestMessage msg = new InitializeRequestMessage(
-        DN.decode("dc=example"), sender, target);
-    InitializeRequestMessage newMsg = new InitializeRequestMessage(msg.getBytes());
-    assertEquals(msg.getsenderID(), newMsg.getsenderID());
-    assertEquals(msg.getDestination(), newMsg.getDestination());
-    assertTrue(msg.getBaseDn().equals(newMsg.getBaseDn()));
-  }
-
-  /**
-   * Test that InitializeTargetMessage encoding and decoding works
-   */
-  @Test()
-  public void InitializeTargetMessageTest() throws Exception
-  {
-    short senderID = 1;
-    short targetID = 2;
-    short requestorID = 3;
-    long entryCount = 4;
-    DN baseDN = DN.decode("dc=example");
-      
-    InitializeTargetMessage msg = new InitializeTargetMessage(
-        baseDN, senderID, targetID, requestorID, entryCount);
-    InitializeTargetMessage newMsg = new InitializeTargetMessage(msg.getBytes());
-    assertEquals(msg.getsenderID(), newMsg.getsenderID());
-    assertEquals(msg.getDestination(), newMsg.getDestination());
-    assertEquals(msg.getRequestorID(), newMsg.getRequestorID());
-    assertEquals(msg.getEntryCount(), newMsg.getEntryCount());
-    assertTrue(msg.getBaseDN().equals(newMsg.getBaseDN())) ;
-    
-    assertEquals(senderID, newMsg.getsenderID());
-    assertEquals(targetID, newMsg.getDestination());
-    assertEquals(requestorID, newMsg.getRequestorID());
-    assertEquals(entryCount, newMsg.getEntryCount());
-    assertTrue(baseDN.equals(newMsg.getBaseDN())) ;
-
-  }
-
-  /**
-   * Test that DoneMessage encoding and decoding works
-   */
-  @Test()
-  public void DoneMessage() throws Exception
-  {
-    DoneMessage msg = new DoneMessage((short)1, (short)2);
-    DoneMessage newMsg = new DoneMessage(msg.getBytes());
-    assertEquals(msg.getsenderID(), newMsg.getsenderID());
-    assertEquals(msg.getDestination(), newMsg.getDestination());
-  }
-
-  /**
-   * Test that ErrorMessage encoding and decoding works
-   */
-  @Test()
-  public void ErrorMessage() throws Exception
-  {
-    ErrorMessage msg = new ErrorMessage((short)1, (short)2, 12, "details");
-    ErrorMessage newMsg = new ErrorMessage(msg.getBytes());
-    assertEquals(msg.getsenderID(), newMsg.getsenderID());
-    assertEquals(msg.getDestination(), newMsg.getDestination());
-    assertEquals(msg.getMsgID(), newMsg.getMsgID());
-    assertEquals(msg.getDetails(), newMsg.getDetails());
-  }
-
 
   /**
    * Test PendingChange

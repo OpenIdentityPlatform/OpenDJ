@@ -26,7 +26,6 @@
  */
 package org.opends.server.synchronization;
 
-import static org.opends.server.loggers.Error.logError;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -55,8 +54,6 @@ import org.opends.server.synchronization.plugin.PersistentServerState;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.AttributeType;
@@ -161,11 +158,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
         }
       }
       catch (Exception e)
-      { 
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.NOTICE,
-            "SynchronizationTestCase/openChangelogSession" + e.getMessage(), 1);
-      }
+      { }
     }
     return broker;
   }
@@ -228,8 +221,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
         }
       }
       catch (Exception e)
-      { 
-      }
+      { }
     }
     return broker;
   }
@@ -239,10 +231,6 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
    */
   protected void cleanEntries()
   {
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.NOTICE,
-        "SynchronizationTestCase/Cleaning entries" , 1);
-
     DeleteOperation op;
     // Delete entries
     try
@@ -250,10 +238,6 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
       while (true)
       {
         DN dn = entryList.removeLast();
-        logError(ErrorLogCategory.SYNCHRONIZATION,
-            ErrorLogSeverity.NOTICE,
-            "cleaning entry " + dn, 1);
-
         op = new DeleteOperation(connection, InternalClientConnection
             .nextOperationID(), InternalClientConnection.nextMessageID(), null,
             dn);
@@ -280,13 +264,8 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     // WORKAROUND FOR BUG #639 - BEGIN -
     if (mms != null)
     {
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-          ErrorLogSeverity.NOTICE,
-          "SynchronizationTestCase/FinalizeSynchronization Provider" , 1);
-
       DirectoryServer.deregisterSynchronizationProvider(mms);
       mms.finalizeSynchronizationProvider();
-      mms = null;
     }
     // WORKAROUND FOR BUG #639 - END -
 
@@ -324,22 +303,17 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
 
     //
     // Add the changelog server
-    if (changeLogEntry!=null)
-    {
-      DirectoryServer.getConfigHandler().addEntry(changeLogEntry, null);
-      assertNotNull(DirectoryServer.getConfigEntry(changeLogEntry.getDN()),
+    DirectoryServer.getConfigHandler().addEntry(changeLogEntry, null);
+    assertNotNull(DirectoryServer.getConfigEntry(changeLogEntry.getDN()),
         "Unable to add the changeLog server");
-      entryList.add(changeLogEntry.getDN());
-    }
-    
-    if (synchroServerEntry!=null)
-    {
-      // We also have a replicated suffix (synchronization domain)
-      DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
-      assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
-      "Unable to add the synchronized suffix");
-      entryList.add(synchroServerEntry.getDN());
-    }
+    entryList.add(changeLogEntry.getDN());
+
+    //
+    // We also have a replicated suffix (synchronization domain)
+    DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
+    assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
+        "Unable to add the synchronized server");
+    entryList.add(synchroServerEntry.getDN());
   }
 
   /**

@@ -27,8 +27,6 @@
 package org.opends.server.synchronization.changelog;
 
 import static org.opends.server.loggers.Error.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.synchronization.common.LogMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -46,18 +44,6 @@ import java.util.concurrent.Semaphore;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.synchronization.common.ChangeNumber;
-import org.opends.server.synchronization.common.ServerState;
-import org.opends.server.synchronization.protocol.AckMessage;
-import org.opends.server.synchronization.protocol.ChangelogStartMessage;
-import org.opends.server.synchronization.protocol.HeartbeatThread;
-import org.opends.server.synchronization.protocol.ProtocolSession;
-import org.opends.server.synchronization.protocol.RoutableMessage;
-import org.opends.server.synchronization.protocol.ServerStartMessage;
-import org.opends.server.synchronization.protocol.SynchronizationMessage;
-import org.opends.server.synchronization.protocol.UpdateMessage;
-import org.opends.server.synchronization.protocol.WindowMessage;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -65,6 +51,17 @@ import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.synchronization.common.ChangeNumber;
+import org.opends.server.synchronization.common.ServerState;
+import org.opends.server.synchronization.protocol.AckMessage;
+import org.opends.server.synchronization.protocol.ChangelogStartMessage;
+import org.opends.server.synchronization.protocol.ProtocolSession;
+import org.opends.server.synchronization.protocol.ServerStartMessage;
+import org.opends.server.synchronization.protocol.SynchronizationMessage;
+import org.opends.server.synchronization.protocol.UpdateMessage;
+import org.opends.server.synchronization.protocol.WindowMessage;
+import org.opends.server.synchronization.protocol.HeartbeatThread;
 import org.opends.server.util.TimeThread;
 
 /**
@@ -111,7 +108,6 @@ public class ServerHandler extends MonitorProvider
                                        // flow controled and should
                                        // be stopped from sending messsages.
   private int saturationCount = 0;
-  private short changelogId;
 
   /**
    * The time in milliseconds between heartbeats from the synchronization
@@ -159,7 +155,6 @@ public class ServerHandler extends MonitorProvider
   public void start(DN baseDn, short changelogId, String changelogURL,
                     int windowSize, Changelog changelog)
   {
-    this.changelogId = changelogId;
     rcvWindowSizeHalf = windowSize/2;
     maxRcvWindow = windowSize;
     rcvWindow = windowSize;
@@ -1267,41 +1262,5 @@ public class ServerHandler extends MonitorProvider
   public long getHeartbeatInterval()
   {
     return heartbeatInterval;
-  }
-
-  /**
-   * Processes a routable message.
-   *
-   * @param msg The message to be processed.
-   */
-  public void process(RoutableMessage msg)
-  {
-    if (debugEnabled())
-      debugInfo("SH(" + changelogId + ") forwards " + msg + " to " + serverId);
-
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.SEVERE_ERROR,
-        "SH(" + changelogId + ") receives " + msg + " from " + serverId, 1);
-
-    changelogCache.process(msg, this);
-  }
-
-  /**
-   * Send an InitializeRequestMessage to the server connected through this
-   * handler.
-   *
-   * @param msg The message to be processed
-   * @throws IOException when raised by the underlying session
-   */
-  public void send(RoutableMessage msg) throws IOException
-  {
-    if (debugEnabled())
-      debugInfo("SH(" + changelogId + ") forwards " + msg + " to " + serverId);
-
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.SEVERE_ERROR,
-        "SH(" + changelogId + ") forwards " + msg + " to " + serverId, 1);
-
-    session.publish(msg);
   }
 }
