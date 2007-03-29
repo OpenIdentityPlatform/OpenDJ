@@ -120,10 +120,6 @@ public class OfflineInstaller extends Installer
 
     } catch (QuickSetupException ex)
     {
-      if (ex.getCause() != null)
-      {
-        ex.getCause().printStackTrace();
-      }
       status = InstallProgressStep.FINISHED_WITH_ERROR;
       String html = getFormattedError(ex, true);
       notifyListeners(html);
