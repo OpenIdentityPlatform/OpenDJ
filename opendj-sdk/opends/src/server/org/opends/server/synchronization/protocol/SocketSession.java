@@ -112,11 +112,16 @@ public class SocketSession implements ProtocolSession
     /* Read the first 8 bytes containing the packet length */
     int length = 0;
 
+    /* Let's start the stop-watch before waiting on read */
+    /* for the heartbeat check to be operationnal        */
+    lastReceiveTime = System.currentTimeMillis();
+
     while (length<8)
     {
       int read = input.read(rcvLengthBuf, length, 8-length);
       if (read == -1)
       {
+        lastReceiveTime=0;
         throw new IOException("no more data");
       }
       else
@@ -135,8 +140,9 @@ public class SocketSession implements ProtocolSession
       {
         length += input.read(buffer, length, totalLength - length);
       }
-
-      lastReceiveTime = System.currentTimeMillis();
+      /* We do not want the heartbeat to close the session when */
+      /* we are processing a message even a time consuming one. */
+      lastReceiveTime=0;
       return SynchronizationMessage.generateMsg(buffer);
     }
     catch (OutOfMemoryError e)
@@ -159,6 +165,10 @@ public class SocketSession implements ProtocolSession
    */
   public long getLastReceiveTime()
   {
+    if (lastReceiveTime==0)
+    {
+      return System.currentTimeMillis();
+    }
     return lastReceiveTime;
   }
 

@@ -317,13 +317,61 @@ public class LogMessages {
     CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 42;
 
   /**
-   * The message id for thedescription of the attribute used to configure
+   * The message id for the description of the attribute used to configure
    * the purge delay of the Changelog Servers.
    */
   public static final int MSGID_PURGE_DELAY_ATTR =
     CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 43;
 
+  /**
+   * The message id for the error raised when export/import
+   * is rejected due to an export/import already in progress.
+   */
+  public static final int MSGID_SIMULTANEOUS_IMPORT_EXPORT_REJECTED =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 44;
 
+  /**
+   * The message id for the error raised when import
+   * is rejected due to an invalid source of data imported.
+   */
+  public static final int MSGID_INVALID_IMPORT_SOURCE =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 45;
+
+  /**
+   * The message id for the error raised when export
+   * is rejected due to an invalid target to export datas.
+   */
+  public static final int MSGID_INVALID_EXPORT_TARGET =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 46;
+
+  /**
+   * The message id for the error raised when import/export message
+   * cannot be routed to an up-and-running target in the domain.
+   */
+  public static final int MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 47;
+
+  /**
+   * The message ID for the message that will be used when no domain
+   * can be found matching the provided domain base DN.
+   */
+  public static final int  MSGID_NO_MATCHING_DOMAIN =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 48;
+
+  /**
+   * The message ID for the message that will be used when no domain
+   * can be found matching the provided domain base DN.
+   */
+  public static final int  MSGID_MULTIPLE_MATCHING_DOMAIN
+       = CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 49;
+
+
+  /**
+   * The message ID for the message that will be used when the domain
+   * belongs to a provider class that does not allow the export.
+   */
+  public static final int  MSGID_INVALID_PROVIDER =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 50;
 
   /**
    * Register the messages from this class in the core server.
@@ -449,5 +497,20 @@ public class LogMessages {
         " restored because changelog servers would not be able to refresh" +
         " LDAP servers with older versions of the data. A zero value" +
         " can be used to specify an infinite delay (or never purge).");
+    MessageHandler.registerMessage(MSGID_SIMULTANEOUS_IMPORT_EXPORT_REJECTED,
+        "The current request is rejected due to an import or an export" +
+        " already in progress for the same data.");
+    MessageHandler.registerMessage(MSGID_INVALID_IMPORT_SOURCE,
+        "Invalid source for the import.");
+    MessageHandler.registerMessage(MSGID_INVALID_EXPORT_TARGET,
+        "Invalid target for the export.");
+    MessageHandler.registerMessage(MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN,
+        "No reachable peer in the domain.");
+    MessageHandler.registerMessage(MSGID_NO_MATCHING_DOMAIN,
+        "No domain matches the base DN provided.");
+    MessageHandler.registerMessage(MSGID_MULTIPLE_MATCHING_DOMAIN,
+        "Multiple domains match the base DN provided.");
+    MessageHandler.registerMessage(MSGID_INVALID_PROVIDER,
+        "The provider class does not allow the operation requested.");
   }
 }

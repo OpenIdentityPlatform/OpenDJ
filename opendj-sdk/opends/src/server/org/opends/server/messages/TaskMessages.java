@@ -211,7 +211,19 @@ public class TaskMessages
   public static final int MSGID_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER =
        CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 17;
 
+  /**
+   * The message ID for the message that will be used when an invalid domain
+   * base DN is provided as argument to the initialize target task.
+   */
+  public static final int  MSGID_TASK_INITIALIZE_TARGET_INVALID_DN =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 18;
 
+  /**
+   * The message ID for the message that will be used when an invalid domain
+   * base DN is provided as argument to the initialize task.
+   */
+  public static final int  MSGID_TASK_INITIALIZE_INVALID_DN =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 19;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -279,6 +291,11 @@ public class TaskMessages
     registerMessage(MSGID_TASK_LDIFEXPORT_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to initiate an " +
                     "LDIF export.");
+
+    registerMessage(MSGID_TASK_INITIALIZE_TARGET_INVALID_DN,
+                    "Invalid DN provided with the Initialize Target task.");
+    registerMessage(MSGID_TASK_INITIALIZE_INVALID_DN,
+                    "Invalid DN provided with the Initialize task.");
   }
 }
 
