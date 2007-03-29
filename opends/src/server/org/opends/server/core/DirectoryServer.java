@@ -7524,7 +7524,10 @@ public class DirectoryServer
 
 
     // Stop the work queue.
-    directoryServer.workQueue.finalizeWorkQueue(reason);
+    if (directoryServer.workQueue != null)
+    {
+      directoryServer.workQueue.finalizeWorkQueue(reason);
+    }
 
 
     // Notify all the shutdown listeners.
@@ -7553,21 +7556,24 @@ public class DirectoryServer
 
 
     // Deregister all of the JMX MBeans.
-    Set mBeanSet = directoryServer.mBeanServer.queryMBeans(null, null);
-    for (Object o : mBeanSet)
+    if (directoryServer.mBeanServer != null)
     {
-      if (o instanceof DirectoryServerMBean)
+      Set mBeanSet = directoryServer.mBeanServer.queryMBeans(null, null);
+      for (Object o : mBeanSet)
       {
-        try
+        if (o instanceof DirectoryServerMBean)
         {
-          DirectoryServerMBean mBean = (DirectoryServerMBean) o;
-          directoryServer.mBeanServer.unregisterMBean(mBean.getObjectName());
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
+          try
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            DirectoryServerMBean mBean = (DirectoryServerMBean) o;
+            directoryServer.mBeanServer.unregisterMBean(mBean.getObjectName());
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              debugCaught(DebugLogLevel.ERROR, e);
+            }
           }
         }
       }
@@ -7618,7 +7624,10 @@ public class DirectoryServer
 
 
     // Perform any necessary cleanup work for the group manager.
-    directoryServer.groupManager.finalizeGroupManager();
+    if (directoryServer.groupManager != null)
+    {
+      directoryServer.groupManager.finalizeGroupManager();
+    }
 
 
     // Shut down all the other components that may need special handling.
