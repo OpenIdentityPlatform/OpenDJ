@@ -26,7 +26,7 @@
  */
 
 
-package org.opends.quicksetup.installer;
+package org.opends.quicksetup;
 
 /**
  * This class is used to provide a data model for the Data Options panel of the
@@ -42,6 +42,11 @@ public class DataOptions
    */
   public enum Type
   {
+    /**
+     * Do nothing.
+     */
+    NOTHING,
+
     /**
      * Create base entry.
      */
@@ -60,7 +65,7 @@ public class DataOptions
     IMPORT_AUTOMATICALLY_GENERATED_DATA
   }
 
-  private Type type;
+  private Type type = Type.NOTHING;
 
   private String baseDn;
 

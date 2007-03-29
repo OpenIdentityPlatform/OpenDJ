@@ -45,10 +45,8 @@ import javax.swing.text.JTextComponent;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.installer.FieldName;
-import org.opends.quicksetup.installer.InstallProgressDescriptor;
-import org.opends.quicksetup.installer.LabelFieldDescriptor;
-import org.opends.quicksetup.installer.UserInstallData;
-import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
+import org.opends.quicksetup.ProgressDescriptor;
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.URLWorker;
@@ -83,7 +81,7 @@ implements HyperlinkListener
    *
    * @param data the new user data.
    */
-  public void beginDisplay(UserInstallData data)
+  public void beginDisplay(UserData data)
   {
   }
 
@@ -99,16 +97,7 @@ implements HyperlinkListener
    * ProgressPanel overwrites this method and for all the others it stays empty.
    * @param descriptor the descriptor of the Installation progress.
    */
-  public void displayProgress(InstallProgressDescriptor descriptor)
-  {
-  }
-
-  /**
-   * Called when a progress change must be reflected in the panels.  Only
-   * ProgressPanel overwrites this method and for all the others it stays empty.
-   * @param descriptor the descriptor of the Uninstallation progress.
-   */
-  public void displayProgress(UninstallProgressDescriptor descriptor)
+  public void displayProgress(ProgressDescriptor descriptor)
   {
   }
 
@@ -191,9 +180,8 @@ implements HyperlinkListener
    */
   public int getMinimumHeight()
   {
-    int height = (int) getPreferredSize().getHeight();
 
-    return height;
+    return (int) getPreferredSize().getHeight();
   }
 
 

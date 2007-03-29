@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.installer;
+package org.opends.quicksetup;
 
 /**
  * This class is used to describe the current state of the installation.
@@ -42,9 +42,9 @@ package org.opends.quicksetup.installer;
  * messages).
  *
  */
-public class InstallProgressDescriptor
-{
-  private InstallProgressStep step;
+public class ProgressDescriptor {
+
+  private ProgressStep step;
 
   private Integer progressBarRatio;
 
@@ -53,13 +53,13 @@ public class InstallProgressDescriptor
   private String detailsMsg;
 
   /**
-   * Constructor for the InstallProgressDescriptor.
+   * Constructor for the ProgressDescriptor.
    * @param step the current install step.
    * @param progressBarRatio the completed progress ratio (in percentage).
    * @param progressBarMsg the message to be displayed in the progress bar.
    * @param detailsMsg the logs.
    */
-  public InstallProgressDescriptor(InstallProgressStep step,
+  public ProgressDescriptor(ProgressStep step,
       Integer progressBarRatio, String progressBarMsg, String detailsMsg)
   {
     this.step = step;
@@ -101,7 +101,7 @@ public class InstallProgressDescriptor
    * Returns the step of the install on which we are.
    * @return the step of the install on which we are.
    */
-  public InstallProgressStep getProgressStep()
+  public ProgressStep getProgressStep()
   {
     return step;
   }

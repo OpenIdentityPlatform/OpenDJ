@@ -34,11 +34,15 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import org.opends.quicksetup.CurrentInstallStatus;
-import org.opends.quicksetup.event.UninstallProgressUpdateEvent;
-import org.opends.quicksetup.event.UninstallProgressUpdateListener;
+import org.opends.quicksetup.UserDataException;
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.event.ProgressUpdateListener;
+import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 
 /**
  * The class used to provide some CLI interface in the uninstall.
@@ -106,27 +110,30 @@ class UninstallCli
     try
     {
       CurrentInstallStatus installStatus = new CurrentInstallStatus();
-      UserUninstallData userData = getUserUninstallData(args, installStatus);
+      UninstallUserData userData = getUserData(args, installStatus);
       if (userData != null)
       {
-        Uninstaller uninstaller = new Uninstaller(userData,
-            new PlainTextProgressMessageFormatter());
+        ProgressMessageFormatter formatter =
+                new PlainTextProgressMessageFormatter();
+        Uninstaller uninstaller = new Uninstaller();
+        uninstaller.setUserData(userData);
+        uninstaller.setProgressMessageFormatter(formatter);
         uninstaller.addProgressUpdateListener(
-            new UninstallProgressUpdateListener()
+            new ProgressUpdateListener()
             {
               /**
-               * UninstallProgressUpdateListener implementation.
-               * @param ev the UninstallProgressUpdateEvent we receive.
+               * ProgressUpdateListener implementation.
+               * @param ev the ProgressUpdateEvent we receive.
                *
                */
-              public void progressUpdate(UninstallProgressUpdateEvent ev)
+              public void progressUpdate(ProgressUpdateEvent ev)
               {
                 System.out.print(
                     org.opends.server.util.StaticUtils.wrapText(ev.getNewLogs(),
                         Utils.getCommandLineMaxLineWidth()));
               }
             });
-        uninstaller.start();
+        new Thread(uninstaller).start();
         while (!uninstaller.isFinished())
         {
           try
@@ -138,7 +145,7 @@ class UninstallCli
           }
         }
 
-        UninstallException ue = uninstaller.getException();
+        ApplicationException ue = uninstaller.getException();
         if (ue != null)
         {
           switch (ue.getType())
@@ -157,7 +164,7 @@ class UninstallCli
 
             default:
               throw new IllegalStateException(
-                  "Unknown UninstallException type: "+ue.getType());
+                  "Unknown ApplicationException type: "+ue.getType());
           }
         }
         else
@@ -171,7 +178,7 @@ class UninstallCli
         returnValue = CANCELLED;
       }
     }
-    catch (UserUninstallDataException uude)
+    catch (UserDataException uude)
     {
       System.err.println(LINE_SEPARATOR+uude.getLocalizedMessage()+
           LINE_SEPARATOR);
@@ -181,22 +188,22 @@ class UninstallCli
   }
 
   /**
-   * Creates a UserUninstallData based in the arguments provided.  It asks
+   * Creates a UserData based in the arguments provided.  It asks
    * user for additional information if what is provided in the arguments is not
    * enough.
    * @param args the arguments provided in the command line.
    * @param installStatus the current install status.
-   * @return the UserUninstallData object with what the user wants to uninstall
+   * @return the UserData object with what the user wants to uninstall
    * and null if the user cancels the uninstallation.
-   * @throws UserUninstallDataException if there is an error parsing the data
+   * @throws UserDataException if there is an error parsing the data
    * in the arguments.
    */
-  private UserUninstallData getUserUninstallData(String[] args,
-      CurrentInstallStatus installStatus) throws UserUninstallDataException
+  private UninstallUserData getUserData(String[] args,
+      CurrentInstallStatus installStatus) throws UserDataException
   {
-    UserUninstallData userData = new UserUninstallData();
+    UninstallUserData userData = new UninstallUserData();
 
-    boolean silentUninstall = false;
+    boolean silentUninstall;
     boolean isCancelled = false;
 
     /* Step 1: validate the arguments
@@ -288,8 +295,6 @@ class UninstallCli
     return response;
   }
 
-
-
   /**
    * Reads a line of text from standard input.
    *
@@ -365,18 +370,18 @@ class UninstallCli
 
   /**
    * Commodity method used to ask the user to confirm the deletion of certain
-   * parts of the server.  It updates the provided UserUninstallData object
+   * parts of the server.  It updates the provided UserData object
    * accordingly.  Returns <CODE>true</CODE> if the user cancels and <CODE>
    * false</CODE> otherwise.
-   * @param userData the UserUninstallData object to be updated.
+   * @param userData the UserData object to be updated.
    * @param outsideDbs the set of relative paths of databases located outside
    * the installation path of the server.
    * @param outsideLogs the set of relative paths of log files located outside
    * the installation path of the server.
-   * @returns <CODE>true</CODE> if the user cancels and <CODE>false</CODE>
+   * @return <CODE>true</CODE> if the user cancels and <CODE>false</CODE>
    * otherwise.
    */
-  private boolean askWhatToDelete(UserUninstallData userData,
+  private boolean askWhatToDelete(UninstallUserData userData,
       Set<String> outsideDbs, Set<String> outsideLogs)
   {
     boolean cancelled = false;
@@ -447,15 +452,9 @@ class UninstallCli
             answer = promptConfirm(msg, getMsg("cli-uninstall-yes-long"),
                 validValues);
 
-            if (getMsg("cli-uninstall-yes-long").equalsIgnoreCase(answer) ||
-                getMsg("cli-uninstall-yes-short").equalsIgnoreCase(answer))
-            {
-              answers[i] = true;
-            }
-            else
-            {
-              answers[i] = false;
-            }
+            answers[i] =
+                    getMsg("cli-uninstall-yes-long").equalsIgnoreCase(answer) ||
+                    getMsg("cli-uninstall-yes-short").equalsIgnoreCase(answer);
           }
           else
           {
@@ -533,20 +532,20 @@ class UninstallCli
    * Commodity method used to ask the user (when necessary) if the server must
    * be stopped or not.  If required it also asks the user authentication to
    * be able to shut down the server in Windows.
-   * @param userData the UserUninstallData object to be updated with the
+   * @param userData the UserData object to be updated with the
    * authentication of the user.
    * @param installStatus the CurrentInstallStatus object.
    * @param silentUninstall boolean telling whether this is a silent uninstall
    * or not.
    * @return <CODE>true</CODE> if the user wants to continue with uninstall and
    * <CODE>false</CODE> otherwise.
-   * @throws UserUninstallDataException if there is a problem with the data
+   * @throws UserDataException if there is a problem with the data
    * provided by the user (in the particular case where we are on silent
    * uninstall and some data is missing or not valid).
    */
-  private boolean askConfirmationToStop(UserUninstallData userData,
+  private boolean askConfirmationToStop(UserData userData,
       CurrentInstallStatus installStatus, boolean silentUninstall)
-  throws UserUninstallDataException
+  throws UserDataException
   {
     boolean cancelled = false;
 
@@ -600,14 +599,14 @@ class UninstallCli
 
   /**
    * Commodity method used to validate the arguments provided by the user in
-   * the command line and updating the UserUninstallData object accordingly.
-   * @param userData the UserUninstallData object to be updated.
+   * the command line and updating the UserData object accordingly.
+   * @param userData the UserData object to be updated.
    * @param args the arguments passed in the command line.
-   * @throws UserUninstallDataException if there is an error with the data
+   * @throws UserDataException if there is an error with the data
    * provided by the user.
    */
-  private void validateArguments(UserUninstallData userData,
-      String[] args) throws UserUninstallDataException
+  private void validateArguments(UserData userData,
+                                 String[] args) throws UserDataException
   {
     ArrayList<String> errors = new ArrayList<String>();
 
@@ -632,7 +631,7 @@ class UninstallCli
     {
       String msg = Utils.getStringFromCollection(errors,
           LINE_SEPARATOR+LINE_SEPARATOR);
-      throw new UserUninstallDataException(null, msg);
+      throw new UserDataException(null, msg);
     }
   }
 
@@ -691,6 +690,8 @@ class UninstallCli
   /**
    * The following three methods are just commodity methods to get localized
    * messages.
+   * @param key String key
+   * @return String message
    */
   private static String getMsg(String key)
   {
@@ -698,6 +699,13 @@ class UninstallCli
         Utils.getCommandLineMaxLineWidth());
   }
 
+  /**
+   * The following three methods are just commodity methods to get localized
+   * messages.
+   * @param key String key
+   * @param args String[] args
+   * @return String message
+   */
   private static String getMsg(String key, String[] args)
   {
     return org.opends.server.util.StaticUtils.wrapText(

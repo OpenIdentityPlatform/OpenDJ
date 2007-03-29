@@ -31,11 +31,10 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.opends.quicksetup.installer.InstallException;
-import org.opends.quicksetup.installer.InstallProgressStep;
+import org.opends.quicksetup.QuickSetupException;
+import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.installer.Installer;
-import org.opends.quicksetup.installer.UserInstallData;
-import org.opends.quicksetup.util.ProgressMessageFormatter;
+import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -43,7 +42,7 @@ import org.opends.quicksetup.util.Utils;
  * the Directory Server from a zip file.  The installer assumes that the zip
  * file contents have been unzipped.
  *
- * It just takes a UserInstallData object and based on that installs OpenDS.
+ * It just takes a UserData object and based on that installs OpenDS.
  *
  * When there is an update during the installation it will notify the
  * ProgressUpdateListener objects that have been added to it.  The notification
@@ -62,53 +61,13 @@ public class OfflineInstaller extends Installer
   private HashMap<InstallProgressStep, String> hmSummary =
       new HashMap<InstallProgressStep, String>();
 
-  private InstallProgressStep status;
-
-  /**
-   * OfflineInstaller constructor.
-   * @param userData the UserInstallData with the parameters provided by the
-   * user.
-   * @param formatter the message formatter to be used to generate the text of
-   * the ProgressUpdateEvent.
-   *
-   */
-  public OfflineInstaller(UserInstallData userData,
-      ProgressMessageFormatter formatter)
-  {
-    super(userData, formatter);
-    initMaps();
-    status = InstallProgressStep.NOT_STARTED;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void start()
-  {
-    Thread t = new Thread(new Runnable()
-    {
-      public void run()
-      {
-        doInstall();
-      }
-    });
-    t.start();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected InstallProgressStep getStatus()
-  {
-    return status;
-  }
-
   /**
    * Actually performs the install in this thread.  The thread is blocked.
    *
    */
-  private void doInstall()
+  public void run()
   {
+    initMaps();
     PrintStream origErr = System.err;
     PrintStream origOut = System.out;
     try
@@ -159,7 +118,7 @@ public class OfflineInstaller extends Installer
       status = InstallProgressStep.FINISHED_SUCCESSFULLY;
       notifyListeners(null);
 
-    } catch (InstallException ex)
+    } catch (QuickSetupException ex)
     {
       if (ex.getCause() != null)
       {
@@ -172,8 +131,8 @@ public class OfflineInstaller extends Installer
     catch (Throwable t)
     {
       status = InstallProgressStep.FINISHED_WITH_ERROR;
-      InstallException ex = new InstallException(
-          InstallException.Type.BUG, getThrowableMsg("bug-msg", t), t);
+      QuickSetupException ex = new QuickSetupException(
+          QuickSetupException.Type.BUG, getThrowableMsg("bug-msg", t), t);
       String msg = getFormattedError(ex, true);
       notifyListeners(msg);
     }
@@ -184,7 +143,7 @@ public class OfflineInstaller extends Installer
   /**
    * {@inheritDoc}
    */
-  protected Integer getRatio(InstallProgressStep status)
+  public Integer getRatio(ProgressStep status)
   {
     return hmRatio.get(status);
   }
@@ -192,7 +151,7 @@ public class OfflineInstaller extends Installer
   /**
    * {@inheritDoc}
    */
-  protected String getSummary(InstallProgressStep status)
+  public String getSummary(ProgressStep status)
   {
     return hmSummary.get(status);
   }
@@ -211,8 +170,8 @@ public class OfflineInstaller extends Installer
      * extracting, the value for downloading will be the double of the value for
      * extracting.
      */
-    HashMap<InstallProgressStep, Integer> hmTime =
-        new HashMap<InstallProgressStep, Integer>();
+    HashMap<ProgressStep, Integer> hmTime =
+        new HashMap<ProgressStep, Integer>();
     hmTime.put(InstallProgressStep.CONFIGURING_SERVER, 5);
     hmTime.put(InstallProgressStep.CREATING_BASE_ENTRY, 10);
     hmTime.put(InstallProgressStep.IMPORTING_LDIF, 20);

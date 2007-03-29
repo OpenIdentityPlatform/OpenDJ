@@ -36,9 +36,8 @@ import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Step;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.installer.FieldName;
-import org.opends.quicksetup.installer.InstallProgressDescriptor;
-import org.opends.quicksetup.installer.UserInstallData;
-import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
+import org.opends.quicksetup.ProgressDescriptor;
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -56,7 +55,7 @@ import org.opends.quicksetup.util.Utils;
  */
 class CurrentStepPanel extends QuickSetupPanel
 {
-  private UserInstallData defaultUserData;
+  private UserData defaultUserData;
 
   private CurrentInstallStatus installStatus;
 
@@ -72,7 +71,7 @@ class CurrentStepPanel extends QuickSetupPanel
    * @param installStatus the object describing the current installation status.
    * @param isUninstall boolean telling whether we are uninstalling or not.
    */
-  public CurrentStepPanel(UserInstallData defaultUserData,
+  public CurrentStepPanel(UserData defaultUserData,
       CurrentInstallStatus installStatus, boolean isUninstall)
   {
     this.defaultUserData = defaultUserData;
@@ -194,12 +193,12 @@ class CurrentStepPanel extends QuickSetupPanel
 
   /**
    * Displays the panel corresponding to the provided step.  The panel contents
-   * are updated with the contents of the UserInstallData object.
+   * are updated with the contents of the UserData object.
    * @param step the step that we want to display.
-   * @param userData the UserInstallData object that must be used to populate
+   * @param userData the UserData object that must be used to populate
    * the panels.
    */
-  public void setDisplayedStep(Step step, UserInstallData userData)
+  public void setDisplayedStep(Step step, UserData userData)
   {
     CardLayout cl = (CardLayout) (getLayout());
     getPanel(step).beginDisplay(userData);
@@ -208,24 +207,11 @@ class CurrentStepPanel extends QuickSetupPanel
   }
 
   /**
-   * Forwards the different panels the InstallProgressDescriptor so that they
-   * can update their contents accordingly.
-   * @param descriptor the descriptor of the Installation progress.
-   */
-  public void displayProgress(InstallProgressDescriptor descriptor)
-  {
-    for (Step s : hmPanels.keySet())
-    {
-      getPanel(s).displayProgress(descriptor);
-    }
-  }
-
-  /**
-   * Forwards the different panels the UninstallProgressDescriptor so that they
+   * Forwards the different panels the ProgressDescriptor so that they
    * can update their contents accordingly.
    * @param descriptor the descriptor of the Uninstallation progress.
    */
-  public void displayProgress(UninstallProgressDescriptor descriptor)
+  public void displayProgress(ProgressDescriptor descriptor)
   {
     for (Step s : hmPanels.keySet())
     {

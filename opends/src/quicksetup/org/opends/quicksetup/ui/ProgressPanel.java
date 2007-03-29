@@ -43,11 +43,9 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import org.opends.quicksetup.ButtonName;
+import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.event.ButtonEvent;
-import org.opends.quicksetup.installer.InstallProgressDescriptor;
-import org.opends.quicksetup.installer.InstallProgressStep;
-import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
-import org.opends.quicksetup.uninstaller.UninstallProgressStep;
+import org.opends.quicksetup.ProgressDescriptor;
 
 /**
  * This panel is used to show the progress of the install or the uninstall.
@@ -62,8 +60,6 @@ public class ProgressPanel extends QuickSetupStepPanel
   private JProgressBar progressBar;
 
   private JEditorPane detailsTextArea;
-
-  private JScrollPane scroll;
 
   private String lastText;
 
@@ -123,7 +119,7 @@ public class ProgressPanel extends QuickSetupStepPanel
     gbc.insets = UIFactory.getEmptyInsets();
     panel.add(l, gbc);
 
-    scroll = new JScrollPane();
+    JScrollPane scroll = new JScrollPane();
     detailsTextArea = UIFactory.makeProgressPane(scroll);
     detailsTextArea.setBackground(
         UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
@@ -134,9 +130,8 @@ public class ProgressPanel extends QuickSetupStepPanel
         if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
         {
           String url = e.getURL().toString();
-          String newText = getFormatter().getFormattedAfterUrlClick(url,
+          lastText = getFormatter().getFormattedAfterUrlClick(url,
               lastText);
-          lastText = newText;
           detailsTextArea.setText(lastText);
         }
       }
@@ -174,52 +169,21 @@ public class ProgressPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  public void displayProgress(InstallProgressDescriptor descriptor)
+  public void displayProgress(ProgressDescriptor descriptor)
   {
-    InstallProgressStep status = descriptor.getProgressStep();
+    ProgressStep status = descriptor.getProgressStep();
     String summaryText = UIFactory.applyFontToHtml(descriptor
         .getProgressBarMsg(), UIFactory.PROGRESS_FONT);
-    if (status == InstallProgressStep.FINISHED_SUCCESSFULLY)
-    {
-      summaryText = "<form>"+summaryText+"</form>";
+
+    if (status.isLast() && !status.isError()) {
+      progressBar.setVisible(false);
+      if (!status.isError()) {
+        summaryText = "<form>"+summaryText+"</form>";
+      }
     }
     progressBarLabel.setText(summaryText);
 
-    if ((status == InstallProgressStep.FINISHED_WITH_ERROR)
-        || (status == InstallProgressStep.FINISHED_SUCCESSFULLY))
-    {
-      progressBar.setVisible(false);
-    }
-    int v = descriptor.getProgressBarRatio().intValue();
-    if (v > 0)
-    {
-      progressBar.setIndeterminate(false);
-      progressBar.setValue(v);
-    }
-    lastText = descriptor.getDetailsMsg();
-    detailsTextArea.setText(lastText);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void displayProgress(UninstallProgressDescriptor descriptor)
-  {
-    UninstallProgressStep status = descriptor.getProgressStep();
-    String summaryText = UIFactory.applyFontToHtml(descriptor
-        .getProgressBarMsg(), UIFactory.PROGRESS_FONT);
-    if (status == UninstallProgressStep.FINISHED_SUCCESSFULLY)
-    {
-      summaryText = "<form>"+summaryText+"</form>";
-    }
-    progressBarLabel.setText(summaryText);
-
-    if ((status == UninstallProgressStep.FINISHED_WITH_ERROR)
-        || (status == UninstallProgressStep.FINISHED_SUCCESSFULLY))
-    {
-      progressBar.setVisible(false);
-    }
-    int v = descriptor.getProgressBarRatio().intValue();
+    int v = descriptor.getProgressBarRatio();
     if (v > 0)
     {
       progressBar.setIndeterminate(false);

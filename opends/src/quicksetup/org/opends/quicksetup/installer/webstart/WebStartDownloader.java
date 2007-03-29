@@ -37,7 +37,8 @@ import javax.jnlp.ServiceManager;
 import javax.jnlp.UnavailableServiceException;
 
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.installer.InstallException;
+import org.opends.quicksetup.QuickSetupException;
+import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -48,12 +49,11 @@ import org.opends.quicksetup.util.Utils;
  * (quicksetup.jar) to display the Web Start installer dialog.  Then QuickSetup
  * will call this class and it will download the jar files.  Until this class is
  * not finished the WebStartInstaller will be on the
- * InstallProgressStep.DOWNLOADING step.
+ * ProgressStep.DOWNLOADING step.
  */
 public class WebStartDownloader implements DownloadServiceListener,
-    JnlpProperties
-{
-  private InstallException ex;
+        JnlpProperties {
+  private QuickSetupException ex;
 
   private boolean isFinished;
 
@@ -88,7 +88,7 @@ public class WebStartDownloader implements DownloadServiceListener,
      * Upgrading a jar file.
      */
     UPGRADING
-    };
+    }
 
   /**
    * Starts the downloading of the jar files.  If forceDownload is set to
@@ -113,7 +113,8 @@ public class WebStartDownloader implements DownloadServiceListener,
         {
           // This is a bug
           ex =
-              new InstallException(InstallException.Type.BUG, getExceptionMsg(
+              new QuickSetupException(QuickSetupException.Type.BUG,
+                      getExceptionMsg(
                   "bug-msg", mfe), mfe);
         } catch (IOException ioe)
         {
@@ -130,13 +131,14 @@ public class WebStartDownloader implements DownloadServiceListener,
           String[] arg =
             { buf.toString() };
           ex =
-              new InstallException(InstallException.Type.DOWNLOAD_ERROR,
+              new QuickSetupException(QuickSetupException.Type.DOWNLOAD_ERROR,
                   getExceptionMsg("downloading-error", arg, ioe), ioe);
         } catch (Throwable t)
         {
           // This is a bug
           ex =
-              new InstallException(InstallException.Type.BUG, getExceptionMsg(
+              new QuickSetupException(QuickSetupException.Type.BUG,
+                      getExceptionMsg(
                   "bug-msg", t), t);
         }
       }
@@ -202,9 +204,9 @@ public class WebStartDownloader implements DownloadServiceListener,
    * @throws IOException if a network problem occurs.
    */
   private void startDownload(boolean forceDownload)
-      throws MalformedURLException, IOException
+      throws IOException
   {
-    DownloadService ds = null;
+    DownloadService ds;
     try
     {
       ds =
@@ -308,12 +310,12 @@ public class WebStartDownloader implements DownloadServiceListener,
   }
 
   /**
-   * Returns the InstallException that has occurred during the download or
+   * Returns the QuickSetupException that has occurred during the download or
    * <CODE>null</CODE> if no exception occurred.
-   * @return the InstallException that has occurred during the download or
+   * @return the QuickSetupException that has occurred during the download or
    * <CODE>null</CODE> if no exception occurred.
    */
-  public InstallException getException()
+  public QuickSetupException getException()
   {
     return ex;
   }
@@ -324,7 +326,7 @@ public class WebStartDownloader implements DownloadServiceListener,
   public void downloadFailed(URL url, String version)
   {
     ex =
-        new InstallException(InstallException.Type.DOWNLOAD_ERROR, getMsg(
+        new QuickSetupException(QuickSetupException.Type.DOWNLOAD_ERROR, getMsg(
             "downloading-error", new String[]
               { url.toString() }), null);
   }
@@ -390,10 +392,8 @@ public class WebStartDownloader implements DownloadServiceListener,
    */
   private int getPercentage(int currentJarRatio)
   {
-    int perc =
-        currentPercMin
+    return currentPercMin
             + (currentJarRatio * (currentPercMax - currentPercMin) / 100);
-    return perc;
   }
 
   /**

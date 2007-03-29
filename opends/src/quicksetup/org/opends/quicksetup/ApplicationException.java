@@ -25,23 +25,25 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.installer;
+package org.opends.quicksetup;
 
 /**
  * This exception is used to encapsulate all the error that we might have
  * during the installation.
  *
- * @see Installer, WebStartInstaller, OfflineInstaller.
+ * @see org.opends.quicksetup.installer.Installer
+ * @see org.opends.quicksetup.installer.webstart.WebStartInstaller
+ * @see org.opends.quicksetup.installer.offline.OfflineInstaller
  *
  */
-public class InstallException extends Exception
+public class ApplicationException extends Exception
 {
   private static final long serialVersionUID = -3527273444231560341L;
 
   private Type type;
 
   /**
-   * This enum contains the different type of InstallException that we can
+   * This enum contains the different type of ApplicationException that we can
    * have.
    *
    */
@@ -70,23 +72,31 @@ public class InstallException extends Exception
      * Error starting the Open DS server.
      */
     START_ERROR,
+
+    /**
+     * Error stopping the Open DS server.
+     */
+    STOP_ERROR,
+
     /**
      * Error enabling the Windows service.
      */
     WINDOWS_SERVICE_ERROR,
+
     /**
      * A bug (for instance when we throw an IllegalStateException).
      */
     BUG
-  };
+  }
 
   /**
-   * The constructor of the InstallException.
+   * The constructor of the ApplicationException.
    * @param type the type of error we have.
    * @param localizedMsg a localized string describing the problem.
    * @param rootCause the root cause of this exception.
    */
-  public InstallException(Type type, String localizedMsg, Throwable rootCause)
+  public ApplicationException(Type type, String localizedMsg,
+                              Throwable rootCause)
   {
     super(localizedMsg, rootCause);
     this.type = type;

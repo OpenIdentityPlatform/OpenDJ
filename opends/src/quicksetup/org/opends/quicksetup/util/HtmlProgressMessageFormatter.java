@@ -325,7 +325,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   /**
    * Returns the log HTML representation after the user has clicked on a url.
    *
-   * @see getErrorWithStackHtml
+   * @see HtmlProgressMessageFormatter#getErrorWithStackHtml
    * @param url that has been clicked
    * @param lastText the HTML representation of the log before clicking on the
    * url.
@@ -362,17 +362,18 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   private String getHtml(String text)
   {
     StringBuffer buffer = new StringBuffer();
-    text = text.replaceAll("\r\n", "\n");
-    String[] lines = text.split("[\n\r\u0085\u2028\u2029]");
-    for (int i = 0; i < lines.length; i++)
-    {
-      if (i != 0)
+    if (text != null) {
+      text = text.replaceAll("\r\n", "\n");
+      String[] lines = text.split("[\n\r\u0085\u2028\u2029]");
+      for (int i = 0; i < lines.length; i++)
       {
-        buffer.append("<br>");
+        if (i != 0)
+        {
+          buffer.append("<br>");
+        }
+        buffer.append(escape(lines[i]));
       }
-      buffer.append(escape(lines[i]));
     }
-
     return buffer.toString();
   }
 
@@ -423,7 +424,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * have something of type:
    * key=value
    *
-   * @see ResourceProvider.getMsg(String key)
+   * @see ResourceProvider#getMsg(String)
    * @param key the key in the properties file.
    * @return the value associated to the key in the properties file.
    * properties file.
@@ -525,7 +526,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
 
   /**
    * Gets the url parameters of the href we construct in getErrorWithStackHtml.
-   * @see getErrorWithStackHtml
+   * @see HtmlProgressMessageFormatter#getErrorWithStackHtml
    * @param openDiv the open div tag for the text.
    * @param hideText the text that we display when we do not display the
    * exception.
@@ -551,7 +552,6 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   /**
    * Returns the HTML representation of an exception in the
    * progress log for a given url.
-   * @see getHrefString
    * @param url the url containing all the information required to retrieve
    * the HTML representation.
    * @param inverse indicates whether we want to 'inverse' the representation

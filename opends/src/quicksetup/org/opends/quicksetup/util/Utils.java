@@ -55,8 +55,8 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.installer.webstart.JnlpProperties;
 import org.opends.server.util.SetupUtils;
 
 

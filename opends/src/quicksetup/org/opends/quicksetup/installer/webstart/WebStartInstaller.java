@@ -28,39 +28,36 @@
 package org.opends.quicksetup.installer.webstart;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import org.opends.quicksetup.installer.InstallException;
-import org.opends.quicksetup.installer.InstallProgressStep;
+import org.opends.quicksetup.QuickSetupException;
+import org.opends.quicksetup.ProgressStep;
+import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.installer.Installer;
-import org.opends.quicksetup.installer.UserInstallData;
-import org.opends.quicksetup.util.ProgressMessageFormatter;
+import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.util.ZipExtractor;
 
 /**
  * This is an implementation of the Installer class that is used to install
  * the Directory Server using Web Start.
  *
- * It just takes a UserInstallData object and based on that installs OpenDS.
+ * It just takes a UserData object and based on that installs OpenDS.
  *
  *
  * This object has as parameter a WebStartDownloader object that is downloading
  * some jar files.  Until the WebStartDownloader has not finished downloading
- * the jar files will be on the InstallProgressStep.DOWNLOADING step because
+ * the jar files will be on the ProgressStep.DOWNLOADING step because
  * we require all the jar files to be downloaded in order to install and
  * configure the Directory Server.
  *
  * Based on the Java properties set through the QuickSetup.jnlp file this
  * class will retrieve the zip file containing the install, unzip it and extract
  * it in the path specified by the user and that is contained in the
- * UserInstallData object.
+ * UserData object.
  *
  *
  * When there is an update during the installation it will notify the
@@ -70,65 +67,32 @@ import org.opends.quicksetup.util.Utils;
  * This class is supposed to be fully independent of the graphical layout.
  *
  */
-public class WebStartInstaller extends Installer implements JnlpProperties
-{
+public class WebStartInstaller extends Installer implements JnlpProperties {
   private HashMap<InstallProgressStep, Integer> hmRatio =
       new HashMap<InstallProgressStep, Integer>();
 
   private HashMap<InstallProgressStep, String> hmSummary =
       new HashMap<InstallProgressStep, String>();
 
-  private InstallProgressStep status;
-
   private WebStartDownloader loader;
 
   /**
    * WebStartInstaller constructor.
-   * @param userData the UserInstallData with the parameters provided by the
-   * user.
-   * @param loader the WebStartLoader that is used to download the remote jar
-   * files.
-   * @param formatter the message formatter to be used to generate the text of
-   * the ProgressUpdateEvent
    */
-  public WebStartInstaller(UserInstallData userData,
-      WebStartDownloader loader, ProgressMessageFormatter formatter)
+  public WebStartInstaller()
   {
-    super(userData, formatter);
-    this.loader = loader;
-    initMaps();
+    loader = new WebStartDownloader();
+    loader.start(false);
     status = InstallProgressStep.NOT_STARTED;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void start()
-  {
-    Thread t = new Thread(new Runnable()
-    {
-      public void run()
-      {
-        doInstall();
-      }
-    });
-    t.start();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected InstallProgressStep getStatus()
-  {
-    return status;
   }
 
   /**
    * Actually performs the install in this thread.  The thread is blocked.
    *
    */
-  private void doInstall()
+  public void run()
   {
+    initMaps();
     PrintStream origErr = System.err;
     PrintStream origOut = System.out;
     try
@@ -190,7 +154,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
       status = InstallProgressStep.FINISHED_SUCCESSFULLY;
       notifyListeners(null);
 
-    } catch (InstallException ex)
+    } catch (QuickSetupException ex)
     {
       status = InstallProgressStep.FINISHED_WITH_ERROR;
       String html = getFormattedError(ex, true);
@@ -199,8 +163,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties
     catch (Throwable t)
     {
       status = InstallProgressStep.FINISHED_WITH_ERROR;
-      InstallException ex = new InstallException(
-          InstallException.Type.BUG, getThrowableMsg("bug-msg", t), t);
+      QuickSetupException ex = new QuickSetupException(
+          QuickSetupException.Type.BUG, getThrowableMsg("bug-msg", t), t);
       String msg = getFormattedError(ex, true);
       notifyListeners(msg);
     }
@@ -211,7 +175,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
   /**
    * {@inheritDoc}
    */
-  protected Integer getRatio(InstallProgressStep status)
+  public Integer getRatio(ProgressStep status)
   {
     return hmRatio.get(status);
   }
@@ -219,7 +183,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
   /**
    * {@inheritDoc}
    */
-  protected String getSummary(InstallProgressStep status)
+  public String getSummary(ProgressStep status)
   {
     return hmSummary.get(status);
   }
@@ -259,6 +223,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties
     steps.add(InstallProgressStep.EXTRACTING);
     totalTime += hmTime.get(InstallProgressStep.CONFIGURING_SERVER);
     steps.add(InstallProgressStep.CONFIGURING_SERVER);
+
     switch (getUserData().getDataOptions().getType())
     {
     case CREATE_BASE_ENTRY:
@@ -302,20 +267,20 @@ public class WebStartInstaller extends Installer implements JnlpProperties
   }
 
   private InputStream getZipInputStream(Integer maxRatio)
-      throws InstallException
-  {
+      throws QuickSetupException {
     notifyListeners(getFormattedWithPoints(getMsg("progress-downloading")));
     InputStream in = null;
 
     waitForLoader(maxRatio);
 
+    String zipName = getZipFileName();
     in =
-      Installer.class.getClassLoader().getResourceAsStream(getZipFileName());
+      Installer.class.getClassLoader().getResourceAsStream(zipName);
 
     if (in == null)
     {
-      throw new InstallException(InstallException.Type.DOWNLOAD_ERROR,
-          getMsg("error-zipinputstreamnull"), null);
+      throw new QuickSetupException(QuickSetupException.Type.DOWNLOAD_ERROR,
+          getMsg("error-zipinputstreamnull", new String[] {zipName}), null);
     }
 
 
@@ -334,10 +299,10 @@ public class WebStartInstaller extends Installer implements JnlpProperties
    * process, then maxRatio will be 25.  When the download is complete this
    * method will send a notification to the ProgressUpdateListeners with a ratio
    * of 25 %.
+   * @throws QuickSetupException if something goes wrong
    *
    */
-  private void waitForLoader(Integer maxRatio) throws InstallException
-  {
+  private void waitForLoader(Integer maxRatio) throws QuickSetupException {
     int lastPercentage = -1;
     WebStartDownloader.Status lastStatus =
       WebStartDownloader.Status.DOWNLOADING;
@@ -399,164 +364,17 @@ public class WebStartInstaller extends Installer implements JnlpProperties
    * @param maxRatio the value of the ratio in the installation that corresponds
    * to the moment where we finished extracting the last zip file.  Used to
    * update properly the install progress ratio.
-   * @throws InstallException if an error occurs.
+   * @throws QuickSetupException if an error occurs.
    */
   private void extractZipFiles(InputStream is, int minRatio, int maxRatio)
-      throws InstallException
-  {
-    ZipInputStream zipIn = new ZipInputStream(is);
-    String basePath = getUserData().getServerLocation();
-
-    int nEntries = 1;
-
-    /* This map is updated in the copyZipEntry method with the permissions
-     * of the files that have been copied.  Once all the files have
-     * been copied to the file system we will update the file permissions of
-     * these files.  This is done this way to group the number of calls to
-     * Runtime.exec (which is required to update the file system permissions).
-     */
-    Map<String, ArrayList<String>> permissions =
-        new HashMap<String, ArrayList<String>>();
-
-    String zipFirstPath = null;
-    try
-    {
-      ZipEntry entry = zipIn.getNextEntry();
-      while (entry != null)
-      {
-        int ratioBeforeCompleted = minRatio
-        + ((nEntries - 1) * (maxRatio - minRatio) / getNumberZipEntries());
-        int ratioWhenCompleted =
-          minRatio + (nEntries * (maxRatio - minRatio) / getNumberZipEntries());
-
-        if (nEntries == 1)
-        {
-          zipFirstPath = entry.getName();
-        } else
-        {
-          try
-          {
-            copyZipEntry(entry, basePath, zipFirstPath, zipIn,
-            ratioBeforeCompleted, ratioWhenCompleted, permissions);
-
-          } catch (IOException ioe)
-          {
-            String[] arg =
-              { entry.getName() };
-            String errorMsg = getThrowableMsg("error-copying", arg, ioe);
-
-            throw new InstallException(InstallException.Type.FILE_SYSTEM_ERROR,
-                errorMsg, ioe);
-          }
-        }
-
-        zipIn.closeEntry();
-        entry = zipIn.getNextEntry();
-        nEntries++;
-      }
-
-      if (Utils.isUnix())
-      {
-        // Change the permissions for UNIX systems
-        for (String perm : permissions.keySet())
-        {
-          ArrayList<String> paths = permissions.get(perm);
-          try
-          {
-            int result = Utils.setPermissionsUnix(paths, perm);
-            if (result != 0)
-            {
-              throw new IOException("Could not set permissions on files "
-                  + paths + ".  The chmod error code was: " + result);
-            }
-          } catch (InterruptedException ie)
-          {
-            IOException ioe =
-                new IOException("Could not set permissions on files " + paths
-                    + ".  The chmod call returned an InterruptedException.");
-            ioe.initCause(ie);
-            throw ioe;
-          }
-        }
-      }
-
-    } catch (IOException ioe)
-    {
-      String[] arg =
-        { getZipFileName() };
-      String errorMsg = getThrowableMsg("error-zip-stream", arg, ioe);
-      throw new InstallException(InstallException.Type.FILE_SYSTEM_ERROR,
-          errorMsg, ioe);
-    }
-  }
-
-  /**
-   * Copies a zip entry in the file system.
-   * @param entry the ZipEntry object.
-   * @param basePath the basePath (the installation path)
-   * @param zipFirstPath the first zip file path.  This is required because the
-   * zip file contain a directory of type
-   * 'OpenDS-(major version).(minor version)' that we want to get rid of.  The
-   * first zip file path corresponds to this path.
-   * @param is the ZipInputStream that contains the contents to be copied.
-   * @param ratioBeforeCompleted the progress ratio before the zip file is
-   * copied.
-   * @param ratioWhenCompleted the progress ratio after the zip file is
-   * copied.
-   * @param permissions an ArrayList with permissions whose contents will be
-   * updated.
-   * @throws IOException if an error occurs.
-   */
-  private void copyZipEntry(ZipEntry entry, String basePath,
-      String zipFirstPath, ZipInputStream is, int ratioBeforeCompleted,
-      int ratioWhenCompleted, Map<String, ArrayList<String>> permissions)
-      throws IOException
-  {
-    String entryName = entry.getName();
-    // Get rid of the zipFirstPath
-    if (entryName.startsWith(zipFirstPath))
-    {
-      entryName = entryName.substring(zipFirstPath.length());
-    }
-    String path = Utils.getPath(basePath, entryName);
-
-    notifyListeners(ratioBeforeCompleted, getSummary(getStatus()),
-        getFormattedWithPoints(getMsg("progress-extracting", new String[]
-          { path })));
-    if (Utils.createParentPath(path))
-    {
-      if (entry.isDirectory())
-      {
-        String perm = getDirectoryFileSystemPermissions(path);
-        ArrayList<String> list = permissions.get(perm);
-        if (list == null)
-        {
-          list = new ArrayList<String>();
-        }
-        list.add(path);
-        permissions.put(perm, list);
-
-        if (!Utils.createDirectory(path))
-        {
-          throw new IOException("Could not create path: " + path);
-        }
-      } else
-      {
-        String perm = getFileSystemPermissions(path);
-        ArrayList<String> list = permissions.get(perm);
-        if (list == null)
-        {
-          list = new ArrayList<String>();
-        }
-        list.add(path);
-        Utils.createFile(path, is);
-      }
-    } else
-    {
-      throw new IOException("Could not create parent path: " + path);
-    }
-    notifyListeners(ratioWhenCompleted, getSummary(getStatus()),
-        getFormattedDone() + getLineBreak());
+      throws QuickSetupException {
+    ZipExtractor extractor =
+            new ZipExtractor(is, minRatio, maxRatio,
+            getUserData().getServerLocation(),
+            getNumberZipEntries(),
+            getZipFileName(),
+            this);
+    extractor.extract();
   }
 
   /**
@@ -602,56 +420,6 @@ public class WebStartInstaller extends Installer implements JnlpProperties
   {
     // Passed as a java option in the JNLP file
     return System.getProperty(ZIP_FILE_NAME);
-  }
-
-  /**
-   * Returns the file system permissions for a directory.
-   * @param path the directory for which we want the file permissions.
-   * @return the file system permissions for the directory.
-   */
-  private String getDirectoryFileSystemPermissions(String path)
-  {
-    // TODO We should get this dynamically during build?
-    return "755";
-  }
-
-  /**
-   * Returns the file system permissions for a file.
-   * @param path the file for which we want the file permissions.
-   * @return the file system permissions for the file.
-   */
-  private String getFileSystemPermissions(String path)
-  {
-    // TODO We should get this dynamically during build?
-    String perm;
-
-    File file = new File(path);
-    if (file.getParent().endsWith(
-        File.separator + Utils.getWindowsBinariesRelativePath()) ||
-        file.getParent().endsWith(
-        File.separator + Utils.getUNIXBinariesRelativePath()))
-    {
-      if (path.endsWith(".bat"))
-      {
-        perm = "644";
-      }
-      else
-      {
-        perm = "755";
-      }
-    }
-    else if (path.endsWith(".sh"))
-    {
-      perm = "755";
-    } else if (path.endsWith(Utils.getUnixSetupFileName()) ||
-            path.endsWith(Utils.getUnixUninstallFileName()))
-    {
-      perm = "755";
-    } else
-    {
-      perm = "644";
-    }
-    return perm;
   }
 
   /**
