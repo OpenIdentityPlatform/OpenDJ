@@ -37,7 +37,7 @@ import java.util.*;
 /**
  * This class is in charge of performing the uninstallation of Open DS.
  */
-public class Uninstaller extends Application {
+public class Uninstaller extends Application implements CliApplication {
 
   private ProgressStep status = UninstallProgressStep.NOT_STARTED;
 
@@ -51,11 +51,22 @@ public class Uninstaller extends Application {
 
   private Boolean isWindowsServiceEnabled;
 
+  private UninstallCliHelper cliHelper = new UninstallCliHelper();
+
   /**
    * {@inheritDoc}
    */
   public UserData createUserData() {
     return new UninstallUserData();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public UserData createUserData(String[] args, CurrentInstallStatus status)
+    throws UserDataException
+  {
+    return cliHelper.createUserData(args, status);
   }
 
   /**

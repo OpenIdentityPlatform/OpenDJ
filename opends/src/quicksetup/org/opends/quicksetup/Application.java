@@ -60,13 +60,11 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Creates an application by instantiating the Application class
    * denoted by the System property
    * <code>org.opends.quicksetup.Application.class</code>.
-   * @param formatter ProgressMessageFormatter that will be passed to the
-   *                  constructor of Application
    * @return Application object that was newly instantiated
    * @throws ApplicationException if there was a problem creating
    *         the new Application object
    */
-  static public Application create(ProgressMessageFormatter formatter)
+  static public Application create()
           throws ApplicationException {
     Application app;
     String appClassName =

@@ -117,7 +117,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   {
     ProgressMessageFormatter formatter = new HtmlProgressMessageFormatter();
     try {
-      application = Application.create(formatter);
+      application = Application.create();
       application.setProgressMessageFormatter(formatter);
     } catch (ApplicationException e) {
       LOG.log(Level.INFO, "error", e);
@@ -133,15 +133,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     {
       setCurrentStep(Step.WELCOME);
     }
-  }
-
-  private Application createApplication(ProgressMessageFormatter formatter) {
-    try {
-      application = Application.create(formatter);
-    } catch (ApplicationException e) {
-      LOG.log(Level.INFO, "error", e);
-    }
-    return application;
   }
 
   /**
