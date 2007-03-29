@@ -233,7 +233,8 @@ public class PersistentServerState extends ServerState
     {
       int msgID = MSGID_ERROR_UPDATING_RUV;
       String message = getMessage(msgID, op.getResultCode().getResultCodeName(),
-          op.toString(), op.getErrorMessage(), baseDn.toString());
+          op.toString(), op.getErrorMessage(), baseDn.toString(),
+          Thread.currentThread().getStackTrace());
       logError(ErrorLogCategory.SYNCHRONIZATION, ErrorLogSeverity.SEVERE_ERROR,
           message, msgID);
     }

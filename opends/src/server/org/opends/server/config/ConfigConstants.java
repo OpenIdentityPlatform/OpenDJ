@@ -3665,6 +3665,62 @@ public class ConfigConstants
        NAME_PREFIX_TASK + "import-is-encrypted";
 
 
+  /**
+   * The name of the objectclass that will be used for a Directory Server
+   * initialize task definition.
+   */
+  public static final String OC_INITIALIZE_TASK =
+    NAME_PREFIX_TASK + "initialize-from-remote-replica";
+
+  /**
+   * The name of the attribute in an initialize task definition that specifies
+   * the base dn related to the synchonization domain to initialize.
+   */
+  public static final String ATTR_TASK_INITIALIZE_DOMAIN_DN =
+       NAME_PREFIX_TASK + "initialize-domain-dn";
+
+  /**
+   * The name of the attribute in an initialize target task definition that
+   * specifies the source in terms of source server from which to initialize.
+   */
+  public static final String ATTR_TASK_INITIALIZE_SOURCE =
+       NAME_PREFIX_TASK + "initialize-replica-server-id";
+
+  /**
+   * The name of the objectclass that will be used for a Directory Server
+   * initialize target task definition.
+   */
+  public static final String OC_INITIALIZE_TARGET_TASK =
+    NAME_PREFIX_TASK + "initialize-remote-replica";
+
+  /**
+   * The name of the attribute in an initialize target task definition that
+   * specifies the base dn related to the synchonization domain to initialize.
+   */
+  public static final String ATTR_TASK_INITIALIZE_TARGET_DOMAIN_DN =
+       NAME_PREFIX_TASK + "initialize-domain-dn";
+
+  /**
+   * The name of the attribute in an initialize target task definition that
+   * specifies the scope in terms of servers to initialize.
+   */
+  public static final String ATTR_TASK_INITIALIZE_TARGET_SCOPE =
+       NAME_PREFIX_TASK + "initialize-replica-server-id";
+
+  /**
+   * The name of the attribute in an initialize target task definition that
+   * specifies the scope in terms of servers to initialize.
+   */
+  public static final String ATTR_TASK_INITIALIZE_LEFT =
+       NAME_PREFIX_TASK + "unprocessed-entry-count";
+
+  /**
+   * The name of the attribute in an initialize target task definition that
+   * specifies the scope in terms of servers to initialize.
+   */
+  public static final String ATTR_TASK_INITIALIZE_DONE =
+       NAME_PREFIX_TASK + "processed-entry-count";
+
 
   /**
    * The name of the objectclass that will be used for a Directory Server
