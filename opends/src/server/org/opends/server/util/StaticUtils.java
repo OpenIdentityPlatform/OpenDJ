@@ -34,6 +34,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -1462,21 +1463,8 @@ public final class StaticUtils
       return;
     }
 
-    buffer.append(t);
-
-    for (StackTraceElement e : t.getStackTrace())
+    if (DynamicConstants.DEBUG_BUILD)
     {
-      buffer.append(" / ");
-      buffer.append(e.getFileName());
-      buffer.append(":");
-      buffer.append(e.getLineNumber());
-    }
-
-    while (t.getCause() != null)
-    {
-      t = t.getCause();
-
-      buffer.append("; caused by ");
       buffer.append(t);
 
       for (StackTraceElement e : t.getStackTrace())
@@ -1486,6 +1474,66 @@ public final class StaticUtils
         buffer.append(":");
         buffer.append(e.getLineNumber());
       }
+
+      while (t.getCause() != null)
+      {
+        t = t.getCause();
+
+        buffer.append("; caused by ");
+        buffer.append(t);
+
+        for (StackTraceElement e : t.getStackTrace())
+        {
+          buffer.append(" / ");
+          buffer.append(e.getFileName());
+          buffer.append(":");
+          buffer.append(e.getLineNumber());
+        }
+      }
+    }
+    else
+    {
+      if ((t instanceof InvocationTargetException) && (t.getCause() != null))
+      {
+        t = t.getCause();
+      }
+
+      String message = t.getMessage();
+      if ((message == null) || (message.length() == 0))
+      {
+        String className = t.getClass().getName();
+        try
+        {
+          className = className.substring(className.lastIndexOf('.') + 1);
+        } catch (Exception e) {}
+        buffer.append(className);
+      }
+      else
+      {
+        buffer.append(message);
+      }
+
+      int i=0;
+      buffer.append("(");
+      for (StackTraceElement e : t.getStackTrace())
+      {
+        if (i > 4)
+        {
+          buffer.append(" ...");
+          break;
+        }
+        else if (i > 0)
+        {
+          buffer.append(" ");
+        }
+
+        buffer.append(e.getFileName());
+        buffer.append(":");
+        buffer.append(e.getLineNumber());
+        i++;
+      }
+
+      buffer.append(")");
     }
   }
 
