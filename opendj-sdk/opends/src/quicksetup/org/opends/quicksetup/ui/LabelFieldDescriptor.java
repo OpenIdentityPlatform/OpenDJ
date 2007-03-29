@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.installer;
+package org.opends.quicksetup.ui;
 
 /**
  * This is a commodity class used to couple a label and a text component with
@@ -63,7 +63,7 @@ public class LabelFieldDescriptor
      * Secondary label.
      */
     SECONDARY
-  };
+  }
 
   /**
    * This enum contains the different type of fields that can be associated with
@@ -84,7 +84,7 @@ public class LabelFieldDescriptor
      * Read only field.
      */
     READ_ONLY
-  };
+  }
 
   /**
    * Constructor of this LabelFieldDescriptor.

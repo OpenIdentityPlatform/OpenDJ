@@ -38,19 +38,13 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-import org.opends.quicksetup.ButtonName;
-import org.opends.quicksetup.CurrentInstallStatus;
-import org.opends.quicksetup.Step;
+import org.opends.quicksetup.*;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.installer.FieldName;
-import org.opends.quicksetup.installer.InstallProgressDescriptor;
-import org.opends.quicksetup.installer.InstallProgressStep;
-import org.opends.quicksetup.installer.UserInstallData;
-import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
-import org.opends.quicksetup.uninstaller.UninstallProgressStep;
+import org.opends.quicksetup.ProgressDescriptor;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
@@ -82,7 +76,7 @@ public class QuickSetupDialog
 
   private Step displayedStep;
 
-  private UserInstallData defaultUserData;
+  private UserData defaultUserData;
 
   private CurrentInstallStatus installStatus;
 
@@ -97,7 +91,7 @@ public class QuickSetupDialog
    * the wizard.
    * @param installStatus the current installation status.
    */
-  public QuickSetupDialog(UserInstallData defaultUserData,
+  public QuickSetupDialog(UserData defaultUserData,
       CurrentInstallStatus installStatus)
   {
     this.defaultUserData = defaultUserData;
@@ -210,11 +204,9 @@ public class QuickSetupDialog
     int minHeight = (int) frame.getPreferredSize().getHeight();
 
     ComponentListener[] listeners = frame.getComponentListeners();
-    for (int i=0; i<listeners.length; i++)
-    {
-      if (listeners[i] instanceof MinimumSizeComponentListener)
-      {
-        frame.removeComponentListener(listeners[i]);
+    for (ComponentListener listener : listeners) {
+      if (listener instanceof MinimumSizeComponentListener) {
+        frame.removeComponentListener(listener);
       }
     }
     frame.addComponentListener(new MinimumSizeComponentListener(frame,
@@ -223,12 +215,12 @@ public class QuickSetupDialog
 
   /**
    * Displays the panel corresponding to the provided step.  The panel contents
-   * are updated with the contents of the UserInstallData object.
+   * are updated with the contents of the UserData object.
    * @param step the step that we want to display.
-   * @param userData the UserInstallData object that must be used to populate
+   * @param userData the UserData object that must be used to populate
    * the panels.
    */
-  public void setDisplayedStep(Step step, UserInstallData userData)
+  public void setDisplayedStep(Step step, UserData userData)
   {
     displayedStep = step;
     if (isUninstall())
@@ -321,33 +313,15 @@ public class QuickSetupDialog
   }
 
   /**
-   * Forwards to the displayed panel the InstallProgressDescriptor so that they
+   * Forwards to the displayed panel the ProgressDescriptor so that they
    * can update their contents accordingly.
    * @param descriptor the descriptor of the Installation progress.
    */
-  public void displayProgress(InstallProgressDescriptor descriptor)
+  public void displayProgress(ProgressDescriptor descriptor)
   {
     getCurrentStepPanel().displayProgress(descriptor);
-    InstallProgressStep status = descriptor.getProgressStep();
-    if ((status == InstallProgressStep.FINISHED_SUCCESSFULLY)
-        || (status == InstallProgressStep.FINISHED_WITH_ERROR))
-    {
-      setButtonEnabled(ButtonName.CLOSE, true);
-    }
-  }
-
-  /**
-   * Forwards to the displayed panel the UninstallProgressDescriptor so that
-   * they can update their contents accordingly.
-   * @param descriptor the descriptor of the Uninstallation progress.
-   */
-  public void displayProgress(UninstallProgressDescriptor descriptor)
-  {
-    getCurrentStepPanel().displayProgress(descriptor);
-    UninstallProgressStep status = descriptor.getProgressStep();
-    if ((status == UninstallProgressStep.FINISHED_SUCCESSFULLY)
-        || (status == UninstallProgressStep.FINISHED_WITH_ERROR))
-    {
+    ProgressStep status = descriptor.getProgressStep();
+    if (status.isLast()) {
       setButtonEnabled(ButtonName.CLOSE, true);
     }
   }

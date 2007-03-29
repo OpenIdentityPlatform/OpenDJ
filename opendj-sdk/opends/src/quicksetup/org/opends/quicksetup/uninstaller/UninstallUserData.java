@@ -27,16 +27,16 @@
 
 package org.opends.quicksetup.uninstaller;
 
-import java.util.HashSet;
+import org.opends.quicksetup.UserData;
+
 import java.util.Set;
+import java.util.HashSet;
 
 /**
- * This class is used to provide a data model for the different parameters
- * that the user can provide in the uninstall wizard.
- *
+ * UserData with specific properties for Uninstall.
  */
-public class UserUninstallData
-{
+public class UninstallUserData extends UserData {
+
   private Set<String> externalDbsToRemove = new HashSet<String>();
   private Set<String> externalLogsToRemove = new HashSet<String>();
   private boolean removeDatabases;
@@ -45,8 +45,6 @@ public class UserUninstallData
   private boolean removeBackups;
   private boolean removeLDIFs;
   private boolean removeConfigurationAndSchema;
-
-  private boolean stopServer;
 
   /**
    * Sets the database directories located outside the installation which must
@@ -80,6 +78,7 @@ public class UserUninstallData
     externalLogsToRemove.clear();
     externalLogsToRemove.addAll(logFiles);
   }
+
   /**
    * Returns the list of log files located outside the installation that must
    * be removed.
@@ -109,7 +108,6 @@ public class UserUninstallData
   {
     this.removeLibrariesAndTools = removeLibrariesAndTools;
   }
-
 
   /**
    * Sets whether to remove databases or not.
@@ -208,24 +206,4 @@ public class UserUninstallData
   {
     return removeConfigurationAndSchema;
   }
-
-  /**
-   * Sets whether to stop the server or not.
-   * @param stopServer stop the server or not.
-   */
-  public void setStopServer(boolean stopServer)
-  {
-    this.stopServer = stopServer;
-  }
-
-  /**
-   * Returns whether the user wants to stop the server or not.
-   * @return <CODE>true</CODE> if the user wants to stop the server and <CODE>\
-   * false</CODE> otherwise.
-   */
-  public boolean getStopServer()
-  {
-    return stopServer;
-  }
 }
-

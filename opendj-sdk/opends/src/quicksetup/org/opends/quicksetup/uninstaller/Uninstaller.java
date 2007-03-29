@@ -27,120 +27,51 @@
 
 package org.opends.quicksetup.uninstaller;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import org.opends.quicksetup.CurrentInstallStatus;
-import org.opends.quicksetup.event.UninstallProgressUpdateEvent;
-import org.opends.quicksetup.event.UninstallProgressUpdateListener;
-import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.util.ProgressMessageFormatter;
+import org.opends.quicksetup.*;
 import org.opends.quicksetup.util.Utils;
-
 import org.opends.server.tools.ConfigureWindowsService;
+
+import java.io.*;
+import java.util.*;
 
 /**
  * This class is in charge of performing the uninstallation of Open DS.
- *
  */
-public class Uninstaller
-{
-  private UserUninstallData userData;
-  private ProgressMessageFormatter formatter;
-  private UninstallProgressStep status;
-  private HashMap<UninstallProgressStep, Integer> hmRatio =
-    new HashMap<UninstallProgressStep, Integer>();
+public class Uninstaller extends Application {
 
-  private HashMap<UninstallProgressStep, String> hmSummary =
-    new HashMap<UninstallProgressStep, String>();
+  private ProgressStep status = UninstallProgressStep.NOT_STARTED;
 
-  private HashSet<UninstallProgressUpdateListener> listeners =
-    new HashSet<UninstallProgressUpdateListener>();
+  private HashMap<ProgressStep, Integer> hmRatio =
+    new HashMap<ProgressStep, Integer>();
 
-  private UninstallException ue;
+  private HashMap<ProgressStep, String> hmSummary =
+    new HashMap<ProgressStep, String>();
+
+  private ApplicationException ue;
 
   private Boolean isWindowsServiceEnabled;
 
   /**
-   * Uninstaller constructor.
-   * @param userData the object containing the information provided by the user
-   * in the uninstallation.
-   * @param formatter the message formatter to be used to generate the text of
-   * the UninstallProgressUpdateEvent.
+   * {@inheritDoc}
    */
-  public Uninstaller(UserUninstallData userData,
-      ProgressMessageFormatter formatter)
-  {
-    this.userData = userData;
-    this.formatter = formatter;
-    initMaps();
-    status = UninstallProgressStep.NOT_STARTED;
+  public UserData createUserData() {
+    return new UninstallUserData();
   }
 
   /**
-   * Start the uninstall process.  This method will not block the thread on
-   * which is invoked.
+   * {@inheritDoc}
    */
-  public void start()
-  {
-    Thread t = new Thread(new Runnable()
-    {
-      public void run()
-      {
-        doUninstall();
-      }
-    });
-    t.start();
+  protected String getInstallationPath() {
+    return null;
   }
 
   /**
-   * Returns whether the uninstaller has finished or not.
-   * @return <CODE>true</CODE> if the install is finished or <CODE>false
-   * </CODE> if not.
-   */
-  public boolean isFinished()
-  {
-    return getStatus() == UninstallProgressStep.FINISHED_SUCCESSFULLY
-    || getStatus() == UninstallProgressStep.FINISHED_WITH_ERROR;
-  }
-
-  /**
-   * Adds a UninstallProgressUpdateListener that will be notified of updates in
-   * the uninstall progress.
-   * @param l the UninstallProgressUpdateListener to be added.
-   */
-  public void addProgressUpdateListener(UninstallProgressUpdateListener l)
-  {
-    listeners.add(l);
-  }
-
-  /**
-   * Removes a UninstallProgressUpdateListener.
-   * @param l the UninstallProgressUpdateListener to be removed.
-   */
-  public void removeProgressUpdateListener(UninstallProgressUpdateListener l)
-  {
-    listeners.remove(l);
-  }
-
-  /**
-   * Returns the UninstallException that might occur during installation or
+   * Returns the ApplicationException that might occur during installation or
    * <CODE>null</CODE> if no exception occurred.
-   * @return the UninstallException that might occur during installation or
+   * @return the ApplicationException that might occur during installation or
    * <CODE>null</CODE> if no exception occurred.
    */
-  public UninstallException getException()
+  public ApplicationException getException()
   {
     return ue;
   }
@@ -169,7 +100,7 @@ public class Uninstaller
     String successMsg;
     if (Utils.isCli())
     {
-      if (userData.getRemoveLibrariesAndTools())
+      if (getUninstallUserData().getRemoveLibrariesAndTools())
       {
         String[] arg = new String[1];
         if (Utils.isWindows())
@@ -192,7 +123,7 @@ public class Uninstaller
     }
     else
     {
-      if (userData.getRemoveLibrariesAndTools())
+      if (getUninstallUserData().getRemoveLibrariesAndTools())
       {
         String[] arg = {getLibrariesPath()};
         successMsg = getMsg(
@@ -240,14 +171,14 @@ public class Uninstaller
     totalTime += hmTime.get(UninstallProgressStep.DELETING_INSTALLATION_FILES);
     steps.add(UninstallProgressStep.DELETING_INSTALLATION_FILES);
 
-    if (getUserData().getExternalDbsToRemove().size() > 0)
+    if (getUninstallUserData().getExternalDbsToRemove().size() > 0)
     {
       totalTime += hmTime.get(
           UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES);
       steps.add(UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES);
     }
 
-    if (getUserData().getExternalLogsToRemove().size() > 0)
+    if (getUninstallUserData().getExternalLogsToRemove().size() > 0)
     {
       totalTime += hmTime.get(
           UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES);
@@ -270,241 +201,12 @@ public class Uninstaller
   }
 
   /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   *
-   * @see ResourceProvider.getMsg(String key)
-   * @param key the key in the properties file.
-   * @return the value associated to the key in the properties file.
-   * properties file.
-   */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   *
-   * For instance if we pass as key "mykey" and as arguments {"value1"} and
-   * in the properties file we have:
-   * mykey=value with argument {0}.
-   *
-   * This method will return "value with argument value1".
-   * @see ResourceProvider.getMsg(String key, String[] args)
-   * @param key the key in the properties file.
-   * @param args the arguments to be passed to generate the resulting value.
-   * @return the value associated to the key in the properties file.
-   */
-  private String getMsg(String key, String[] args)
-  {
-    return getI18n().getMsg(key, args);
-  }
-
-  /**
-   * Returns a ResourceProvider instance.
-   * @return a ResourceProvider instance.
-   */
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
-
-  /**
-   * Returns a localized message for a given properties key and throwable.
-   * @param key the key of the message in the properties file.
-   * @param t the throwable for which we want to get a message.
-   * @return a localized message for a given properties key and throwable.
-   */
-  private String getThrowableMsg(String key, Throwable t)
-  {
-    return getThrowableMsg(key, null, t);
-  }
-
-  /**
-   * Returns a localized message for a given properties key and throwable.
-   * @param key the key of the message in the properties file.
-   * @param args the arguments of the message in the properties file.
-   * @param t the throwable for which we want to get a message.
-   *
-   * @return a localized message for a given properties key and throwable.
-   */
-  private String getThrowableMsg(String key, String[] args, Throwable t)
-  {
-    return Utils.getThrowableMsg(getI18n(), key, args, t);
-  }
-
-  /**
-   * Returns the formatted representation of the text that is the summary of the
-   * installation process (the one that goes in the UI next to the progress
-   * bar).
-   * @param text the source text from which we want to get the formatted
-   * representation
-   * @return the formatted representation of an error for the given text.
-   */
-  private String getFormattedSummary(String text)
-  {
-    return formatter.getFormattedSummary(text);
-  }
-
-  /**
-   * Returns the formatted representation of a success message for a given text.
-   * @param text the source text from which we want to get the formatted
-   * representation
-   * @return the formatted representation of an success message for the given
-   * text.
-   */
-  private String getFormattedSuccess(String text)
-  {
-    return formatter.getFormattedSuccess(text);
-  }
-
-  /**
-   * Returns the formatted representation of an warning for a given text.
-   * @param text the source text from which we want to get the formatted
-   * representation
-   * @return the formatted representation of an warning for the given text.
-   */
-  private String getFormattedWarning(String text)
-  {
-    return formatter.getFormattedWarning(text, true);
-  }
-
-  /**
-   * Returns the formatted representation of an error for a given text.
-   * @param text the source text from which we want to get the formatted
-   * representation
-   * @return the formatted representation of an error for the given text.
-   */
-  private String getFormattedError(String text)
-  {
-    return formatter.getFormattedError(text, false);
-  }
-
-  /**
-   * Returns the formatted representation of a log error message for a given
-   * text.
-   * @param text the source text from which we want to get the formatted
-   * representation
-   * @return the formatted representation of a log error message for the given
-   * text.
-   */
-  private String getFormattedLogError(String text)
-  {
-    return formatter.getFormattedLogError(text);
-  }
-
-  /**
-   * Returns the formatted representation of a log message for a given text.
-   * @param text the source text from which we want to get the formatted
-   * representation
-   * @return the formatted representation of a log message for the given text.
-   */
-  private String getFormattedLog(String text)
-  {
-    return formatter.getFormattedLog(text);
-  }
-
-  /**
-   * Returns the formatted representation of the 'Done' text string.
-   * @return the formatted representation of the 'Done' text string.
-   */
-  private String getFormattedDone()
-  {
-    return formatter.getFormattedDone();
-  }
-
-  /**
-   * Returns the formatted representation of the argument text to which we add
-   * points.  For instance if we pass as argument 'Deleting file' the
-   * return value will be 'Deleting file .....'.
-   * @param text the String to which add points.
-   * @return the formatted representation of the '.....' text string.
-   */
-  private String getFormattedWithPoints(String text)
-  {
-    return formatter.getFormattedWithPoints(text);
-  }
-
-  /**
-   * Returns the formatted representation of an error message for a given
-   * exception.
-   * This method applies a margin if the applyMargin parameter is
-   * <CODE>true</CODE>.
-   * @param ex the exception.
-   * @param applyMargin specifies whether we apply a margin or not to the
-   * resulting formatted text.
-   * @return the formatted representation of an error message for the given
-   * exception.
-   */
-  private String getFormattedError(Exception ex, boolean applyMargin)
-  {
-    return formatter.getFormattedError(ex, applyMargin);
-  }
-
-  /**
-   * Returns the line break formatted.
-   * @return the line break formatted.
-   */
-  private String getLineBreak()
-  {
-    return formatter.getLineBreak();
-  }
-
-  /**
-   * Returns the tab formatted.
-   * @return the tab formatted.
-   */
-  private String getTab()
-  {
-    return formatter.getTab();
-  }
-
-  /**
-   * Returns the task separator formatted.
-   * @return the task separator formatted.
-   */
-  private String getTaskSeparator()
-  {
-    return formatter.getTaskSeparator();
-  }
-
-  /**
-   * Returns the formatted representation of a progress message for a given
-   * text.
-   * @param text the source text from which we want to get the formatted
-   * representation
-   * @return the formatted representation of a progress message for the given
-   * text.
-   */
-  private String getFormattedProgress(String text)
-  {
-    return formatter.getFormattedProgress(text);
-  }
-
-  /**
-   * Returns the current UninstallProgressStep of the installation process.
-   * @return the current UninstallProgressStep of the installation process.
-   */
-  private UninstallProgressStep getStatus()
-  {
-    return status;
-  }
-
-  private UserUninstallData getUserData()
-  {
-    return userData;
-  }
-
-  /**
    * Actually performs the uninstall in this thread.  The thread is blocked.
    *
    */
-  private void doUninstall()
+  public void run()
   {
+    initMaps();
     PrintStream origErr = System.err;
     PrintStream origOut = System.out;
     try
@@ -535,7 +237,7 @@ public class Uninstaller
         displaySeparator = true;
       }
 
-      Set<String> dbsToDelete = getUserData().getExternalDbsToRemove();
+      Set<String> dbsToDelete = getUninstallUserData().getExternalDbsToRemove();
       if (dbsToDelete.size() > 0)
       {
         status = UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES;
@@ -548,7 +250,8 @@ public class Uninstaller
         displaySeparator = true;
       }
 
-      Set<String> logsToDelete = getUserData().getExternalLogsToRemove();
+      Set<String> logsToDelete =
+              getUninstallUserData().getExternalLogsToRemove();
       if (logsToDelete.size() > 0)
       {
         status = UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES;
@@ -562,6 +265,7 @@ public class Uninstaller
         displaySeparator = true;
       }
 
+      UninstallUserData userData = getUninstallUserData();
       boolean somethingToDelete = userData.getRemoveBackups() ||
       userData.getRemoveConfigurationAndSchema() ||
       userData.getRemoveDatabases() ||
@@ -589,7 +293,7 @@ public class Uninstaller
         notifyListeners(null);
       }
 
-    } catch (UninstallException ex)
+    } catch (ApplicationException ex)
     {
       ue = ex;
       status = UninstallProgressStep.FINISHED_WITH_ERROR;
@@ -598,8 +302,8 @@ public class Uninstaller
     }
     catch (Throwable t)
     {
-      ue = new UninstallException(
-          UninstallException.Type.BUG,
+      ue = new ApplicationException(
+          ApplicationException.Type.BUG,
           getThrowableMsg("bug-msg", t), t);
       status = UninstallProgressStep.FINISHED_WITH_ERROR;
       String msg = getFormattedError(ue, true);
@@ -613,37 +317,10 @@ public class Uninstaller
   }
 
   /**
-   * This method notifies the UninstallProgressUpdateListeners that there was an
-   * update in the installation progress.
-   * @param ratio the integer that specifies which percentage of
-   * the whole installation has been completed.
-   * @param currentPhaseSummary the localized summary message for the
-   * current installation progress in formatted form.
-   * @param newLogDetail the new log messages that we have for the
-   * installation in formatted form.
+   * {@inheritDoc}
    */
-  private void notifyListeners(Integer ratio, String currentPhaseSummary,
-      String newLogDetail)
-  {
-    UninstallProgressUpdateEvent ev =
-        new UninstallProgressUpdateEvent(getStatus(), ratio,
-            currentPhaseSummary, newLogDetail);
-    for (UninstallProgressUpdateListener l : listeners)
-    {
-      l.progressUpdate(ev);
-    }
-  }
-
-  /**
-   * This method is called when a new log message has been received.  It will
-   * notify the UninstallProgressUpdateListeners of this fact.
-   * @param newLogDetail the new log detail.
-   */
-  private void notifyListeners(String newLogDetail)
-  {
-    Integer ratio = getRatio(getStatus());
-    String currentPhaseSummary = getSummary(getStatus());
-    notifyListeners(ratio, currentPhaseSummary, newLogDetail);
+  public ProgressStep getStatus() {
+    return status;
   }
 
   /**
@@ -653,9 +330,9 @@ public class Uninstaller
    * @return an integer that specifies which percentage of the whole
    * uninstallation has been completed.
    */
-  private Integer getRatio(UninstallProgressStep status)
+  public Integer getRatio(ProgressStep step)
   {
-    return hmRatio.get(status);
+    return hmRatio.get(step);
   }
 
   /**
@@ -665,16 +342,16 @@ public class Uninstaller
    * @return an formatted representation of the summary for the specified
    * UninstallProgressStep.
    */
-  private String getSummary(UninstallProgressStep status)
+  public String getSummary(ProgressStep step)
   {
-    return hmSummary.get(status);
+    return hmSummary.get(step);
   }
 
   /**
    * This methods stops the server.
-   * @throws UninstallException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-  private void stopServer() throws UninstallException
+  private void stopServer() throws ApplicationException
   {
     notifyListeners(getFormattedProgress(getMsg("progress-stopping")) +
         getLineBreak());
@@ -774,8 +451,9 @@ public class Uninstaller
          * The return code is not the one expected, assume the server could
          * not be stopped.
          */
-        throw new UninstallException(UninstallException.Type.STOP_ERROR, msg,
-            null);
+        throw new ApplicationException(ApplicationException.Type.STOP_ERROR,
+                msg,
+                null);
       }
       else
       {
@@ -785,12 +463,12 @@ public class Uninstaller
 
     } catch (IOException ioe)
     {
-      throw new UninstallException(UninstallException.Type.STOP_ERROR,
+      throw new ApplicationException(ApplicationException.Type.STOP_ERROR,
           getThrowableMsg("error-stopping-server", ioe), ioe);
     }
     catch (InterruptedException ie)
     {
-      throw new UninstallException(UninstallException.Type.BUG,
+      throw new ApplicationException(ApplicationException.Type.BUG,
           getThrowableMsg("error-stopping-server", ie), ie);
     }
   }
@@ -798,10 +476,10 @@ public class Uninstaller
   /**
    * Deletes the external database files specified in the provided Set.
    * @param dbFiles the database directories to be deleted.
-   * @throws UninstallException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
   private void deleteExternalDatabaseFiles(Set<String> dbFiles)
-  throws UninstallException
+  throws ApplicationException
   {
     notifyListeners(getFormattedProgress(
         getMsg("progress-deleting-external-db-files")) +
@@ -815,10 +493,10 @@ public class Uninstaller
   /**
    * Deletes the external database files specified in the provided Set.
    * @param logFiles the log files to be deleted.
-   * @throws UninstallException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
   private void deleteExternalLogFiles(Set<String> logFiles)
-  throws UninstallException
+  throws ApplicationException
   {
     notifyListeners(getFormattedProgress(
         getMsg("progress-deleting-external-log-files")) +
@@ -831,10 +509,10 @@ public class Uninstaller
 
   /**
    * Deletes the files under the installation path.
-   * @throws UninstallException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
   private void deleteInstallationFiles(int minRatio, int maxRatio)
-  throws UninstallException
+  throws ApplicationException
   {
     notifyListeners(getFormattedProgress(
         getMsg("progress-deleting-installation-files")) +
@@ -907,26 +585,6 @@ public class Uninstaller
       }
       hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, maxRatio);
     }
-  }
-
-  /**
-   * Returns the path to the binaries.
-   * @return the path to the binaries.
-   */
-  private String getBinariesPath()
-  {
-    return Utils.getPath(Utils.getInstallPathFromClasspath(),
-        Utils.getBinariesRelativePath());
-  }
-
-  /**
-   * Returns the path to the libraries.
-   * @return the path to the libraries.
-   */
-  private String getLibrariesPath()
-  {
-    return Utils.getPath(Utils.getInstallPathFromClasspath(),
-        Utils.getLibrariesRelativePath());
   }
 
   /**
@@ -1012,9 +670,9 @@ public class Uninstaller
   /**
    * Deletes everything below the specified file.
    * @param file the path to be deleted.
-   * @throws UninstallException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-  private void deleteRecursively(File file) throws UninstallException
+  private void deleteRecursively(File file) throws ApplicationException
   {
     deleteRecursively(file, null);
   }
@@ -1024,11 +682,10 @@ public class Uninstaller
    * @param file the path to be deleted.
    * @param filter the filter of the files to know if the file can be deleted
    * directly or not.
-   * @throws UninstallException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-
   private void deleteRecursively(File file, FileFilter filter)
-  throws UninstallException
+  throws ApplicationException
   {
     if (file.exists())
     {
@@ -1081,9 +738,9 @@ public class Uninstaller
   /**
    * Deletes the specified file.
    * @param file the file to be deleted.
-   * @throws UninstallException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-  private void delete(File file) throws UninstallException
+  private void delete(File file) throws ApplicationException
   {
     String[] arg = {file.getAbsolutePath()};
     boolean isFile = file.isFile();
@@ -1132,8 +789,8 @@ public class Uninstaller
       {
         errMsg = getMsg("error-deleting-directory", arg);
       }
-      throw new UninstallException(
-          UninstallException.Type.FILE_SYSTEM_ERROR, errMsg, null);
+      throw new ApplicationException(
+          ApplicationException.Type.FILE_SYSTEM_ERROR, errMsg, null);
     }
 
     notifyListeners(getFormattedDone()+getLineBreak());
@@ -1143,6 +800,15 @@ public class Uninstaller
   {
     return file.equals(directory) ||
     Utils.isDescendant(file.toString(), directory.toString());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected String getBinariesPath()
+  {
+    return Utils.getPath(Utils.getInstallPathFromClasspath(),
+        Utils.getBinariesRelativePath());
   }
 
   /**
@@ -1232,6 +898,7 @@ public class Uninstaller
      */
     public boolean accept(File file)
     {
+      UninstallUserData userData = getUninstallUserData();
       boolean[] uData = {
           userData.getRemoveLibrariesAndTools(),
           userData.getRemoveLibrariesAndTools(),
@@ -1292,9 +959,9 @@ public class Uninstaller
 
   /**
    * This methods disables this server as a Windows service.
-   * @throws UninstallException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-  protected void disableWindowsService() throws UninstallException
+  protected void disableWindowsService() throws ApplicationException
   {
     notifyListeners(getFormattedProgress(
       getMsg("progress-disabling-windows-service")));
@@ -1309,8 +976,8 @@ public class Uninstaller
       case ConfigureWindowsService.SERVICE_ALREADY_DISABLED:
       break;
       default:
-      throw new UninstallException(
-      UninstallException.Type.WINDOWS_SERVICE_ERROR, errorMessage, null);
+      throw new ApplicationException(
+      ApplicationException.Type.WINDOWS_SERVICE_ERROR, errorMessage, null);
     }
   }
 
@@ -1430,5 +1097,10 @@ public class Uninstaller
       println(new String(b, off, len));
     }
   }
+
+  private UninstallUserData getUninstallUserData() {
+    return (UninstallUserData)getUserData();
+  }
+
 }
 

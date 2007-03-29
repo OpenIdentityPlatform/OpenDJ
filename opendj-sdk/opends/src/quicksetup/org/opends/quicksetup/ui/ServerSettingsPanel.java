@@ -43,9 +43,8 @@ import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.installer.FieldName;
-import org.opends.quicksetup.installer.LabelFieldDescriptor;
-import org.opends.quicksetup.installer.UserInstallData;
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.UserData;
 
 /**
  * This is the panel that contains the Server Settings: the port, the Directory
@@ -54,7 +53,7 @@ import org.opends.quicksetup.util.Utils;
  */
 class ServerSettingsPanel extends QuickSetupStepPanel
 {
-  private UserInstallData defaultUserData;
+  private UserData defaultUserData;
 
   private Component lastFocusComponent;
 
@@ -81,7 +80,7 @@ class ServerSettingsPanel extends QuickSetupStepPanel
    * @param defaultUserData the default values that must be used to initialize
    * the fields of the panel.
    */
-  public ServerSettingsPanel(UserInstallData defaultUserData)
+  public ServerSettingsPanel(UserData defaultUserData)
   {
     this.defaultUserData = defaultUserData;
     this.displayServerLocation = isWebStart();
@@ -208,14 +207,13 @@ class ServerSettingsPanel extends QuickSetupStepPanel
     }
 
     // Add the other widgets
-    for (int i = 0; i < fieldNames.length; i++)
-    {
+    for (FieldName fieldName : fieldNames) {
       gbc.gridwidth = GridBagConstraints.RELATIVE;
       gbc.weightx = 0.0;
       gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
       gbc.insets.left = 0;
       gbc.anchor = GridBagConstraints.WEST;
-      panel.add(getLabel(fieldNames[i]), gbc);
+      panel.add(getLabel(fieldName), gbc);
 
       auxPanel = new JPanel(new GridBagLayout());
       auxPanel.setOpaque(false);
@@ -226,23 +224,20 @@ class ServerSettingsPanel extends QuickSetupStepPanel
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       panel.add(auxPanel, gbc);
 
-      boolean isPortField = fieldNames[i] == FieldName.SERVER_PORT;
+      boolean isPortField = fieldName == FieldName.SERVER_PORT;
       gbc.insets = UIFactory.getEmptyInsets();
-      if (isPortField)
-      {
+      if (isPortField) {
         gbc.gridwidth = 3;
-      } else
-      {
+      } else {
         gbc.gridwidth = GridBagConstraints.RELATIVE;
       }
       gbc.weightx = 0.0;
-      auxPanel.add(getField(fieldNames[i]), gbc);
-      if (isPortField)
-      {
+      auxPanel.add(getField(fieldName), gbc);
+      if (isPortField) {
         JLabel l =
-          UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-              getPortHelpMessage(),
-              UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+                UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+                        getPortHelpMessage(),
+                        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
         gbc.gridwidth = GridBagConstraints.RELATIVE;
         gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
         auxPanel.add(l, gbc);
@@ -298,7 +293,8 @@ class ServerSettingsPanel extends QuickSetupStepPanel
    */
   private String getDefaultValue(FieldName fieldName)
   {
-    String value = null;
+    String value;
+    value = null;
     switch (fieldName)
     {
     case SERVER_LOCATION:

@@ -25,33 +25,25 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.installer.webstart;
+package org.opends.quicksetup;
 
 /**
- * The following properties are set in the QuickSetup.jnlp file to provide
- * informations.
- *
+ * Interface describing the different installation steps in which we can
+ * be.
  */
-public interface JnlpProperties
-{
-  /**
-   * Java property used to known if we are using web start or not.
-   */
-  public static final String IS_WEBSTART = "org.opends.quicksetup.iswebstart";
+public interface ProgressStep {
 
   /**
-   * Java property used to know which are the jar files that must be downloaded
-   * lazily.  The current code in WebStartDownloader that uses this property
-   * assumes that the URL are separated with an space.
+   * Indicates whether this Progress step is a final step.
+   * @return true if this is a final step
    */
-  public static final String LAZY_JAR_URLS =
-      "org.opends.quicksetup.lazyjarurls";
+  boolean isLast();
 
   /**
-   * Java property used to know which is the name of the zip file that must
-   * be unzipped and whose contents must be extracted during the Web Start
-   * based setup.
+   * Indicates whether this Progress step is arrived at
+   * through an error in the application.
+   * @return true if this is an error step
    */
-  public static final String ZIP_FILE_NAME =
-      "org.opends.quicksetup.zipfilename";
+  boolean isError();
+
 }

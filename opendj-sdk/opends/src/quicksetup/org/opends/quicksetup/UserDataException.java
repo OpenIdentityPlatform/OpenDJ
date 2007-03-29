@@ -25,9 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.installer;
-
-import org.opends.quicksetup.Step;
+package org.opends.quicksetup;
 
 /**
  * This exception is used when there is an error with the data provided by
@@ -35,7 +33,7 @@ import org.opends.quicksetup.Step;
  * the user data (QuickSetup).
  *
  */
-public class UserInstallDataException extends Exception
+public class UserDataException extends Exception
 {
   private static final long serialVersionUID = 1798143194655443132L;
 
@@ -44,11 +42,11 @@ public class UserInstallDataException extends Exception
   private String localizedMessage;
 
   /**
-   * Constructor for UserInstallDataException.
+   * Constructor for UserDataException.
    * @param step the step in the wizard where the exception occurred.
    * @param localizedMessage the localized message describing the error.
    */
-  public UserInstallDataException(Step step, String localizedMessage)
+  public UserDataException(Step step, String localizedMessage)
   {
     super(localizedMessage);
     this.step = step;

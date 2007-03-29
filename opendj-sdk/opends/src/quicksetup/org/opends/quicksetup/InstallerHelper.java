@@ -25,14 +25,15 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.installer;
+package org.opends.quicksetup;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.installer.webstart.JnlpProperties;
+import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.tools.ConfigureWindowsService;
 
 /**
  * This is the only class that uses classes in org.opends.server (excluding the
@@ -47,18 +48,16 @@ import org.opends.quicksetup.util.Utils;
  * classes the required jar files are already loaded. However these jar files
  * are not necessarily loaded when we create this class.
  */
-class InstallerHelper implements JnlpProperties
-{
+public class InstallerHelper implements JnlpProperties {
 
   /**
    * Invokes the method ConfigureDS.configMain with the provided parameters.
    * @param args the arguments to be passed to ConfigureDS.configMain.
    * @return the return code of the ConfigureDS.configMain method.
-   * @throws InstallException if something goes wrong.
-   * @see org.opends.server.tools.ConfigureDS.configMain(args).
+   * @throws QuickSetupException if something goes wrong.
+   * @see org.opends.server.tools.ConfigureDS#configMain(String[]).
    */
-  public int invokeConfigureServer(String[] args) throws InstallException
-  {
+  public int invokeConfigureServer(String[] args) throws QuickSetupException {
     return org.opends.server.tools.ConfigureDS.configMain(args);
   }
 
@@ -66,11 +65,10 @@ class InstallerHelper implements JnlpProperties
    * Invokes the method ImportLDIF.mainImportLDIF with the provided parameters.
    * @param args the arguments to be passed to ImportLDIF.mainImportLDIF.
    * @return the return code of the ImportLDIF.mainImportLDIF method.
-   * @throws InstallException if something goes wrong.
-   * @see org.opends.server.tools.ImportLDIF.mainImportLDIF(args).
+   * @throws org.opends.quicksetup.QuickSetupException if something goes wrong.
+   * @see org.opends.server.tools.ImportLDIF#mainImportLDIF(String[]).
    */
-  public int invokeImportLDIF(String[] args) throws InstallException
-  {
+  public int invokeImportLDIF(String[] args) throws QuickSetupException {
     return org.opends.server.tools.ImportLDIF.mainImportLDIF(args);
   }
 
@@ -86,27 +84,24 @@ class InstallerHelper implements JnlpProperties
 
   /**
    * This methods enables this server as a Windows service.
-   * @throws InstallException if something goes wrong.
+   * @throws QuickSetupException if something goes wrong.
    */
-  protected void enableWindowsService() throws InstallException
-  {
+  public void enableWindowsService() throws QuickSetupException {
     int code = org.opends.server.tools.ConfigureWindowsService.enableService(
     System.out, System.err);
 
     String errorMessage = ResourceProvider.getInstance().getMsg(
     "error-enabling-windows-service");
 
-    switch (code)
-    {
-      case
-      org.opends.server.tools.ConfigureWindowsService.SERVICE_ENABLE_SUCCESS:
-      break;
-      case
-      org.opends.server.tools.ConfigureWindowsService.SERVICE_ALREADY_ENABLED:
-      break;
+    switch (code) {
+      case ConfigureWindowsService.SERVICE_ENABLE_SUCCESS:
+        break;
+      case ConfigureWindowsService.SERVICE_ALREADY_ENABLED:
+        break;
       default:
-      throw new InstallException(InstallException.Type.WINDOWS_SERVICE_ERROR,
-      errorMessage, null);
+        throw new QuickSetupException(
+                QuickSetupException.Type.WINDOWS_SERVICE_ERROR,
+                errorMessage, null);
     }
   }
 
@@ -126,11 +121,11 @@ class InstallerHelper implements JnlpProperties
    * baseDn.
    * @param baseDn the dn of the entry that will be created in the LDIF file.
    * @return the File object pointing to the created temporary file.
-   * @throws InstallException if something goes wrong.
+   * @throws QuickSetupException if something goes wrong.
    */
-  public File createBaseEntryTempFile(String baseDn) throws InstallException
-  {
-    File ldifFile = null;
+  public File createBaseEntryTempFile(String baseDn)
+          throws QuickSetupException {
+    File ldifFile;
     try
     {
       ldifFile = File.createTempFile("opends-base-entry", ".ldif");
@@ -138,7 +133,7 @@ class InstallerHelper implements JnlpProperties
     } catch (IOException ioe)
     {
       String failedMsg = getThrowableMsg("error-creating-temp-file", null, ioe);
-      throw new InstallException(InstallException.Type.FILE_SYSTEM_ERROR,
+      throw new QuickSetupException(QuickSetupException.Type.FILE_SYSTEM_ERROR,
           failedMsg, ioe);
     }
 
@@ -159,22 +154,22 @@ class InstallerHelper implements JnlpProperties
 
       writer.writeEntry(entry);
       writer.close();
-    } catch (org.opends.server.types.DirectoryException de)
-    {
-      throw new InstallException(InstallException.Type.CONFIGURATION_ERROR,
-          getThrowableMsg("error-importing-ldif", null, de), de);
-    } catch (org.opends.server.util.LDIFException le)
-    {
-      throw new InstallException(InstallException.Type.CONFIGURATION_ERROR,
-          getThrowableMsg("error-importing-ldif", null, le), le);
-    } catch (IOException ioe)
-    {
-      throw new InstallException(InstallException.Type.CONFIGURATION_ERROR,
-          getThrowableMsg("error-importing-ldif", null, ioe), ioe);
-    } catch (Throwable t)
-    {
-      throw new InstallException(InstallException.Type.BUG, getThrowableMsg(
-          "bug-msg", t), t);
+    } catch (org.opends.server.types.DirectoryException de) {
+      throw new QuickSetupException(
+              QuickSetupException.Type.CONFIGURATION_ERROR,
+              getThrowableMsg("error-importing-ldif", null, de), de);
+    } catch (org.opends.server.util.LDIFException le) {
+      throw new QuickSetupException(
+              QuickSetupException.Type.CONFIGURATION_ERROR,
+              getThrowableMsg("error-importing-ldif", null, le), le);
+    } catch (IOException ioe) {
+      throw new QuickSetupException(
+              QuickSetupException.Type.CONFIGURATION_ERROR,
+              getThrowableMsg("error-importing-ldif", null, ioe), ioe);
+    } catch (Throwable t) {
+      throw new QuickSetupException(
+              QuickSetupException.Type.BUG, getThrowableMsg(
+              "bug-msg", t), t);
     }
     return ldifFile;
   }

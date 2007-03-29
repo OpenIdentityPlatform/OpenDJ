@@ -27,44 +27,26 @@
 
 package org.opends.quicksetup;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import javax.swing.SwingUtilities;
-
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
-import org.opends.quicksetup.event.InstallProgressUpdateEvent;
-import org.opends.quicksetup.event.InstallProgressUpdateListener;
-import org.opends.quicksetup.event.UninstallProgressUpdateEvent;
-import org.opends.quicksetup.event.UninstallProgressUpdateListener;
+import org.opends.quicksetup.event.ProgressUpdateEvent;
+import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.installer.DataOptions;
 import org.opends.quicksetup.installer.FieldName;
-import org.opends.quicksetup.installer.InstallProgressDescriptor;
-import org.opends.quicksetup.installer.InstallProgressStep;
-import org.opends.quicksetup.installer.Installer;
-import org.opends.quicksetup.installer.UserInstallData;
-import org.opends.quicksetup.installer.UserInstallDataException;
-import org.opends.quicksetup.installer.offline.OfflineInstaller;
-import org.opends.quicksetup.installer.webstart.WebStartDownloader;
-import org.opends.quicksetup.installer.webstart.WebStartInstaller;
 import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.UIFactory;
-import org.opends.quicksetup.uninstaller.UninstallProgressDescriptor;
-import org.opends.quicksetup.uninstaller.UninstallProgressStep;
-import org.opends.quicksetup.uninstaller.Uninstaller;
-import org.opends.quicksetup.uninstaller.UserUninstallData;
-import org.opends.quicksetup.uninstaller.UserUninstallDataException;
+import org.opends.quicksetup.uninstaller.UninstallUserData;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.server.util.SetupUtils;
+
+import javax.swing.*;
+import java.io.File;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class is responsible for doing the following:
@@ -82,25 +64,17 @@ import org.opends.server.util.SetupUtils;
  * downloading of the jar files that are required to perform the installation
  * (OpenDS.jar, je.jar, etc.).  The global idea is to force the user to
  * download just one jar file (quicksetup.jar) to launch the Web Start
- * installer.  Then QuickSetup will call WebStartDownloader to download the jar
- * files.  Until this class is not finished the WebStart Installer will be on
- * the InstallProgressStep.DOWNLOADING step.
+ * installer.  Until this class is not finished the WebStart Installer will be
+ * on the ProgressStep.DOWNLOADING step.
  *
  */
-class QuickSetup implements ButtonActionListener, InstallProgressUpdateListener,
-UninstallProgressUpdateListener
+public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 {
-  // Contains the data provided by the user in the install
-  private UserInstallData userInstallData;
 
-  // Contains the data provided by the user in the uninstall
-  private UserUninstallData userUninstallData;
+  static private final Logger LOG =
+          Logger.getLogger(QuickSetup.class.getName());
 
-  private Installer installer;
-
-  private Uninstaller uninstaller;
-
-  private WebStartDownloader jnlpDownloader;
+  private Application application;
 
   private CurrentInstallStatus installStatus;
 
@@ -110,17 +84,11 @@ UninstallProgressUpdateListener
 
   private StringBuffer progressDetails = new StringBuffer();
 
-  private InstallProgressDescriptor lastInstallDescriptor;
+  private ProgressDescriptor lastDescriptor;
 
-  private InstallProgressDescriptor lastDisplayedInstallDescriptor;
+  private ProgressDescriptor lastDisplayedDescriptor;
 
-  private InstallProgressDescriptor installDescriptorToDisplay;
-
-  private UninstallProgressDescriptor lastUninstallDescriptor;
-
-  private UninstallProgressDescriptor lastDisplayedUninstallDescriptor;
-
-  private UninstallProgressDescriptor uninstallDescriptorToDisplay;
+  private ProgressDescriptor descriptorToDisplay;
 
   // Constants used to do checks
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
@@ -147,10 +115,13 @@ UninstallProgressUpdateListener
    */
   public void initialize(String[] args)
   {
-    if (isWebStart())
-    {
-      jnlpDownloader = new WebStartDownloader();
-      jnlpDownloader.start(false);
+    ProgressMessageFormatter formatter = new HtmlProgressMessageFormatter();
+    try {
+      application = Application.create(formatter);
+      application.setProgressMessageFormatter(formatter);
+    } catch (ApplicationException e) {
+      LOG.log(Level.INFO, "error", e);
+      throw new RuntimeException("failed to create quicksetup application", e);
     }
     installStatus = new CurrentInstallStatus();
     initLookAndFeel();
@@ -162,6 +133,24 @@ UninstallProgressUpdateListener
     {
       setCurrentStep(Step.WELCOME);
     }
+  }
+
+  private Application createApplication(ProgressMessageFormatter formatter) {
+    try {
+      application = Application.create(formatter);
+    } catch (ApplicationException e) {
+      LOG.log(Level.INFO, "error", e);
+    }
+    return application;
+  }
+
+  /**
+   * Gets the current installation status of the filesystem
+   * bits this quick setup is managing.
+   * @return CurrentInstallStatus indicating the install status
+   */
+  public CurrentInstallStatus getInstallStatus() {
+    return installStatus;
   }
 
   /**
@@ -222,56 +211,26 @@ UninstallProgressUpdateListener
   }
 
   /**
-   * InstallProgressUpdateListener implementation. Here we take the
-   * InstallProgressUpdateEvent and create an InstallProgressDescriptor that
+   * ProgressUpdateListener implementation. Here we take the
+   * ProgressUpdateEvent and create an ProgressDescriptor that
    * will be used to update the progress dialog.
    *
-   * @param ev the InstallProgressUpdateEvent we receive.
+   * @param ev the ProgressUpdateEvent we receive.
    *
    * @see #runDisplayUpdater()
    */
-  public void progressUpdate(InstallProgressUpdateEvent ev)
+  public void progressUpdate(ProgressUpdateEvent ev)
   {
     synchronized (this)
     {
-      InstallProgressDescriptor desc = createInstallProgressDescriptor(ev);
-      boolean isLastDescriptor =
-          desc.getProgressStep() == InstallProgressStep.FINISHED_SUCCESSFULLY
-              || desc.getProgressStep() ==
-                InstallProgressStep.FINISHED_WITH_ERROR;
+      ProgressDescriptor desc = createInstallProgressDescriptor(ev);
+      boolean isLastDescriptor = desc.getProgressStep().isLast();
       if (isLastDescriptor)
       {
-        lastInstallDescriptor = desc;
+        lastDescriptor = desc;
       }
 
-      installDescriptorToDisplay = desc;
-    }
-  }
-
-  /**
-   * UninstallProgressUpdateListener implementation. Here we take the
-   * UninstallProgressUpdateEvent and create an UninstallProgressDescriptor that
-   * will be used to update the progress dialog.
-   *
-   * @param ev the UninstallProgressUpdateEvent we receive.
-   *
-   * @see #runDisplayUpdater()
-   */
-  public void progressUpdate(UninstallProgressUpdateEvent ev)
-  {
-    synchronized (this)
-    {
-      UninstallProgressDescriptor desc = createUninstallProgressDescriptor(ev);
-      boolean isLastDescriptor =
-          desc.getProgressStep() == UninstallProgressStep.FINISHED_SUCCESSFULLY
-              || desc.getProgressStep() ==
-                UninstallProgressStep.FINISHED_WITH_ERROR;
-      if (isLastDescriptor)
-      {
-        lastUninstallDescriptor = desc;
-      }
-
-      uninstallDescriptorToDisplay = desc;
+      descriptorToDisplay = desc;
     }
   }
 
@@ -284,9 +243,7 @@ UninstallProgressUpdateListener
    * of flickering. So the idea here is to have a minimal time between 2 updates
    * of the progress dialog (specified by UPDATE_PERIOD).
    *
-   * @see #progressUpdate(InstallProgressUpdateEvent ev)
-   * @see #progressUpdate(UninstallProgressUpdateEvent ev)
-   *
+   * @see #progressUpdate(ProgressUpdateEvent)
    */
   private void runDisplayUpdater()
   {
@@ -303,12 +260,12 @@ UninstallProgressUpdateListener
       {
         if (Utils.isUninstall())
         {
-          final UninstallProgressDescriptor desc = uninstallDescriptorToDisplay;
+          final ProgressDescriptor desc = descriptorToDisplay;
           if (desc != null)
           {
-            if (desc != lastDisplayedUninstallDescriptor)
+            if (desc != lastDisplayedDescriptor)
             {
-              lastDisplayedUninstallDescriptor = desc;
+              lastDisplayedDescriptor = desc;
 
               SwingUtilities.invokeLater(new Runnable()
               {
@@ -318,17 +275,17 @@ UninstallProgressUpdateListener
                 }
               });
             }
-            doPool = desc != lastUninstallDescriptor;
+            doPool = desc != lastDescriptor;
           }
         }
         else
         {
-          final InstallProgressDescriptor desc = installDescriptorToDisplay;
+          final ProgressDescriptor desc = descriptorToDisplay;
           if (desc != null)
           {
-            if (desc != lastDisplayedInstallDescriptor)
+            if (desc != lastDisplayedDescriptor)
             {
-              lastDisplayedInstallDescriptor = desc;
+              lastDisplayedDescriptor = desc;
 
               SwingUtilities.invokeLater(new Runnable()
               {
@@ -338,7 +295,7 @@ UninstallProgressUpdateListener
                 }
               });
             }
-            doPool = desc != lastInstallDescriptor;
+            doPool = desc != lastDescriptor;
           }
         }
       }
@@ -364,19 +321,18 @@ UninstallProgressUpdateListener
     default:
       BackgroundTask worker = new BackgroundTask()
       {
-        public Object processBackgroundTask() throws UserInstallDataException
-        {
+        public Object processBackgroundTask() throws UserDataException {
           try
           {
-            updateUserInstallData(cStep);
+            updateUserData(cStep);
           }
-          catch (UserInstallDataException uide)
+          catch (UserDataException uide)
           {
             throw uide;
           }
           catch (Throwable t)
           {
-            throw new UserInstallDataException(cStep,
+            throw new UserDataException(cStep,
                 getThrowableMsg("bug-msg", t));
           }
           return null;
@@ -389,7 +345,7 @@ UninstallProgressUpdateListener
 
           if (throwable != null)
           {
-            UserInstallDataException ude = (UserInstallDataException)throwable;
+            UserDataException ude = (UserDataException)throwable;
             displayError(ude.getLocalizedMessage(), getMsg("error-title"));
           }
           else
@@ -421,21 +377,21 @@ UninstallProgressUpdateListener
     case CONFIRM_UNINSTALL:
       BackgroundTask worker = new BackgroundTask()
       {
-        public Object processBackgroundTask() throws UserUninstallDataException
+        public Object processBackgroundTask() throws UserDataException
         {
           try
           {
-            updateUserDataForConfirmUninstallPanel();
+            updateUserUninstallDataForConfirmUninstallPanel();
           }
-          catch (UserUninstallDataException uude)
+          catch (UserDataException uude)
           {
             throw uude;
           } catch (Throwable t)
           {
-            throw new UserUninstallDataException(cStep,
+            throw new UserDataException(cStep,
                 getThrowableMsg("bug-msg", t));
           }
-          return new Boolean(installStatus.isServerRunning());
+          return CurrentInstallStatus.isServerRunning();
         }
 
         public void backgroundTaskCompleted(Object returnValue,
@@ -444,15 +400,14 @@ UninstallProgressUpdateListener
           getDialog().workerFinished();
           if (throwable != null)
           {
-            UserUninstallDataException ude =
-              (UserUninstallDataException)throwable;
-            displayError(ude.getLocalizedMessage(), getMsg("error-title"));
+            displayError(throwable.getLocalizedMessage(),
+                    getMsg("error-title"));
           } else
           {
-            boolean serverRunning = ((Boolean)returnValue).booleanValue();
+            boolean serverRunning = (Boolean) returnValue;
             if (!serverRunning)
             {
-              getUserUninstallData().setStopServer(false);
+              application.getUserData().setStopServer(false);
               if (displayConfirmation(
                   getMsg("confirm-uninstall-server-not-running-msg"),
                   getMsg("confirm-uninstall-server-not-running-title")))
@@ -467,12 +422,12 @@ UninstallProgressUpdateListener
                       getMsg("confirm-uninstall-server-running-msg"),
                       getMsg("confirm-uninstall-server-running-title")))
               {
-                  getUserUninstallData().setStopServer(true);
+                  application.getUserData().setStopServer(true);
                   launchUninstallation();
                   setCurrentStep(nextStep(cStep));
               } else
               {
-                  getUserUninstallData().setStopServer(false);
+                  application.getUserData().setStopServer(false);
               }
             }
           }
@@ -571,7 +526,7 @@ UninstallProgressUpdateListener
     case PROGRESS:
       if (Utils.isUninstall())
       {
-        boolean finished = uninstaller.isFinished();
+        boolean finished = application.isFinished();
         if (finished
             || displayConfirmation(getMsg("confirm-close-uninstall-msg"),
                 getMsg("confirm-close-uninstall-title")))
@@ -580,7 +535,7 @@ UninstallProgressUpdateListener
         }
       } else
       {
-        boolean finished = installer.isFinished();
+        boolean finished = application.isFinished();
         if (finished
             || displayConfirmation(getMsg("confirm-close-install-msg"),
                 getMsg("confirm-close-install-title")))
@@ -619,8 +574,7 @@ UninstallProgressUpdateListener
   {
     BackgroundTask worker = new BackgroundTask()
     {
-      public Object processBackgroundTask() throws UserInstallDataException
-      {
+      public Object processBackgroundTask() throws UserDataException {
         try
         {
           String cmd = Utils.isWindows()?Utils.getWindowsStatusPanelFileName():
@@ -628,7 +582,7 @@ UninstallProgressUpdateListener
           String serverPath;
           if (Utils.isWebStart())
           {
-            serverPath = getUserInstallData().getServerLocation();
+            serverPath = application.getUserData().getServerLocation();
           }
           else
           {
@@ -636,7 +590,7 @@ UninstallProgressUpdateListener
           }
           cmd = Utils.getPath(serverPath, Utils.getBinariesRelativePath()+
                   File.separator+cmd);
-          ProcessBuilder pb = new ProcessBuilder(new String[]{cmd});
+          ProcessBuilder pb = new ProcessBuilder(cmd);
           Map<String, String> env = pb.environment();
           env.put("JAVA_HOME", System.getProperty("java.home"));
           /* Remove JAVA_BIN to be sure that we use the JVM running the
@@ -688,22 +642,20 @@ UninstallProgressUpdateListener
 
   /**
    * These methods validate the data provided by the user in the panels and
-   * update the UserInstallData object according to that content.
+   * update the userData object according to that content.
    *
    * @param cStep
    *          the current step of the wizard
    *
-   * @throws an
-   *           UserInstallDataException if the data provided by the user is not
+   * @throws UserDataException if the data provided by the user is not
    *           valid.
    *
    */
-  private void updateUserInstallData(Step cStep) throws UserInstallDataException
-  {
+  private void updateUserData(Step cStep) throws UserDataException {
     switch (cStep)
     {
     case SERVER_SETTINGS:
-      updateUserInstallDataForServerSettingsPanel();
+      updateUserDataForServerSettingsPanel();
       break;
 
     case DATA_OPTIONS:
@@ -718,16 +670,14 @@ UninstallProgressUpdateListener
 
   /**
    * Validate the data provided by the user in the server settings panel and
-   * update the UserInstallData object according to that content.
+   * update the userData object according to that content.
    *
-   * @throws an
-   *           UserInstallDataException if the data provided by the user is not
+   * @throws UserDataException if the data provided by the user is not
    *           valid.
    *
    */
-  private void updateUserInstallDataForServerSettingsPanel()
-      throws UserInstallDataException
-  {
+  private void updateUserDataForServerSettingsPanel()
+      throws UserDataException {
     ArrayList<String> errorMsgs = new ArrayList<String>();
 
     if (isWebStart())
@@ -775,7 +725,7 @@ UninstallProgressUpdateListener
 
       } else
       {
-        getUserInstallData().setServerLocation(serverLocation);
+        application.getUserData().setServerLocation(serverLocation);
         displayFieldInvalid(FieldName.SERVER_LOCATION, false);
       }
     }
@@ -806,7 +756,7 @@ UninstallProgressUpdateListener
 
       } else
       {
-        getUserInstallData().setServerPort(port);
+        application.getUserData().setServerPort(port);
         displayFieldInvalid(FieldName.SERVER_PORT, false);
       }
 
@@ -835,7 +785,7 @@ UninstallProgressUpdateListener
       displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, true);
     } else
     {
-      getUserInstallData().setDirectoryManagerDn(dmDn);
+      application.getUserData().setDirectoryManagerDn(dmDn);
       displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, false);
     }
 
@@ -869,7 +819,7 @@ UninstallProgressUpdateListener
 
     if (pwdValid)
     {
-      getUserInstallData().setDirectoryManagerPwd(pwd1);
+      application.getUserData().setDirectoryManagerPwd(pwd1);
       displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD, false);
       displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM, false);
     }
@@ -877,28 +827,26 @@ UninstallProgressUpdateListener
     int defaultJMXPort = getDefaultJMXPort();
     if (defaultJMXPort != -1)
     {
-      getUserInstallData().setServerJMXPort(defaultJMXPort);
+      application.getUserData().setServerJMXPort(defaultJMXPort);
     }
 
     if (errorMsgs.size() > 0)
     {
-      throw new UserInstallDataException(Step.SERVER_SETTINGS,
+      throw new UserDataException(Step.SERVER_SETTINGS,
           Utils.getStringFromCollection(errorMsgs, "\n"));
     }
   }
 
   /**
    * Validate the data provided by the user in the data options panel and update
-   * the UserInstallData object according to that content.
+   * the userData object according to that content.
    *
-   * @throws an
-   *           UserInstallDataException if the data provided by the user is not
+   * @throws UserDataException if the data provided by the user is not
    *           valid.
    *
    */
   private void updateUserDataForDataOptionsPanel()
-      throws UserInstallDataException
-  {
+      throws UserDataException {
     ArrayList<String> errorMsgs = new ArrayList<String>();
 
     DataOptions dataOptions = null;
@@ -1000,46 +948,50 @@ UninstallProgressUpdateListener
 
     if (dataOptions != null)
     {
-      getUserInstallData().setDataOptions(dataOptions);
+      application.getUserData().setDataOptions(dataOptions);
     }
 
     if (errorMsgs.size() > 0)
     {
-      throw new UserInstallDataException(Step.DATA_OPTIONS,
+      throw new UserDataException(Step.DATA_OPTIONS,
           Utils.getStringFromCollection(errorMsgs, "\n"));
     }
   }
 
   /**
-   * Update the UserInstallData object according to the content of the review
+   * Update the userData object according to the content of the review
    * panel.
    *
    */
   private void updateUserDataForReviewPanel()
   {
     Boolean b = (Boolean) getFieldValue(FieldName.SERVER_START);
-    getUserInstallData().setStartServer(b.booleanValue());
+    application.getUserData().setStartServer(b.booleanValue());
   }
 
   /**
-   * Update the UserUninstallData object according to the content of the review
+   * Update the UserData object according to the content of the review
    * panel.
    *
    */
-  private void updateUserDataForConfirmUninstallPanel()
-  throws UserUninstallDataException
+  private void updateUserUninstallDataForConfirmUninstallPanel()
+  throws UserDataException
   {
-    getUserUninstallData().setRemoveLibrariesAndTools(
+
+    // TODO:  move this to the Uninstall application
+
+    UninstallUserData uud = (UninstallUserData)application.getUserData();
+    uud.setRemoveLibrariesAndTools(
         (Boolean)getFieldValue(FieldName.REMOVE_LIBRARIES_AND_TOOLS));
-    getUserUninstallData().setRemoveDatabases(
+    uud.setRemoveDatabases(
         (Boolean)getFieldValue(FieldName.REMOVE_DATABASES));
-    getUserUninstallData().setRemoveConfigurationAndSchema(
+    uud.setRemoveConfigurationAndSchema(
         (Boolean)getFieldValue(FieldName.REMOVE_CONFIGURATION_AND_SCHEMA));
-    getUserUninstallData().setRemoveBackups(
+    uud.setRemoveBackups(
         (Boolean)getFieldValue(FieldName.REMOVE_BACKUPS));
-    getUserUninstallData().setRemoveLDIFs(
+    uud.setRemoveLDIFs(
         (Boolean)getFieldValue(FieldName.REMOVE_LDIFS));
-    getUserUninstallData().setRemoveLogs(
+    uud.setRemoveLogs(
         (Boolean)getFieldValue(FieldName.REMOVE_LOGS));
 
     Set<String> dbs = new HashSet<String>();
@@ -1056,19 +1008,19 @@ UninstallProgressUpdateListener
       logs.add((String)v);
     }
 
-    getUserUninstallData().setExternalDbsToRemove(dbs);
-    getUserUninstallData().setExternalLogsToRemove(logs);
+    uud.setExternalDbsToRemove(dbs);
+    uud.setExternalLogsToRemove(logs);
 
     if ((dbs.size() == 0) &&
         (logs.size() == 0) &&
-        !getUserUninstallData().getRemoveLibrariesAndTools() &&
-        !getUserUninstallData().getRemoveDatabases() &&
-        !getUserUninstallData().getRemoveConfigurationAndSchema() &&
-        !getUserUninstallData().getRemoveBackups() &&
-        !getUserUninstallData().getRemoveLDIFs() &&
-        !getUserUninstallData().getRemoveLogs())
+        !uud.getRemoveLibrariesAndTools() &&
+        !uud.getRemoveDatabases() &&
+        !uud.getRemoveConfigurationAndSchema() &&
+        !uud.getRemoveBackups() &&
+        !uud.getRemoveLDIFs() &&
+        !uud.getRemoveLogs())
     {
-      throw new UserUninstallDataException(Step.CONFIRM_UNINSTALL,
+      throw new UserDataException(Step.CONFIRM_UNINSTALL,
           getMsg("nothing-selected-to-uninstall"));
     }
   }
@@ -1081,16 +1033,9 @@ UninstallProgressUpdateListener
   private void launchInstallation()
   {
     ProgressMessageFormatter formatter = getDialog().getFormatter();
-    if (isWebStart())
-    {
-      installer = new WebStartInstaller(getUserInstallData(), jnlpDownloader,
-          formatter);
-    } else
-    {
-      installer = new OfflineInstaller(getUserInstallData(), formatter);
-    }
-    installer.addProgressUpdateListener(this);
-    installer.start();
+
+    application.addProgressUpdateListener(this);
+    new Thread(application).start();
     Thread t = new Thread(new Runnable()
     {
       public void run()
@@ -1107,10 +1052,8 @@ UninstallProgressUpdateListener
    */
   private void launchUninstallation()
   {
-    uninstaller = new Uninstaller(getUserUninstallData(),
-        getDialog().getFormatter());
-    uninstaller.addProgressUpdateListener(this);
-    uninstaller.start();
+    application.addProgressUpdateListener(this);
+    new Thread(application).start();
     Thread t = new Thread(new Runnable()
     {
       public void run()
@@ -1122,49 +1065,17 @@ UninstallProgressUpdateListener
   }
 
   /**
-   * Provides the object representing the data provided by the user in the
-   * install.
-   *
-   * @return the UserInstallData representing the data provided by the user in
-   *         the Install wizard.
-   */
-  private UserInstallData getUserInstallData()
-  {
-    if (userInstallData == null)
-    {
-      userInstallData = new UserInstallData();
-    }
-    return userInstallData;
-  }
-
-  /**
-   * Provides the object representing the data provided by the user in the
-   * uninstall.
-   *
-   * @return the UserUninstallData representing the data provided by the user in
-   *         the Uninstall wizard.
-   */
-  private UserUninstallData getUserUninstallData()
-  {
-    if (userUninstallData == null)
-    {
-      userUninstallData = new UserUninstallData();
-    }
-    return userUninstallData;
-  }
-
-  /**
    * Provides an object representing the default data/install parameters that
    * will be proposed to the user in the Installation wizard. This data includes
    * elements such as the default dn of the directory manager or the default
    * install location.
    *
-   * @return the UserInstallData representing the default data/parameters that
+   * @return the userData representing the default data/parameters that
    *         will be proposed to the user.
    */
-  private UserInstallData getDefaultUserData()
+  private UserData getDefaultUserData()
   {
-    UserInstallData defaultUserData = new UserInstallData();
+    UserData defaultUserData = application.createUserData();
 
     DataOptions defaultDataOptions = new DefaultDataOptions();
 
@@ -1187,17 +1098,33 @@ UninstallProgressUpdateListener
   /**
    * The following three methods are just commodity methods to get localized
    * messages.
+   * @param key String key
+   * @return String message
    */
   private String getMsg(String key)
   {
     return getI18n().getMsg(key);
   }
 
+  /**
+   * The following three methods are just commodity methods to get localized
+   * messages.
+   * @param key String key
+   * @param args String[] args
+   * @return String message
+   */
   private String getMsg(String key, String[] args)
   {
     return getI18n().getMsg(key, args);
   }
 
+  /**
+   * The following three methods are just commodity methods to get localized
+   * messages.
+   * @param key String key
+   * @param t Throwable throwable
+   * @return String message
+   */
   private String getThrowableMsg(String key, Throwable t)
   {
     return Utils.getThrowableMsg(getI18n(), key, null, t);
@@ -1223,29 +1150,25 @@ UninstallProgressUpdateListener
    * dialog to display the panel that corresponds to the step passed as
    * argument.
    *
-   * @param step.
-   *          The step to be displayed.
+   * @param step The step to be displayed.
    */
-  private void setCurrentStep(Step step)
+  public void setCurrentStep(Step step)
   {
     if (step == null)
     {
       throw new NullPointerException("step is null");
     }
     currentStep = step;
-    getDialog().setDisplayedStep(step, getUserInstallData());
+    getDialog().setDisplayedStep(step, application.getUserData());
   }
 
   /**
    * Gets the next step corresponding to the step passed as parameter.
    *
-   * @param step,
-   *          the step of which we want to get the new step.
+   * @param step the step of which we want to get the new step.
    * @return the next step for the current step.
-   * @throws IllegalArgumentException
-   *           if the current step has not a next step.
    */
-  private Step nextStep(Step step)
+  public Step nextStep(Step step)
   {
     Step nextStep;
     if (step == Step.CONFIRM_UNINSTALL)
@@ -1311,7 +1234,7 @@ UninstallProgressUpdateListener
    * @param title
    *          the title for the dialog.
    */
-  private void displayError(String msg, String title)
+  public void displayError(String msg, String title)
   {
     getDialog().displayError(msg, title);
   }
@@ -1326,7 +1249,7 @@ UninstallProgressUpdateListener
    * @return <CODE>true</CODE> if the user confirms the message, or
    * <CODE>false</CODE> if not.
    */
-  private boolean displayConfirmation(String msg, String title)
+  public boolean displayConfirmation(String msg, String title)
   {
     return getDialog().displayConfirmation(msg, title);
   }
@@ -1394,18 +1317,18 @@ UninstallProgressUpdateListener
   }
 
   /**
-   * A methods that creates an InstallProgressDescriptor based on the value of a
-   * InstallProgressUpdateEvent.
+   * A methods that creates an ProgressDescriptor based on the value of a
+   * ProgressUpdateEvent.
    *
    * @param ev
-   *          the InstallProgressUpdateEvent used to generate the
-   *          InstallProgressDescriptor.
-   * @return the InstallProgressDescriptor.
+   *          the ProgressUpdateEvent used to generate the
+   *          ProgressDescriptor.
+   * @return the ProgressDescriptor.
    */
-  private InstallProgressDescriptor createInstallProgressDescriptor(
-      InstallProgressUpdateEvent ev)
+  private ProgressDescriptor createInstallProgressDescriptor(
+      ProgressUpdateEvent ev)
   {
-    InstallProgressStep status = ev.getProgressStep();
+    ProgressStep status = ev.getProgressStep();
     String newProgressLabel = ev.getCurrentPhaseSummary();
     String additionalDetails = ev.getNewLogs();
     Integer ratio = ev.getProgressRatio();
@@ -1415,33 +1338,7 @@ UninstallProgressUpdateListener
       progressDetails.append(additionalDetails);
     }
 
-    return new InstallProgressDescriptor(status, ratio, newProgressLabel,
-        progressDetails.toString());
-  }
-
-  /**
-   * A methods that creates an UninstallProgressDescriptor based on the value of
-   * a UninstallProgressUpdateEvent.
-   *
-   * @param ev
-   *          the UninstallProgressUpdateEvent used to generate the
-   *          UninstallProgressDescriptor.
-   * @return the InstallProgressDescriptor.
-   */
-  private UninstallProgressDescriptor createUninstallProgressDescriptor(
-      UninstallProgressUpdateEvent ev)
-  {
-    UninstallProgressStep status = ev.getProgressStep();
-    String newProgressLabel = ev.getCurrentPhaseSummary();
-    String additionalDetails = ev.getNewLogs();
-    Integer ratio = ev.getProgressRatio();
-
-    if (additionalDetails != null)
-    {
-      progressDetails.append(additionalDetails);
-    }
-
-    return new UninstallProgressDescriptor(status, ratio, newProgressLabel,
+    return new ProgressDescriptor(status, ratio, newProgressLabel,
         progressDetails.toString());
   }
 

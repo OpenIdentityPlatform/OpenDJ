@@ -27,56 +27,82 @@
 
 package org.opends.quicksetup.installer;
 
+import org.opends.quicksetup.ProgressStep;
+
 /**
- * This enumeration describes the different installation steps in which we can
- * be.
+ * Enumeration of installation steps.
  */
-public enum InstallProgressStep
-{
+public enum InstallProgressStep implements ProgressStep {
+
   /**
    * Install not started.
    */
   NOT_STARTED,
+
   /**
    * Downloading the remote jar files (this step is specific to the Web Start
    * installation).
    */
   DOWNLOADING,
+
   /**
    * Extracting the zip file (this step is specific to the Web Start
    * installation).
    */
   EXTRACTING,
+
   /**
    * Configuring server.
    */
   CONFIGURING_SERVER,
+
   /**
    * Creating base entry for the suffix.
    */
   CREATING_BASE_ENTRY,
+
   /**
    * Importing the contents of an LDIF file into the suffix.
    */
   IMPORTING_LDIF,
+
   /**
    * Importing generated data into the suffix.
    */
   IMPORTING_AUTOMATICALLY_GENERATED,
+
   /**
    * Starting Open DS server.
    */
   STARTING_SERVER,
+
   /**
    * Enabling Windows service.
    */
   ENABLING_WINDOWS_SERVICE,
+
   /**
    * Installation finished successfully.
    */
   FINISHED_SUCCESSFULLY,
+
   /**
    * Installation finished with an error.
    */
-  FINISHED_WITH_ERROR
+  FINISHED_WITH_ERROR;
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isLast() {
+    return this == FINISHED_SUCCESSFULLY ||
+    this == FINISHED_WITH_ERROR;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isError() {
+    return this.equals(FINISHED_WITH_ERROR);
+  }
 }

@@ -45,10 +45,9 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.event.BrowseActionListener;
-import org.opends.quicksetup.installer.DataOptions;
+import org.opends.quicksetup.DataOptions;
 import org.opends.quicksetup.installer.FieldName;
-import org.opends.quicksetup.installer.LabelFieldDescriptor;
-import org.opends.quicksetup.installer.UserInstallData;
+import org.opends.quicksetup.UserData;
 
 /**
  * This is the panel that contains the Data Options: the suffix dn, whether
@@ -61,7 +60,7 @@ class DataOptionsPanel extends QuickSetupStepPanel
 
   private static final long serialVersionUID = 1815782841921928118L;
 
-  private UserInstallData defaultUserData;
+  private UserData defaultUserData;
 
   private HashMap<FieldName, JLabel> hmLabels =
       new HashMap<FieldName, JLabel>();
@@ -79,7 +78,7 @@ class DataOptionsPanel extends QuickSetupStepPanel
    * @param defaultUserData the default values that must be used to initialize
    * the fields of the panel.
    */
-  public DataOptionsPanel(UserInstallData defaultUserData)
+  public DataOptionsPanel(UserData defaultUserData)
   {
     this.defaultUserData = defaultUserData;
     populateComponentMaps();
@@ -350,7 +349,7 @@ class DataOptionsPanel extends QuickSetupStepPanel
    */
   private Object getDefaultValue(FieldName fieldName)
   {
-    Object value = null;
+    Object value;
     switch (fieldName)
     {
     case DIRECTORY_BASE_DN:
@@ -366,7 +365,7 @@ class DataOptionsPanel extends QuickSetupStepPanel
       break;
 
     case NUMBER_ENTRIES:
-      value = new Integer(defaultUserData.getDataOptions().getNumberEntries());
+      value = defaultUserData.getDataOptions().getNumberEntries();
       break;
 
     default:

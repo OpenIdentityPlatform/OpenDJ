@@ -37,10 +37,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
-import org.opends.quicksetup.installer.DataOptions;
+import org.opends.quicksetup.DataOptions;
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.installer.FieldName;
-import org.opends.quicksetup.installer.LabelFieldDescriptor;
-import org.opends.quicksetup.installer.UserInstallData;
 
 /**
  * This is the panel that contains the Review Panel.
@@ -52,7 +51,7 @@ class ReviewPanel extends QuickSetupStepPanel
 
   private boolean displayServerLocation;
 
-  private UserInstallData defaultUserData;
+  private UserData defaultUserData;
 
   private JCheckBox checkBox;
 
@@ -67,7 +66,7 @@ class ReviewPanel extends QuickSetupStepPanel
    * @param defaultUserData the default values that must be used to initialize
    * the fields of the panel.
    */
-  public ReviewPanel(UserInstallData defaultUserData)
+  public ReviewPanel(UserData defaultUserData)
   {
     this.defaultUserData = defaultUserData;
     this.displayServerLocation = isWebStart();
@@ -78,7 +77,7 @@ class ReviewPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
-  public void beginDisplay(UserInstallData userData)
+  public void beginDisplay(UserData userData)
   {
     if (displayServerLocation)
     {
@@ -102,7 +101,7 @@ class ReviewPanel extends QuickSetupStepPanel
     Object value = null;
     if (fieldName == FieldName.SERVER_START)
     {
-      value = new Boolean(getCheckBox().isSelected());
+      value = getCheckBox().isSelected();
     }
     return value;
   }

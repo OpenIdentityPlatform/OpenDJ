@@ -22,33 +22,24 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.installer;
+package org.opends.quicksetup;
 
 /**
- * This class is used to provide a data model for the different parameters
- * that the user can provide in the installation wizard.
- *
- * @see DataOptions.
- *
+ * Represents user specified input data to an application.
  */
-public class UserInstallData
-{
+public class UserData {
+
   private String serverLocation;
-
   private int serverPort;
-
-  private int serverJMXPort;
-
   private String directoryManagerDn;
-
   private String directoryManagerPwd;
-
-  private boolean startServer;
-
   private DataOptions dataOptions;
+  private int serverJMXPort;
+  private boolean startServer;
+  private boolean stopServer;
 
   /**
    * Sets the location of the server (installation path).
@@ -84,24 +75,6 @@ public class UserInstallData
   public int getServerPort()
   {
     return serverPort;
-  }
-
-  /**
-   * Sets the server JMX port.
-   * @param serverJMXPort the new server JMX port.
-   */
-  public void setServerJMXPort(int serverJMXPort)
-  {
-    this.serverJMXPort = serverJMXPort;
-  }
-
-  /**
-   * Returns the server JMX port.
-   * @return the server JMX port.
-   */
-  public int getServerJMXPort()
-  {
-    return serverJMXPort;
   }
 
   /**
@@ -141,6 +114,46 @@ public class UserInstallData
   }
 
   /**
+   * Returns the DataOptions object representing the data in the Data Options
+   * panel.
+   * @return the DataOptions object representing the data in the Data Options
+   * panel.
+   */
+  public DataOptions getDataOptions()
+  {
+    return dataOptions;
+  }
+
+  /**
+   * Sets the DataOptions object representing the data in the Data Options
+   * panel.
+   * @param dataOptions the DataOptions object representing the data in the Data
+   * Options panel.
+   */
+  public void setDataOptions(DataOptions dataOptions)
+  {
+    this.dataOptions = dataOptions;
+  }
+
+  /**
+   * Sets the server JMX port.
+   * @param serverJMXPort the new server JMX port.
+   */
+  public void setServerJMXPort(int serverJMXPort)
+  {
+    this.serverJMXPort = serverJMXPort;
+  }
+
+  /**
+   * Returns the server JMX port.
+   * @return the server JMX port.
+   */
+  public int getServerJMXPort()
+  {
+    return serverJMXPort;
+  }
+
+  /**
    * Returns <CODE>true</CODE> if the server must be started once the
    * installation is finished, <CODE>false</CODE> if not.
    * @return <CODE>true</CODE> if the server must be started once the
@@ -163,24 +176,21 @@ public class UserInstallData
   }
 
   /**
-   * Returns the DataOptions object representing the data in the Data Options
-   * panel.
-   * @return the DataOptions object representing the data in the Data Options
-   * panel.
+   * Sets whether to stop the server or not.
+   * @param stopServer stop the server or not.
    */
-  public DataOptions getDataOptions()
+  public void setStopServer(boolean stopServer)
   {
-    return dataOptions;
+    this.stopServer = stopServer;
   }
 
   /**
-   * Sets the DataOptions object representing the data in the Data Options
-   * panel.
-   * @param dataOptions the DataOptions object representing the data in the Data
-   * Options panel.
+   * Returns whether the user wants to stop the server or not.
+   * @return <CODE>true</CODE> if the user wants to stop the server and <CODE>\
+   * false</CODE> otherwise.
    */
-  public void setDataOptions(DataOptions dataOptions)
+  public boolean getStopServer()
   {
-    this.dataOptions = dataOptions;
+    return stopServer;
   }
 }

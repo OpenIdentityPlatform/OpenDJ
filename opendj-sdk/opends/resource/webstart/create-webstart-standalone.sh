@@ -176,6 +176,7 @@ cat > "${JNLP_FILENAME}" <<ENDOFJNLP
     <jar href="lib/aspectjrt.jar" download="lazy"/>
     <jar href="lib/zipped.jar" download="lazy"/>
     <property name="org.opends.quicksetup.iswebstart" value="true" />
+    <property name="org.opends.quicksetup.Application.class" value="org.opends.quicksetup.installer.webstart.WebStartInstaller"/>
     <property name="org.opends.quicksetup.lazyjarurls" value="${INSTALLER_URI}/lib/OpenDS.jar ${INSTALLER_URI}/lib/zipped.jar ${INSTALLER_URI}/lib/je.jar ${INSTALLER_URI}/lib/aspectjrt.jar" />
     <property name="org.opends.quicksetup.zipfilename" value="${ZIP_FILENAME_BASE}.zip"/>
   </resources>

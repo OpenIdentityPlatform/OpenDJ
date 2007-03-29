@@ -88,6 +88,8 @@ public class UninstallLauncher
     } else
     {
       System.setProperty("org.opends.quicksetup.uninstall", "true");
+      System.setProperty("org.opends.quicksetup.Application.class",
+              "org.opends.quicksetup.uninstaller.Uninstaller");
       int exitCode = launchGuiUninstall(args);
       if (exitCode != 0)
       {

@@ -29,16 +29,17 @@ package org.opends.quicksetup.event;
 
 /**
  * Interface that implement the objects that want to receive notifications of
- * updates in the uninstallation progress.
+ * updates in the installation progress.
  *
  */
-public interface UninstallProgressUpdateListener
-{
+public interface ProgressUpdateListener {
+
   /**
-   * Method called when an update in the uninstallation progress occurs.
+   * Method called when an update in the installation progress occurs.
    *
-   * @param ev the UninstallProgressUpdateEvent describing the update that
+   * @param ev the ProgressUpdateEvent describing the update that
    * occurred in the installation progress.
    */
-  public void progressUpdate(UninstallProgressUpdateEvent ev);
+  public void progressUpdate(ProgressUpdateEvent ev);
+
 }

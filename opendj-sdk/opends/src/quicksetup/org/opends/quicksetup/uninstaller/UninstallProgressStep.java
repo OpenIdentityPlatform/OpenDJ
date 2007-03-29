@@ -27,47 +27,70 @@
 
 package org.opends.quicksetup.uninstaller;
 
+import org.opends.quicksetup.ProgressStep;
+
 /**
- * This enumeration describes the different uninstallation steps in which we can
- * be.
- *
+ * Enumeration of steps for an uninstall process.
  */
-public enum UninstallProgressStep
-{
+public enum UninstallProgressStep implements ProgressStep {
+
   /**
    * Uninstall not started.
    */
   NOT_STARTED,
+
   /**
    * Stopping server.
    */
   STOPPING_SERVER,
+
   /**
    * Disabling Windows Service.
    */
   DISABLING_WINDOWS_SERVICE,
+
   /**
    * Removing External Database files.
    */
   DELETING_EXTERNAL_DATABASE_FILES,
+
   /**
    * Removing External Log files.
    */
   DELETING_EXTERNAL_LOG_FILES,
+
   /**
    * Removing external references.
    */
   REMOVING_EXTERNAL_REFERENCES,
+
   /**
    * Removing installation files.
    */
   DELETING_INSTALLATION_FILES,
+
   /**
    * Installation finished successfully.
    */
   FINISHED_SUCCESSFULLY,
+
   /**
    * Installation finished with an error.
    */
-  FINISHED_WITH_ERROR
+  FINISHED_WITH_ERROR;
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isLast() {
+    return this == FINISHED_SUCCESSFULLY ||
+    this == FINISHED_WITH_ERROR;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isError() {
+    return this.equals(FINISHED_WITH_ERROR);
+  }
 }

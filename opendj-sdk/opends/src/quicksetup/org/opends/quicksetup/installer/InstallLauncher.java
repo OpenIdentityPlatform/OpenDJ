@@ -120,6 +120,8 @@ public class InstallLauncher
       }
     } else
     {
+      System.setProperty("org.opends.quicksetup.Application.class",
+              "org.opends.quicksetup.installer.offline.OfflineInstaller");
       int exitCode = launchGuiSetup(args);
       if (exitCode != 0)
       {

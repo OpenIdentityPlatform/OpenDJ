@@ -222,7 +222,7 @@ public class SplashScreen extends Window
 
   /**
    * This method displays the QuickSetup dialog.
-   * @see QuickSetup.display.
+   * @see QuickSetup#display
    * This method assumes that is being called outside the event thread.
    * This method can be overwritten by subclasses to construct other objects
    * different than the Quick Setup.

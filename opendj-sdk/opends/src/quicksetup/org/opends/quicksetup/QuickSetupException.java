@@ -25,38 +25,50 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.uninstaller;
+package org.opends.quicksetup;
 
 /**
  * This exception is used to encapsulate all the error that we might have
- * during the uninstallation.
- *
- * @see Uninstaller.
- *
+ * during the installation.
  */
-public class UninstallException extends Exception
+public class QuickSetupException extends Exception
 {
-  private static final long serialVersionUID = 5988129928117915261L;
+  private static final long serialVersionUID = -3527273444231560341L;
+
   private Type type;
 
   /**
-   * This enum contains the different type of UninstallException that we can
+   * This enum contains the different type of QuickSetupException that we can
    * have.
    *
    */
   public enum Type
   {
     /**
-     * Error related to file system error: IOException deleting files,
-     * permission errors, etc.
+     * Error related to file system error: IOException writing files, permission
+     * errors, etc.
      */
     FILE_SYSTEM_ERROR,
     /**
-     * Error stopping the Open DS server.
+     * Error downloading jar files from web start server.  This is specific
+     * to the web start installation.
      */
-    STOP_ERROR,
+    DOWNLOAD_ERROR,
     /**
-     * Error disabling the Windows service.
+     * Error during the configuration of the Directory Server.
+     */
+    CONFIGURATION_ERROR,
+    /**
+     * Error during the import of data (base entry, from LDIF file or
+     * automatically generated data).
+     */
+    IMPORT_ERROR,
+    /**
+     * Error starting the Open DS server.
+     */
+    START_ERROR,
+    /**
+     * Error enabling the Windows service.
      */
     WINDOWS_SERVICE_ERROR,
     /**
@@ -66,12 +78,14 @@ public class UninstallException extends Exception
   };
 
   /**
-   * The constructor of the UninstallException.
+   * The constructor of the QuickSetupException.
    * @param type the type of error we have.
    * @param localizedMsg a localized string describing the problem.
    * @param rootCause the root cause of this exception.
    */
-  public UninstallException(Type type, String localizedMsg, Throwable rootCause)
+  public QuickSetupException(Type type,
+                             String localizedMsg,
+                             Throwable rootCause)
   {
     super(localizedMsg, rootCause);
     this.type = type;
