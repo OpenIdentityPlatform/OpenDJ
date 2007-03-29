@@ -26,12 +26,10 @@
  */
 package org.opends.quicksetup.installer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 
-import org.opends.quicksetup.SplashScreen;
-import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.quicksetup.Launcher;
+import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -39,129 +37,132 @@ import org.opends.quicksetup.util.Utils;
  * the Directory Server. It just checks the command line arguments and the
  * environment and determines whether the graphical or the command line
  * based setup much be launched.
- *
  */
-public class InstallLauncher
-{
+public class InstallLauncher extends Launcher {
+
   /**
    * The main method which is called by the setup command lines.
+   *
    * @param args the arguments passed by the command lines.  In the case
    * we want to launch the cli setup they are basically the arguments that we
    * will pass to the org.opends.server.tools.InstallDS class.
    */
-  public static void main(String[] args)
-  {
-    boolean displayUsage = false;
-    boolean useCli = false;
-    if ((args != null) && (args.length > 0))
-    {
-      for (int i = 0; i < args.length; i++)
-      {
-        if (args[i].equals("--cli"))
-        {
-          useCli = true;
-        }
-      }
+  public static void main(String[] args) {
+    new InstallLauncher(args).launch();
+  }
 
-      if (!useCli)
-      {
-        if (args.length > 0)
-        {
-          if (args.length == 2)
-          {
+  /**
+   * Creates a launcher.
+   *
+   * @param args the arguments passed by the command lines.
+   */
+  public InstallLauncher(String[] args) {
+    super(args);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected boolean shouldPrintUsage() {
+    boolean displayUsage = false;
+    if ((args != null) && (args.length > 0)) {
+      if (!isCli()) {
+        if (args.length > 0) {
+          if (args.length == 2) {
             /*
              * Just ignore the -P argument that is passed by the setup command
              * line.
              */
-            if (!args[0].equals("-P"))
-            {
+            if (!args[0].equals("-P")) {
               displayUsage = true;
             }
-          } else
-          {
+          } else {
             displayUsage = true;
           }
         }
       }
     }
-    if (displayUsage)
-    {
-      String arg;
-      if (Utils.isWindows())
-      {
-        arg = Utils.getWindowsSetupFileName();
-      } else
-      {
-        arg = Utils.getUnixSetupFileName();
-      }
-      /*
-       * This is required because the usage message contains '{' characters that
-       * mess up the MessageFormat.format method.
-       */
-      String msg;
-
-      if (Utils.isWindows())
-      {
-        msg= getMsg("setup-launcher-usage-windows");
-      }
-      else
-      {
-        msg= getMsg("setup-launcher-usage-unix");
-      }
-      msg = msg.replace("{0}", arg);
-      System.err.println(msg);
-      System.exit(1);
-    } else if (useCli)
-    {
-      int exitCode = launchCliSetup(args);
-      if (exitCode != 0)
-      {
-        System.exit(exitCode);
-      }
-    } else
-    {
-      System.setProperty("org.opends.quicksetup.Application.class",
-              "org.opends.quicksetup.installer.offline.OfflineInstaller");
-      int exitCode = launchGuiSetup(args);
-      if (exitCode != 0)
-      {
-        System.err.println(getMsg("setup-launcher-gui-launched-failed"));
-        exitCode = launchCliSetup(args);
-        if (exitCode != 0)
-        {
-          System.exit(exitCode);
-        }
-      }
-    }
+    return displayUsage;
   }
 
   /**
-   * Launches the command line based setup.
-   * @param args the arguments passed
-   * @return 0 if everything worked fine, and an error code if something wrong
-   * occurred (as specified in org.opends.server.tools.InstallDS).
-   * @see org.opends.server.tools.InstallDS
+   * {@inheritDoc}
    */
-  private static int launchCliSetup(String[] args)
-  {
+  protected void guiLaunchFailed() {
+    System.err.println(getMsg("setup-launcher-gui-launched-failed"));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected void willLaunchGui() {
+    System.out.println(getMsg("setup-launcher-launching-gui"));
+    System.setProperty("org.opends.quicksetup.Application.class",
+            "org.opends.quicksetup.installer.offline.OfflineInstaller");
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected String getFrameTitle() {
+    return getMsg("frame-install-title");
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void printUsage() {
+    String arg;
+    if (Utils.isWindows()) {
+      arg = Utils.getWindowsSetupFileName();
+    } else {
+      arg = Utils.getUnixSetupFileName();
+    }
+    /*
+     * This is required because the usage message contains '{' characters that
+     * mess up the MessageFormat.format method.
+     */
+    String msg;
+
+    if (Utils.isWindows()) {
+      msg = getMsg("setup-launcher-usage-windows");
+    } else {
+      msg = getMsg("setup-launcher-usage-unix");
+    }
+    msg = msg.replace("{0}", arg);
+    printUsage(msg);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected CliApplication createCliApplication() {
+    // Setup currently has no implemented CliApplication
+    // but rather relies on InstallDS from the server
+    // package.  Note that launchCli is overloaded
+    // to run this application instead of the default
+    // behavior in Launcher
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected int launchCli(String[] args, CliApplication cliApp) {
     System.setProperty("org.opends.quicksetup.cli", "true");
 
-    if (Utils.isWindows())
-    {
+    if (Utils.isWindows()) {
       System.setProperty("org.opends.server.scriptName",
-          Utils.getWindowsSetupFileName());
-    } else
-    {
+              Utils.getWindowsSetupFileName());
+    } else {
       System.setProperty("org.opends.server.scriptName",
-          Utils.getUnixSetupFileName());
+              Utils.getUnixSetupFileName());
     }
     ArrayList<String> newArgList = new ArrayList<String>();
-    if (args != null)
-    {
-      for (int i = 0; i < args.length; i++)
-      {
-        if (!args[i].equalsIgnoreCase("--cli"))
-        {
+    if (args != null) {
+      for (int i = 0; i < args.length; i++) {
+        if (!args[i].equalsIgnoreCase("--cli")) {
           newArgList.add(args[i]);
         }
       }
@@ -177,92 +178,4 @@ public class InstallLauncher
     return org.opends.server.tools.InstallDS.installMain(newArgs);
   }
 
-  /**
-   * Launches the graphical setup. The graphical setup is launched in a
-   * different thread that the main thread because if we have a problem with the
-   * graphical system (for instance the DISPLAY environment variable is not
-   * correctly set) the native libraries will call exit. However if we launch
-   * this from another thread, the thread will just be killed.
-   *
-   * This code also assumes that if the call to SplashWindow.main worked (and
-   * the splash screen was displayed) we will never get out of it (we will call
-   * a System.exit() when we close the graphical setup dialog).
-   *
-   * @params String[] args the arguments used to call the SplashWindow main
-   *         method
-   * @return 0 if everything worked fine, or 1 if we could not display properly
-   *         the SplashWindow.
-   */
-  private static int launchGuiSetup(final String[] args)
-  {
-    System.out.println(getMsg("setup-launcher-launching-gui"));
-    final int[] returnValue =
-      { -1 };
-    Thread t = new Thread(new Runnable()
-    {
-      public void run()
-      {
-        // Setup MacOSX native menu bar before AWT is loaded.
-        Utils.setMacOSXMenuBar(getMsg("frame-install-title"));
-        SplashScreen.main(args);
-        returnValue[0] = 0;
-      }
-    });
-    /*
-     * This is done to avoid displaying the stack that might occur if there are
-     * problems with the display environment.
-     */
-    PrintStream printStream = System.err;
-    System.setErr(new EmptyPrintStream());
-    t.start();
-    try
-    {
-      t.join();
-    }
-    catch (InterruptedException ie)
-    {
-      /* An error occurred, so the return value will be -1.  We got nothing to
-      do with this exception. */
-    }
-    System.setErr(printStream);
-    return returnValue[0];
-  }
-
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   */
-  private static String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private static ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
-  }
-
-  /**
-   * This class is used to avoid displaying the error message related to display
-   * problems that we might have when trying to display the SplashWindow.
-   *
-   */
-  static class EmptyPrintStream extends PrintStream
-  {
-    /**
-     * Default constructor.
-     *
-     */
-    public EmptyPrintStream()
-    {
-      super(new ByteArrayOutputStream(), true);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void println(String msg)
-    {
-    }
-  }
 }
