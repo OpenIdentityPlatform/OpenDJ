@@ -634,9 +634,7 @@ public class Utils
     String userDir = System.getProperty("user.home");
     String firstLocation =
         userDir + File.separator
-            + org.opends.server.util.DynamicConstants.SHORT_NAME + "-"
-            + org.opends.server.util.DynamicConstants.MAJOR_VERSION + "."
-            + org.opends.server.util.DynamicConstants.MINOR_VERSION;
+            + org.opends.server.util.DynamicConstants.SHORT_NAME;
     String serverLocation = firstLocation;
     int i = 1;
     while (fileExists(serverLocation)
