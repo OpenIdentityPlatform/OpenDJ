@@ -119,8 +119,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     configEntryDN = configuration.dn();
 
     // Get and validate the subject attribute to user attribute mappings.
-    LinkedHashMap<String,AttributeType> attributeMap =
-         new LinkedHashMap<String,AttributeType>();
+    attributeMap = new LinkedHashMap<String,AttributeType>();
     for (String mapStr : configuration.getSubjectAttributeMapping())
     {
       String lowerMap = toLowerCase(mapStr);
