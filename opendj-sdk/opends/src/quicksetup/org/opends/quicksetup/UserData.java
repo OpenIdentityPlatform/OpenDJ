@@ -48,6 +48,8 @@ public class UserData {
    * Creates a user data object with default values.
    */
   public UserData() {
+    startServer = true;
+
     DataOptions defaultDataOptions = new DefaultDataOptions();
 
     setServerLocation(Utils.getDefaultServerLocation());

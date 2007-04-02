@@ -51,8 +51,8 @@ public class Upgrader extends Application implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public Step getFirstWizardStep() {
-    return Step.WELCOME;
+  public WizardStep getFirstWizardStep() {
+    return null;
   }
 
   /**
@@ -60,7 +60,7 @@ public class Upgrader extends Application implements CliApplication {
    */
   protected void setWizardDialogState(QuickSetupDialog dlg,
                                       UserData userData,
-                                      Step step) {
+                                      WizardStep step) {
   }
 
   /**
@@ -121,22 +121,73 @@ public class Upgrader extends Application implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public Set<Step> getWizardSteps() {
+  public Set<WizardStep> getWizardSteps() {
     return null;
   }
 
   /**
    * {@inheritDoc}
    */
-  public QuickSetupStepPanel createWizardStepPanel(Step step) {
+  public QuickSetupStepPanel createWizardStepPanel(WizardStep step) {
     return null;
   }
 
   /**
    * {@inheritDoc}
    */
-  public Step getNextWizardStep(Step step) {
+  public Step getNextWizardStep(WizardStep step) {
     return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public WizardStep getPreviousWizardStep(WizardStep step) {
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void quitClicked(WizardStep step, QuickSetup qs) {
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected void updateUserData(WizardStep cStep, QuickSetup qs)
+          throws UserDataException
+  {
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void previousClicked(WizardStep cStep, QuickSetup qs) {
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void finishClicked(final WizardStep cStep, final QuickSetup qs) {
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void nextClicked(WizardStep cStep, QuickSetup qs) {
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void closeClicked(WizardStep cStep, QuickSetup qs) {
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void cancelClicked(WizardStep cStep, QuickSetup qs) {
   }
 
   /**

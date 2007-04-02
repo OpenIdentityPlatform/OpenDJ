@@ -35,8 +35,8 @@ import java.util.Set;
 
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.installer.FieldName;
+import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.*;
-import org.opends.quicksetup.util.Utils;
 
 /**
  * This is the class that contains the panel on the right-top part of the
@@ -55,8 +55,10 @@ public class CurrentStepPanel extends QuickSetupPanel
 {
   private static final long serialVersionUID = 5474803491510999334L;
 
-  private HashMap<Step, QuickSetupStepPanel> hmPanels =
-      new HashMap<Step, QuickSetupStepPanel>();
+  private HashMap<WizardStep, QuickSetupStepPanel> hmPanels =
+      new HashMap<WizardStep, QuickSetupStepPanel>();
+
+  private Application application;
 
   /**
    * The constructor of this class.
@@ -64,6 +66,7 @@ public class CurrentStepPanel extends QuickSetupPanel
    */
   public CurrentStepPanel(Application app)
   {
+    this.application = app;
     createLayout(app);
   }
 
@@ -75,7 +78,7 @@ public class CurrentStepPanel extends QuickSetupPanel
   public Object getFieldValue(FieldName fieldName)
   {
     Object value = null;
-    for (Step s : hmPanels.keySet())
+    for (WizardStep s : hmPanels.keySet())
     {
       value = getPanel(s).getFieldValue(fieldName);
       if (value != null)
@@ -96,7 +99,7 @@ public class CurrentStepPanel extends QuickSetupPanel
    */
   public void displayFieldInvalid(FieldName fieldName, boolean invalid)
   {
-    for (Step s : hmPanels.keySet())
+    for (WizardStep s : hmPanels.keySet())
     {
       getPanel(s).displayFieldInvalid(fieldName, invalid);
     }
@@ -119,9 +122,9 @@ public class CurrentStepPanel extends QuickSetupPanel
   private void createLayout(Application app)
   {
 
-    Set<Step> steps = app.getWizardSteps();
+    Set<WizardStep> steps = app.getWizardSteps();
     if (steps != null) {
-      for (Step step : steps) {
+      for (WizardStep step : steps) {
         QuickSetupStepPanel panel = app.createWizardStepPanel(step);
         if (panel != null) {
           hmPanels.put(step, panel);
@@ -132,7 +135,7 @@ public class CurrentStepPanel extends QuickSetupPanel
     int minWidth = 0;
     int minHeight = 0;
     setLayout(new CardLayout());
-    for (Step s : hmPanels.keySet())
+    for (WizardStep s : hmPanels.keySet())
     {
       minWidth = Math.max(minWidth, getPanel(s).getMinimumWidth());
       minHeight = Math.max(minHeight, getPanel(s).getMinimumHeight());
@@ -140,7 +143,8 @@ public class CurrentStepPanel extends QuickSetupPanel
     }
 
     // For aesthetical reasons we add a little bit of height
-    if (!Utils.isUninstall())
+    // TODO: remove this hack
+    if (application instanceof Installer)
     {
       minHeight += UIFactory.EXTRA_DIALOG_HEIGHT;
     }
@@ -156,7 +160,7 @@ public class CurrentStepPanel extends QuickSetupPanel
    */
   public void addButtonActionListener(ButtonActionListener l)
   {
-    for (Step s : hmPanels.keySet())
+    for (WizardStep s : hmPanels.keySet())
     {
       getPanel(s).addButtonActionListener(l);
     }
@@ -168,7 +172,7 @@ public class CurrentStepPanel extends QuickSetupPanel
    */
   public void removeButtonActionListener(ButtonActionListener l)
   {
-    for (Step s : hmPanels.keySet())
+    for (WizardStep s : hmPanels.keySet())
     {
       getPanel(s).removeButtonActionListener(l);
     }
@@ -181,7 +185,7 @@ public class CurrentStepPanel extends QuickSetupPanel
    * @param userData the UserData object that must be used to populate
    * the panels.
    */
-  public void setDisplayedStep(Step step, UserData userData)
+  public void setDisplayedStep(WizardStep step, UserData userData)
   {
     CardLayout cl = (CardLayout) (getLayout());
     getPanel(step).beginDisplay(userData);
@@ -196,7 +200,7 @@ public class CurrentStepPanel extends QuickSetupPanel
    */
   public void displayProgress(ProgressDescriptor descriptor)
   {
-    for (Step s : hmPanels.keySet())
+    for (WizardStep s : hmPanels.keySet())
     {
       getPanel(s).displayProgress(descriptor);
     }
@@ -207,7 +211,7 @@ public class CurrentStepPanel extends QuickSetupPanel
    * @param step the step for which we want to get the panel.
    * @return the panel for the provided step.
    */
-  private QuickSetupStepPanel getPanel(Step step)
+  private QuickSetupStepPanel getPanel(WizardStep step)
   {
     return hmPanels.get(step);
   }

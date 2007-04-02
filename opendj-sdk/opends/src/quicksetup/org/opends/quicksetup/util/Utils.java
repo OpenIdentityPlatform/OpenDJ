@@ -826,17 +826,6 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if this is an uninstallation and
-   * <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if this is an uninstallation and
-   * <CODE>false</CODE> otherwise.
-   */
-  public static boolean isUninstall()
-  {
-    return "true".equals(System.getProperty("org.opends.quicksetup.uninstall"));
-  }
-
-  /**
    * Returns <CODE>true</CODE> if this is executed from command line and
    * <CODE>false</CODE> otherwise.
    * @return <CODE>true</CODE> if this is executed from command line and

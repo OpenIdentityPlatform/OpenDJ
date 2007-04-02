@@ -35,7 +35,6 @@ import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.UIFactory;
-import org.opends.quicksetup.uninstaller.UninstallUserData;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
@@ -77,7 +76,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
   private CurrentInstallStatus installStatus;
 
-  private Step currentStep = Step.WELCOME;
+  private WizardStep currentStep;
 
   private QuickSetupDialog dialog;
 
@@ -88,17 +87,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   private ProgressDescriptor lastDisplayedDescriptor;
 
   private ProgressDescriptor descriptorToDisplay;
-
-  // Constants used to do checks
-  private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
-
-  private static final int MIN_PORT_VALUE = 1;
-
-  private static final int MAX_PORT_VALUE = 65535;
-
-  private static final int MIN_NUMBER_ENTRIES = 1;
-
-  private static final int MAX_NUMBER_ENTRIES = 10000;
 
   // Update period of the dialogs.
   private static final int UPDATE_PERIOD = 500;
@@ -246,47 +234,19 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       } catch (Exception ex)
       {
       }
-      synchronized (this)
-      {
-        if (Utils.isUninstall())
-        {
-          final ProgressDescriptor desc = descriptorToDisplay;
-          if (desc != null)
-          {
-            if (desc != lastDisplayedDescriptor)
-            {
-              lastDisplayedDescriptor = desc;
+      synchronized (this) {
+        final ProgressDescriptor desc = descriptorToDisplay;
+        if (desc != null) {
+          if (desc != lastDisplayedDescriptor) {
+            lastDisplayedDescriptor = desc;
 
-              SwingUtilities.invokeLater(new Runnable()
-              {
-                public void run()
-                {
-                  getDialog().displayProgress(desc);
-                }
-              });
-            }
-            doPool = desc != lastDescriptor;
+            SwingUtilities.invokeLater(new Runnable() {
+              public void run() {
+                getDialog().displayProgress(desc);
+              }
+            });
           }
-        }
-        else
-        {
-          final ProgressDescriptor desc = descriptorToDisplay;
-          if (desc != null)
-          {
-            if (desc != lastDisplayedDescriptor)
-            {
-              lastDisplayedDescriptor = desc;
-
-              SwingUtilities.invokeLater(new Runnable()
-              {
-                public void run()
-                {
-                  getDialog().displayProgress(desc);
-                }
-              });
-            }
-            doPool = desc != lastDescriptor;
-          }
+          doPool = desc != lastDescriptor;
         }
       }
     }
@@ -298,55 +258,37 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private void nextClicked()
   {
-    final Step cStep = getCurrentStep();
-    switch (cStep)
-    {
-    case PROGRESS:
-      throw new IllegalStateException(
-          "Cannot click on next from progress step");
-
-    case REVIEW:
-      throw new IllegalStateException("Cannot click on next from review step");
-
-    default:
-      BackgroundTask worker = new BackgroundTask()
-      {
-        public Object processBackgroundTask() throws UserDataException {
-          try
-          {
-            updateUserData(cStep);
-          }
-          catch (UserDataException uide)
-          {
-            throw uide;
-          }
-          catch (Throwable t)
-          {
-            throw new UserDataException(cStep,
-                getThrowableMsg("bug-msg", t));
-          }
-          return null;
+    final WizardStep cStep = getCurrentStep();
+    application.nextClicked(cStep, this);
+    BackgroundTask worker = new BackgroundTask() {
+      public Object processBackgroundTask() throws UserDataException {
+        try {
+          application.updateUserData(cStep, QuickSetup.this);
         }
-
-        public void backgroundTaskCompleted(Object returnValue,
-            Throwable throwable)
-        {
-          getDialog().workerFinished();
-
-          if (throwable != null)
-          {
-            UserDataException ude = (UserDataException)throwable;
-            displayError(ude.getLocalizedMessage(), getMsg("error-title"));
-          }
-          else
-          {
-            setCurrentStep(nextStep(cStep));
-          }
+        catch (UserDataException uide) {
+          throw uide;
         }
-      };
-      getDialog().workerStarted();
-      worker.startBackgroundTask();
-    }
+        catch (Throwable t) {
+          throw new UserDataException(cStep,
+                  getThrowableMsg("bug-msg", t));
+        }
+        return null;
+      }
+
+      public void backgroundTaskCompleted(Object returnValue,
+                                          Throwable throwable) {
+        getDialog().workerFinished();
+
+        if (throwable != null) {
+          UserDataException ude = (UserDataException) throwable;
+          displayError(ude.getLocalizedMessage(), getMsg("error-title"));
+        } else {
+          setCurrentStep(application.getNextWizardStep(cStep));
+        }
+      }
+    };
+    getDialog().workerStarted();
+    worker.startBackgroundTask();
   }
 
   /**
@@ -355,82 +297,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private void finishClicked()
   {
-    final Step cStep = getCurrentStep();
-    switch (cStep)
-    {
-    case REVIEW:
-      updateUserDataForReviewPanel();
-      launchInstallation();
-      setCurrentStep(Step.PROGRESS);
-      break;
-
-    case CONFIRM_UNINSTALL:
-      BackgroundTask worker = new BackgroundTask()
-      {
-        public Object processBackgroundTask() throws UserDataException
-        {
-          try
-          {
-            updateUserUninstallDataForConfirmUninstallPanel();
-          }
-          catch (UserDataException uude)
-          {
-            throw uude;
-          } catch (Throwable t)
-          {
-            throw new UserDataException(cStep,
-                getThrowableMsg("bug-msg", t));
-          }
-          return CurrentInstallStatus.isServerRunning();
-        }
-
-        public void backgroundTaskCompleted(Object returnValue,
-            Throwable throwable)
-        {
-          getDialog().workerFinished();
-          if (throwable != null)
-          {
-            displayError(throwable.getLocalizedMessage(),
-                    getMsg("error-title"));
-          } else
-          {
-            boolean serverRunning = (Boolean) returnValue;
-            if (!serverRunning)
-            {
-              application.getUserData().setStopServer(false);
-              if (displayConfirmation(
-                  getMsg("confirm-uninstall-server-not-running-msg"),
-                  getMsg("confirm-uninstall-server-not-running-title")))
-              {
-                launchUninstallation();
-                setCurrentStep(nextStep(cStep));
-              }
-            }
-            else
-            {
-              if (displayConfirmation(
-                      getMsg("confirm-uninstall-server-running-msg"),
-                      getMsg("confirm-uninstall-server-running-title")))
-              {
-                  application.getUserData().setStopServer(true);
-                  launchUninstallation();
-                  setCurrentStep(nextStep(cStep));
-              } else
-              {
-                  application.getUserData().setStopServer(false);
-              }
-            }
-          }
-        }
-      };
-      getDialog().workerStarted();
-      worker.startBackgroundTask();
-      break;
-
-    default:
-      throw new IllegalStateException(
-          "Cannot click on finish when we are not in the Review window");
-    }
+    final WizardStep cStep = getCurrentStep();
+    application.finishClicked(cStep, this);
   }
 
   /**
@@ -439,20 +307,9 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private void previousClicked()
   {
-    Step cStep = getCurrentStep();
-    switch (cStep)
-    {
-    case WELCOME:
-      throw new IllegalStateException(
-          "Cannot click on previous from progress step");
-
-    case PROGRESS:
-      throw new IllegalStateException(
-          "Cannot click on previous from progress step");
-
-    default:
-      setCurrentStep(previousStep(cStep));
-    }
+    WizardStep cStep = getCurrentStep();
+    application.previousClicked(cStep, this);
+    setCurrentStep(application.getPreviousWizardStep(cStep));
   }
 
   /**
@@ -461,28 +318,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private void quitClicked()
   {
-    Step cStep = getCurrentStep();
-    switch (cStep)
-    {
-    case PROGRESS:
-      throw new IllegalStateException(
-          "Cannot click on quit from progress step");
-
-    default:
-      if (Utils.isUninstall())
-      {
-        quit();
-      }
-      else if (installStatus.isInstalled())
-      {
-        quit();
-
-      } else if (displayConfirmation(getMsg("confirm-quit-install-msg"),
-          getMsg("confirm-quit-install-title")))
-      {
-        quit();
-      }
-    }
+    WizardStep cStep = getCurrentStep();
+    application.quitClicked(cStep, this);
   }
 
   /**
@@ -491,18 +328,10 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private void continueInstallClicked()
   {
-    Step cStep = getCurrentStep();
-    switch (cStep)
-    {
-    case WELCOME:
-      application.forceToDisplay();
-      getDialog().forceToDisplay();
-      setCurrentStep(Step.WELCOME);
-      break;
-    default:
-      throw new IllegalStateException(
-          "Continue only can be clicked on WELCOME step");
-    }
+    // TODO:  move this stuff to Installer?
+    application.forceToDisplay();
+    getDialog().forceToDisplay();
+    setCurrentStep(Step.WELCOME);
   }
 
   /**
@@ -511,35 +340,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private void closeClicked()
   {
-    Step cStep = getCurrentStep();
-    switch (cStep)
-    {
-    case PROGRESS:
-      if (Utils.isUninstall())
-      {
-        boolean finished = application.isFinished();
-        if (finished
-            || displayConfirmation(getMsg("confirm-close-uninstall-msg"),
-                getMsg("confirm-close-uninstall-title")))
-        {
-          quit();
-        }
-      } else
-      {
-        boolean finished = application.isFinished();
-        if (finished
-            || displayConfirmation(getMsg("confirm-close-install-msg"),
-                getMsg("confirm-close-install-title")))
-        {
-          quit();
-        }
-      }
-      break;
-
-    default:
-      throw new IllegalStateException(
-          "Close only can be clicked on PROGRESS step");
-    }
+    WizardStep cStep = getCurrentStep();
+    application.closeClicked(cStep, this);
   }
 
   /**
@@ -548,17 +350,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   private void cancelClicked()
   {
-    Step cStep = getCurrentStep();
-    switch (cStep)
-    {
-    case CONFIRM_UNINSTALL:
-      quit();
-      break;
-
-    default:
-      throw new IllegalStateException(
-          "Cancel only can be clicked on CONFIRM_UNINSTALL step");
-    }
+    WizardStep cStep = getCurrentStep();
+    application.cancelClicked(cStep, this);
   }
 
   private void launchStatusPanelClicked()
@@ -626,394 +419,9 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * quit the program.
    *
    */
-  private void quit()
+  public void quit()
   {
     System.exit(0);
-  }
-
-  /**
-   * These methods validate the data provided by the user in the panels and
-   * update the userData object according to that content.
-   *
-   * @param cStep
-   *          the current step of the wizard
-   *
-   * @throws UserDataException if the data provided by the user is not
-   *           valid.
-   *
-   */
-  private void updateUserData(Step cStep) throws UserDataException {
-    switch (cStep)
-    {
-    case SERVER_SETTINGS:
-      updateUserDataForServerSettingsPanel();
-      break;
-
-    case DATA_OPTIONS:
-      updateUserDataForDataOptionsPanel();
-      break;
-
-    case REVIEW:
-      updateUserDataForReviewPanel();
-      break;
-    }
-  }
-
-  /**
-   * Validate the data provided by the user in the server settings panel and
-   * update the userData object according to that content.
-   *
-   * @throws UserDataException if the data provided by the user is not
-   *           valid.
-   *
-   */
-  private void updateUserDataForServerSettingsPanel()
-      throws UserDataException {
-    ArrayList<String> errorMsgs = new ArrayList<String>();
-
-    if (isWebStart())
-    {
-      // Check the server location
-      String serverLocation = getFieldStringValue(FieldName.SERVER_LOCATION);
-
-      if ((serverLocation == null) || ("".equals(serverLocation.trim())))
-      {
-        errorMsgs.add(getMsg("empty-server-location"));
-        displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      } else if (!Utils.parentDirectoryExists(serverLocation))
-      {
-        String[] arg =
-          { serverLocation };
-        errorMsgs.add(getMsg("parent-directory-does-not-exist", arg));
-        displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      } else if (Utils.fileExists(serverLocation))
-      {
-        String[] arg =
-          { serverLocation };
-        errorMsgs.add(getMsg("file-exists", arg));
-        displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      } else if (Utils.directoryExistsAndIsNotEmpty(serverLocation))
-      {
-        String[] arg =
-          { serverLocation };
-        errorMsgs.add(getMsg("directory-exists-not-empty", arg));
-        displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      } else if (!Utils.canWrite(serverLocation))
-      {
-        String[] arg =
-          { serverLocation };
-        errorMsgs.add(getMsg("directory-not-writable", arg));
-        displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-
-      } else if (!Utils.hasEnoughSpace(serverLocation,
-          getRequiredInstallSpace()))
-      {
-        long requiredInMb = getRequiredInstallSpace() / (1024 * 1024);
-        String[] args =
-          { serverLocation, String.valueOf(requiredInMb) };
-        errorMsgs.add(getMsg("not-enough-disk-space", args));
-        displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-
-      } else
-      {
-        application.getUserData().setServerLocation(serverLocation);
-        displayFieldInvalid(FieldName.SERVER_LOCATION, false);
-      }
-    }
-
-    // Check the port
-    String sPort = getFieldStringValue(FieldName.SERVER_PORT);
-    try
-    {
-      int port = Integer.parseInt(sPort);
-      if ((port < MIN_PORT_VALUE) || (port > MAX_PORT_VALUE))
-      {
-        String[] args =
-          { String.valueOf(MIN_PORT_VALUE), String.valueOf(MAX_PORT_VALUE) };
-        errorMsgs.add(getMsg("invalid-port-value-range", args));
-        displayFieldInvalid(FieldName.SERVER_PORT, true);
-      } else if (!Utils.canUseAsPort(port))
-      {
-        if (Utils.isPriviledgedPort(port))
-        {
-          errorMsgs.add(getMsg("cannot-bind-priviledged-port", new String[]
-            { String.valueOf(port) }));
-        } else
-        {
-          errorMsgs.add(getMsg("cannot-bind-port", new String[]
-            { String.valueOf(port) }));
-        }
-        displayFieldInvalid(FieldName.SERVER_PORT, true);
-
-      } else
-      {
-        application.getUserData().setServerPort(port);
-        displayFieldInvalid(FieldName.SERVER_PORT, false);
-      }
-
-    } catch (NumberFormatException nfe)
-    {
-      String[] args =
-        { String.valueOf(MIN_PORT_VALUE), String.valueOf(MAX_PORT_VALUE) };
-      errorMsgs.add(getMsg("invalid-port-value-range", args));
-      displayFieldInvalid(FieldName.SERVER_PORT, true);
-    }
-
-    // Check the Directory Manager DN
-    String dmDn = getFieldStringValue(FieldName.DIRECTORY_MANAGER_DN);
-
-    if ((dmDn == null) || (dmDn.trim().length() == 0))
-    {
-      errorMsgs.add(getMsg("empty-directory-manager-dn"));
-      displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, true);
-    } else if (!Utils.isDn(dmDn))
-    {
-      errorMsgs.add(getMsg("not-a-directory-manager-dn"));
-      displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, true);
-    } else if (Utils.isConfigurationDn(dmDn))
-    {
-      errorMsgs.add(getMsg("directory-manager-dn-is-config-dn"));
-      displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, true);
-    } else
-    {
-      application.getUserData().setDirectoryManagerDn(dmDn);
-      displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, false);
-    }
-
-    // Check the provided passwords
-    String pwd1 = getFieldStringValue(FieldName.DIRECTORY_MANAGER_PWD);
-    String pwd2 = getFieldStringValue(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM);
-    if (pwd1 == null)
-    {
-      pwd1 = "";
-    }
-
-    boolean pwdValid = true;
-    if (!pwd1.equals(pwd2))
-    {
-      errorMsgs.add(getMsg("not-equal-pwd"));
-      displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM, true);
-      pwdValid = false;
-
-    }
-    if (pwd1.length() < MIN_DIRECTORY_MANAGER_PWD)
-    {
-      errorMsgs.add(getMsg(("pwd-too-short"), new String[]
-        { String.valueOf(MIN_DIRECTORY_MANAGER_PWD) }));
-      displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD, true);
-      if ((pwd2 == null) || (pwd2.length() < MIN_DIRECTORY_MANAGER_PWD))
-      {
-        displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM, true);
-      }
-      pwdValid = false;
-    }
-
-    if (pwdValid)
-    {
-      application.getUserData().setDirectoryManagerPwd(pwd1);
-      displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD, false);
-      displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM, false);
-    }
-
-    int defaultJMXPort = UserData.getDefaultJMXPort();
-    if (defaultJMXPort != -1)
-    {
-      application.getUserData().setServerJMXPort(defaultJMXPort);
-    }
-
-    if (errorMsgs.size() > 0)
-    {
-      throw new UserDataException(Step.SERVER_SETTINGS,
-          Utils.getStringFromCollection(errorMsgs, "\n"));
-    }
-  }
-
-  /**
-   * Validate the data provided by the user in the data options panel and update
-   * the userData object according to that content.
-   *
-   * @throws UserDataException if the data provided by the user is not
-   *           valid.
-   *
-   */
-  private void updateUserDataForDataOptionsPanel()
-      throws UserDataException {
-    ArrayList<String> errorMsgs = new ArrayList<String>();
-
-    DataOptions dataOptions = null;
-
-    // Check the base dn
-    boolean validBaseDn = false;
-    String baseDn = getFieldStringValue(FieldName.DIRECTORY_BASE_DN);
-    if ((baseDn == null) || (baseDn.trim().length() == 0))
-    {
-      errorMsgs.add(getMsg("empty-base-dn"));
-      displayFieldInvalid(FieldName.DIRECTORY_BASE_DN, true);
-    } else if (!Utils.isDn(baseDn))
-    {
-      errorMsgs.add(getMsg("not-a-base-dn"));
-      displayFieldInvalid(FieldName.DIRECTORY_BASE_DN, true);
-    } else if (Utils.isConfigurationDn(baseDn))
-    {
-      errorMsgs.add(getMsg("base-dn-is-configuration-dn"));
-      displayFieldInvalid(FieldName.DIRECTORY_BASE_DN, true);
-    } else
-    {
-      displayFieldInvalid(FieldName.DIRECTORY_BASE_DN, false);
-      validBaseDn = true;
-    }
-
-    // Check the data options
-    DataOptions.Type type =
-        (DataOptions.Type) getFieldValue(FieldName.DATA_OPTIONS);
-
-    switch (type)
-    {
-    case IMPORT_FROM_LDIF_FILE:
-      String ldifPath = getFieldStringValue(FieldName.LDIF_PATH);
-      if ((ldifPath == null) || (ldifPath.trim().equals("")))
-      {
-        errorMsgs.add(getMsg("no-ldif-path"));
-        displayFieldInvalid(FieldName.LDIF_PATH, true);
-      } else if (!Utils.fileExists(ldifPath))
-      {
-        errorMsgs.add(getMsg("ldif-file-does-not-exist"));
-        displayFieldInvalid(FieldName.LDIF_PATH, true);
-      } else if (validBaseDn)
-      {
-        dataOptions = new DataOptions(type, baseDn, ldifPath);
-        displayFieldInvalid(FieldName.LDIF_PATH, false);
-      }
-      break;
-
-    case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-      // variable used to know if everything went ok during these
-      // checks
-      int startErrors = errorMsgs.size();
-
-      // Check the number of entries
-      String nEntries = getFieldStringValue(FieldName.NUMBER_ENTRIES);
-      if ((nEntries == null) || (nEntries.trim().equals("")))
-      {
-        errorMsgs.add(getMsg("no-number-entries"));
-        displayFieldInvalid(FieldName.NUMBER_ENTRIES, true);
-      } else
-      {
-        boolean nEntriesValid = false;
-        try
-        {
-          int n = Integer.parseInt(nEntries);
-
-          nEntriesValid = n >= MIN_NUMBER_ENTRIES && n <= MAX_NUMBER_ENTRIES;
-        } catch (NumberFormatException nfe)
-        {
-        }
-
-        if (!nEntriesValid)
-        {
-          String[] args =
-                { String.valueOf(MIN_NUMBER_ENTRIES),
-                    String.valueOf(MAX_NUMBER_ENTRIES) };
-          errorMsgs.add(getMsg("invalid-number-entries-range", args));
-          displayFieldInvalid(FieldName.NUMBER_ENTRIES, true);
-        } else
-        {
-          displayFieldInvalid(FieldName.NUMBER_ENTRIES, false);
-        }
-      }
-      if (startErrors == errorMsgs.size() && validBaseDn)
-      {
-        // No validation errors
-        dataOptions = new DataOptions(type, baseDn, new Integer(nEntries));
-      }
-      break;
-
-    default:
-      displayFieldInvalid(FieldName.LDIF_PATH, false);
-      displayFieldInvalid(FieldName.NUMBER_ENTRIES, false);
-      if (validBaseDn)
-      {
-        dataOptions = new DataOptions(type, baseDn);
-      }
-    }
-
-    if (dataOptions != null)
-    {
-      application.getUserData().setDataOptions(dataOptions);
-    }
-
-    if (errorMsgs.size() > 0)
-    {
-      throw new UserDataException(Step.DATA_OPTIONS,
-          Utils.getStringFromCollection(errorMsgs, "\n"));
-    }
-  }
-
-  /**
-   * Update the userData object according to the content of the review
-   * panel.
-   *
-   */
-  private void updateUserDataForReviewPanel()
-  {
-    Boolean b = (Boolean) getFieldValue(FieldName.SERVER_START);
-    application.getUserData().setStartServer(b.booleanValue());
-  }
-
-  /**
-   * Update the UserData object according to the content of the review
-   * panel.
-   *
-   */
-  private void updateUserUninstallDataForConfirmUninstallPanel()
-  throws UserDataException
-  {
-
-    // TODO:  move this to the Uninstall application
-
-    UninstallUserData uud = (UninstallUserData)application.getUserData();
-    uud.setRemoveLibrariesAndTools(
-        (Boolean)getFieldValue(FieldName.REMOVE_LIBRARIES_AND_TOOLS));
-    uud.setRemoveDatabases(
-        (Boolean)getFieldValue(FieldName.REMOVE_DATABASES));
-    uud.setRemoveConfigurationAndSchema(
-        (Boolean)getFieldValue(FieldName.REMOVE_CONFIGURATION_AND_SCHEMA));
-    uud.setRemoveBackups(
-        (Boolean)getFieldValue(FieldName.REMOVE_BACKUPS));
-    uud.setRemoveLDIFs(
-        (Boolean)getFieldValue(FieldName.REMOVE_LDIFS));
-    uud.setRemoveLogs(
-        (Boolean)getFieldValue(FieldName.REMOVE_LOGS));
-
-    Set<String> dbs = new HashSet<String>();
-    Set s = (Set)getFieldValue(FieldName.EXTERNAL_DB_DIRECTORIES);
-    for (Object v: s)
-    {
-      dbs.add((String)v);
-    }
-
-    Set<String> logs = new HashSet<String>();
-    s = (Set)getFieldValue(FieldName.EXTERNAL_LOG_FILES);
-    for (Object v: s)
-    {
-      logs.add((String)v);
-    }
-
-    uud.setExternalDbsToRemove(dbs);
-    uud.setExternalLogsToRemove(logs);
-
-    if ((dbs.size() == 0) &&
-        (logs.size() == 0) &&
-        !uud.getRemoveLibrariesAndTools() &&
-        !uud.getRemoveDatabases() &&
-        !uud.getRemoveConfigurationAndSchema() &&
-        !uud.getRemoveBackups() &&
-        !uud.getRemoveLDIFs() &&
-        !uud.getRemoveLogs())
-    {
-      throw new UserDataException(Step.CONFIRM_UNINSTALL,
-          getMsg("nothing-selected-to-uninstall"));
-    }
   }
 
   /**
@@ -1021,7 +429,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * web start or not it will use on Installer object or other.
    *
    */
-  private void launchInstallation()
+  public void launchInstallation()
   {
     ProgressMessageFormatter formatter = getDialog().getFormatter();
 
@@ -1041,7 +449,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * Launch the uninstallation of Open DS.
    *
    */
-  private void launchUninstallation()
+  public void launchUninstallation()
   {
     application.addProgressUpdateListener(this);
     new Thread(application).start();
@@ -1100,7 +508,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    *
    * @return the currently displayed Step of the wizard.
    */
-  private Step getCurrentStep()
+  private WizardStep getCurrentStep()
   {
     return currentStep;
   }
@@ -1112,7 +520,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    *
    * @param step The step to be displayed.
    */
-  public void setCurrentStep(Step step)
+  public void setCurrentStep(WizardStep step)
   {
     if (step == null)
     {
@@ -1123,60 +531,11 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
-   * Gets the next step corresponding to the step passed as parameter.
-   *
-   * @param step the step of which we want to get the new step.
-   * @return the next step for the current step.
-   */
-  public Step nextStep(Step step)
-  {
-    Step nextStep;
-    if (step == Step.CONFIRM_UNINSTALL)
-    {
-      nextStep = Step.PROGRESS;
-    }
-    else
-    {
-      Iterator<Step> it = EnumSet.range(step, Step.PROGRESS).iterator();
-      it.next();
-      if (!it.hasNext())
-      {
-        throw new IllegalArgumentException("No next for step: " + step);
-      }
-      nextStep = it.next();
-    }
-    return nextStep;
-  }
-
-  /**
-   * Gets the previous step corresponding to the step passed as parameter.
-   *
-   * @param step,
-   *          the step of which we want to get the previous step.
-   * @return the next step for the current step.
-   * @throws IllegalArgumentException
-   *           if the current step has not a previous step.
-   */
-  private Step previousStep(Step step)
-  {
-    Step previous = null;
-    for (Step s : Step.values())
-    {
-      if (s == step)
-      {
-        return previous;
-      }
-      previous = s;
-    }
-    throw new IllegalArgumentException("No previous for step: " + step);
-  }
-
-  /**
    * Get the dialog that is displayed.
    *
    * @return the dialog.
    */
-  private QuickSetupDialog getDialog()
+  public QuickSetupDialog getDialog()
   {
     if (dialog == null)
     {
@@ -1222,7 +581,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    *          the field name object.
    * @return the string value for the field name.
    */
-  private String getFieldStringValue(FieldName fieldName)
+  public String getFieldStringValue(FieldName fieldName)
   {
     String sValue = null;
 
@@ -1247,7 +606,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    *          the field name object.
    * @return the value for the field name.
    */
-  private Object getFieldValue(FieldName fieldName)
+  public Object getFieldValue(FieldName fieldName)
   {
     return getDialog().getFieldValue(fieldName);
   }
@@ -1263,7 +622,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * @param invalid
    *          whether to mark the field valid or invalid.
    */
-  private void displayFieldInvalid(FieldName fieldName, boolean invalid)
+  public void displayFieldInvalid(FieldName fieldName, boolean invalid)
   {
     getDialog().displayFieldInvalid(fieldName, invalid);
   }
@@ -1313,22 +672,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   {
     return Utils.isWebStart();
   }
-
-  /**
-   * Returns the number of free disk space in bytes required to install Open DS
-   *
-   * For the moment we just return 15 Megabytes. TODO we might want to have
-   * something dynamic to calculate the required free disk space for the
-   * installation.
-   *
-   * @return the number of free disk space required to install Open DS.
-   */
-  private long getRequiredInstallSpace()
-  {
-    return 15 * 1024 * 1024;
-  }
 }
-
 /**
  * This class is just used to specify which are the default values that will be
  * proposed to the user in the Data Options panel of the Installation wizard.

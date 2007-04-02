@@ -39,10 +39,12 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import org.opends.quicksetup.ButtonName;
-import org.opends.quicksetup.Step;
+import org.opends.quicksetup.WizardStep;
+import org.opends.quicksetup.Application;
+import org.opends.quicksetup.uninstaller.Uninstaller;
+import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
-import org.opends.quicksetup.util.Utils;
 
 /**
  * This class contains the buttons in the bottom of the Install/Uninstall
@@ -69,12 +71,16 @@ class ButtonsPanel extends QuickSetupPanel
 
   private JButton cancelButton;
 
+  private Application application;
+
   /**
    * Default constructor.
+   * @param application Application running in QuickSetup
    *
    */
-  public ButtonsPanel()
+  public ButtonsPanel(Application application)
   {
+    this.application = application;
     createButtons();
     layoutButtons();
   }
@@ -104,66 +110,14 @@ class ButtonsPanel extends QuickSetupPanel
    *
    * @param step the step in the wizard.
    */
-  public void setDisplayedStep(Step step)
+  public void setDisplayedStep(WizardStep step)
   {
-    switch (step)
-    {
-    case WELCOME:
-
-      previousButton.setVisible(false);
-      nextButton.setVisible(true);
-      finishButton.setVisible(false);
-      quitButton.setVisible(true);
-      closeButton.setVisible(false);
-      cancelButton.setVisible(false);
-
-      break;
-
-    case REVIEW:
-
-      previousButton.setVisible(true);
-      nextButton.setVisible(false);
-      finishButton.setVisible(true);
-      quitButton.setVisible(true);
-      closeButton.setVisible(false);
-      cancelButton.setVisible(false);
-
-      break;
-
-    case PROGRESS:
-
-      // TO COMPLETE: if there is an error we might want to change
-      // this
-      // like for instance coming back
-      previousButton.setVisible(false);
-      nextButton.setVisible(false);
-      finishButton.setVisible(false);
-      quitButton.setVisible(false);
-      closeButton.setVisible(true);
-      cancelButton.setVisible(false);
-
-      break;
-
-    case CONFIRM_UNINSTALL:
-
-      previousButton.setVisible(false);
-      nextButton.setVisible(false);
-      finishButton.setVisible(true);
-      quitButton.setVisible(false);
-      closeButton.setVisible(false);
-      cancelButton.setVisible(true);
-
-      break;
-
-    default:
-
-      previousButton.setVisible(true);
-      nextButton.setVisible(true);
-      finishButton.setVisible(false);
-      quitButton.setVisible(true);
-      closeButton.setVisible(false);
-      cancelButton.setVisible(false);
-    }
+    previousButton.setVisible(application.canGoBack(step));
+    nextButton.setVisible(application.canGoForward(step));
+    finishButton.setVisible(application.canFinish(step));
+    quitButton.setVisible(application.canQuit(step));
+    closeButton.setVisible(application.canClose(step));
+    cancelButton.setVisible(application.canCancel(step));
   }
 
   /**
@@ -227,14 +181,11 @@ class ButtonsPanel extends QuickSetupPanel
     quitButton =
         createButton("quit-button-label", tooltip, ButtonName.QUIT);
 
-    tooltip = Utils.isUninstall()?
-        "close-button-uninstall-tooltip":"close-button-install-tooltip";
+    tooltip = application.getCloseButtonToolTip();
     closeButton = createButton("close-button-label", tooltip, ButtonName.CLOSE);
 
-    String label = Utils.isUninstall()?
-        "finish-button-uninstall-label":"finish-button-install-label";
-    tooltip = Utils.isUninstall()?
-        "finish-button-uninstall-tooltip":"finish-button-install-tooltip";
+    String label = application.getFinishButtonLabel();
+    tooltip = application.getFinishButtonToolTip();
     finishButton = createButton(label, tooltip, ButtonName.FINISH);
 
     cancelButton =
@@ -275,8 +226,9 @@ class ButtonsPanel extends QuickSetupPanel
     // Set as opaque to inherit the background color of ButtonsPanel
     nextFinishPanel.setOpaque(false);
     nextFinishPanel.add(nextButton, gbcAux);
-    if (!Utils.isUninstall())
-    {
+
+    // TODO: remove this hack
+    if (application instanceof Installer) {
       nextFinishPanel.add(finishButton, gbcAux);
     }
     width =
@@ -295,8 +247,9 @@ class ButtonsPanel extends QuickSetupPanel
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
-    if (Utils.isUninstall())
-    {
+
+    // TODO: remove this hack
+    if (application instanceof Uninstaller) {
       gbc.insets.right = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
       add(finishButton, gbc);
       gbc.insets.right = 0;

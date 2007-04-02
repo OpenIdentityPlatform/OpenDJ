@@ -71,7 +71,6 @@ public class UninstallLauncher extends Launcher {
    */
   protected void willLaunchGui() {
     System.out.println(getMsg("uninstall-launcher-launching-gui"));
-    System.setProperty("org.opends.quicksetup.uninstall", "true");
     System.setProperty("org.opends.quicksetup.Application.class",
             "org.opends.quicksetup.uninstaller.Uninstaller");
   }

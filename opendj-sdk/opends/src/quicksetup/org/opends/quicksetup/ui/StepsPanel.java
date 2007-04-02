@@ -37,8 +37,8 @@ import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.opends.quicksetup.Step;
 import org.opends.quicksetup.Application;
+import org.opends.quicksetup.WizardStep;
 
 /**
  * This class displays the different steps of the wizard.  It appears on the
@@ -52,9 +52,11 @@ public class StepsPanel extends QuickSetupPanel
 {
   private static final long serialVersionUID = -2003945907121690657L;
 
-  HashMap<Step, JLabel> hmLabels = new HashMap<Step, JLabel>();
+  HashMap<WizardStep, JLabel> hmLabels = new HashMap<WizardStep, JLabel>();
 
-  HashMap<Step, JLabel> hmIcons = new HashMap<Step, JLabel>();
+  HashMap<WizardStep, JLabel> hmIcons = new HashMap<WizardStep, JLabel>();
+
+  Application application = null;
 
   /**
    * Creates a StepsPanel.
@@ -62,6 +64,7 @@ public class StepsPanel extends QuickSetupPanel
    */
   public StepsPanel(Application app)
   {
+    this.application = app;
     createLayout(app);
   }
 
@@ -71,11 +74,11 @@ public class StepsPanel extends QuickSetupPanel
    *
    * @param step the step in the wizard.
    */
-  public void setDisplayedStep(Step step)
+  public void setDisplayedStep(WizardStep step)
   {
-    for (Step s : Step.values())
+    for (WizardStep s : application.getWizardSteps())
     {
-      if (s == step)
+      if (s.equals(step))
       {
         getIcon(s).setVisible(true);
         UIFactory.setTextStyle(getLabel(s), UIFactory.TextStyle.CURRENT_STEP);
@@ -111,10 +114,10 @@ public class StepsPanel extends QuickSetupPanel
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.anchor = GridBagConstraints.WEST;
 
-    HashMap<Step, String> hmText = new HashMap<Step, String>();
-    ArrayList<Step> orderedSteps = new ArrayList<Step>();
+    HashMap<WizardStep, String> hmText = new HashMap<WizardStep, String>();
+    ArrayList<WizardStep> orderedSteps = new ArrayList<WizardStep>();
 
-    Step step = app.getFirstWizardStep();
+    WizardStep step = app.getFirstWizardStep();
     hmText.put(step, getMsg(step.getMessageKey()));
     orderedSteps.add(step);
     while (null != (step = app.getNextWizardStep(step))) {
@@ -122,7 +125,7 @@ public class StepsPanel extends QuickSetupPanel
       orderedSteps.add(step);
     }
 
-    for (Step s : orderedSteps)
+    for (WizardStep s : orderedSteps)
     {
       if (s != orderedSteps.get(0))
       {
@@ -187,7 +190,7 @@ public class StepsPanel extends QuickSetupPanel
    * @param step the step for which we want to retrieve the JLabel.
    * @return the label associated with the given step.
    */
-  private JLabel getLabel(Step step)
+  private JLabel getLabel(WizardStep step)
   {
     return hmLabels.get(step);
   }
@@ -197,7 +200,7 @@ public class StepsPanel extends QuickSetupPanel
    * @param step the step for which we want to retrieve the Icon.
    * @return the icon associated with the given step.
    */
-  private JLabel getIcon(Step step)
+  private JLabel getIcon(WizardStep step)
   {
     return hmIcons.get(step);
   }
