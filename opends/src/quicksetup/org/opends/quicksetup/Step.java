@@ -32,7 +32,7 @@ package org.opends.quicksetup;
  * the installation and uninstallation wizards.
  *
  */
-public enum Step
+public enum Step implements WizardStep
 
 {
   /**

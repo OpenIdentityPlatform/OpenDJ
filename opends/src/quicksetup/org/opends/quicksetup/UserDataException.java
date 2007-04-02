@@ -37,7 +37,7 @@ public class UserDataException extends Exception
 {
   private static final long serialVersionUID = 1798143194655443132L;
 
-  private Step step;
+  private WizardStep step;
 
   private String localizedMessage;
 
@@ -46,7 +46,7 @@ public class UserDataException extends Exception
    * @param step the step in the wizard where the exception occurred.
    * @param localizedMessage the localized message describing the error.
    */
-  public UserDataException(Step step, String localizedMessage)
+  public UserDataException(WizardStep step, String localizedMessage)
   {
     super(localizedMessage);
     this.step = step;
@@ -66,7 +66,7 @@ public class UserDataException extends Exception
    * Returns the step of the wizard in which this exception occurred.
    * @return the step of the wizard in which this exception occurred.
    */
-  public Step getStep()
+  public WizardStep getStep()
   {
     return step;
   }

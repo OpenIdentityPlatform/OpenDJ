@@ -73,7 +73,7 @@ public class QuickSetupDialog
 
   private ButtonsPanel buttonsPanel;
 
-  private Step displayedStep;
+  private WizardStep displayedStep;
 
   private CurrentInstallStatus installStatus;
 
@@ -168,7 +168,7 @@ public class QuickSetupDialog
    * @param userData the UserData object that must be used to populate
    * the panels.
    */
-  public void setDisplayedStep(Step step, UserData userData)
+  public void setDisplayedStep(WizardStep step, UserData userData)
   {
     displayedStep = step;
 
@@ -182,7 +182,7 @@ public class QuickSetupDialog
    * Returns the currently displayed step.
    * @return the currently displayed step.
    */
-  public Step getDisplayedStep()
+  public WizardStep getDisplayedStep()
   {
     return displayedStep;
   }
@@ -416,7 +416,7 @@ public class QuickSetupDialog
   {
     if (buttonsPanel == null)
     {
-      buttonsPanel = new ButtonsPanel();
+      buttonsPanel = new ButtonsPanel(application);
     }
     return buttonsPanel;
   }

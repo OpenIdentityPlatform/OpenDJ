@@ -156,7 +156,7 @@ public class OfflineInstaller extends Installer
    * Initialize the different map used in this class.
    *
    */
-  private void initMaps()
+  protected void initMaps()
   {
     initSummaryMap(hmSummary);
 

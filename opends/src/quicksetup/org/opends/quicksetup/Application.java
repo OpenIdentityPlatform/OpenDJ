@@ -61,7 +61,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
           Logger.getLogger(Application.class.getName());
 
   /** The currently displayed wizard step. */
-  private Step displayedStep;
+  private WizardStep displayedStep;
 
   /** Represents current install state. */
   protected CurrentInstallStatus installStatus;
@@ -608,7 +608,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns the initial wizard step.
    * @return Step representing the first step to show in the wizard
    */
-  public abstract Step getFirstWizardStep();
+  public abstract WizardStep getFirstWizardStep();
 
   /**
    * Called by the quicksetup controller when the user advances to
@@ -619,7 +619,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param userData UserData representing the data specified by the user
    * @param dlg      QuickSetupDialog hosting the wizard
    */
-  protected void setDisplayedWizardStep(Step step,
+  protected void setDisplayedWizardStep(WizardStep step,
                                         UserData userData,
                                         QuickSetupDialog dlg) {
     this.displayedStep = step;
@@ -639,7 +639,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   protected abstract void setWizardDialogState(QuickSetupDialog dlg,
                                                UserData userData,
-                                               Step step);
+                                               WizardStep step);
 
   /**
    * Returns the installation path.
@@ -760,21 +760,173 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns the set of wizard steps used in this application's wizard.
    * @return Set of Step objects representing wizard steps
    */
-  abstract public Set<Step> getWizardSteps();
+  abstract public Set<WizardStep> getWizardSteps();
 
   /**
    * Creates a wizard panel given a specific step.
    * @param step for which a panel representation should be created
    * @return QuickSetupStepPanel for representing the <code>step</code>
    */
-  abstract public QuickSetupStepPanel createWizardStepPanel(Step step);
+  abstract public QuickSetupStepPanel createWizardStepPanel(WizardStep step);
 
   /**
    * Gets the next step in the wizard given a current step.
    * @param step Step the current step
    * @return Step the next step
    */
-  abstract public Step getNextWizardStep(Step step);
+  abstract public WizardStep getNextWizardStep(WizardStep step);
+
+  /**
+   * Gets the previous step in the wizard given a current step.
+   * @param step Step the current step
+   * @return Step the previous step
+   */
+  abstract public WizardStep getPreviousWizardStep(WizardStep step);
+
+  /**
+   * Indicates whether or not the user is allowed to return to a previous
+   * step from <code>step</code>.
+   * @param step WizardStep for which the the return value indicates whether
+   * or not the user can return to a previous step
+   * @return boolean where true indicates the user can return to a previous
+   * step from <code>step</code>
+   */
+  public boolean canGoBack(WizardStep step) {
+    return !getFirstWizardStep().equals(step);
+  }
+
+  /**
+   * Indicates whether or not the user is allowed to move to a new
+   * step from <code>step</code>.
+   * @param step WizardStep for which the the return value indicates whether
+   * or not the user can move to a new step
+   * @return boolean where true indicates the user can move to a new
+   * step from <code>step</code>
+   */
+  public boolean canGoForward(WizardStep step) {
+    return getNextWizardStep(step) != null;
+  }
+
+  /**
+   * Inidicates whether or not the user is allowed to finish the wizard from
+   * <code>step</code>.
+   * @param step WizardStep for which the the return value indicates whether
+   * or not the user can finish the wizard
+   * @return boolean where true indicates the user can finish the wizard
+   */
+  public boolean canFinish(WizardStep step) {
+    return getNextWizardStep(step) != null;
+  }
+
+  /**
+   * Inidicates whether or not the user is allowed to quit the wizard from
+   * <code>step</code>.
+   * @param step WizardStep for which the the return value indicates whether
+   * or not the user can quit the wizard
+   * @return boolean where true indicates the user can quit the wizard
+   */
+  public boolean canQuit(WizardStep step) {
+    return false;
+  }
+
+  /**
+   * Inidicates whether or not the user is allowed to close the wizard from
+   * <code>step</code>.
+   * @param step WizardStep for which the the return value indicates whether
+   * or not the user can close the wizard
+   * @return boolean where true indicates the user can close the wizard
+   */
+  public boolean canClose(WizardStep step) {
+    return false;
+  }
+
+  /**
+   * Inidicates whether or not the user is allowed to cancel the wizard from
+   * <code>step</code>.
+   * @param step WizardStep for which the the return value indicates whether
+   * or not the user can cancel the wizard
+   * @return boolean where true indicates the user can cancel the wizard
+   */
+  public boolean canCancel(WizardStep step) {
+    return false;
+  }
+
+  /**
+   * Called when the user has clicked the 'previous' button.
+   * @param cStep WizardStep at which the user clicked the previous button
+   * @param qs QuickSetup controller
+   */
+  public abstract void previousClicked(WizardStep cStep, QuickSetup qs);
+
+  /**
+   * Called when the user has clicked the 'finish' button.
+   * @param cStep WizardStep at which the user clicked the previous button
+   * @param qs QuickSetup controller
+   */
+  public abstract void finishClicked(final WizardStep cStep,
+                                     final QuickSetup qs);
+
+  /**
+   * Called when the user has clicked the 'next' button.
+   * @param cStep WizardStep at which the user clicked the next button
+   * @param qs QuickSetup controller
+   */
+  public abstract void nextClicked(WizardStep cStep, QuickSetup qs);
+
+  /**
+   * Called when the user has clicked the 'close' button.
+   * @param cStep WizardStep at which the user clicked the close button
+   * @param qs QuickSetup controller
+   */
+  public abstract void closeClicked(WizardStep cStep, QuickSetup qs);
+
+  /**
+   * Called when the user has clicked the 'cancel' button.
+   * @param cStep WizardStep at which the user clicked the cancel button
+   * @param qs QuickSetup controller
+   */
+  public abstract void cancelClicked(WizardStep cStep, QuickSetup qs);
+
+  /**
+   * Called when the user has clicked the 'quit' button.
+   * @param step WizardStep at which the user clicked the quit button
+   * @param qs QuickSetup controller
+   */
+  abstract public void quitClicked(WizardStep step, QuickSetup qs);
+
+  /**
+   * Called whenever this application should update its user data from
+   * values found in QuickSetup.
+   * @param cStep current wizard step
+   * @param qs QuickSetup controller
+   * @throws UserDataException if there is a problem with the data
+   */
+  abstract protected void updateUserData(WizardStep cStep, QuickSetup qs)
+          throws UserDataException;
+
+  /**
+   * Gets the key for the close button's tool tip text.
+   * @return String key of the text in the resource bundle
+   */
+  public String getCloseButtonToolTip() {
+    return "close-button-tooltip";
+  }
+
+  /**
+   * Gets the key for the finish button's tool tip text.
+   * @return String key of the text in the resource bundle
+   */
+  public String getFinishButtonToolTip() {
+    return "finish-button-tooltip";
+  }
+
+  /**
+   * Gets the key for the finish button's label.
+   * @return String key of the text in the resource bundle
+   */
+  public String getFinishButtonLabel() {
+    return "finish-button-label";
+  }
 
   /**
    * This class is used to read the standard error and standard output of the
