@@ -167,7 +167,7 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci1.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci1.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
                 </script>
         
@@ -310,7 +310,7 @@
                 <call function="'testCase_Preamble'"/>
 
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_target/add_entries1.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_entries1.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
                 </script>
         
@@ -471,7 +471,7 @@
                 <call function="'testCase_Preamble'"/>
 
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci3.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci3.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
                 </script>
         
@@ -613,7 +613,7 @@
                 <call function="'testCase_Preamble'"/>
 
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci4.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci4.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
                 </script>
         
@@ -755,7 +755,7 @@
                 <call function="'testCase_Preamble'"/>
 
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci5.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci5.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
                 </script>
         
@@ -897,7 +897,7 @@
                 <call function="'testCase_Preamble'"/>
 
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci6.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci6.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
                 </script>
         
@@ -1036,7 +1036,7 @@
                 <call function="'testCase_Preamble'"/>
 
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci8.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci8.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
                 </script>
         
@@ -1106,7 +1106,7 @@
                 <call function="'testCase_Preamble'"/>
 
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci9.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci9.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
                 </script>
         
@@ -1177,7 +1177,7 @@
                 <call function="'testCase_Preamble'"/>
 
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci9a.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci9a.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
                 </script>
         
@@ -1318,7 +1318,7 @@
               <call function="'testCase_Preamble'"/>
 
               <script>
-                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci10.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci10.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
               </script>
         
@@ -1389,7 +1389,7 @@
               <call function="'testCase_Preamble'"/>
 
               <script>
-                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci11.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_target/add_aci11.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
               </script>
         
