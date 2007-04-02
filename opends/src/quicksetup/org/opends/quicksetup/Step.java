@@ -38,25 +38,45 @@ public enum Step
   /**
    * Welcome step for the installation.
    */
-  WELCOME,
+  WELCOME("welcome-step"),
   /**
    * Server Settings step (path, port, etc.).
    */
-  SERVER_SETTINGS,
+  SERVER_SETTINGS("server-settings-step"),
   /**
    * Data Options panel (suffix dn, LDIF path, etc.).
    */
-  DATA_OPTIONS,
+  DATA_OPTIONS("data-options-step"),
   /**
    * Review panel for the install.
    */
-  REVIEW,
+  REVIEW("review-step"),
   /**
    * Progress panel.
    */
-  PROGRESS,
+  PROGRESS("progress-step"),
   /**
    * Confirmation panel for the uninstallation.
    */
-  CONFIRM_UNINSTALL
+  CONFIRM_UNINSTALL("confirm-uninstall-step");
+
+  private String msgKey;
+
+  /**
+   * Creates a step.
+   * @param msgKey the message key used to access a message catalog to
+   * retreive this step's display name
+   */
+  Step(String msgKey) {
+    this.msgKey = msgKey;
+  }
+
+  /**
+   * Gets this steps message key.
+   * @return String message key used to access a message catalog to
+   * retreive this step's display name
+   */
+  public String getMessageKey() {
+    return msgKey;
+  }
 }

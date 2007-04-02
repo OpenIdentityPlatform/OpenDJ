@@ -40,7 +40,6 @@ import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
-import org.opends.server.util.SetupUtils;
 
 import javax.swing.*;
 import java.io.File;
@@ -117,22 +116,22 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   {
     ProgressMessageFormatter formatter = new HtmlProgressMessageFormatter();
     try {
+      installStatus = new CurrentInstallStatus();
+
       application = Application.create();
       application.setProgressMessageFormatter(formatter);
+      application.setCurrentInstallStatus(installStatus);
+
+      initLookAndFeel();
+
+      /* In the calls to setCurrentStep the dialog will be created */
+      setCurrentStep(application.getFirstWizardStep());
+
     } catch (ApplicationException e) {
       LOG.log(Level.INFO, "error", e);
       throw new RuntimeException("failed to create quicksetup application", e);
     }
-    installStatus = new CurrentInstallStatus();
-    initLookAndFeel();
-    /* In the calls to setCurrentStep the dialog will be created */
-    if (Utils.isUninstall())
-    {
-      setCurrentStep(Step.CONFIRM_UNINSTALL);
-    } else
-    {
-      setCurrentStep(Step.WELCOME);
-    }
+
   }
 
   /**
@@ -496,7 +495,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     switch (cStep)
     {
     case WELCOME:
-      getDialog().forceToDisplaySetup();
+      application.forceToDisplay();
+      getDialog().forceToDisplay();
       setCurrentStep(Step.WELCOME);
       break;
     default:
@@ -815,7 +815,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM, false);
     }
 
-    int defaultJMXPort = getDefaultJMXPort();
+    int defaultJMXPort = UserData.getDefaultJMXPort();
     if (defaultJMXPort != -1)
     {
       application.getUserData().setServerJMXPort(defaultJMXPort);
@@ -1056,37 +1056,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
-   * Provides an object representing the default data/install parameters that
-   * will be proposed to the user in the Installation wizard. This data includes
-   * elements such as the default dn of the directory manager or the default
-   * install location.
-   *
-   * @return the userData representing the default data/parameters that
-   *         will be proposed to the user.
-   */
-  private UserData getDefaultUserData()
-  {
-    UserData defaultUserData = application.createUserData();
-
-    DataOptions defaultDataOptions = new DefaultDataOptions();
-
-    defaultUserData.setServerLocation(Utils.getDefaultServerLocation());
-    // See what we can propose as port
-    int defaultPort = getDefaultPort();
-    if (defaultPort != -1)
-    {
-      defaultUserData.setServerPort(defaultPort);
-    }
-
-    defaultUserData.setDirectoryManagerDn("cn=Directory Manager");
-
-    defaultUserData.setDataOptions(defaultDataOptions);
-    defaultUserData.setStartServer(true);
-
-    return defaultUserData;
-  }
-
-  /**
    * The following three methods are just commodity methods to get localized
    * messages.
    * @param key String key
@@ -1211,7 +1180,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   {
     if (dialog == null)
     {
-      dialog = new QuickSetupDialog(getDefaultUserData(), installStatus);
+      dialog = new QuickSetupDialog(application,
+              installStatus);
       dialog.addButtonActionListener(this);
     }
     return dialog;
@@ -1343,49 +1313,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   {
     return Utils.isWebStart();
   }
-
-  /**
-   * Provides the port that will be proposed to the user in the second page of
-   * the installation wizard. It will check whether we can use 389 and if not it
-   * will return -1.
-   *
-   * @return the port 389 if it is available and we can use and -1 if not.
-   */
-  private int getDefaultPort()
-  {
-    int defaultPort = -1;
-
-    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
-    {
-      int port = i + 389;
-      if (Utils.canUseAsPort(port))
-      {
-        defaultPort = port;
-      }
-    }
-    return defaultPort;
-  }
-
-  /**
-   * Provides the port that will be used by default for JMX.
-   *
-   * @return the port X689 if it is available and we can use and -1 if not.
-   */
-  private int getDefaultJMXPort()
-  {
-    int defaultJMXPort = -1;
-
-    for (int i=0;i<65000 && (defaultJMXPort == -1);i+=1000)
-    {
-      int port = i + SetupUtils.getDefaultJMXPort();
-      if (Utils.canUseAsPort(port))
-      {
-        defaultJMXPort = port;
-      }
-    }
-    return defaultJMXPort;
-  }
-
 
   /**
    * Returns the number of free disk space in bytes required to install Open DS

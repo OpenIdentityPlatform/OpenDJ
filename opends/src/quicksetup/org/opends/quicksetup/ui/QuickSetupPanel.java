@@ -85,7 +85,7 @@ abstract class QuickSetupPanel extends JPanel
    * have something of type:
    * key=value
    *
-   * @see ResourceProvider.getMsg(String key)
+   * @see ResourceProvider#getMsg(String)
    * @param key the key in the properties file.
    * @return the value associated to the key in the properties file.
    * properties file.
@@ -105,7 +105,7 @@ abstract class QuickSetupPanel extends JPanel
    * mykey=value with argument {0}.
    *
    * This method will return "value with argument value1".
-   * @see ResourceProvider.getMsg(String key, String[] args)
+   * @see ResourceProvider#getMsg(String, String[])
    * @param key the key in the properties file.
    * @param args the arguments to be passed to generate the resulting value.
    * @return the value associated to the key in the properties file.

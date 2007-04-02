@@ -35,7 +35,7 @@ import org.opends.quicksetup.util.Utils;
  * This panel is used to show a welcome message.
  *
  */
-class InstallWelcomePanel extends QuickSetupStepPanel
+public class InstallWelcomePanel extends QuickSetupStepPanel
 {
   private static final long serialVersionUID = 6209217138897900860L;
 

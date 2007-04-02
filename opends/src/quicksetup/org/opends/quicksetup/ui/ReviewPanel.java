@@ -45,7 +45,7 @@ import org.opends.quicksetup.installer.FieldName;
  * This is the panel that contains the Review Panel.
  *
  */
-class ReviewPanel extends QuickSetupStepPanel
+public class ReviewPanel extends QuickSetupStepPanel
 {
   private static final long serialVersionUID = -7356174829193265699L;
 

@@ -28,11 +28,14 @@
 package org.opends.quicksetup.uninstaller;
 
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.ConfigureWindowsService;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.*;
+import java.awt.event.WindowEvent;
 
 /**
  * This class is in charge of performing the uninstallation of Open DS.
@@ -56,8 +59,63 @@ public class Uninstaller extends Application implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  public String getFrameTitle() {
+    return getMsg("frame-uninstall-title");
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public UserData createUserData() {
     return new UninstallUserData();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Step getFirstWizardStep() {
+    return Step.CONFIRM_UNINSTALL;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Step getNextWizardStep(Step step) {
+    Step nextStep = null;
+    if (step != null && step.equals(Step.CONFIRM_UNINSTALL)) {
+      nextStep = Step.PROGRESS;
+    }
+    return nextStep;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected void setWizardDialogState(QuickSetupDialog dlg,
+                                      UserData userData,
+                                      Step step) {
+      // Set the default button for the frame
+      switch (step) {
+        case CONFIRM_UNINSTALL:
+          dlg.setDefaultButton(ButtonName.FINISH);
+          break;
+
+        case PROGRESS:
+          dlg.setDefaultButton(ButtonName.CLOSE);
+          break;
+      }
+
+      // Set the focus for the current step
+      switch (step) {
+        case CONFIRM_UNINSTALL:
+          dlg.setFocusOnButton(ButtonName.FINISH);
+          break;
+
+        case PROGRESS:
+          dlg.setFocusOnButton(ButtonName.CLOSE);
+          dlg.setButtonEnabled(ButtonName.CLOSE, false);
+          break;
+      }
   }
 
   /**
@@ -356,6 +414,59 @@ public class Uninstaller extends Application implements CliApplication {
   public String getSummary(ProgressStep step)
   {
     return hmSummary.get(step);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void windowClosing(QuickSetupDialog dlg, WindowEvent evt) {
+    if (dlg.getDisplayedStep() == Step.PROGRESS) {
+      // Simulate a close button event
+      dlg.notifyButtonEvent(ButtonName.CLOSE);
+    } else {
+      // Simulate a quit button event
+      dlg.notifyButtonEvent(ButtonName.QUIT);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ButtonName getInitialFocusButtonName() {
+    return ButtonName.FINISH;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public JPanel createFramePanel(QuickSetupDialog dlg) {
+    return new FramePanel(dlg.getStepsPanel(),
+            dlg.getCurrentStepPanel(),
+            dlg.getButtonsPanel());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<Step> getWizardSteps() {
+    return EnumSet.of(Step.CONFIRM_UNINSTALL,
+            Step.PROGRESS);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public QuickSetupStepPanel createWizardStepPanel(Step step) {
+    QuickSetupStepPanel p = null;
+    switch (step) {
+      case CONFIRM_UNINSTALL:
+        p = new ConfirmUninstallPanel(installStatus);
+        break;
+      case PROGRESS:
+        p = new ProgressPanel();
+        break;
+    }
+    return p;
   }
 
   /**

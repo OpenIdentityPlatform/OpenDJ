@@ -140,6 +140,16 @@ public class Utils
   private static final String WINDOWS_UNINSTALL_FILE_NAME = "uninstall.bat";
 
   /**
+   * The UNIX uninstall script file name.
+   */
+  private static final String UNIX_UPGRADE_FILE_NAME = "upgrade";
+
+  /**
+   * The Windows uninstall batch file name.
+   */
+  private static final String WINDOWS_UPGRADE_FILE_NAME = "upgrade.bat";
+
+  /**
    * The UNIX start script file name.
    */
   private static final String UNIX_START_FILE_NAME = "start-ds";
@@ -1164,6 +1174,24 @@ public class Utils
   public static String getWindowsUninstallFileName()
   {
     return WINDOWS_UNINSTALL_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the UNIX upgrade script file name.
+   * @return the name of the UNIX upgrade script file name.
+   */
+  public static String getUnixUpgradeFileName()
+  {
+    return UNIX_UPGRADE_FILE_NAME;
+  }
+
+  /**
+   * Returns the name of the Windows upgrade batch file name.
+   * @return the name of the Windows upgrade batch file name.
+   */
+  public static String getWindowsUpgradeFileName()
+  {
+    return WINDOWS_UPGRADE_FILE_NAME;
   }
 
   /**

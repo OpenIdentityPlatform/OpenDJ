@@ -49,15 +49,14 @@ import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
 /**
- * This class represents the dialog used by installer and the uninstaller.
+ * This class represents the dialog used by quicksetup applications.
  *
  * In its constructor it gets as parameters an object describing the current
  * installation status and the default values to be proposed to the user
  * in the panels.
  *
  * If we are installing Open DS and the server has already been installed it
- * will display an error message.  In the other cases it will display a wizard
- * (that is different depending on whether we are installing or uninstalling).
+ * will display an error message.  In the other cases it will display a wizard.
  *
  */
 public class QuickSetupDialog
@@ -76,67 +75,34 @@ public class QuickSetupDialog
 
   private Step displayedStep;
 
-  private UserData defaultUserData;
-
   private CurrentInstallStatus installStatus;
 
   private HashSet<ButtonActionListener> buttonListeners =
       new HashSet<ButtonActionListener>();
 
-  private boolean forceToDisplaySetup;
+  private Application application;
+
+  private boolean forceToDisplay;
 
   /**
    * Constructor of QuickSetupDialog.
-   * @param defaultUserData the default values to be proposed to the user in
-   * the wizard.
-   * @param installStatus the current installation status.
+   * @param app Application to run in as a wizard
+   * @param installStatus of the current environment
    */
-  public QuickSetupDialog(UserData defaultUserData,
+  public QuickSetupDialog(Application app,
       CurrentInstallStatus installStatus)
   {
-    this.defaultUserData = defaultUserData;
+    if (app == null) {
+      throw new IllegalArgumentException("application cannot be null");
+    }
+    this.application = app;
     this.installStatus = installStatus;
 
-    if (isUninstall())
-    {
-      frame = new JFrame(getMsg("frame-uninstall-title"));
-    } else
-    {
-      frame = new JFrame(getMsg("frame-install-title"));
-    }
-
+    frame = new JFrame(application.getFrameTitle());
     frame.getContentPane().add(getFramePanel());
-    frame.addWindowListener(new WindowAdapter()
-    {
-      public void windowClosing(WindowEvent e)
-      {
-        if (isUninstall())
-        {
-          if (getDisplayedStep() == Step.PROGRESS)
-          {
-            // Simulate a close button event
-            notifyButtonEvent(ButtonName.CLOSE);
-          } else
-          {
-            // Simulate a quit button event
-            notifyButtonEvent(ButtonName.QUIT);
-          }
-        } else if (isInstalled() && !forceToDisplaySetup)
-        {
-          // Simulate a close button event
-          notifyButtonEvent(ButtonName.QUIT);
-        } else
-        {
-          if (getDisplayedStep() == Step.PROGRESS)
-          {
-            // Simulate a close button event
-            notifyButtonEvent(ButtonName.CLOSE);
-          } else
-          {
-            // Simulate a quit button event
-            notifyButtonEvent(ButtonName.QUIT);
-          }
-        }
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        application.windowClosing(QuickSetupDialog.this, e);
       }
     });
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -161,24 +127,7 @@ public class QuickSetupDialog
     int minWidth = (int) frame.getPreferredSize().getWidth();
     int minHeight = (int) frame.getPreferredSize().getHeight();
     Utils.centerOnScreen(frame);
-    if (isUninstall())
-    {
-      setFocusOnButton(ButtonName.FINISH);
-    } else if (!isInstalled() || forceToDisplaySetup)
-    {
-      setFocusOnButton(ButtonName.NEXT);
-    } else
-    {
-      if (installStatus.canOverwriteCurrentInstall())
-      {
-        setFocusOnButton(ButtonName.CONTINUE_INSTALL);
-      }
-      else
-      {
-        setFocusOnButton(ButtonName.QUIT);
-      }
-    }
-
+    setFocusOnButton(application.getInitialFocusButtonName());
     frame.addComponentListener(new MinimumSizeComponentListener(frame,
         minWidth, minHeight));
 
@@ -190,11 +139,10 @@ public class QuickSetupDialog
    * we inform of this to the user and the user wants to proceed with the
    * installation destroying the contents of the data and the configuration
    * in the current installation.
-   *
    */
-  public void forceToDisplaySetup()
+  public void forceToDisplay()
   {
-    forceToDisplaySetup = true;
+    this.forceToDisplay = true;
     frame.getContentPane().removeAll();
     frame.getContentPane().add(getFramePanel());
     frame.pack();
@@ -223,84 +171,11 @@ public class QuickSetupDialog
   public void setDisplayedStep(Step step, UserData userData)
   {
     displayedStep = step;
-    if (isUninstall())
-    {
-      // First call the panels to do the required updates on their layout
-      getButtonsPanel().setDisplayedStep(step);
-      getStepsPanel().setDisplayedStep(step);
-      getCurrentStepPanel().setDisplayedStep(step, userData);
 
-      // Set the default button for the frame
-      switch (step)
-      {
-      case CONFIRM_UNINSTALL:
-        setDefaultButton(ButtonName.FINISH);
-        break;
-
-      case PROGRESS:
-        setDefaultButton(ButtonName.CLOSE);
-        break;
-      }
-
-      // Set the focus for the current step
-      switch (step)
-      {
-      case CONFIRM_UNINSTALL:
-        setFocusOnButton(ButtonName.FINISH);
-        break;
-
-      case PROGRESS:
-        setFocusOnButton(ButtonName.CLOSE);
-        setButtonEnabled(ButtonName.CLOSE, false);
-        break;
-      }
-    } else if (!isInstalled() || forceToDisplaySetup)
-    {
-      // First call the panels to do the required updates on their layout
-      getButtonsPanel().setDisplayedStep(step);
-      getStepsPanel().setDisplayedStep(step);
-      getCurrentStepPanel().setDisplayedStep(step, userData);
-
-      // Set the default button for the frame
-      switch (step)
-      {
-      case REVIEW:
-        setDefaultButton(ButtonName.FINISH);
-        break;
-
-      case PROGRESS:
-        setDefaultButton(ButtonName.CLOSE);
-        break;
-
-      default:
-        setDefaultButton(ButtonName.NEXT);
-      }
-
-      // Set the focus for the current step
-      switch (step)
-      {
-      case WELCOME:
-        setFocusOnButton(ButtonName.NEXT);
-        break;
-
-      case SERVER_SETTINGS:
-        // The focus is set by the panel itself
-        break;
-
-      case DATA_OPTIONS:
-        // The focus is set by the panel itself
-        break;
-
-      case REVIEW:
-        setFocusOnButton(ButtonName.FINISH);
-        break;
-
-      case PROGRESS:
-        setFocusOnButton(ButtonName.CLOSE);
-        setButtonEnabled(ButtonName.CLOSE, false);
-        break;
-      }
-    }
+    // First call the panels to do the required updates on their layout
+    getButtonsPanel().setDisplayedStep(step);
+    getStepsPanel().setDisplayedStep(step);
+    getCurrentStepPanel().setDisplayedStep(step, userData);
   }
 
   /**
@@ -404,25 +279,6 @@ public class QuickSetupDialog
   }
 
   /**
-   * Removes a button listener.
-   * @param l the ButtonActionListener to be removed.
-   */
-  public void removeButtonActionListener(ButtonActionListener l)
-  {
-    if (isUninstall())
-    {
-      getButtonsPanel().removeButtonActionListener(l);
-    } else if (isInstalled() && !forceToDisplaySetup)
-    {
-      getInstalledPanel().removeButtonActionListener(l);
-    } else
-    {
-      getButtonsPanel().removeButtonActionListener(l);
-    }
-    buttonListeners.remove(l);
-  }
-
-  /**
    * This method is called to inform that a worker has started (the QuickSetup
    * is doing some data validation).  The worker is doing its tasks outside
    * the event thread to avoid blocking of the painting and this class is
@@ -508,7 +364,7 @@ public class QuickSetupDialog
    * @param buttonName the button name of the button.
    * @param enable boolean indicating to enable or to disable the button.
    */
-  private void setButtonEnabled(ButtonName buttonName, boolean enable)
+  public void setButtonEnabled(ButtonName buttonName, boolean enable)
   {
     getButton(buttonName).setEnabled(enable);
   }
@@ -519,41 +375,21 @@ public class QuickSetupDialog
    */
   private JPanel getFramePanel()
   {
-    JPanel p;
-    if (isUninstall())
-    {
-      if (framePanel == null)
-      {
-        framePanel =
-            new FramePanel(getStepsPanel(), getCurrentStepPanel(),
-                getButtonsPanel());
-      }
-      p = framePanel;
-    } else if (isInstalled() && !forceToDisplaySetup)
-    {
-      p = getInstalledPanel();
-    } else
-    {
-      if (framePanel == null)
-      {
-        framePanel =
-            new FramePanel(getStepsPanel(), getCurrentStepPanel(),
-                getButtonsPanel());
-      }
-      p = framePanel;
+    if (framePanel == null) {
+      framePanel = application.createFramePanel(this);
     }
-    return p;
+    return framePanel;
   }
 
   /**
    * Returns the steps panel.
    * @return the steps panel.
    */
-  private StepsPanel getStepsPanel()
+  public StepsPanel getStepsPanel()
   {
     if (stepsPanel == null)
     {
-      stepsPanel = new StepsPanel(isUninstall());
+      stepsPanel = new StepsPanel(application);
     }
     return stepsPanel;
   }
@@ -562,12 +398,11 @@ public class QuickSetupDialog
    * Returns the current step panel.
    * @return the current step panel.
    */
-  private CurrentStepPanel getCurrentStepPanel()
+  public CurrentStepPanel getCurrentStepPanel()
   {
     if (currentStepPanel == null)
     {
-      currentStepPanel = new CurrentStepPanel(defaultUserData, installStatus,
-          isUninstall());
+      currentStepPanel = new CurrentStepPanel(application);
     }
     return currentStepPanel;
   }
@@ -577,7 +412,7 @@ public class QuickSetupDialog
    * Returns the buttons panel.
    * @return the buttons panel.
    */
-  private ButtonsPanel getButtonsPanel()
+  public ButtonsPanel getButtonsPanel()
   {
     if (buttonsPanel == null)
     {
@@ -605,10 +440,7 @@ public class QuickSetupDialog
   private JButton getButton(ButtonName buttonName)
   {
     JButton button;
-    if (isUninstall())
-    {
-      button = getButtonsPanel().getButton(buttonName);
-    } else if (isInstalled() && !forceToDisplaySetup)
+    if (isInstalled() && !forceToDisplay)
     {
       if (buttonName == ButtonName.QUIT)
       {
@@ -618,8 +450,7 @@ public class QuickSetupDialog
         button = getInstalledPanel().getContinueInstallButton();
       } else
       {
-        throw new IllegalStateException("Invalid button name " + buttonName
-            + " if server is installed");
+        button = getButtonsPanel().getButton(buttonName);
       }
     } else
     {
@@ -632,7 +463,7 @@ public class QuickSetupDialog
    * Sets the focus in the button associated with the ButtonName.
    * @param buttonName the ButtonName associated with the button.
    */
-  private void setFocusOnButton(ButtonName buttonName)
+  public void setFocusOnButton(ButtonName buttonName)
   {
     getButton(buttonName).requestFocusInWindow();
   }
@@ -641,7 +472,7 @@ public class QuickSetupDialog
    * Sets the default button for the frame.
    * @param buttonName the ButtonName associated with the button.
    */
-  private void setDefaultButton(ButtonName buttonName)
+  public void setDefaultButton(ButtonName buttonName)
   {
     getFrame().getRootPane().setDefaultButton(getButton(buttonName));
   }
@@ -665,18 +496,6 @@ public class QuickSetupDialog
   }
 
   /**
-   * Returns <CODE>true</CODE> if this is an uninstallation and
-   * <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if this is an uninstallation and
-   * <CODE>false</CODE> otherwise.
-   */
-  private boolean isUninstall()
-  {
-    return Utils.isUninstall();
-  }
-
-
-  /**
    * Returns <CODE>true</CODE> if the server is already installed and
    * <CODE>false</CODE> otherwise.
    * @return <CODE>true</CODE> if the server is already installed and
@@ -695,7 +514,7 @@ public class QuickSetupDialog
    * to inform the user that the server is already installed when the
    * installation has been launched.
    */
-  private QuickSetupErrorPanel getInstalledPanel()
+  public QuickSetupErrorPanel getInstalledPanel()
   {
     if (installedPanel == null)
     {
@@ -709,7 +528,7 @@ public class QuickSetupDialog
    * in the button associated with buttonName.
    * @param buttonName the ButtonName associated with the button.
    */
-  private void notifyButtonEvent(ButtonName buttonName)
+  public void notifyButtonEvent(ButtonName buttonName)
   {
     ButtonEvent be = new ButtonEvent(this, buttonName);
     for (ButtonActionListener li : buttonListeners)

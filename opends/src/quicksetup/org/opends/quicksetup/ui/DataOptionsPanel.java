@@ -54,7 +54,7 @@ import org.opends.quicksetup.UserData;
  * to import data to the suffix or not, etc.
  *
  */
-class DataOptionsPanel extends QuickSetupStepPanel
+public class DataOptionsPanel extends QuickSetupStepPanel
 {
   private Component lastFocusComponent;
 

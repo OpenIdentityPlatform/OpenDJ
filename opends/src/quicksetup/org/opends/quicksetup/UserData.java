@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup;
 
+import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.SetupUtils;
+
 /**
  * Represents user specified input data to an application.
  */
@@ -40,6 +43,25 @@ public class UserData {
   private int serverJMXPort;
   private boolean startServer;
   private boolean stopServer;
+
+  /**
+   * Creates a user data object with default values.
+   */
+  public UserData() {
+    DataOptions defaultDataOptions = new DefaultDataOptions();
+
+    setServerLocation(Utils.getDefaultServerLocation());
+    // See what we can propose as port
+    int defaultPort = getDefaultPort();
+    if (defaultPort != -1)
+    {
+      setServerPort(defaultPort);
+    }
+
+    setDirectoryManagerDn("cn=Directory Manager");
+
+    setDataOptions(defaultDataOptions);
+  }
 
   /**
    * Sets the location of the server (installation path).
@@ -193,4 +215,47 @@ public class UserData {
   {
     return stopServer;
   }
+
+  /**
+   * Provides the port that will be proposed to the user in the second page of
+   * the installation wizard. It will check whether we can use 389 and if not it
+   * will return -1.
+   *
+   * @return the port 389 if it is available and we can use and -1 if not.
+   */
+  static public int getDefaultPort()
+  {
+    int defaultPort = -1;
+
+    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
+    {
+      int port = i + 389;
+      if (Utils.canUseAsPort(port))
+      {
+        defaultPort = port;
+      }
+    }
+    return defaultPort;
+  }
+
+  /**
+   * Provides the port that will be used by default for JMX.
+   *
+   * @return the port X689 if it is available and we can use and -1 if not.
+   */
+  static public int getDefaultJMXPort()
+  {
+    int defaultJMXPort = -1;
+
+    for (int i=0;i<65000 && (defaultJMXPort == -1);i+=1000)
+    {
+      int port = i + SetupUtils.getDefaultJMXPort();
+      if (Utils.canUseAsPort(port))
+      {
+        defaultJMXPort = port;
+      }
+    }
+    return defaultJMXPort;
+  }
+
 }

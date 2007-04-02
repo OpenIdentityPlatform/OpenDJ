@@ -50,7 +50,7 @@ import javax.swing.JPanel;
  * transparency effects.
  *
  */
-class FramePanel extends JPanel
+public class FramePanel extends JPanel
 {
   private static final long serialVersionUID = 7733658951410876078L;
 
