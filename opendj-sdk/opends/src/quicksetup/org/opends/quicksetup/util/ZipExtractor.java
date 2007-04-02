@@ -283,7 +283,8 @@ public class ZipExtractor {
     {
       perm = "755";
     } else if (path.endsWith(Utils.getUnixSetupFileName()) ||
-            path.endsWith(Utils.getUnixUninstallFileName()))
+            path.endsWith(Utils.getUnixUninstallFileName()) ||
+            path.endsWith(Utils.getUnixUpgradeFileName()))
     {
       perm = "755";
     } else

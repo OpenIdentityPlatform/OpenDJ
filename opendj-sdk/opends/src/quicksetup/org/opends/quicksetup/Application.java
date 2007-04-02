@@ -33,12 +33,16 @@ import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
+import org.opends.quicksetup.ui.QuickSetupDialog;
+import org.opends.quicksetup.ui.QuickSetupStepPanel;
 
 import javax.naming.NamingException;
+import javax.swing.*;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.awt.event.WindowEvent;
 
 /**
  * This class represents an application that can be run in the context
@@ -55,6 +59,12 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
   static private final Logger LOG =
           Logger.getLogger(Application.class.getName());
+
+  /** The currently displayed wizard step. */
+  private Step displayedStep;
+
+  /** Represents current install state. */
+  protected CurrentInstallStatus installStatus;
 
   /**
    * Creates an application by instantiating the Application class
@@ -113,8 +123,15 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * of this application must have a default constructor.
    */
   public Application() {
-    // do nothing;
+    this.displayedStep = getFirstWizardStep();
   }
+
+  /**
+   * Gets the frame title of the GUI application that will be used
+   * in some operating systems.
+   * @return internationalized String representing the frame title
+   */
+  abstract public String getFrameTitle();
 
   /**
    * Sets this instances user data.
@@ -588,6 +605,43 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
+   * Returns the initial wizard step.
+   * @return Step representing the first step to show in the wizard
+   */
+  public abstract Step getFirstWizardStep();
+
+  /**
+   * Called by the quicksetup controller when the user advances to
+   * a new step in the wizard.  Applications are expected to manipulate
+   * the QuickSetupDialog to reflect the current step.
+   *
+   * @param step     Step indicating the new current step
+   * @param userData UserData representing the data specified by the user
+   * @param dlg      QuickSetupDialog hosting the wizard
+   */
+  protected void setDisplayedWizardStep(Step step,
+                                        UserData userData,
+                                        QuickSetupDialog dlg) {
+    this.displayedStep = step;
+
+    // First call the panels to do the required updates on their layout
+    dlg.setDisplayedStep(step, userData);
+    setWizardDialogState(dlg, userData, step);
+  }
+
+  /**
+   * Called when the user advances to new step in the wizard.  Applications
+   * are expected to manipulate the QuickSetupDialog to reflect the current
+   * step.
+   * @param dlg QuickSetupDialog hosting the wizard
+   * @param userData UserData representing the data specified by the user
+   * @param step Step indicating the new current step
+   */
+  protected abstract void setWizardDialogState(QuickSetupDialog dlg,
+                                               UserData userData,
+                                               Step step);
+
+  /**
    * Returns the installation path.
    * @return the installation path.
    */
@@ -659,6 +713,68 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return String representing the summary
    */
   public abstract String getSummary(ProgressStep step);
+
+  /**
+   * Sets the current install status for this application.
+   * @param installStatus for the current installation.
+   */
+  public void setCurrentInstallStatus(CurrentInstallStatus installStatus) {
+    this.installStatus = installStatus;
+  }
+
+  /**
+   * Called by the controller when the window is closing.  The application
+   * can take application specific actions here.
+   * @param dlg QuickSetupDialog that will be closing
+   * @param evt The event from the Window indicating closing
+   */
+  abstract public void windowClosing(QuickSetupDialog dlg, WindowEvent evt);
+
+  /**
+   * This method is called when we detected that there is something installed
+   * we inform of this to the user and the user wants to proceed with the
+   * installation destroying the contents of the data and the configuration
+   * in the current installation.
+   */
+  public void forceToDisplay() {
+    // This is really only appropriate for Installer.
+    // The default implementation is to do nothing.
+    // The Installer application overrides this with
+    // whatever it needs.
+  }
+
+  /**
+   * Get the name of the button that will receive initial focus.
+   * @return ButtonName of the button to receive initial focus
+   */
+  abstract public ButtonName getInitialFocusButtonName();
+
+  /**
+   * Creates the main panel for the wizard dialog.
+   * @param dlg QuickSetupDialog used
+   * @return JPanel frame panel
+   */
+  abstract public JPanel createFramePanel(QuickSetupDialog dlg);
+
+  /**
+   * Returns the set of wizard steps used in this application's wizard.
+   * @return Set of Step objects representing wizard steps
+   */
+  abstract public Set<Step> getWizardSteps();
+
+  /**
+   * Creates a wizard panel given a specific step.
+   * @param step for which a panel representation should be created
+   * @return QuickSetupStepPanel for representing the <code>step</code>
+   */
+  abstract public QuickSetupStepPanel createWizardStepPanel(Step step);
+
+  /**
+   * Gets the next step in the wizard given a current step.
+   * @param step Step the current step
+   * @return Step the next step
+   */
+  abstract public Step getNextWizardStep(Step step);
 
   /**
    * This class is used to read the standard error and standard output of the

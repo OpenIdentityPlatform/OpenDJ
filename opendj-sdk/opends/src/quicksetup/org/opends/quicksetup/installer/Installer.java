@@ -26,15 +26,22 @@
  */
 package org.opends.quicksetup.installer;
 
+import static org.opends.quicksetup.Step.WELCOME;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
+import java.util.EnumSet;
+import java.awt.event.WindowEvent;
 
-import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.*;
 import org.opends.server.util.SetupUtils;
+
+import javax.swing.*;
 
 
 /**
@@ -55,11 +62,120 @@ import org.opends.server.util.SetupUtils;
  */
 public abstract class Installer extends Application {
 
+  /* Indicates that we've detected that there is something installed */
+  boolean forceToDisplaySetup = false;
+
   /**
    * An static String that contains the class name of ConfigFileHandler.
    */
   protected static final String CONFIG_CLASS_NAME =
       "org.opends.server.extensions.ConfigFileHandler";
+
+  /**
+   * {@inheritDoc}
+   */
+  public void forceToDisplay() {
+    forceToDisplaySetup = true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ButtonName getInitialFocusButtonName() {
+    ButtonName name = null;
+    if (!installStatus.isInstalled() || forceToDisplaySetup)
+    {
+      name = ButtonName.NEXT;
+    } else
+    {
+      if (installStatus.canOverwriteCurrentInstall())
+      {
+        name = ButtonName.CONTINUE_INSTALL;
+      }
+      else
+      {
+        name = ButtonName.QUIT;
+      }
+    }
+    return name;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public JPanel createFramePanel(QuickSetupDialog dlg) {
+    JPanel p;
+    if (installStatus.isInstalled() && !forceToDisplaySetup) {
+      p = dlg.getInstalledPanel();
+    } else {
+      p = new FramePanel(dlg.getStepsPanel(),
+              dlg.getCurrentStepPanel(),
+              dlg.getButtonsPanel());
+    }
+    return p;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<Step> getWizardSteps() {
+    return EnumSet.of(WELCOME,
+            Step.SERVER_SETTINGS,
+            Step.DATA_OPTIONS,
+            Step.REVIEW,
+            Step.PROGRESS);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public QuickSetupStepPanel createWizardStepPanel(Step step) {
+    QuickSetupStepPanel p = null;
+    switch (step) {
+      case WELCOME:
+        p = new InstallWelcomePanel();
+        break;
+      case SERVER_SETTINGS:
+        p = new ServerSettingsPanel(getUserData());
+        break;
+      case DATA_OPTIONS:
+        p = new DataOptionsPanel(getUserData());
+        break;
+      case REVIEW:
+        p = new ReviewPanel(getUserData());
+        break;
+      case PROGRESS:
+        p = new ProgressPanel();
+        break;
+    }
+    return p;
+  }
+
+  /**
+  * {@inheritDoc}
+  */
+  public void windowClosing(QuickSetupDialog dlg, WindowEvent evt) {
+
+    if (installStatus.isInstalled() && forceToDisplaySetup) {
+      // Simulate a close button event
+      dlg.notifyButtonEvent(ButtonName.QUIT);
+    } else {
+      if (dlg.getDisplayedStep() == Step.PROGRESS) {
+        // Simulate a close button event
+        dlg.notifyButtonEvent(ButtonName.CLOSE);
+      } else {
+        // Simulate a quit button event
+        dlg.notifyButtonEvent(ButtonName.QUIT);
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getFrameTitle() {
+    return getMsg("frame-install-title");
+  }
 
   /** Indicates the current progress step. */
   protected InstallProgressStep status =
@@ -68,9 +184,83 @@ public abstract class Installer extends Application {
   /**
    * {@inheritDoc}
    */
+  protected void setWizardDialogState(QuickSetupDialog dlg,
+                                      UserData userData,
+                                      Step step) {
+    if (!installStatus.isInstalled() || forceToDisplaySetup) {
+
+      // Set the default button for the frame
+      switch (step) {
+        case REVIEW:
+          dlg.setDefaultButton(ButtonName.FINISH);
+          break;
+
+        case PROGRESS:
+          dlg.setDefaultButton(ButtonName.CLOSE);
+          break;
+
+        default:
+          dlg.setDefaultButton(ButtonName.NEXT);
+      }
+
+      // Set the focus for the current step
+      switch (step) {
+        case WELCOME:
+          dlg.setFocusOnButton(ButtonName.NEXT);
+          break;
+
+        case SERVER_SETTINGS:
+          // The focus is set by the panel itself
+          break;
+
+        case DATA_OPTIONS:
+          // The focus is set by the panel itself
+          break;
+
+        case REVIEW:
+          dlg.setFocusOnButton(ButtonName.FINISH);
+          break;
+
+        case PROGRESS:
+          dlg.setFocusOnButton(ButtonName.CLOSE);
+          dlg.setButtonEnabled(ButtonName.CLOSE, false);
+          break;
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public ProgressStep getStatus()
   {
     return status;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Step getFirstWizardStep() {
+    return WELCOME;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Step getNextWizardStep(Step step) {
+    Step nextStep = null;
+    if (step != null) {
+      if (step.equals(Step.WELCOME)) {
+        nextStep = Step.SERVER_SETTINGS;
+      } else if (step.equals(Step.SERVER_SETTINGS)) {
+        nextStep = Step.DATA_OPTIONS;
+      } else if (step.equals(Step.DATA_OPTIONS)) {
+        nextStep = Step.REVIEW;
+      } else if (step.equals(Step.REVIEW)) {
+        nextStep = Step.PROGRESS;
+      }
+    }
+    return nextStep;
   }
 
   /**

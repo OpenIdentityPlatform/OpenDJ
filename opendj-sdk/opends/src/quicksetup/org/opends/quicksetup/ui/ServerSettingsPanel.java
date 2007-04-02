@@ -51,7 +51,7 @@ import org.opends.quicksetup.UserData;
  * Manager DN, etc.
  *
  */
-class ServerSettingsPanel extends QuickSetupStepPanel
+public class ServerSettingsPanel extends QuickSetupStepPanel
 {
   private UserData defaultUserData;
 

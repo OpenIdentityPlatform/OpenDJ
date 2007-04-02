@@ -5,7 +5,7 @@ this product may be found online at https://OpenDS.dev.java.net/.
 
 To configure the server, run the setup script on UNIX-based platforms, or the
 setup.bat batch file on Windows.  To start the server, run bin/start-ds.sh on
-UNIX-based platforms, or bin\start-ds.bat on Windows systems.
+UNIX-based platforms, or bat\start-ds.bat on Windows systems.
 
 This product is made available under the Common Development and Distribution
 License (CDDL).  The complete text for this license, and for alternate licenses

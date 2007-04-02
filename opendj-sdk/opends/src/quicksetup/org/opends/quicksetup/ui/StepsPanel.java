@@ -38,6 +38,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.opends.quicksetup.Step;
+import org.opends.quicksetup.Application;
 
 /**
  * This class displays the different steps of the wizard.  It appears on the
@@ -47,7 +48,7 @@ import org.opends.quicksetup.Step;
  * The current displayed step can be changed calling the method setCurrentStep.
  *
  */
-class StepsPanel extends QuickSetupPanel
+public class StepsPanel extends QuickSetupPanel
 {
   private static final long serialVersionUID = -2003945907121690657L;
 
@@ -57,11 +58,11 @@ class StepsPanel extends QuickSetupPanel
 
   /**
    * Creates a StepsPanel.
-   * @param isUninstall tells whether we are installing or uninstalling.
+   * @param app Application whose steps this class represents
    */
-  public StepsPanel(boolean isUninstall)
+  public StepsPanel(Application app)
   {
-    createLayout(isUninstall);
+    createLayout(app);
   }
 
   /**
@@ -95,9 +96,9 @@ class StepsPanel extends QuickSetupPanel
 
   /**
    * Creates the layout of the panel.
-   * @param isUninstall tells whether we are installing or uninstalling.
+   * @param app Application whose steps this class represents
    */
-  private void createLayout(boolean isUninstall)
+  private void createLayout(Application app)
   {
     setLayout(new GridBagLayout());
 
@@ -112,25 +113,15 @@ class StepsPanel extends QuickSetupPanel
 
     HashMap<Step, String> hmText = new HashMap<Step, String>();
     ArrayList<Step> orderedSteps = new ArrayList<Step>();
-    if (isUninstall)
-    {
-      hmText.put(Step.CONFIRM_UNINSTALL, getMsg("confirm-uninstall-step"));
-      hmText.put(Step.PROGRESS, getMsg("progress-step"));
-      orderedSteps.add(Step.CONFIRM_UNINSTALL);
-      orderedSteps.add(Step.PROGRESS);
-    } else
-    {
-      hmText.put(Step.WELCOME, getMsg("welcome-step"));
-      hmText.put(Step.SERVER_SETTINGS, getMsg("server-settings-step"));
-      hmText.put(Step.DATA_OPTIONS, getMsg("data-options-step"));
-      hmText.put(Step.REVIEW, getMsg("review-step"));
-      hmText.put(Step.PROGRESS, getMsg("progress-step"));
-      orderedSteps.add(Step.WELCOME);
-      orderedSteps.add(Step.SERVER_SETTINGS);
-      orderedSteps.add(Step.DATA_OPTIONS);
-      orderedSteps.add(Step.REVIEW);
-      orderedSteps.add(Step.PROGRESS);
+
+    Step step = app.getFirstWizardStep();
+    hmText.put(step, getMsg(step.getMessageKey()));
+    orderedSteps.add(step);
+    while (null != (step = app.getNextWizardStep(step))) {
+      hmText.put(step, getMsg(step.getMessageKey()));
+      orderedSteps.add(step);
     }
+
     for (Step s : orderedSteps)
     {
       if (s != orderedSteps.get(0))

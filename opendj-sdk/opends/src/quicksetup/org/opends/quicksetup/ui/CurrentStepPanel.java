@@ -31,13 +31,11 @@ import java.awt.CardLayout;
 import java.awt.Dimension;
 
 import java.util.HashMap;
+import java.util.Set;
 
-import org.opends.quicksetup.CurrentInstallStatus;
-import org.opends.quicksetup.Step;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.installer.FieldName;
-import org.opends.quicksetup.ProgressDescriptor;
-import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.*;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -53,12 +51,8 @@ import org.opends.quicksetup.util.Utils;
  * CardLayout).
  *
  */
-class CurrentStepPanel extends QuickSetupPanel
+public class CurrentStepPanel extends QuickSetupPanel
 {
-  private UserData defaultUserData;
-
-  private CurrentInstallStatus installStatus;
-
   private static final long serialVersionUID = 5474803491510999334L;
 
   private HashMap<Step, QuickSetupStepPanel> hmPanels =
@@ -66,17 +60,11 @@ class CurrentStepPanel extends QuickSetupPanel
 
   /**
    * The constructor of this class.
-   * @param defaultUserData the default data that is used to initialize the
-   * contents of the panels (the proposed values).
-   * @param installStatus the object describing the current installation status.
-   * @param isUninstall boolean telling whether we are uninstalling or not.
+   * @param app Application used to create panels for populating the layout
    */
-  public CurrentStepPanel(UserData defaultUserData,
-      CurrentInstallStatus installStatus, boolean isUninstall)
+  public CurrentStepPanel(Application app)
   {
-    this.defaultUserData = defaultUserData;
-    this.installStatus = installStatus;
-    createLayout(isUninstall);
+    createLayout(app);
   }
 
   /**
@@ -126,24 +114,19 @@ class CurrentStepPanel extends QuickSetupPanel
 
   /**
    * Create the layout of the panel.
-   * @param isUninstall whether this is an install or uninstall panel.
+   * @param app Application used to create panels for populating the layout
    */
-  private void createLayout(boolean isUninstall)
+  private void createLayout(Application app)
   {
-    if (isUninstall)
-    {
-      hmPanels.put(Step.CONFIRM_UNINSTALL,
-          new ConfirmUninstallPanel(installStatus));
-      hmPanels.put(Step.PROGRESS, new ProgressPanel());
-    } else
-    {
-      hmPanels.put(Step.WELCOME, new InstallWelcomePanel());
-      hmPanels.put(Step.SERVER_SETTINGS, new ServerSettingsPanel(
-          defaultUserData));
-      hmPanels.put(Step.DATA_OPTIONS,
-          new DataOptionsPanel(defaultUserData));
-      hmPanels.put(Step.REVIEW, new ReviewPanel(defaultUserData));
-      hmPanels.put(Step.PROGRESS, new ProgressPanel());
+
+    Set<Step> steps = app.getWizardSteps();
+    if (steps != null) {
+      for (Step step : steps) {
+        QuickSetupStepPanel panel = app.createWizardStepPanel(step);
+        if (panel != null) {
+          hmPanels.put(step, panel);
+        }
+      }
     }
 
     int minWidth = 0;
