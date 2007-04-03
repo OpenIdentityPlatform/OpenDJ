@@ -527,7 +527,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       throw new NullPointerException("step is null");
     }
     currentStep = step;
-    getDialog().setDisplayedStep(step, application.getUserData());
+    application.setDisplayedWizardStep(step, application.getUserData(),
+        getDialog());
   }
 
   /**

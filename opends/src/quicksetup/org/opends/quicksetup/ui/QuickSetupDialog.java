@@ -143,6 +143,7 @@ public class QuickSetupDialog
   public void forceToDisplay()
   {
     this.forceToDisplay = true;
+    framePanel = null;
     frame.getContentPane().removeAll();
     frame.getContentPane().add(getFramePanel());
     frame.pack();
