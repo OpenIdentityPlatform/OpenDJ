@@ -73,9 +73,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public abstract class ClientConnection
 {
-
-
-
   // The set of authentication information for this client connection.
   private AuthenticationInfo authenticationInfo;
 
@@ -1197,7 +1194,7 @@ public abstract class ClientConnection
    *                    searches performed using this client
    *                    connection.
    */
-  public final void setSizeLimit(int sizeLimit)
+  public void setSizeLimit(int sizeLimit)
   {
     this.sizeLimit = sizeLimit;
   }
@@ -1226,7 +1223,7 @@ public abstract class ClientConnection
    *                           entries that should be check for
    *                           matches during a search.
    */
-  public final void setLookthroughLimit(int lookthroughLimit)
+  public void setLookthroughLimit(int lookthroughLimit)
   {
     this.lookthroughLimit = lookthroughLimit;
   }
@@ -1255,7 +1252,7 @@ public abstract class ClientConnection
    *                    searches performed using this client
    *                    connection.
    */
-  public final void setTimeLimit(int timeLimit)
+  public void setTimeLimit(int timeLimit)
   {
     this.timeLimit = timeLimit;
   }

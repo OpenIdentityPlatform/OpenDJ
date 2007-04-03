@@ -58,8 +58,6 @@ import static org.opends.server.util.Validator.*;
  */
 public final class LDIFWriter
 {
-
-
   // FIXME -- Add support for generating a hash when writing the data.
   // FIXME -- Add support for signing the hash that is generated.
 

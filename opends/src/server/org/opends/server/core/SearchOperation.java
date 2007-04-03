@@ -102,9 +102,6 @@ public class SearchOperation
                   PostOperationSearchOperation, PostResponseSearchOperation,
                   SearchEntrySearchOperation, SearchReferenceSearchOperation
 {
-
-
-
   // Indicates whether a search result done response has been sent to the
   // client.
   private AtomicBoolean responseSent;
@@ -116,11 +113,17 @@ public class SearchOperation
   // entries.
   private boolean includeUsableControl;
 
+  // Indicates whether to only real attributes should be returned.
+  private boolean realAttributesOnly;
+
   // Indicates whether LDAP subentries should be returned.
   private boolean returnLDAPSubentries;
 
   // Indicates whether to include attribute types only or both types and values.
   private boolean typesOnly;
+
+  // Indicates whether to only virtual attributes should be returned.
+  private boolean virtualAttributesOnly;
 
   // The raw, unprocessed base DN as included in the request from the client.
   private ByteString rawBaseDN;
@@ -274,6 +277,8 @@ public class SearchOperation
     persistentSearch       = null;
     returnLDAPSubentries   = false;
     matchedValuesControl   = null;
+    realAttributesOnly     = false;
+    virtualAttributesOnly  = false;
   }
 
 
@@ -865,7 +870,8 @@ public class SearchOperation
     Entry entryToReturn;
     if ((attributes == null) || attributes.isEmpty())
     {
-      entryToReturn = entry.duplicateWithoutOperationalAttributes(typesOnly);
+      entryToReturn = entry.duplicateWithoutOperationalAttributes(typesOnly,
+                                                                  true);
     }
     else
     {
@@ -1025,6 +1031,16 @@ public class SearchOperation
           }
         }
       }
+    }
+
+
+    if (realAttributesOnly)
+    {
+      entryToReturn.stripVirtualAttributes();
+    }
+    else if (virtualAttributesOnly)
+    {
+      entryToReturn.stripRealAttributes();
     }
 
 
@@ -1876,6 +1892,14 @@ searchProcessing:
           else if (oid.equals(OID_ACCOUNT_USABLE_CONTROL))
           {
             includeUsableControl = true;
+          }
+          else if (oid.equals(OID_REAL_ATTRS_ONLY))
+          {
+            realAttributesOnly = true;
+          }
+          else if (oid.equals(OID_VIRTUAL_ATTRS_ONLY))
+          {
+            virtualAttributesOnly = true;
           }
 
           // NYI -- Add support for additional controls.

@@ -92,9 +92,6 @@ public class MonitorBackend
        extends Backend
        implements ConfigurableComponent
 {
-
-
-
   // The set of user-defined attributes that will be included in the base
   // monitor entry.
   private ArrayList<Attribute> userDefinedAttributes;
@@ -127,8 +124,6 @@ public class MonitorBackend
   public MonitorBackend()
   {
     super();
-
-
 
     // Perform all initialization in initializeBackend.
   }
@@ -640,8 +635,10 @@ public class MonitorBackend
 
 
     // Construct and return the entry.
-    return new Entry(baseMonitorDN, monitorClasses, monitorUserAttrs,
-                     monitorOperationalAttrs);
+    Entry e = new Entry(baseMonitorDN, monitorClasses, monitorUserAttrs,
+                        monitorOperationalAttrs);
+    e.processVirtualAttributes();
+    return e;
   }
 
 
@@ -706,8 +703,10 @@ public class MonitorBackend
       }
     }
 
-    return new Entry(entryDN, monitorClasses, attrMap,
-                     new HashMap<AttributeType,List<Attribute>>(0));
+    Entry e = new Entry(entryDN, monitorClasses, attrMap,
+                        new HashMap<AttributeType,List<Attribute>>(0));
+    e.processVirtualAttributes();
+    return e;
   }
 
 

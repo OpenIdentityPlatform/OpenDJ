@@ -54,9 +54,6 @@ import static org.opends.server.messages.UtilityMessages.*;
  */
 public class LDIFExportConfig
 {
-
-
-
   // Indicates whether the data should be compressed as it is written.
   private boolean compressData;
 
@@ -74,6 +71,9 @@ public class LDIFExportConfig
   // Indicates whether to include operational attributes in the
   // export.
   private boolean includeOperationalAttributes;
+
+  // Indicates whether to include virutal attributes in the export.
+  private boolean includeVirtualAttributes;
 
   // Indicates whether to invoke LDIF export plugins on entries being
   // exported.
@@ -149,6 +149,7 @@ public class LDIFExportConfig
     hashData                     = false;
     includeObjectClasses         = true;
     includeOperationalAttributes = true;
+    includeVirtualAttributes     = false;
     invokeExportPlugins          = false;
     signHash                     = false;
     typesOnly                    = false;
@@ -182,6 +183,7 @@ public class LDIFExportConfig
     hashData                     = false;
     includeObjectClasses         = true;
     includeOperationalAttributes = true;
+    includeVirtualAttributes     = false;
     invokeExportPlugins          = false;
     signHash                     = false;
     typesOnly                    = false;
@@ -588,6 +590,36 @@ public class LDIFExportConfig
                    boolean includeOperationalAttributes)
   {
     this.includeOperationalAttributes = includeOperationalAttributes;
+  }
+
+
+
+  /**
+   * Indicates whether virtual attributes should be included in the
+   * export.
+   *
+   * @return  {@code true} if virtual attributes should be included in
+   *          the export, or {@code false} if not.
+   */
+  public boolean includeVirtualAttributes()
+  {
+    return includeVirtualAttributes;
+  }
+
+
+
+  /**
+   * Specifies whether virtual attributes should be included in the
+   * export.
+   *
+   * @param  includeVirtualAttributes  Specifies whether virtual
+   *                                   attributes should be included
+   *                                   in the export.
+   */
+  public void setIncludeVirtualAttributes(
+                   boolean includeVirtualAttributes)
+  {
+    this.includeVirtualAttributes = includeVirtualAttributes;
   }
 
 

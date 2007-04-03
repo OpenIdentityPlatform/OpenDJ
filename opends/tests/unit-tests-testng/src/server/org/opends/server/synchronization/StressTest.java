@@ -121,7 +121,7 @@ public class StressTest extends SynchronizationTestCase
        */
 
       // Create an Entry (add operation) that will be later used in the test.
-      Entry tmp = personEntry.duplicate();
+      Entry tmp = personEntry.duplicate(false);
       AddOperation addOp = new AddOperation(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, tmp.getDN(),

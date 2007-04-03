@@ -84,9 +84,6 @@ public class TaskBackend
        extends Backend
        implements ConfigurableComponent
 {
-
-
-
   /**
    * The set of time units that will be used for expressing the task retention
    * time.
@@ -156,8 +153,6 @@ public class TaskBackend
   public TaskBackend()
   {
     super();
-
-
 
     // Perform all initialization in initializeBackend.
   }
@@ -586,8 +581,10 @@ public class TaskBackend
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
+    Entry e = entry.duplicate(false);
+
     // Get the DN for the entry and then get its parent.
-    DN entryDN = entry.getDN();
+    DN entryDN = e.getDN();
     DN parentDN = entryDN.getParentDNInSuffix();
 
     if (parentDN == null)
@@ -603,7 +600,7 @@ public class TaskBackend
     // treat the provided entry like a scheduled task.
     if (parentDN.equals(scheduledTaskParentDN))
     {
-      Task task = taskScheduler.entryToScheduledTask(entry, addOperation);
+      Task task = taskScheduler.entryToScheduledTask(e, addOperation);
       taskScheduler.scheduleTask(task, true);
       return;
     }
@@ -612,7 +609,7 @@ public class TaskBackend
     // treat the provided entry like a recurring task.
     if (parentDN.equals(recurringTaskParentDN))
     {
-      RecurringTask recurringTask = taskScheduler.entryToRecurringTask(entry);
+      RecurringTask recurringTask = taskScheduler.entryToRecurringTask(e);
       taskScheduler.addRecurringTask(recurringTask, true);
       return;
     }

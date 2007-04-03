@@ -102,8 +102,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class InternalClientConnection
        extends ClientConnection
 {
-
-
   // The message ID counter to use for internal connections.
   private static AtomicInteger nextMessageID;
 
@@ -207,9 +205,9 @@ public class InternalClientConnection
       this.authenticationInfo =
            new AuthenticationInfo(internalUserEntry, true);
       super.setAuthenticationInfo(authenticationInfo);
-      setSizeLimit(0);
-      setTimeLimit(0);
-      setLookthroughLimit(0);
+      super.setSizeLimit(0);
+      super.setTimeLimit(0);
+      super.setLookthroughLimit(0);
     }
     catch (DirectoryException de)
     {
@@ -257,9 +255,9 @@ public class InternalClientConnection
 
     this.authenticationInfo = authInfo;
     super.setAuthenticationInfo(authInfo);
-    setSizeLimit(0);
-    setTimeLimit(0);
-    setLookthroughLimit(0);
+    super.setSizeLimit(0);
+    super.setTimeLimit(0);
+    super.setLookthroughLimit(0);
 
     connectionID  = nextConnectionID.getAndDecrement();
     operationList = new LinkedList<Operation>();
@@ -452,6 +450,42 @@ public class InternalClientConnection
   public InetAddress getLocalAddress()
   {
     return null;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public void setSizeLimit(int sizeLimit)
+  {
+    // No implementation required.  We never want to set a nonzero
+    // size limit for internal client connections.
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public void setLookthroughLimit(int lookthroughLimit)
+  {
+    // No implementation required.  We never want to set a nonzero
+    // lookthrough limit for internal client connections.
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public void setTimeLimit(int timeLimit)
+  {
+    // No implementation required.  We never want to set a nonzero
+    // time limit for internal client connections.
   }
 
 

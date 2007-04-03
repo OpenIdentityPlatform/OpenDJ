@@ -102,9 +102,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class MemoryBackend
        extends Backend
 {
-
-
-
   // The base DNs for this backend.
   private DN[] baseDNs;
 
@@ -133,8 +130,6 @@ public class MemoryBackend
   public MemoryBackend()
   {
     super();
-
-
 
     // Perform all initialization in initializeBackend.
   }
@@ -297,8 +292,10 @@ public class MemoryBackend
   public synchronized void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
+    Entry e = entry.duplicate(true);
+
     // See if the target entry already exists.  If so, then fail.
-    DN entryDN = entry.getDN();
+    DN entryDN = e.getDN();
     if (entryMap.containsKey(entryDN))
     {
       int    msgID   = MSGID_MEMORYBACKEND_ENTRY_ALREADY_EXISTS;
@@ -311,7 +308,7 @@ public class MemoryBackend
     // If the entry is one of the base DNs, then add it.
     if (baseDNSet.contains(entryDN))
     {
-      entryMap.put(entryDN, entry);
+      entryMap.put(entryDN, e);
       return;
     }
 
@@ -332,7 +329,7 @@ public class MemoryBackend
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
     }
 
-    entryMap.put(entryDN, entry);
+    entryMap.put(entryDN, e);
     HashSet<DN> children = childDNs.get(parentDN);
     if (children == null)
     {
@@ -441,8 +438,10 @@ public class MemoryBackend
                                         ModifyOperation modifyOperation)
          throws DirectoryException
   {
+    Entry e = entry.duplicate(true);
+
     // Make sure the entry exists.  If not, then throw an exception.
-    DN entryDN = entry.getDN();
+    DN entryDN = e.getDN();
     if (! entryMap.containsKey(entryDN))
     {
       int    msgID   = MSGID_MEMORYBACKEND_ENTRY_DOESNT_EXIST;
@@ -452,7 +451,7 @@ public class MemoryBackend
 
 
     // Replace the old entry with the new one.
-    entryMap.put(entryDN, entry);
+    entryMap.put(entryDN, e);
   }
 
 
@@ -464,6 +463,8 @@ public class MemoryBackend
                                        ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
+    Entry e = entry.duplicate(true);
+
     // Make sure that the target entry exists.
     if (! entryMap.containsKey(currentDN))
     {
@@ -492,10 +493,10 @@ public class MemoryBackend
 
 
     // Make sure that no entry exists with the new DN.
-    if (entryMap.containsKey(entry.getDN()))
+    if (entryMap.containsKey(e.getDN()))
     {
       int    msgID   = MSGID_MEMORYBACKEND_ENTRY_ALREADY_EXISTS;
-      String message = getMessage(msgID, String.valueOf(entry.getDN()));
+      String message = getMessage(msgID, String.valueOf(e.getDN()));
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
     }
 
@@ -504,7 +505,7 @@ public class MemoryBackend
     boolean matchFound = false;
     for (DN dn : baseDNs)
     {
-      if (dn.isAncestorOf(entry.getDN()))
+      if (dn.isAncestorOf(e.getDN()))
       {
         matchFound = true;
         break;
@@ -521,7 +522,7 @@ public class MemoryBackend
 
 
     // Make sure that the parent of the new entry exists.
-    DN parentDN = entry.getDN().getParentDNInSuffix();
+    DN parentDN = e.getDN().getParentDNInSuffix();
     if ((parentDN == null) || (! entryMap.containsKey(parentDN)))
     {
       int    msgID   = MSGID_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST;
@@ -534,7 +535,7 @@ public class MemoryBackend
 
     // Delete the current entry and add the new one.
     deleteEntry(currentDN, null);
-    addEntry(entry, null);
+    addEntry(e, null);
   }
 
 

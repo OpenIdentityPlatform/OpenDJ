@@ -105,9 +105,6 @@ public class RootDSEBackend
        extends Backend
        implements ConfigurableComponent
 {
-
-
-
   // The set of standard "static" attributes that we will always include in the
   // root DSE entry and won't change while the server is running.
   private ArrayList<Attribute> staticDSEAttributes;
@@ -152,8 +149,6 @@ public class RootDSEBackend
   public RootDSEBackend()
   {
     super();
-
-
 
     // Perform all initialization in initializeBackend.
   }
@@ -644,30 +639,6 @@ public class RootDSEBackend
     }
 
 
-
-    // Add the "subschemaSubentry" attribute.
-    DN schemaDN = DirectoryServer.getSchemaDN();
-    if (schemaDN != null)
-    {
-      Attribute subschemaSubentryAttr =
-           createAttribute(ATTR_SUBSCHEMA_SUBENTRY, ATTR_SUBSCHEMA_SUBENTRY_LC,
-                           String.valueOf(schemaDN));
-      ArrayList<Attribute> subschemaSubentryAttrs = new ArrayList<Attribute>(1);
-      subschemaSubentryAttrs.add(subschemaSubentryAttr);
-      if (showAllAttributes ||
-          (! subschemaSubentryAttr.getAttributeType().isOperational()))
-      {
-        dseUserAttrs.put(subschemaSubentryAttr.getAttributeType(),
-                         subschemaSubentryAttrs);
-      }
-      else
-      {
-        dseOperationalAttrs.put(subschemaSubentryAttr.getAttributeType(),
-                                subschemaSubentryAttrs);
-      }
-    }
-
-
     // Add all the standard "static" attributes.
     for (Attribute a : staticDSEAttributes)
     {
@@ -741,8 +712,10 @@ public class RootDSEBackend
 
 
     // Construct and return the entry.
-    return new Entry(rootDSEDN, dseObjectClasses, dseUserAttrs,
-                     dseOperationalAttrs);
+    Entry e = new Entry(rootDSEDN, dseObjectClasses, dseUserAttrs,
+                        dseOperationalAttrs);
+    e.processVirtualAttributes();
+    return e;
   }
 
 

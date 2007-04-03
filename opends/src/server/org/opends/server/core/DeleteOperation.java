@@ -1085,7 +1085,7 @@ deleteProcessing:
 
           if (preReadRequest != null)
           {
-            Entry entryCopy = entry.duplicate();
+            Entry entryCopy = entry.duplicate(true);
 
             if (! preReadRequest.allowsAttribute(
                        DirectoryServer.getObjectClassAttributeType()))

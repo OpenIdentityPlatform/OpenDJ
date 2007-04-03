@@ -2014,7 +2014,7 @@ addProcessing:
 
             if (postReadRequest != null)
             {
-              Entry addedEntry = entry.duplicate();
+              Entry addedEntry = entry.duplicate(true);
 
               if (! postReadRequest.allowsAttribute(
                          DirectoryServer.getObjectClassAttributeType()))

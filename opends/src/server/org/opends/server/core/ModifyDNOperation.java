@@ -1383,7 +1383,7 @@ modifyDNProcessing:
 
         // Duplicate the entry and set its new DN.  Also, create an empty list
         // to hold the attribute-level modifications.
-        newEntry = currentEntry.duplicate();
+        newEntry = currentEntry.duplicate(false);
         newEntry.setDN(newDN);
         modifications = new ArrayList<Modification>();
 
@@ -1818,7 +1818,7 @@ modifyDNProcessing:
 
           if (preReadRequest != null)
           {
-            Entry entry = currentEntry.duplicate();
+            Entry entry = currentEntry.duplicate(true);
 
             if (! preReadRequest.allowsAttribute(
                        DirectoryServer.getObjectClassAttributeType()))
@@ -1869,7 +1869,7 @@ modifyDNProcessing:
 
           if (postReadRequest != null)
           {
-            Entry entry = newEntry.duplicate();
+            Entry entry = newEntry.duplicate(true);
 
             if (! postReadRequest.allowsAttribute(
                        DirectoryServer.getObjectClassAttributeType()))

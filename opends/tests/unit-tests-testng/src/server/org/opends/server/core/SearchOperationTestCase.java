@@ -136,7 +136,7 @@ public class SearchOperationTestCase extends OperationTestCase
     }
 
     // The add operation changes the attributes, so let's duplicate the entry.
-    Entry duplicateEntry = testEntry.duplicate();
+    Entry duplicateEntry = testEntry.duplicate(false);
 
     AddOperation addOperation =
          connection.processAdd(duplicateEntry.getDN(),

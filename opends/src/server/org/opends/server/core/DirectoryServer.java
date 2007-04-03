@@ -296,10 +296,6 @@ public class DirectoryServer
   // between the mechanism name and the handler).
   private ConcurrentHashMap<String,SASLMechanismHandler> saslMechanismHandlers;
 
-  // The set of virtual attributes defined in the server (mapped between the
-  // lowercase names and the virtual attributes).
-  private ConcurrentHashMap<String,VirtualAttribute> virtualAttributes;
-
   // The connection handler configuration manager for the Directory Server.
   private ConnectionHandlerConfigManager connectionHandlerConfigManager;
 
@@ -340,6 +336,9 @@ public class DirectoryServer
   // Directory Server.
   private CopyOnWriteArrayList<SynchronizationProvider>
                synchronizationProviders;
+
+  // The set of virtual attributes defined in the server.
+  private CopyOnWriteArrayList<VirtualAttributeRule> virtualAttributes;
 
   // The set of backend initialization listeners registered with the Directory
   // Server.
@@ -511,6 +510,10 @@ public class DirectoryServer
   // The trust manager provider configuration manager for the Directory Server.
   private TrustManagerProviderConfigManager trustManagerProviderConfigManager;
 
+  // The virtual attribute provider configuration manager for the Directory
+  // Server.
+  private VirtualAttributeConfigManager virtualAttributeConfigManager;
+
   // The work queue that will be used to service client requests.
   private WorkQueue workQueue;
 
@@ -631,7 +634,7 @@ public class DirectoryServer
     directoryServer.supportedControls = new TreeSet<String>();
     directoryServer.supportedFeatures = new TreeSet<String>();
     directoryServer.virtualAttributes =
-         new ConcurrentHashMap<String,VirtualAttribute>();
+         new CopyOnWriteArrayList<VirtualAttributeRule>();
     directoryServer.connectionHandlers =
          new CopyOnWriteArrayList<ConnectionHandler>();
     directoryServer.identityMappers =
@@ -2218,6 +2221,8 @@ public class DirectoryServer
     supportedControls.add(OID_MATCHED_VALUES);
     supportedControls.add(OID_LDAP_SUBENTRIES);
     supportedControls.add(OID_PASSWORD_POLICY_CONTROL);
+    supportedControls.add(OID_REAL_ATTRS_ONLY);
+    supportedControls.add(OID_VIRTUAL_ATTRS_ONLY);
   }
 
 
@@ -2314,7 +2319,8 @@ public class DirectoryServer
   private void initializeVirtualAttributes()
           throws ConfigException, InitializationException
   {
-    // NYI
+    virtualAttributeConfigManager = new VirtualAttributeConfigManager();
+    virtualAttributeConfigManager.initializeVirtualAttributes();
   }
 
 
@@ -3921,6 +3927,113 @@ public class DirectoryServer
   public static void deregisterNameForm(NameForm nameForm)
   {
     directoryServer.schema.deregisterNameForm(nameForm);
+  }
+
+
+
+  /**
+   * Retrieves the set of virtual attribute rules registered with the Directory
+   * Server.
+   *
+   * @return  The set of virtual attribute rules registered with the Directory
+   *          Server.
+   */
+  public static List<VirtualAttributeRule> getVirtualAttributes()
+  {
+    return directoryServer.virtualAttributes;
+  }
+
+
+
+  /**
+   * Retrieves the set of virtual attribute rules registered with the Directory
+   * Server that are applicable to the provided entry.
+   *
+   * @param  entry  The entry for which to retrieve the applicable virtual
+   *                attribute rules.
+   *
+   * @return  The set of virtual attribute rules registered with the Directory
+   *          Server that apply to the given entry.  It may be an empty list if
+   *          there are no applicable virtual attribute rules.
+   */
+  public static List<VirtualAttributeRule> getVirtualAttributes(Entry entry)
+  {
+    LinkedList<VirtualAttributeRule> ruleList =
+         new LinkedList<VirtualAttributeRule>();
+
+    for (VirtualAttributeRule rule : directoryServer.virtualAttributes)
+    {
+      if (rule.appliesToEntry(entry))
+      {
+        ruleList.add(rule);
+      }
+    }
+
+    return ruleList;
+  }
+
+
+
+  /**
+   * Registers the provided virtual attribute rule with the Directory Server.
+   *
+   * @param  rule  The virtual attribute rule to be registered.
+   */
+  public static void registerVirtualAttribute(VirtualAttributeRule rule)
+  {
+    synchronized (directoryServer.virtualAttributes)
+    {
+      directoryServer.virtualAttributes.add(rule);
+    }
+  }
+
+
+
+  /**
+   * Deregisters the provided virtual attribute rule with the Directory Server.
+   *
+   * @param  rule  The virutal attribute rule to be deregistered.
+   */
+  public static void deregisterVirtualAttribute(VirtualAttributeRule rule)
+  {
+    synchronized (directoryServer.virtualAttributes)
+    {
+      directoryServer.virtualAttributes.remove(rule);
+    }
+  }
+
+
+
+  /**
+   * Replaces the specified virtual attribute rule in the set of virtual
+   * attributes registered with the Directory Server.  If the old rule cannot
+   * be found in the list, then the set of registered virtual attributes is not
+   * updated.
+   *
+   * @param  oldRule  The existing rule that should be replaced with the new
+   *                  rule.
+   * @param  newRule  The new rule that should be used in place of the existing
+   *                  rule.
+   *
+   * @return  {@code true} if the old rule was found and replaced with the new
+   *          version, or {@code false} if it was not.
+   */
+  public static boolean replaceVirtualAttribute(VirtualAttributeRule oldRule,
+                                                VirtualAttributeRule newRule)
+  {
+    synchronized (directoryServer.virtualAttributes)
+    {
+      int pos = directoryServer.virtualAttributes.indexOf(oldRule);
+      if (pos >= 0)
+      {
+        directoryServer.virtualAttributes.set(pos, newRule);
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
   }
 
 

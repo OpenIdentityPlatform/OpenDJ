@@ -1771,6 +1771,13 @@ public class ServerConstants
 
 
   /**
+   * The OID for the real attributes only control.
+   */
+  public static final String OID_REAL_ATTRS_ONLY = "2.16.840.1.113730.3.4.17";
+
+
+
+  /**
    * The OID for the subtree delete control.
    */
   public static final String OID_SUBTREE_DELETE_CONTROL =
@@ -1800,6 +1807,14 @@ public class ServerConstants
    */
   public static final String OID_TRUE_FALSE_FILTERS_FEATURE =
        "1.3.6.1.4.1.4203.1.5.3";
+
+
+
+  /**
+   * The OID for the virtual attributes only control.
+   */
+  public static final String OID_VIRTUAL_ATTRS_ONLY =
+       "2.16.840.1.113730.3.4.19";
 
 
 

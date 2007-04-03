@@ -356,6 +356,10 @@ public class JebFormat
     {
       for (Attribute a : list)
       {
+        if (a.isVirtual())
+        {
+          continue;
+        }
         userAttrElements.add(new LDAPAttribute(a).encode());
       }
     }
@@ -367,6 +371,10 @@ public class JebFormat
     {
       for (Attribute a : list)
       {
+        if (a.isVirtual())
+        {
+          continue;
+        }
         opAttrElements.add(new LDAPAttribute(a).encode());
       }
     }

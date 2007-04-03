@@ -459,7 +459,7 @@ public class ConfigEntry
    */
   public ConfigEntry duplicate()
   {
-    return new ConfigEntry(entry.duplicate(), parent);
+    return new ConfigEntry(entry.duplicate(false), parent);
   }
 
 

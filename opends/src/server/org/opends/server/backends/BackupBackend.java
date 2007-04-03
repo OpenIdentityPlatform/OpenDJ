@@ -97,9 +97,6 @@ public class BackupBackend
        extends Backend
        implements ConfigurableComponent
 {
-
-
-
   // The DN of the configuration entry for this backend.
   private DN configEntryDN;
 
@@ -131,8 +128,6 @@ public class BackupBackend
   public BackupBackend()
   {
     super();
-
-
 
     // Perform all initialization in initializeBackend.
   }
@@ -413,7 +408,7 @@ public class BackupBackend
     // If the requested entry was the backend base entry, then retrieve it.
     if (entryDN.equals(backupBaseDN))
     {
-      return backupBaseEntry;
+      return backupBaseEntry.duplicate(true);
     }
 
 
@@ -543,7 +538,9 @@ public class BackupBackend
     userAttrs.put(t, attrList);
 
 
-    return new Entry(entryDN, ocMap, userAttrs, opAttrs);
+    Entry e = new Entry(entryDN, ocMap, userAttrs, opAttrs);
+    e.processVirtualAttributes();
+    return e;
   }
 
 
@@ -764,7 +761,9 @@ public class BackupBackend
     }
 
 
-    return new Entry(entryDN, ocMap, userAttrs, opAttrs);
+    Entry e = new Entry(entryDN, ocMap, userAttrs, opAttrs);
+    e.processVirtualAttributes();
+    return e;
   }
 
 

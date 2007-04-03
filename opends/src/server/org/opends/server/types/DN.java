@@ -29,11 +29,11 @@ package org.opends.server.types;
 
 
 /********************
- * NOTE:  Any changes to the set of public methods defined in this
- *        class or the arguments that they contain must also be made
- *        in the org.opends.server.interop.LazyDN package to ensure
- *        continued interoperability with third-party applications
- *        that rely on that functionality.
+ * NOTE:  Any changes to the set of non-static public methods defined
+ *        in this class or the arguments that they contain must also
+ *        be made in the org.opends.server.interop.LazyDN package to
+ *        ensure continued interoperability with third-party
+ *        applications that rely on that functionality.
  ********************/
 
 
@@ -45,10 +45,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -63,9 +60,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class DN
        implements Comparable<DN>, Serializable
 {
-
-
-
   /**
    * A singleton instance of the null DN (a DN with no components).
    */
@@ -424,6 +418,46 @@ public class DN
     }
 
     return true;
+  }
+
+
+
+  /**
+   * Indicates whether this entry falls within the range of the
+   * provided search base DN and scope.
+   *
+   * @param  baseDN  The base DN for which to make the determination.
+   * @param  scope   The search scope for which to make the
+   *                 determination.
+   *
+   * @return  <CODE>true</CODE> if this entry is within the given
+   *          base and scope, or <CODE>false</CODE> if it is not.
+   */
+  public boolean matchesBaseAndScope(DN baseDN, SearchScope scope)
+  {
+    switch (scope)
+    {
+      case BASE_OBJECT:
+        // The base DN must equal this DN.
+        return equals(baseDN);
+
+      case SINGLE_LEVEL:
+        // The parent DN must equal the base DN.
+        return baseDN.equals(getParent());
+
+      case WHOLE_SUBTREE:
+        // This DN must be a descendant of the provided base DN.
+        return isDescendantOf(baseDN);
+
+      case SUBORDINATE_SUBTREE:
+        // This DN must be a descendant of the provided base DN, but
+        // not equal to it.
+        return ((! equals(baseDN)) && isDescendantOf(baseDN));
+
+      default:
+        // This is a scope that we don't recognize.
+        return false;
+    }
   }
 
 

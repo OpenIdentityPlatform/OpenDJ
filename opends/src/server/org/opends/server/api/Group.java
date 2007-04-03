@@ -63,9 +63,6 @@ import org.opends.server.types.SearchScope;
  */
 public abstract class Group
 {
-
-
-
   /**
    * Initializes a "shell" instance of this group implementation that
    * may be used to identify and instantiate instances of this type of

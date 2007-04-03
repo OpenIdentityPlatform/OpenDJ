@@ -1669,6 +1669,34 @@ objectClass: top
 objectClass: ds-cfg-branch
 cn: Virtual Attributes
 
+dn: cn=entryDN,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+cn: entryDN
+ds-cfg-virtual-attribute-class: org.opends.server.extensions.EntryDNVirtualAttributeProvider
+ds-cfg-virtual-attribute-enabled: true
+ds-cfg-virtual-attribute-type: entryDN
+ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
+
+dn: cn=isMemberOf,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+cn: isMemberOf
+ds-cfg-virtual-attribute-class: org.opends.server.extensions.IsMemberOfVirtualAttributeProvider
+ds-cfg-virtual-attribute-enabled: true
+ds-cfg-virtual-attribute-type: isMemberOf
+ds-cfg-virtual-attribute-filter: (objectClass=person)
+ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
+
+dn: cn=subschemaSubentry,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+cn: subschemaSubentry
+ds-cfg-virtual-attribute-class: org.opends.server.extensions.SubschemaSubentryVirtualAttributeProvider
+ds-cfg-virtual-attribute-enabled: true
+ds-cfg-virtual-attribute-type: subschemaSubentry
+ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
+
 dn: cn=Work Queue,cn=config
 objectClass: top
 objectClass: ds-cfg-work-queue

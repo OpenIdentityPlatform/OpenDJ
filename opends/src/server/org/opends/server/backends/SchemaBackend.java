@@ -952,7 +952,10 @@ public class SchemaBackend
 
 
     // Construct and return the entry.
-    return new Entry(entryDN, schemaObjectClasses, userAttrs, operationalAttrs);
+    Entry e = new Entry(entryDN, schemaObjectClasses, userAttrs,
+                        operationalAttrs);
+    e.processVirtualAttributes();
+    return e;
   }
 
 

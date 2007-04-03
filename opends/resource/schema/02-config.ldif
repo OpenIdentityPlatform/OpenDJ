@@ -1103,6 +1103,28 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.324
   NAME 'ds-cfg-case-sensitive-validation' 
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE 
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.325
+  NAME 'ds-cfg-virtual-attribute-class' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.326
+  NAME 'ds-cfg-virtual-attribute-enabled' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.327
+  NAME 'ds-cfg-virtual-attribute-type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.328
+  NAME 'ds-cfg-virtual-attribute-base-dn' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.329
+  NAME 'ds-cfg-virtual-attribute-group-dn' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.330
+  NAME 'ds-cfg-virtual-attribute-filter' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.331
+  NAME 'ds-cfg-virtual-attribute-conflict-behavior'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1532,4 +1554,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.90
   SUP ds-cfg-password-validator STRUCTURAL
   MUST ( ds-cfg-maximum-consecutive-length $ ds-cfg-case-sensitive-validation )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.91 NAME 'ds-cfg-virtual-attribute'
+  SUP top STRUCTURAL MUST ( cn $ ds-cfg-virtual-attribute-class $
+  ds-cfg-virtual-attribute-enabled $ ds-cfg-virtual-attribute-type $
+  ds-cfg-virtual-attribute-conflict-behavior )
+  MAY ( ds-cfg-virtual-attribute-base-dn $ ds-cfg-virtual-attribute-group-dn $
+  ds-cfg-virtual-attribute-filter ) X-ORIGIN 'OpenDS Directory Server' )
 
