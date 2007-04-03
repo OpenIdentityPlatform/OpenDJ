@@ -1360,7 +1360,7 @@ public class TaskScheduler
    */
   public Entry getTaskRootEntry()
   {
-    return taskRootEntry;
+    return taskRootEntry.duplicate(true);
   }
 
 
@@ -1374,7 +1374,7 @@ public class TaskScheduler
    */
   public Entry getScheduledTaskParentEntry()
   {
-    return scheduledTaskParentEntry;
+    return scheduledTaskParentEntry.duplicate(true);
   }
 
 
@@ -1388,7 +1388,7 @@ public class TaskScheduler
    */
   public Entry getRecurringTaskParentEntry()
   {
-    return recurringTaskParentEntry;
+    return recurringTaskParentEntry.duplicate(true);
   }
 
 
@@ -1540,7 +1540,7 @@ public class TaskScheduler
 
         if (scheduledTaskEntryDN.equals(taskEntry.getDN()))
         {
-          return taskEntry;
+          return taskEntry.duplicate(true);
         }
       }
 
@@ -1586,7 +1586,7 @@ public class TaskScheduler
 
         try
         {
-          Entry e = t.getTaskEntry();
+          Entry e = t.getTaskEntry().duplicate(true);
           if (filter.matchesEntry(e))
           {
             if (! searchOperation.returnEntry(e, null))
@@ -1691,7 +1691,7 @@ public class TaskScheduler
 
         if (recurringTaskEntryDN.equals(recurringTaskEntry.getDN()))
         {
-          return recurringTaskEntry;
+          return recurringTaskEntry.duplicate(true);
         }
       }
 
@@ -1737,7 +1737,7 @@ public class TaskScheduler
 
         try
         {
-          Entry e = rt.getRecurringTaskEntry();
+          Entry e = rt.getRecurringTaskEntry().duplicate(true);
           if (filter.matchesEntry(e))
           {
             if (! searchOperation.returnEntry(e, null))

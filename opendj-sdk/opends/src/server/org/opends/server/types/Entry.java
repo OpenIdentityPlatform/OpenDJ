@@ -51,14 +51,7 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.util.LDIFException;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugVerbose;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugWarning;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -90,14 +83,18 @@ import static org.opends.server.util.StaticUtils.*;
 public class Entry
        implements ProtocolElement
 {
-
-
+  // Indicates whether virtual attribute processing has been performed
+  // for this entry.
+  private boolean virtualAttributeProcessingPerformed;
 
   // The set of operational attributes for this entry.
   private Map<AttributeType,List<Attribute>> operationalAttributes;
 
   // The set of user attributes for this entry.
   private Map<AttributeType,List<Attribute>> userAttributes;
+
+  // The set of suppressed real attributes for this entry.
+  private Map<AttributeType,List<Attribute>> suppressedAttributes;
 
   // The set of objectclasses for this entry.
   private Map<ObjectClass,String> objectClasses;
@@ -137,8 +134,13 @@ public class Entry
                Map<AttributeType,List<Attribute>>
                     operationalAttributes)
   {
-    attachment = null;
-    schema     = DirectoryServer.getSchema();
+    attachment                          = null;
+    schema                              = DirectoryServer.getSchema();
+    virtualAttributeProcessingPerformed = false;
+
+
+    suppressedAttributes =
+         new LinkedHashMap<AttributeType,List<Attribute>>();
 
 
     if (dn == null)
@@ -3094,10 +3096,14 @@ public class Entry
    * Creates a duplicate of this entry that may be altered without
    * impacting the information in this entry.
    *
+   * @param  processVirtual  Indicates whether virtual attribute
+   *                         processing should be performed for the
+   *                         entry.
+   *
    * @return  A duplicate of this entry that may be altered without
    *          impacting the information in this entry.
    */
-  public Entry duplicate()
+  public Entry duplicate(boolean processVirtual)
   {
     HashMap<ObjectClass,String> objectClassesCopy =
          new HashMap<ObjectClass,String>(objectClasses);
@@ -3112,8 +3118,26 @@ public class Entry
                   operationalAttributes.size());
     deepCopy(operationalAttributes, operationalAttrsCopy, false);
 
-    return new Entry(dn, objectClassesCopy, userAttrsCopy,
-                     operationalAttrsCopy);
+    for (AttributeType t : suppressedAttributes.keySet())
+    {
+      List<Attribute> attrList = suppressedAttributes.get(t);
+      if (t.isOperational())
+      {
+        operationalAttributes.put(t, attrList);
+      }
+      else
+      {
+        userAttributes.put(t, attrList);
+      }
+    }
+
+    Entry e = new Entry(dn, objectClassesCopy, userAttrsCopy,
+                        operationalAttrsCopy);
+    if (processVirtual)
+    {
+      e.processVirtualAttributes();
+    }
+    return e;
   }
 
 
@@ -3123,15 +3147,18 @@ public class Entry
    * attributes that may be altered without impacting the information
    * in this entry.
    *
-   * @param  typesOnly  Indicates whether to include attribute types
-   *                    only without values.
+   * @param  typesOnly       Indicates whether to include attribute
+   *                         types only without values.
+   * @param  processVirtual  Indicates whether virtual attribute
+   *                         processing should be performed for the
+   *                         entry.
    *
    * @return  A duplicate of this entry that may be altered without
    *          impacting the information in this entry and that does
    *          not contain any operational attributes.
    */
   public Entry duplicateWithoutOperationalAttributes(
-                    boolean typesOnly)
+                    boolean typesOnly, boolean processVirtual)
   {
     HashMap<ObjectClass,String> objectClassesCopy;
     if (typesOnly)
@@ -3163,8 +3190,24 @@ public class Entry
     HashMap<AttributeType,List<Attribute>> operationalAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(0);
 
-    return new Entry(dn, objectClassesCopy, userAttrsCopy,
-                     operationalAttrsCopy);
+    for (AttributeType t : suppressedAttributes.keySet())
+    {
+      List<Attribute> attrList = suppressedAttributes.get(t);
+      if (! t.isOperational())
+      {
+        userAttributes.put(t, attrList);
+      }
+    }
+
+    Entry e = new Entry(dn, objectClassesCopy, userAttrsCopy,
+                        operationalAttrsCopy);
+
+    if (processVirtual)
+    {
+      e.processVirtualAttributes(false);
+    }
+
+    return e;
   }
 
 
@@ -3172,14 +3215,15 @@ public class Entry
   /**
    * Performs a deep copy from the source map to the target map.  In
    * this case, the attributes in the list will be duplicates rather
-   * than re-using the same reference.
+   * than re-using the same reference.  Virtual attributes will not be
+   * included when making the copy.
    *
-   * @param  source  The source map from which to obtain the
-   *                 information.
-   * @param  target  The target map into which to place the copied
-   *                 information.
-   * @param  omitValues <CODE>true</CODE> if the values should be
-   *                    omitted.
+   * @param  source      The source map from which to obtain the
+   *                     information.
+   * @param  target      The target map into which to place the
+   *                     copied information.
+   * @param  omitValues  Indicates whether to omit attribute values
+   *                     when processing.
    */
   private void deepCopy(Map<AttributeType,List<Attribute>> source,
                         Map<AttributeType,List<Attribute>> target,
@@ -3193,10 +3237,18 @@ public class Entry
 
       for (Attribute a : sourceList)
       {
+        if (a.isVirtual())
+        {
+          continue;
+        }
+
         targetList.add(a.duplicate(omitValues));
       }
 
-      target.put(t, targetList);
+      if (! targetList.isEmpty())
+      {
+        target.put(t, targetList);
+      }
     }
   }
 
@@ -3522,28 +3574,267 @@ public class Entry
    */
   public boolean matchesBaseAndScope(DN baseDN, SearchScope scope)
   {
-    switch (scope)
+    return dn.matchesBaseAndScope(baseDN, scope);
+  }
+
+
+
+  /**
+   * Performs any necessary virtual attribute processing for this
+   * entry.  This should only be called at the time the entry is
+   * decoded or created within the backend.
+   */
+  public void processVirtualAttributes()
+  {
+    processVirtualAttributes(true);
+  }
+
+
+
+  /**
+   * Performs any necessary virtual attribute processing for this
+   * entry.  This should only be called at the time the entry is
+   * decoded or created within the backend.
+   *
+   * @param  includeOperational  Indicates whether to include
+   *                             operational attributes.
+   */
+  public void processVirtualAttributes(boolean includeOperational)
+  {
+    for (VirtualAttributeRule rule :
+         DirectoryServer.getVirtualAttributes(this))
     {
-      case BASE_OBJECT:
-        // The entry DN must equal the base DN.
-        return baseDN.equals(dn);
+      AttributeType attributeType = rule.getAttributeType();
+      if (attributeType.isOperational() && (! includeOperational))
+      {
+        continue;
+      }
 
-      case SINGLE_LEVEL:
-        // The parent DN for this entry must equal the base DN.
-        return baseDN.equals(dn.getParentDNInSuffix());
+      List<Attribute> attrList = userAttributes.get(attributeType);
+      if ((attrList == null) || attrList.isEmpty())
+      {
+        attrList = operationalAttributes.get(attributeType);
+        if ((attrList == null) || attrList.isEmpty())
+        {
+          // There aren't any conflicts, so we can just add the
+          // attribute to the entry.
+          attrList = new LinkedList<Attribute>();
+          attrList.add(new VirtualAttribute(attributeType, this,
+                                            rule));
+          if (attributeType.isOperational())
+          {
+            operationalAttributes.put(attributeType, attrList);
+          }
+          else
+          {
+            userAttributes.put(attributeType, attrList);
+          }
+        }
+        else
+        {
+          // There is a conflict with an existing operational
+          // attribute.
+          if (attrList.get(0).isVirtual())
+          {
+            // The existing attribute is already virtual, so we've got
+            // a different conflict, but we'll let the first win.
+            // FIXME -- Should we handle this differently?
+            continue;
+          }
 
-      case WHOLE_SUBTREE:
-        // The base DN must be an ancestor of the entry DN.
-        return baseDN.isAncestorOf(dn);
+          // The conflict is with a real attribute.  See what the
+          // conflict behavior is and figure out how to handle it.
+          switch (rule.getConflictBehavior())
+          {
+            case REAL_OVERRIDES_VIRTUAL:
+              // We don't need to update the entry because the real
+              // attribute will take precedence.
+              break;
 
-      case SUBORDINATE_SUBTREE:
-        // The base DN must be an ancstor of the entry DN, but it
-        // must not equal the entry DN.
-        return ((! baseDN.equals(dn)) && baseDN.isAncestorOf(dn));
+            case VIRTUAL_OVERRIDES_REAL:
+              // We need to move the real attribute to the suppressed
+              // list and replace it with the virtual attribute.
+              suppressedAttributes.put(attributeType, attrList);
+              attrList = new LinkedList<Attribute>();
+              attrList.add(new VirtualAttribute(attributeType, this,
+                                                rule));
+              operationalAttributes.put(attributeType, attrList);
+              break;
 
-      default:
-        // This is a scope that we don't recognize.
-        return false;
+            case MERGE_REAL_AND_VIRTUAL:
+              // We need to add the virtual attribute to the list and
+              // keep the existing real attribute(s).
+              attrList.add(new VirtualAttribute(attributeType, this,
+                                                rule));
+              break;
+          }
+        }
+      }
+      else
+      {
+        // There is a conflict with an existing user attribute.
+        if (attrList.get(0).isVirtual())
+        {
+          // The existing attribute is already virtual, so we've got
+          // a different conflict, but we'll let the first win.
+          // FIXME -- Should we handle this differently?
+          continue;
+        }
+
+        // The conflict is with a real attribute.  See what the
+        // conflict behavior is and figure out how to handle it.
+        switch (rule.getConflictBehavior())
+        {
+          case REAL_OVERRIDES_VIRTUAL:
+            // We don't need to update the entry because the real
+            // attribute will take precedence.
+            break;
+
+          case VIRTUAL_OVERRIDES_REAL:
+            // We need to move the real attribute to the suppressed
+            // list and replace it with the virtual attribute.
+            suppressedAttributes.put(attributeType, attrList);
+            attrList = new LinkedList<Attribute>();
+            attrList.add(new VirtualAttribute(attributeType, this,
+                                              rule));
+            userAttributes.put(attributeType, attrList);
+            break;
+
+          case MERGE_REAL_AND_VIRTUAL:
+            // We need to add the virtual attribute to the list and
+            // keep the existing real attribute(s).
+            attrList.add(new VirtualAttribute(attributeType, this,
+                                              rule));
+            break;
+        }
+      }
+    }
+
+    virtualAttributeProcessingPerformed = true;
+  }
+
+
+
+  /**
+   * Indicates whether virtual attribute processing has been performed
+   * for this entry.
+   *
+   * @return  {@code true} if virtual attribute processing has been
+   *          performed for this entry, or {@code false} if not.
+   */
+  public boolean virtualAttributeProcessingPerformed()
+  {
+    return virtualAttributeProcessingPerformed;
+  }
+
+
+
+  /**
+   * Strips out all real attributes from this entry so that it only
+   * contains virtual attributes.
+   */
+  public void stripRealAttributes()
+  {
+    // The objectClass attribute will always be a real attribute.
+    objectClasses.clear();
+
+    Iterator<Map.Entry<AttributeType,List<Attribute>>>
+         attrListIterator = userAttributes.entrySet().iterator();
+    while (attrListIterator.hasNext())
+    {
+      Map.Entry<AttributeType,List<Attribute>> mapEntry =
+           attrListIterator.next();
+      Iterator<Attribute> attrIterator =
+           mapEntry.getValue().iterator();
+      while (attrIterator.hasNext())
+      {
+        Attribute a = attrIterator.next();
+        if (! a.isVirtual())
+        {
+          attrIterator.remove();
+        }
+      }
+
+      if (mapEntry.getValue().isEmpty())
+      {
+        attrListIterator.remove();
+      }
+    }
+
+    attrListIterator = operationalAttributes.entrySet().iterator();
+    while (attrListIterator.hasNext())
+    {
+      Map.Entry<AttributeType,List<Attribute>> mapEntry =
+           attrListIterator.next();
+      Iterator<Attribute> attrIterator =
+           mapEntry.getValue().iterator();
+      while (attrIterator.hasNext())
+      {
+        Attribute a = attrIterator.next();
+        if (! a.isVirtual())
+        {
+          attrIterator.remove();
+        }
+      }
+
+      if (mapEntry.getValue().isEmpty())
+      {
+        attrListIterator.remove();
+      }
+    }
+  }
+
+
+
+  /**
+   * Strips out all virtual attributes from this entry so that it only
+   * contains real attributes.
+   */
+  public void stripVirtualAttributes()
+  {
+    Iterator<Map.Entry<AttributeType,List<Attribute>>>
+         attrListIterator = userAttributes.entrySet().iterator();
+    while (attrListIterator.hasNext())
+    {
+      Map.Entry<AttributeType,List<Attribute>> mapEntry =
+           attrListIterator.next();
+      Iterator<Attribute> attrIterator =
+           mapEntry.getValue().iterator();
+      while (attrIterator.hasNext())
+      {
+        Attribute a = attrIterator.next();
+        if (a.isVirtual())
+        {
+          attrIterator.remove();
+        }
+      }
+
+      if (mapEntry.getValue().isEmpty())
+      {
+        attrListIterator.remove();
+      }
+    }
+
+    attrListIterator = operationalAttributes.entrySet().iterator();
+    while (attrListIterator.hasNext())
+    {
+      Map.Entry<AttributeType,List<Attribute>> mapEntry =
+           attrListIterator.next();
+      Iterator<Attribute> attrIterator =
+           mapEntry.getValue().iterator();
+      while (attrIterator.hasNext())
+      {
+        Attribute a = attrIterator.next();
+        if (a.isVirtual())
+        {
+          attrIterator.remove();
+        }
+      }
+
+      if (mapEntry.getValue().isEmpty())
+      {
+        attrListIterator.remove();
+      }
     }
   }
 
@@ -3742,6 +4033,12 @@ public class Entry
         List<Attribute> attrList = userAttributes.get(attrType);
         for (Attribute a : attrList)
         {
+          if (a.isVirtual() &&
+              (! exportConfig.includeVirtualAttributes()))
+          {
+            continue;
+          }
+
           if (exportConfig.typesOnly())
           {
             StringBuilder attrName = new StringBuilder(a.getName());
@@ -3787,7 +4084,7 @@ public class Entry
     }
 
 
-    // Finally, the set of operational attributes.
+    // Next, the set of operational attributes.
     if (exportConfig.includeOperationalAttributes())
     {
       for (AttributeType attrType : operationalAttributes.keySet())
@@ -3798,6 +4095,12 @@ public class Entry
                operationalAttributes.get(attrType);
           for (Attribute a : attrList)
           {
+            if (a.isVirtual() &&
+                (! exportConfig.includeVirtualAttributes()))
+            {
+              continue;
+            }
+
             if (exportConfig.typesOnly())
             {
               StringBuilder attrName = new StringBuilder(a.getName());
@@ -3853,6 +4156,55 @@ public class Entry
             String.valueOf(dn));
       }
     }
+
+
+    // If we are not supposed to include virtual attributes, then
+    // write any attributes that may normally be suppressed by a
+    // virtual attribute.
+    if (! exportConfig.includeVirtualAttributes())
+    {
+      for (AttributeType t : suppressedAttributes.keySet())
+      {
+        if (exportConfig.includeAttribute(t))
+        {
+          for (Attribute a : suppressedAttributes.get(t))
+          {
+            if (exportConfig.typesOnly())
+            {
+              StringBuilder attrName = new StringBuilder(a.getName());
+              for (String o : a.getOptions())
+              {
+                attrName.append(";");
+                attrName.append(o);
+              }
+              attrName.append(":");
+
+              writeLDIFLine(attrName, writer, wrapLines, wrapColumn);
+            }
+            else
+            {
+              StringBuilder attrName = new StringBuilder(a.getName());
+              for (String o : a.getOptions())
+              {
+                attrName.append(";");
+                attrName.append(o);
+              }
+
+              for (AttributeValue v : a.getValues())
+              {
+                StringBuilder attrLine = new StringBuilder();
+                attrLine.append(attrName);
+                appendLDIFSeparatorAndValue(attrLine,
+                                            v.getValueBytes());
+                writeLDIFLine(attrLine, writer, wrapLines,
+                              wrapColumn);
+              }
+            }
+          }
+        }
+      }
+    }
+
 
     // Make sure there is a blank line after the entry.
     writer.newLine();

@@ -256,12 +256,13 @@ public class ID2Entry
     //Try to decode the entry based on the version number. On later versions,
     //a case could be written to upgrade entries if it is not the current
     //version
+    Entry entry = null;
     switch(entryVersion)
     {
       case JebFormat.FORMAT_VERSION :
         try
         {
-          return JebFormat.entryFromDatabase(entryBytes);
+          entry = JebFormat.entryFromDatabase(entryBytes);
         }
         catch (Exception e)
         {
@@ -269,6 +270,8 @@ public class ID2Entry
           String message = getMessage(msgID, id.toString());
           throw new JebException(msgID, message);
         }
+        break;
+
       //case 0x00                     :
       //  Call upgrade method? Call 0x00 decode method?
       default   :
@@ -276,6 +279,13 @@ public class ID2Entry
         String message = getMessage(msgID, id.toString(), entryVersion);
         throw new JebException(msgID, message);
     }
+
+    if (entry != null)
+    {
+      entry.processVirtualAttributes();
+    }
+
+    return entry;
   }
 
   /**

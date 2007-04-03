@@ -1189,7 +1189,7 @@ modifyProcessing:
 
 
         // Create a duplicate of the entry and apply the changes to it.
-        modifiedEntry = currentEntry.duplicate();
+        modifiedEntry = currentEntry.duplicate(false);
 
         if (! noOp)
         {
@@ -2605,7 +2605,7 @@ modifyProcessing:
 
           if (preReadRequest != null)
           {
-            Entry entry = currentEntry.duplicate();
+            Entry entry = currentEntry.duplicate(true);
 
             if (! preReadRequest.allowsAttribute(
                        DirectoryServer.getObjectClassAttributeType()))
@@ -2656,7 +2656,7 @@ modifyProcessing:
 
           if (postReadRequest != null)
           {
-            Entry entry = modifiedEntry.duplicate();
+            Entry entry = modifiedEntry.duplicate(true);
 
             if (! postReadRequest.allowsAttribute(
                        DirectoryServer.getObjectClassAttributeType()))

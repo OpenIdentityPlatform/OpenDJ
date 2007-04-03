@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="virtual-attribute"
+plural-name="virtual-attributes"
+package="org.opends.server.admin.std"
+xmlns:adm="http://www.opends.org/admin"
+xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    <adm:user-friendly-plural-name />
+    are responsible for dynamically generating attribute values that appear in
+    entries but are not persistently stored in the backend.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.91</ldap:oid>
+      <ldap:name>ds-cfg-virtual-attribute</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property name="provider-class" mandatory="true">
+    <adm:synopsis>
+      The fully-qualified name of the Java class that provides the
+      <adm:user-friendly-name />
+      implementation.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:java-class>
+        <adm:instance-of>
+          org.opends.server.api.VirtualAttributeProvider
+        </adm:instance-of>
+      </adm:java-class>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.325</ldap:oid>
+        <ldap:name>ds-cfg-virtual-attribute-class</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="enabled" mandatory="true">
+    <adm:synopsis>
+      Indicate whether the
+      <adm:user-friendly-name />
+      is enabled for use.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.326</ldap:oid>
+        <ldap:name>ds-cfg-virtual-attribute-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="attribute-type" mandatory="true">
+    <adm:synopsis>
+      Specifies the attribute type for the attribute whose values should be
+      dynamically assigned by the virtual attribute.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:attribute-type />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.327</ldap:oid>
+        <ldap:name>ds-cfg-virtual-attribute-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="base-dn" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the base DNs for the branches containing entries that may be
+      eligible to use this virtual attribute.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The location of the entry in the server will not be taken into account
+          when determining whether an entry is eligible to use this virtual
+          attribute.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.328</ldap:oid>
+        <ldap:name>ds-cfg-virtual-attribute-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="group-dn" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the DNs for the groups whose members may be eligible to use this
+      virtual attribute.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Group membership will not be taken into accountwhen determining
+          whether an entry is eligible to use this virtual attribute.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.329</ldap:oid>
+        <ldap:name>ds-cfg-virtual-attribute-group-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="filter" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the search filters for entries that may be eligible to use this
+      virtual attribute.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>(objectClass=*)</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.330</ldap:oid>
+        <ldap:name>ds-cfg-virtual-attribute-filter</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="conflict-behavior" mandatory="false">
+    <adm:synopsis>
+      Specifies the behavior that the server should exhibit for entries that
+      contain one or more real values for the associated attribute.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>real-overrides-virtual</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="real-overrides-virtual">
+          <adm:synopsis>
+            Any real values contained in the entry should be preserved and
+            virtual values should not be generated.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="virtual-overrides-real">
+          <adm:synopsis>
+            Any real values contained in the entry should be suppressed and
+            virtual values should be generated.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="merge-real-and-virtual">
+          <adm:synopsis>
+            Any real values contained in the entry should be preserved and
+            merged with the set of generated virtual values.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.331</ldap:oid>
+        <ldap:name>ds-cfg-virtual-attribute-conflict-behavior</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

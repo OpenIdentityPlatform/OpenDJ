@@ -410,11 +410,11 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
     while ((count> 0) && (found != exist))
     {
       Thread.sleep(200);
-  
+
       found = DirectoryServer.entryExists(dn);
       count--;
     }
-  
+
     Lock lock = null;
     for (int i=0; i < 3; i++)
     {
@@ -424,19 +424,19 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
         break;
       }
     }
-  
+
     if (lock == null)
     {
       throw new Exception("could not lock entry " + dn);
     }
-  
+
     try
     {
       Entry entry = DirectoryServer.getEntry(dn);
       if (entry == null)
         return null;
       else
-        return entry.duplicate();
+        return entry.duplicate(true);
     }
     finally
     {

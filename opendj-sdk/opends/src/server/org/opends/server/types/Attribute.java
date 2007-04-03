@@ -40,10 +40,7 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.Base64;
 
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -55,9 +52,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class Attribute
 {
-
-
-
   // The attribute type for this attribute.
   private final AttributeType attributeType;
 
@@ -385,7 +379,7 @@ public class Attribute
    */
   public boolean hasValue()
   {
-    return (! values.isEmpty());
+    return (! getValues().isEmpty());
   }
 
 
@@ -400,7 +394,7 @@ public class Attribute
    */
   public boolean hasValue(AttributeValue value)
   {
-    return values.contains(value);
+    return getValues().contains(value);
   }
 
 
@@ -420,7 +414,7 @@ public class Attribute
   {
     for (AttributeValue value : values)
     {
-      if (! this.values.contains(value))
+      if (! getValues().contains(value))
       {
         return false;
       }
@@ -447,7 +441,7 @@ public class Attribute
   {
     for (AttributeValue value : values)
     {
-      if (this.values.contains(value))
+      if (getValues().contains(value))
       {
         return true;
       }
@@ -570,7 +564,7 @@ public class Attribute
 
 
     ConditionResult result = ConditionResult.FALSE;
-    for (AttributeValue value : values)
+    for (AttributeValue value : getValues())
     {
       try
       {
@@ -639,7 +633,7 @@ public class Attribute
     }
 
     ConditionResult result = ConditionResult.FALSE;
-    for (AttributeValue v : values)
+    for (AttributeValue v : getValues())
     {
       try
       {
@@ -708,7 +702,7 @@ public class Attribute
     }
 
     ConditionResult result = ConditionResult.FALSE;
-    for (AttributeValue v : values)
+    for (AttributeValue v : getValues())
     {
       try
       {
@@ -777,7 +771,7 @@ public class Attribute
     }
 
     ConditionResult result = ConditionResult.FALSE;
-    for (AttributeValue v : values)
+    for (AttributeValue v : getValues())
     {
       try
       {
@@ -802,6 +796,20 @@ public class Attribute
     }
 
     return result;
+  }
+
+
+
+  /**
+   * Indicates whether this is a virtual attribute rather than a real
+   * attribute.
+   *
+   * @return  {@code true} if this is a virtual attribute, or
+   *          {@code false} if it is a real attribute.
+   */
+  public boolean isVirtual()
+  {
+    return false;
   }
 
 
@@ -845,11 +853,7 @@ public class Attribute
     else
     {
       LinkedHashSet<AttributeValue> valuesCopy =
-           new LinkedHashSet<AttributeValue>(values.size());
-      for (AttributeValue v : values)
-      {
-        valuesCopy.add(v);
-      }
+           new LinkedHashSet<AttributeValue>(getValues());
 
       return new Attribute(attributeType, name, optionsCopy,
                            valuesCopy);
@@ -886,12 +890,12 @@ public class Attribute
       return false;
     }
 
-    if (values.size() != a.values.size())
+    if (getValues().size() != a.getValues().size())
     {
       return false;
     }
 
-    if (! hasAllValues(a.values))
+    if (! hasAllValues(a.getValues()))
     {
       return false;
     }
@@ -911,7 +915,7 @@ public class Attribute
   public int hashCode()
   {
     int hashCode = attributeType.hashCode();
-    for (AttributeValue value : values)
+    for (AttributeValue value : getValues())
     {
       hashCode += value.hashCode();
     }
@@ -949,7 +953,7 @@ public class Attribute
     buffer.append(", {");
 
     boolean firstValue = true;
-    for (AttributeValue value : values)
+    for (AttributeValue value : getValues())
     {
       if (! firstValue)
       {
@@ -988,7 +992,7 @@ public class Attribute
    */
   public void toLDIF(StringBuilder buffer)
   {
-    for (AttributeValue value : values)
+    for (AttributeValue value : getValues())
     {
       buffer.append(name);
 

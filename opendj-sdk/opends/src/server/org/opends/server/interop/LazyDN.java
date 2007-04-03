@@ -29,11 +29,11 @@ package org.opends.server.interop;
 
 
 import org.opends.server.types.DN;
-import org.opends.server.types.RDN;
-
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.RDN;
+import org.opends.server.types.SearchScope;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -57,9 +57,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class LazyDN
        extends DN
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class implements the {@code java.io.Serializable} interface.  This value
@@ -221,6 +218,18 @@ public class LazyDN
          throws RuntimeException
   {
     return getDecodedDN().isAncestorOf(dn);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean matchesBaseAndScope(DN baseDN, SearchScope scope)
+         throws RuntimeException
+  {
+    return getDecodedDN().matchesBaseAndScope(baseDN, scope);
   }
 
 

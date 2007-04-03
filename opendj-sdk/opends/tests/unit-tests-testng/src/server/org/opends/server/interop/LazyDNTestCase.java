@@ -40,6 +40,7 @@ import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
+import org.opends.server.types.SearchScope;
 
 import static org.testng.Assert.*;
 
@@ -110,6 +111,10 @@ public class LazyDNTestCase
     sigs.add(new String[] { "isAncestorOf",
                             "boolean",
                             "org.opends.server.types.DN" });
+    sigs.add(new String[] { "matchesBaseAndScope",
+                            "boolean",
+                            "org.opends.server.types.DN",
+                            "org.opends.server.types.SearchScope" });
     sigs.add(new String[] { "equals",
                             "boolean",
                             "java.lang.Object" });
@@ -573,6 +578,40 @@ methodLoop:
          throws Exception
   {
     new LazyDN("invalid").isAncestorOf(DN.decode("dc=example,dc=com"));
+  }
+
+
+
+  /**
+   * Tests the {@code matchesBaseAndScope} method with valid DN strings.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testMatchesBaseAndScope()
+         throws Exception
+  {
+    assertTrue(new LazyDN("").matchesBaseAndScope(DN.nullDN(),
+                                                  SearchScope.BASE_OBJECT));
+    assertTrue(new LazyDN("dc=example,dc=com").matchesBaseAndScope(
+                    DN.decode("dc=example,dc=com"), SearchScope.BASE_OBJECT));
+    assertTrue(new LazyDN("ou=People,dc=example,dc=com").matchesBaseAndScope(
+                    DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE));
+  }
+
+
+
+  /**
+   * Tests the {@code matchesBaseAndScope} method with an invalid DN string.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { RuntimeException.class })
+  public void testMatchesBaseandScopeInvalid()
+         throws Exception
+  {
+    new LazyDN("invalid").matchesBaseAndScope(DN.decode("dc=example,dc=com"),
+                                              SearchScope.WHOLE_SUBTREE);
   }
 
 

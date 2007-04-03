@@ -844,7 +844,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
        */
 
       // Create an Entry (add operation)
-      Entry tmp = personEntry.duplicate();
+      Entry tmp = personEntry.duplicate(false);
       AddOperation addOp = new AddOperation(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, tmp.getDN(),

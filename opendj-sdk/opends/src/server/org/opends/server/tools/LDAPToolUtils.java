@@ -111,6 +111,16 @@ public class LDAPToolUtils
     {
       controlOID = OID_SUBTREE_DELETE_CONTROL;
     }
+    else if (lowerOID.equals("realattrsonly") ||
+             lowerOID.equals("realattributesonly"))
+    {
+      controlOID = OID_REAL_ATTRS_ONLY;
+    }
+    else if (lowerOID.equals("virtualattrsonly") ||
+             lowerOID.equals("virtualattributesonly"))
+    {
+      controlOID = OID_VIRTUAL_ATTRS_ONLY;
+    }
 
     if (idx < 0)
     {

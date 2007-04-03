@@ -4826,6 +4826,16 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if a search operation has
+   * a filter targeting the subschemaSubentry virtual attribute, which is not
+   * searchable.  This takes a single argument, which is the name of the
+   * subschemaSubentry attribute type.
+   */
+  public static final int MSGID_SUBSCHEMASUBENTRY_VATTR_NOT_SEARCHABLE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 459;
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6962,6 +6972,11 @@ public class ExtensionsMessages
                     "The provided password does not contain enough unique " +
                     "characters.  The minimum number of unique characters " +
                     "that may appear in a user password is %d.");
+
+
+    registerMessage(MSGID_SUBSCHEMASUBENTRY_VATTR_NOT_SEARCHABLE,
+                    "The %s attribute is not searchable and should not be " +
+                    "included in otherwise unindexed search filters.");
   }
 }
 

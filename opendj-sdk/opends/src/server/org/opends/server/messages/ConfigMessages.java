@@ -6528,6 +6528,51 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used if a virtual attribute
+   * definition has an invalid search filter.  This takes three arguments, which
+   * are the filter string, the configuration entry DN, and a message explaining
+   * the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_VATTR_INVALID_SEARCH_FILTER =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 649;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to load and/or initialize a class as a virtual attribute provider.
+   * This takes three arguments, which are the class name, the configuration
+   * entry DN, and string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_VATTR_INITIALIZATION_FAILED =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 650;
+
+
+
+  /**
+   * The message ID for the message that will be used if the configured
+   * attribute type is single-valued, but the virtual attribute provider may
+   * generate multiple values.  This takes three arguments, which are the DN of
+   * the configuration entry, the name or OID of the attribute type, and the
+   * name of the virtual attribute provider class.
+   */
+  public static final int MSGID_CONFIG_VATTR_SV_TYPE_WITH_MV_PROVIDER =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 651;
+
+
+
+  /**
+   * The message ID for the message that will be used if the configured
+   * attribute type is single-valued, but the conflict behavior is to merge the
+   * real and virtual values.  This takes two arguments, which are the DN of
+   * the configuration entry and the name or OID of the attribute type.
+   */
+  public static final int MSGID_CONFIG_VATTR_SV_TYPE_WITH_MERGE_VALUES =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 652;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -9383,6 +9428,24 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_CHANGE_RESULT_MESSAGES,
                     "%s.%s succeeded but generated the following messages " +
                     "for entry %s:  %s.");
+
+
+    registerMessage(MSGID_CONFIG_VATTR_INVALID_SEARCH_FILTER,
+                    "Unable to parse value \"%s\" from config entry \"%s\" " +
+                    "as a valid search filter:  %s.");
+    registerMessage(MSGID_CONFIG_VATTR_SV_TYPE_WITH_MV_PROVIDER,
+                    "The virtual attribute configuration in entry \"%s\" is " +
+                    "not valid because attribute type %s is single-valued " +
+                    "but provider %s may generate multiple values.");
+    registerMessage(MSGID_CONFIG_VATTR_SV_TYPE_WITH_MERGE_VALUES,
+                    "The virtual attribute configuration in entry \"%s\" is " +
+                    "not valid because attribute type %s is single-valued " +
+                    "but the conflict behavior is configured to merge real " +
+                    "and virtual values.");
+    registerMessage(MSGID_CONFIG_VATTR_INITIALIZATION_FAILED,
+                    "An error occurred while trying to load an instance " +
+                    "of class %s referenced in configuration entry %s as a " +
+                    "virtual attribute provider:  %s.");
   }
 }
 

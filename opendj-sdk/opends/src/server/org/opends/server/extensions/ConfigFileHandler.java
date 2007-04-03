@@ -983,7 +983,7 @@ public class ConfigFileHandler
       return null;
     }
 
-    return configEntry.getEntry();
+    return configEntry.getEntry().duplicate(true);
   }
 
 
@@ -1027,6 +1027,8 @@ public class ConfigFileHandler
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
+    Entry e = entry.duplicate(false);
+
     // If there is an add operation, then make sure that the associated user has
     // both the CONFIG_READ and CONFIG_WRITE privileges.
     if (addOperation != null)
@@ -1051,7 +1053,7 @@ public class ConfigFileHandler
     {
       // Make sure that the target DN does not already exist.  If it does, then
       // fail.
-      DN entryDN = entry.getDN();
+      DN entryDN = e.getDN();
       if (configEntries.containsKey(entryDN))
       {
         int    msgID   = MSGID_CONFIG_FILE_ADD_ALREADY_EXISTS;
@@ -1099,7 +1101,7 @@ public class ConfigFileHandler
 
 
       // Encapsulate the provided entry in a config entry.
-      ConfigEntry newEntry = new ConfigEntry(entry, parentEntry);
+      ConfigEntry newEntry = new ConfigEntry(e, parentEntry);
 
 
       // See if the parent entry has any add listeners.  If so, then iterate
@@ -1327,6 +1329,8 @@ public class ConfigFileHandler
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
+    Entry e = entry.duplicate(false);
+
     // If there is a modify operation, then make sure that the associated user
     // has both the CONFIG_READ and CONFIG_WRITE privileges.  Also, if the
     // operation targets the set of root privileges then make sure the user has
@@ -1373,7 +1377,7 @@ public class ConfigFileHandler
     try
     {
       // Get the DN of the target entry for future reference.
-      DN entryDN = entry.getDN();
+      DN entryDN = e.getDN();
 
 
       // Get the target entry.  If it does not exist, then fail.
@@ -1405,7 +1409,7 @@ public class ConfigFileHandler
 
 
       // Create a new config entry to use for the validation testing.
-      ConfigEntry newEntry = new ConfigEntry(entry, currentEntry.getParent());
+      ConfigEntry newEntry = new ConfigEntry(e, currentEntry.getParent());
 
 
       // See if there are any config change listeners registered for this entry.
@@ -1465,7 +1469,7 @@ public class ConfigFileHandler
       // We'll just overwrite the core entry in the current config entry so that
       // we keep all the registered listeners, references to the parent and
       // children, and other metadata.
-      currentEntry.setEntry(entry);
+      currentEntry.setEntry(e);
       writeUpdatedConfig();
 
 
@@ -1606,7 +1610,7 @@ public class ConfigFileHandler
       case BASE_OBJECT:
         // We are only interested in the base entry itself.  See if it matches
         // and if so then return the entry.
-        Entry e = baseEntry.getEntry();
+        Entry e = baseEntry.getEntry().duplicate(true);
         if (filter.matchesEntry(e))
         {
           searchOperation.returnEntry(e, null);
@@ -1619,7 +1623,7 @@ public class ConfigFileHandler
         // Iterate through them and return the ones that match the filter.
         for (ConfigEntry child : baseEntry.getChildren().values())
         {
-          e = child.getEntry();
+          e = child.getEntry().duplicate(true);
           if (filter.matchesEntry(e))
           {
             if (! searchOperation.returnEntry(e, null))
@@ -1680,7 +1684,7 @@ public class ConfigFileHandler
                                 SearchOperation searchOperation)
           throws DirectoryException
   {
-    Entry e = baseEntry.getEntry();
+    Entry e = baseEntry.getEntry().duplicate(true);
     if (filter.matchesEntry(e))
     {
       if (! searchOperation.returnEntry(e, null))
