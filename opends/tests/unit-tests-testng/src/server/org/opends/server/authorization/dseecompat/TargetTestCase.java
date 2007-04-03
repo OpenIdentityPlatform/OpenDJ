@@ -31,7 +31,9 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
@@ -42,6 +44,102 @@ public class TargetTestCase extends DirectoryServerTestCase
   public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
+  }
+
+
+  @DataProvider
+  public Object[][] matchingPatterns()
+  {
+    return new Object[][] {
+         {
+              "uid=bj*,ou=people,dc=example,dc=com",
+              "uid=bjensen,ou=people,dc=example,dc=com"
+         },
+         {
+              "uid=*,ou=people,dc=example,dc=com",
+              "uid=bjensen,ou=people,dc=example,dc=com"
+         },
+         {
+              "uid=bjensen*,**",
+              "uid=bjensen,ou=people,dc=example,dc=com"
+         },
+         {
+              "*jensen,ou=People,dc=example,dc=com",
+              "uid=bjensen,ou=people,dc=example,dc=com"
+         },
+         {
+              "bjensen,ou=People,dc=example,dc=com",
+              "uid=bjensen,ou=people,dc=example,dc=com"
+         },
+         {
+              "**",
+              "uid=bjensen,ou=people,dc=example,dc=com"
+         },
+         {
+              "*",
+              "dc=com"
+         },
+         {
+              "uid=bj*+sn=*,ou=people,dc=example,dc=com",
+              "sn=jensen+uid=bjensen,ou=people,dc=example,dc=com"
+         },
+         {
+              "bjensen",
+              "uid=bjensen"
+         }
+    };
+  }
+
+
+  @DataProvider
+  public Object[][] nonMatchingPatterns()
+  {
+    return new Object[][] {
+         {
+              "uid=bj*,ou=people,dc=example,dc=com",
+              "uid=bjensen,ou=j,ou=people,dc=example,dc=com"
+         },
+         {
+              "uid=*,ou=people,dc=example,dc=com",
+              "cn=bjensen,ou=people,dc=example,dc=com"
+         },
+         {
+              "uid=bjensen*,**",
+              "uid=bjensen"
+         },
+         {
+              "**",
+              ""
+         },
+         {
+              "*",
+              "dc=example,dc=com"
+         },
+         {
+              "uid=bj*+cn=*,ou=people,dc=example,dc=com",
+              "sn=jensen+uid=bjensen,ou=people,dc=example,dc=com"
+         },
+    };
+  }
+
+
+  @DataProvider
+  public Object[][] invalidPatterns()
+  {
+    return new Object[][] {
+         {
+              "uid=bj**,ou=people,dc=example,dc=com"
+         },
+         {
+              "uid*=bjensen,ou=people,dc=example,dc=com",
+         },
+         {
+              "uid=bjensen*,***",
+         },
+         {
+              "uid=bjensen+*=jensen,ou=people,dc=example,dc=com"
+         },
+    };
   }
 
 
@@ -67,7 +165,7 @@ public class TargetTestCase extends DirectoryServerTestCase
          },
          {
               "dc=example,dc=com",
-              "(target=\"ldap:///uid=bjensen*\")" +
+              "(target=\"ldap:///uid=bjensen*,**\")" +
                    "(targetattr=\"*\")(targetScope=\"subtree\")" +
                    "(version 3.0; acl \"example\";" +
                    " allow (all) userdn=\"ldap:///self\";)",
@@ -75,7 +173,7 @@ public class TargetTestCase extends DirectoryServerTestCase
          },
          {
               "dc=example,dc=com",
-              "(target=\"ldap:///uid=*,dc=example,dc=com\")" +
+              "(target=\"ldap:///uid=*,*,dc=example,dc=com\")" +
                    "(targetattr=\"*\")(targetScope=\"subtree\")" +
                    "(version 3.0; acl \"example\";" +
                    " allow (all) userdn=\"ldap:///self\";)",
@@ -105,33 +203,46 @@ public class TargetTestCase extends DirectoryServerTestCase
                    " allow (all) userdn=\"ldap:///self\";)",
               "uid=bjensen,ou=people,dc=example,dc=com",
          },
-         // These tests fail as we attempt to normalize the pattern as a DN.
-         // <FAIL>
-//         {
-//              "dc=example,dc=com",
-//              "(target=\"ldap:///*,ou=people,dc=example,dc=com\")" +
-//                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
-//                   "(version 3.0; acl \"example\";" +
-//                   " allow (all) userdn=\"ldap:///self\";)",
-//              "uid=bjensen,ou=people,dc=example,dc=com",
-//         },
-//         {
-//              "dc=example,dc=com",
-//              "(target=\"ldap:///uid=bjensen,*,dc=com\")" +
-//                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
-//                   "(version 3.0; acl \"example\";" +
-//                   " allow (all) userdn=\"ldap:///self\";)",
-//              "uid=bjensen,ou=people,dc=example,dc=com",
-//         },
-//         {
-//              "dc=example,dc=com",
-//              "(target=\"ldap:///*Anderson,ou=People,dc=example,dc=com\")" +
-//                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
-//                   "(version 3.0; acl \"example\";" +
-//                   " allow (all) userdn=\"ldap:///self\";)",
-//              "uid=bjensen,ou=people,dc=example,dc=com",
-//         },
-         // </FAIL>
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///*,ou=people,dc=example,dc=com\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "uid=bjensen,ou=people,dc=example,dc=com",
+         },
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///uid=bjensen,**,dc=com\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "uid=bjensen,ou=people,dc=example,dc=com",
+         },
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///uid=bjensen,*,*,dc=com\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "uid=bjensen,ou=people,dc=example,dc=com",
+         },
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///*=*jensen,ou=People,dc=example,dc=com\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "uid=bjensen,ou=people,dc=example,dc=com",
+         },
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///*jensen,ou=People,dc=example,dc=com\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "uid=bjensen,ou=people,dc=example,dc=com",
+         },
          {
               "ou=aci branch,o=ACI Tests,dc=example,dc=com",
               "(target=\"ldap:///ou=Peo*,ou=aci branch, o=ACI Tests," +
@@ -168,8 +279,25 @@ public class TargetTestCase extends DirectoryServerTestCase
               "uid=scarter,ou=People,ou=aci branch,o=ACI Tests," +
                    "dc=example,dc=com",
          },
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///**\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "uid=bjensen,ou=people,dc=example,dc=com",
+         },
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///*\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "uid=bjensen,ou=people,dc=example,dc=com",
+         },
     };
   }
+
 
   @DataProvider
   public Object[][] nonApplicableTargets()
@@ -190,7 +318,77 @@ public class TargetTestCase extends DirectoryServerTestCase
                    " allow (all) userdn=\"ldap:///self\";)",
               "uid=bjensen,ou=people,dc=example,dc=com",
          },
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///uid=bjensen,*,dc=com\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "uid=bjensen,ou=people,dc=example,dc=com",
+         },
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///uid=bjensen*,*\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "uid=bjensen,ou=people,dc=example,dc=com",
+         },
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///uid=*,dc=example,dc=com\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "uid=bjensen,ou=people,dc=example,dc=com",
+         },
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///**\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "",
+         },
+         {
+              "dc=example,dc=com",
+              "(target=\"ldap:///*\")" +
+                   "(targetattr=\"*\")(targetScope=\"subtree\")" +
+                   "(version 3.0; acl \"example\";" +
+                   " allow (all) userdn=\"ldap:///self\";)",
+              "",
+         },
     };
+  }
+
+
+  @Test(dataProvider = "matchingPatterns")
+  public void matchingPatterns(String pattern, String entryDN)
+       throws Exception
+  {
+    PatternDN patternDN = PatternDN.decode(pattern);
+    boolean match = patternDN.matchesDN(DN.decode(entryDN));
+    assertTrue(match, pattern + " did not match " + entryDN);
+  }
+
+
+  @Test(dataProvider = "nonMatchingPatterns")
+  public void nonMatchingPatterns(String pattern, String entryDN)
+       throws Exception
+  {
+    PatternDN patternDN = PatternDN.decode(pattern);
+    boolean match = patternDN.matchesDN(DN.decode(entryDN));
+    assertTrue(!match, pattern + " should not have matched " + entryDN);
+  }
+
+
+  @Test(dataProvider = "invalidPatterns",
+        expectedExceptions = DirectoryException.class)
+  public void invalidPatterns(String pattern)
+       throws Exception
+  {
+    PatternDN.decode(pattern);
+    fail("Invalid DN pattern " + pattern + " did not throw an exception");
   }
 
 
