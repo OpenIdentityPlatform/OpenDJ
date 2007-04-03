@@ -530,7 +530,8 @@ public class TemplateFile
         }
       }
     }
-    else if (lastNameIndex >= lastNames.length)
+
+    if (lastNameIndex >= lastNames.length)
     {
       // We're at the end of the last name list, so start over.  If the last
       // name list is larger than the first name list, then we'll also need to

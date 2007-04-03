@@ -346,7 +346,7 @@ public class MakeLDIF
     {
       int    msgID   = MSGID_MAKELDIF_ERROR_WRITING_LDIF;
       String message = getMessage(msgID, ldifFile.getValue(),
-                                  String.valueOf(e));
+                                  stackTraceToSingleLineString(e));
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -402,7 +402,7 @@ public class MakeLDIF
     {
       int    msgID   = MSGID_MAKELDIF_CANNOT_WRITE_ENTRY;
       String message = getMessage(msgID, String.valueOf(entry.getDN()),
-                                  String.valueOf(e));
+                                  stackTraceToSingleLineString(e));
       throw new MakeLDIFException(msgID, message, e);
     }
   }
