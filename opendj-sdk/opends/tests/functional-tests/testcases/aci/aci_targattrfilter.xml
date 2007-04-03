@@ -1,0 +1,1582 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="aci_targattrfilter"/>
+
+  <function name="aci_targattrfilter">
+
+    <sequence>
+
+      <block name="'aci-targattrfilter'">
+      
+        <sequence>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+                Place suite-specific test information here.
+                #@TestSuiteName             ACI Targattrfilter Tests
+                #@TestSuitePurpose          Test the basic ACI Targattrfilter Support. (allow(read)) 
+                #@TestSuiteGroup            Basic ACI Targattrfilter Tests
+                #@TestScript                aci_targattrfilter.xml
+          -->
+    
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Preamble
+                #@TestIssue                 437
+                #@TestPurpose               Test default aci settings
+                #@TestPreamble              none
+                #@TestStep                  Client searches entry with a branch dn.
+                #@TestStep                  Client searches entry with another branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and no entries are returned 
+                                            for all operations.
+            -->
+          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+          <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Preamble'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                   'ACI: Targattrfilter: Preamble - Removing Search Global ACI'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rm_global_search.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Preamble - user searching entry that will be targeted in future tests'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=gfarmer,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Preamble - user searching entry that will be non-targeted in future tests'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=gfarmer,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestStringNotPresent'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=non-aci branch,o=ACI Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter equals add:title 
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter set equal to add:title
+                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
+                #@TestStep                  Client adds title to an entry with the targeted branch dn.
+                #@TestStep                  Client adds prohibited title to an entry with the targeted branch dn.
+                #@TestStep                  Client deletes telephonenumber from an entry with the targeted branch dn.
+                #@TestStep                  Client adds title to an entry that is not with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client adds carlicense to an entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldapmodify operations, 
+                                            0 for steps 1 and 3, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to valueacl.ksh Test Cases 2 and 3 -->
+            <!-- Special note: when "del" is missing from targattrfilter, it should evaluate as true. -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter equals add:title'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci1.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:title, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:title, user adding title to targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_title1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:title, user adding prohibited title to targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_title1a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals del:telephonenumber, user deleting roomnumber from targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_telephonenumber1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:title, user adding title to non-targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_title1b.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:title, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:title, user adding carlicense to previously targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_carlicense1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter equals del:title 
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter set equal to del:title
+                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
+                #@TestStep                  Client adds telephonenumber to an entry with the targeted branch dn.
+                #@TestStep                  Client deletes title from an entry with the targeted branch dn.
+                #@TestStep                  Client deletes roomnumber from an entry with the targeted branch dn.
+                #@TestStep                  Client deletes roomnumber from an entry that is not with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client deletes fax number from an entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldapmodify operations, 
+                                            0 for steps 1 and 3, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to valueacl.ksh Test Cases 4 and 5 -->
+            <!-- Special note: when "add" is missing from targattrfilter, it should evaluate as true. -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter equals del:roomnumber'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci2.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, user adding telephonenumber to targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_telephonenumber2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, user deleting title from targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_title2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, user deleting roomnumber from targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_roomnumber2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, user deleting roomnumber from non-targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_roomnumber2a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, user deleting fax number from previously targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_faxnumber2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+        <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter equals add:l,del:l
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter set equal to add:l,del:l
+                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
+                #@TestStep                  Client replaces l in an entry with the targeted branch dn.
+                #@TestStep                  Client replaces mail in an entry with the targeted branch dn.
+                #@TestStep                  Client replaces l in an entry that is not with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client replaces l from an entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldapmodify operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to valueacl.ksh Test Cases 6 and 8 -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter equals add:l,del:l'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci3.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l3.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing mail in targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_mail3.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in non-targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l3a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in previously targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l3.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+        <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter equals add:st,del:st - st not present
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter set equal to add:st,del:st - st not present
+                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
+                #@TestStep                  Client replaces st in an entry with the targeted branch dn.
+                #@TestStep                  Client replaces mail in an entry with the targeted branch dn.
+                #@TestStep                  Client replaces st in an entry that is not with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client replaces st from an entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldapmodify operations, 
+                                            0 for step 2, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to valueacl.ksh Test Cases 7 -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter equals add:st,del:st'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci4.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:st,del:st, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:st,del:st, user replacing st in targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_st4.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:st,del:st, user replacing mail in targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_mail4.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:st,del:st, user replacing st in non-targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_st4a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:st,del:st, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:st,del:st, user replacing st in previously targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_st4.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+        <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter equals add:l,del:l  blah blah
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter set equal to add:l,del:l
+                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
+                #@TestStep                  Client replaces l in an entry with the targeted branch dn.
+                #@TestStep                  Client replaces mail in an entry with the targeted branch dn.
+                #@TestStep                  Client replaces l in an entry that is not with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client replaces l from an entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldapmodify operations, 
+                                            0 for steps 1 and 2, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to valueacl.ksh Test Cases 6 and 8 -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter equals add:l,del:l wildcard only'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci5.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l5.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing mail in targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_mail5.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in non-targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l5a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in previously targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l5.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter equals add:title,del:title - wildcards
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter set equal to add:title,del:title with wildcards
+                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
+                #@TestStep                  Client replaces st in an entry with the targeted branch dn.
+                #@TestStep                  Client replaces st in an entry that is not with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client replaces st from an entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldapmodify operations, 
+                                            and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to valueacl.ksh Test Cases 7 -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter equals add:title,del:title with wildcards'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci6.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:title,del:title with wildcards, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:title,del:title with wildcards, user replacing title in targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_title6.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:title,del:title with wildcards, user replacing title in non-targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_title6a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:title,del:title with wildcards, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals add:title,del:title with wildcards, user replacing title in previously targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_title6.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter with misppelled add 
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter with mispelled add
+                #@TestPreamble              none
+                #@TestStep                  Admin adds the aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter with mispelled add'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci7.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with mispelled add, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter with misppelled del 
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter with mispelled del
+                #@TestPreamble              none
+                #@TestStep                  Admin adds the aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter with mispelled del'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci8.ldif' % STAGED_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with mispelled del, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter with misppelled del with add
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter with mispelled del
+                #@TestPreamble              none
+                #@TestStep                  Admin adds the aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter with mispelled del with add'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci9.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with mispelled del with add, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 21">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <!-- The following operation can be removed when Issue 1473 is fixed. -->
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with mispelled del with add, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter with missing comma 
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter with missing comma
+                #@TestPreamble              none
+                #@TestStep                  Admin adds the aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter with missing comma'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci10.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with missing comma, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 21">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <!-- The following operation can be removed when Issue 1473 is fixed. -->
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with mispelled del with add, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter with extra quotes 
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter with extra quotes
+                #@TestPreamble              none
+                #@TestStep                  Admin adds the aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter with extra quotes'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci11.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with extra quotes, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter with extra commas 
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter with extra commas
+                #@TestPreamble              none
+                #@TestStep                  Admin adds the aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter with extra commas'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci12.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with extra commas, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 21">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <!-- The following operation can be removed when Issue 1473 is fixed. -->
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with extra commas, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter with missing argument for add 
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter with missing argument for add 
+                #@TestPreamble              none
+                #@TestStep                  Admin adds the aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter with missing argument for add '">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci13.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with missing argument for add, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter with missing argument for del 
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter with missing argument for del 
+                #@TestPreamble              none
+                #@TestStep                  Admin adds the aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter with missing argument for del'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci14.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with missing argument for del, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter with missing argument for del with add
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter with missing argument for del with add
+                #@TestPreamble              none
+                #@TestStep                  Admin adds the aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter with missing argument for del with add'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci15.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with missing argument for del with add, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+        <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter equals del:l,add:l
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter set equal to del:l,add:l
+                #@TestPreamble              none
+                #@TestStep                  Admin adds the aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Targattrfilter equals del:l,add:l'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci16.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter equals del:l,add:l, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+         <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Postamble
+                #@TestIssue                 437
+                #@TestPurpose               Test default aci settings
+                #@TestPreamble              none
+                #@TestStep                  Client searches entry with a branch dn.
+                #@TestStep                  Client searches entry with another branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and no entries are returned 
+                                            for all operations.
+          -->
+          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+          <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Targattrfilter: Postamble'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                   'ACI: Targattrfilter: Postamble - user searching entry that will be targeted in future tests'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=gfarmer,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Postamble - user searching entry that will be non-targeted in future tests'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=gfarmer,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=gfarmer,ou=People,ou=non-aci branch,o=ACI Tests' }
+                </call>
+              
+                <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+                </if>
+  
+                <message>
+                   'ACI: Targattrfilter: Resetting Search Global ACI'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_reset_global_search.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+          </testcase>
+    
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+   
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>
