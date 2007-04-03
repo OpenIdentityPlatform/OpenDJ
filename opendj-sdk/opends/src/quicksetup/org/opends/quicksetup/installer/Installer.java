@@ -344,18 +344,15 @@ public abstract class Installer extends Application {
 
       // Set the default button for the frame
       if (step == REVIEW) {
-          dlg.setDefaultButton(ButtonName.FINISH);
-          dlg.setFocusOnButton(ButtonName.FINISH);
+        dlg.setFocusOnButton(ButtonName.FINISH);
+        dlg.setDefaultButton(ButtonName.FINISH);
       } else if (step == PROGRESS) {
-          dlg.setDefaultButton(ButtonName.CLOSE);
+        dlg.setDefaultButton(ButtonName.CLOSE);
       } else if (step == WELCOME) {
-          dlg.setFocusOnButton(ButtonName.NEXT);
-      } else if (step == SERVER_SETTINGS) {
-          // The focus is set by the panel itself
-      } else if (step == DATA_OPTIONS) {
-          // The focus is set by the panel itself
+        dlg.setDefaultButton(ButtonName.NEXT);
+        dlg.setFocusOnButton(ButtonName.NEXT);
       } else if (step == REVIEW) {
-          // do nothing?
+        dlg.setDefaultButton(ButtonName.NEXT);
       } else if (step == PROGRESS) {
         dlg.setFocusOnButton(ButtonName.CLOSE);
         dlg.setButtonEnabled(ButtonName.CLOSE, false);
