@@ -696,6 +696,34 @@ public class AciMessages {
         CATEGORY_MASK_ACCESS_CONTROL | 68;
 
     /**
+     * The message ID for the message that will be used if a DN pattern failed
+     * parsing because it contained consecutive wildcards in an attribute value.
+     * This takes one argument, which is the invalid DN pattern string.
+     */
+    public static final int MSGID_PATTERN_DN_CONSECUTIVE_WILDCARDS_IN_VALUE =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 69;
+
+
+    /**
+     * The message ID for the message that will be used if a DN pattern failed
+     * parsing because it uses wildcards for substring matching on an attribute
+     * type.  This takes one argument, which is the invalid DN pattern string.
+     */
+    public static final int MSGID_PATTERN_DN_TYPE_CONTAINS_SUBSTRINGS =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 70;
+
+
+    /**
+     * The message ID for the message that will be used if a DN pattern failed
+     * parsing because it contained a wildcard match on an attribute type
+     * in a multi-valued RDN.  This takes one argument, which is the invalid
+     * DN pattern string.
+     */
+    public static final int MSGID_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 71;
+
+
+    /**
      * Associates a set of generic messages with the message IDs defined in
      * this class.
      */
@@ -954,7 +982,7 @@ public class AciMessages {
                 "The provided Access Control Instruction (ACI)" +
                 " target expression value \"%s\" is invalid. A valid target" +
                 " keyword expression  value requires a LDAP URL in the" +
-                " following format: ldap:///distinguished_name.");
+                " following format: ldap:///distinguished_name_pattern.");
 
         registerMessage(MSGID_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF,
                 "The provided Access Control Instruction (ACI) " +
@@ -1097,5 +1125,17 @@ public class AciMessages {
          "An unexpected error occurred while processing the " +
           " aci attributes in the configuration system.");
 
+        registerMessage(MSGID_PATTERN_DN_CONSECUTIVE_WILDCARDS_IN_VALUE,
+          "The pattern DN %s is not valid because it contains two " +
+               "consecutive wildcards in an attribute value.");
+
+        registerMessage(MSGID_PATTERN_DN_TYPE_CONTAINS_SUBSTRINGS,
+          "The pattern DN %s is not valid because it uses wildcards for " +
+               "substring matching on an attribute type.  A single wildcard " +
+               "is allowed in place of an attribute type.");
+
+        registerMessage(MSGID_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN,
+          "The pattern DN %s is not valid because it contains a wildcard in " +
+               "an attribute type in a multi-valued RDN");
     }
 }
