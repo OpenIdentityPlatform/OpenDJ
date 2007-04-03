@@ -51,6 +51,24 @@ facsimiletelephonenumber: +1 408 555 9751
 roomnumber: 4612
 userpassword: ACIRules
 
+dn: uid=buser, ou=People, o=ACI Tests, dc=example,dc=com
+cn: Baci User
+sn: User
+givenname: Baci
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: buser
+mail: buser@example.com
+telephonenumber: +1 408 555 4798
+facsimiletelephonenumber: +1 408 555 9751
+roomnumber: 4612
+userpassword: ACIRules
+
 dn: ou=aci branch, o=ACI Tests, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
@@ -168,6 +186,9 @@ telephonenumber: +1 408 555 6201
 facsimiletelephonenumber: +1 408 555 8473
 roomnumber: 1269
 userpassword: ruling
+title: Engineer
+title: architect
+title: sweeper
 
 dn: uid=kwinters, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
 cn: Kelly Winters
