@@ -59,6 +59,7 @@ import org.opends.server.util.args.StringArgument;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -169,8 +170,9 @@ public class LDIFSearch
                                     MSGID_LDIFSEARCH_DESCRIPTION_LDIF_FILE);
       argParser.addArgument(ldifFile);
 
-      baseDNString = new StringArgument("basedn", 'b', "baseDN", false, true,
-                                        true, "{baseDN}", "", null,
+      baseDNString = new StringArgument("basedn", OPTION_SHORT_BASEDN,
+                                        OPTION_LONG_BASEDN, false, true,
+                                        true, OPTION_VALUE_BASEDN, "", null,
                                         MSGID_LDIFSEARCH_DESCRIPTION_BASEDN);
       argParser.addArgument(baseDNString);
 
@@ -186,8 +188,9 @@ public class LDIFSearch
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
-      configClass = new StringArgument("configclass", 'C', "configClass", false,
-                             false, true, "{configClass}",
+      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                             OPTION_LONG_CONFIG_CLASS, false,
+                             false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
                              MSGID_LDIFSEARCH_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
@@ -225,7 +228,8 @@ public class LDIFSearch
       argParser.addArgument(timeLimit);
 
 
-      showUsage = new BooleanArgument("help", 'H', "help",
+      showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
+                                      OPTION_LONG_HELP,
                                       MSGID_LDIFSEARCH_DESCRIPTION_USAGE);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);

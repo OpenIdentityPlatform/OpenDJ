@@ -57,6 +57,7 @@ import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -166,49 +167,57 @@ public class ConfigureDS
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
-      configClass = new StringArgument("configclass", 'C', "configClass", false,
-                             false, true, "{configClass}",
+      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                             OPTION_LONG_CONFIG_CLASS, false,
+                             false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
                              MSGID_CONFIGDS_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
-      ldapPort = new IntegerArgument("ldapport", 'p', "ldapPort", false, false,
+      ldapPort = new IntegerArgument("ldapport", OPTION_SHORT_PORT,
+                                    "ldapPort", false, false,
                                      true, "{ldapPort}", 389, null, true, 1,
                                      true, 65535,
                                      MSGID_CONFIGDS_DESCRIPTION_LDAP_PORT);
       argParser.addArgument(ldapPort);
 
-      jmxPort = new IntegerArgument("jmxport", 'j', "jmxPort", false, false,
+      jmxPort = new IntegerArgument("jmxport", 'x', "jmxPort", false, false,
           true, "{jmxPort}", SetupUtils.getDefaultJMXPort(), null, true, 1,
           true, 65535,
           MSGID_CONFIGDS_DESCRIPTION_JMX_PORT);
       argParser.addArgument(jmxPort);
 
-      baseDNString = new StringArgument("basedn", 'b', "baseDN", false, true,
-                                        true, "{baseDN}", "dc=example,dc=com",
+      baseDNString = new StringArgument("basedn", OPTION_SHORT_BASEDN,
+                                        OPTION_LONG_BASEDN, false, true,
+                                        true, OPTION_VALUE_BASEDN,
+                                        "dc=example,dc=com",
                                         null,
                                         MSGID_CONFIGDS_DESCRIPTION_BASE_DN);
       argParser.addArgument(baseDNString);
 
-      rootDNString = new StringArgument("rootdn", 'D', "rootDN", false, false,
-                                        true, "{rootUserDN}",
+      rootDNString = new StringArgument("rootdn", OPTION_SHORT_ROOT_USER_DN,
+                                        OPTION_LONG_ROOT_USER_DN, false, false,
+                                        true, OPTION_VALUE_ROOT_USER_DN,
                                         "cn=Directory Manager", null,
                                         MSGID_CONFIGDS_DESCRIPTION_ROOT_DN);
       argParser.addArgument(rootDNString);
 
-      rootPassword = new StringArgument("rootpw", 'w', "rootPassword", false,
+      rootPassword = new StringArgument("rootpw", OPTION_SHORT_BINDPWD,
+                                        "rootPassword", false,
                                         false, true, "{rootUserPW}", null, null,
                                         MSGID_CONFIGDS_DESCRIPTION_ROOT_PW);
       argParser.addArgument(rootPassword);
 
-      rootPasswordFile = new FileBasedArgument("rootpwfile", 'W',
+      rootPasswordFile = new FileBasedArgument("rootpwfile",
+                                  OPTION_SHORT_BINDPWD_FILE,
                                   "rootPasswordFile", false, false,
                                   "{filename}", null, null,
                                   MSGID_CONFIGDS_DESCRIPTION_ROOT_PW_FILE);
       argParser.addArgument(rootPasswordFile);
 
-      showUsage = new BooleanArgument("showusage", 'H', "help",
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+                                      OPTION_LONG_HELP,
                                       MSGID_CONFIGDS_DESCRIPTION_USAGE);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);

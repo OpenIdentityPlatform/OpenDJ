@@ -58,6 +58,7 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -175,14 +176,16 @@ public class LDIFDiff
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
-      configClass = new StringArgument("configclass", 'C', "configClass", false,
-                             false, true, "{configClass}",
+      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                             OPTION_LONG_CONFIG_CLASS, false,
+                             false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
                              MSGID_LDIFDIFF_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
-      showUsage = new BooleanArgument("showusage", 'H', "help",
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+                                      OPTION_LONG_HELP,
                                       MSGID_LDIFDIFF_DESCRIPTION_USAGE);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);

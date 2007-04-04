@@ -68,6 +68,7 @@ import org.opends.server.util.args.StringArgument;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -439,8 +440,9 @@ public class LDIFModify
       argParser.addArgument(configFile);
 
 
-      configClass = new StringArgument("configclass", 'C', "configClass", false,
-                             false, true, "{configClass}",
+      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                             OPTION_LONG_CONFIG_CLASS, false,
+                             false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
                              MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
@@ -465,7 +467,8 @@ public class LDIFModify
       argParser.addArgument(targetFile);
 
 
-      showUsage = new BooleanArgument("help", 'H', "help",
+      showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
+                                      OPTION_LONG_HELP,
                                       MSGID_LDIFMODIFY_DESCRIPTION_HELP);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);

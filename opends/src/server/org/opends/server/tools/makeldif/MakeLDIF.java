@@ -48,6 +48,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -136,8 +137,10 @@ public class MakeLDIF
       argParser.addArgument(configFile);
 
 
-      configClass = new StringArgument("configclass", 'C', "configClass", false,
-                                       false, true, "{configClass}", null, null,
+      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                                       OPTION_LONG_CONFIG_CLASS, false,
+                                       false, true,
+                                       OPTION_VALUE_CONFIG_CLASS, null, null,
                                        MSGID_MAKELDIF_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
@@ -163,13 +166,16 @@ public class MakeLDIF
       argParser.addArgument(ldifFile);
 
 
-      randomSeed = new IntegerArgument("randomseed", 's', "randomSeed", false,
-                                       false, true, "{seed}", 0, null,
+      randomSeed = new IntegerArgument("randomseed", OPTION_SHORT_RANDOM_SEED,
+                                       OPTION_LONG_RANDOM_SEED, false,
+                                       false, true, OPTION_VALUE_RANDOM_SEED,
+                                       0, null,
                                        MSGID_MAKELDIF_DESCRIPTION_SEED);
       argParser.addArgument(randomSeed);
 
 
-      showUsage = new BooleanArgument("help", 'H', "help",
+      showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
+                                      OPTION_LONG_HELP,
                                       MSGID_MAKELDIF_DESCRIPTION_HELP);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);

@@ -62,6 +62,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -196,43 +197,51 @@ public class LDAPPasswordModify
 
     try
     {
-      ldapHost = new StringArgument("ldaphost", 'h', "ldapHost", false, false,
-                                    true, "{host}", "127.0.0.1", null,
+      ldapHost = new StringArgument("ldaphost", OPTION_SHORT_HOST,
+                                    OPTION_LONG_HOST, false, false,
+                                    true, OPTION_VALUE_HOST, "127.0.0.1", null,
                                     MSGID_LDAPPWMOD_DESCRIPTION_HOST);
       argParser.addArgument(ldapHost);
 
 
-      ldapPort = new IntegerArgument("ldapport", 'p', "ldapPort", false, false,
-                                     true, "{port}", 389, null, true, 1, true,
+      ldapPort = new IntegerArgument("ldapport", OPTION_SHORT_PORT,
+                                     OPTION_LONG_PORT, false, false,
+                                     true, OPTION_VALUE_PORT, 389,
+                                     null, true, 1, true,
                                      65535, MSGID_LDAPPWMOD_DESCRIPTION_PORT);
       argParser.addArgument(ldapPort);
 
 
-      useSSL = new BooleanArgument("usessl", 'Z', "useSSL",
+      useSSL = new BooleanArgument("usessl", OPTION_SHORT_USE_SSL,
+                                   OPTION_LONG_USE_SSL,
                                    MSGID_LDAPPWMOD_DESCRIPTION_USE_SSL);
       argParser.addArgument(useSSL);
 
 
-      useStartTLS = new BooleanArgument("usestarttls", 'q', "useStartTLS",
+      useStartTLS = new BooleanArgument("usestarttls", OPTION_SHORT_START_TLS,
+                             OPTION_LONG_START_TLS,
                              MSGID_LDAPPWMOD_DESCRIPTION_USE_STARTTLS);
       argParser.addArgument(useStartTLS);
 
 
-      bindDN = new StringArgument("binddn", 'D', "bindDN", false, false, true,
-                                  "{bindDN}", null, null,
+      bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
+                                  OPTION_LONG_BINDDN, false, false, true,
+                                  OPTION_VALUE_BINDDN, null, null,
                                   MSGID_LDAPPWMOD_DESCRIPTION_BIND_DN);
       argParser.addArgument(bindDN);
 
 
-      bindPW = new StringArgument("bindpw", 'w', "bindPassword", false, false,
-                                  true, "{bindDN}", null, null,
+      bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
+                                  OPTION_LONG_BINDPWD, false, false,
+                                  true, OPTION_VALUE_BINDPWD, null, null,
                                   MSGID_LDAPPWMOD_DESCRIPTION_BIND_PW);
       argParser.addArgument(bindPW);
 
 
       bindPWFile =
-           new FileBasedArgument("bindpwfile", 'j', "bindPasswordFile", false,
-                                 false, "{file}", null, null,
+           new FileBasedArgument("bindpwfile", OPTION_SHORT_BINDPWD_FILE,
+                                 OPTION_LONG_BINDPWD_FILE, false,
+                                 false, OPTION_VALUE_BINDPWD_FILE, null, null,
                                  MSGID_LDAPPWMOD_DESCRIPTION_BIND_PW_FILE);
       argParser.addArgument(bindPWFile);
 
@@ -282,44 +291,58 @@ public class LDAPPasswordModify
 
 
       sslKeyStore =
-           new StringArgument("keystorepath", 'K', "keyStorePath", false, false,
-                              true, "{keyStorePath}", null, null,
+           new StringArgument("keystorepath", OPTION_SHORT_KEYSTOREPATH,
+                              OPTION_LONG_KEYSTOREPATH, false, false,
+                              true, OPTION_VALUE_KEYSTOREPATH, null, null,
                               MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE);
       argParser.addArgument(sslKeyStore);
 
 
       sslKeyStorePIN =
-           new StringArgument("keystorepassword", 'W', "keyStorePassword",
-                              false, false, true, "{password}", null, null,
+           new StringArgument("keystorepassword",
+                              OPTION_SHORT_KEYSTORE_PWD,
+                              OPTION_LONG_KEYSTORE_PWD ,
+                              false, false, true,
+                              OPTION_VALUE_KEYSTORE_PWD,
+                              null, null,
                               MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PIN);
       argParser.addArgument(sslKeyStorePIN);
 
 
       sslKeyStorePINFile =
-           new FileBasedArgument("keystorepasswordilfe", null,
-                                 "keyStorePasswordFile", false, false, "{path}",
+           new FileBasedArgument("keystorepasswordfile",
+                                 OPTION_SHORT_KEYSTORE_PWD_FILE,
+                                 OPTION_LONG_KEYSTORE_PWD_FILE,
+                                 false, false, OPTION_VALUE_KEYSTORE_PWD_FILE,
                                  null, null,
                                  MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE);
       argParser.addArgument(sslKeyStorePINFile);
 
 
       sslTrustStore =
-           new StringArgument("truststorepath", 'P', "trustStorePath", false,
-                              false, true, "{trustStorePath}", null, null,
+           new StringArgument("truststorepath",
+                              OPTION_SHORT_TRUSTSTOREPATH,
+                              OPTION_LONG_TRUSTSTOREPATH, false,
+                              false, true,
+                              OPTION_VALUE_TRUSTSTOREPATH, null, null,
                               MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE);
       argParser.addArgument(sslTrustStore);
 
 
       sslTrustStorePIN =
-           new StringArgument("truststorepassword", null, "trustStorePassword",
-                              false, false, true, "{password}", null, null,
+           new StringArgument("truststorepassword", null,
+                              OPTION_LONG_TRUSTSTORE_PWD,
+                              false, false, true,
+                              OPTION_VALUE_TRUSTSTORE_PWD, null, null,
                               MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PIN);
       argParser.addArgument(sslTrustStorePIN);
 
 
       sslTrustStorePINFile =
-           new FileBasedArgument("truststorepasswordfile", null,
-                    "trustStorePasswordFile", false, false, "{path}", null,
+           new FileBasedArgument("truststorepasswordfile",
+                    OPTION_SHORT_TRUSTSTORE_PWD_FILE,
+                    OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
+                    OPTION_VALUE_TRUSTSTORE_PWD_FILE, null,
                     null, MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE);
       argParser.addArgument(sslTrustStorePINFile);
 
@@ -331,7 +354,8 @@ public class LDAPPasswordModify
       argParser.addArgument(controlStr);
 
 
-      showUsage = new BooleanArgument("help", 'H', "help",
+      showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
+                                      OPTION_LONG_HELP,
                                       MSGID_LDAPPWMOD_DESCRIPTION_USAGE);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);

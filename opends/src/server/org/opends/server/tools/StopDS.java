@@ -72,6 +72,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -225,47 +226,62 @@ public class StopDS
 
     try
     {
-      host = new StringArgument("host", 'h', "host", false, false, true,
-                                "{host}", "127.0.0.1", null,
+      host = new StringArgument("host", OPTION_SHORT_HOST,
+                                OPTION_LONG_HOST, false, false, true,
+                                OPTION_VALUE_HOST, "127.0.0.1", null,
                                 MSGID_STOPDS_DESCRIPTION_HOST);
       argParser.addArgument(host);
 
-      port = new IntegerArgument("port", 'p', "port", false, false, true,
-                                 "{port}", 389, null, true, 1, true, 65535,
-                                 MSGID_STOPDS_DESCRIPTION_PORT);
+      port = new IntegerArgument("port", OPTION_SHORT_PORT,
+                                 OPTION_LONG_PORT, false, false, true,
+                                 OPTION_VALUE_PORT, 389, null, true, 1,
+                                 true, 65535, MSGID_STOPDS_DESCRIPTION_PORT);
       argParser.addArgument(port);
 
-      useSSL = new BooleanArgument("usessl", 'Z', "useSSL",
+      useSSL = new BooleanArgument("usessl", OPTION_SHORT_USE_SSL,
+                                   OPTION_LONG_USE_SSL,
                                    MSGID_STOPDS_DESCRIPTION_USESSL);
       argParser.addArgument(useSSL);
 
-      useStartTLS = new BooleanArgument("usestarttls", 'q', "useStartTLS",
+      useStartTLS = new BooleanArgument("usestarttls", OPTION_SHORT_START_TLS,
+                                        OPTION_LONG_START_TLS,
                                         MSGID_STOPDS_DESCRIPTION_USESTARTTLS);
       argParser.addArgument(useStartTLS);
 
-      bindDN = new StringArgument("binddn", 'D', "bindDN", false, false, true,
-                                  "{bindDN}", null, null,
+      bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
+                                  OPTION_LONG_BINDDN, false, false, true,
+                                  OPTION_VALUE_BINDDN, null, null,
                                   MSGID_STOPDS_DESCRIPTION_BINDDN);
       argParser.addArgument(bindDN);
 
-      bindPW = new StringArgument("bindpw", 'w', "bindPassword", false, false,
-                                  true, "{bindPassword}", null, null,
+      bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
+                                  OPTION_LONG_BINDPWD, false, false,
+                                  true,
+                                  OPTION_VALUE_BINDPWD, null, null,
                                   MSGID_STOPDS_DESCRIPTION_BINDPW);
       argParser.addArgument(bindPW);
 
-      bindPWFile = new FileBasedArgument("bindpwfile", 'j', "bindPasswordFile",
-                                         false, false, "{bindPasswordFile}",
+      bindPWFile = new FileBasedArgument("bindpwfile",
+                                         OPTION_SHORT_BINDPWD_FILE,
+                                         OPTION_LONG_BINDPWD_FILE,
+                                         false, false,
+                                         OPTION_VALUE_BINDPWD_FILE,
                                          null, null,
                                          MSGID_STOPDS_DESCRIPTION_BINDPWFILE);
       argParser.addArgument(bindPWFile);
 
-      saslOption = new StringArgument("sasloption", 'o', "saslOption", false,
-                                      true, true, "{saslOption}", null, null,
+      saslOption = new StringArgument("sasloption", OPTION_SHORT_SASLOPTION,
+                                      OPTION_LONG_SASLOPTION, false,
+                                      true, true,
+                                      OPTION_VALUE_SASLOPTION, null, null,
                                       MSGID_STOPDS_DESCRIPTION_SASLOPTIONS);
       argParser.addArgument(saslOption);
 
-      proxyAuthzID = new StringArgument("proxyauthzid", 'Y', "proxyAs", false,
-                                        false, true, "{proxyAuthZID}", null,
+      proxyAuthzID = new StringArgument("proxyauthzid",
+                                        OPTION_SHORT_PROXYAUTHID,
+                                        OPTION_LONG_PROXYAUTHID, false,
+                                        false, true,
+                                        OPTION_VALUE_PROXYAUTHID, null,
                                         null,
                                         MSGID_STOPDS_DESCRIPTION_PROXYAUTHZID);
       argParser.addArgument(proxyAuthzID);
@@ -299,21 +315,28 @@ public class StopDS
                                      MSGID_STOPDS_DESCRIPTION_TRUST_ALL);
       argParser.addArgument(trustAll);
 
-      keyStoreFile = new StringArgument("keystorefile", 'K', "keyStoreFile",
-                                        false, false, true, "{keyStoreFile}",
+      keyStoreFile = new StringArgument("keystorefile",
+                                        OPTION_SHORT_KEYSTOREPATH,
+                                        OPTION_LONG_KEYSTOREPATH,
+                                        false, false, true,
+                                        OPTION_VALUE_KEYSTOREPATH,
                                         null, null,
                                         MSGID_STOPDS_DESCRIPTION_KSFILE);
       argParser.addArgument(keyStoreFile);
 
-      keyStorePW = new StringArgument("keystorepw", 'W', "keyStorePassword",
-                                      false, false, true, "{keyStorePassword}",
+      keyStorePW = new StringArgument("keystorepw", OPTION_SHORT_KEYSTORE_PWD,
+                                      OPTION_LONG_KEYSTORE_PWD,
+                                      false, false, true,
+                                      OPTION_VALUE_KEYSTORE_PWD,
                                       null, null,
                                       MSGID_STOPDS_DESCRIPTION_KSPW);
       argParser.addArgument(keyStorePW);
 
-      keyStorePWFile = new FileBasedArgument("keystorepwfile", 'u',
-                                             "keyStorePasswordFile", false,
-                                             false, "{keyStorePasswordFile}",
+      keyStorePWFile = new FileBasedArgument("keystorepwfile",
+                                             OPTION_SHORT_KEYSTORE_PWD_FILE,
+                                             OPTION_LONG_KEYSTORE_PWD_FILE,
+                                             false, false,
+                                             OPTION_VALUE_KEYSTORE_PWD_FILE,
                                              null, null,
                                              MSGID_STOPDS_DESCRIPTION_KSPWFILE);
       argParser.addArgument(keyStorePWFile);
@@ -323,25 +346,32 @@ public class StopDS
                                         null, MSGID_DESCRIPTION_CERT_NICKNAME);
       argParser.addArgument(certNickname);
 
-      trustStoreFile = new StringArgument("truststorefile", 'P',
-                                          "trustStoreFile", false, false, true,
-                                          "{trustStoreFile}", null, null,
+      trustStoreFile = new StringArgument("truststorefile",
+                                          OPTION_SHORT_TRUSTSTOREPATH,
+                                          OPTION_LONG_TRUSTSTOREPATH,
+                                          false, false, true,
+                                          OPTION_VALUE_TRUSTSTOREPATH,
+                                          null, null,
                                           MSGID_STOPDS_DESCRIPTION_TSFILE);
       argParser.addArgument(trustStoreFile);
 
       trustStorePW = new StringArgument("truststorepw", 'T',
-                                        "trustStorePassword", false, false,
-                                        true, "{trustStorePassword}", null,
+                                        OPTION_LONG_TRUSTSTORE_PWD,
+                                        false, false,
+                                        true, OPTION_VALUE_TRUSTSTORE_PWD, null,
                                         null, MSGID_STOPDS_DESCRIPTION_TSPW);
       argParser.addArgument(trustStorePW);
 
-      trustStorePWFile = new FileBasedArgument("truststorepwfile", 'U',
-                                  "trustStorePasswordFile", false, false,
-                                  "{trustStorePasswordFile}", null, null,
+      trustStorePWFile = new FileBasedArgument("truststorepwfile",
+                                  OPTION_SHORT_TRUSTSTORE_PWD_FILE,
+                                  OPTION_LONG_TRUSTSTORE_PWD_FILE,
+                                  false, false,
+                                  OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
                                   MSGID_STOPDS_DESCRIPTION_TSPWFILE);
       argParser.addArgument(trustStorePWFile);
 
-      showUsage = new BooleanArgument("showusage", 'H', "help",
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+                                      OPTION_LONG_HELP,
                                       MSGID_STOPDS_DESCRIPTION_SHOWUSAGE);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);

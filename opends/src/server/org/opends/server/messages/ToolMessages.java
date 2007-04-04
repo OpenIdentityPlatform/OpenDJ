@@ -8122,7 +8122,7 @@ public class ToolMessages
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_SIGN_HASH,
                     "Generate a signed hash of the export data");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_USAGE,
-                    "Display this usage information");
+                    "Display this usage information.");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
@@ -8398,9 +8398,9 @@ public class ToolMessages
     registerMessage(MSGID_DESCRIPTION_TRUSTALL,
                     "Trust all server SSL certificates");
     registerMessage(MSGID_DESCRIPTION_BINDDN,
-                    "Bind DN");
+                    "Specifies the DN to use to bind to the server.");
     registerMessage(MSGID_DESCRIPTION_BINDPASSWORD,
-                    "Bind password");
+                    "Specifies the password to use to bind to the server");
     registerMessage(MSGID_DESCRIPTION_BINDPASSWORDFILE,
                     "Bind password file");
     registerMessage(MSGID_DESCRIPTION_PROXY_AUTHZID,
@@ -8451,7 +8451,7 @@ public class ToolMessages
     registerMessage(MSGID_DESCRIPTION_VERSION,
                     "LDAP protocol version number");
     registerMessage(MSGID_DESCRIPTION_SHOWUSAGE,
-                    "Display this usage information");
+                    "Display this usage information.");
     registerMessage(MSGID_DESCRIPTION_CONTROLS,
                     "Use a request control with the provided information");
     registerMessage(MSGID_DESCRIPTION_CONTINUE_ON_ERROR,
@@ -8919,7 +8919,7 @@ public class ToolMessages
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_SIGN_HASH,
                     "Sign the hash of the backup contents");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_USAGE,
-                    "Display this usage information");
+                    "Display this usage information.");
     registerMessage(MSGID_BACKUPDB_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
@@ -9050,7 +9050,7 @@ public class ToolMessages
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_VERIFY_ONLY,
                     "Verify the contents of the backup but do not restore it");
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_USAGE,
-                    "Display this usage information");
+                    "Display this usage information.");
     registerMessage(MSGID_RESTOREDB_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
@@ -9169,9 +9169,9 @@ public class ToolMessages
     registerMessage(MSGID_STOPDS_DESCRIPTION_USESTARTTLS,
                     "Use StartTLS for secure communication with the server");
     registerMessage(MSGID_STOPDS_DESCRIPTION_BINDDN,
-                    "Bind DN");
+                    "Specifies the DN to use to bind to the server.");
     registerMessage(MSGID_STOPDS_DESCRIPTION_BINDPW,
-                    "Bind password");
+                    "Specifies the password to use to bind to the server.");
     registerMessage(MSGID_STOPDS_DESCRIPTION_BINDPWFILE,
                     "Bind password file");
     registerMessage(MSGID_STOPDS_DESCRIPTION_SASLOPTIONS,
@@ -9385,7 +9385,7 @@ public class ToolMessages
                     "not provided, then a default of " +
                     ConfigFileHandler.class.getName() + " will be used.");
     registerMessage(MSGID_LDIFDIFF_DESCRIPTION_USAGE,
-                    "Displays usage information for this program.");
+                    "Display this usage information.");
     registerMessage(MSGID_LDIFDIFF_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
@@ -9453,7 +9453,7 @@ public class ToolMessages
                     "Specifies the path to a file containing the password " +
                     "for the initial root user for the Directory Server.");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_USAGE,
-                    "Displays usage information for this program.");
+                    "Display this usage information.");
     registerMessage(MSGID_CONFIGDS_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
@@ -9559,7 +9559,7 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_NO_WINDOWS_SERVICE,
                     "Do not enable OpenDS to run as a Windows Service.");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_HELP,
-                    "Displays usage information for this program.");
+                    "Display this usage information.");
     registerMessage(MSGID_INSTALLDS_NO_CONFIG_FILE,
                     "ERROR:  No configuration file path was provided (use " +
                     "the %s argument).");
@@ -9854,7 +9854,7 @@ public class ToolMessages
                     "The seed to use to initialize the random number " +
                     "generator.");
     registerMessage(MSGID_MAKELDIF_DESCRIPTION_HELP,
-                    "Show this usage information.");
+                    "Display this usage information.");
     registerMessage(MSGID_MAKELDIF_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
@@ -10058,7 +10058,7 @@ public class ToolMessages
                     "The path to a file containing the PIN needed to access" +
                     "the contents of the trust store.");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_USAGE,
-                    "Show this usage information.");
+                    "Display this usage information.");
     registerMessage(MSGID_LDAPPWMOD_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");

@@ -45,6 +45,7 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
+import static org.opends.server.tools.ToolConstants.*;
 
 /**
   * This class is used to configure the Windows service for this instance on
@@ -220,7 +221,8 @@ public class ConfigureWindowsService
           MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP);
       argParser.addArgument(cleanupService);
 
-      showUsage = new BooleanArgument("showusage", 'H', "help",
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+          OPTION_LONG_HELP,
           MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_SHOWUSAGE);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);

@@ -53,6 +53,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -209,8 +210,9 @@ public class InstallDS
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
-      configClass = new StringArgument("configclass", 'C', "configClass", false,
-                             false, true, "{configClass}",
+      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                             OPTION_LONG_CONFIG_CLASS, false,
+                             false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
                              MSGID_INSTALLDS_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
@@ -218,7 +220,7 @@ public class InstallDS
 
       // NOTE:  This argument isn't actually used for anything, but it provides
       // consistency with the setup script, which does take a --cli option.
-      cliMode = new BooleanArgument("cli", null, "cli",
+      cliMode = new BooleanArgument("cli", null, OPTION_LONG_CLI,
                                     MSGID_INSTALLDS_DESCRIPTION_CLI);
       argParser.addArgument(cliMode);
 
@@ -226,8 +228,10 @@ public class InstallDS
                                           MSGID_INSTALLDS_DESCRIPTION_SILENT);
       argParser.addArgument(silentInstall);
 
-      baseDN = new StringArgument("basedn", 'b', "baseDN", false, true, true,
-                                  "{baseDN}", "dc=example,dc=com", null,
+      baseDN = new StringArgument("basedn", OPTION_SHORT_BASEDN,
+                                  OPTION_LONG_BASEDN, false, true, true,
+                                  OPTION_VALUE_BASEDN,
+                                  "dc=example,dc=com", null,
                                   MSGID_INSTALLDS_DESCRIPTION_BASEDN);
       argParser.addArgument(baseDN);
 
@@ -235,8 +239,10 @@ public class InstallDS
                                          MSGID_INSTALLDS_DESCRIPTION_ADDBASE);
       argParser.addArgument(addBaseEntry);
 
-      importLDIF = new StringArgument("importldif", 'i', "importLDIF", false,
-                                      true, true, "{ldifFile}", null, null,
+      importLDIF = new StringArgument("importldif", OPTION_SHORT_LDIF_FILE,
+                                      OPTION_LONG_LDIF_FILE, false,
+                                      true, true, OPTION_VALUE_LDIF_FILE,
+                                      null, null,
                                       MSGID_INSTALLDS_DESCRIPTION_IMPORTLDIF);
       argParser.addArgument(importLDIF);
 
@@ -246,13 +252,14 @@ public class InstallDS
                                        MSGID_INSTALLDS_DESCRIPTION_SAMPLE_DATA);
       argParser.addArgument(sampleData);
 
-      ldapPort = new IntegerArgument("ldapport", 'p', "ldapPort", false, false,
-                                     true, "{port}", 389, null, true, 1, true,
-                                     65535,
+      ldapPort = new IntegerArgument("ldapport", OPTION_SHORT_PORT,
+                                     "ldapPort", false, false,
+                                     true, OPTION_VALUE_PORT, 389,
+                                     null, true, 1, true, 65535,
                                      MSGID_INSTALLDS_DESCRIPTION_LDAPPORT);
       argParser.addArgument(ldapPort);
 
-      jmxPort = new IntegerArgument("jmxport", 'j', "jmxPort", false, false,
+      jmxPort = new IntegerArgument("jmxport", 'x', "jmxPort", false, false,
                                     true, "{jmxPort}",
                                     SetupUtils.getDefaultJMXPort(), null, true,
                                     1, true, 65535,
@@ -263,19 +270,25 @@ public class InstallDS
                                           MSGID_INSTALLDS_DESCRIPTION_SKIPPORT);
       argParser.addArgument(skipPortCheck);
 
-      rootDN = new StringArgument("rootdn", 'D', "rootUserDN", false, true,
-                                  true, "{rootDN}", "cn=Directory Manager",
+      rootDN = new StringArgument("rootdn",OPTION_SHORT_ROOT_USER_DN,
+                                  OPTION_LONG_ROOT_USER_DN, false, true,
+                                  true, OPTION_VALUE_ROOT_USER_DN,
+                                  "cn=Directory Manager",
                                   null, MSGID_INSTALLDS_DESCRIPTION_ROOTDN);
       argParser.addArgument(rootDN);
 
-      rootPWString = new StringArgument("rootpwstring", 'w', "rootUserPassword",
-                                        false, false, true, "{password}", null,
+      rootPWString = new StringArgument("rootpwstring", OPTION_SHORT_BINDPWD,
+                                        "rootUserPassword",
+                                        false, false, true,
+                                        "{password}", null,
                                         null,
                                         MSGID_INSTALLDS_DESCRIPTION_ROOTPW);
       argParser.addArgument(rootPWString);
 
-      rootPWFile = new FileBasedArgument("rootpwfile", 'W',
-                            "rootUserPasswordFile", false, false, "{filename}",
+      rootPWFile = new FileBasedArgument("rootpwfile",
+                            OPTION_SHORT_BINDPWD_FILE,
+                            "rootUserPasswordFile", false, false,
+                            OPTION_VALUE_BINDPWD_FILE,
                             null, null, MSGID_INSTALLDS_DESCRIPTION_ROOTPWFILE);
       argParser.addArgument(rootPWFile);
 
@@ -287,7 +300,8 @@ public class InstallDS
         argParser.addArgument(noWindowsService);
       }
 
-      showUsage = new BooleanArgument("help", 'H', "help",
+      showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
+                                      OPTION_LONG_HELP,
                                       MSGID_INSTALLDS_DESCRIPTION_HELP);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);

@@ -56,6 +56,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -158,8 +159,9 @@ public class ListBackends
     try
     {
       configClass =
-           new StringArgument("configclass", 'C', "configClass", true, false,
-                              true, "{configClass}",
+           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                              OPTION_LONG_CONFIG_CLASS, true, false,
+                              true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
                               MSGID_LISTBACKENDS_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
@@ -180,13 +182,15 @@ public class ListBackends
       argParser.addArgument(backendID);
 
 
-      baseDN = new StringArgument("basedn", 'b', "baseDN", false, true, true,
-                                  "{baseDN}", null, null,
+      baseDN = new StringArgument("basedn", OPTION_SHORT_BASEDN,
+                                  OPTION_LONG_BASEDN, false, true, true,
+                                  OPTION_VALUE_BASEDN, null, null,
                                   MSGID_LISTBACKENDS_DESCRIPTION_BASE_DN);
       argParser.addArgument(baseDN);
 
 
-      displayUsage = new BooleanArgument("help", 'H', "help",
+      displayUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
+                                         OPTION_LONG_HELP,
                                          MSGID_LISTBACKENDS_DESCRIPTION_HELP);
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage, out);

@@ -65,6 +65,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -137,8 +138,9 @@ public class RestoreDB
     try
     {
       configClass =
-           new StringArgument("configclass", 'C', "configClass", true, false,
-                              true, "{configClass}",
+           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                              OPTION_LONG_CONFIG_CLASS, true, false,
+                              true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
                               MSGID_RESTOREDB_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
@@ -172,13 +174,14 @@ public class RestoreDB
       argParser.addArgument(listBackups);
 
 
-      verifyOnly = new BooleanArgument("verifyonly", 'V', "verifyOnly",
+      verifyOnly = new BooleanArgument("verifyonly", OPTION_SHORT_DRYRUN,
+                                       OPTION_LONG_DRYRUN,
                                        MSGID_RESTOREDB_DESCRIPTION_VERIFY_ONLY);
       argParser.addArgument(verifyOnly);
 
 
       displayUsage =
-           new BooleanArgument("help", 'H', "help",
+           new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
                                MSGID_RESTOREDB_DESCRIPTION_USAGE);
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);

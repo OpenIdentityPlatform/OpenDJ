@@ -1020,6 +1020,7 @@ public class ArgumentParser
       // Write a line with the short and/or long identifiers that may be used
       // for the argument.
       Character shortID = a.getShortIdentifier();
+      String longID = a.getLongIdentifier();
       if (shortID != null)
       {
         int currentLength = buffer.length();
@@ -1027,17 +1028,16 @@ public class ArgumentParser
         buffer.append("-");
         buffer.append(shortID.charValue());
 
-        if (a.needsValue())
+        if (a.needsValue() && longID == null)
         {
           buffer.append(" ");
           buffer.append(a.getValuePlaceholder());
         }
 
-        String longID = a.getLongIdentifier();
         if (longID != null)
         {
           StringBuilder newBuffer = new StringBuilder();
-          newBuffer.append("or   --");
+          newBuffer.append(", --");
           newBuffer.append(longID);
 
           if (a.needsValue())
@@ -1046,7 +1046,7 @@ public class ArgumentParser
             newBuffer.append(a.getValuePlaceholder());
           }
 
-          int lineLength = (buffer.length() - currentLength) + 2 +
+          int lineLength = (buffer.length() - currentLength) +
                            newBuffer.length();
           if (lineLength > 80)
           {
@@ -1055,7 +1055,6 @@ public class ArgumentParser
           }
           else
           {
-            buffer.append("  ");
             buffer.append(newBuffer.toString());
           }
         }
@@ -1064,7 +1063,6 @@ public class ArgumentParser
       }
       else
       {
-        String longID = a.getLongIdentifier();
         if (longID != null)
         {
           buffer.append("--");

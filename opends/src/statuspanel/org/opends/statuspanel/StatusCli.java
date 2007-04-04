@@ -46,6 +46,8 @@ import org.opends.statuspanel.i18n.ResourceProvider;
 import org.opends.statuspanel.ui.DatabasesTableModel;
 import org.opends.statuspanel.ui.ListenersTableModel;
 
+import static org.opends.server.tools.ToolConstants.*;
+
 /**
  * The class used to provide some CLI interface to display status.
  *
@@ -152,8 +154,8 @@ class StatusCli
           }
         }
       }
-      else if (args[i].equals("-w") ||
-          args[i].equalsIgnoreCase("--bindPassword"))
+      else if (args[i].equals("-" + OPTION_SHORT_BINDPWD) ||
+          args[i].equalsIgnoreCase("--" + OPTION_LONG_BINDPWD))
       {
         if (i+1 >= args.length)
         {

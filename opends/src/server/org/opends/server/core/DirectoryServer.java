@@ -8410,12 +8410,12 @@ public class DirectoryServer
       argParser.addArgument(windowsNetStart);
 
 
-      version = new BooleanArgument("version", 'v', "version",
+      version = new BooleanArgument("version", 'V', "version",
                                     MSGID_DSCORE_DESCRIPTION_VERSION);
       argParser.addArgument(version);
 
 
-      fullVersion = new BooleanArgument("fullversion", 'V', "fullVersion",
+      fullVersion = new BooleanArgument("fullversion", 'F', "fullVersion",
                                         MSGID_DSCORE_DESCRIPTION_FULLVERSION);
       fullVersion.setHidden(true);
       argParser.addArgument(fullVersion);
