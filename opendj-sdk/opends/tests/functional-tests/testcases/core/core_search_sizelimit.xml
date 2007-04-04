@@ -64,7 +64,7 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '-z 150' }
+                  'extraParams'	     : '-z 150' }
                   
               </call>
     
@@ -92,7 +92,7 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '-z 151' }
+                  'extraParams'	     : '-z 151' }
                   
               </call>
     
@@ -136,12 +136,11 @@
                  'Core SSzL4: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined by the server-wide parameter, ds-cfg-size-limit, and the search size limit is exceeded'
               </message>
     
-              <call function="'AnonSearchObject'">
+              <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '' }
+                  'dsFilter'         : 'objectclass=*' }
                   
               </call>
     
@@ -186,12 +185,11 @@
                  'Core SSzL6: Check the response of OpenDS when an ldap search request is conducted with a search size limit defined by the server-wide parameter, ds-cfg-size-limit, and the search size limit is not exceeded'
               </message>
     
-              <call function="'AnonSearchObject'">
+              <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '' }
+                  'dsFilter'         : 'objectclass=*' }
                   
               </call>
     
@@ -241,8 +239,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '' }
+                  'dsFilter'         : 'objectclass=*' }
                   
               </call>
     
@@ -263,12 +260,11 @@
                  'Core SSzL9: Check the response of OpenDS when an ldap search request is conducted with a user search size limit defined by the user-specific parameter, ds-rlim-size-limit, and the search is conducted as a bind to a different user'
               </message>
     
-              <call function="'AnonSearchObject'">
+              <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '' }
+                  'dsFilter'         : 'objectclass=*' }
                   
               </call>
     
@@ -318,8 +314,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	     : '' }
+                  'dsFilter'         : 'objectclass=*' }
                   
               </call>
     

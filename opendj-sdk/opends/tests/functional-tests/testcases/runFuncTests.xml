@@ -51,6 +51,9 @@
 
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/security.xml' % (TESTS_FUNCTIONS_DIR)" />
+		
+	  <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/topology.xml' % (TESTS_FUNCTIONS_DIR)" />
 
       <!-- Load in any standard python libraries -->
       <script>
@@ -96,11 +99,11 @@
         CurrentTestPath={}
       </script>
         
-      <!--- The Functional Tests -->
+      <!--- The Functional Tests -->		
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/setup/setup.xml' % (TESTS_DIR)" />
       <call function="'main_setup'" />
-
+		
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/quickstart/quickstart.xml' % (TESTS_DIR)" />
       <call function="'main_quickstart'" />
@@ -124,11 +127,21 @@
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/schema/schema.xml' % (TESTS_DIR)" />
       <call function="'main_schema'" />
+		
+      <if expr="not isWindows">
+	  <!-- Do not execute Synchronization Test Suite as long as dynamic configuration 
+		  is not supported. ('dd' not supported in Windows.  see 'configureSynchronization' -->
+	  <sequence>		
+	  <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/testcases/synchronization/synchronization.xml' % (TESTS_DIR)" />
+      <call function="'main_synchronization'" />		
+	  </sequence>	  	  
+      </if>			
 
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/cleanup/cleanup.xml' % (TESTS_DIR)" />
       <call function="'main_cleanup'" />
-
+		
     </sequence>
   </function>
 </stax>

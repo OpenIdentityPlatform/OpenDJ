@@ -71,8 +71,9 @@
     
               <call function="'testCase_Preamble'"/>
     
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR }
+              <call function="'ImportLdifWithScript'">
+                { 'location'    : STAF_REMOTE_HOSTNAME ,
+                  'dsLdifFile'  : '%s/backends/Example.ldif' % STAGED_DATA_DIR }
               </call>
     
               <call function="'checktestRC'">
@@ -147,11 +148,11 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
-                  'extraParams' : '-b dc=com'
-                }
+
+              <call function="'ImportLdifWithScript'">
+                { 'location'        : STAF_REMOTE_HOSTNAME,
+                  'dsLdifFile'      : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
+                  'dsIncludeBranch' : 'dc=com' }
               </call>
     
               <call function="'checktestRC'">
@@ -187,7 +188,7 @@
             <sequence>
     
               <call function="'testCase_Preamble'"/>
-    
+                  
               <call function="'importLdif'">
                 { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
                   'extraParams' : '-b "dc=com" -b "dc=example,dc=com"'

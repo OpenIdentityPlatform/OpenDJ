@@ -41,7 +41,7 @@
       
       <job name="'Job: %s %s' % (STAF_REMOTE_HOSTNAME,TEST_OS_STRING) " monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
         <job-file>'%s/testcases/runFuncTests.xml' % TESTS_DIR</job-file>
-        <job-scriptfiles machine="'%s' % STAF_LOCAL_HOSTNAME">['%s/config/config.py' % TESTS_DIR,'%s/python/security.py' % TESTS_SHARED_DIR]</job-scriptfiles>
+        <job-scriptfiles machine="'%s' % STAF_LOCAL_HOSTNAME">['%s/config/config.py' % TESTS_DIR,'%s/python/security.py' % TESTS_SHARED_DIR,'%s/python/synchronization.py' % TESTS_SHARED_DIR ]</job-scriptfiles>
         <job-action>
           <log>'Started sub-job %s on %s' % (STAXSubJobID,STAF_REMOTE_HOSTNAME)</log>
         </job-action>

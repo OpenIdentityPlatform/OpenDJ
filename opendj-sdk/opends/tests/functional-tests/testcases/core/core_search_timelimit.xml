@@ -136,12 +136,11 @@
                  'Core STmL4: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is exceeded'
               </message>
     
-              <call function="'AnonSearchObject'">
+              <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '' }
+                  'dsFilter'         : 'objectclass=*' }
                   
               </call>
     
@@ -186,12 +185,11 @@
                  'Core STmL6: Check the response of OpenDS when an ldap search request is conducted with a search time limit defined by the server-wide parameter, ds-cfg-time-limit, and the search time limit is not exceeded'
               </message>
     
-              <call function="'AnonSearchObject'">
+              <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '' }
+                  'dsFilter'         : 'objectclass=*' }
                   
               </call>
     
@@ -241,8 +239,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '' }
+                  'dsFilter'         : 'objectclass=*' }
                   
               </call>
     
@@ -263,12 +260,11 @@
                  'Core STmL9: Check the response of OpenDS when an ldap search request is conducted with a user search time limit defined by the user-specific parameter, ds-rlim-time-limit, and the search is conducted as a bind to a different user'
               </message>
     
-              <call function="'AnonSearchObject'">
+              <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '' }
+                  'dsFilter'         : 'objectclass=*' }
                   
               </call>
     
@@ -318,8 +314,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	   : '' }
+                  'dsFilter'         : 'objectclass=*' }
                   
               </call>
     

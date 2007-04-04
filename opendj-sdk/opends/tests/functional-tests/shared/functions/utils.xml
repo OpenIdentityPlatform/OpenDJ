@@ -30,17 +30,26 @@
     <function-prolog>
       This function checks a return code against an expected return code
     </function-prolog>
-
+    
     <function-map-args>
-      <function-required-arg name="returncode">
-        return code received from command
-      </function-required-arg>
-      <function-required-arg name="result">
-        the output of the result
-      </function-required-arg>
-      <function-optional-arg name="expected" default="0">
-        the expected return code
-      </function-optional-arg>
+      <function-arg-def name="returncode" type="required">
+        <function-arg-description>
+          return code received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>   
+      <function-arg-def name="result" type="required">
+        <function-arg-description>
+          the output of the result
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>          
+      <function-arg-def name="expected" type="optional" default="0">
+        <function-arg-description>
+          the expected return code
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -48,11 +57,11 @@
         <sequence>
           <if expr="result == ''">
             <message log="1">
-              'Success: RC=%s, Result=Ok' % (returncode)
+              'RC=%s, Result=Ok' % (returncode)
             </message>
           <else>
             <message log="1">
-              'Success: RC=%s, Result=%s' % (returncode,result)
+              'RC=%s, Result=%s' % (returncode,result)
             </message>
           </else>
           </if>
@@ -60,7 +69,7 @@
         <else>
           <sequence>
             <message log="1" level="'Error'">
-              'Error: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+              'RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
             </message>
           </sequence>
         </else>
@@ -73,29 +82,38 @@
       This function checks the return code against an expected return code for a testcase
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="returncode">
-        return code received from command
-      </function-required-arg>
-      <function-required-arg name="result">
-        the output of the result
-      </function-required-arg>
-      <function-optional-arg name="expected" default="0">
-        the expected return code
-      </function-optional-arg>
-    </function-map-args>
+      <function-arg-def name="returncode" type="required">
+        <function-arg-description>
+          return code received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>   
+      <function-arg-def name="result" type="required">
+        <function-arg-description>
+          the output of the result
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>          
+      <function-arg-def name="expected" type="optional" default="0">
+        <function-arg-description>
+          the expected return code
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+    </function-map-args>  
     <sequence>
       <if expr="returncode == expected">
         <sequence>
           <tcstatus result="'pass'"/>
           <message log="1">
-            'Success: RC=%s, Result=%s' % (returncode,result)
+            'RC=%s, Result=%s' % (returncode,result)
           </message>
         </sequence>
         <else>
           <sequence>
             <tcstatus result="'fail'"/>
             <message log="1" level="'Error'">
-              'Error: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+              'RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
             </message>
           </sequence>
         </else>
@@ -107,14 +125,22 @@
     <function-prolog>
       This function checks the return string against an expected return substring for a testcase
     </function-prolog>
+    
     <function-map-args>
-      <function-required-arg name="expectedString">
-        the substring expected from the command
-      </function-required-arg>
-      <function-required-arg name="returnString">
-        the return string received from command
-      </function-required-arg>
+      <function-arg-def name="expectedString" type="required">
+        <function-arg-description>
+          the substring expected from the command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>   
+      <function-arg-def name="returnString" type="required">
+        <function-arg-description>
+          the return string received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
     </function-map-args>
+    
     <sequence>
       <script> 
         searchre = re.compile('%s' % expectedString)
@@ -124,14 +150,14 @@
         <sequence>
           <tcstatus result="'pass'"/>
           <message log="1">
-            'Success: Found substring, %s, in the return string' % (expectedString)
+            'Found substring, %s, in the return string' % (expectedString)
           </message>
         </sequence>
         <else>
           <sequence>
             <tcstatus result="'fail'"/>
             <message log="1" level="'Error'">
-              'Error: Did not find substring, %s, in the return string, %s' % (expectedString, returnString)
+              'Did not find substring, %s, in the return string, %s' % (expectedString, returnString)
             </message>
           </sequence>
         </else>
@@ -144,12 +170,18 @@
       This function checks the return string against an expected return substring that should not be present for a testcase
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="testString">
-        the substring being tested from the command
-      </function-required-arg>
-      <function-required-arg name="returnString">
-        the return string received from command
-      </function-required-arg>
+      <function-arg-def name="testString" type="required">
+        <function-arg-description>
+          the substring being tested from the command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>   
+      <function-arg-def name="returnString" type="required">
+        <function-arg-description>
+          the return string received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
     </function-map-args>
 
     <sequence>
@@ -160,14 +192,14 @@
         <sequence>
           <tcstatus result="'pass'"/>
           <message log="1">
-            'Success: Did Not Find substring, %s, in the return string' % (testString)
+            'Did Not Find substring, %s, in the return string' % (testString)
           </message>
         </sequence>
         <else>
           <sequence>
             <tcstatus result="'fail'"/>
             <message log="1" level="'Error'">
-              'Error: Found substring, %s, in the return string, %s' % (testString, returnString)
+              'Found substring, %s, in the return string, %s' % (testString, returnString)
             </message>
           </sequence>
         </else>
@@ -179,13 +211,20 @@
     <function-prolog>
       This function simply searches a string for a substring
     </function-prolog>
+    
     <function-map-args>
-      <function-required-arg name="testString">
-        the substring being tested from the command
-      </function-required-arg>
-      <function-required-arg name="returnString">
-        the return string received from command
-      </function-required-arg>
+      <function-arg-def name="testString" type="required">
+        <function-arg-description>
+          the substring being tested from the command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>   
+      <function-arg-def name="returnString" type="required">
+        <function-arg-description>
+          the return string received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -196,14 +235,14 @@
         <sequence>
           <script>returnCode='0'</script>
           <message log="1">
-            'Result: Did Not Find substring, %s, in the return string' % (testString)
+            'Did Not Find substring, %s, in the return string' % (testString)
           </message>
         </sequence>
         <else>
           <sequence>
             <script>returnCode='1'</script>
             <message log="1">
-              'Result: Found substring, %s, in the return string' % (testString)
+              'Found substring, %s, in the return string' % (testString)
             </message>
           </sequence>
         </else>
@@ -212,43 +251,97 @@
     </sequence>
   </function>
   
-  <function name="isAlive">
+  <function name="isAlive" scope="local">
     <function-prolog>
       Checks that the ldap server is running
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="noOfLoops">
-        Number of loops
-      </function-required-arg>
-      <function-required-arg name="noOfMilliSeconds">
-        Number of seconds
-      </function-required-arg>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+      </function-arg-description>
+      <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+      <function-arg-def name="noOfLoops" type="required">
+        <function-arg-description>
+          Number of iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>      
+      <function-arg-def name="noOfMilliSeconds" type="required">
+        <function-arg-description>
+          Number of seconds to wait between iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % DIRECTORY_INSTANCE_HOST">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInstancePort" type="optional" default="'%s' % DIRECTORY_INSTANCE_PORT">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional" default="'%s' % DIRECTORY_INSTANCE_DN">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional" default="'%s' % DIRECTORY_INSTANCE_PSWD">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
     </function-map-args>
+      
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        myhost=dsInstanceHost
+        myport=dsInstancePort
+        mydn=dsInstanceDn
+        mypswd=dsInstancePswd
+      </script>
+    
+      <script>ldapRC=9999</script>
+      <loop from="1" to="noOfLoops" while="ldapRC != 0">
+        <sequence>
+          <call function="'SearchObject'">
+            { 'location'       : mylocation,
+              'dsInstanceHost' : myhost ,
+              'dsInstancePort' : myport ,
+              'dsInstanceDn'   : mydn ,
+              'dsInstancePswd' : mypswd ,
+              'dsScope'        : 'base' ,
+              'dsBaseDN'       : 'cn=config' ,
+              'dsFilter'	   : 'objectclass=*' }
+          </call>
 
-      <sequence>
-        <script>ldapRC=9999</script>
-        <loop from="1" to="noOfLoops" while="ldapRC != 0">
-          <sequence>
-            <call function="'SearchObject'">
-              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'       : 'cn=config' ,
-                'dsFilter'	     : 'objectclass=*' ,
-                'extraParams'    : '-s "base"' }
-            </call>
+          <script>
+            ldapRC=RC
+          </script>
 
-            <script>
-              ldapRC=RC
-            </script>
-
-            <call function="'Sleep'">
-              { 'sleepForMilliSeconds'  : noOfMilliSeconds }
-            </call>
-          </sequence>
-        </loop>
-      </sequence>
+          <call function="'Sleep'">
+            { 'sleepForMilliSeconds'  : noOfMilliSeconds }
+          </call>
+          
+        </sequence>
+      </loop>
+      
+    </sequence>
   </function>
 
   <function name="Sleep">
@@ -256,14 +349,23 @@
       Sleep for number of milliseconds
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="sleepForMilliSeconds">
-        Number of milliseconds to sleep
-      </function-required-arg>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+      </function-arg-description>
+      <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>    
+      <function-arg-def name="sleepForMilliSeconds" type="required">
+        <function-arg-description>
+          Number of milliseconds to sleep
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
       <stafcmd name="'STAF Command: Delay'">
-        <location>'%s' % (hostname)</location>
+        <location>'%s' % location</location>
         <service>'delay'</service>
         <request>
           'delay %i' % sleepForMilliSeconds
@@ -282,13 +384,16 @@
       Set OS related variables
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="hostname">
-        Name of host
-      </function-required-arg>
+      <function-arg-def name="hostname" type="required">
+        <function-arg-description>
+          Name of host on which to retrieve variables
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <stafcmd name="'STAF Command: Get OS Name'">
-        <location>'%s' % (hostname)</location>
+        <location>'%s' % hostname</location>
         <service>'var'</service>
         <request>
           'get system var STAF/Config/OS/Name'
@@ -499,17 +604,25 @@
     <function-prolog>
       Queries the staf logs for the test case and write to file as text
     </function-prolog>
-
     <function-map-args>
-      <function-required-arg name="starttime">
-        timestamp to start logging from
-      </function-required-arg>
-      <function-required-arg name="endtime">
-        timestamp to start logging from
-      </function-required-arg>
-      <function-required-arg name="tofile">
-        timestamp to start logging from
-      </function-required-arg>
+      <function-arg-def name="starttime" type="required">
+        <function-arg-description>
+          timestamp to start logging from
+        </function-arg-description>
+        <function-arg-property name="type" value="timestamp"/>
+      </function-arg-def>   
+      <function-arg-def name="endtime" type="required">
+        <function-arg-description>
+          timestamp to start logging to
+        </function-arg-description>
+        <function-arg-property name="type" value="timestamp"/>
+      </function-arg-def>
+      <function-arg-def name="tofile" type="required">
+        <function-arg-description>
+          name of file to write the logs
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>                
     </function-map-args>
 
     <sequence>
@@ -535,16 +648,21 @@
     <function-prolog>
       Process staf log query results and write them to a file
     </function-prolog>
-
     <function-map-args>
-      <function-required-arg name="queryresult">
-        result of the staf log query
-      </function-required-arg>
-      <function-required-arg name="logfile">
-        name of the log file to where results are written
-      </function-required-arg>
+      <function-arg-def name="queryresult" type="required">
+        <function-arg-description>
+          result of the staf log query
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>   
+      <function-arg-def name="logfile" type="required">
+        <function-arg-description>
+          name of the log file to where results are written
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
     </function-map-args>
-
+    
     <sequence>
 
       <message>'Creating test log %s' % logfile</message>

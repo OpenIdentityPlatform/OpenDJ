@@ -31,36 +31,77 @@
       This function makes the configuration changes for SSL
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost">
-        Directory Server Host Name
-      </function-required-arg>
-      <function-required-arg name="dsInstancePort">
-        Directory Server Port Number
-      </function-required-arg>
-      <function-required-arg name="dsInstanceDn">
-        Directory Server Manager DN
-      </function-required-arg>
-      <function-required-arg name="dsInstancePswd">
-        Directory Server Manager Password
-      </function-required-arg>
-      <function-required-arg name="keystoreType">
-        Keystore type
-      </function-required-arg>
-      <function-optional-arg name="extraParams" default="' '">
-        Optional extra parameters for specific test cases
-      </function-optional-arg>
+     <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="keystoreType" type="required">
+        <function-arg-description>
+          Keystore type
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>                
     </function-map-args>
     <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        myhost=dsInstanceHost
+        myport=dsInstancePort
+        mydn=dsInstanceDn
+        mypswd=dsInstancePswd
+      </script>
+          
       <!--- Enable Key Manager Provider -->
       <message>
        'Enabling Key Manager Provider'
       </message>
       <call function="'modifyEntry'">
-        { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-          'entryToBeModified'   : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
       </call>
       <call function="'checkRC'">
       { 'returncode' : RC ,
@@ -73,11 +114,12 @@
       </message>
 
       <call function="'modifyEntry'">
-        { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-          'entryToBeModified'   : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
       </call>
 
       <call function="'checkRC'">
@@ -91,11 +133,12 @@
       </message>
 
       <call function="'modifyEntry'">
-        { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-          'entryToBeModified'   : '%s/ldaps_port.ldif' % (STAGED_DATA_DIR) }
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/ldaps_port.ldif' % (STAGED_DATA_DIR) }
       </call>
 
       <call function="'checkRC'">
@@ -108,18 +151,19 @@
       </message>
 
       <call function="'modifyEntry'">
-        { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-          'entryToBeModified'   : '%s/security/%s/setup/enable_ldaps_conn_handler.ldif' % (STAGED_DATA_DIR,keystoreType) }
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/%s/setup/enable_ldaps_conn_handler.ldif' % (STAGED_DATA_DIR,keystoreType) }
       </call>
 
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
       </call>
-</sequence>
+    </sequence>
   </function>
 
   <function name="configureTLS">
@@ -127,33 +171,74 @@
       This function makes the configuration changes for startTLS
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost">
-          Directory Server Host Name
-      </function-required-arg>
-      <function-required-arg name="dsInstancePort">
-          Directory Server Port Number
-      </function-required-arg>
-      <function-required-arg name="dsInstanceDn">
-          Directory Server Manager DN
-      </function-required-arg>
-      <function-required-arg name="dsInstancePswd">
-          Directory Server Manager Password
-      </function-required-arg>
-      <function-required-arg name="keystoreType">
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+            Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="keystoreType" type="required">
+        <function-arg-description>
           Keystore type
-      </function-required-arg>
-      <function-optional-arg name="extraParams" default="' '">
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
           Optional extra parameters for specific test cases
-      </function-optional-arg>
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
       <sequence>
-        <!--- Enable Key Manager Provider -->
+      
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        myhost=dsInstanceHost
+        myport=dsInstancePort
+        mydn=dsInstanceDn
+        mypswd=dsInstancePswd
+      </script>
+      
+      <!--- Enable Key Manager Provider -->
       <call function="'modifyEntry'">
-        { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-          'entryToBeModified'   : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
       </call>
       <call function="'checkRC'">
       { 'returncode' : RC ,
@@ -166,11 +251,12 @@
       </message>
 
       <call function="'modifyEntry'">
-        { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-          'entryToBeModified'   : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
       </call>
 
       <call function="'checkRC'">
@@ -183,18 +269,19 @@
          'Enabling StartTLS'
         </message>
 
-        <call function="'addEntry'">
-          { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-            'entryToBeAdded'   : '%s/security/%s/setup/enable_startTLS.ldif' % (STAGED_DATA_DIR,keystoreType) }
-        </call>
+      <call function="'addEntry'">
+        { 'location'        : mylocation ,
+          'dsInstanceHost'  : myhost ,
+          'dsInstancePort'  : myport ,
+          'dsInstanceDn'    : mydn ,
+          'dsInstancePswd'  : mypswd ,
+          'entryToBeAdded'  : '%s/security/%s/setup/enable_startTLS.ldif' % (STAGED_DATA_DIR,keystoreType) }
+      </call>
 
-        <call function="'checkRC'">
-          { 'returncode' : RC ,
-            'result'     : STAXResult }
-        </call>
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
     </sequence>
   </function>
 
@@ -203,160 +290,245 @@
       This function reverses the configuration changes for SSL
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost">
-        Directory Server Host Name
-      </function-required-arg>
-      <function-required-arg name="dsInstancePort">
-        Directory Server Port Number
-      </function-required-arg>
-      <function-required-arg name="dsInstanceDn">
-        Directory Server Manager DN
-      </function-required-arg>
-      <function-required-arg name="dsInstancePswd">
-        Directory Server Manager Password
-      </function-required-arg>
-      <function-required-arg name="keystoreType">
-        Keystore type
-      </function-required-arg>
-      <function-optional-arg name="extraParams" default="' '">
-        Optional extra parameters for specific test cases
-      </function-optional-arg>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+            Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="keystoreType" type="required">
+        <function-arg-description>
+          Keystore type
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
     <sequence>
-        <!--- Disable LDAPS Connection Handler -->
-        <message>
-           'Disabling LDAPS Connection Handler'
-        </message>
-  
-        <call function="'modifyEntry'">
-          { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-            'entryToBeModified'   : '%s/security/%s/teardown/disable_ldaps_conn_handler.ldif' % (STAGED_DATA_DIR,keystoreType) }
-        </call>
-  
-        <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-        </call>
-  
-        <!--- Disable SSL Trust Manager Provider -->
-        <message>
-           'Disabling SSL Trust Manager Provider'
-        </message>
-  
-        <call function="'modifyEntry'">
-          { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-            'entryToBeModified'   : '%s/security/%s/teardown/disable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
-        </call>
-  
-        <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-        </call>
-  
-        <!--- Disable Key Manager Provider -->
-        <message>
-           'Disabling Key Manager Provider'
-        </message>
-  
-        <call function="'modifyEntry'">
-          { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-            'entryToBeModified'   : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
-        </call>
-  
-        <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-        </call>
-      </sequence>
-    </function>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        myhost=dsInstanceHost
+        myport=dsInstancePort
+        mydn=dsInstanceDn
+        mypswd=dsInstancePswd
+      </script>
+          
+      <!--- Disable LDAPS Connection Handler -->
+      <message>
+         'Disabling LDAPS Connection Handler'
+      </message>
+
+      <call function="'modifyEntry'">
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/%s/teardown/disable_ldaps_conn_handler.ldif' % (STAGED_DATA_DIR,keystoreType) }
+      </call>
+
+      <call function="'checkRC'">
+          { 'returncode' : RC ,
+            'result'     : STAXResult }
+      </call>
+
+      <!--- Disable SSL Trust Manager Provider -->
+      <message>
+         'Disabling SSL Trust Manager Provider'
+      </message>
+
+      <call function="'modifyEntry'">
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/%s/teardown/disable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
+      </call>
+
+      <call function="'checkRC'">
+          { 'returncode' : RC ,
+            'result'     : STAXResult }
+      </call>
+
+      <!--- Disable Key Manager Provider -->
+      <message>
+         'Disabling Key Manager Provider'
+      </message>
+
+      <call function="'modifyEntry'">
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
+      </call>
+
+      <call function="'checkRC'">
+          { 'returncode' : RC ,
+            'result'     : STAXResult }
+      </call>
+    </sequence>
+  </function>
 
   <function name="unconfigureTLS">
     <function-prolog>
       This function reverses the configuration changes for startTLS
     </function-prolog>
     <function-map-args>
-      <function-required-arg name="dsInstanceHost">
-        Directory Server Host Name
-      </function-required-arg>
-      <function-required-arg name="dsInstancePort">
-        Directory Server Port Number
-      </function-required-arg>
-      <function-required-arg name="dsInstanceDn">
-        Directory Server Manager DN
-      </function-required-arg>
-      <function-required-arg name="dsInstancePswd">
-        Directory Server Manager Password
-      </function-required-arg>
-      <function-required-arg name="keystoreType">
-        Keystore type
-      </function-required-arg>
-      <function-optional-arg name="extraParams" default="' '">
-        Optional extra parameters for specific test cases
-      </function-optional-arg>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+            Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="keystoreType" type="required">
+        <function-arg-description>
+          Keystore type
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
     <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        myhost=dsInstanceHost
+        myport=dsInstancePort
+        mydn=dsInstanceDn
+        mypswd=dsInstancePswd
+      </script>
+          
       <!--- Disable StartTLS -->
-        <message>
-         'Disabling StartTLS'
-        </message>
-  
-        <call function="'modifyEntry'">
-          { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-            'entryToBeModified'   : '%s/security/%s/teardown/disable_startTLS.ldif' % (STAGED_DATA_DIR,keystoreType) }
-        </call>
-  
-        <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-        </call>
-  
-        <!--- Disable SSL Trust Manager Provider -->
-        <message>
-           'Disabling SSL Trust Manager Provider'
-        </message>
-  
-        <call function="'modifyEntry'">
-          { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-            'entryToBeModified'   : '%s/security/%s/teardown/disable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
-        </call>
-  
-        <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-        </call>
-  
-        <!--- Disable Key Manager Provider -->
-        <message>
-           'Disabling Key Manager Provider'
-        </message>
-  
-        <call function="'modifyEntry'">
-          { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-            'entryToBeModified'   : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
-        </call>
-  
-        <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-        </call>
+      <message>
+       'Disabling StartTLS'
+      </message>
+
+      <call function="'modifyEntry'">
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/%s/teardown/disable_startTLS.ldif' % (STAGED_DATA_DIR,keystoreType) }
+      </call>
+
+      <call function="'checkRC'">
+          { 'returncode' : RC ,
+            'result'     : STAXResult }
+      </call>
+
+      <!--- Disable SSL Trust Manager Provider -->
+      <message>
+         'Disabling SSL Trust Manager Provider'
+      </message>
+
+      <call function="'modifyEntry'">
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/%s/teardown/disable_trust_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
+      </call>
+
+      <call function="'checkRC'">
+          { 'returncode' : RC ,
+            'result'     : STAXResult }
+      </call>
+
+      <!--- Disable Key Manager Provider -->
+      <message>
+         'Disabling Key Manager Provider'
+      </message>
+
+      <call function="'modifyEntry'">
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (STAGED_DATA_DIR,keystoreType) }
+      </call>
+
+      <call function="'checkRC'">
+          { 'returncode' : RC ,
+            'result'     : STAXResult }
+      </call>
       </sequence>
     </function>
 </stax>
