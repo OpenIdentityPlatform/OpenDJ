@@ -54,11 +54,11 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -178,7 +178,7 @@ public class EncodePassword
 
 
       clearPasswordFile =
-           new FileBasedArgument("clearpwfile", 'F', "clearPasswordFile", false,
+           new FileBasedArgument("clearpwfile", 'f', "clearPasswordFile", false,
                                  false, "{filename}", null, null,
                                  MSGID_ENCPW_DESCRIPTION_CLEAR_PW_FILE);
       argParser.addArgument(clearPasswordFile);
@@ -198,15 +198,17 @@ public class EncodePassword
       argParser.addArgument(encodedPasswordFile);
 
 
-      configClass = new StringArgument("configclass", 'C', "configClass",
-                                       true, false, true, "{configClass}",
+      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                                       OPTION_LONG_CONFIG_CLASS,
+                                       true, false, true,
+                                       OPTION_VALUE_CONFIG_CLASS,
                                        ConfigFileHandler.class.getName(), null,
                                        MSGID_ENCPW_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
 
-      configFile = new StringArgument("configfile", 'f', "configFile",
+      configFile = new StringArgument("configfile", 'F', "configFile",
                                       true, false, true, "{configFile}", null,
                                       null,
                                       MSGID_ENCPW_DESCRIPTION_CONFIG_FILE);
@@ -233,7 +235,8 @@ public class EncodePassword
       argParser.addArgument(useCompareResultCode);
 
 
-      showUsage = new BooleanArgument("usage", 'H', "help",
+      showUsage = new BooleanArgument("usage", OPTION_SHORT_HELP,
+                                      OPTION_LONG_HELP,
                                       MSGID_ENCPW_DESCRIPTION_USAGE);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);

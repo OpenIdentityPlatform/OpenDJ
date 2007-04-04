@@ -60,6 +60,7 @@ import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -99,8 +100,9 @@ public class VerifyIndex
     try
     {
       configClass =
-           new StringArgument("configclass", 'C', "configClass", true, false,
-                              true, "{configClass}",
+           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                              OPTION_LONG_CONFIG_CLASS, true, false,
+                              true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
                               MSGID_VERIFYINDEX_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
@@ -116,8 +118,9 @@ public class VerifyIndex
 
 
       baseDNString =
-           new StringArgument("basedn", 'b', "baseDN", true, false, true,
-                              "{baseDN}", null, null,
+           new StringArgument("basedn", OPTION_SHORT_BASEDN,
+                              OPTION_LONG_BASEDN, true, false, true,
+                              OPTION_VALUE_BASEDN, null, null,
                               MSGID_VERIFYINDEX_DESCRIPTION_BASE_DN);
       argParser.addArgument(baseDNString);
 
@@ -136,7 +139,7 @@ public class VerifyIndex
 
 
       displayUsage =
-           new BooleanArgument("help", 'H', "help",
+           new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
                                MSGID_VERIFYINDEX_DESCRIPTION_USAGE);
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);

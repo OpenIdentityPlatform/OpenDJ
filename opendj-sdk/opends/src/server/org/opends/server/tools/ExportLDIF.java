@@ -65,6 +65,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -147,8 +148,9 @@ public class ExportLDIF
     try
     {
       configClass =
-           new StringArgument("configclass", 'C', "configClass", true, false,
-                              true, "{configClass}",
+           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                              OPTION_LONG_CONFIG_CLASS, true, false,
+                              true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
                               MSGID_LDIFEXPORT_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
@@ -164,8 +166,9 @@ public class ExportLDIF
 
 
       ldifFile =
-           new StringArgument("ldiffile", 'l', "ldifFile", true, false, true,
-                              "{ldifFile}", null, null,
+           new StringArgument("ldiffile", OPTION_SHORT_LDIF_FILE,
+                              OPTION_LONG_LDIF_FILE,true, false, true,
+                              OPTION_VALUE_LDIF_FILE, null, null,
                               MSGID_LDIFEXPORT_DESCRIPTION_LDIF_FILE);
       argParser.addArgument(ldifFile);
 
@@ -239,7 +242,8 @@ public class ExportLDIF
 
 
       compressLDIF =
-           new BooleanArgument("compressldif", 'c', "compressLDIF",
+           new BooleanArgument("compressldif", OPTION_SHORT_COMPRESS,
+                               OPTION_LONG_COMPRESS,
                                MSGID_LDIFEXPORT_DESCRIPTION_COMPRESS_LDIF);
       argParser.addArgument(compressLDIF);
 
@@ -257,7 +261,8 @@ public class ExportLDIF
 
 
       displayUsage =
-           new BooleanArgument("help", 'H', "help",
+           new BooleanArgument("help", OPTION_SHORT_HELP,
+                               OPTION_LONG_HELP,
                                MSGID_LDIFEXPORT_DESCRIPTION_USAGE);
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);

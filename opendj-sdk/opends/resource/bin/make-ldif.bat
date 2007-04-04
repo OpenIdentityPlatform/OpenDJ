@@ -28,6 +28,6 @@ rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.makeldif.MakeLDIF"
-set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=makeldif"
+set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=make-ldif"
 call "%~dP0\_server-script.bat" --resourcePath "%~dP0..\config\MakeLDIF" %*
 

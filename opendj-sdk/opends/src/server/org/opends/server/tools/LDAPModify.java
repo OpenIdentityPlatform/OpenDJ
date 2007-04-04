@@ -84,6 +84,7 @@ import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -630,37 +631,48 @@ public class LDAPModify
                                                   false);
     try
     {
-      hostName = new StringArgument("host", 'h', "host", false, false, true,
-                                    "{host}", "localhost", null,
+      hostName = new StringArgument("host", OPTION_SHORT_HOST,
+                                    OPTION_LONG_HOST, false, false, true,
+                                    OPTION_VALUE_HOST, "localhost", null,
                                     MSGID_DESCRIPTION_HOST);
       argParser.addArgument(hostName);
 
-      port = new IntegerArgument("port", 'p', "port", false, false, true,
-                                 "{port}", 389, null, MSGID_DESCRIPTION_PORT);
+      port = new IntegerArgument("port", OPTION_SHORT_PORT,
+                                 OPTION_LONG_PORT, false, false, true,
+                                 OPTION_VALUE_PORT, 389, null,
+                                 MSGID_DESCRIPTION_PORT);
       argParser.addArgument(port);
 
-      useSSL = new BooleanArgument("useSSL", 'Z', "useSSL",
+      useSSL = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
+                                   OPTION_LONG_USE_SSL,
                                    MSGID_DESCRIPTION_USE_SSL);
       argParser.addArgument(useSSL);
 
-      startTLS = new BooleanArgument("startTLS", 'q', "startTLS",
+      startTLS = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
+                                     OPTION_LONG_START_TLS,
                                      MSGID_DESCRIPTION_START_TLS);
       argParser.addArgument(startTLS);
 
-      bindDN = new StringArgument("bindDN", 'D', "bindDN", false, false, true,
-                                  "{bindDN}", null, null,
+      bindDN = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
+                                  OPTION_LONG_BINDDN, false, false, true,
+                                  OPTION_VALUE_BINDDN, null, null,
                                   MSGID_DESCRIPTION_BINDDN);
       argParser.addArgument(bindDN);
 
-      bindPassword = new StringArgument("bindPassword", 'w', "bindPassword",
-                                        false, false, true, "{bindPassword}",
+      bindPassword = new StringArgument("bindPassword", OPTION_SHORT_BINDPWD,
+                                        OPTION_LONG_BINDPWD,
+                                        false, false, true,
+                                        OPTION_VALUE_BINDPWD,
                                         null, null,
                                         MSGID_DESCRIPTION_BINDPASSWORD);
       argParser.addArgument(bindPassword);
 
       bindPasswordFile =
-           new FileBasedArgument("bindPasswordFile", 'j', "bindPasswordFile",
-                                 false, false, "{bindPasswordFilename}", null,
+           new FileBasedArgument("bindPasswordFile",
+                                 OPTION_SHORT_BINDPWD_FILE,
+                                 OPTION_LONG_BINDPWD_FILE,
+                                 false, false,
+                                 OPTION_VALUE_BINDPWD_FILE, null,
                                  null, MSGID_DESCRIPTION_BINDPASSWORDFILE);
       argParser.addArgument(bindPasswordFile);
 
@@ -668,8 +680,9 @@ public class LDAPModify
                                        MSGID_MODIFY_DESCRIPTION_DEFAULT_ADD);
       argParser.addArgument(defaultAdd);
 
-      filename = new StringArgument("filename", 'f', "filename", false, false,
-                                    true, "{filename}", null, null,
+      filename = new StringArgument("filename", OPTION_SHORT_FILENAME,
+                                    OPTION_LONG_FILENAME, false, false,
+                                    true, OPTION_VALUE_FILENAME, null, null,
                                     MSGID_DELETE_DESCRIPTION_FILENAME);
       argParser.addArgument(filename);
 
@@ -678,8 +691,10 @@ public class LDAPModify
                                          MSGID_DESCRIPTION_USE_SASL_EXTERNAL);
       argParser.addArgument(saslExternal);
 
-      saslOptions = new StringArgument("saslOption", 'o', "saslOption", false,
-                                       true, true, "{name=value}", null, null,
+      saslOptions = new StringArgument("saslOption", OPTION_SHORT_SASLOPTION,
+                                       OPTION_LONG_SASLOPTION, false,
+                                       true, true,
+                                       OPTION_VALUE_SASLOPTION, null, null,
                                        MSGID_DESCRIPTION_SASL_PROPERTIES);
       argParser.addArgument(saslOptions);
 
@@ -687,22 +702,30 @@ public class LDAPModify
                                     MSGID_DESCRIPTION_TRUSTALL);
       argParser.addArgument(trustAll);
 
-      keyStorePath = new StringArgument("keyStorePath", 'K', "keyStorePath",
-                                        false, false, true, "{keyStorePath}",
+      keyStorePath = new StringArgument("keyStorePath",
+                                        OPTION_SHORT_KEYSTOREPATH,
+                                        OPTION_LONG_KEYSTOREPATH,
+                                        false, false, true,
+                                        OPTION_VALUE_KEYSTOREPATH,
                                         null, null,
                                         MSGID_DESCRIPTION_KEYSTOREPATH);
       argParser.addArgument(keyStorePath);
 
-      keyStorePassword = new StringArgument("keyStorePassword", 'W',
-                                            "keyStorePassword", false, false,
-                                            true, "{keyStorePassword}", null,
-                                            null,
+      keyStorePassword = new StringArgument("keyStorePassword",
+                                            OPTION_SHORT_KEYSTORE_PWD,
+                                            OPTION_LONG_KEYSTORE_PWD,
+                                            false, false,
+                                            true,
+                                            OPTION_VALUE_KEYSTORE_PWD,
+                                            null, null,
                                             MSGID_DESCRIPTION_KEYSTOREPASSWORD);
       argParser.addArgument(keyStorePassword);
 
       keyStorePasswordFile =
-           new FileBasedArgument("keystorepasswordfile", null,
-                                 "keyStorePasswordFile", false, false, "{path}",
+           new FileBasedArgument("keystorepasswordfile",
+                                 OPTION_SHORT_KEYSTORE_PWD_FILE,
+                                 OPTION_LONG_KEYSTORE_PWD_FILE,
+                                 false, false, OPTION_VALUE_KEYSTORE_PWD_FILE,
                                  null, null,
                                  MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE);
       argParser.addArgument(keyStorePasswordFile);
@@ -712,27 +735,36 @@ public class LDAPModify
                                         null, MSGID_DESCRIPTION_CERT_NICKNAME);
       argParser.addArgument(certNickname);
 
-      trustStorePath = new StringArgument("trustStorePath", 'P',
-                                          "trustStorePath", false, false, true,
-                                          "{trustStorePath}", null, null,
+      trustStorePath = new StringArgument("trustStorePath",
+                                          OPTION_SHORT_TRUSTSTOREPATH,
+                                          OPTION_LONG_TRUSTSTOREPATH,
+                                          false, false, true,
+                                          OPTION_VALUE_TRUSTSTOREPATH,
+                                          null, null,
                                           MSGID_DESCRIPTION_TRUSTSTOREPATH);
       argParser.addArgument(trustStorePath);
 
       trustStorePassword =
-           new StringArgument("trustStorePassword", null, "trustStorePassword",
-                              false, false, true, "{trustStorePassword}", null,
+           new StringArgument("trustStorePassword", null,
+                              OPTION_LONG_TRUSTSTORE_PWD ,
+                              false, false, true,
+                              OPTION_VALUE_TRUSTSTORE_PWD, null,
                               null, MSGID_DESCRIPTION_TRUSTSTOREPASSWORD);
       argParser.addArgument(trustStorePassword);
 
       trustStorePasswordFile =
-           new FileBasedArgument("truststorepasswordfile", null,
-                                 "trustStorePasswordFile", false, false,
-                                 "{path}", null, null,
+           new FileBasedArgument("truststorepasswordfile",
+                                 OPTION_SHORT_TRUSTSTORE_PWD_FILE,
+                                 OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
+                                 OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
                                  MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE);
       argParser.addArgument(trustStorePasswordFile);
 
-      proxyAuthzID = new StringArgument("proxy_authzid", 'Y', "proxyAs", false,
-                                        false, true, "{authzID}", null, null,
+      proxyAuthzID = new StringArgument("proxy_authzid",
+                                        OPTION_SHORT_PROXYAUTHID,
+                                        OPTION_LONG_PROXYAUTHID, false,
+                                        false, true,
+                                        OPTION_VALUE_PROXYAUTHID, null, null,
                                         MSGID_DESCRIPTION_PROXY_AUTHZID);
       argParser.addArgument(proxyAuthzID);
 
@@ -742,8 +774,11 @@ public class LDAPModify
       argParser.addArgument(reportAuthzID);
 
       assertionFilter = new StringArgument("assertionfilter", null,
-                                           "assertionFilter", false, false,
-                                           true, "{filter}", null, null,
+                                           OPTION_LONG_ASSERTION_FILE,
+                                           false, false,
+                                           true,
+                                           OPTION_VALUE_ASSERTION_FILE,
+                                           null, null,
                                            MSGID_DESCRIPTION_ASSERTION_FILTER);
       argParser.addArgument(assertionFilter);
 
@@ -782,7 +817,8 @@ public class LDAPModify
                                     MSGID_DESCRIPTION_CONTINUE_ON_ERROR);
       argParser.addArgument(continueOnError);
 
-      noop = new BooleanArgument("no-op", 'n', "noop",
+      noop = new BooleanArgument("no-op", OPTION_SHORT_DRYRUN,
+                                    OPTION_LONG_DRYRUN,
                                     MSGID_DESCRIPTION_NOOP);
       argParser.addArgument(noop);
 
@@ -790,7 +826,8 @@ public class LDAPModify
                                     MSGID_DESCRIPTION_VERBOSE);
       argParser.addArgument(verbose);
 
-      showUsage = new BooleanArgument("showUsage", 'H', "help",
+      showUsage = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
+                                      OPTION_LONG_HELP,
                                       MSGID_DESCRIPTION_SHOWUSAGE);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);

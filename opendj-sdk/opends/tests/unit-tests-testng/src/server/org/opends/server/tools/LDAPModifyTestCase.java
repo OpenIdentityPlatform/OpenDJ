@@ -847,7 +847,7 @@ public class LDAPModifyTestCase
 
 
   /**
-   * Tests a simple modify operation using the --noop client-side option.
+   * Tests a simple modify operation using the --dry-run client-side option.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -863,7 +863,7 @@ public class LDAPModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "--noop",
+      "--dry-run",
       "-f", modifyFilePath
     };
 
@@ -873,7 +873,7 @@ public class LDAPModifyTestCase
 
 
   /**
-   * Tests a simple add operation using the --noop client-side option.
+   * Tests a simple add operation using the --dry-run client-side option.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -896,7 +896,7 @@ public class LDAPModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "--noop",
+      "--dry-run",
       "-f", path
     };
 
@@ -906,7 +906,7 @@ public class LDAPModifyTestCase
 
 
   /**
-   * Tests a simple delete operation using the --noop client-side option.
+   * Tests a simple delete operation using the --dry-run client-side option.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -926,7 +926,7 @@ public class LDAPModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "--noop",
+      "--dry-run",
       "-f", path
     };
 
@@ -936,7 +936,7 @@ public class LDAPModifyTestCase
 
 
   /**
-   * Tests a simple modify DN operation using the --noop client-side option.
+   * Tests a simple modify DN operation using the --dry-run client-side option.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -958,7 +958,7 @@ public class LDAPModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "--noop",
+      "--dry-run",
       "-f", path
     };
 

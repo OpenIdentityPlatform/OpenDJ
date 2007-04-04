@@ -566,7 +566,7 @@ public class LDAPSearchTestCase
 
 
   /**
-   * Tests a simple invocation using the "--noop" option with a valid argument
+   * Tests a simple invocation using the "--dry-run" option with a valid argument
    * set.
    */
   @Test()
@@ -581,7 +581,7 @@ public class LDAPSearchTestCase
       "-w", "password",
       "-b", "",
       "-s", "base",
-      "--noop",
+      "--dry-run",
       "(objectClass=*)"
     };
 
@@ -591,7 +591,7 @@ public class LDAPSearchTestCase
 
 
   /**
-   * Tests a simple invocation using the "--noop" option with an invalid
+   * Tests a simple invocation using the "--dry-run" option with an invalid
    * argument set.
    */
   @Test()
@@ -606,7 +606,7 @@ public class LDAPSearchTestCase
       "-w", "password",
       "-b", "",
       "-s", "invalid",
-      "--noop",
+      "--dry-run",
       "(objectClass=*)"
     };
 

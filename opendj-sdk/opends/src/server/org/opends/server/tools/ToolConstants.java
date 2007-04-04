@@ -87,5 +87,375 @@ public class ToolConstants
    * for a SASL ANONYMOUS request.
    */
   public static final String SASL_PROPERTY_TRACE = "trace";
+
+
+  /**
+   * The value for the short option configClass.
+   */
+  public static final char OPTION_SHORT_CONFIG_CLASS = 'C';
+
+  /**
+   * The value for the long option configClass.
+   */
+  public static final String OPTION_LONG_CONFIG_CLASS = "configClass";
+
+  /**
+   * The placeholder value of configClass that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_CONFIG_CLASS = "{configClass}";
+
+  /**
+   * The value for the short option hostname.
+   */
+  public static final char OPTION_SHORT_HOST = 'h';
+
+  /**
+   * The value for the long option hostname.
+   */
+  public static final String OPTION_LONG_HOST = "hostname";
+
+  /**
+   * The placeholder value of hostname that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_HOST = "{host}";
+
+  /**
+   * The value for the short option port.
+   */
+  public static final char OPTION_SHORT_PORT = 'p';
+
+  /**
+   * The value for the long option port.
+   */
+  public static final String OPTION_LONG_PORT = "port";
+
+  /**
+   * The placeholder value of port that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_PORT = "{port}";
+
+  /**
+   * The value for the short option useSSL.
+   */
+  public static final char OPTION_SHORT_USE_SSL = 'Z';
+
+  /**
+   * The value for the long option useSSL.
+   */
+  public static final String OPTION_LONG_USE_SSL = "useSSL";
+
+  /**
+   * The value for the short option baseDN.
+   */
+  public static final char OPTION_SHORT_BASEDN = 'b';
+
+  /**
+   * The value for the long option baseDN.
+   */
+  public static final String OPTION_LONG_BASEDN = "baseDN";
+
+  /**
+   * The placeholder value of baseDN that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_BASEDN = "{baseDN}";
+
+  /**
+   * The value for the short option rootUserDN.
+   */
+  public static final char OPTION_SHORT_ROOT_USER_DN = 'D';
+
+  /**
+   * The value for the long option rootUserDN.
+   */
+  public static final String OPTION_LONG_ROOT_USER_DN = "rootUserDN";
+
+  /**
+   * The placeholder value of hostname that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_ROOT_USER_DN = "{rootUserDN}";
+
+  /**
+   * The value for the short option bindDN.
+   */
+  public static final char OPTION_SHORT_BINDDN = 'D';
+
+  /**
+   * The value for the long option bindDN.
+   */
+  public static final String OPTION_LONG_BINDDN = "bindDN";
+
+  /**
+   * The placeholder value of bindDN that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_BINDDN = "{bindDN}";
+
+  /**
+   * The value for the short option bindPassword.
+   */
+  public static final char OPTION_SHORT_BINDPWD = 'w';
+
+  /**
+   * The value for the long option bindPassword.
+   */
+  public static final String OPTION_LONG_BINDPWD = "bindPassword";
+
+  /**
+   * The placeholder value of bindPassword that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_BINDPWD = "{bindPassword}";
+
+  /**
+   * The value for the short option bindPasswordFile.
+   */
+  public static final char OPTION_SHORT_BINDPWD_FILE = 'j';
+
+  /**
+   * The value for the long option bindPasswordFile.
+   */
+  public static final String OPTION_LONG_BINDPWD_FILE = "bindPasswordFile";
+
+  /**
+   * The placeholder value of bindPasswordFile that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_BINDPWD_FILE = "{bindPasswordFile}";
+
+
+  /**
+   * The value for the short option compress.
+   */
+  public static final char OPTION_SHORT_COMPRESS = 'c';
+
+  /**
+   * The value for the long option compress.
+   */
+  public static final String OPTION_LONG_COMPRESS = "compress";
+
+  /**
+   * The value for the short option filename.
+   */
+  public static final char OPTION_SHORT_FILENAME = 'f';
+
+  /**
+   * The value for the long option filename.
+   */
+  public static final String OPTION_LONG_FILENAME = "filename";
+
+  /**
+   * The placeholder value of filename that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_FILENAME = "{filemane}";
+
+  /**
+   * The value for the short option ldifFile.
+   */
+  public static final char OPTION_SHORT_LDIF_FILE = 'l';
+
+  /**
+   * The value for the long option ldifFile.
+   */
+  public static final String OPTION_LONG_LDIF_FILE = "ldifFile";
+
+  /**
+   * The placeholder value of ldifFile that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_LDIF_FILE = "{ldifFile}";
+
+  /**
+   * The value for the short option useStartTLS.
+   */
+  public static final char OPTION_SHORT_START_TLS = 'q';
+
+  /**
+   * The value for the long option useStartTLS.
+   */
+  public static final String OPTION_LONG_START_TLS = "useStartTLS";
+
+  /**
+   * The value for the short option randomSeed.
+   */
+  public static final char OPTION_SHORT_RANDOM_SEED = 's';
+
+  /**
+   * The value for the long option randomSeed.
+   */
+  public static final String OPTION_LONG_RANDOM_SEED = "randomSeed";
+
+  /**
+   * The placeholder value of randomSeed that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_RANDOM_SEED = "{seed}";
+
+  /**
+   * The value for the short option keyStorePath.
+   */
+  public static final char OPTION_SHORT_KEYSTOREPATH = 'K';
+
+  /**
+   * The value for the long option keyStorePath.
+   */
+  public static final String OPTION_LONG_KEYSTOREPATH = "keyStorePath";
+
+  /**
+   * The placeholder value of keyStorePath that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_KEYSTOREPATH = "{keyStorePath}";
+
+  /**
+   * The value for the short option trustStorePath.
+   */
+  public static final char OPTION_SHORT_TRUSTSTOREPATH = 'P';
+
+  /**
+   * The value for the long option trustStorePath.
+   */
+  public static final String OPTION_LONG_TRUSTSTOREPATH = "trustStorePath";
+
+  /**
+   * The placeholder value of trustStorePath that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_TRUSTSTOREPATH = "{trustStorePath}";
+
+  /**
+   * The value for the short option keyStorePassword.
+   */
+  public static final char OPTION_SHORT_KEYSTORE_PWD = 'W';
+
+  /**
+   * The value for the long option keyStorePassword.
+   */
+  public static final String OPTION_LONG_KEYSTORE_PWD = "keyStorePassword";
+
+  /**
+   * The placeholder value of keyStorePassword that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_KEYSTORE_PWD = "{keyStorePassword}";
+
+  /**
+   * The value for the long option trustStorePassword.
+   */
+  public static final String OPTION_LONG_TRUSTSTORE_PWD = "trustStorePassword";
+
+  /**
+   * The placeholder value of trustStorePassword that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_TRUSTSTORE_PWD =
+    "{trustStorePassword}";
+
+  /**
+   * The value for the short option keyStorePasswordFile .
+   */
+  public static final char OPTION_SHORT_KEYSTORE_PWD_FILE = 'u';
+
+  /**
+   * The value for the long option keyStorePasswordFile .
+   */
+  public static final String OPTION_LONG_KEYSTORE_PWD_FILE =
+    "keyStorePasswordFile ";
+
+  /**
+   * The placeholder value of keyStorePasswordFile that will be
+   * displayed in usage information.
+   */
+  public static final String OPTION_VALUE_KEYSTORE_PWD_FILE = "{path}";
+
+  /**
+   * The value for the short option keyStorePasswordFile .
+   */
+  public static final char OPTION_SHORT_TRUSTSTORE_PWD_FILE = 'U';
+
+  /**
+   * The value for the long option keyStorePasswordFile .
+   */
+  public static final String OPTION_LONG_TRUSTSTORE_PWD_FILE =
+    "TrustStorePasswordFile ";
+
+  /**
+   * The placeholder value of keyStorePasswordFile that will be
+   * displayed in usage information.
+   */
+  public static final String OPTION_VALUE_TRUSTSTORE_PWD_FILE = "{path}";
+
+  /**
+   * The value for the long option assertionFilter .
+   */
+  public static final String OPTION_LONG_ASSERTION_FILE = "assertionFilter";
+
+  /**
+   * The placeholder value of assertionFilter  that will be displayed in usage
+   * information.
+   */
+  public static final String OPTION_VALUE_ASSERTION_FILE = "{filter}";
+
+  /**
+   * The value for the short option dry-run.
+   */
+  public static final char OPTION_SHORT_DRYRUN = 'n';
+
+  /**
+   * The value for the long option dry-run.
+   */
+  public static final String OPTION_LONG_DRYRUN = "dry-run";
+
+  /**
+   * The value for the short option help.
+   */
+  public static final char OPTION_SHORT_HELP = 'H';
+
+  /**
+   * The value for the long option help.
+   */
+  public static final String OPTION_LONG_HELP = "help";
+
+  /**
+   * The value for the long option cli.
+   */
+  public static final String OPTION_LONG_CLI = "cli";
+
+  /**
+   * The value for the short option proxyAs.
+   */
+  public static final char OPTION_SHORT_PROXYAUTHID = 'Y';
+
+  /**
+   * The value for the long option proxyAs.
+   */
+  public static final String OPTION_LONG_PROXYAUTHID = "proxyAs";
+
+  /**
+   * The placeholder value of proxyAs  that will be
+   * displayed in usage information.
+   */
+  public static final String OPTION_VALUE_PROXYAUTHID = "{authzID}";
+
+  /**
+   * The value for the short option saslOption.
+   */
+  public static final char OPTION_SHORT_SASLOPTION = 'o';
+
+  /**
+   * The value for the long option saslOption.
+   */
+  public static final String OPTION_LONG_SASLOPTION = "saslOption";
+
+  /**
+   * The placeholder value of saslOption that will be
+   * displayed in usage information.
+   */
+  public static final String OPTION_VALUE_SASLOPTION = "{name=value}";
 }
 

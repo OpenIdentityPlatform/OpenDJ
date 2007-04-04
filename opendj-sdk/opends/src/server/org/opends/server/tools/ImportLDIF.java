@@ -68,6 +68,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -162,8 +163,9 @@ public class ImportLDIF
     try
     {
       configClass =
-           new StringArgument("configclass", 'C', "configClass", true, false,
-                              true, "{configClass}",
+           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                              OPTION_LONG_CONFIG_CLASS, true, false,
+                              true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
                               MSGID_LDIFIMPORT_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
@@ -179,8 +181,9 @@ public class ImportLDIF
 
 
       ldifFiles =
-           new StringArgument("ldiffile", 'l', "ldifFile", false, true, true,
-                              "{ldifFile}", null, null,
+           new StringArgument("ldiffile", OPTION_SHORT_LDIF_FILE,
+                              OPTION_LONG_LDIF_FILE, false, true, true,
+                              OPTION_VALUE_LDIF_FILE, null, null,
                               MSGID_LDIFIMPORT_DESCRIPTION_LDIF_FILE);
       argParser.addArgument(ldifFiles);
 
@@ -267,14 +270,16 @@ public class ImportLDIF
 
 
       randomSeed =
-           new IntegerArgument("randomseed", 'S', "randomSeed", false, false,
-                               true, "{seed}", 0, null, false, 0, false, 0,
+           new IntegerArgument("randomseed", OPTION_SHORT_RANDOM_SEED,
+                               OPTION_LONG_RANDOM_SEED, false, false,
+                               true, OPTION_VALUE_RANDOM_SEED,
+                               0, null, false, 0, false, 0,
                                MSGID_LDIFIMPORT_DESCRIPTION_RANDOM_SEED);
       argParser.addArgument(randomSeed);
 
 
       skipSchemaValidation =
-           new BooleanArgument("skipschema", 's', "skipSchemaValidation",
+           new BooleanArgument("skipschema", 'S', "skipSchemaValidation",
                     MSGID_LDIFIMPORT_DESCRIPTION_SKIP_SCHEMA_VALIDATION);
       argParser.addArgument(skipSchemaValidation);
 
@@ -297,7 +302,7 @@ public class ImportLDIF
 
 
       displayUsage =
-           new BooleanArgument("help", 'H', "help",
+           new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
                                MSGID_LDIFIMPORT_DESCRIPTION_USAGE);
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);

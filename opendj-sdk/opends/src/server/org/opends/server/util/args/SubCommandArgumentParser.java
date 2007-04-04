@@ -1215,7 +1215,7 @@ public class SubCommandArgumentParser
         String longIDString = a.getLongIdentifier();
         if (longIDString != null)
         {
-          buffer.append("  or  --");
+          buffer.append(", --");
           buffer.append(longIDString);
           buffer.append(value);
         }
@@ -1320,7 +1320,7 @@ public class SubCommandArgumentParser
         if (longID != null)
         {
           StringBuilder newBuffer = new StringBuilder();
-          newBuffer.append("or   --");
+          newBuffer.append(", --");
           newBuffer.append(longID);
 
           if (a.needsValue())
