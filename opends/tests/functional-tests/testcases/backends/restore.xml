@@ -75,7 +75,20 @@
                   'Backend Restore1: Restore data to OpenDS'
                 </message>
 
+                <!-- Stop DS -->
+                <call function="'StopDsWithScript'">
+                    { 'location'  : STAF_REMOTE_HOSTNAME,
+                      'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                      'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                      'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                      'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                </call>
                 
+                <call function="'checkRC'">
+                   { 'returncode' : RC ,
+                     'result'     : STAXResult }
+                </call>                
+                                
                 <call function="'restore'">
                   { 
                     'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR
@@ -86,7 +99,27 @@
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
                 </call>
-                     
+                
+                <!-- Start DS -->
+                <message>
+                  'Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
+                </message>
+      
+                <call function="'StartDsWithScript'">
+                 { 'location'  : STAF_REMOTE_HOSTNAME }
+                </call>
+      
+                <call function="'checkRC'">
+                   { 'returncode' : RC ,
+                     'result'     : STAXResult }
+                </call>
+                
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 5 ,
+                    'noOfMilliSeconds' : 2000 }
+                </call>
+                    
                 <call function="'testCase_Postamble'"/>
                       
               </sequence>
@@ -114,6 +147,21 @@
                 <message>
                   'Backend Restore2: Restore compressed data to OpenDS'
                 </message>
+                
+                <!-- Stop DS -->
+                <call function="'StopDsWithScript'">
+                    { 'location'  : STAF_REMOTE_HOSTNAME,
+                      'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                      'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                      'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                      'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                </call>
+                
+                <call function="'checkRC'">
+                   { 'returncode' : RC ,
+                     'result'     : STAXResult }
+                </call>        
+                                
                 <call function="'backup'">
                   { 
                     'backupDir'       : '%s/restore.compressed' % STAGED_DATA_DIR
@@ -124,7 +172,27 @@
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
                 </call>
-                     
+
+                <!-- Start DS -->
+                <message>
+                  'Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
+                </message>
+      
+                <call function="'StartDsWithScript'">
+                 { 'location'  : STAF_REMOTE_HOSTNAME }
+                </call>
+      
+                <call function="'checkRC'">
+                   { 'returncode' : RC ,
+                     'result'     : STAXResult }
+                </call>
+                
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 5 ,
+                    'noOfMilliSeconds' : 2000 }
+                </call>
+                                     
                 <call function="'testCase_Postamble'"/>
       
               </sequence>

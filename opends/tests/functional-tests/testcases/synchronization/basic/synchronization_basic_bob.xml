@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="synchronization_basic_bob"/>
+
+  <function name="synchronization_basic_bob">
+
+    <sequence>
+			    
+          <!--- Test Case information
+          #@TestMarker          Synchronization Basic Tests
+          #@TestName            Synchronization: Basic: Add Entry
+          #@TestID                  Add Entry
+          #@TestPurpose         Check that an entry add is well propagated by synchronization.
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->									
+          <testcase name="'Synchronization: Basic: Add Entry'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Synchronization: Basic: Add Entry. Check that an added entry is well propagated by synchronization.'
+              </message>
+
+			  <call function="'addEntry'">
+                { 'location' : clientHost,
+				  'dsPath' : clientPath,
+				  'dsInstanceHost'    : server1.getHostname(),
+                  'dsInstancePort'   : server1.getPort(),
+                  'dsInstanceDn'    : server1.getRootDn(),
+                  'dsInstancePswd'  : server1.getRootPwd(),
+                  'entryToBeAdded'   : '%s/synchronization_add_root_suffix.ldif' % clientDataDir }
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC,
+                    'result'     : STAXResult }
+              </call>
+				
+					    
+              <call function="'SearchObject'">
+                { 'location' : clientHost,
+				  'dsPath' : clientPath,
+				  'dsInstanceHost'   : server2.getHostname() ,
+                  'dsInstancePort'   : server2.getPort() ,
+                  'dsInstanceDn'     : server2.getRootDn() ,
+                  'dsInstancePswd'   : server2.getRootPwd() ,
+                  'dsBaseDN'         : synchroSuffix ,
+                  'dsFilter'         : 'objectclass=*' }                  
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC,
+                    'result'     : STAXResult,
+                    'expected'   : 0 }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+			
+
+          <!--- Test Case information
+          #@TestMarker          Synchronization Basic Tests
+          #@TestName            Synchronization: Basic: Modify Entry
+          #@TestID                  Modify Entry
+          #@TestPurpose         Check that an entry modify is well propagated by synchronization.
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->											
+          <testcase name="'Synchronization: Basic: Modify Entry'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Synchronization: Basic: Modify Entry. Check that an entry modify is well propagated by synchronization.'
+              </message>
+
+			  <call function="'addEntry'">
+                { 'location' : clientHost,
+				  'dsPath' : clientPath,
+				  'dsInstanceHost'   : server1.getHostname(),
+                  'dsInstancePort'   : server1.getPort() ,
+                  'dsInstanceDn'     : server1.getRootDn() ,
+                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'entryToBeAdded'   : '%s/synchronization_add_single.ldif' % clientDataDir }
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+              </call>				
+				
+				
+			  <call function="'modifyEntry'">
+                { 'location' : clientHost,
+				  'dsPath' : clientPath,
+				  'dsInstanceHost'   : server1.getHostname() ,
+                  'dsInstancePort'   : server1.getPort() ,
+                  'dsInstanceDn'     : server1.getRootDn() ,
+                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'entryToBeModified'   : '%s/synchronization_mod.ldif' % clientDataDir }
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+              </call>
+				
+					    
+              <call function="'SearchObject'">
+                { 'location' : clientHost,
+				  'dsPath' : clientPath,
+				  'dsInstanceHost'   : server2.getHostname() ,
+                  'dsInstancePort'   : server2.getPort() ,
+                  'dsInstanceDn'     : server2.getRootDn() ,
+                  'dsInstancePswd'   : server2.getRootPwd() ,
+                  'dsBaseDN'         : entryDn,
+                  'dsFilter'         : '%s=%s' % (attr_type,attr_value) }                  
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult ,
+                    'expected'   : 0 }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+						
+
+          <!--- Test Case information
+          #@TestMarker          Synchronization Basic Tests
+          #@TestName            Synchronization: Basic: Delete Entry
+          #@TestID                  Delete Entry
+          #@TestPurpose         Check that an entry delete is well propagated by synchronization.
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->											
+          <testcase name="'Synchronization: Basic: Delete Entry'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Synchronization: Basic: Delete Entry. Check that an entry delete is well propagated by synchronization.'
+              </message>
+
+			  <call function="'DeleteEntry'">
+                { 'location' : clientHost,
+				  'dsPath' : clientPath,
+				  'dsInstanceHost'   : server1.getHostname() ,
+                  'dsInstancePort'   : server1.getPort() ,
+                  'dsInstanceDn'     : server1.getRootDn() ,
+                  'dsInstancePswd'   : server1.getRootPwd() ,
+                  'dsBaseDN'   : entryDn }
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+              </call>
+				
+					    
+              <call function="'SearchObject'">
+                { 'location' : clientHost,
+				  'dsPath' : clientPath,
+				  'dsInstanceHost'   : server2.getHostname() ,
+                  'dsInstancePort'   : server2.getPort() ,
+                  'dsInstanceDn'     : server2.getRootDn() ,
+                  'dsInstancePswd'   : server2.getRootPwd() ,
+                  'dsBaseDN'         : entryDn,
+                  'dsFilter'         : 'objectclass=*' }                  
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult ,
+                    'expected'   : 32 }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+			
+          
+          <call function="'testSuite_Postamble'"/>
+
+    
+    </sequence>
+
+  </function>
+
+</stax>

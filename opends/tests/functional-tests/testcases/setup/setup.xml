@@ -36,7 +36,7 @@
       <block name="'setup'">
       
         <sequence>
-    
+
           <!-- Locally delete any existing files from staging area -->
           <message>'Delete the temporary staging area'</message>
           <call function="'deleteFolder'">

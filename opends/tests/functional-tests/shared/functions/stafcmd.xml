@@ -93,7 +93,7 @@
       </function-arg-def>
       <function-arg-def name="destfolder" type="required">
         <function-arg-description>
-          The name of the destination fule
+          The name of the destination file
         </function-arg-description>
         <function-arg-property name="type" value="foldername"/>
       </function-arg-def>

@@ -46,7 +46,7 @@
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/backends/import.xml' % (TESTS_DIR)"/>
           <call function="'main_import'" />
-  
+ 
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/backends/import-tasks.xml' % (TESTS_DIR)"/>
           <call function="'main_import-tasks'" />
@@ -74,7 +74,7 @@
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/backends/export-tasks.xml' % (TESTS_DIR)"/>
           <call function="'main_export-tasks'" />
-          
+         
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/backends/export.xml' % (TESTS_DIR)"/>
           <call function="'main_export'" />

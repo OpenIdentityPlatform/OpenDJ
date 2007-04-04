@@ -155,7 +155,7 @@
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
                   'ldifFile'        : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
-                  'includeBranches' : 'dc=com',
+                  'includeBranches' : ['dc=com'],
                 }
               </call>
 
@@ -249,7 +249,7 @@
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
                   'ldifFile'        : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
-                  'excludeBranches' : 'ou=Departed,ou=People,dc=example,dc=com',
+                  'excludeBranches' : ['ou=Departed,ou=People,dc=example,dc=com'],
                 }
               </call>
 
@@ -349,8 +349,8 @@
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
                   'ldifFile'        : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
-                  'includeBranches' : 'dc=com',
-                  'excludeBranches' : 'ou=Departed,ou=People,dc=example,dc=com',
+                  'includeBranches' : ['dc=com'],
+                  'excludeBranches' : ['ou=Departed,ou=People,dc=example,dc=com'],
                 }
               </call>
 
@@ -393,13 +393,13 @@
               <call function="'testCase_Preamble'"/>
 
               <call function="'importLdifTask'">
-                { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-                  'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
-                  'includeAttributes' : 'dc',
+                { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
+                  'taskID'            : STAXCurrentTestcase,
+                  'ldifFile'          : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
+                  'includeAttributes' : ['dc'],
                 }
               </call>
 
@@ -492,7 +492,7 @@
                   'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
                   'taskID'            : STAXCurrentTestcase,
                   'ldifFile'          : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
-                  'excludeAttributes' : 'userpassword'
+                  'excludeAttributes' : ['userpassword']
                 }
               </call>
 
@@ -585,7 +585,7 @@
                   'taskID'            : STAXCurrentTestcase,
                   'ldifFile'          : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
                   'includeBranches'   : ['dc=com','dc=example,dc=com','ou=People,dc=example,dc=com'],
-                  'excludeBranches'   : 'ou=Departed,ou=People,dc=example,dc=com',
+                  'excludeBranches'   : ['ou=Departed,ou=People,dc=example,dc=com'],
                   'includeAttributes' : ['dc','cn','ou','sn'],
                 }
               </call>
@@ -635,7 +635,7 @@
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
                   'ldifFile'        : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
-                  'includeFilters'  : 'objectclass=*',
+                  'includeFilters'  : ['objectclass=*'],
                 }
               </call>
 
@@ -682,7 +682,7 @@
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
                   'ldifFile'        : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
-                  'excludeFilters'  : 'objectclass=person',
+                  'excludeFilters'  : ['objectclass=person'],
                 }
               </call>
 
@@ -826,7 +826,7 @@
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
                   'ldifFile'        : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
-                  'includeFilters'  : '|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)',
+                  'includeFilters'  : ['|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)'],
                 }
               </call>
 
@@ -873,7 +873,7 @@
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
                   'ldifFile'        : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
-                  'excludeFilters'  : '&amp;(objectclass=person)(ou=Departed)',
+                  'excludeFilters'  : ['&amp;(objectclass=person)(ou=Departed)'],
                 }
               </call>
 
@@ -919,9 +919,9 @@
                   'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
                   'taskID'            : STAXCurrentTestcase,
                   'ldifFile'          : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
-                  'excludeFilters'    : '&amp;(objectclass=person)(ou=Departed)',
-                  'includeBranches'   : 'dc=com',
-                  'excludeAttributes' : 'userpassword'
+                  'excludeFilters'    : ['&amp;(objectclass=person)(ou=Departed)'],
+                  'includeBranches'   : ['dc=com'],
+                  'excludeAttributes' : ['userpassword']
                 }
               </call>
 
