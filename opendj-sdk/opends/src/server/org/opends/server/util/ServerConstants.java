@@ -2236,6 +2236,17 @@ public class ServerConstants
 
 
   /**
+   * The name of the system property that can be used to disable any connection
+   * handler that may be enabled in the server configuration.  This may be used
+   * to start the server in a mode where it will not accept any external
+   * connections, but may still be used for processing internal operations.
+   */
+  public static final String PROPERTY_DISABLE_CONNECTION_HANDLERS =
+       "org.opends.server.DisableConnectionHandlers";
+
+
+
+  /**
    * The name of the system property that can be used to indicate whether
    * components should be allowed to use the <CODE>Runtime.exec</CODE> method.
    * If this property is set and the value is anything other than "false",

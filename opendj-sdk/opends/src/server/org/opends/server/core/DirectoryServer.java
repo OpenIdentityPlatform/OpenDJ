@@ -967,6 +967,14 @@ public class DirectoryServer
       }
 
 
+      // Determine whether or not we should start the connection handlers.
+      String disableProperty =
+                  System.getProperty(PROPERTY_DISABLE_CONNECTION_HANDLERS);
+      boolean startConnectionHandlers =
+                   ((disableProperty == null) ||
+                    (! disableProperty.equalsIgnoreCase("true")));
+
+
       // Initialize all the schema elements.
       initializeSchema();
 
@@ -1052,7 +1060,10 @@ public class DirectoryServer
 
 
       // Initialize all the connection handlers.
-      initializeConnectionHandlers();
+      if (startConnectionHandlers)
+      {
+        initializeConnectionHandlers();
+      }
 
 
       // Initialize all the monitor providers.
@@ -1093,9 +1104,12 @@ public class DirectoryServer
 
       // At this point, we should be ready to go.  Start all the connection
       // handlers.
-      for (ConnectionHandler c : connectionHandlers)
+      if (startConnectionHandlers)
       {
-        c.start();
+        for (ConnectionHandler c : connectionHandlers)
+        {
+          c.start();
+        }
       }
 
 
