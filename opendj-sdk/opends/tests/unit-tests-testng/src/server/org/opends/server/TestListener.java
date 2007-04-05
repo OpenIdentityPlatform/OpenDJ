@@ -285,6 +285,12 @@ public class TestListener extends TestListenerAdapter implements IReporter {
         tempFile.deleteOnExit();
         originalSystemErr.println("**** Pausing test execution until file " +
                                   tempFile.getCanonicalPath() + " is removed.");
+        originalSystemErr.println("LDAP Port:   " +
+                                  TestCaseUtils.getServerLdapPort());
+        originalSystemErr.println("LDAPS Port:  " +
+                                  TestCaseUtils.getServerLdapsPort());
+        originalSystemErr.println("JMX Port:    " +
+                                  TestCaseUtils.getServerJmxPort());
       }
       catch (Exception e)
       {
