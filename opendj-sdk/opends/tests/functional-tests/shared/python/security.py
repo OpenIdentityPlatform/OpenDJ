@@ -27,12 +27,12 @@
 
 def retrieve_aci(filename):
     aci_file = open(filename,"r")
-    ret_str = "none"
+    ret_str = ""
 
     for line in aci_file.readlines():
         aci_index = line.find("aci:")
         if aci_index > -1:
-            ret_str = line
+            ret_str = ret_str + line
     return ret_str
 
 def write_ldaps_ldif_file(path, port):
