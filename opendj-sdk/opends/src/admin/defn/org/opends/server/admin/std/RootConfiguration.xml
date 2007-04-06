@@ -53,6 +53,14 @@
       </ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
+  <adm:relation name="password-generator">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Password Generators,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
   <adm:relation name="plugin">
     <adm:one-to-many />
     <adm:profile name="ldap">

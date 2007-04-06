@@ -35,6 +35,9 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.RandomPasswordGeneratorCfgDefn;
+import org.opends.server.admin.std.server.RandomPasswordGeneratorCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -79,9 +82,14 @@ public class RandomPasswordGeneratorTestCase
                       "cn=config");
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(dn);
     assertNotNull(configEntry);
+    
+    RandomPasswordGeneratorCfg configuration =
+      AdminTestCaseUtils.getConfiguration(
+          RandomPasswordGeneratorCfgDefn.getInstance(),
+           configEntry.getEntry());
 
     RandomPasswordGenerator generator = new RandomPasswordGenerator();
-    generator.initializePasswordGenerator(configEntry);
+    generator.initializePasswordGenerator(configuration);
     assertNotNull(generator.generatePassword(null));
     generator.finalizePasswordGenerator();
   }
@@ -199,13 +207,13 @@ public class RandomPasswordGeneratorTestCase
   public void testInvalidConfigurations(Entry entry)
          throws Exception
   {
-    String parentDNStr = "cn=Password Generators,cn=config";
-    ConfigEntry parentEntry =
-         DirectoryServer.getConfigEntry(DN.decode(parentDNStr));
-    ConfigEntry configEntry = new ConfigEntry(entry, parentEntry);
+    RandomPasswordGeneratorCfg configuration =
+      AdminTestCaseUtils.getConfiguration(
+          RandomPasswordGeneratorCfgDefn.getInstance(),
+           entry);
 
     RandomPasswordGenerator generator = new RandomPasswordGenerator();
-    generator.initializePasswordGenerator(configEntry);
+    generator.initializePasswordGenerator(configuration);
   }
 }
 

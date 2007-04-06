@@ -28,7 +28,7 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.PasswordGeneratorCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
@@ -45,8 +45,12 @@ import org.opends.server.types.InitializationException;
  * of a password policy, and is used by the password modify extended
  * operation to construct a new password for the user if that option
  * is chosen.
+ *
+ * @param  <T>  The type of configuration handled by this password
+ *              generator.
  */
 public abstract class PasswordGenerator
+       <T extends PasswordGeneratorCfg>
 {
 
 
@@ -55,9 +59,8 @@ public abstract class PasswordGenerator
    * Initializes this password generator based on the information in
    * the provided configuration entry.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      password generator.
+   * @param  configuration  The configuration to use to initialize
+   *                        this password validator.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -68,8 +71,7 @@ public abstract class PasswordGenerator
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializePasswordGenerator(
-                            ConfigEntry configEntry)
+  public abstract void initializePasswordGenerator(T configuration)
          throws ConfigException, InitializationException;
 
 
