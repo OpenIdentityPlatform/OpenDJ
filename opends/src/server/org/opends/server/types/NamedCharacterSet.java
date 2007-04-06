@@ -28,8 +28,8 @@ package org.opends.server.types;
 
 
 
-import java.util.List;
 import java.util.Random;
+import java.util.SortedSet;
 
 import org.opends.server.config.ConfigException;
 
@@ -233,13 +233,13 @@ public class NamedCharacterSet
    *                           decode the character set definitions.
    */
   public static NamedCharacterSet[]
-                     decodeCharacterSets(List<String> values)
+                     decodeCharacterSets(SortedSet<String> values)
          throws ConfigException
   {
     NamedCharacterSet[] sets = new NamedCharacterSet[values.size()];
-    for (int i=0; i < sets.length; i++)
+    int i = 0 ;
+    for (String value : values)
     {
-      String value = values.get(i);
       int colonPos = value.indexOf(':');
       if (colonPos < 0)
       {
@@ -265,6 +265,7 @@ public class NamedCharacterSet
         char[] characters = value.substring(colonPos+1).toCharArray();
         sets[i] = new NamedCharacterSet(name, characters);
       }
+      i++;
     }
 
     return sets;

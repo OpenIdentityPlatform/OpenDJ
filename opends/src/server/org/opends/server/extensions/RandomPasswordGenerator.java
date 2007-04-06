@@ -32,13 +32,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.opends.server.api.ConfigurableComponent;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.RandomPasswordGeneratorCfg;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
@@ -68,14 +69,15 @@ import static org.opends.server.util.StaticUtils.*;
  * built from one or more character sets.
  */
 public class RandomPasswordGenerator
-       extends PasswordGenerator
-       implements ConfigurableComponent
+       extends PasswordGenerator<RandomPasswordGeneratorCfg>
+       implements ConfigurationChangeListener<RandomPasswordGeneratorCfg>
 {
 
-
+  // The current configuration for this password validator.
+  private RandomPasswordGeneratorCfg currentConfig;
 
   // The encoded list of character sets defined for this password generator.
-  private List<String> encodedCharacterSets;
+  private SortedSet<String> encodedCharacterSets;
 
   // The DN of the configuration entry for this password generator.
   private DN configEntryDN;
@@ -100,61 +102,45 @@ public class RandomPasswordGenerator
 
 
   /**
-   * Initializes this password generator based on the information in the
-   * provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this password generator.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
-  public void initializePasswordGenerator(ConfigEntry configEntry)
+  @Override()
+  public void initializePasswordGenerator(
+      RandomPasswordGeneratorCfg configuration)
          throws ConfigException, InitializationException
   {
-    this.configEntryDN = configEntry.getDN();
+    this.configEntryDN = configuration.dn();
     generatorLock = new ReentrantLock();
-
+    int msgID ;
 
     // Get the character sets for use in generating the password.  At least one
     // must have been provided.
     HashMap<String,NamedCharacterSet> charsets =
          new HashMap<String,NamedCharacterSet>();
-    int msgID = MSGID_RANDOMPWGEN_DESCRIPTION_CHARSET;
-    StringConfigAttribute charsetStub =
-         new StringConfigAttribute(ATTR_PASSWORD_CHARSET, getMessage(msgID),
-                                   true, true, false);
+
     try
     {
-      StringConfigAttribute charsetAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(charsetStub);
-      if (charsetAttr == null)
+      encodedCharacterSets = configuration.getPasswordCharacterSet();
+
+      if (encodedCharacterSets.size() == 0)
       {
         msgID = MSGID_RANDOMPWGEN_NO_CHARSETS;
         String message = getMessage(msgID, String.valueOf(configEntryDN));
         throw new ConfigException(msgID, message);
       }
-      else
+      for (NamedCharacterSet s : NamedCharacterSet
+          .decodeCharacterSets(encodedCharacterSets))
       {
-        encodedCharacterSets = charsetAttr.activeValues();
-        for (NamedCharacterSet s :
-             NamedCharacterSet.decodeCharacterSets(encodedCharacterSets))
+        if (charsets.containsKey(s.getName()))
         {
-          if (charsets.containsKey(s.getName()))
-          {
-            msgID = MSGID_RANDOMPWGEN_CHARSET_NAME_CONFLICT;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        s.getName());
-            throw new ConfigException(msgID, message);
-          }
-          else
-          {
-            charsets.put(s.getName(), s);
-          }
+          msgID = MSGID_RANDOMPWGEN_CHARSET_NAME_CONFLICT;
+          String message = getMessage(msgID, String.valueOf(configEntryDN), s
+              .getName());
+          throw new ConfigException(msgID, message);
+        }
+        else
+        {
+          charsets.put(s.getName(), s);
         }
       }
     }
@@ -177,80 +163,65 @@ public class RandomPasswordGenerator
 
     // Get the value that describes which character set(s) and how many
     // characters from each should be used.
-    msgID = MSGID_RANDOMPWGEN_DESCRIPTION_PWFORMAT;
-    StringConfigAttribute pwFormatStub =
-         new StringConfigAttribute(ATTR_PASSWORD_FORMAT, getMessage(msgID),
-                                   true, false, false);
+
     try
     {
-      StringConfigAttribute pwFormatAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(pwFormatStub);
-      if (pwFormatAttr == null)
+      formatString = configuration.getPasswordFormat();
+      StringTokenizer tokenizer = new StringTokenizer(formatString, ", ");
+
+      ArrayList<NamedCharacterSet> setList = new ArrayList<NamedCharacterSet>();
+      ArrayList<Integer> countList = new ArrayList<Integer>();
+
+      while (tokenizer.hasMoreTokens())
       {
-        msgID = MSGID_RANDOMPWGEN_NO_PWFORMAT;
-        String message = getMessage(msgID);
-        throw new ConfigException(msgID, message);
+        String token = tokenizer.nextToken();
+
+        try
+        {
+          int colonPos = token.indexOf(':');
+          String name = token.substring(0, colonPos);
+          int count = Integer.parseInt(token.substring(colonPos + 1));
+
+          NamedCharacterSet charset = charsets.get(name);
+          if (charset == null)
+          {
+            msgID = MSGID_RANDOMPWGEN_UNKNOWN_CHARSET;
+            String message = getMessage(msgID, String.valueOf(formatString),
+                String.valueOf(name));
+            throw new ConfigException(msgID, message);
+          }
+          else
+          {
+            setList.add(charset);
+            countList.add(count);
+          }
+        }
+        catch (ConfigException ce)
+        {
+          throw ce;
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          msgID = MSGID_RANDOMPWGEN_INVALID_PWFORMAT;
+          String message = getMessage(msgID, String.valueOf(formatString));
+          throw new ConfigException(msgID, message, e);
+        }
       }
-      else
+
+      characterSets = new NamedCharacterSet[setList.size()];
+      characterCounts = new int[characterSets.length];
+
+      totalLength = 0;
+      for (int i = 0; i < characterSets.length; i++)
       {
-        formatString = pwFormatAttr.activeValue();
-        StringTokenizer tokenizer = new StringTokenizer(formatString, ", ");
-
-        ArrayList<NamedCharacterSet> setList =
-             new ArrayList<NamedCharacterSet>();
-        ArrayList<Integer> countList = new ArrayList<Integer>();
-
-        while (tokenizer.hasMoreTokens())
-        {
-          String token = tokenizer.nextToken();
-
-          try
-          {
-            int    colonPos = token.indexOf(':');
-            String name     = token.substring(0, colonPos);
-            int    count    = Integer.parseInt(token.substring(colonPos+1));
-
-            NamedCharacterSet charset = charsets.get(name);
-            if (charset == null)
-            {
-              msgID = MSGID_RANDOMPWGEN_UNKNOWN_CHARSET;
-              String message = getMessage(msgID, String.valueOf(formatString),
-                                          String.valueOf(name));
-              throw new ConfigException(msgID, message);
-            }
-            else
-            {
-              setList.add(charset);
-              countList.add(count);
-            }
-          }
-          catch (ConfigException ce)
-          {
-            throw ce;
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            msgID = MSGID_RANDOMPWGEN_INVALID_PWFORMAT;
-            String message = getMessage(msgID, String.valueOf(formatString));
-            throw new ConfigException(msgID, message, e);
-          }
-        }
-
-        characterSets   = new NamedCharacterSet[setList.size()];
-        characterCounts = new int[characterSets.length];
-
-        totalLength = 0;
-        for (int i=0; i < characterSets.length; i++)
-        {
-          characterSets[i]    = setList.get(i);
-          characterCounts[i]  = countList.get(i);
-          totalLength        += characterCounts[i];
-        }
+        characterSets[i] = setList.get(i);
+        characterCounts[i] = countList.get(i);
+        totalLength += characterCounts[i];
       }
     }
     catch (ConfigException ce)
@@ -269,19 +240,19 @@ public class RandomPasswordGenerator
       throw new InitializationException(msgID, message, e);
     }
 
-
-    DirectoryServer.registerConfigurableComponent(this);
+    configuration.addRandomChangeListener(this) ;
+    currentConfig = configuration;
   }
 
 
 
   /**
-   * Performs any finalization work that may be necessary when this password
-   * generator is taken out of service.
+   * {@inheritDoc}
    */
+  @Override()
   public void finalizePasswordGenerator()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig.removeRandomChangeListener(this);
   }
 
 
@@ -375,58 +346,43 @@ public class RandomPasswordGenerator
 
 
   /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(
+      RandomPasswordGeneratorCfg configuration,
+      List<String> unacceptableReasons)
   {
-    // Get the character sets for use in generating the password.  At least one
+    int msgID;
+
+    // Get the character sets for use in generating the password. At
+    // least one
     // must have been provided.
     HashMap<String,NamedCharacterSet> charsets =
          new HashMap<String,NamedCharacterSet>();
-    int msgID = MSGID_RANDOMPWGEN_DESCRIPTION_CHARSET;
-    StringConfigAttribute charsetStub =
-         new StringConfigAttribute(ATTR_PASSWORD_CHARSET, getMessage(msgID),
-                                   true, true, false);
     try
     {
-      StringConfigAttribute charsetAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(charsetStub);
-      if (charsetAttr == null)
+      SortedSet<String> currentPasSet = configuration.getPasswordCharacterSet();
+      if (currentPasSet.size() == 0)
       {
         msgID = MSGID_RANDOMPWGEN_NO_CHARSETS;
         String message = getMessage(msgID, String.valueOf(configEntryDN));
-        unacceptableReasons.add(message);
-        return false;
+        throw new ConfigException(msgID, message);
       }
-      else
+
+      for (NamedCharacterSet s : NamedCharacterSet
+          .decodeCharacterSets(currentPasSet))
       {
-        for (NamedCharacterSet s :
-             NamedCharacterSet.decodeCharacterSets(charsetAttr.activeValues()))
+        if (charsets.containsKey(s.getName()))
         {
-          if (charsets.containsKey(s.getName()))
-          {
-            msgID = MSGID_RANDOMPWGEN_CHARSET_NAME_CONFLICT;
-            String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                        s.getName());
-            unacceptableReasons.add(message);
-            return false;
-          }
-          else
-          {
-            charsets.put(s.getName(), s);
-          }
+          msgID = MSGID_RANDOMPWGEN_CHARSET_NAME_CONFLICT;
+          String message = getMessage(msgID, String.valueOf(configEntryDN), s
+              .getName());
+          unacceptableReasons.add(message);
+          return false;
+        }
+        else
+        {
+          charsets.put(s.getName(), s);
         }
       }
     }
@@ -451,22 +407,9 @@ public class RandomPasswordGenerator
 
     // Get the value that describes which character set(s) and how many
     // characters from each should be used.
-    msgID = MSGID_RANDOMPWGEN_DESCRIPTION_PWFORMAT;
-    StringConfigAttribute pwFormatStub =
-         new StringConfigAttribute(ATTR_PASSWORD_FORMAT, getMessage(msgID),
-                                   true, false, false);
     try
     {
-      StringConfigAttribute pwFormatAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(pwFormatStub);
-      if (pwFormatAttr == null)
-      {
-        unacceptableReasons.add(getMessage(MSGID_RANDOMPWGEN_NO_PWFORMAT));
-        return false;
-      }
-      else
-      {
-        String formatString = pwFormatAttr.activeValue();
+        String formatString = configuration.getPasswordFormat() ;
         StringTokenizer tokenizer = new StringTokenizer(formatString, ", ");
 
         while (tokenizer.hasMoreTokens())
@@ -502,12 +445,6 @@ public class RandomPasswordGenerator
             return false;
           }
         }
-      }
-    }
-    catch (ConfigException ce)
-    {
-      unacceptableReasons.add(ce.getMessage());
-      return false;
     }
     catch (Exception e)
     {
@@ -530,43 +467,26 @@ public class RandomPasswordGenerator
 
 
   /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange(
+      RandomPasswordGeneratorCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
+    int msgID;
 
 
     // Get the character sets for use in generating the password.  At least one
     // must have been provided.
-    List<String> newEncodedCharacterSets = null;
+    SortedSet<String> newEncodedCharacterSets = null;
     HashMap<String,NamedCharacterSet> charsets =
          new HashMap<String,NamedCharacterSet>();
-    int msgID = MSGID_RANDOMPWGEN_DESCRIPTION_CHARSET;
-    StringConfigAttribute charsetStub =
-         new StringConfigAttribute(ATTR_PASSWORD_CHARSET, getMessage(msgID),
-                                   true, true, false);
     try
     {
-      StringConfigAttribute charsetAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(charsetStub);
-      if (charsetAttr == null)
+      newEncodedCharacterSets = configuration.getPasswordCharacterSet();
+      if (newEncodedCharacterSets.size() == 0)
       {
         msgID = MSGID_RANDOMPWGEN_NO_CHARSETS;
         messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
@@ -578,9 +498,8 @@ public class RandomPasswordGenerator
       }
       else
       {
-        newEncodedCharacterSets = charsetAttr.activeValues();
         for (NamedCharacterSet s :
-             NamedCharacterSet.decodeCharacterSets(encodedCharacterSets))
+             NamedCharacterSet.decodeCharacterSets(newEncodedCharacterSets))
         {
           if (charsets.containsKey(s.getName()))
           {
@@ -633,83 +552,54 @@ public class RandomPasswordGenerator
     ArrayList<Integer> newCountList = new ArrayList<Integer>();
     String newFormatString = null;
 
-    msgID = MSGID_RANDOMPWGEN_DESCRIPTION_PWFORMAT;
-    StringConfigAttribute pwFormatStub =
-         new StringConfigAttribute(ATTR_PASSWORD_FORMAT, getMessage(msgID),
-                                   true, false, false);
     try
     {
-      StringConfigAttribute pwFormatAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(pwFormatStub);
-      if (pwFormatAttr == null)
+      newFormatString = configuration.getPasswordFormat();
+      StringTokenizer tokenizer = new StringTokenizer(newFormatString, ", ");
+
+      while (tokenizer.hasMoreTokens())
       {
-        msgID = MSGID_RANDOMPWGEN_NO_PWFORMAT;
-        messages.add(getMessage(MSGID_RANDOMPWGEN_NO_PWFORMAT));
+        String token = tokenizer.nextToken();
 
-        if (resultCode == ResultCode.SUCCESS)
+        try
         {
-          resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-        }
-      }
-      else
-      {
-        newFormatString = pwFormatAttr.activeValue();
-        StringTokenizer tokenizer = new StringTokenizer(newFormatString, ", ");
+          int colonPos = token.indexOf(':');
+          String name = token.substring(0, colonPos);
+          int count = Integer.parseInt(token.substring(colonPos + 1));
 
-
-        while (tokenizer.hasMoreTokens())
-        {
-          String token = tokenizer.nextToken();
-
-          try
+          NamedCharacterSet charset = charsets.get(name);
+          if (charset == null)
           {
-            int    colonPos = token.indexOf(':');
-            String name     = token.substring(0, colonPos);
-            int    count    = Integer.parseInt(token.substring(colonPos+1));
-
-            NamedCharacterSet charset = charsets.get(name);
-            if (charset == null)
-            {
-              msgID = MSGID_RANDOMPWGEN_UNKNOWN_CHARSET;
-              messages.add(getMessage(msgID, String.valueOf(newFormatString),
-                                      String.valueOf(name)));
-
-              if (resultCode == ResultCode.SUCCESS)
-              {
-                resultCode = ResultCode.CONSTRAINT_VIOLATION;
-              }
-            }
-            else
-            {
-              newSetList.add(charset);
-              newCountList.add(count);
-            }
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            msgID = MSGID_RANDOMPWGEN_INVALID_PWFORMAT;
-            messages.add(getMessage(msgID, String.valueOf(newFormatString)));
+            msgID = MSGID_RANDOMPWGEN_UNKNOWN_CHARSET;
+            messages.add(getMessage(msgID, String.valueOf(newFormatString),
+                String.valueOf(name)));
 
             if (resultCode == ResultCode.SUCCESS)
             {
-              resultCode = DirectoryServer.getServerErrorResultCode();
+              resultCode = ResultCode.CONSTRAINT_VIOLATION;
             }
           }
+          else
+          {
+            newSetList.add(charset);
+            newCountList.add(count);
+          }
         }
-      }
-    }
-    catch (ConfigException ce)
-    {
-      messages.add(ce.getMessage());
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
+          msgID = MSGID_RANDOMPWGEN_INVALID_PWFORMAT;
+          messages.add(getMessage(msgID, String.valueOf(newFormatString)));
+
+          if (resultCode == ResultCode.SUCCESS)
+          {
+            resultCode = DirectoryServer.getServerErrorResultCode();
+          }
+        }
       }
     }
     catch (Exception e)
