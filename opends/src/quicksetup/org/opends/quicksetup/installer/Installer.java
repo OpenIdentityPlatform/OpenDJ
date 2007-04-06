@@ -593,7 +593,7 @@ public abstract class Installer extends Application {
     argList.add(getBackendName());
     argList.add("-t");
     argList.add(templatePath.getAbsolutePath());
-    argList.add("-S");
+    argList.add("-s"); // seed
     argList.add("0");
 
     String[] args = new String[argList.size()];
@@ -606,9 +606,10 @@ public abstract class Installer extends Application {
 
       if (result != 0)
       {
+        String[] msgArgs = { Utils.stringArrayToString(args, " ") };
         throw new QuickSetupException(
             QuickSetupException.Type.CONFIGURATION_ERROR,
-            getMsg("error-import-automatically-generated"), null);
+            getMsg("error-import-automatically-generated", msgArgs), null);
       }
     } catch (Throwable t)
     {

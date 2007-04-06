@@ -1544,4 +1544,22 @@ public class Utils
     return sb.toString();
   }
 
+  /**
+   * Creates a string consisting of the string representation of the
+   * elements in the <code>list</code> separated by <code>separator</code>.
+   * @param array the list to print
+   * @param separator to use in separating elements
+   * @return String representing the list
+   */
+  static public String stringArrayToString(String[] array, String separator) {
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < array.length; i++) {
+      sb.append(array[i]);
+      if (i < array.length - 1) {
+        sb.append(separator);
+      }
+    }
+    return sb.toString();
+  }
+
 }
