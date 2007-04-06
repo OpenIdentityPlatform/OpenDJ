@@ -723,10 +723,11 @@ public class AciMessages {
          CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 71;
 
    /**
-    * The message ID for the message that will be used if the server is unable to
-    * obtain a lock on a ModifyDN new superior entry.  This takes a
-    * single argument, which is the DN of the new superior entry.
-    */
+     * The message ID for the message that will be used if the server
+     * is unable to obtain a lock on a ModifyDN new superior entry.
+     * This takes a single argument, which is the DN of the new
+     * superior entry.
+     */
    public static final int MSGID_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER =
         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 72;
 
