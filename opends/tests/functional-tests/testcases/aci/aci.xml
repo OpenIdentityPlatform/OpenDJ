@@ -85,6 +85,14 @@
           <call function="'aci_targattrfilter'" />
   
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_delete_entry.xml' % (TESTS_DIR)"/>
+          <call function="'aci_delete_entry'" />
+  
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_add_entry.xml' % (TESTS_DIR)"/>
+          <call function="'aci_add_entry'" />
+  
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/aci/aci_teardown.xml' % (TESTS_DIR)"/>
           <call function="'aci_teardown'" />
   
