@@ -122,7 +122,7 @@ public class CurrentStepPanel extends QuickSetupPanel
   private void createLayout(Application app)
   {
 
-    Set<WizardStep> steps = app.getWizardSteps();
+    Set<? extends WizardStep> steps = app.getWizardSteps();
     if (steps != null) {
       for (WizardStep step : steps) {
         QuickSetupStepPanel panel = app.createWizardStepPanel(step);

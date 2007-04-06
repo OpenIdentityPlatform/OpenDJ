@@ -34,10 +34,9 @@ import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.BackgroundTask;
+import org.opends.quicksetup.util.ServerController;
 import org.opends.server.tools.ConfigureWindowsService;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 
-import javax.swing.*;
 import java.io.*;
 import java.util.*;
 import java.awt.event.WindowEvent;
@@ -311,7 +310,7 @@ public class Uninstaller extends Application implements CliApplication {
               if (qs.displayConfirmation(
                       getMsg("confirm-uninstall-server-not-running-msg"),
                       getMsg("confirm-uninstall-server-not-running-title"))) {
-                qs.launchUninstallation();
+                qs.launch();
                 qs.setCurrentStep(getNextWizardStep(cStep));
               }
             } else {
@@ -319,7 +318,7 @@ public class Uninstaller extends Application implements CliApplication {
                       getMsg("confirm-uninstall-server-running-msg"),
                       getMsg("confirm-uninstall-server-running-title"))) {
                 getUserData().setStopServer(true);
-                qs.launchUninstallation();
+                qs.launch();
                 qs.setCurrentStep(getNextWizardStep(cStep));
               } else {
                 getUserData().setStopServer(false);
@@ -368,7 +367,7 @@ public class Uninstaller extends Application implements CliApplication {
    * {@inheritDoc}
    */
   protected String getInstallationPath() {
-    return null;
+    return Utils.getInstallPathFromClasspath();
   }
 
   /**
@@ -403,14 +402,16 @@ public class Uninstaller extends Application implements CliApplication {
             getFormattedSummary(getMsg("summary-deleting-installation-files")));
 
     String successMsg;
+    Installation installation = getInstallation();
+    String libPath = Utils.getPath(installation.getLibrariesDirectory());
     if (Utils.isCli()) {
       if (getUninstallUserData().getRemoveLibrariesAndTools()) {
         String[] arg = new String[1];
         if (Utils.isWindows()) {
-          arg[0] = getUninstallBatFile() + getLineBreak() +
-                  getTab() + getLibrariesPath();
+          arg[0] = installation.getUninstallBatFile() + getLineBreak() +
+                  getTab() + libPath;
         } else {
-          arg[0] = getLibrariesPath();
+          arg[0] = libPath;
         }
         successMsg = getMsg(
                 "summary-uninstall-finished-successfully-remove-jarfiles-cli",
@@ -420,7 +421,7 @@ public class Uninstaller extends Application implements CliApplication {
       }
     } else {
       if (getUninstallUserData().getRemoveLibrariesAndTools()) {
-        String[] arg = {getLibrariesPath()};
+        String[] arg = {libPath};
         successMsg = getMsg(
                 "summary-uninstall-finished-successfully-remove-jarfiles", arg);
       } else {
@@ -504,7 +505,7 @@ public class Uninstaller extends Application implements CliApplication {
       boolean displaySeparator = false;
       if (getUserData().getStopServer()) {
         status = UninstallProgressStep.STOPPING_SERVER;
-        stopServer();
+        new ServerController(this).stopServer();
         displaySeparator = true;
       }
       if (isWindowsServiceEnabled()) {
@@ -586,7 +587,7 @@ public class Uninstaller extends Application implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public ProgressStep getStatus() {
+  public ProgressStep getCurrentProgressStep() {
     return status;
   }
 
@@ -637,16 +638,7 @@ public class Uninstaller extends Application implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public JPanel createFramePanel(QuickSetupDialog dlg) {
-    return new FramePanel(dlg.getStepsPanel(),
-            dlg.getCurrentStepPanel(),
-            dlg.getButtonsPanel());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Set<WizardStep> getWizardSteps() {
+  public Set<? extends WizardStep> getWizardSteps() {
     Set<WizardStep> setSteps = new HashSet<WizardStep>();
     setSteps.add(Step.CONFIRM_UNINSTALL);
     setSteps.add(Step.PROGRESS);
@@ -664,116 +656,6 @@ public class Uninstaller extends Application implements CliApplication {
       p = new ProgressPanel();
     }
     return p;
-  }
-
-  /**
-   * This methods stops the server.
-   *
-   * @throws ApplicationException if something goes wrong.
-   */
-  private void stopServer() throws ApplicationException {
-    notifyListeners(getFormattedProgress(getMsg("progress-stopping")) +
-            getLineBreak());
-
-    ArrayList<String> argList = new ArrayList<String>();
-
-    if (Utils.isWindows()) {
-      argList.add(Utils.getPath(getBinariesPath(),
-              Utils.getWindowsStopFileName()));
-    } else {
-      argList.add(Utils.getPath(getBinariesPath(),
-              Utils.getUnixStopFileName()));
-    }
-    String[] args = new String[argList.size()];
-    argList.toArray(args);
-    ProcessBuilder pb = new ProcessBuilder(args);
-    Map<String, String> env = pb.environment();
-    env.put("JAVA_HOME", System.getProperty("java.home"));
-    /* Remove JAVA_BIN to be sure that we use the JVM running the uninstaller
-     * JVM to stop the server.
-     */
-    env.remove("JAVA_BIN");
-
-    try {
-      Process process = pb.start();
-
-      BufferedReader err =
-              new BufferedReader(
-                      new InputStreamReader(process.getErrorStream()));
-      BufferedReader out =
-              new BufferedReader(
-                      new InputStreamReader(process.getInputStream()));
-
-      /* Create these objects to resend the stop process output to the details
-       * area.
-       */
-      new StopReader(err, true);
-      new StopReader(out, false);
-
-      int returnValue = process.waitFor();
-
-      int clientSideError = LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
-      if ((returnValue == clientSideError) || (returnValue == 0)) {
-        if (Utils.isWindows()) {
-          /*
-           * Sometimes the server keeps some locks on the files.
-           * TODO: remove this code once stop-ds returns properly when server
-           * is stopped.
-           */
-          int nTries = 10;
-          boolean stopped = false;
-
-          for (int i = 0; i < nTries && !stopped; i++) {
-            stopped = !CurrentInstallStatus.isServerRunning();
-            if (!stopped) {
-              String msg =
-                   getFormattedLog(getMsg("progress-server-waiting-to-stop")) +
-                           getLineBreak();
-              notifyListeners(msg);
-              try {
-                Thread.sleep(5000);
-              }
-              catch (Exception ex) {
-
-              }
-            }
-          }
-          if (!stopped) {
-            returnValue = -1;
-          }
-        }
-      }
-
-      if (returnValue == clientSideError) {
-        String msg = getLineBreak() +
-                getFormattedLog(getMsg("progress-server-already-stopped")) +
-                getLineBreak();
-        notifyListeners(msg);
-
-      } else if (returnValue != 0) {
-        String[] arg = {String.valueOf(returnValue)};
-        String msg = getMsg("error-stopping-server-code", arg);
-
-        /*
-         * The return code is not the one expected, assume the server could
-         * not be stopped.
-         */
-        throw new ApplicationException(ApplicationException.Type.STOP_ERROR,
-                msg,
-                null);
-      } else {
-        String msg = getFormattedLog(getMsg("progress-server-stopped"));
-        notifyListeners(msg);
-      }
-
-    } catch (IOException ioe) {
-      throw new ApplicationException(ApplicationException.Type.STOP_ERROR,
-              getThrowableMsg("error-stopping-server", ioe), ioe);
-    }
-    catch (InterruptedException ie) {
-      throw new ApplicationException(ApplicationException.Type.BUG,
-              getThrowableMsg("error-stopping-server", ie), ie);
-    }
   }
 
   /**
@@ -830,26 +712,33 @@ public class Uninstaller extends Application implements CliApplication {
       ArrayList<Integer> cumulatedRatio = new ArrayList<Integer>();
       for (int i = 0; i < rootFiles.length; i++) {
         if (filter.accept(rootFiles[i])) {
+          Installation installation = getInstallation();
           int relativeRatio;
-          if (equalsOrDescendant(rootFiles[i], new File(getLibrariesPath()))) {
+          if (equalsOrDescendant(rootFiles[i],
+                  installation.getLibrariesDirectory())) {
             relativeRatio = 10;
           } else
-          if (equalsOrDescendant(rootFiles[i], new File(getBinariesPath()))) {
+          if (equalsOrDescendant(rootFiles[i],
+                  installation.getBinariesDirectory())) {
             relativeRatio = 5;
           } else
-          if (equalsOrDescendant(rootFiles[i], new File(getConfigPath()))) {
+          if (equalsOrDescendant(rootFiles[i],
+                  installation.getConfigurationDirectory())) {
             relativeRatio = 5;
           } else
-          if (equalsOrDescendant(rootFiles[i], new File(getBackupsPath()))) {
+          if (equalsOrDescendant(rootFiles[i],
+                  installation.getBackupDirectory())) {
             relativeRatio = 20;
           } else
-          if (equalsOrDescendant(rootFiles[i], new File(getLDIFsPath()))) {
+          if (equalsOrDescendant(rootFiles[i],
+                  installation.getLdifDirectory())) {
             relativeRatio = 20;
           } else if (equalsOrDescendant(rootFiles[i],
-                  new File(getDatabasesPath()))) {
+                  installation.getDatabasesDirectory())) {
             relativeRatio = 50;
           } else
-          if (equalsOrDescendant(rootFiles[i], new File(getLogsPath()))) {
+          if (equalsOrDescendant(rootFiles[i],
+                  installation.getLogsDirectory())) {
             relativeRatio = 30;
           } else {
             relativeRatio = 2;
@@ -870,84 +759,6 @@ public class Uninstaller extends Application implements CliApplication {
       }
       hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, maxRatio);
     }
-  }
-
-  /**
-   * Returns the path to the quicksetup jar file.
-   *
-   * @return the path to the quicksetup jar file.
-   */
-  private String getQuicksetupJarPath() {
-    return Utils.getPath(getLibrariesPath(), "quicksetup.jar");
-  }
-
-  /**
-   * Returns the path to the opends jar file.
-   *
-   * @return the path to the opends jar file.
-   */
-  private String getOpenDSJarPath() {
-    return Utils.getPath(getLibrariesPath(), "OpenDS.jar");
-  }
-
-
-  /**
-   * Returns the path to the uninstall.bat file.
-   *
-   * @return the path to the uninstall.bat file.
-   */
-  private String getUninstallBatFile() {
-    return Utils.getPath(Utils.getInstallPathFromClasspath(), "uninstall.bat");
-  }
-
-  /**
-   * Returns the path to the backup files under the install path.
-   *
-   * @return the path to the backup files under the install path.
-   */
-  private String getBackupsPath() {
-    return Utils.getPath(Utils.getInstallPathFromClasspath(),
-            Utils.getBackupsRelativePath());
-  }
-
-  /**
-   * Returns the path to the LDIF files under the install path.
-   *
-   * @return the path to the LDIF files under the install path.
-   */
-  private String getLDIFsPath() {
-    return Utils.getPath(Utils.getInstallPathFromClasspath(),
-            Utils.getLDIFsRelativePath());
-  }
-
-  /**
-   * Returns the path to the config files under the install path.
-   *
-   * @return the path to the config files under the install path.
-   */
-  private String getConfigPath() {
-    return Utils.getPath(Utils.getInstallPathFromClasspath(),
-            Utils.getConfigRelativePath());
-  }
-
-  /**
-   * Returns the path to the log files under the install path.
-   *
-   * @return the path to the log files under the install path.
-   */
-  private String getLogsPath() {
-    return Utils.getPath(Utils.getInstallPathFromClasspath(),
-            Utils.getLogsRelativePath());
-  }
-
-  /**
-   * Returns the path to the database files under the install path.
-   *
-   * @return the path to the database files under the install path.
-   */
-  private String getDatabasesPath() {
-    return Utils.getPath(Utils.getInstallPathFromClasspath(),
-            Utils.getDatabasesRelativePath());
   }
 
   /**
@@ -1058,84 +869,19 @@ public class Uninstaller extends Application implements CliApplication {
   }
 
   /**
-   * {@inheritDoc}
-   */
-  protected String getBinariesPath() {
-    return Utils.getPath(Utils.getInstallPathFromClasspath(),
-            Utils.getBinariesRelativePath());
-  }
-
-
-  /**
-   * This class is used to read the standard error and standard output of the
-   * Stop process.
-   * <p/>
-   * When a new log message is found notifies the
-   * UninstallProgressUpdateListeners of it. If an error occurs it also
-   * notifies the listeners.
-   */
-  private class StopReader {
-    private boolean isFirstLine;
-
-    /**
-     * The protected constructor.
-     *
-     * @param reader  the BufferedReader of the stop process.
-     * @param isError a boolean indicating whether the BufferedReader
-     *        corresponds to the standard error or to the standard output.
-     */
-    public StopReader(final BufferedReader reader, final boolean isError) {
-      final String errorTag =
-              isError ? "error-reading-erroroutput" : "error-reading-output";
-
-      isFirstLine = true;
-
-      Thread t = new Thread(new Runnable() {
-        public void run() {
-          try {
-            String line = reader.readLine();
-            while (line != null) {
-              StringBuilder buf = new StringBuilder();
-              if (!isFirstLine) {
-                buf.append(formatter.getLineBreak());
-              }
-              if (isError) {
-                buf.append(getFormattedLogError(line));
-              } else {
-                buf.append(getFormattedLog(line));
-              }
-              notifyListeners(buf.toString());
-              isFirstLine = false;
-
-              line = reader.readLine();
-            }
-          } catch (IOException ioe) {
-            String errorMsg = getThrowableMsg(errorTag, ioe);
-            notifyListeners(errorMsg);
-
-          } catch (Throwable t) {
-            String errorMsg = getThrowableMsg(errorTag, t);
-            notifyListeners(errorMsg);
-          }
-        }
-      });
-      t.start();
-    }
-  }
-
-  /**
    * This class is used to get the files that are not binaries.  This is
    * required to know which are the files that can be deleted directly and which
    * not.
    */
   class InstallationFilesToDeleteFilter implements FileFilter {
-    File quicksetupFile = new File(getQuicksetupJarPath());
-    File openDSFile = new File(getOpenDSJarPath());
-    File librariesFile = new File(getLibrariesPath());
+    Installation installation = getInstallation();
+    File quicksetupFile = installation.getQuicksetupJarFile();
+    File openDSFile = installation.getOpenDSJarFile();
+    File librariesFile = installation.getLibrariesDirectory();
 
-    File uninstallBatFile = new File(getUninstallBatFile());
+    File uninstallBatFile = installation.getUninstallBatFile();
 
-    File installationPath = new File(Utils.getInstallPathFromClasspath());
+    File installationPath = installation.getRootDirectory();
 
     /**
      * {@inheritDoc}
@@ -1152,14 +898,15 @@ public class Uninstaller extends Application implements CliApplication {
               userData.getRemoveLDIFs()
       };
 
+      Installation installation = getInstallation();
       String[] parentFiles = {
-              getLibrariesPath(),
-              getBinariesPath(),
-              getDatabasesPath(),
-              getLogsPath(),
-              getConfigPath(),
-              getBackupsPath(),
-              getLDIFsPath()
+              Utils.getPath(installation.getLibrariesDirectory()),
+              Utils.getPath(installation.getBinariesDirectory()),
+              Utils.getPath(installation.getDatabasesDirectory()),
+              Utils.getPath(installation.getLogsDirectory()),
+              Utils.getPath(installation.getConfigurationDirectory()),
+              Utils.getPath(installation.getBackupDirectory()),
+              Utils.getPath(installation.getLdifDirectory())
       };
 
       boolean accept =
@@ -1214,103 +961,6 @@ public class Uninstaller extends Application implements CliApplication {
         throw new ApplicationException(
                 ApplicationException.Type.WINDOWS_SERVICE_ERROR,
                 errorMessage, null);
-    }
-  }
-
-  /**
-   * This class is used to notify the UninstallProgressUpdateListeners of events
-   * that are written to the standard error.  These classes just create an
-   * ErrorPrintStream and then they do a call to System.err with it.
-   * <p/>
-   * The class just reads what is written to the standard error, obtains an
-   * formatted representation of it and then notifies the
-   * UninstallProgressUpdateListeners with the formatted messages.
-   */
-  protected class ErrorPrintStream extends PrintStream {
-    private boolean isFirstLine;
-
-    /**
-     * Default constructor.
-     */
-    public ErrorPrintStream() {
-      super(new ByteArrayOutputStream(), true);
-      isFirstLine = true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void println(String msg) {
-      if (isFirstLine) {
-        notifyListeners(getFormattedLogError(msg));
-      } else {
-        notifyListeners(formatter.getLineBreak() + getFormattedLogError(msg));
-      }
-      isFirstLine = false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void write(byte[] b, int off, int len) {
-      if (b == null) {
-        throw new NullPointerException("b is null");
-      }
-
-      if (off + len > b.length) {
-        throw new IndexOutOfBoundsException(
-                "len + off are bigger than the length of the byte array");
-      }
-      println(new String(b, off, len));
-    }
-  }
-
-  /**
-   * This class is used to notify the UninstallProgressUpdateListeners of events
-   * that are written to the standard output.  These classes just create an
-   * OutputPrintStream and then they do a call to System.out with it.
-   * <p/>
-   * The class just reads what is written to the standard output, obtains an
-   * formatted representation of it and then notifies the
-   * UninstallProgressUpdateListeners with the formatted messages.
-   */
-  protected class OutputPrintStream extends PrintStream {
-    private boolean isFirstLine;
-
-    /**
-     * Default constructor.
-     */
-    public OutputPrintStream() {
-      super(new ByteArrayOutputStream(), true);
-      isFirstLine = true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void println(String msg) {
-      if (isFirstLine) {
-        notifyListeners(getFormattedLog(msg));
-      } else {
-        notifyListeners(formatter.getLineBreak() + getFormattedLog(msg));
-      }
-      isFirstLine = false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void write(byte[] b, int off, int len) {
-      if (b == null) {
-        throw new NullPointerException("b is null");
-      }
-
-      if (off + len > b.length) {
-        throw new IndexOutOfBoundsException(
-                "len + off are bigger than the length of the byte array");
-      }
-
-      println(new String(b, off, len));
     }
   }
 
