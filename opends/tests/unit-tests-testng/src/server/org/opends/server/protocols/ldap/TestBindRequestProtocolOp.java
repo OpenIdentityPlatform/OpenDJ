@@ -165,7 +165,6 @@ public class TestBindRequestProtocolOp extends LdapTestCase {
          sasl.setProtocolVersion(2);
          simple.setProtocolVersion(2);
          sasl.setSASLAuthenticationInfo(SASL_MECHANISM_GSSAPI, saslCreds);
-         sasl.setAuthenticationType(AuthenticationType.INTERNAL);
          
 	     ASN1Element simpleElement = simple.encode();
 	     ASN1Element saslElement = sasl.encode();
@@ -190,6 +189,6 @@ public class TestBindRequestProtocolOp extends LdapTestCase {
          String saslOpTypeStr=saslOp.getAuthenticationType().toString();
  //        Reporter.log(saslTypeStr);
  //        Reporter.log(saslOpTypeStr);
-         assertFalse(saslOpTypeStr.equals(saslTypeStr));
+         assertTrue(saslOpTypeStr.equals(saslTypeStr));
 	 }
 }
