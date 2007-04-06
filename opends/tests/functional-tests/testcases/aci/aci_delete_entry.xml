@@ -1208,7 +1208,7 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry5.ldif' % STAGED_DATA_DIR }
                 </call>
     
-                <if expr="RC != 0">
+                <if expr="RC != 50">
                     <tcstatus result="'fail'"/>
                 </if>
     
@@ -1400,7 +1400,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for ACI add and delete operations, 
-                                            0 for step 1, and
+                                            0 for steps 1 and 2, and
                                             50 for all other steps.
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
@@ -1442,7 +1442,7 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetattr_entry2.ldif' % STAGED_DATA_DIR }
                 </call>
     
-                <if expr="RC != 50">
+                <if expr="RC != 0">
                     <tcstatus result="'fail'"/>
                 </if>
     
@@ -1741,9 +1741,9 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Delete Entry Tests
-                #@TestName                  Delete Entry - Multi ACIs 1
+                #@TestName                  Delete Entry - Multi ACIs 1, overall deny
                 #@TestIssue                 442
-                #@TestPurpose               Test delete with 2 ACIs  
+                #@TestPurpose               Test delete with 2 ACIs, overall deny  
                 #@TestPreamble              Admin adds two acis.
                 #@TestStep                  Client deletes an entry with the targeted branch.
                 #@TestStep                  Client deletes an entry that is not with the targeted branch.
@@ -1756,7 +1756,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 1'">
+            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 1, overall deny'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1856,9 +1856,9 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Delete Entry Tests
-                #@TestName                  Delete Entry - Multi ACIs 2
+                #@TestName                  Delete Entry - Multi ACIs 2, overall allow
                 #@TestIssue                 442
-                #@TestPurpose               Test delete with 2 ACIs  
+                #@TestPurpose               Test delete with 2 ACIs, overall allow  
                 #@TestPreamble              Admin adds two acis.
                 #@TestStep                  Client deletes an entry with the targeted branch.
                 #@TestStep                  Client deletes an entry that is not with the targeted branch.
@@ -1872,7 +1872,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 2'">
+            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 2, overall allow'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1972,9 +1972,9 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Delete Entry Tests
-                #@TestName                  Delete Entry - Multi ACIs 3
+                #@TestName                  Delete Entry - Multi ACIs 3, mixed allow and deny
                 #@TestIssue                 442
-                #@TestPurpose               Test delete with 2 ACIs  
+                #@TestPurpose               Test delete with 2 ACIs, mixed allow and deny  
                 #@TestPreamble              Admin adds two acis.
                 #@TestStep                  Client deletes an entry with the targeted branch by a prohibited userdn.
                 #@TestStep                  Client deletes an entry with the targeted branch.
@@ -1989,7 +1989,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 3'">
+            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 3, mixed allow and deny'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -2023,7 +2023,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry3.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
                 </call>
     
                 <if expr="RC != 50">
@@ -2080,6 +2080,255 @@
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 3, user deleting entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Delete Entry Tests
+                #@TestName                  Delete Entry - Multi ACIs 4, overall allow with many ACIs
+                #@TestIssue                 442
+                #@TestPurpose               Test delete with many ACIs, overall allow with many ACIs  
+                #@TestPreamble              Admin adds two acis.
+                #@TestStep                  Client deletes an entry with the targeted branch.
+                #@TestStep                  Client deletes an entry that is not with the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client deletes an entry with the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 4, overall allow with many ACIs'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_multi_acis4.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Delete: Delete Entry - multi ACIs 4, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Delete: Delete Entry - multi ACIs 4, user deleting entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry4.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Delete: Delete Entry - multi ACIs 4, user deleting entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry4a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Delete: Delete Entry - multi ACIs 4, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_acis2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Delete: Delete Entry - multi ACIs 4, user deleting entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Delete Entry Tests
+                #@TestName                  Delete Entry - Multi ACIs 5, mixed allow and deny with many ACIs
+                #@TestIssue                 442
+                #@TestPurpose               Test delete with many ACIs, mixed allow and deny with many ACIs  
+                #@TestPreamble              Admin adds many acis, mixed allow and deny with many ACIs.
+                #@TestStep                  Client deletes an entry with the targeted branch by a prohibited userdn.
+                #@TestStep                  Client deletes an entry with the targeted branch.
+                #@TestStep                  Client deletes an entry that is not with the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client deletes an entry with the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 2, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Delete: Delete Entry - multi ACIs 5, mixed allow and deny with many ACIs'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_multi_acis5.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Delete: Delete Entry - multi ACIs 5, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Delete: Delete Entry - multi ACIs 5, user deleting entry from targeted branch by a prohibited userdn'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Delete: Delete Entry - multi ACIs 5, user deleting entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry5.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Delete: Delete Entry - multi ACIs 5, user deleting entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry5a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Delete: Delete Entry - multi ACIs 5, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_acis2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Delete: Delete Entry - multi ACIs 5, user deleting entry in previously targeted branch'
                 </message>
     
                 <call function="'modifyEntry'">
