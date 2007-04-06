@@ -1403,7 +1403,7 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Add Entry Tests
-                #@TestName                  Add Entry  - Multi ACIs, overall deny
+                #@TestName                  Add Entry  - Multi ACIs 1, overall deny
                 #@TestIssue                 439
                 #@TestPurpose               Add an entry against two ACIs with with overall deny
                 #@TestPreamble              Admin adds an aci to the dn of one existing branch.
@@ -1418,7 +1418,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="'ACI: Add: Add Entry - Multi ACIs, overall deny'">
+            <testcase name="'ACI: Add: Add Entry - Multi ACIs 1, overall deny'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1428,7 +1428,7 @@
                 </script>
         
                 <message>
-                   'ACI: Add: Add Entry - Multi ACIs, preamble adding aci,\n %s' % curr_aci
+                   'ACI: Add: Add Entry - Multi ACIs 1, preamble adding aci,\n %s' % curr_aci
                 </message>
     
                 <call function="'modifyEntry'">
@@ -1444,7 +1444,7 @@
                 </if>
     
                 <message>
-                   'ACI: Add: Add Entry - Multi ACIs, user adding entry in targeted branch'
+                   'ACI: Add: Add Entry - Multi ACIs 1, user adding entry in targeted branch'
                 </message>
     
                 <call function="'addEntry'">
@@ -1460,7 +1460,7 @@
                 </if>
     
                 <message>
-                   'ACI: Add: Add Entry - Multi ACIs, user adding entry in non-targeted branch'
+                   'ACI: Add: Add Entry - Multi ACIs 1, user adding entry in non-targeted branch'
                 </message>
     
                 <call function="'addEntry'">
@@ -1476,7 +1476,7 @@
                 </if>
     
                 <message>
-                   'ACI: Add: Add Entry - Multi ACIs, admin deleting aci'
+                   'ACI: Add: Add Entry - Multi ACIs 1, admin deleting aci'
                 </message>
     
                 <call function="'modifyEntry'">
@@ -1492,7 +1492,7 @@
                 </if>
     
                 <message>
-                   'ACI: Add: Add Entry - Multi ACIs, user adding entry in previously targeted branch'
+                   'ACI: Add: Add Entry - Multi ACIs 1, user adding entry in previously targeted branch'
                 </message>
     
                 <call function="'addEntry'">
@@ -1742,6 +1742,255 @@
     
                 <message>
                    'ACI: Add: Add Entry - Multi ACIs 3, user adding entry in previously targeted branch'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+          
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Add Entry Tests
+                #@TestName                  Add Entry  - Multi ACIs 4, overall allow
+                #@TestIssue                 439
+                #@TestPurpose               Add an entry against two ACIs with an overall allow
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client adds an entry in the targeted branch.
+                #@TestStep                  Client adds an entry in the non-targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client adds an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Add: Add Entry - Multi ACIs 4, overall allow with many ACIs'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_add_entry/add_multi_acis4.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Add: Add Entry - Multi ACIs 4, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Add: Add Entry - Multi ACIs 4, user adding entry in targeted branch'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry4.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Add: Add Entry - Multi ACIs 4, user adding entry in non-targeted branch'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry4a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Add: Add Entry - Multi ACIs 4, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_add_entry/del_multi_acis2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Add: Add Entry - Multi ACIs 4, user adding entry in previously targeted branch'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+          
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Add Entry Tests
+                #@TestName                  Add Entry  - Multi ACIs 5, mixed allow and deny with many ACIs
+                #@TestIssue                 439
+                #@TestPurpose               Add an entry against multiple ACIs where the allow or deny depends on specific userds
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client adds an entry in the targeted branch.
+                #@TestStep                  Client adds an entry in the targeted branch by a prohibited user.
+                #@TestStep                  Client adds an entry in the non-targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client adds an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Add: Add Entry - Multi ACIs 5, mixed allow and deny with many ACIs'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = '%s/aci/aci_add_entry/add_multi_acis5.ldif' % LOCAL_DATA_DIR
+                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                </script>
+        
+                <message>
+                   'ACI: Add: Add Entry - Multi ACIs 5, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Add: Add Entry - Multi ACIs 5, user adding entry in targeted branch'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry5.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Add: Add Entry - Multi ACIs 5, user adding entry in targeted branch by a prohibited user'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Add: Add Entry - Multi ACIs 5, user adding entry in non-targeted branch'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry5a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Add: Add Entry - Multi ACIs 5, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_add_entry/del_multi_acis.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Add: Add Entry - Multi ACIs 5, user adding entry in previously targeted branch'
                 </message>
     
                 <call function="'addEntry'">
