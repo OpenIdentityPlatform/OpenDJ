@@ -1406,7 +1406,7 @@
                 #@TestName                  Add Entry  - Multi ACIs 1, overall deny
                 #@TestIssue                 439
                 #@TestPurpose               Add an entry against two ACIs with with overall deny
-                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestPreamble              Admin adds two acis.
                 #@TestStep                  Client adds an entry in the targeted branch.
                 #@TestStep                  Client adds an entry in the non-targeted branch.
                 #@TestStep                  Remove aci.
@@ -1521,7 +1521,7 @@
                 #@TestName                  Add Entry  - Multi ACIs 2, overall allow
                 #@TestIssue                 439
                 #@TestPurpose               Add an entry against two ACIs with an overall allow
-                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestPreamble              Admin adds two acis.
                 #@TestStep                  Client adds an entry in the targeted branch.
                 #@TestStep                  Client adds an entry in the non-targeted branch.
                 #@TestStep                  Remove aci.
@@ -1637,7 +1637,7 @@
                 #@TestName                  Add Entry  - Multi ACIs 3, mixed allow and deny 
                 #@TestIssue                 439
                 #@TestPurpose               Add an entry against multiple ACIs where the allow or deny depends on specific userds
-                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestPreamble              Admin adds two acis.
                 #@TestStep                  Client adds an entry in the targeted branch.
                 #@TestStep                  Client adds an entry in the targeted branch by a prohibited user.
                 #@TestStep                  Client adds an entry in the non-targeted branch.
@@ -1767,10 +1767,10 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Add Entry Tests
-                #@TestName                  Add Entry  - Multi ACIs 4, overall allow
+                #@TestName                  Add Entry  - Multi ACIs 4, overall allow with many ACIs
                 #@TestIssue                 439
-                #@TestPurpose               Add an entry against two ACIs with an overall allow
-                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestPurpose               Add an entry against many ACIs with an overall allow
+                #@TestPreamble              Admin adds many acis.
                 #@TestStep                  Client adds an entry in the targeted branch.
                 #@TestStep                  Client adds an entry in the non-targeted branch.
                 #@TestStep                  Remove aci.
@@ -1885,8 +1885,8 @@
                 #@TestMarker                ACI Add Entry Tests
                 #@TestName                  Add Entry  - Multi ACIs 5, mixed allow and deny with many ACIs
                 #@TestIssue                 439
-                #@TestPurpose               Add an entry against multiple ACIs where the allow or deny depends on specific userds
-                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestPurpose               Add an entry against many ACIs where the allow or deny depends on specific userds
+                #@TestPreamble              Admin adds many acis.
                 #@TestStep                  Client adds an entry in the targeted branch.
                 #@TestStep                  Client adds an entry in the targeted branch by a prohibited user.
                 #@TestStep                  Client adds an entry in the non-targeted branch.
