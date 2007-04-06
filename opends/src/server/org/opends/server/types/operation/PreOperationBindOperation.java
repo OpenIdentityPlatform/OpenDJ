@@ -54,6 +54,17 @@ public interface PreOperationBindOperation
 
 
   /**
+   * Retrieves a string representation of the protocol version
+   * associated with this bind request.
+   *
+   * @return  A string representation of the protocol version
+   *          associated with this bind request.
+   */
+  public String getProtocolVersion();
+
+
+
+  /**
    * Retrieves the raw, unprocessed bind DN for this bind operation as
    * contained in the client request.  The value may not actually
    * contain a valid DN, as no validation will have been performed.

@@ -100,9 +100,6 @@ public class BindOperation
              implements PreParseBindOperation, PreOperationBindOperation,
                         PostOperationBindOperation, PostResponseBindOperation
 {
-
-
-
   // The credentials used for SASL authentication.
   private ASN1OctetString saslCredentials;
 
@@ -182,6 +179,9 @@ public class BindOperation
   // A message explaining the reason for the authentication failure.
   private String authFailureReason;
 
+  // A string representation of the protocol version for this bind operation.
+  private String protocolVersion;
+
   // The SASL mechanism used for SASL authentication.
   private String saslMechanism;
 
@@ -196,6 +196,8 @@ public class BindOperation
    * @param  messageID         The message ID of the request with which this
    *                           operation is associated.
    * @param  requestControls   The set of controls included in the request.
+   * @param  protocolVersion   The string representation of the protocol version
+   *                           associated with this bind request.
    * @param  rawBindDN         The raw, unprocessed bind DN as provided in the
    *                           request from the client.
    * @param  simplePassword    The password to use for the simple
@@ -203,11 +205,13 @@ public class BindOperation
    */
   public BindOperation(ClientConnection clientConnection, long operationID,
                        int messageID, List<Control> requestControls,
-                       ByteString rawBindDN, ByteString simplePassword)
+                       String protocolVersion, ByteString rawBindDN,
+                       ByteString simplePassword)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
 
+    this.protocolVersion = protocolVersion;
     this.authType        = AuthenticationType.SIMPLE;
     this.saslMechanism   = null;
     this.saslCredentials = null;
@@ -257,6 +261,8 @@ public class BindOperation
    * @param  messageID         The message ID of the request with which this
    *                           operation is associated.
    * @param  requestControls   The set of controls included in the request.
+   * @param  protocolVersion   The string representation of the protocol version
+   *                           associated with this bind request.
    * @param  rawBindDN         The raw, unprocessed bind DN as provided in the
    *                           request from the client.
    * @param  saslMechanism     The SASL mechanism included in the request.
@@ -265,12 +271,13 @@ public class BindOperation
    */
   public BindOperation(ClientConnection clientConnection, long operationID,
                        int messageID, List<Control> requestControls,
-                       ByteString rawBindDN, String saslMechanism,
-                       ASN1OctetString saslCredentials)
+                       String protocolVersion, ByteString rawBindDN,
+                       String saslMechanism, ASN1OctetString saslCredentials)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
 
+    this.protocolVersion = protocolVersion;
     this.authType        = AuthenticationType.SASL;
     this.saslMechanism   = saslMechanism;
     this.saslCredentials = saslCredentials;
@@ -305,17 +312,21 @@ public class BindOperation
    * @param  messageID         The message ID of the request with which this
    *                           operation is associated.
    * @param  requestControls   The set of controls included in the request.
+   * @param  protocolVersion   The string representation of the protocol version
+   *                           associated with this bind request.
    * @param  bindDN            The bind DN for this bind operation.
    * @param  simplePassword    The password to use for the simple
    *                           authentication.
    */
   public BindOperation(ClientConnection clientConnection, long operationID,
-                       int messageID, List<Control> requestControls, DN bindDN,
+                       int messageID, List<Control> requestControls,
+                       String protocolVersion, DN bindDN,
                        ByteString simplePassword)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
 
+    this.protocolVersion = protocolVersion;
     this.authType        = AuthenticationType.SIMPLE;
     this.bindDN          = bindDN;
     this.saslMechanism   = null;
@@ -365,18 +376,22 @@ public class BindOperation
    * @param  messageID         The message ID of the request with which this
    *                           operation is associated.
    * @param  requestControls   The set of controls included in the request.
+   * @param  protocolVersion   The string representation of the protocol version
+   *                           associated with this bind request.
    * @param  bindDN            The bind DN for this bind operation.
    * @param  saslMechanism     The SASL mechanism included in the request.
    * @param  saslCredentials   The optional SASL credentials included in the
    *                           request.
    */
   public BindOperation(ClientConnection clientConnection, long operationID,
-                       int messageID, List<Control> requestControls, DN bindDN,
+                       int messageID, List<Control> requestControls,
+                       String protocolVersion, DN bindDN,
                        String saslMechanism, ASN1OctetString saslCredentials)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
 
+    this.protocolVersion = protocolVersion;
     this.authType        = AuthenticationType.SASL;
     this.bindDN          = bindDN;
     this.saslMechanism   = saslMechanism;
@@ -447,6 +462,34 @@ public class BindOperation
     }
 
     bindDN = null;
+  }
+
+
+
+  /**
+   * Retrieves a string representation of the protocol version associated with
+   * this bind request.
+   *
+   * @return  A string representation of the protocol version associated with
+   *          this bind request.
+   */
+  public String getProtocolVersion()
+  {
+    return protocolVersion;
+  }
+
+
+
+  /**
+   * Specifies the string representation of the protocol version associated with
+   * this bind request.
+   *
+   * @param  protocolVersion  The string representation of the protocol version
+   *                          associated with this bind request.
+   */
+  public void setProtocolVersion(String protocolVersion)
+  {
+    this.protocolVersion = protocolVersion;
   }
 
 
@@ -2288,7 +2331,11 @@ bindProcessing:
     buffer.append(clientConnection.getConnectionID());
     buffer.append(", opID=");
     buffer.append(operationID);
-    buffer.append(", dn=");
+    buffer.append(", protocol=\"");
+    buffer.append(clientConnection.getProtocol());
+    buffer.append(" ");
+    buffer.append(protocolVersion);
+    buffer.append("\", dn=");
     buffer.append(rawBindDN);
     buffer.append(", authType=");
     buffer.append(authType);
