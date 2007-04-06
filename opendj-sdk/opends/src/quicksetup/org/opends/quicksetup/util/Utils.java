@@ -173,7 +173,8 @@ public class Utils
   /**
    * The Windows status panel batch file name.
    */
-  private static final String WINDOWS_STATUSPANEL_FILE_NAME = "status-panel.bat";
+  private static final String WINDOWS_STATUSPANEL_FILE_NAME =
+          "status-panel.bat";
 
   /**
    * The UNIX status command line script file name.
