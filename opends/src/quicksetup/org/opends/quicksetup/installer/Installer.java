@@ -439,7 +439,7 @@ public abstract class Installer extends Application {
     argList.add(Utils.getPath(getInstallation().getCurrentConfigurationFile()));
     argList.add("-p");
     argList.add(String.valueOf(getUserData().getServerPort()));
-    argList.add("-j");
+    argList.add("-x");
     argList.add(String.valueOf(getUserData().getServerJMXPort()));
 
     argList.add("-D");
