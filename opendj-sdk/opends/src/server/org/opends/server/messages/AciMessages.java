@@ -722,6 +722,13 @@ public class AciMessages {
     public static final int MSGID_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN =
          CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 71;
 
+   /**
+    * The message ID for the message that will be used if the server is unable to
+    * obtain a lock on a ModifyDN new superior entry.  This takes a
+    * single argument, which is the DN of the new superior entry.
+    */
+   public static final int MSGID_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER =
+        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 72;
 
     /**
      * Associates a set of generic messages with the message IDs defined in
@@ -1137,5 +1144,8 @@ public class AciMessages {
         registerMessage(MSGID_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN,
           "The pattern DN %s is not valid because it contains a wildcard in " +
                "an attribute type in a multi-valued RDN");
+
+      registerMessage(MSGID_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER,
+          "Unable to obtain a lock on the ModifyDN new superior entry %s.");
     }
 }

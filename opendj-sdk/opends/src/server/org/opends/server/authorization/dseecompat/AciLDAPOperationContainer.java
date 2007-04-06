@@ -29,13 +29,10 @@ package org.opends.server.authorization.dseecompat;
 
 import java.util.List;
 
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.*;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.Entry;
 
 /**
  * The AciLDAPOperationContainer is an AciContainer
@@ -90,6 +87,17 @@ public class AciLDAPOperationContainer extends AciContainer  {
     public AciLDAPOperationContainer(ModifyOperation operation, int rights) {
         super(operation, rights, operation.getCurrentEntry());
         this.modifications=operation.getModifications();
+    }
+
+    /**
+     * Constructor interface for the modify DN operation.
+     * @param operation  The modify DN operation.
+     * @param rights  The rights of the modify DN operation.
+     * @param entry  The entry to evalauted for this modify DN.
+     */
+    public AciLDAPOperationContainer(ModifyDNOperation operation,  int rights,
+                                     Entry entry) {
+        super(operation, rights,  entry);
     }
 
     /**

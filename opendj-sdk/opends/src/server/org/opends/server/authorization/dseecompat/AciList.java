@@ -343,4 +343,51 @@ public class AciList {
     // Replace the ACI list with the copy.
     aciList = aciCopy;
   }
+
+  /**
+   * Rename all ACIs under the specified old DN to the new DN. A simple
+   * interation over the entire list is performed.
+   * @param oldDN The DN of the original entry that was moved.
+   * @param newDN The DN of the new entry.
+   */
+  public synchronized void renameAci(DN oldDN, DN newDN ) {
+    LinkedHashMap<DN, List<Aci>> newCopyList =
+            new LinkedHashMap<DN, List<Aci>>();
+    int oldRDNCount=oldDN.getNumComponents();
+    int newRDNCount=newDN.getNumComponents();
+    for (Map.Entry<DN,List<Aci>> hashEntry : aciList.entrySet()) {
+      if(hashEntry.getKey().isDescendantOf(oldDN)) {
+        int keyRDNCount=hashEntry.getKey().getNumComponents();
+        int keepRDNCount=keyRDNCount - oldRDNCount;
+        RDN[] newRDNs = new RDN[keepRDNCount + newRDNCount];
+        for (int i=0; i < keepRDNCount; i++)
+          newRDNs[i] = hashEntry.getKey().getRDN(i);
+        for (int i=keepRDNCount, j=0; j < newRDNCount; i++,j++)
+          newRDNs[i] = newDN.getRDN(j);
+        DN relocateDN=new DN(newRDNs);
+        List<Aci> acis = new LinkedList<Aci>();
+        for(Aci aci : hashEntry.getValue()) {
+          try {
+             Aci newAci =
+               Aci.decode(ByteStringFactory.create(aci.toString()), relocateDN);
+             acis.add(newAci);
+          } catch (AciException ex) {
+            //This should never happen since only a copy of the
+            //ACI with a new DN is being made. Log a message if it does and
+            //keep going.
+            int    msgID  = MSGID_ACI_ADD_LIST_FAILED_DECODE;
+            String message = getMessage(msgID,
+                    ex.getMessage());
+            logError(ErrorLogCategory.ACCESS_CONTROL,
+                    ErrorLogSeverity.INFORMATIONAL,
+                    message, msgID);
+          }
+        }
+        newCopyList.put(relocateDN, acis);
+      }  else
+        newCopyList.put(hashEntry.getKey(), hashEntry.getValue());
+    }
+    // Replace the ACI list with the copy.
+    aciList = newCopyList;
+  }
 }

@@ -150,7 +150,8 @@ public class AciListenerManager
     }
 
     /**
-     * Not implemented.
+     * A modify DN operation has succeeded. Adjust the ACIs by moving ACIs
+     * under the old entry DN to the new entry DN.
      * @param modifyDNOperation  The LDAP modify DN operation.
      * @param oldEntry  The old entry.
      * @param newEntry The new entry.
@@ -159,9 +160,7 @@ public class AciListenerManager
             PostResponseModifyDNOperation modifyDNOperation,
             Entry oldEntry, Entry newEntry)
     {
-        /*
-         * TODO Not yet implemented.
-         */
+        aciList.renameAci(oldEntry.getDN(), newEntry.getDN());
     }
 
     /**

@@ -147,6 +147,7 @@ public class TestModifyDNOperation extends OperationTestCase
          "sn: User",
          "cn: Proxy User",
          "userPassword: password",
+         "ds-privilege-name: bypass-acl",
          "ds-privilege-name: proxied-auth");
 
     Entry proxyUserEntry =
@@ -1116,7 +1117,19 @@ public class TestModifyDNOperation extends OperationTestCase
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
+    BindRequestProtocolOp bindRequest =
+              new BindRequestProtocolOp(
+                      new ASN1OctetString("cn=Directory Manager"),
+                      3, new ASN1OctetString("password"));
+    LDAPMessage bindMessage = new LDAPMessage(1, bindRequest);
+    w.writeElement(bindMessage.encode());
 
+    bindMessage = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    BindResponseProtocolOp bindResponse = bindMessage.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+
+    assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000)); 
+    InvocationCounterPlugin.resetAllCounters();
     ModifyDNRequestProtocolOp modifyRequest =
         new ModifyDNRequestProtocolOp(
             new ASN1OctetString(entry.getDN().toString()),

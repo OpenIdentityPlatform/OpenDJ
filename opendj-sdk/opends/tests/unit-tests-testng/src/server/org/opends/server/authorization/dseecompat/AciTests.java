@@ -155,10 +155,18 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String OU_GROUP_1_DN = "cn=group1," + OU_GROUPS_DN;
   private static final String OU_GROUP_2_DN = "cn=group2," + OU_GROUPS_DN;
   //End group entries.
-  private static final String MANAGER_DN = "cn=the managers,dc=example,dc=com";
+  //Used by modrdn new superior
+  private static final String MANAGER_NEW_DN =
+                                        "cn=new managers," + OU_BASE_DN;
+  private static final String MGR_NEW_DN_URL = "ldap:///" + MANAGER_NEW_DN;
+  private static final String MANAGER_DN = "cn=the managers," + OU_BASE_DN;
+  private static final String MGR_DN_URL = "ldap:///" + MANAGER_DN;
   //These entries are going to be used to test userattr parent stuff.
   private static final String SALES_DN = "cn=sales dept," + MANAGER_DN;
+  private static final String SALES_NEW_DN = "cn=sales dept," + MANAGER_NEW_DN;
   private static final String SALES_USER_1 = "cn=sales1 person," + SALES_DN;
+  private static final String SALES_USER_NEW_1 =
+                                           "cn=sales1 person," + SALES_NEW_DN;
   private static final String SALES_USER_2 = "cn=sales2 person," + SALES_DN;
   private static final String SALES_USER_3 = "cn=sales3 person," + SALES_DN;
   private static final String LEVEL_1_USER_URL =
@@ -190,6 +198,7 @@ public class AciTests extends DirectoryServerTestCase {
     OU_LEAF_DN,
     OU_INNER_DN,
     MANAGER_DN,
+    MANAGER_NEW_DN,
     OU_GROUPS_DN,
     OU_BASE_DN,
     ADMIN_DN,
@@ -296,6 +305,27 @@ public class AciTests extends DirectoryServerTestCase {
 
   private static final String ALLOW_ALL_TO_COMPARE =
              buildAciValue("name", "allow compare", "targetattr", "*", "target", "ldap:///cn=*," + OU_LEAF_DN, "allow(compare)", BIND_RULE_USERDN_ALL);
+
+  private static final String ALLOW_ALL_TO_IMPORT_MGR_NEW =
+             buildAciValue("name", "allow import mgr new tree", "target", MGR_NEW_DN_URL, "allow(import)", BIND_RULE_USERDN_ALL);
+
+  private static final String ALLOW_ALL_TO_IMPORT_MGR=
+             buildAciValue("name", "allow import mgr tree", "target", MGR_DN_URL, "allow(import)", BIND_RULE_USERDN_ALL);
+
+  private static final String ALLOW_ALL_TO_EXPORT_MGR_NEW =
+             buildAciValue("name", "allow export mgr new tree", "target", MGR_NEW_DN_URL, "allow(export)", BIND_RULE_USERDN_ALL);
+
+  private static final String ALLOW_ALL_TO_EXPORT_MGR=
+             buildAciValue("name", "allow export mgr tree", "target", MGR_DN_URL, "allow(export)", BIND_RULE_USERDN_ALL);
+
+  private static final String ALLOW_ALL_TO_WRITE_RDN_ATTRS=
+             buildAciValue("name", "allow write to RDN attrs", "targetattr", "uid || cn || sn", "allow(write)", BIND_RULE_USERDN_ALL);
+
+  private static final String ALLOW_ALL_TO_MOVED_ENTRY =
+             buildAciValue("name", "allow all to moved", "targetattr", "*", "allow(search,read)", BIND_RULE_USERDN_ALL);
+
+  private static final String ALLOW_ALL_TO_SELFWRITE =
+             buildAciValue("name", "allow selfwrite", "targetattr", "member", "allow(selfwrite)", BIND_RULE_USERDN_ALL);
 
   private static final String ALLOW_ALL_TO_ADMIN =
           buildAciValue("name", "allow all to admin", "targetattr", "*", "allow(all)", BIND_RULE_USERDN_ADMIN);
@@ -944,6 +974,11 @@ public class AciTests extends DirectoryServerTestCase {
             makeUserLdif(MANAGER_DN, "the", "managers", "pa$$word",
                          ADMIN_DN, OU_GROUP_2_DN );
 
+   private static final String MANAGER_NEW__SEARCH_TESTS =
+           makeUserLdif(MANAGER_NEW_DN, "new", "managers", "pa$$word",
+                        ADMIN_DN, OU_GROUP_2_DN );
+
+
     private static final String SALES__SEARCH_TESTS =
             makeUserLdif(SALES_DN, "sales", "dept", "pa$$word",
                         LEVEL_2_USER_DN, LEVEL_1_USER_URL);
@@ -951,6 +986,7 @@ public class AciTests extends DirectoryServerTestCase {
   //LDIF entries used to test group stuff.
   private static final String GROUP_LDIF__SEARCH_TESTS =
                                              makeOuLdif(OU_GROUPS_DN, "groups");
+
   private static final
   String GROUP_1_LDIF__SEARCH_TESTS = makeGroupLdif(OU_GROUP_1_DN,
                                                     LEVEL_1_USER_DN,
@@ -1009,6 +1045,31 @@ private static final String GLOBAL_DEFAULT_ACIS =
  String COMPARE_ACI =  makeAddAciLdif(OU_LEAF_DN,
                                        ALLOW_ALL_TO_COMPARE);
 
+  //ACI used to test selfwrite
+  private static final
+  String SELFWRITE_ACI =  makeAddAciLdif(OU_GROUP_1_DN,
+                                        ALLOW_ALL_TO_SELFWRITE);
+
+  //ACIs used for modDN tests (export, import)
+
+ private static final  String ACI_IMPORT_MGR_NEW =
+                   makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_IMPORT_MGR_NEW);
+
+ private static final  String ACI_IMPORT_MGR =
+                   makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_IMPORT_MGR);
+
+ private static final  String ACI_EXPORT_MGR_NEW =
+                   makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_EXPORT_MGR_NEW);
+
+ private static final  String ACI_EXPORT_MGR =
+                   makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_EXPORT_MGR);
+
+  private static final String ACI_WRITE_RDN_ATTRS =
+                   makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_WRITE_RDN_ATTRS);
+
+   private static final String ACI_MOVED_ENTRY =
+                   makeAddAciLdif(SALES_USER_1, ALLOW_ALL_TO_MOVED_ENTRY);
+
 //ACI used in testing the groupdn/roledn bind rule keywords.
 
  private static final
@@ -1046,6 +1107,7 @@ private static final String GLOBAL_DEFAULT_ACIS =
             USER_LDIF__SEARCH_TESTS +
             BASE_OU_LDIF__SEARCH_TESTS  +
             MANAGER__SEARCH_TESTS +
+            MANAGER_NEW__SEARCH_TESTS +
             SALES__SEARCH_TESTS +
             SALES_USER_1__SEARCH_TESTS +
             SALES_USER_2__SEARCH_TESTS +
@@ -1578,7 +1640,7 @@ private static final String GLOBAL_DEFAULT_ACIS =
 
  /**
   * Test LDAP compare.
-  * @throws Throwable If the search returned is not valid for the ACI.
+  * @throws Throwable If the compare is not valid for the ACI.
  */
  @Test()
   public void testCompare() throws Throwable {
@@ -1597,7 +1659,82 @@ private static final String GLOBAL_DEFAULT_ACIS =
       }
   }
 
- /**
+  /**
+   * Test modify DN. Add a set of ACIs to allow exports, imports and write
+   * rights. Also add an aci low in the DIT to test the ACI list after a move
+   * has been made. Move the subtree, search with base at new DN, move the
+   * tree back and re-search with base at orig DN.
+   * @throws Throwable
+   */
+  @Test()
+  public void testModDN() throws Throwable {
+    SingleSearchParams userParamOrig = new SingleSearchParams(LEVEL_1_USER_DN,
+                                      "pa$$word", SALES_USER_1,
+                                      OBJECTCLASS_STAR, SCOPE_BASE,
+                                      null, null, null);
+    SingleSearchParams userParamNew = new SingleSearchParams(LEVEL_1_USER_DN,
+                                      "pa$$word", SALES_USER_NEW_1,
+                                      OBJECTCLASS_STAR, SCOPE_BASE,
+                                      null, null, null);
+
+
+     try {
+        addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+        modEntries(ACI_IMPORT_MGR, DIR_MGR_DN, DIR_MGR_PW);
+        modEntries(ACI_IMPORT_MGR_NEW, DIR_MGR_DN, DIR_MGR_PW);
+        modEntries(ACI_EXPORT_MGR, DIR_MGR_DN, DIR_MGR_PW);
+        modEntries(ACI_EXPORT_MGR_NEW, DIR_MGR_DN, DIR_MGR_PW);
+        modEntries(ACI_WRITE_RDN_ATTRS, DIR_MGR_DN, DIR_MGR_PW);
+        modEntries(ACI_MOVED_ENTRY, DIR_MGR_DN, DIR_MGR_PW);
+        String modrdnLdif =
+                makeModDN(SALES_DN, "cn=sales dept", "0", MANAGER_NEW_DN);
+        modEntries(modrdnLdif, LEVEL_1_USER_DN, "pa$$word");
+        String userNewResults = ldapSearch(userParamNew.getLdapSearchArgs());
+        Assert.assertFalse(userNewResults.equals(""));
+        String modrdnLdif1 =
+                makeModDN(SALES_NEW_DN, "cn=sales dept", "0", MANAGER_DN);
+        modEntries(modrdnLdif1, LEVEL_1_USER_DN, "pa$$word");
+        String userOrigResults = ldapSearch(userParamOrig.getLdapSearchArgs());
+        Assert.assertFalse(userOrigResults.equals(""));
+   } catch (Throwable e)  {
+       throw e;
+   }
+  }
+  /**
+   * Test selfwrite right. Attempt to bind as level3 user and remove level1
+   * user from a group, should fail.
+   * @throws Throwable If the delete succeeds.
+   */
+  @Test()
+  public void testNonSelfWrite() throws Throwable {
+          try {
+            addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+            modEntries(SELFWRITE_ACI, DIR_MGR_DN, DIR_MGR_PW);
+            deleteAttrFromEntry(OU_GROUP_1_DN, "member",LEVEL_1_USER_DN,
+                                LEVEL_3_USER_DN, "pa$$word",  false);
+          } catch(Throwable e) {
+                throw e;
+          }
+  }
+
+  /**
+   * Test selfwrite right. Attempt to bind as level1 user and remove itself
+   * from a group, should succeed.
+   * @throws Throwable If the delete fails.
+   */
+  @Test()
+  public void testSelfWrite() throws Throwable {
+          try {
+            addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+            modEntries(SELFWRITE_ACI, DIR_MGR_DN, DIR_MGR_PW);
+            deleteAttrFromEntry(OU_GROUP_1_DN, "member",LEVEL_1_USER_DN,
+                                LEVEL_1_USER_DN, "pa$$word",  true);
+          } catch(Throwable e) {
+                throw e;
+          }
+  }
+
+  /**
   * Test group and role bind rule ACI keywords. Both groupdn and roledn keywords
   * funnel through the same code so the results should be the same.
   * @throws Throwable
@@ -1919,14 +2056,42 @@ private static String _buildAciValue(String attr, String... aciFields) {
         deleteEntries(ALL_TEST_ENTRY_DNS_BOTTOM_UP);
     }
 
-    private void deleteAttrFromEntry(String dn, String attr, boolean errorOk) throws Exception {
+  private void deleteAttrFromEntry(String dn, String attr, String val,
+                                   String bindDN, String pwd,
+                                   boolean errorOk) throws Exception {
         StringBuilder ldif = new StringBuilder();
         ldif.append(TestCaseUtils.makeLdif(
                 "dn: "  + dn,
                 "changetype: modify",
-                "delete: " + attr));
-        modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW, errorOk, false);
+                "delete: " + attr,
+                attr + ":" + val));
+        modEntries(ldif.toString(), bindDN, pwd, errorOk, false);
     }
+
+
+  private static String makeModDN(String dn, String newRDN, String deleteOldRDN,
+                                  String newSuperior ) throws Exception {
+    StringBuilder ldif = new StringBuilder();
+    ldif.append("dn: " + dn).append(EOL);
+    ldif.append("changetype: modrdn").append(EOL);
+    ldif.append("newrdn: " + newRDN).append(EOL);
+    ldif.append("deleteoldrdn: " + deleteOldRDN).append(EOL);
+    if(newSuperior != null)
+       ldif.append("newsuperior: " + newSuperior).append(EOL);
+    ldif.append(EOL);
+    return ldif.toString();
+  }
+
+
+
+      private void deleteAttrFromEntry(String dn, String attr, boolean errorOk) throws Exception {
+          StringBuilder ldif = new StringBuilder();
+          ldif.append(TestCaseUtils.makeLdif(
+                  "dn: "  + dn,
+                  "changetype: modify",
+                  "delete: " + attr));
+          modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW, errorOk, false);
+      }
 
     private void deleteEntries(String[] entries) throws Exception {
         // TODO: make this actually do a search first!
