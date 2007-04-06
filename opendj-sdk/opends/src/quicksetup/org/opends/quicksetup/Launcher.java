@@ -183,7 +183,6 @@ public abstract class Launcher {
    *         occurred.
    */
   protected int launchCli(String[] args, CliApplication cliApp) {
-    System.out.println(getMsg("uninstall-launcher-launching-cli"));
     System.setProperty("org.opends.quicksetup.cli", "true");
 
     QuickSetupCli cli = new QuickSetupCli(cliApp, args);

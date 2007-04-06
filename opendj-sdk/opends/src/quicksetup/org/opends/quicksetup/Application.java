@@ -35,8 +35,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
-
-import javax.naming.NamingException;
+import org.opends.quicksetup.ui.FramePanel;
 import javax.swing.*;
 import java.io.*;
 import java.util.*;
@@ -50,12 +49,6 @@ import java.awt.event.WindowEvent;
  * 'uninstaller' and 'upgrader'.
  */
 public abstract class Application implements ProgressNotifier, Runnable {
-
-  /**
-   * The path to the Configuration LDIF file.
-   */
-  static protected final String CONFIG_PATH_RELATIVE =
-      "config" + File.separator + "config.ldif";
 
   static private final Logger LOG =
           Logger.getLogger(Application.class.getName());
@@ -114,6 +107,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
       new HashSet<ProgressUpdateListener>();
 
   private UserData userData;
+
+  private Installation installation;
 
   /** Formats progress messages. */
   protected ProgressMessageFormatter formatter;
@@ -176,7 +171,22 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   public boolean isFinished()
   {
-    return getStatus().isLast();
+    return getCurrentProgressStep().isLast();
+  }
+
+  /**
+   * Gets the OpenDS installation associated with the execution of this
+   * command.
+   * @return Installation object representing the current OpenDS installation
+   */
+  public Installation getInstallation() {
+    if (installation == null) {
+      String installPath = getInstallationPath();
+      if (installPath != null) {
+        installation = new Installation(installPath);
+      }
+    }
+    return installation;
   }
 
   /**
@@ -186,7 +196,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the UserData object representing the parameters provided
    * by the user to do the installation.
    */
-  protected UserData getUserData()
+  public UserData getUserData()
   {
     if (userData == null) {
       userData = createUserData();
@@ -202,7 +212,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   public void notifyListenersDone(Integer ratioWhenCompleted) {
     notifyListeners(ratioWhenCompleted,
-            getSummary(getStatus()),
+            getSummary(getCurrentProgressStep()),
             formatter.getFormattedDone() + formatter.getLineBreak());
   }
 
@@ -220,8 +230,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
       String newLogDetail)
   {
     ProgressUpdateEvent ev =
-        new ProgressUpdateEvent(getStatus(), ratio, currentPhaseSummary,
-            newLogDetail);
+        new ProgressUpdateEvent(getCurrentProgressStep(), ratio,
+                currentPhaseSummary, newLogDetail);
     for (ProgressUpdateListener l : listeners)
     {
       l.progressUpdate(ev);
@@ -237,7 +247,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * current installation progress in formatted form.
    */
   public void notifyListeners(Integer ratio, String currentPhaseSummary) {
-    notifyListeners(ratio, getSummary(getStatus()),
+    notifyListeners(ratio, getSummary(getCurrentProgressStep()),
         formatter.getFormattedWithPoints(currentPhaseSummary));
   }
 
@@ -251,7 +261,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the value associated to the key in the properties file.
    * properties file.
    */
-  protected String getMsg(String key)
+  public String getMsg(String key)
   {
     return getI18n().getMsg(key);
   }
@@ -271,7 +281,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param args the arguments to be passed to generate the resulting value.
    * @return the value associated to the key in the properties file.
    */
-  protected String getMsg(String key, String[] args)
+  public String getMsg(String key, String[] args)
   {
     return getI18n().getMsg(key, args);
   }
@@ -291,7 +301,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param t the throwable for which we want to get a message.
    * @return a localized message for a given properties key and throwable.
    */
-  protected String getThrowableMsg(String key, Throwable t)
+  public String getThrowableMsg(String key, Throwable t)
   {
     return getThrowableMsg(key, null, t);
   }
@@ -358,7 +368,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * representation
    * @return the formatted representation of an warning for the given text.
    */
-  protected String getFormattedWarning(String text)
+  public String getFormattedWarning(String text)
   {
     return formatter.getFormattedWarning(text, false);
   }
@@ -383,7 +393,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the formatted representation of a log error message for the given
    * text.
    */
-  protected String getFormattedLogError(String text)
+  public String getFormattedLogError(String text)
   {
     return formatter.getFormattedLogError(text);
   }
@@ -394,7 +404,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * representation
    * @return the formatted representation of a log message for the given text.
    */
-  protected String getFormattedLog(String text)
+  public String getFormattedLog(String text)
   {
     return formatter.getFormattedLog(text);
   }
@@ -403,7 +413,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns the formatted representation of the 'Done' text string.
    * @return the formatted representation of the 'Done' text string.
    */
-  protected String getFormattedDone()
+  public String getFormattedDone()
   {
     return formatter.getFormattedDone();
   }
@@ -415,7 +425,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param text the String to which add points.
    * @return the formatted representation of the '.....' text string.
    */
-  protected String getFormattedWithPoints(String text)
+  public String getFormattedWithPoints(String text)
   {
     return formatter.getFormattedWithPoints(text);
   }
@@ -428,7 +438,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the formatted representation of a progress message for the given
    * text.
    */
-  protected String getFormattedProgress(String text)
+  public String getFormattedProgress(String text)
   {
     return formatter.getFormattedProgress(text);
   }
@@ -453,7 +463,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns the line break formatted.
    * @return the line break formatted.
    */
-  protected String getLineBreak()
+  public String getLineBreak()
   {
     return formatter.getLineBreak();
   }
@@ -472,136 +482,11 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * notify the ProgressUpdateListeners of this fact.
    * @param newLogDetail the new log detail.
    */
-  protected void notifyListeners(String newLogDetail)
+  public void notifyListeners(String newLogDetail)
   {
-    Integer ratio = getRatio(getStatus());
-    String currentPhaseSummary = getSummary(getStatus());
+    Integer ratio = getRatio(getCurrentProgressStep());
+    String currentPhaseSummary = getSummary(getCurrentProgressStep());
     notifyListeners(ratio, currentPhaseSummary, newLogDetail);
-  }
-
-  /**
-   * This methods starts the server.
-   * @throws org.opends.quicksetup.QuickSetupException if something goes wrong.
-   */
-  protected void startServer() throws QuickSetupException {
-    notifyListeners(getFormattedProgress(getMsg("progress-starting")) +
-        getLineBreak());
-
-    ArrayList<String> argList = new ArrayList<String>();
-
-    if (Utils.isWindows())
-    {
-      argList.add(Utils.getPath(getBinariesPath(),
-              Utils.getWindowsStartFileName()));
-    } else
-    {
-      argList.add(Utils.getPath(getBinariesPath(),
-              Utils.getUnixStartFileName()));
-    }
-
-    String[] args = new String[argList.size()];
-    argList.toArray(args);
-    ProcessBuilder pb = new ProcessBuilder(args);
-    Map<String, String> env = pb.environment();
-    env.put("JAVA_HOME", System.getProperty("java.home"));
-    /* Remove JAVA_BIN to be sure that we use the JVM running the installer
-     * JVM to start the server.
-     */
-    env.remove("JAVA_BIN");
-
-    try
-    {
-      String startedId = getStartedId();
-
-      Process process = pb.start();
-
-      BufferedReader err =
-          new BufferedReader(new InputStreamReader(process.getErrorStream()));
-      BufferedReader out =
-          new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-      StartReader errReader = new StartReader(err, startedId, true);
-      StartReader outputReader = new StartReader(out, startedId, false);
-
-      while (!errReader.isFinished() && !outputReader.isFinished())
-      {
-        try
-        {
-          Thread.sleep(100);
-        } catch (InterruptedException ie)
-        {
-        }
-      }
-      // Check if something wrong occurred reading the starting of the server
-      QuickSetupException ex = errReader.getException();
-      if (ex == null)
-      {
-        ex = outputReader.getException();
-      }
-      if (ex != null)
-      {
-        throw ex;
-
-      } else
-      {
-        /*
-         * There are no exceptions from the readers and they are marked as
-         * finished. This means that the server has written in its output the
-         * message id informing that it started. So it seems that everything
-         * went fine.
-         *
-         * However we can have issues with the firewalls or do not have rights
-         * to connect.  Just check if we can connect to the server.
-         * Try 5 times with an interval of 1 second between try.
-         */
-        boolean connected = false;
-        for (int i=0; i<5 && !connected; i++)
-        {
-          String ldapUrl = "ldap://localhost:"+userData.getServerPort();
-          try
-          {
-            Utils.createLdapContext(
-                ldapUrl,
-                userData.getDirectoryManagerDn(),
-                userData.getDirectoryManagerPwd(), 3000, null);
-            connected = true;
-          }
-          catch (NamingException ne)
-          {
-          }
-          if (!connected)
-          {
-            try
-            {
-              Thread.sleep(1000);
-            }
-            catch (Throwable t)
-            {
-            }
-          }
-        }
-        if (!connected)
-        {
-          if (Utils.isWindows())
-          {
-            String[] arg = {String.valueOf(userData.getServerPort())};
-            throw new QuickSetupException(QuickSetupException.Type.START_ERROR,
-                getMsg("error-starting-server-in-windows", arg), null);
-          }
-          else
-          {
-            String[] arg = {String.valueOf(userData.getServerPort())};
-            throw new QuickSetupException(QuickSetupException.Type.START_ERROR,
-                getMsg("error-starting-server-in-unix", arg), null);
-          }
-        }
-      }
-
-    } catch (IOException ioe)
-    {
-      throw new QuickSetupException(QuickSetupException.Type.START_ERROR,
-          getThrowableMsg("error-starting-server", ioe), ioe);
-    }
   }
 
   /**
@@ -648,31 +533,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
   protected abstract String getInstallationPath();
 
   /**
-   * Returns the config file path.
-   * @return the config file path.
-   */
-  protected String getConfigFilePath()
-  {
-    return Utils.getPath(getInstallationPath(), CONFIG_PATH_RELATIVE);
-  }
-
-  /**
-   * Returns the path to the binaries.
-   * @return the path to the binaries.
-   */
-  protected abstract String getBinariesPath();
-
-  /**
-   * Returns the Message ID indicating that the server has started.
-   * @return the Message ID indicating that the server has started.
-   */
-  private String getStartedId()
-  {
-    InstallerHelper helper = new InstallerHelper();
-    return helper.getStartedId();
-  }
-
-  /**
    * Returns the tab formatted.
    * @return the tab formatted.
    */
@@ -682,20 +542,10 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
-   * Returns the path to the libraries.
-   * @return the path to the libraries.
-   */
-  protected String getLibrariesPath()
-  {
-    return Utils.getPath(Utils.getInstallPathFromClasspath(),
-        Utils.getLibrariesRelativePath());
-  }
-
-  /**
    * Gets the current step.
    * @return ProgressStep representing the current step
    */
-  public abstract ProgressStep getStatus();
+  public abstract ProgressStep getCurrentProgressStep();
 
   /**
    * Gets an integer representing the amount of processing
@@ -754,13 +604,17 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param dlg QuickSetupDialog used
    * @return JPanel frame panel
    */
-  abstract public JPanel createFramePanel(QuickSetupDialog dlg);
+  public JPanel createFramePanel(QuickSetupDialog dlg) {
+    return new FramePanel(dlg.getStepsPanel(),
+            dlg.getCurrentStepPanel(),
+            dlg.getButtonsPanel());
+  }
 
   /**
    * Returns the set of wizard steps used in this application's wizard.
    * @return Set of Step objects representing wizard steps
    */
-  abstract public Set<WizardStep> getWizardSteps();
+  abstract public Set<? extends WizardStep> getWizardSteps();
 
   /**
    * Creates a wizard panel given a specific step.
@@ -929,111 +783,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
-   * This class is used to read the standard error and standard output of the
-   * Start process.
-   *
-   * When a new log message is found notifies the ProgressUpdateListeners
-   * of it. If an error occurs it also notifies the listeners.
-   *
-   */
-  private class StartReader
-  {
-    private QuickSetupException ex;
-
-    private boolean isFinished;
-
-    private boolean isFirstLine;
-
-    /**
-     * The protected constructor.
-     * @param reader the BufferedReader of the start process.
-     * @param startedId the message ID that this class can use to know whether
-     * the start is over or not.
-     * @param isError a boolean indicating whether the BufferedReader
-     * corresponds to the standard error or to the standard output.
-     */
-    public StartReader(final BufferedReader reader, final String startedId,
-        final boolean isError)
-    {
-      final String errorTag =
-          isError ? "error-reading-erroroutput" : "error-reading-output";
-
-      isFirstLine = true;
-
-      Thread t = new Thread(new Runnable()
-      {
-        public void run()
-        {
-          try
-          {
-            String line = reader.readLine();
-            while (line != null)
-            {
-              StringBuffer buf = new StringBuffer();
-              if (!isFirstLine)
-              {
-                buf.append(formatter.getLineBreak());
-              }
-              if (isError)
-              {
-                buf.append(getFormattedLogError(line));
-              } else
-              {
-                buf.append(getFormattedLog(line));
-              }
-              notifyListeners(buf.toString());
-              isFirstLine = false;
-
-              if (line.indexOf("id=" + startedId) != -1)
-              {
-                isFinished = true;
-              }
-              line = reader.readLine();
-            }
-          } catch (IOException ioe)
-          {
-            String errorMsg = getThrowableMsg(errorTag, ioe);
-            ex =
-                new QuickSetupException(QuickSetupException.Type.START_ERROR,
-                    errorMsg, ioe);
-
-          } catch (Throwable t)
-          {
-            String errorMsg = getThrowableMsg(errorTag, t);
-            ex =
-                new QuickSetupException(QuickSetupException.Type.START_ERROR,
-                    errorMsg, t);
-          }
-          isFinished = true;
-        }
-      });
-      t.start();
-    }
-
-    /**
-     * Returns the QuickSetupException that occurred reading the Start error and
-     * output or <CODE>null</CODE> if no exception occurred.
-     * @return the exception that occurred reading or <CODE>null</CODE> if
-     * no exception occurred.
-     */
-    public QuickSetupException getException()
-    {
-      return ex;
-    }
-
-    /**
-     * Returns <CODE>true</CODE> if the server starting process finished
-     * (successfully or not) and <CODE>false</CODE> otherwise.
-     * @return <CODE>true</CODE> if the server starting process finished
-     * (successfully or not) and <CODE>false</CODE> otherwise.
-     */
-    public boolean isFinished()
-    {
-      return isFinished;
-    }
-  }
-
-  /**
    * This class is used to notify the ProgressUpdateListeners of events
    * that are written to the standard error.  It is used in WebStartInstaller
    * and in OfflineInstaller.  These classes just create a ErrorPrintStream and
@@ -1150,4 +899,5 @@ public abstract class Application implements ProgressNotifier, Runnable {
       println(new String(b, off, len));
     }
   }
+
 }

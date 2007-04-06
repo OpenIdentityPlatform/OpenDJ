@@ -162,7 +162,7 @@ public abstract class Installer extends Application {
   public void finishClicked(final WizardStep cStep, final QuickSetup qs) {
     if (cStep == Step.REVIEW) {
         updateUserDataForReviewPanel(qs);
-        qs.launchInstallation();
+        qs.launch();
         qs.setCurrentStep(Step.PROGRESS);
     } else {
         throw new IllegalStateException(
@@ -250,9 +250,7 @@ public abstract class Installer extends Application {
     if (installStatus.isInstalled() && !forceToDisplaySetup) {
       p = dlg.getInstalledPanel();
     } else {
-      p = new FramePanel(dlg.getStepsPanel(),
-              dlg.getCurrentStepPanel(),
-              dlg.getButtonsPanel());
+      p = super.createFramePanel(dlg);
     }
     return p;
   }
@@ -260,7 +258,7 @@ public abstract class Installer extends Application {
   /**
    * {@inheritDoc}
    */
-  public Set<WizardStep> getWizardSteps() {
+  public Set<? extends WizardStep> getWizardSteps() {
     return Collections.unmodifiableSet(new HashSet<WizardStep>(lstSteps));
   }
 
@@ -365,7 +363,7 @@ public abstract class Installer extends Application {
   /**
    * {@inheritDoc}
    */
-  public ProgressStep getStatus()
+  public ProgressStep getCurrentProgressStep()
   {
     return status;
   }
@@ -438,7 +436,7 @@ public abstract class Installer extends Application {
     argList.add(CONFIG_CLASS_NAME);
 
     argList.add("-c");
-    argList.add(getConfigFilePath());
+    argList.add(Utils.getPath(getInstallation().getCurrentConfigurationFile()));
     argList.add("-p");
     argList.add(String.valueOf(getUserData().getServerPort()));
     argList.add("-j");
@@ -494,7 +492,7 @@ public abstract class Installer extends Application {
     argList.add(CONFIG_CLASS_NAME);
 
     argList.add("-f");
-    argList.add(getConfigFilePath());
+    argList.add(Utils.getPath(getInstallation().getCurrentConfigurationFile()));
 
     argList.add("-n");
     argList.add(getBackendName());
@@ -543,7 +541,7 @@ public abstract class Installer extends Application {
     argList.add(CONFIG_CLASS_NAME);
 
     argList.add("-f");
-    argList.add(getConfigFilePath());
+    argList.add(Utils.getPath(getInstallation().getCurrentConfigurationFile()));
     argList.add("-n");
     argList.add(getBackendName());
     argList.add("-l");
@@ -590,7 +588,7 @@ public abstract class Installer extends Application {
     argList.add(CONFIG_CLASS_NAME);
 
     argList.add("-f");
-    argList.add(getConfigFilePath());
+    argList.add(Utils.getPath(getInstallation().getCurrentConfigurationFile()));
     argList.add("-n");
     argList.add(getBackendName());
     argList.add("-t");
@@ -726,15 +724,6 @@ public abstract class Installer extends Application {
   protected String getBackendName()
   {
     return "userRoot";
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected String getBinariesPath()
-  {
-    return Utils.getPath(getInstallationPath(),
-        Utils.getBinariesRelativePath());
   }
 
   /**

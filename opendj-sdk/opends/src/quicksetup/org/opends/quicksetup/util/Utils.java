@@ -39,11 +39,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Set;
+import java.util.*;
 
 import javax.naming.CommunicationException;
 import javax.naming.Context;
@@ -264,7 +260,16 @@ public class Utils
    */
   public static String getPath(String parentPath, String relativePath)
   {
-    File f = new File(new File(parentPath), relativePath);
+    return getPath(new File(new File(parentPath), relativePath));
+  }
+
+  /**
+   * Returns the absolute path for the given parentPath and relativePath.
+   * @param f File to get the path
+   * @return the absolute path for the given parentPath and relativePath.
+   */
+  public static String getPath(File f)
+  {
     try
     {
       /*
@@ -1491,4 +1496,52 @@ public class Utils
     }
     return isOutOfMemory;
   }
+
+  /**
+   * Returns the number of entries contained in the zip file.  This is used to
+   * update properly the progress bar ratio.
+   * @return the number of entries contained in the zip file.
+   */
+  static public int getNumberZipEntries()
+  {
+    // TODO  we should get this dynamically during build
+    return 83;
+  }
+
+  /**
+   * Determines whether one file is the parent of another.
+   * @param ancestor possible parent of <code>descendant</code>
+   * @param descendant possible child 0f <code>ancestor</code>
+   * @return return true if ancestor is a parent of descendant
+   */
+  static public boolean isParentOf(File ancestor, File descendant) {
+    if (ancestor != null) {
+      if (ancestor.equals(descendant)) {
+        return false;
+      }
+      while ((descendant != null) && !ancestor.equals(descendant)) {
+        descendant = descendant.getParentFile();
+      }
+    }
+    return (ancestor != null) && (descendant != null);
+  }
+
+  /**
+   * Creates a string consisting of the string representation of the
+   * elements in the <code>list</code> separated by <code>separator</code>.
+   * @param list the list to print
+   * @param separator to use in separating elements
+   * @return String representing the list
+   */
+  static public String listToString(List<?> list, String separator) {
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < list.size(); i++) {
+      sb.append(list.get(i));
+      if (i < list.size() - 1) {
+        sb.append(separator);
+      }
+    }
+    return sb.toString();
+  }
+
 }

@@ -425,31 +425,9 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
-   * Launch the installation of Open DS. Depending on whether we are running a
-   * web start or not it will use on Installer object or other.
-   *
+   * Launch the QuickSetup application Open DS.
    */
-  public void launchInstallation()
-  {
-    ProgressMessageFormatter formatter = getDialog().getFormatter();
-
-    application.addProgressUpdateListener(this);
-    new Thread(application).start();
-    Thread t = new Thread(new Runnable()
-    {
-      public void run()
-      {
-        runDisplayUpdater();
-      }
-    });
-    t.start();
-  }
-
-  /**
-   * Launch the uninstallation of Open DS.
-   *
-   */
-  public void launchUninstallation()
+  public void launch()
   {
     application.addProgressUpdateListener(this);
     new Thread(application).start();
@@ -557,7 +535,11 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   public void displayError(String msg, String title)
   {
-    getDialog().displayError(msg, title);
+    if (Utils.isCli()) {
+      System.err.println(msg);
+    } else {
+      getDialog().displayError(msg, title);
+    }
   }
 
   /**

@@ -40,6 +40,7 @@ import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ZipExtractor;
+import org.opends.quicksetup.util.ServerController;
 
 /**
  * This is an implementation of the Installer class that is used to install
@@ -141,7 +142,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       {
         notifyListeners(getTaskSeparator());
         status = InstallProgressStep.STARTING_SERVER;
-        startServer();
+        new ServerController(this).startServer();
       }
 
       if (Utils.isWindows())
@@ -371,7 +372,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
     ZipExtractor extractor =
             new ZipExtractor(is, minRatio, maxRatio,
             getUserData().getServerLocation(),
-            getNumberZipEntries(),
+            Utils.getNumberZipEntries(),
             getZipFileName(),
             this);
     extractor.extract();
@@ -420,17 +421,6 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
   {
     // Passed as a java option in the JNLP file
     return System.getProperty(ZIP_FILE_NAME);
-  }
-
-  /**
-   * Returns the number of entries contained in the zip file.  This is used to
-   * update properly the progress bar ratio.
-   * @return the number of entries contained in the zip file.
-   */
-  private int getNumberZipEntries()
-  {
-    // TODO  we should get this dynamically during build
-    return 83;
   }
 
   /**

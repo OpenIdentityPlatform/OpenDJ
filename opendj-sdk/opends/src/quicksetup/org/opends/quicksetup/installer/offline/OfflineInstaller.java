@@ -36,6 +36,7 @@ import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.util.ServerController;
 
 /**
  * This is an implementation of the Installer class that is used to install
@@ -112,7 +113,7 @@ public class OfflineInstaller extends Installer
       {
         notifyListeners(getTaskSeparator());
         status = InstallProgressStep.STARTING_SERVER;
-        startServer();
+        new ServerController(this).startServer();
       }
 
       status = InstallProgressStep.FINISHED_SUCCESSFULLY;

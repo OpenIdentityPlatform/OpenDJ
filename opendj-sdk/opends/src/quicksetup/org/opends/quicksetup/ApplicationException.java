@@ -84,9 +84,25 @@ public class ApplicationException extends Exception
     WINDOWS_SERVICE_ERROR,
 
     /**
+     * Application specific error.
+     */
+    APPLICATION,
+
+    /**
      * A bug (for instance when we throw an IllegalStateException).
      */
     BUG
+  }
+
+  /**
+   * Creates a new ApplicationException of type FILE_SYSTEM_ERROR.
+   * @param msg localized exception message
+   * @param e Exception cause
+   * @return ApplicationException with Type property being FILE_SYSTEM_ERROR
+   */
+  public static ApplicationException createFileSystemException(String msg,
+                                                               Exception e) {
+    return new ApplicationException(Type.FILE_SYSTEM_ERROR, msg, e);
   }
 
   /**
