@@ -54,9 +54,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class BindRequestProtocolOp
        extends ProtocolOp
 {
-
-
-
   // The bind DN for this request.
   private ASN1OctetString dn;
 
@@ -204,18 +201,6 @@ public class BindRequestProtocolOp
   public AuthenticationType getAuthenticationType()
   {
     return authenticationType;
-  }
-
-
-
-  /**
-   * Specifies the authentication type for this bind request.
-   *
-   * @param  authenticationType  The authentication type for this bind request.
-   */
-  public void setAuthenticationType(AuthenticationType authenticationType)
-  {
-    this.authenticationType = authenticationType;
   }
 
 
