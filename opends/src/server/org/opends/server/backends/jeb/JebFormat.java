@@ -33,23 +33,15 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1Integer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Set;
-import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPException;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ObjectClass;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
@@ -177,78 +169,7 @@ public class JebFormat
   static private Entry decodeDirectoryServerEntry(byte[] bytes)
        throws DirectoryException,ASN1Exception,LDAPException
   {
-    HashMap<ObjectClass, String> objectClasses;
-    HashMap<AttributeType, List<Attribute>> userAttributes =
-         new HashMap<AttributeType, List<Attribute>>();
-    HashMap<AttributeType, List<Attribute>> operationalAttributes =
-         new HashMap<AttributeType, List<Attribute>>();
-
-    // Decode the sequence.
-    List<ASN1Element> elements;
-    elements = ASN1Sequence.decodeAsSequence(bytes).elements();
-
-    // Decode the dn (LDAPDN).
-    DN dn;
-    dn = DN.decode(elements.get(0).decodeAsOctetString().stringValue());
-
-    // Decode the object classes (SET OF LDAPString).
-    List<ASN1Element> attrElements =
-         elements.get(1).decodeAsSet().elements();
-    objectClasses =
-    new HashMap<ObjectClass, String>(attrElements.size() * 4 / 3);
-    for (ASN1Element e : attrElements)
-    {
-      String ocName = e.decodeAsOctetString().stringValue();
-      String lowerOCName = ocName.toLowerCase();
-
-      ObjectClass objectClass = DirectoryServer.getObjectClass(lowerOCName);
-      if (objectClass == null)
-      {
-        objectClass = DirectoryServer.getDefaultObjectClass(ocName);
-      }
-
-      objectClasses.put(objectClass, ocName);
-    }
-
-    // Decode the user attributes (AttributeList).
-    attrElements = elements.get(2).decodeAsSequence().elements();
-    for (ASN1Element e : attrElements)
-    {
-      Attribute a = LDAPAttribute.decode(e).toAttribute();
-      List<Attribute> attrList;
-      attrList = userAttributes.get(a.getAttributeType());
-      if (attrList == null)
-      {
-        attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
-        userAttributes.put(a.getAttributeType(), attrList);
-      }
-      else
-      {
-        attrList.add(a);
-      }
-    }
-
-    // Decode the operational attributes (AttributeList).
-    attrElements = elements.get(3).decodeAsSequence().elements();
-    for (ASN1Element e : attrElements)
-    {
-      Attribute a = LDAPAttribute.decode(e).toAttribute();
-      List<Attribute> attrList;
-      attrList = operationalAttributes.get(a.getAttributeType());
-      if (attrList == null)
-      {
-        attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
-        operationalAttributes.put(a.getAttributeType(), attrList);
-      }
-      else
-      {
-        attrList.add(a);
-      }
-    }
-
-    return new Entry(dn, objectClasses, userAttributes, operationalAttributes);
+    return Entry.decode(bytes);
   }
 
   /**
@@ -336,52 +257,7 @@ public class JebFormat
    */
   static private byte[] encodeDirectoryServerEntry(Entry entry)
   {
-    // Encode the DN (LDAPDN).
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(4);
-    elements.add(new ASN1OctetString(entry.getDN().toString()));
-
-    // Encode the object classes (SET OF LDAPString).
-    Collection<String> objectClasses = entry.getObjectClasses().values();
-    ArrayList<ASN1Element> objectClassElements;
-    objectClassElements = new ArrayList<ASN1Element>(objectClasses.size());
-    for (String s : objectClasses)
-    {
-      objectClassElements.add(new ASN1OctetString(s));
-    }
-    elements.add(new ASN1Set(objectClassElements));
-
-    // Encode the user attributes (AttributeList).
-    ArrayList<ASN1Element> userAttrElements = new ArrayList<ASN1Element>();
-    for (List<Attribute> list : entry.getUserAttributes().values())
-    {
-      for (Attribute a : list)
-      {
-        if (a.isVirtual())
-        {
-          continue;
-        }
-        userAttrElements.add(new LDAPAttribute(a).encode());
-      }
-    }
-    elements.add(new ASN1Sequence(userAttrElements));
-
-    // Encode the operational attributes (AttributeList).
-    ArrayList<ASN1Element> opAttrElements = new ArrayList<ASN1Element>();
-    for (List<Attribute> list : entry.getOperationalAttributes().values())
-    {
-      for (Attribute a : list)
-      {
-        if (a.isVirtual())
-        {
-          continue;
-        }
-        opAttrElements.add(new LDAPAttribute(a).encode());
-      }
-    }
-    elements.add(new ASN1Sequence(opAttrElements));
-
-    // Encode the sequence.
-    return new ASN1Sequence(TAG_DIRECTORY_SERVER_ENTRY, elements).encode();
+    return entry.encode();
   }
 
   /**
