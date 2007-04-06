@@ -168,12 +168,12 @@ public class Utils
   /**
    * The UNIX status panel script file name.
    */
-  private static final String UNIX_STATUSPANEL_FILE_NAME = "statuspanel";
+  private static final String UNIX_STATUSPANEL_FILE_NAME = "status-panel";
 
   /**
    * The Windows status panel batch file name.
    */
-  private static final String WINDOWS_STATUSPANEL_FILE_NAME = "statuspanel.bat";
+  private static final String WINDOWS_STATUSPANEL_FILE_NAME = "status-panel.bat";
 
   /**
    * The UNIX status command line script file name.

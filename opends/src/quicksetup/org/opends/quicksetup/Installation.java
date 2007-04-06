@@ -168,12 +168,12 @@ public class Installation {
   /**
    * The UNIX status panel script file name.
    */
-  public static final String UNIX_STATUSPANEL_FILE_NAME = "statuspanel";
+  public static final String UNIX_STATUSPANEL_FILE_NAME = "status-panel";
 
   /**
    * The Windows status panel batch file name.
    */
-  public static final String WINDOWS_STATUSPANEL_FILE_NAME = "statuspanel.bat";
+  public static final String WINDOWS_STATUSPANEL_FILE_NAME = "status-panel.bat";
 
   /**
    * The UNIX status command line script file name.
