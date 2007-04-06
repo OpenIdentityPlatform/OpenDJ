@@ -128,7 +128,12 @@ public class RmiConnector
   /**
    * The Underlying Socket factory.
    */
-  OpendsRmiServerSocketFactory rmiSsf;
+  private OpendsRmiServerSocketFactory rmiSsf;
+
+  /**
+   * The RMI protocol verison used by this connector.
+   */
+  private String rmiVersion;
 
   // ===================================================================
   // CONSTRUCTOR
@@ -398,6 +403,7 @@ public class RmiConnector
       // TODO Should we do that?
       ObjectName name = new ObjectName(jmxRmiConnectorNoClientCertificateName);
       mbs.registerMBean(jmxRmiConnectorNoClientCertificate, name);
+      rmiVersion = opendsRmiConnectorServer.getVersion();
 
       if (debugEnabled())
       {
@@ -504,5 +510,17 @@ public class RmiConnector
       registry = null;
     }
 
+  }
+
+
+
+  /**
+   * Retrieves the RMI protocol version string in use for this connector.
+   *
+   * @return  The RMI protocol version string in use for this connector.
+   */
+  public String getProtocolVersion()
+  {
+    return rmiVersion;
   }
 }

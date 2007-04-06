@@ -53,6 +53,29 @@ public interface PreParseBindOperation
 
 
   /**
+   * Retrieves a string representation of the protocol version
+   * associated with this bind request.
+   *
+   * @return  A string representation of the protocol version
+   *          associated with this bind request.
+   */
+  public String getProtocolVersion();
+
+
+
+  /**
+   * Specifies the string representation of the protocol version
+   * associated with this bind request.
+   *
+   * @param  protocolVersion  The string representation of the
+   *                          protocol version associated with this
+   *                          bind request.
+   */
+  public void setProtocolVersion(String protocolVersion);
+
+
+
+  /**
    * Retrieves the raw, unprocessed bind DN for this bind operation as
    * contained in the client request.  The value may not actually
    * contain a valid DN, as no validation will have been performed.

@@ -258,9 +258,10 @@ public class RmiAuthenticator implements JMXAuthenticator
         jmxConnectionHandler, authInfo);
 
     BindOperation bindOp = new BindOperation(jmxClientConnection,
-        jmxClientConnection.nextOperationID(), jmxClientConnection
-            .nextMessageID(), requestControls, new ASN1OctetString(authcID),
-        bindPW);
+        jmxClientConnection.nextOperationID(),
+        jmxClientConnection.nextMessageID(), requestControls,
+        jmxConnectionHandler.getRMIConnector().getProtocolVersion(),
+        new ASN1OctetString(authcID), bindPW);
 
     bindOp.run();
     if (bindOp.getResultCode() == ResultCode.SUCCESS)

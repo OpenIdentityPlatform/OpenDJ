@@ -1898,17 +1898,31 @@ public class LDAPClientConnection
 
     // See if this is an LDAPv2 bind request, and if so whether that should be
     // allowed.
-    ldapVersion = protocolOp.getProtocolVersion();
-    if ((ldapVersion == 2) && (! connectionHandler.allowLDAPv2()))
+    String versionString;
+    switch (ldapVersion = protocolOp.getProtocolVersion())
     {
-      BindResponseProtocolOp responseOp =
-           new BindResponseProtocolOp(
-                    LDAPResultCode.INAPPROPRIATE_AUTHENTICATION,
-                    getMessage(MSGID_LDAPV2_CLIENTS_NOT_ALLOWED));
-      sendLDAPMessage(securityProvider,
-                      new LDAPMessage(message.getMessageID(), responseOp));
-      disconnect(DisconnectReason.PROTOCOL_ERROR, false, null, -1);
-      return false;
+      case 2:
+        versionString = "2";
+
+        if (! connectionHandler.allowLDAPv2())
+        {
+          BindResponseProtocolOp responseOp =
+               new BindResponseProtocolOp(
+                        LDAPResultCode.INAPPROPRIATE_AUTHENTICATION,
+                        getMessage(MSGID_LDAPV2_CLIENTS_NOT_ALLOWED));
+          sendLDAPMessage(securityProvider,
+                          new LDAPMessage(message.getMessageID(), responseOp));
+          disconnect(DisconnectReason.PROTOCOL_ERROR, false, null, -1);
+          return false;
+        }
+
+        break;
+      case 3:
+        versionString = "3";
+        break;
+      default:
+        versionString = String.valueOf(ldapVersion);
+        break;
     }
 
 
@@ -1919,12 +1933,14 @@ public class LDAPClientConnection
     {
       case SIMPLE:
         bindOp = new BindOperation(this, nextOperationID.getAndIncrement(),
-                                   message.getMessageID(), controls, bindDN,
+                                   message.getMessageID(), controls,
+                                   versionString, bindDN,
                                    protocolOp.getSimplePassword());
         break;
       case SASL:
         bindOp = new BindOperation(this, nextOperationID.getAndIncrement(),
-                                   message.getMessageID(), controls, bindDN,
+                                   message.getMessageID(), controls,
+                                   versionString, bindDN,
                                    protocolOp.getSASLMechanism(),
                                    protocolOp.getSASLCredentials());
         break;

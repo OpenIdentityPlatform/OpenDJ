@@ -102,6 +102,15 @@ import static org.opends.server.util.StaticUtils.*;
 public class InternalClientConnection
        extends ClientConnection
 {
+  /**
+   * The protocol verison string that will be used for internal bind
+   * operations.  Since this is modeled after LDAPv3 binds, it will
+   * use a version number string of "3".
+   */
+  public static final String PROTOCOL_VERSION = "3";
+
+
+
   // The message ID counter to use for internal connections.
   private static AtomicInteger nextMessageID;
 
@@ -725,8 +734,8 @@ public class InternalClientConnection
   {
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
-                           new ArrayList<Control>(0), rawBindDN,
-                           password);
+                           new ArrayList<Control>(0),
+                           PROTOCOL_VERSION, rawBindDN, password);
     bindOperation.setInternalOperation(true);
 
     bindOperation.run();
@@ -752,8 +761,8 @@ public class InternalClientConnection
   {
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
-                           new ArrayList<Control>(0), bindDN,
-                           password);
+                           new ArrayList<Control>(0),
+                           PROTOCOL_VERSION, bindDN, password);
     bindOperation.setInternalOperation(true);
 
     bindOperation.run();
@@ -781,8 +790,9 @@ public class InternalClientConnection
   {
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
-                           new ArrayList<Control>(0), rawBindDN,
-                           saslMechanism, saslCredentials);
+                           new ArrayList<Control>(0),
+                           PROTOCOL_VERSION, rawBindDN, saslMechanism,
+                           saslCredentials);
     bindOperation.setInternalOperation(true);
 
     bindOperation.run();
@@ -810,8 +820,9 @@ public class InternalClientConnection
   {
     BindOperation bindOperation =
          new BindOperation(this, nextOperationID(), nextMessageID(),
-                           new ArrayList<Control>(0), bindDN,
-                           saslMechanism, saslCredentials);
+                           new ArrayList<Control>(0),
+                           PROTOCOL_VERSION, bindDN, saslMechanism,
+                           saslCredentials);
     bindOperation.setInternalOperation(true);
 
     bindOperation.run();
