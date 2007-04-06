@@ -44,8 +44,10 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.*;
+import java.util.concurrent.locks.Lock;
 
 /**
  * The AciHandler class performs the main processing for the
@@ -216,9 +218,9 @@ public class AciHandler extends AccessControlHandler
         List<Modification> modifications=container.getModifications();
         for(Modification m : modifications) {
             Attribute modAttr=m.getAttribute();
-            AttributeType modType=modAttr.getAttributeType();
+            AttributeType modAttrType=modAttr.getAttributeType();
 
-            if(modType.equals(aciType)) {
+            if(modAttrType.equals(aciType)) {
               /*
                * Check that the operation has modify privileges if
                * it contains an "aci" attribute type.
@@ -236,20 +238,22 @@ public class AciHandler extends AccessControlHandler
                 return false;
               }
             }
-
-            switch(m.getModificationType()) {
-              case DELETE:
-              case REPLACE:
-              case INCREMENT:
-              {
-                /*
+            //This access check handles the case where all attributes of this
+            //type are being replaced or deleted. If only a subset is being
+            //deleted than this access check is skipped.
+            ModificationType modType=m.getModificationType();
+            if((modType == ModificationType.DELETE &&
+                modAttr.getValues().isEmpty()) ||
+               (modType == ModificationType.REPLACE ||
+                modType == ModificationType.INCREMENT)) {
+                                /*
                  * Check if we have rights to delete all values of
                  * an attribute type in the resource entry.
                  */
-                if(resourceEntry.hasAttribute(modType)) {
-                  container.setCurrentAttributeType(modType);
+                if(resourceEntry.hasAttribute(modAttrType)) {
+                  container.setCurrentAttributeType(modAttrType);
                   List<Attribute> attrList =
-                       resourceEntry.getAttribute(modType,modAttr.getOptions());
+                   resourceEntry.getAttribute(modAttrType,modAttr.getOptions());
                   for (Attribute a : attrList) {
                     for (AttributeValue v : a.getValues()) {
                       container.setCurrentAttributeValue(v);
@@ -260,11 +264,11 @@ public class AciHandler extends AccessControlHandler
                     }
                   }
                 }
-              }
-            }
+             }
+
             if(modAttr.hasValue()) {
                for(AttributeValue v : modAttr.getValues()) {
-                   container.setCurrentAttributeType(modType);
+                   container.setCurrentAttributeType(modAttrType);
                    switch (m.getModificationType())
                    {
                      case ADD:
@@ -283,7 +287,7 @@ public class AciHandler extends AccessControlHandler
                      case INCREMENT:
                        Entry modifiedEntry = operation.getModifiedEntry();
                        List<Attribute> modifiedAttrs =
-                            modifiedEntry.getAttribute(modType,
+                            modifiedEntry.getAttribute(modAttrType,
                                                        modAttr.getOptions());
                        if (modifiedAttrs != null)
                        {
@@ -305,12 +309,12 @@ public class AciHandler extends AccessControlHandler
                    If so, check the syntax of that attribute value. Fail the
                    the operation if the syntax check fails.
                    */
-                   if(modType.equals(aciType)  ||
-                      modType.equals(globalAciType)) {
+                   if(modAttrType.equals(aciType)  ||
+                      modAttrType.equals(globalAciType)) {
                        try {
                            //A global ACI needs a NULL DN, not the DN of the
                            //modification.
-                           if(modType.equals(globalAciType))
+                           if(modAttrType.equals(globalAciType))
                                dn=DN.nullDN();
                            Aci.decode(v.getValue(),dn);
                        } catch (AciException ex) {
@@ -420,6 +424,25 @@ public class AciHandler extends AccessControlHandler
         if(container.hasRights(ACI_WRITE_ADD) ||
            container.hasRights(ACI_WRITE_DELETE))
                 container.setRights(container.getRights() | ACI_WRITE);
+        //Check if the ACI_SELF right needs to be set (selfwrite right).
+        //Only done if the right is ACI_WRITE,  an attribute value is set and
+        //that attribute value is a DN.
+        if((container.getCurrentAttributeValue() != null) &&
+           (container.hasRights(ACI_WRITE)) &&
+           (isAttributeDN(container.getCurrentAttributeType())))  {
+          try {
+            String DNString =
+                        container.getCurrentAttributeValue().getStringValue();
+            DN tmpDN = DN.decode(DNString);
+            //Have a valid DN, compare to clientDN to see if the ACI_SELF
+            //right should be set.
+            if(tmpDN.equals(container.getClientDN())) {
+              container.setRights(container.getRights() | ACI_SELF);
+            }
+          } catch (DirectoryException ex) {
+             return false;
+          }
+        }
         /*
          * First get all allowed candidate ACIs.
          */
@@ -434,6 +457,17 @@ public class AciHandler extends AccessControlHandler
          */
         return(testApplicableLists(container));
     }
+
+  /**
+   * Check if the specified attribute type is a DN by checking if its syntax
+   * OID is equal to the DN syntax OID.
+   * @param attribute The attribute type to check.
+   * @return True if the attribute type syntax OID is equal to a DN syntax OID.
+   */
+  private boolean isAttributeDN(AttributeType attribute) {
+    return (attribute.getSyntaxOID().equals(SYNTAX_DN_OID));
+  }
+
 
     /**
      * Performs an access check against all of the attributes of an entry.
@@ -781,28 +815,151 @@ public class AciHandler extends AccessControlHandler
       return returnEntry;
   }
 
-  //Planned to be implemented methods
+  /**
+   * Perform all needed RDN checks for the modifyDN operation. These checks
+   * are:
+   *
+   *  - Verify WRITE access to the entry.
+   *  - Verfiy WRITE_ADD access on each RDN component of the new RDN. The
+   *    WRITE_ADD access is used because this access could be restricted by
+   *    the targattrfilters keyword.
+   *  - If the deleteOLDRDN flag is set, verify WRITE_DELETE access on the
+   *    old RDN. The WRITE_DELETE access is used because this access could be
+   *    restricted by the targattrfilters keyword.
+   *
+   * @param operation   The ModifyDN operation class containing information to
+   * check access on.
+   * @return True if access is allowed.
+   */
+  private boolean aciCheckRDNs(ModifyDNOperation operation) {
+      boolean ret;
+      AciLDAPOperationContainer operationContainer =
+              new AciLDAPOperationContainer(operation, (ACI_WRITE),
+                      operation.getOriginalEntry());
+      ret=accessAllowed(operationContainer);
+      if(ret)
+          ret=checkRDN(ACI_WRITE_ADD,operation.getNewRDN(),operationContainer);
+      if(ret && operation.deleteOldRDN()) {
+          RDN oldRDN=operation.getOriginalEntry().getDN().getRDN();
+          ret =
+            checkRDN(ACI_WRITE_DELETE, oldRDN, operationContainer);
+      }
+      return ret;
+  }
+
 
   /**
+   * Check access on each attribute-value pair component of the specified RDN.
+   * There may be more than one attribute-value pair if the RDN is multi-valued.
+   *
+   * @param right  The access right to check for.
+   * @param rdn  The RDN to examine the attribute-value pairs of.
+   * @param container The container containing the information needed to
+   * evaluate the specified RDN.
+   * @return  True if access is allowed for all attribute-value pairs.
+   */
+  private boolean checkRDN(int right, RDN rdn, AciContainer container) {
+        boolean ret=false;
+        int numAVAs = rdn.getNumValues();
+        container.setRights(right);
+        for (int i = 0; i < numAVAs; i++){
+            AttributeType type=rdn.getAttributeType(i);
+            AttributeValue value=rdn.getAttributeValue(i);
+            container.setCurrentAttributeType(type);
+            container.setCurrentAttributeValue(value);
+            if(!(ret=accessAllowed(container)))
+                break;
+        }
+        return ret;
+  }
+
+  /**
+   * Check access on the new superior entry if it exists. If the entry does not
+   * exist or the DN cannot be locked then false is returned.
+   *
+   * @param superiorDN The DN of the new superior entry.
+   * @param op The modifyDN operation to check access on.
+   * @return True if access is granted to the new superior entry.
+   * @throws DirectoryException  If a problem occurs while trying to
+   *                             retrieve the new superior entry.
+   */
+  private boolean aciCheckSuperiorEntry(DN superiorDN, ModifyDNOperation op)
+  throws DirectoryException {
+    boolean ret=false;
+    Lock entryLock = null;
+    for (int i=0; i < 3; i++)  {
+      entryLock = LockManager.lockRead(superiorDN);
+      if (entryLock != null)
+        break;
+    }
+    if (entryLock == null) {
+      int    msgID   = MSGID_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER;
+      String message = getMessage(msgID, String.valueOf(superiorDN));
+       logError(ErrorLogCategory.ACCESS_CONTROL, ErrorLogSeverity.INFORMATIONAL,
+                message, msgID);
+      return false;
+    }
+    try {
+      Entry superiorEntry=DirectoryServer.getEntry(superiorDN);
+      if(superiorEntry!= null) {
+        AciLDAPOperationContainer operationContainer =
+                new AciLDAPOperationContainer(op, (ACI_IMPORT),
+                        superiorEntry);
+        ret=accessAllowed(operationContainer);
+      }
+    }  finally {
+          LockManager.unlock(superiorDN, entryLock);
+    }
+    return ret;
+  }
+
+  /**
+   * Checks access on a modifyDN operation.
+   *
+   * @param operation The modifyDN operation to check access on.
+   * @return True if access is allowed.
+   *
+   */
+  public boolean isAllowed(ModifyDNOperation operation) {
+      boolean ret=true;
+      DN newSuperiorDN;
+      if(!skipAccessCheck(operation)) {
+          //If this is a modifyDN move to a new superior, then check if the
+          //superior DN has import accesss.
+          if((newSuperiorDN=operation.getNewSuperior()) != null) {
+             try {
+               ret=aciCheckSuperiorEntry(newSuperiorDN, operation);
+             } catch (DirectoryException ex) {
+               ret=false;
+             }
+          }
+          //Perform the RDN access checks.
+          if(ret)
+              ret=aciCheckRDNs(operation);
+          //If this is a modifyDN move to a new superior, then check if the
+          //original entry DN has export access.
+          if(ret && (newSuperiorDN != null)) {
+              AciLDAPOperationContainer operationContainer =
+                      new AciLDAPOperationContainer(operation, (ACI_EXPORT),
+                              operation.getOriginalEntry());
+                 ret=accessAllowed(operationContainer);
+          }
+      }
+      return ret;
+  }
+
+  //Not planned to be implemented methods.
+
+   /**
    * {@inheritDoc}
    */
   @Override
   public boolean maySend(SearchOperation operation,
       SearchResultReference reference) {
-    //TODO: Planned to be implemented.
+    //TODO: Deferred.
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isAllowed(ModifyDNOperation modifyDNOperation) {
-      // TODO: Planned to be implemented.
-      return true;
-  }
-
-  //Not planned to be implemented methods.
   /**
    * {@inheritDoc}
    */

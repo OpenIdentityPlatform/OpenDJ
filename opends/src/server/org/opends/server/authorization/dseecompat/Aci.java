@@ -183,7 +183,7 @@ public class Aci  {
     public static final int ACI_SEARCH = 0x0020;
 
     /**
-     * ACI_SELF is used for the SELFWRITE right. Currently not implemented.
+     * ACI_SELF is used for the SELFWRITE right.
      */
     public static final int ACI_SELF = 0x0040;
 
@@ -200,13 +200,13 @@ public class Aci  {
 
     /**
      * ACI_IMPORT is used to set the container rights for a LDAP
-     * modify dn operation. Currently not used.
+     * modify dn operation.
      */
     public static final int ACI_IMPORT = 0x0100;
 
     /**
      * ACI_EXPORT is used to set the container rights for a LDAP
-     * modify dn operation. Currently not used.
+     * modify dn operation.
      */
     public static final int ACI_EXPORT = 0x0200;
 
