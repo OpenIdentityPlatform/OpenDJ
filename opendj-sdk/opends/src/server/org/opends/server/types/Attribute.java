@@ -228,6 +228,34 @@ public class Attribute
 
 
   /**
+   * Retrieves the user-provided name of the attribute, along with any
+   * options that might have been provided.
+   *
+   * @return  The user-provided name of the attribute, along with any
+   *          options that might have been provided.
+   */
+  public String getNameWithOptions()
+  {
+    if (options.isEmpty())
+    {
+      return name;
+    }
+    else
+    {
+      StringBuilder buffer = new StringBuilder();
+      buffer.append(name);
+      for (String option : options)
+      {
+        buffer.append(';');
+        buffer.append(option);
+      }
+      return buffer.toString();
+    }
+  }
+
+
+
+  /**
    * Retrieves the set of attribute options for this attribute.
    *
    * @return  The set of attribute options for this attribute.

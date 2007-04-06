@@ -6008,6 +6008,28 @@ public class CoreMessages
   public static final int MSGID_DSCORE_DESCRIPTION_WINDOWS_NET_START =
        CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 599;
 
+
+
+  /**
+   * The message ID for the message that will be used if an entry is encoded
+   * with a version number that we don't support.  This takes a single argument,
+   * which is a hexadecimal representation of the version number byte.
+   */
+  public static final int MSGID_ENTRY_DECODE_UNRECOGNIZED_VERSION =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 600;
+
+
+
+  /**
+   * The message ID for the message that will be used if an exception is caught
+   * while attempting to decode an entry.  This takes a single argument, which
+   * is a string representation of the exception that was caught.
+   */
+  public static final int MSGID_ENTRY_DECODE_EXCEPTION =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 601;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
@@ -6466,6 +6488,12 @@ public class CoreMessages
                     "Unable to increment the value of attribute %s because " +
                     "either the current value or the increment could not " +
                     "be parsed as an integer.");
+    registerMessage(MSGID_ENTRY_DECODE_UNRECOGNIZED_VERSION,
+                    "Unable to decode an entry because it had an unsupported " +
+                    "entry version byte value of %s.");
+    registerMessage(MSGID_ENTRY_DECODE_EXCEPTION,
+                    "Unable to decode an entry because an unexpected " +
+                    "exception was caught during processing:  %s.");
 
 
     registerMessage(MSGID_SEARCH_FILTER_NULL,
