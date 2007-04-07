@@ -29,6 +29,7 @@ package org.opends.quicksetup.util;
 
 import org.opends.quicksetup.QuickSetupException;
 import org.opends.quicksetup.Application;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.i18n.ResourceProvider;
 
 import java.io.InputStream;
@@ -266,9 +267,9 @@ public class ZipExtractor {
 
     File file = new File(path);
     if (file.getParent().endsWith(
-        File.separator + Utils.getWindowsBinariesRelativePath()) ||
+        File.separator + Installation.WINDOWS_BINARIES_PATH_RELATIVE) ||
         file.getParent().endsWith(
-        File.separator + Utils.getUNIXBinariesRelativePath()))
+        File.separator + Installation.UNIX_BINARIES_PATH_RELATIVE))
     {
       if (path.endsWith(".bat"))
       {
@@ -282,9 +283,9 @@ public class ZipExtractor {
     else if (path.endsWith(".sh"))
     {
       perm = "755";
-    } else if (path.endsWith(Utils.getUnixSetupFileName()) ||
-            path.endsWith(Utils.getUnixUninstallFileName()) ||
-            path.endsWith(Utils.getUnixUpgradeFileName()))
+    } else if (path.endsWith(Installation.UNIX_SETUP_FILE_NAME) ||
+            path.endsWith(Installation.UNIX_UNINSTALL_FILE_NAME) ||
+            path.endsWith(Installation.UNIX_UPGRADE_FILE_NAME))
     {
       perm = "755";
     } else

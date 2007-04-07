@@ -35,6 +35,7 @@ import java.util.HashMap;
 
 import org.opends.quicksetup.QuickSetupException;
 import org.opends.quicksetup.ProgressStep;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.InstallProgressStep;
@@ -403,14 +404,16 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
    */
   private String[] getOpenDSJarPaths()
   {
-    String[] jarPaths = new String[Utils.getOpenDSJarPaths().length];
+    String[] jarPaths = 
+            new String[Installation.OPEN_DS_JAR_RELATIVE_PATHS.length];
     File parentDir = new File(getUserData().getServerLocation());
     for (int i = 0; i < jarPaths.length; i++)
     {
-      File f = new File(parentDir, Utils.getOpenDSJarPaths()[i]);
+      File f = new File(parentDir, Installation.OPEN_DS_JAR_RELATIVE_PATHS[i]);
       jarPaths[i] = f.getAbsolutePath();
     }
     return jarPaths;
+
   }
 
   /**

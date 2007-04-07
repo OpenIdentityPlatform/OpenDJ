@@ -29,6 +29,7 @@ package org.opends.quicksetup.uninstaller;
 
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Launcher;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -95,9 +96,9 @@ public class UninstallLauncher extends Launcher {
   protected void printUsage() {
     String arg;
     if (Utils.isWindows()) {
-      arg = Utils.getWindowsUninstallFileName();
+      arg = Installation.WINDOWS_UNINSTALL_FILE_NAME;
     } else {
-      arg = Utils.getUnixUninstallFileName();
+      arg = Installation.UNIX_UNINSTALL_FILE_NAME;
     }
     String msg = getMsg("uninstall-launcher-usage");
     /*

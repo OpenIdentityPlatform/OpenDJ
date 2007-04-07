@@ -40,6 +40,7 @@ import javax.swing.SwingUtilities;
 import org.opends.server.core.DirectoryServer;
 
 import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
@@ -531,14 +532,9 @@ StatusPanelButtonListener
         getFormattedProgress(getMsg("progress-starting")) + getLineBreak());
 
     ArrayList<String> argList = new ArrayList<String>();
-
-    if (Utils.isWindows())
-    {
-      argList.add(Utils.getPath(getBinariesPath(), "start-ds.bat"));
-    } else
-    {
-      argList.add(Utils.getPath(getBinariesPath(), "start-ds"));
-    }
+    Installation installation =
+            new Installation(Utils.getInstallPathFromClasspath());
+    argList.add(Utils.getPath(installation.getServerStartCommandFile()));
 
     String[] args = new String[argList.size()];
     argList.toArray(args);
@@ -655,16 +651,9 @@ StatusPanelButtonListener
         getFormattedProgress(getMsg("progress-stopping")) + getLineBreak());
 
     ArrayList<String> argList = new ArrayList<String>();
-
-    if (Utils.isWindows())
-    {
-      argList.add(Utils.getPath(getBinariesPath(),
-              Utils.getWindowsStopFileName()));
-    } else
-    {
-      argList.add(Utils.getPath(getBinariesPath(),
-              Utils.getUnixStopFileName()));
-    }
+    Installation installation =
+            new Installation(Utils.getInstallPathFromClasspath());
+    argList.add(Utils.getPath(installation.getServerStopCommandFile()));
     String[] args = new String[argList.size()];
     argList.toArray(args);
     ProcessBuilder pb = new ProcessBuilder(args);
@@ -894,7 +883,7 @@ StatusPanelButtonListener
    * have something of type:
    * key=value
    *
-   * @see ResourceProvider.getMsg(String key)
+   * @see ResourceProvider#getMsg(String)
    * @param key the key in the properties file.
    * @return the value associated to the key in the properties file.
    * properties file.
@@ -914,7 +903,7 @@ StatusPanelButtonListener
    * mykey=value with argument {0}.
    *
    * This method will return "value with argument value1".
-   * @see ResourceProvider.getMsg(String key, String[] args)
+   * @see ResourceProvider#getMsg(String, String[])
    * @param key the key in the properties file.
    * @param args the arguments to be passed to generate the resulting value.
    * @return the value associated to the key in the properties file.
@@ -931,16 +920,6 @@ StatusPanelButtonListener
   private ResourceProvider getI18n()
   {
     return ResourceProvider.getInstance();
-  }
-
-  /**
-   * Returns the path to the binaries.
-   * @return the path to the binaries.
-   */
-  private String getBinariesPath()
-  {
-    return Utils.getPath(Utils.getInstallPathFromClasspath(),
-        Utils.getBinariesRelativePath());
   }
 
   /**

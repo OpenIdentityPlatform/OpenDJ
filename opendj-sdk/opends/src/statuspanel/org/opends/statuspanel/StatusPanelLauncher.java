@@ -30,6 +30,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.Installation;
 import org.opends.statuspanel.i18n.ResourceProvider;
 
 /**
@@ -120,10 +121,10 @@ public class StatusPanelLauncher
     String arg;
     if (Utils.isWindows())
     {
-      arg = Utils.getWindowsStatusPanelFileName();
+      arg = Installation.WINDOWS_STATUSPANEL_FILE_NAME;
     } else
     {
-      arg = Utils.getUnixStatusPanelFileName();
+      arg = Installation.UNIX_STATUSPANEL_FILE_NAME;
     }
     /*
      * This is required because the usage message contains '{' characters that

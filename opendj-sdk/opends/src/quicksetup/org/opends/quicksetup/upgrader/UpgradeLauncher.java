@@ -29,6 +29,7 @@ package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -61,9 +62,9 @@ public class UpgradeLauncher extends Launcher {
   protected void printUsage() {
     String arg;
     if (Utils.isWindows()) {
-      arg = Utils.getWindowsUpgradeFileName();
+      arg = Installation.WINDOWS_UPGRADE_FILE_NAME;
     } else {
-      arg = Utils.getUnixUpgradeFileName();
+      arg = Installation.UNIX_UPGRADE_FILE_NAME;
     }
     String msg = getMsg("upgrade-launcher-usage");
     /*

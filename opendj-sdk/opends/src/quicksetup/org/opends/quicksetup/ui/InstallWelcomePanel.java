@@ -30,6 +30,7 @@ package org.opends.quicksetup.ui;
 import java.awt.Component;
 
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.Installation;
 
 /**
  * This panel is used to show a welcome message.
@@ -71,8 +72,8 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
     {
       msgKey = "welcome-panel-webstart-instructions";
       args = new String[3];
-      String cmd = Utils.isWindows()?Utils.getWindowsSetupFileName():
-          Utils.getUnixSetupFileName();
+      String cmd = Utils.isWindows()? Installation.WINDOWS_SETUP_FILE_NAME:
+          Installation.UNIX_SETUP_FILE_NAME;
       args[0] = UIFactory.applyFontToHtml(cmd,
           UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
       args[1] = org.opends.server.util.DynamicConstants.COMPACT_VERSION_STRING;

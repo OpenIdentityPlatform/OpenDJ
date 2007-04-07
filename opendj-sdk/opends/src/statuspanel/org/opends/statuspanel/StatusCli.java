@@ -38,6 +38,7 @@ import java.util.TreeSet;
 import javax.swing.table.TableModel;
 
 import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
 
 import org.opends.server.core.DirectoryServer;
@@ -337,10 +338,10 @@ class StatusCli
     String arg;
     if (Utils.isWindows())
     {
-      arg = Utils.getWindowsStatusCliFileName();
+      arg = Installation.WINDOWS_STATUSCLI_FILE_NAME;
     } else
     {
-      arg = Utils.getUnixStatusCliFileName();
+      arg = Installation.UNIX_STATUSCLI_FILE_NAME;
     }
     /*
      * This is required because the usage message contains '{' characters that

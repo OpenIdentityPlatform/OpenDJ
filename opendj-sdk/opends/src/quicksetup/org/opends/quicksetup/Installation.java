@@ -569,4 +569,15 @@ public class Installation {
     return new File(getRootDirectory(), "uninstall.bat");
   }
 
+  public File getStatusPanelCommandFile() {
+    File statusPanelCommandFile;
+    if (Utils.isWindows()) {
+      statusPanelCommandFile = new File(getBinariesDirectory(),
+              WINDOWS_STATUSPANEL_FILE_NAME);
+    } else {
+      statusPanelCommandFile = new File(getBinariesDirectory(),
+              UNIX_STATUSPANEL_FILE_NAME);
+    }
+    return statusPanelCommandFile;
+  }
 }

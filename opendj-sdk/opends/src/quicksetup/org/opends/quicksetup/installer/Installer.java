@@ -659,17 +659,8 @@ public abstract class Installer extends Application {
     hmSummary.put(InstallProgressStep.ENABLING_WINDOWS_SERVICE,
         getFormattedSummary(getMsg("summary-enabling-windows-service")));
 
-    String cmd;
-    if (Utils.isWindows())
-    {
-      cmd = Utils.getBinariesRelativePath()+File.separator+
-      Utils.getWindowsStatusPanelFileName();
-    }
-    else
-    {
-      cmd = Utils.getBinariesRelativePath()+File.separator+
-      Utils.getUnixStatusPanelFileName();
-    }
+    Installation installation = getInstallation();
+    String cmd = Utils.getPath(installation.getStatusPanelCommandFile());
     cmd = UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
     String[] args = {formatter.getFormattedText(getInstallationPath()), cmd};
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
