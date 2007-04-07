@@ -296,16 +296,6 @@ public class CurrentInstallStatus
   }
 
   /**
-   * Provides the config file path (path to config.ldif file).
-   *
-   * @return the config file path.
-   */
-  private String getConfigFilePath()
-  {
-    return Utils.getConfigFileFromClasspath();
-  }
-
-  /**
    * Provides the LDAP port as is specified in the config.ldif file.
    *
    * @return the LDAP port specified in the config.ldif file.
@@ -411,7 +401,9 @@ public class CurrentInstallStatus
       StringBuffer buf = new StringBuffer();
       try
       {
-        FileReader reader = new FileReader(getConfigFilePath());
+        Installation installation = getInstallationFromClassPath();
+        FileReader reader =
+                new FileReader(installation.getCurrentConfigurationFile());
         BufferedReader in = new BufferedReader(reader);
         String line;
         // We do not care about encoding: we are just interested in the ports
@@ -480,5 +472,9 @@ public class CurrentInstallStatus
       index1 = getConfigFileContents().indexOf(attrName,
           index1 + attrName.length());
     }
+  }
+
+  private Installation getInstallationFromClassPath() {
+    return new Installation(Utils.getInstallPathFromClasspath());
   }
 }

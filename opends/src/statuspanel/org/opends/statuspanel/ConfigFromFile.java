@@ -43,6 +43,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ObjectClass;
 import org.opends.statuspanel.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.Installation;
 
 /**
  * This class is used to retrieve configuration information directly from the
@@ -88,8 +89,10 @@ public class ConfigFromFile
     errorMessage = null;
     try
     {
+      Installation installation =
+              new Installation(Utils.getInstallPathFromClasspath());
       LDIFImportConfig c = new LDIFImportConfig(
-          Utils.getConfigFileFromClasspath());
+          Utils.getPath(installation.getCurrentConfigurationFile()));
       LDIFReader reader = new LDIFReader(c);
       for (Entry entry = reader.readEntry(false); entry != null;
       entry = reader.readEntry(false))

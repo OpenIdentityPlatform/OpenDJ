@@ -361,19 +361,14 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       public Object processBackgroundTask() throws UserDataException {
         try
         {
-          String cmd = Utils.isWindows()?Utils.getWindowsStatusPanelFileName():
-              Utils.getUnixStatusPanelFileName();
-          String serverPath;
-          if (Utils.isWebStart())
-          {
-            serverPath = application.getUserData().getServerLocation();
+          String rootDirectory;
+          if (isWebStart()) {
+            rootDirectory = application.getUserData().getServerLocation();
+          } else {
+            rootDirectory = Utils.getInstallPathFromClasspath();
           }
-          else
-          {
-            serverPath = Utils.getInstallPathFromClasspath();
-          }
-          cmd = Utils.getPath(serverPath, Utils.getBinariesRelativePath()+
-                  File.separator+cmd);
+          Installation installation = new Installation(rootDirectory);
+          String cmd = Utils.getPath(installation.getStatusPanelCommandFile());
           ProcessBuilder pb = new ProcessBuilder(cmd);
           Map<String, String> env = pb.environment();
           env.put("JAVA_HOME", System.getProperty("java.home"));

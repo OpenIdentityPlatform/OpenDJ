@@ -30,6 +30,7 @@ import java.util.ArrayList;
 
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -114,9 +115,9 @@ public class InstallLauncher extends Launcher {
   public void printUsage() {
     String arg;
     if (Utils.isWindows()) {
-      arg = Utils.getWindowsSetupFileName();
+      arg = Installation.WINDOWS_SETUP_FILE_NAME;
     } else {
-      arg = Utils.getUnixSetupFileName();
+      arg = Installation.UNIX_SETUP_FILE_NAME;
     }
     /*
      * This is required because the usage message contains '{' characters that
@@ -154,10 +155,10 @@ public class InstallLauncher extends Launcher {
 
     if (Utils.isWindows()) {
       System.setProperty("org.opends.server.scriptName",
-              Utils.getWindowsSetupFileName());
+              Installation.WINDOWS_SETUP_FILE_NAME);
     } else {
       System.setProperty("org.opends.server.scriptName",
-              Utils.getUnixSetupFileName());
+              Installation.UNIX_SETUP_FILE_NAME);
     }
     ArrayList<String> newArgList = new ArrayList<String>();
     if (args != null) {
@@ -170,7 +171,9 @@ public class InstallLauncher extends Launcher {
     newArgList.add("--configClass");
     newArgList.add("org.opends.server.extensions.ConfigFileHandler");
     newArgList.add("--configFile");
-    newArgList.add(Utils.getConfigFileFromClasspath());
+    Installation installation =
+            new Installation(Utils.getInstallPathFromClasspath());
+    newArgList.add(Utils.getPath(installation.getCurrentConfigurationFile()));
 
     String[] newArgs = new String[newArgList.size()];
     newArgList.toArray(newArgs);
