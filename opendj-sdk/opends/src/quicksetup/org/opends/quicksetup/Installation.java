@@ -569,6 +569,11 @@ public class Installation {
     return new File(getRootDirectory(), "uninstall.bat");
   }
 
+  /**
+   * Returns the path to the status-panel file.
+   *
+   * @return the path to the status-panel file.
+   */
   public File getStatusPanelCommandFile() {
     File statusPanelCommandFile;
     if (Utils.isWindows()) {
