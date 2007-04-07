@@ -404,7 +404,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
    */
   private String[] getOpenDSJarPaths()
   {
-    String[] jarPaths = 
+    String[] jarPaths =
             new String[Installation.OPEN_DS_JAR_RELATIVE_PATHS.length];
     File parentDir = new File(getUserData().getServerLocation());
     for (int i = 0; i < jarPaths.length; i++)

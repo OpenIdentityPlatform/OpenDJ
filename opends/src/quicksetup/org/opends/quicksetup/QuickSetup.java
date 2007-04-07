@@ -41,7 +41,6 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 
 import javax.swing.*;
-import java.io.File;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
