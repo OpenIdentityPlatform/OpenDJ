@@ -1196,6 +1196,15 @@
               </xsd:complexType>
             </xsd:element>
           </xsd:sequence>
+          <xsd:attribute name="case-insensitive" type="xsd:boolean"
+            use="optional" default="true">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates whether or not values of this property should
+                be treated in a case-insensitive manner.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
         </xsd:complexType>
       </xsd:element>
     </xsd:choice>
