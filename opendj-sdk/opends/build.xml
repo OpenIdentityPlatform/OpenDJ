@@ -31,17 +31,18 @@
     file in this directory for build instructions.
   </description>
 
-  <!-- General server-wide properties                               -->
-  <property name="src.dir"        location="src/server"              />
-  <property name="build.dir"      location="build"                   />
-  <property name="classes.dir"    location="${build.dir}/classes"    />
-  <property name="lib.dir"        location="lib"                     />
-  <property name="ext.dir"        location="ext"                     />
-  <property name="package.dir"    location="${build.dir}/package"    />
-  <property name="javadoc.dir"    location="${build.dir}/javadoc"    />
-  <property name="resource.dir"   location="resource"                />
-  <property name="scripts.dir"    location="${resource.dir}/bin"     />
-  <property name="config.dir"     location="${resource.dir}/config"  />
+  <!-- General server-wide properties                                 -->
+  <property name="src.dir"          location="src/server"              />
+  <property name="build.dir"        location="build"                   />
+  <property name="classes.dir"      location="${build.dir}/classes"    />
+  <property name="lib.dir"          location="lib"                     />
+  <property name="ext.dir"          location="ext"                     />
+  <property name="package.dir"      location="${build.dir}/package"    />
+  <property name="javadoc.dir"      location="${build.dir}/javadoc"    />
+  <property name="resource.dir"     location="resource"                />
+  <property name="scripts.dir"      location="${resource.dir}/bin"     />
+  <property name="config.dir"       location="${resource.dir}/config"  />
+  <property name="build.debuglevel"    value="lines,vars,source"       />
 
   <!-- Properties for build tools                                   -->
   <property name="buildtools.dir" location="build-tools"              />
@@ -406,9 +407,9 @@
 
     <mkdir dir="${classes.dir}" />
 
-    <javac srcdir="${src.dir}:${admin.src.dir}" destdir="${classes.dir}" optimize="true"
+    <javac srcdir="${src.dir}:${admin.src.dir}" destdir="${classes.dir}"
          excludes="**/package-info.java"
-         debug="on" debuglevel="lines,vars,source" source="1.5" target="1.5"
+         debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -435,7 +436,7 @@
     </taskdef>
 
     <iajc inpath="${classes.dir}" destdir="${classes.dir}"
-          debug="true" debuglevel="lines,source" source="1.5" target="1.5"
+          debug="true" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
           deprecation="true" fork="true" maxmem="${MEM}">
       <classpath>
         <fileset dir="${lib.dir}">
@@ -452,7 +453,7 @@
 
     <mkdir dir="${quicksetup.classes.dir}" />
     <javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
-               optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+               debug="on" debuglevel="${build.debuglevel}" source="1.5"
                target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
                memoryMaximumSize="${MEM}">
       <include name="**/org/opends/server/util/SetupUtils.java"/>
@@ -461,7 +462,7 @@
       <compilerarg value="-Xlint:all" />
     </javac>
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
-         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+         debug="on" debuglevel="${build.debuglevel}" source="1.5"
          target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -485,7 +486,7 @@
 
     <mkdir dir="${statuspanel.classes.dir}" />
     <javac srcdir="${statuspanel.src.dir}" destdir="${statuspanel.classes.dir}"
-           optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+           debug="on" debuglevel="${build.debuglevel}" source="1.5"
            target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
            memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -536,8 +537,8 @@
 
     <!-- Recreate the classes directory and recompile into it. -->
     <mkdir dir="${classes.dir}" />
-    <javac srcdir="${src.dir}:${admin.src.dir}" destdir="${classes.dir}" optimize="true"
-         debug="on" debuglevel="lines,source" source="1.5" target="1.5"
+    <javac srcdir="${src.dir}:${admin.src.dir}" destdir="${classes.dir}"
+         debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -556,7 +557,7 @@
     <!-- Recreate the quicksetup classes directory and recompile into it. -->
     <mkdir dir="${quicksetup.classes.dir}" />
     <javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
-                       optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+                       debug="on" debuglevel="${build.debuglevel}" source="1.5"
                        target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
                        memoryMaximumSize="${MEM}">
       <include name="**/org/opends/server/util/SetupUtils.java"/>
@@ -564,8 +565,8 @@
       <include name="**/org/opends/server/types/OperatingSystem.java"/>
       <compilerarg value="-Xlint:all" />
     </javac>
-    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}" optimize="true"
-        debug="on" debuglevel="lines,source" source="1.5" target="1.5"
+    <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
+        debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
         deprecation="true" fork="true" memoryInitialSize="${MEM}"
         memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -590,8 +591,8 @@
 
     <!-- Recreate the statuspanel classes directory and recompile into it. -->
     <mkdir dir="${statuspanel.classes.dir}" />
-    <javac srcdir="${statuspanel.src.dir}" destdir="${statuspanel.classes.dir}" optimize="true"
-        debug="on" debuglevel="lines,source" source="1.5" target="1.5"
+    <javac srcdir="${statuspanel.src.dir}" destdir="${statuspanel.classes.dir}"
+        debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
         deprecation="true" fork="true" memoryInitialSize="${MEM}"
         memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -767,7 +768,7 @@
     <mkdir dir="${dsml.classes.dir}" />
 
     <javac srcdir="${dsml.gen.dir}" destdir="${dsml.classes.dir}"
-         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+         debug="on" debuglevel="${build.debuglevel}" source="1.5"
          target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -780,7 +781,7 @@
     </javac>
 
     <javac srcdir="${dsml.src.dir}" destdir="${dsml.classes.dir}"
-         optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+         debug="on" debuglevel="${build.debuglevel}" source="1.5"
          target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -888,7 +889,7 @@
     <!-- Compile the test cases -->
     <mkdir dir="${unittest.classes.dir}" />
     <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}"
-           optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+           debug="on" debuglevel="${build.debuglevel}" source="1.5"
            target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
            memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -1298,7 +1299,7 @@
     <mkdir dir="${buildtools.classes.dir}" />
 
     <javac srcdir="${buildtools.src.dir}" destdir="${buildtools.classes.dir}"
-           optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+           debug="on" debuglevel="${build.debuglevel}" source="1.5"
            target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
            memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
