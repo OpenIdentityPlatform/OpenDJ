@@ -135,6 +135,25 @@ public class Utils
   }
 
   /**
+   * Creates a new file attempting to create the parent directories
+   * if necessary.
+   * @param f File to create
+   * @return boolean indicating whether the file was created; false otherwise
+   * @throws IOException if something goes wrong
+   */
+  public static boolean createFile(File f) throws IOException {
+    boolean success = false;
+    if (f != null) {
+      File parent = f.getParentFile();
+      if (!parent.exists()) {
+        parent.mkdirs();
+      }
+      success = f.createNewFile();
+    }
+    return success;
+  }
+
+  /**
    * Returns the absolute path for the given parentPath and relativePath.
    * @param parentPath the parent path.
    * @param relativePath the relative path.
