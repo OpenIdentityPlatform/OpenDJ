@@ -1165,7 +1165,7 @@
     <!-- This sets org.opends.test.debug.target if and only if its's not
          alreadly set. -->
     <condition property="org.opends.test.debug.target"
-               value="org.opends.server:level=verbose,category=caught|data|database_access|message|protocol">
+               value="org.opends.server:level=info,category=caught|data|database_access|message|protocol">
       <not>
         <isset property="org.opends.test.debug.target" />
       </not>
