@@ -41,10 +41,7 @@ import java.awt.event.WindowEvent;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.io.IOException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileFilter;
+import java.io.*;
 
 import static org.opends.quicksetup.Installation.*;
 
@@ -154,7 +151,7 @@ public class Upgrader extends Application implements CliApplication {
     DATABASES_PATH_RELATIVE, // db
     LOGS_PATH_RELATIVE, // logs
     LOCKS_PATH_RELATIVE, // locks
-    HISTORY_PATH_RELATIVE // history; TODO: should we do this?
+    HISTORY_PATH_RELATIVE // history
   };
 
   private ProgressStep currentProgressStep = UpgradeProgressStep.NOT_STARTED;
@@ -170,6 +167,11 @@ public class Upgrader extends Application implements CliApplication {
 
   /** Directory where backup is kept in case the upgrade needs reversion. */
   private File backupDirectory = null;
+
+  /** ID that uniquely identifieds this invocation of the Upgrader in the
+   * historical logs.
+   */
+  private Long historicalOperationId;
 
   /**
    * {@inheritDoc}
@@ -317,11 +319,17 @@ public class Upgrader extends Application implements CliApplication {
     // Reset exception just in case this application is rerun
     // for some reason
     runException = null;
+    Integer fromVersion = null;
+    Integer toVersion = null;
 
     try {
       try {
         setCurrentProgressStep(UpgradeProgressStep.INITIALIZING);
         initialize();
+        fromVersion = getStagedInstallation().getSvnRev();
+        toVersion = getInstallation().getSvnRev();
+        this.historicalOperationId =
+                writeInitialHistoricalRecord(fromVersion, toVersion);
       } catch (ApplicationException e) {
         LOG.log(Level.INFO, "error initializing upgrader", e);
         throw e;
@@ -390,8 +398,8 @@ public class Upgrader extends Application implements CliApplication {
 //      sleepFor1();
 //      setCurrentProgressStep(UpgradeProgressStep.VERIFYING);
 //      sleepFor1();
-//      setCurrentProgressStep(UpgradeProgressStep.RECORDING_HISTORY);
-//      sleepFor1();
+
+
 
     } catch (ApplicationException ae) {
       this.runException = ae;
@@ -404,6 +412,23 @@ public class Upgrader extends Application implements CliApplication {
       try {
         setCurrentProgressStep(UpgradeProgressStep.CLEANUP);
         cleanup();
+
+        // Write a record in the log file indicating success/failure
+        setCurrentProgressStep(UpgradeProgressStep.RECORDING_HISTORY);
+        HistoricalRecord.Status status;
+        String note = null;
+        if (runException == null) {
+          status = HistoricalRecord.Status.SUCCESS;
+        } else {
+          status = HistoricalRecord.Status.FAILURE;
+          note = runException.getLocalizedMessage();
+        }
+        writeHistoricalRecord(historicalOperationId,
+                fromVersion,
+                toVersion,
+                status,
+                note);
+
       } catch (ApplicationException e) {
         System.err.print("error cleaning up after upgrade: " +
                 e.getLocalizedMessage());
@@ -417,6 +442,48 @@ public class Upgrader extends Application implements CliApplication {
       setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_ERRORS);
     }
 
+  }
+
+  private Long writeInitialHistoricalRecord(
+          Integer fromVersion,
+          Integer toVersion)
+          throws ApplicationException
+  {
+    Long id;
+    try {
+      HistoricalLog log =
+            new HistoricalLog(getInstallation().getHistoryLogFile());
+      id = log.append(fromVersion, toVersion,
+              HistoricalRecord.Status.STARTED, null);
+    } catch (IOException e) {
+      throw ApplicationException.createFileSystemException(
+              "error logging operation", e);
+    }
+    return id;
+  }
+
+  private void writeHistoricalRecord(
+          Long id,
+          Integer from,
+          Integer to,
+          HistoricalRecord.Status status,
+          String note)
+          throws ApplicationException {
+    try {
+      HistoricalLog log =
+            new HistoricalLog(getInstallation().getHistoryLogFile());
+      log.append(id, from, to, status, note);
+
+      // FOR TESTING
+      List<HistoricalRecord> records = log.getRecords();
+      for(HistoricalRecord record : records) {
+        System.out.println(record);
+      }
+
+    } catch (IOException e) {
+      throw ApplicationException.createFileSystemException(
+              "error logging operation", e);
+    }
   }
 
   private void upgradeComponents() throws ApplicationException {

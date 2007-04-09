@@ -490,7 +490,6 @@ public class Installation {
     return new File(getHistoryDirectory(), HISTORY_LOG_FILE_NAME);
   }
 
-
   /**
    * Gets the directory config/upgrade.
    * @return File representing the config/upgrade directory
@@ -570,9 +569,9 @@ public class Installation {
   }
 
   /**
-   * Returns the path to the status-panel file.
-   *
-   * @return the path to the status-panel file.
+   * Gets the status panel command file appropriate for the current operating
+   * system.
+   * @return File object representing the status panel command
    */
   public File getStatusPanelCommandFile() {
     File statusPanelCommandFile;
