@@ -9964,9 +9964,9 @@ public class ToolMessages
                     "Specifies the LDIF file containing the data to be " +
                     "updated.");
     registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_CHANGES,
-                    "Specifies he LDIF file containing the changes to apply.");
+                    "Specifies the LDIF file containing the changes to apply.");
     registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_TARGET,
-                    "Specifies he file to which the updated data should be " +
+                    "Specifies the file to which the updated data should be " +
                     "written.");
     registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_HELP,
                     "Displays this usage information.");
