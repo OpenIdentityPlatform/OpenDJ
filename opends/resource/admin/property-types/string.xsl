@@ -35,4 +35,11 @@
   <xsl:template match="adm:string" mode="java-definition-type">
     <xsl:value-of select="'StringPropertyDefinition'" />
   </xsl:template>
+  <xsl:template match="adm:string" mode="java-definition-ctor">
+    <xsl:if test="boolean(@case-insensitive)">
+      <xsl:value-of
+        select="concat('      builder.setCaseInsensitive(',
+                       @case-insensitive, ');&#xa;')" />
+    </xsl:if>
+  </xsl:template>
 </xsl:stylesheet>
