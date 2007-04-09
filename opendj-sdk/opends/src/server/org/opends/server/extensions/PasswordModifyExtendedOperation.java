@@ -31,21 +31,15 @@ package org.opends.server.extensions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
 import org.opends.server.controls.PasswordPolicyErrorType;
@@ -77,7 +71,6 @@ import org.opends.server.types.ModificationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -86,7 +79,9 @@ import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.admin.std.server.
+     PasswordModifyExtendedOperationHandlerCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 
 
 /**
@@ -95,23 +90,22 @@ import static org.opends.server.util.StaticUtils.*;
  * as for generating a new password if none was provided.
  */
 public class PasswordModifyExtendedOperation
-       extends ExtendedOperationHandler
-       implements ConfigurableComponent
+       extends ExtendedOperationHandler<
+                    PasswordModifyExtendedOperationHandlerCfg>
+       implements ConfigurationChangeListener<
+                    PasswordModifyExtendedOperationHandlerCfg>
 {
 
 
 
-  // The DN of the configuration entry.
-  private DN configEntryDN;
+  // The current configuration state.
+  private PasswordModifyExtendedOperationHandlerCfg currentConfig;
 
   // The DN of the identity mapper.
   private DN identityMapperDN;
 
   // The reference to the identity mapper.
   private IdentityMapper identityMapper;
-
-  // The set of OIDs for the supported controls.
-  private Set<String> supportedControlOIDs;
 
 
 
@@ -131,11 +125,11 @@ public class PasswordModifyExtendedOperation
 
   /**
    * Initializes this extended operation handler based on the information in the
-   * provided configuration entry.  It should also register itself with the
+   * provided configuration.  It should also register itself with the
    * Directory Server for the particular kinds of extended operations that it
    * will process.
    *
-   * @param  configEntry  The configuration entry that contains the information
+   * @param   config      The configuration that contains the information
    *                      to use to initialize this extended operation handler.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in the
@@ -145,36 +139,20 @@ public class PasswordModifyExtendedOperation
    *                                   that is not related to the server
    *                                   configuration.
    */
-  public void initializeExtendedOperationHandler(ConfigEntry configEntry)
+  public void initializeExtendedOperationHandler(
+       PasswordModifyExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    configEntryDN = configEntry.getDN();
-
-    int msgID = MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER;
-    DNConfigAttribute mapperStub =
-         new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID), true, false,
-                               false);
     try
     {
-      DNConfigAttribute mapperAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(mapperStub);
-      if (mapperAttr == null)
+      identityMapperDN = config.getIdentityMapperDN();
+      identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
+      if (identityMapper == null)
       {
-        msgID = MSGID_EXTOP_PASSMOD_NO_ID_MAPPER;
-        String message = getMessage(msgID, String.valueOf(configEntryDN));
+        int msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
+        String message = getMessage(msgID, String.valueOf(identityMapperDN),
+                                    String.valueOf(config.dn()));
         throw new ConfigException(msgID, message);
-      }
-      else
-      {
-        identityMapperDN = mapperAttr.activeValue();
-        identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
-        if (identityMapper == null)
-        {
-          msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
-          String message = getMessage(msgID, String.valueOf(identityMapperDN),
-                                      String.valueOf(configEntryDN));
-          throw new ConfigException(msgID, message);
-        }
       }
     }
     catch (Exception e)
@@ -183,8 +161,8 @@ public class PasswordModifyExtendedOperation
       {
         debugCaught(DebugLogLevel.ERROR, e);
       }
-      msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
+      int msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
+      String message = getMessage(msgID, String.valueOf(config.dn()),
                                   stackTraceToSingleLineString(e));
       throw new InitializationException(msgID, message, e);
     }
@@ -195,10 +173,16 @@ public class PasswordModifyExtendedOperation
     supportedControlOIDs.add(OID_PASSWORD_POLICY_CONTROL);
 
 
-    DirectoryServer.registerConfigurableComponent(this);
+    // Save this configuration for future reference.
+    currentConfig = config;
+
+    // Register this as a change listener.
+    config.addPasswordModifyChangeListener(this);
 
     DirectoryServer.registerSupportedExtension(OID_PASSWORD_MODIFY_REQUEST,
                                                this);
+
+    registerControlsAndFeatures();
   }
 
 
@@ -209,9 +193,11 @@ public class PasswordModifyExtendedOperation
    */
   public void finalizeExtendedOperationHandler()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig.removePasswordModifyChangeListener(this);
 
     DirectoryServer.deregisterSupportedExtension(OID_PASSWORD_MODIFY_REQUEST);
+
+    deregisterControlsAndFeatures();
   }
 
 
@@ -311,7 +297,7 @@ public class PasswordModifyExtendedOperation
     // See if a user identity was provided.  If so, then try to resolve it to
     // an actual user.
     DN    userDN    = null;
-    Entry userEntry = null;
+    Entry userEntry;
     Lock  userLock  = null;
 
     try
@@ -1277,55 +1263,11 @@ public class PasswordModifyExtendedOperation
 
 
   /**
-   * {@inheritDoc}
-   */
-  public Set<String> getSupportedControls()
-  {
-    return supportedControlOIDs;
-  }
-
-
-
-  /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
-   */
-  public DN getConfigurableComponentEntryDN()
-  {
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    List<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-    int msgID = MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER;
-    attrList.add(new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID),
-                                       true, false, false, identityMapperDN));
-
-    return attrList;
-  }
-
-
-
-  /**
    * Indicates whether the provided configuration entry has an acceptable
    * configuration for this component.  If it does not, then detailed
    * information about the problem(s) should be added to the provided list.
    *
-   * @param  configEntry          The configuration entry for which to make the
+   * @param  config          The configuration entry for which to make the
    *                              determination.
    * @param  unacceptableReasons  A list that can be used to hold messages about
    *                              why the provided entry does not have an
@@ -1334,37 +1276,22 @@ public class PasswordModifyExtendedOperation
    * @return  <CODE>true</CODE> if the provided entry has an acceptable
    *          configuration for this component, or <CODE>false</CODE> if not.
    */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                      List<String> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(
+       PasswordModifyExtendedOperationHandlerCfg config,
+       List<String> unacceptableReasons)
   {
     // Make sure that the specified identity mapper is OK.
-    int msgID = MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER;
-    DNConfigAttribute mapperStub =
-         new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID), true, false,
-                               false);
     try
     {
-      DNConfigAttribute mapperAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(mapperStub);
-      if (mapperAttr == null)
+      DN mapperDN = config.getIdentityMapperDN();
+      IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
+      if (mapper == null)
       {
-        msgID = MSGID_EXTOP_PASSMOD_NO_ID_MAPPER;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()));
+        int msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
+        String message = getMessage(msgID, String.valueOf(mapperDN),
+                                    String.valueOf(config.dn()));
         unacceptableReasons.add(message);
         return false;
-      }
-      else
-      {
-        DN mapperDN = mapperAttr.pendingValue();
-        IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
-        if (mapper == null)
-        {
-          msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
-          String message = getMessage(msgID, String.valueOf(mapperDN),
-                                      String.valueOf(configEntry.getDN()));
-          unacceptableReasons.add(message);
-          return false;
-        }
       }
     }
     catch (Exception e)
@@ -1374,8 +1301,8 @@ public class PasswordModifyExtendedOperation
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
-      String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
+      int msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
+      String message = getMessage(msgID, String.valueOf(config.dn()),
                                   stackTraceToSingleLineString(e));
       unacceptableReasons.add(message);
       return false;
@@ -1397,15 +1324,13 @@ public class PasswordModifyExtendedOperation
    * successfully (and optionally about parameters that were not changed) should
    * also be included.
    *
-   * @param  configEntry      The entry containing the new configuration to
+   * @param  config      The entry containing the new configuration to
    *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
    *
    * @return  Information about the result of the configuration update.
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange(
+       PasswordModifyExtendedOperationHandlerCfg config)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -1415,33 +1340,17 @@ public class PasswordModifyExtendedOperation
     // Make sure that the specified identity mapper is OK.
     DN             mapperDN = null;
     IdentityMapper mapper   = null;
-    int msgID = MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER;
-    DNConfigAttribute mapperStub =
-         new DNConfigAttribute(ATTR_IDMAPPER_DN, getMessage(msgID), true, false,
-                               false);
     try
     {
-      DNConfigAttribute mapperAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(mapperStub);
-      if (mapperAttr == null)
+      mapperDN = config.getIdentityMapperDN();
+      mapper   = DirectoryServer.getIdentityMapper(mapperDN);
+      if (mapper == null)
       {
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
+        resultCode = ResultCode.CONSTRAINT_VIOLATION;
 
-        msgID = MSGID_EXTOP_PASSMOD_NO_ID_MAPPER;
-        messages.add(getMessage(msgID, String.valueOf(configEntry.getDN())));
-      }
-      else
-      {
-        mapperDN = mapperAttr.pendingValue();
-        mapper   = DirectoryServer.getIdentityMapper(mapperDN);
-        if (mapper == null)
-        {
-          resultCode = ResultCode.CONSTRAINT_VIOLATION;
-
-          msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
-          messages.add(getMessage(msgID, String.valueOf(mapperDN),
-                                  String.valueOf(configEntry.getDN())));
-        }
+        int msgID = MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER;
+        messages.add(getMessage(msgID, String.valueOf(mapperDN),
+                                String.valueOf(config.dn())));
       }
     }
     catch (Exception e)
@@ -1453,8 +1362,8 @@ public class PasswordModifyExtendedOperation
 
       resultCode = DirectoryServer.getServerErrorResultCode();
 
-      msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
-      messages.add(getMessage(msgID, String.valueOf(configEntry.getDN()),
+      int msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
+      messages.add(getMessage(msgID, String.valueOf(config.dn()),
                               stackTraceToSingleLineString(e)));
     }
 

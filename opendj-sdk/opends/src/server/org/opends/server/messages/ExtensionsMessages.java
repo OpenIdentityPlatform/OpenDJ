@@ -3861,8 +3861,8 @@ public class ExtensionsMessages
    * identity mapper DN configuration attribute.  This does not take any
    * arguments.
    */
-  public static final int MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 366;
+//  public static final int MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER =
+//       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 366;
 
 
 
@@ -3871,8 +3871,8 @@ public class ExtensionsMessages
    * is provided for the password modify extended operation.  This takes a
    * single argument, which is the DN of the configuration entry.
    */
-  public static final int MSGID_EXTOP_PASSMOD_NO_ID_MAPPER =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 367;
+//  public static final int MSGID_EXTOP_PASSMOD_NO_ID_MAPPER =
+//       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 367;
 
 
 
@@ -5020,19 +5020,6 @@ public class ExtensionsMessages
                     "updated.");
 
 
-    registerMessage(MSGID_EXTOP_PASSMOD_DESCRIPTION_ID_MAPPER,
-                    "Specifies the DN of the configuration entry for the " +
-                    "identity mapper that should be used in conjunction with " +
-                    "the password modify extended operation.  This will be " +
-                    "used to identify a user based on an authorization ID " +
-                    "in the 'u:' form.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
-    registerMessage(MSGID_EXTOP_PASSMOD_NO_ID_MAPPER,
-                    "No identity mapper DN was specified in the " +
-                    ATTR_IDMAPPER_DN + " attribute of the password modify " +
-                    "extended operation configuration entry %s.  This is a " +
-                    "required attribute, and the password modify extended " +
-                    "operation will not be enabled.");
     registerMessage(MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER,
                     "The identity mapper with configuration entry DN %s as " +
                     "specified for use with the password modify extended " +

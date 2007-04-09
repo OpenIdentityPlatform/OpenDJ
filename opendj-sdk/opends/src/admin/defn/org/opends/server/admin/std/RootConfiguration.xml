@@ -77,5 +77,13 @@
       </ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
+  <adm:relation name="extended-operation-handler">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Extended Operations,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
   <adm:product-name>OpenDS Directory Server</adm:product-name>
 </adm:root-managed-object>

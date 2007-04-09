@@ -31,12 +31,11 @@ package org.opends.server.api;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ExtendedOperation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
-
-
+import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 
 
 /**
@@ -44,19 +43,26 @@ import org.opends.server.types.InitializationException;
  * implemented by a Directory Server module that implements the
  * functionality required for one or more types of extended
  * operations.
+ *
+ * @param <T> The configuration class that will be provided to
+ *            initialize the handler.
  */
-public abstract class ExtendedOperationHandler
+public abstract class
+     ExtendedOperationHandler<T extends ExtendedOperationHandlerCfg>
 {
 
 
+  /**
+   * The default set of supported control OIDs for this extended
+   * operation.
+   */
+  protected Set<String> supportedControlOIDs = new HashSet<String>(0);
 
-  // The default set of supported control OIDs for this extended
-  // operation.
-  private Set<String> supportedControlOIDs = new HashSet<String>(0);
-
-  // The default set of supported feature OIDs for this extended
-  // operation.
-  private Set<String> supportedFeatureOIDs = new HashSet<String>(0);
+  /**
+   * The default set of supported feature OIDs for this extended
+   * operation.
+   */
+  protected Set<String> supportedFeatureOIDs = new HashSet<String>(0);
 
 
 
@@ -66,9 +72,9 @@ public abstract class ExtendedOperationHandler
    * register itself with the Directory Server for the particular
    * kinds of extended operations that it will process.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      extended operation handler.
+   * @param  config  The extended operation handler configuration that
+   *                 contains the information to use to initialize
+   *                 this extended operation handler.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -80,7 +86,7 @@ public abstract class ExtendedOperationHandler
    *                                   configuration.
    */
   public abstract void
-       initializeExtendedOperationHandler(ConfigEntry configEntry)
+       initializeExtendedOperationHandler(T config)
          throws ConfigException, InitializationException;
 
 
@@ -167,5 +173,58 @@ public abstract class ExtendedOperationHandler
   {
     return getSupportedFeatures().contains(featureOID);
   }
+
+  /**
+   * If the extended operation handler defines any supported controls
+   * and/or features, then register them with the server.
+   *
+   */
+  protected void registerControlsAndFeatures()
+  {
+    Set<String> controlOIDs = getSupportedControls();
+    if (controlOIDs != null)
+    {
+      for (String oid : controlOIDs)
+      {
+        DirectoryServer.registerSupportedControl(oid);
+      }
+    }
+
+    Set<String> featureOIDs = getSupportedFeatures();
+    if (featureOIDs != null)
+    {
+      for (String oid : featureOIDs)
+      {
+        DirectoryServer.registerSupportedFeature(oid);
+      }
+    }
+  }
+
+
+  /**
+   * If the extended operation handler defines any supported controls
+   * and/or features, then deregister them with the server.
+   */
+  protected void deregisterControlsAndFeatures()
+  {
+    Set<String> controlOIDs = getSupportedControls();
+    if (controlOIDs != null)
+    {
+      for (String oid : controlOIDs)
+      {
+        DirectoryServer.deregisterSupportedControl(oid);
+      }
+    }
+
+    Set<String> featureOIDs = getSupportedFeatures();
+    if (featureOIDs != null)
+    {
+      for (String oid : featureOIDs)
+      {
+        DirectoryServer.deregisterSupportedFeature(oid);
+      }
+    }
+  }
+
 }
 
