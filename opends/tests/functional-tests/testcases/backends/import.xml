@@ -1117,7 +1117,7 @@
     
               <call function="'importLdif'">
                 { 'ldifFile'    : '%s/backends/Schema.ldif' % STAGED_DATA_DIR,
-                  'extraParams' : '-s'
+                  'extraParams' : '-S'
                 }
               </call>
     
