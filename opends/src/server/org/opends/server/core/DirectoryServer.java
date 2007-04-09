@@ -4154,7 +4154,7 @@ public class DirectoryServer
                 baseName + "s\"");
       lines.add("  package=\"org.opends.server.admin.std\"");
       lines.add("  xmlns:adm=\"http://www.opends.org/admin\"");
-      lines.add("  xmlns:ldap=\"http://www.opends.org/admin-ldap\"");
+      lines.add("  xmlns:ldap=\"http://www.opends.org/admin-ldap\">");
       lines.add("  <adm:synopsis>");
       lines.add("    ___SYNOPSIS___");
       lines.add("  </adm:synopsis>");

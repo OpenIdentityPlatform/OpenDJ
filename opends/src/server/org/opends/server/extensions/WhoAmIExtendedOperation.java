@@ -30,7 +30,6 @@ package org.opends.server.extensions;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
@@ -42,7 +41,7 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
-
+import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 
 
 /**
@@ -50,7 +49,7 @@ import static org.opends.server.util.ServerConstants.*;
  * It simply returns the authorized ID of the currently-authenticated user.
  */
 public class WhoAmIExtendedOperation
-       extends ExtendedOperationHandler
+       extends ExtendedOperationHandler<ExtendedOperationHandlerCfg>
 {
 
 
@@ -67,15 +66,13 @@ public class WhoAmIExtendedOperation
   }
 
 
-
-
   /**
    * Initializes this extended operation handler based on the information in the
    * provided configuration entry.  It should also register itself with the
    * Directory Server for the particular kinds of extended operations that it
    * will process.
    *
-   * @param  configEntry  The configuration entry that contains the information
+   * @param  config       The configuration that contains the information
    *                      to use to initialize this extended operation handler.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in the
@@ -85,12 +82,15 @@ public class WhoAmIExtendedOperation
    *                                   that is not related to the server
    *                                   configuration.
    */
-  public void initializeExtendedOperationHandler(ConfigEntry configEntry)
-         throws ConfigException, InitializationException
+  public void initializeExtendedOperationHandler(
+       ExtendedOperationHandlerCfg config)
+       throws ConfigException, InitializationException
   {
     // No special configuration is required.
 
     DirectoryServer.registerSupportedExtension(OID_WHO_AM_I_REQUEST, this);
+
+    registerControlsAndFeatures();
   }
 
 
@@ -102,6 +102,8 @@ public class WhoAmIExtendedOperation
   public void finalizeExtendedOperationHandler()
   {
     DirectoryServer.deregisterSupportedExtension(OID_WHO_AM_I_REQUEST);
+
+    deregisterControlsAndFeatures();
   }
 
 

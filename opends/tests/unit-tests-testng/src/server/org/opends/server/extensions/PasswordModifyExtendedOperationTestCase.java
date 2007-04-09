@@ -36,7 +36,9 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.server.PasswordModifyExtendedOperationHandlerCfg;
+import org.opends.server.admin.std.meta.PasswordModifyExtendedOperationHandlerCfgDefn;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
@@ -45,17 +47,11 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -91,8 +87,9 @@ public class PasswordModifyExtendedOperationTestCase
 
 
   /**
-   * Retrieves a set of invvalid configuration entries.
+   * Retrieves a set of invalid configuration entries.
    *
+   * @return The set of invalid configuration entries.
    * @throws  Exception  If an unexpected problem occurs.
    */
   @DataProvider(name = "invalidConfigs")
@@ -143,7 +140,7 @@ public class PasswordModifyExtendedOperationTestCase
   /**
    * Tests the process of initializing the server with invalid configurations.
    *
-   * @param  entry  The configuration entry to use for the initialization.
+   * @param  e  The configuration entry to use for the initialization.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -153,13 +150,14 @@ public class PasswordModifyExtendedOperationTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=Extended Operations,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    PasswordModifyExtendedOperationHandlerCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              PasswordModifyExtendedOperationHandlerCfgDefn.getInstance(),
+              e);
 
     PasswordModifyExtendedOperation handler =
          new PasswordModifyExtendedOperation();
-    handler.initializeExtendedOperationHandler(configEntry);
+    handler.initializeExtendedOperationHandler(configuration);
   }
 
 
@@ -1237,8 +1235,6 @@ public class PasswordModifyExtendedOperationTestCase
   /**
    * Tests the password modify extended operation over an internal connection
    * with a request whose value isn't a valid encoded sequence.
-   *
-   * @throws  Exception  If an unexpected error occurs.
    */
   @Test()
   public void testFailureInvalidRequestValueFormat()
@@ -1258,8 +1254,6 @@ public class PasswordModifyExtendedOperationTestCase
   /**
    * Tests the password modify extended operation over an internal connection
    * with a request that contain an invalid sequence element type.
-   *
-   * @throws  Exception  If an unexpected error occurs.
    */
   @Test()
   public void testFailureInvalidSequenceElementType()
@@ -1284,8 +1278,6 @@ public class PasswordModifyExtendedOperationTestCase
   /**
    * Tests the password modify extended operation over an unauthenticated
    * internal connection and without providing an authorization ID.
-   *
-   * @throws  Exception  If an unexpected error occurs.
    */
   @Test()
   public void testFailureCompletelyAnonymous()

@@ -2734,8 +2734,8 @@ public class ConfigMessages
    * configuration.  This takes a single argument, which is a string
    * representation of the exception that was caught.
    */
-  public static final int MSGID_CONFIG_EXTOP_CANNOT_GET_BASE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_FATAL_ERROR | 248;
+//  public static final int MSGID_CONFIG_EXTOP_CANNOT_GET_BASE =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_FATAL_ERROR | 248;
 
 
 
@@ -2744,8 +2744,8 @@ public class ConfigMessages
    * handler base entry does not exist in the Directory Server configuration.
    * This does not take any arguments.
    */
-  public static final int MSGID_CONFIG_EXTOP_BASE_DOES_NOT_EXIST =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 249;
+//  public static final int MSGID_CONFIG_EXTOP_BASE_DOES_NOT_EXIST =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 249;
 
 
 
@@ -2755,8 +2755,8 @@ public class ConfigMessages
    * configuration.  This takes two arguments, which are the DN of the
    * configuration entry and the reason that it is not acceptable.
    */
-  public static final int MSGID_CONFIG_EXTOP_ENTRY_UNACCEPTABLE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 250;
+//  public static final int MSGID_CONFIG_EXTOP_ENTRY_UNACCEPTABLE =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 250;
 
 
 
@@ -2766,8 +2766,8 @@ public class ConfigMessages
    * This takes two arguments, which are the DN of the configuration entry and a
    * message that explains the problem that occurred.
    */
-  public static final int MSGID_CONFIG_EXTOP_CANNOT_CREATE_HANDLER =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 251;
+//  public static final int MSGID_CONFIG_EXTOP_CANNOT_CREATE_HANDLER =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 251;
 
 
 
@@ -2776,8 +2776,8 @@ public class ConfigMessages
    * extended operation does not contain a valid objectclass.  This takes a
    * single argument, which is the DN of the configuration entry.
    */
-  public static final int MSGID_CONFIG_EXTOP_INVALID_OBJECTCLASS =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 252;
+//  public static final int MSGID_CONFIG_EXTOP_INVALID_OBJECTCLASS =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 252;
 
 
 
@@ -2785,8 +2785,8 @@ public class ConfigMessages
    * The message ID for the description of the extended operation handler class
    * name configuration attribute.  This does not take any arguments.
    */
-  public static final int MSGID_CONFIG_EXTOP_DESCRIPTION_CLASS_NAME =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 253;
+//  public static final int MSGID_CONFIG_EXTOP_DESCRIPTION_CLASS_NAME =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 253;
 
 
 
@@ -2795,8 +2795,8 @@ public class ConfigMessages
    * extended operation base does not contain a value for the class name.  This
    * takes a single argument, which is the DN of the configuration entry.
    */
-  public static final int MSGID_CONFIG_EXTOP_NO_CLASS_NAME =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 254;
+//  public static final int MSGID_CONFIG_EXTOP_NO_CLASS_NAME =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 254;
 
 
 
@@ -2806,8 +2806,8 @@ public class ConfigMessages
    * takes two arguments, which are the DN of the configuration entry and a
    * string representation of the exception that was caught.
    */
-  public static final int MSGID_CONFIG_EXTOP_INVALID_CLASS_NAME =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 255;
+//  public static final int MSGID_CONFIG_EXTOP_INVALID_CLASS_NAME =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 255;
 
 
 
@@ -2827,8 +2827,8 @@ public class ConfigMessages
    * The message ID for the description of the extended operation handler
    * enabled configuration attribute.  This does not take any arguments.
    */
-  public static final int MSGID_CONFIG_EXTOP_DESCRIPTION_ENABLED =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 257;
+//  public static final int MSGID_CONFIG_EXTOP_DESCRIPTION_ENABLED =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 257;
 
 
 
@@ -2837,8 +2837,8 @@ public class ConfigMessages
    * extended operation base does not contain a value for the enabled attribute.
    * This takes a single argument, which is the DN of the configuration entry.
    */
-  public static final int MSGID_CONFIG_EXTOP_NO_ENABLED_ATTR =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 258;
+//  public static final int MSGID_CONFIG_EXTOP_NO_ENABLED_ATTR =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 258;
 
 
 
@@ -2848,8 +2848,8 @@ public class ConfigMessages
    * This takes two arguments, which are the DN of the configuration entry and a
    * string representation of the exception that was caught.
    */
-  public static final int MSGID_CONFIG_EXTOP_INVALID_ENABLED_VALUE =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 259;
+//  public static final int MSGID_CONFIG_EXTOP_INVALID_ENABLED_VALUE =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 259;
 
 
 
@@ -2859,8 +2859,8 @@ public class ConfigMessages
    * effect.  This takes three arguments, which are the old class name, the new
    * class name, and the DN of the associated configuration entry.
    */
-  public static final int MSGID_CONFIG_EXTOP_CLASS_ACTION_REQUIRED =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 260;
+//  public static final int MSGID_CONFIG_EXTOP_CLASS_ACTION_REQUIRED =
+//            CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 260;
 
 
 
@@ -2882,8 +2882,8 @@ public class ConfigMessages
    * handler that already exists.  This takes a single argument, which is the DN
    * of the handler configuration entry.
    */
-  public static final int MSGID_CONFIG_EXTOP_EXISTS =
-            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 262;
+//  public static final int MSGID_CONFIG_EXTOP_EXISTS =
+//            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 262;
 
 
 
@@ -2893,8 +2893,8 @@ public class ConfigMessages
    * any specific details about the nature of the problem.  This takes a single
    * argument, which is the DN of the configuration entry.
    */
-  public static final int MSGID_CONFIG_EXTOP_UNACCEPTABLE_CONFIG =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 263;
+//  public static final int MSGID_CONFIG_EXTOP_UNACCEPTABLE_CONFIG =
+//       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 263;
 
 
 
@@ -8122,78 +8122,14 @@ public class ConfigMessages
                     "Server is restarted.");
 
 
-    registerMessage(MSGID_CONFIG_EXTOP_CANNOT_GET_BASE,
-                    "An error occurred while attempting to retrieve the " +
-                    "extended operation handler base entry " +
-                    DN_EXTENDED_OP_CONFIG_BASE +
-                    " from the Directory Server configuration:  %s.");
-    registerMessage(MSGID_CONFIG_EXTOP_BASE_DOES_NOT_EXIST,
-                    "The extended operation configuration base " +
-                    DN_EXTENDED_OP_CONFIG_BASE + " does not exist in the " +
-                    "Directory Server configuration.  This entry must be " +
-                    "present for the server to function properly.");
-    registerMessage(MSGID_CONFIG_EXTOP_ENTRY_UNACCEPTABLE,
-                    "Configuration entry %s does not contain a valid " +
-                    "extended operation handler configuration:  %s.  It will " +
-                    "be ignored.");
-    registerMessage(MSGID_CONFIG_EXTOP_CANNOT_CREATE_HANDLER,
-                    "An error occurred while attempting to create a " +
-                    "Directory Server extended operation handler from the " +
-                    "information in configuration entry %s:  %s.");
-    registerMessage(MSGID_CONFIG_EXTOP_INVALID_OBJECTCLASS,
-                    "Configuration entry %s does not contain the " +
-                    OC_EXTENDED_OPERATION_HANDLER + " objectclass, which is " +
-                    "required for extended operation handler definitions.");
-    registerMessage(MSGID_CONFIG_EXTOP_DESCRIPTION_CLASS_NAME,
-                    "The fully-qualified name of the Java class that defines " +
-                    "the Directory Server extended operation handler.  If " +
-                    "this is altered while the associated handler is " +
-                    "enabled, then that handler must be disabled and " +
-                    "re-enabled for the change to take effect.");
-    registerMessage(MSGID_CONFIG_EXTOP_NO_CLASS_NAME,
-                    "Configuration entry %s does not contain a valid value " +
-                    "for configuration attribute " + ATTR_EXTOP_CLASS +
-                    " which specifies the fully-qualified class name for " +
-                    "the associated extended operation handler.");
-    registerMessage(MSGID_CONFIG_EXTOP_INVALID_CLASS_NAME,
-                    "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_EXTOP_CLASS + ":  %s.");
     registerMessage(MSGID_CONFIG_EXTOP_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
                     "contain a valid extended operation handler " +
                     "implementation:  %s.");
-    registerMessage(MSGID_CONFIG_EXTOP_DESCRIPTION_ENABLED,
-                    "Indicates whether this Directory Server extended " +
-                    "operation handler should be enabled.  Changes to this " +
-                    "attribute will take effect immediately.");
-    registerMessage(MSGID_CONFIG_EXTOP_NO_ENABLED_ATTR,
-                    "Configuration entry %s does not contain a valid value " +
-                    "for configuration attribute " + ATTR_EXTOP_ENABLED +
-                    " which indicates whether the extended operation handler " +
-                    "should be enabled for use in the Directory Server.");
-    registerMessage(MSGID_CONFIG_EXTOP_INVALID_ENABLED_VALUE,
-                    "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_EXTOP_ENABLED + ":  %s.");
-    registerMessage(MSGID_CONFIG_EXTOP_CLASS_ACTION_REQUIRED,
-                    "The requested change in the extended operation handler " +
-                    "class name from %s to %s in configuration entry %s " +
-                    "cannot be dynamically applied.  This change will not " +
-                    "take effect until the handler is disabled and " +
-                    "re-enabled or the Directory Server is restarted.");
     registerMessage(MSGID_CONFIG_EXTOP_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as an extended operation handler " +
                     "as defined in configuration entry %s:  %s.");
-    registerMessage(MSGID_CONFIG_EXTOP_EXISTS,
-                    "Unable to add a new extended operation handler entry " +
-                    "with DN %s because there is already a handler " +
-                    "registered with that DN.");
-    registerMessage(MSGID_CONFIG_EXTOP_UNACCEPTABLE_CONFIG,
-                    "The configuration for the extended operation handler " +
-                    "defined in configuration entry %s was not acceptable " +
-                    "according to its internal validation.  However, no " +
-                    "specific information is available regarding the " +
-                    "problem(s) with the entry.");
 
 
     registerMessage(MSGID_CONFIG_SASL_CANNOT_GET_BASE,
@@ -9329,7 +9265,7 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_GROUP_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "group implementation base entry " +
-                    DN_EXTENDED_OP_CONFIG_BASE +
+                    DN_GROUP_IMPLEMENTATION_CONFIG_BASE +
                     " from the Directory Server configuration:  %s.");
     registerMessage(MSGID_CONFIG_GROUP_BASE_DOES_NOT_EXIST,
                     "The group implementation configuration base " +

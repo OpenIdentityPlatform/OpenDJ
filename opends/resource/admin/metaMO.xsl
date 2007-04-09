@@ -324,7 +324,7 @@
                      $this-java-class,
                      'CfgClient&gt; impl) {&#xa;',
                      '      this.impl = impl;&#xa;',
-                     '    };&#xa;')" />
+                     '    }&#xa;')" />
     <!--
       Getters/Setters for all properties.
     -->
@@ -428,7 +428,7 @@
                      $this-java-class,
                      'CfgServerImpl(ServerManagedObject&lt;? extends ', $this-java-class, 'Cfg&gt; impl) {&#xa;',
                      '      this.impl = impl;&#xa;',
-                     '    };&#xa;')" />
+                     '    }&#xa;')" />
     <!--
       Generate all the change listener methods - one for each managed
       object in the hierarchy.
@@ -958,7 +958,7 @@
       <xsl:when test="string(@multi-valued) != 'true'">
         <xsl:choose>
           <xsl:when test="adm:default-behavior/adm:defined">
-            <!-- 
+            <!--
               The method is guaranteed to return a value since there is a
               well-defined default value.
             -->
@@ -966,7 +966,7 @@
           </xsl:when>
           <xsl:when
             test="$interface = 'server' and @mandatory = 'true'">
-            <!-- 
+            <!--
               The method is guaranteed to return a value in the server interface, but
               not necessarily in the client, since the mandatory property might not
               have been created yet.
