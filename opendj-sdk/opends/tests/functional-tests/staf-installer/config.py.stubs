@@ -26,6 +26,7 @@ DIRECTORY_INSTANCE_SSL_PORT = '${opends.port.ldaps}'
 DIRECTORY_INSTANCE_SFX      = 'dc=com'
 DIRECTORY_INSTANCE_BE       = 'userRoot'
 STAGED_DATA_DIR             = '%s/shared/data' % TMP_DATA_DIR
+LOCAL_DATA_DIR              = '%s/functional-tests/shared/data' % TMPDIR
 JAVA_HOME                   = '${java.home}'
 SEND_MAIL_AFTER_TEST_RUN    = '${staf.email.send}'
 SEND_MAIL_TO                = '${staf.email.to}'
