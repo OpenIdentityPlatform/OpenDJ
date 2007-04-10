@@ -135,6 +135,10 @@ public class AttributeTypePropertyDefinitionTest {
     AttributeTypePropertyDefinition d = createPropertyDefinition();
     AttributeType type = d.decodeValue(value);
     assertEquals(type.getNameOrOID(), value);
+
+    // Make sure to turn schema checking back on so that other tests which
+    // depend on it don't fail.
+    AttributeTypePropertyDefinition.setCheckSchema(true);
   }
 
 
