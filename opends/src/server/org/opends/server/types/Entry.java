@@ -4917,6 +4917,26 @@ public class Entry
 
 
   /**
+   * Retrieves a string representation of this entry in LDIF form.
+   *
+   * @return  A string representation of this entry in LDIF form.
+   */
+  public String toLDIFString()
+  {
+    StringBuilder buffer = new StringBuilder();
+
+    for (StringBuilder ldifLine : toLDIF())
+    {
+      buffer.append(ldifLine);
+      buffer.append(EOL);
+    }
+
+    return buffer.toString();
+  }
+
+
+
+  /**
    * Retrieves a one-line representation of this entry.
    *
    * @return  A one-line representation of this entry.
