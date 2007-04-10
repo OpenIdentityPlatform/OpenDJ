@@ -435,7 +435,7 @@ public class LDIFModify
     {
       configFile = new StringArgument("configfile", 'c', "configFile", true,
                                       false, true, "{configFile}", null, null,
-                                      MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_FILE);
+                                      MSGID_DESCRIPTION_CONFIG_FILE);
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -444,7 +444,7 @@ public class LDIFModify
                              OPTION_LONG_CONFIG_CLASS, false,
                              false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
-                             MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_CLASS);
+                             MSGID_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -475,7 +475,7 @@ public class LDIFModify
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_LDIFMODIFY_CANNOT_INITIALIZE_ARGS;
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
       System.err.println(message);
       return 1;
@@ -489,7 +489,7 @@ public class LDIFModify
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_LDIFMODIFY_ERROR_PARSING_ARGS;
+      int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       System.err.println(message);

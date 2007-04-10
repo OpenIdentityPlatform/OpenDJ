@@ -229,7 +229,7 @@ public class ConfigureWindowsService
     }
     catch (ArgumentException ae)
     {
-      int msgID   = MSGID_CONFIGURE_WINDOWS_SERVICE_CANNOT_INITIALIZE_ARGS;
+      int msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -245,7 +245,7 @@ public class ConfigureWindowsService
       }
       catch (ArgumentException ae)
       {
-        int msgID = MSGID_CONFIGURE_WINDOWS_SERVICE_ERROR_PARSING_ARGS;
+        int msgID = MSGID_ERROR_PARSING_ARGS;
         String message = getMessage(msgID, ae.getMessage());
 
         err.println(wrapText(message, MAX_LINE_WIDTH));

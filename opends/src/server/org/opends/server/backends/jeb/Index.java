@@ -28,10 +28,9 @@ package org.opends.server.backends.jeb;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.JebMessages.
-     MSGID_JEB_DATABASE_EXCEPTION;
-import static org.opends.server.messages.MessageHandler.getMessage;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.CursorConfig;
@@ -159,6 +158,12 @@ public class Index
     {
       database = entryContainer.openDatabase(dbConfig, name);
       threadLocalDatabase.set(database);
+
+      if(debugEnabled())
+      {
+        debugInfo("JE Index database %s opened with %d records.",
+                  database.getDatabaseName(), database.count());
+      }
     }
     return database;
   }
@@ -169,15 +174,19 @@ public class Index
    * @param txn A database transaction, or null if none is required.
    * @param key         The index key.
    * @param entryID     The entry ID.
+   * @return True if the entry ID is inserted or ignored because the entry limit
+   *         count is exceeded. False if it alreadly exists in the entry ID set
+   *         for the given key.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public void insertID(Transaction txn, DatabaseEntry key, EntryID entryID)
+  public boolean insertID(Transaction txn, DatabaseEntry key, EntryID entryID)
        throws DatabaseException
   {
     OperationStatus status;
     LockMode lockMode = LockMode.RMW;
     DatabaseEntry entryIDData = entryID.getDatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
+    boolean success = true;
 
     status = EntryContainer.read(getDatabase(), txn, key, data, lockMode);
 
@@ -194,7 +203,10 @@ public class Index
         }
         else
         {
-          entryIDList.add(entryID);
+          if(!entryIDList.add(entryID))
+          {
+            success = false;
+          }
         }
 
         byte[] after = entryIDList.toDatabase();
@@ -206,6 +218,8 @@ public class Index
     {
       EntryContainer.put(getDatabase(), txn, key, entryIDData);
     }
+
+    return success;
   }
 
   /**
@@ -507,25 +521,67 @@ public class Index
    * or null if none is required.
    * @param cursorConfig The requested JE cursor configuration.
    * @return A new JE cursor.
-   * @throws JebException If an error occurs in the JE backend.
+   * @throws DatabaseException If an error occurs while attempting to open
+   * the cursor.
    */
   public Cursor openCursor(Transaction txn, CursorConfig cursorConfig)
-       throws JebException
+       throws DatabaseException
   {
+    return getDatabase().openCursor(txn, cursorConfig);
+  }
+
+  /**
+   * Removes all records from the database.
+   * @param txn A JE database transaction to be used during the clear operation
+   *            or null if not required. Using transactions increases the chance
+   *            of lock contention.
+   * @return The number of records removed.
+   * @throws DatabaseException If an error occurs while cleaning the database.
+   */
+  public long clear(Transaction txn) throws DatabaseException
+  {
+    long deletedCount = 0;
+    Cursor cursor = openCursor(txn, null);
     try
     {
-      return getDatabase().openCursor(txn, cursorConfig);
-    }
-    catch (DatabaseException e)
-    {
-      if (debugEnabled())
+      if(debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        debugVerbose("%d existing records will be deleted from the " +
+            "database", getRecordCount());
       }
-      int msgID = MSGID_JEB_DATABASE_EXCEPTION;
-      String message = getMessage(msgID, e.getMessage());
-      throw new JebException(msgID, message, e);
+      DatabaseEntry data = new DatabaseEntry();
+      DatabaseEntry key = new DatabaseEntry();
+
+      OperationStatus status;
+
+      // Step forward until we deleted all records.
+      for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
+           status == OperationStatus.SUCCESS;
+           status = cursor.getNext(key, data, LockMode.DEFAULT))
+      {
+        cursor.delete();
+        deletedCount++;
+      }
+      if(debugEnabled())
+      {
+        debugVerbose("%d records deleted", deletedCount);
+      }
     }
+    catch(DatabaseException de)
+    {
+      if(debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      throw de;
+    }
+    finally
+    {
+      cursor.close();
+    }
+
+    return deletedCount;
   }
 
   /**
@@ -534,13 +590,16 @@ public class Index
    * @param txn A database transaction, or null if none is required.
    * @param entryID     The entry ID.
    * @param entry       The entry to be indexed.
+   * @return True if all the indexType keys for the entry are added. False if
+   *         the entry ID alreadly exists for some keys.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void addEntry(Transaction txn, EntryID entryID, Entry entry)
+  public boolean addEntry(Transaction txn, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
     HashSet<ASN1OctetString> addKeys = new HashSet<ASN1OctetString>();
+    boolean success = true;
 
     indexer.indexEntry(txn, entry, addKeys);
 
@@ -548,8 +607,13 @@ public class Index
     for (ASN1OctetString keyBytes : addKeys)
     {
       key.setData(keyBytes.value());
-      insertID(txn, key, entryID);
+      if(!insertID(txn, key, entryID))
+      {
+        success = false;
+      }
     }
+
+    return success;
   }
 
 
@@ -613,6 +677,18 @@ public class Index
       key.setData(keyBytes.value());
       insertID(txn, key, entryID);
     }
+  }
+
+  /**
+   * Get the count of the number of entries stored.
+   *
+   * @return The number of entries stored.
+   *
+   * @throws DatabaseException If an error occurs in the JE database.
+   */
+  public long getRecordCount() throws DatabaseException
+  {
+    return EntryContainer.count(getDatabase());
   }
 
 }

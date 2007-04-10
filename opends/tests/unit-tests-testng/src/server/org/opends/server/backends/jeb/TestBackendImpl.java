@@ -122,6 +122,7 @@ public class TestBackendImpl extends JebTestCase {
             "ds-cfg-index-type: equality\n" +
             "ds-cfg-index-type: substring\n" +
             "ds-cfg-index-type: ordering\n" +
+            "ds-cfg-index-type: approximate\n" +
             "\n" +
             "dn: ds-cfg-index-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config\n" +
             "objectClass: top\n" +
@@ -775,6 +776,26 @@ public class TestBackendImpl extends JebTestCase {
     finalCount = Integer.valueOf(debugString.substring(finalStartPos,
         finalEndPos));
     assertEquals(finalCount, 11);
+
+    search = conn.processSearch(DN.decode("dc=test,dc=com"),
+        SearchScope.WHOLE_SUBTREE,
+        DereferencePolicy.NEVER_DEREF_ALIASES,
+        0,
+        0,
+        false,
+
+        LDAPFilter.decode("(cn~=Aartjan)").toSearchFilter(),
+        attribs);
+    result = search.getSearchEntries();
+
+    debugString =
+        result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
+    assertTrue(!debugString.contains("NOT-INDEXED"));
+    finalStartPos = debugString.indexOf("final=") + 13;
+    finalEndPos = debugString.indexOf("]", finalStartPos);
+    finalCount = Integer.valueOf(debugString.substring(finalStartPos,
+        finalEndPos));
+    assertEquals(finalCount, 1);
   }
 
   @Test(dependsOnMethods = {"testAdd", "testSearchIndex",

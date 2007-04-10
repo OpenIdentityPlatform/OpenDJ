@@ -203,7 +203,7 @@ public class EncodePassword
                                        true, false, true,
                                        OPTION_VALUE_CONFIG_CLASS,
                                        ConfigFileHandler.class.getName(), null,
-                                       MSGID_ENCPW_DESCRIPTION_CONFIG_CLASS);
+                                       MSGID_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -211,7 +211,7 @@ public class EncodePassword
       configFile = new StringArgument("configfile", 'F', "configFile",
                                       true, false, true, "{configFile}", null,
                                       null,
-                                      MSGID_ENCPW_DESCRIPTION_CONFIG_FILE);
+                                      MSGID_DESCRIPTION_CONFIG_FILE);
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -237,13 +237,13 @@ public class EncodePassword
 
       showUsage = new BooleanArgument("usage", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_ENCPW_DESCRIPTION_USAGE);
+                                      MSGID_DESCRIPTION_USAGE);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_ARGS;
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -258,7 +258,7 @@ public class EncodePassword
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ENCPW_ERROR_PARSING_ARGS;
+      int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -358,7 +358,7 @@ public class EncodePassword
       }
       catch (Exception e)
       {
-        int msgID = MSGID_ENCPW_SERVER_BOOTSTRAP_ERROR;
+        int msgID = MSGID_SERVER_BOOTSTRAP_ERROR;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -371,14 +371,14 @@ public class EncodePassword
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_ENCPW_CANNOT_LOAD_CONFIG;
+        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
         String message = getMessage(msgID, ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_ENCPW_CANNOT_LOAD_CONFIG;
+        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -393,21 +393,21 @@ public class EncodePassword
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_ENCPW_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -422,21 +422,21 @@ public class EncodePassword
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
         String message = getMessage(msgID, ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
         String message = getMessage(msgID, ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;

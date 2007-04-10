@@ -3920,5 +3920,29 @@ public class ConfigConstants
    */
   public static final String ATTR_LOGGER_ASYNC_WRITE =
       NAME_PREFIX_TASK + "async-write";
+
+
+  /**
+   * The name of the attribute in an rebuild task definition that specifies the
+   * base DN of the indexes to do the rebuild in.
+   */
+  public static final String ATTR_REBUILD_BASE_DN =
+       NAME_PREFIX_TASK + "rebuild-base-dn";
+
+
+  /**
+   * The name of the attribute in an rebuild task definition that specifies the
+   * indexes to rebuild.
+   */
+  public static final String ATTR_REBUILD_INDEX =
+       NAME_PREFIX_TASK + "rebuild-index";
+
+
+  /**
+   * The name of the attribute in an rebuild task definition that specifies the
+   * maximum number of threads.
+   */
+  public static final String ATTR_REBUILD_MAX_THREADS =
+       NAME_PREFIX_TASK + "rebuild-max-threads";
 }
 

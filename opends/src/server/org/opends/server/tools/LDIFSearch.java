@@ -184,7 +184,7 @@ public class LDIFSearch
 
       configFile = new StringArgument("configfile", 'c', "configFile", false,
                                       false, true, "{configFile}", null, null,
-                                      MSGID_LDIFSEARCH_DESCRIPTION_CONFIG_FILE);
+                                      MSGID_DESCRIPTION_CONFIG_FILE);
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -192,7 +192,7 @@ public class LDIFSearch
                              OPTION_LONG_CONFIG_CLASS, false,
                              false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
-                             MSGID_LDIFSEARCH_DESCRIPTION_CONFIG_CLASS);
+                             MSGID_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -230,13 +230,13 @@ public class LDIFSearch
 
       showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_LDIFSEARCH_DESCRIPTION_USAGE);
+                                      MSGID_DESCRIPTION_USAGE);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_LDIFSEARCH_CANNOT_INITIALIZE_ARGS;
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
       System.err.println(message);
       return 1;
@@ -250,7 +250,7 @@ public class LDIFSearch
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_LDIFSEARCH_ERROR_PARSING_ARGS;
+      int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       System.err.println(message);

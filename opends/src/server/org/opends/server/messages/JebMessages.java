@@ -1256,6 +1256,80 @@ public class JebMessages
        CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 130;
 
   /**
+   * The message ID used to log an informational message in the rebuild index
+   * process.  This message takes four arguments: the completed percentage,
+   * the number of entries processed, the total number of entries to process,
+   * the floating point average number of records processed per second
+   * since the previous progress.
+   */
+  public static final int MSGID_JEB_REBUILD_PROGRESS_REPORT =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 131;
+
+
+
+  /**
+   * The message ID used to log an informational message in the rebuild index
+   * process. This message takes two arguments: the current amount of free heap
+   * memory in megabytes, and the floating point number of database cache misses
+   * per record processed since the previous progress report.
+   */
+  public static final int MSGID_JEB_REBUILD_CACHE_AND_MEMORY_REPORT =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 132;
+
+
+  /**
+   * The message ID used to log an informational message in the verify index
+   * process.  This message takes seven arguments: the total number of entries
+   * processed, the total number of rebuilt entries, the total number
+   * of duplicated entries, the total number of skipped entries, the total time
+   * for the rebuild process to complete, and the floating point overall number
+   * of records processed per second.
+   */
+  public static final int MSGID_JEB_REBUILD_FINAL_STATUS =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 133;
+
+  /**
+   * The message ID used to indicate that an error occured in an index rebuild
+   * thread and it is terminated. This message takes two arguments: the name
+   * of the index rebuild thread that failed and the exception that caused
+   * the failure.
+   */
+  public static final int MSGID_JEB_REBUILD_INDEX_FAILED =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 134;
+
+  /**
+   * The message ID used to indicate that an error occured while inserting
+   * an entry into a database/index during the rebuild process. This message
+   * takes two arguments: the name of the database/index being inserted into,
+   * and the exception that caused the failure.
+   */
+  public static final int MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 135;
+
+  /**
+   * The message ID used to indicate that another rebuild process for an index
+   * is alreadly in progress. This message takes the name of the conflicting
+   * index as the argument.
+   */
+  public static final int MSGID_JEB_REBUILD_INDEX_CONFLICT =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 136;
+
+  /**
+   * The message ID used to log an information message about the rebuild job.
+   * This message takes 2 arguments: the names of the index in the rebuild job
+   * and the number of total records to process.
+   */
+  public static final int MSGID_JEB_REBUILD_START =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 137;
+
+  /**
+   * The message ID of an error indicating that rebuilding of system indexes
+   * can not be done while the backend is online.
+   */
+  public static final int MSGID_JEB_REBUILD_BACKEND_ONLINE =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 138;
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1753,5 +1827,26 @@ public class JebMessages
     registerMessage(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
                     "Unable to determine the total number of entries in the " +
                     "container: %s");
+    registerMessage(MSGID_JEB_REBUILD_START,
+                    "Rebuild of index(es) %s started with %d total records " +
+                    "to process.");
+    registerMessage(MSGID_JEB_REBUILD_PROGRESS_REPORT,
+                    "%.1f%% Completed. Processed %d/%d records. " +
+                    "(recent rate %.1f/sec).");
+    registerMessage(MSGID_JEB_REBUILD_CACHE_AND_MEMORY_REPORT,
+                    "Free memory = %d MB, Cache miss rate = %.1f/record.");
+    registerMessage(MSGID_JEB_REBUILD_FINAL_STATUS,
+                    "Rebuild complete. Processed %d records in %d seconds " +
+                    "(average rate %.1f/sec).");
+    registerMessage(MSGID_JEB_REBUILD_INDEX_FAILED,
+                    "An error occured while rebuilding index %s: %s");
+    registerMessage(MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED,
+                    "An error occured while inserting entry into the %s " +
+                    "database/index: %s");
+    registerMessage(MSGID_JEB_REBUILD_INDEX_CONFLICT,
+                    "Another rebuild of index %s is alreadly in progress.");
+    registerMessage(MSGID_JEB_REBUILD_BACKEND_ONLINE,
+                    "Rebuilding system index(es) must be done with the " +
+                    "backend containing the base DN disabled.");
   }
 }

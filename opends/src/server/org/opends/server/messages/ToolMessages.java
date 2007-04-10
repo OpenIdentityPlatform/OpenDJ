@@ -143,7 +143,7 @@ public class ToolMessages
    * The message ID for the message that will be used as the description of the
    * configClass argument.  This does not take any arguments.
    */
-  public static final int MSGID_ENCPW_DESCRIPTION_CONFIG_CLASS =
+  public static final int MSGID_DESCRIPTION_CONFIG_CLASS =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 12;
 
 
@@ -152,7 +152,7 @@ public class ToolMessages
    * The message ID for the message that will be used as the description of the
    * configFile argument.  This does not take any arguments.
    */
-  public static final int MSGID_ENCPW_DESCRIPTION_CONFIG_FILE =
+  public static final int MSGID_DESCRIPTION_CONFIG_FILE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 13;
 
 
@@ -170,7 +170,7 @@ public class ToolMessages
    * The message ID for the message that will be used as the description of the
    * help argument.  This does not take any arguments.
    */
-  public static final int MSGID_ENCPW_DESCRIPTION_USAGE =
+  public static final int MSGID_DESCRIPTION_USAGE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 15;
 
 
@@ -180,7 +180,7 @@ public class ToolMessages
    * initializing the command-line arguments.  This takes a single argument,
    * which is an explanation of the problem that occurred.
    */
-  public static final int MSGID_ENCPW_CANNOT_INITIALIZE_ARGS =
+  public static final int MSGID_CANNOT_INITIALIZE_ARGS =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 16;
 
 
@@ -190,7 +190,7 @@ public class ToolMessages
    * parsing the command-line arguments.  This takes a single argument, which is
    * an explanation of the problem that occurred.
    */
-  public static final int MSGID_ENCPW_ERROR_PARSING_ARGS =
+  public static final int MSGID_ERROR_PARSING_ARGS =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 17;
 
 
@@ -221,7 +221,7 @@ public class ToolMessages
    * trying to bootstrap the Directory Server.  This takes a single argument,
    * which is a string representation of the exception that was caught.
    */
-  public static final int MSGID_ENCPW_SERVER_BOOTSTRAP_ERROR =
+  public static final int MSGID_SERVER_BOOTSTRAP_ERROR =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 20;
 
 
@@ -232,7 +232,7 @@ public class ToolMessages
    * argument which is a message with information about the problem that
    * occurred.
    */
-  public static final int MSGID_ENCPW_CANNOT_LOAD_CONFIG =
+  public static final int MSGID_CANNOT_LOAD_CONFIG =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 21;
 
 
@@ -242,7 +242,7 @@ public class ToolMessages
    * trying to load the Directory Server schema.  This takes a single argument,
    * which is a message with information about the problem that occurred.
    */
-  public static final int MSGID_ENCPW_CANNOT_LOAD_SCHEMA =
+  public static final int MSGID_CANNOT_LOAD_SCHEMA =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 22;
 
 
@@ -253,7 +253,7 @@ public class ToolMessages
    * single argument, which is a message with information about the problem that
    * occurred.
    */
-  public static final int MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG =
+  public static final int MSGID_CANNOT_INITIALIZE_CORE_CONFIG =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 23;
 
 
@@ -322,25 +322,6 @@ public class ToolMessages
    */
   public static final int MSGID_ENCPW_CANNOT_ENCODE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 30;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFEXPORT_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 31;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFEXPORT_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 32;
-
 
 
   /**
@@ -452,77 +433,6 @@ public class ToolMessages
 
 
   /**
-   * The message ID for the message that will be used as the description of the
-   * help argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFEXPORT_DESCRIPTION_USAGE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 45;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * initializing the command-line arguments.  This takes a single argument,
-   * which is an explanation of the problem that occurred.
-   */
-  public static final int MSGID_LDIFEXPORT_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 46;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the command-line arguments.  This takes a single argument, which is
-   * an explanation of the problem that occurred.
-   */
-  public static final int MSGID_LDIFEXPORT_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 47;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to bootstrap the Directory Server.  This takes a single argument,
-   * which is a string representation of the exception that was caught.
-   */
-  public static final int MSGID_LDIFEXPORT_SERVER_BOOTSTRAP_ERROR =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 48;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying load the Directory Server configuration.  This takes a single
-   * argument which is a message with information about the problem that
-   * occurred.
-   */
-  public static final int MSGID_LDIFEXPORT_CANNOT_LOAD_CONFIG =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 49;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to load the Directory Server schema.  This takes a single argument,
-   * which is a message with information about the problem that occurred.
-   */
-  public static final int MSGID_LDIFEXPORT_CANNOT_LOAD_SCHEMA =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 50;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to initialize the core Directory Server configuration.  This takes a
-   * single argument, which is a message with information about the problem that
-   * occurred.
-   */
-  public static final int MSGID_LDIFEXPORT_CANNOT_INITIALIZE_CORE_CONFIG =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 51;
-
-
-
-  /**
    * The message ID for the message that will be used if an error occurs while
    * trying to decode an exclude filter.  This takes two arguments, which are
    * the provided filter string and a message explaining the problem that was
@@ -550,7 +460,7 @@ public class ToolMessages
    * the provided base DN string and a message explaining the problem that
    * was encountered.
    */
-  public static final int MSGID_LDIFEXPORT_CANNOT_DECODE_BASE_DN =
+  public static final int MSGID_CANNOT_DECODE_BASE_DN =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 54;
 
 
@@ -613,7 +523,7 @@ public class ToolMessages
    * arguments, which are the backend config base DN string and a message
    * explaining the problem that occurred.
    */
-  public static final int MSGID_LDIFEXPORT_CANNOT_DECODE_BACKEND_BASE_DN =
+  public static final int MSGID_CANNOT_DECODE_BACKEND_BASE_DN =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 60;
 
 
@@ -624,7 +534,7 @@ public class ToolMessages
    * arguments, which are the DN of the entry and a message explaining the
    * problem that occurred.
    */
-  public static final int MSGID_LDIFEXPORT_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY =
+  public static final int MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 61;
 
 
@@ -635,7 +545,7 @@ public class ToolMessages
    * which are the DN of the backend configuration entry and a message
    * explaining the problem that occurred.
    */
-  public static final int MSGID_LDIFEXPORT_CANNOT_DETERMINE_BACKEND_CLASS =
+  public static final int MSGID_CANNOT_DETERMINE_BACKEND_CLASS =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 62;
 
 
@@ -646,7 +556,7 @@ public class ToolMessages
    * arguments, which are the class name, the DN of the configuration entry, and
    * a message explaining the problem that occurred.
    */
-  public static final int MSGID_LDIFEXPORT_CANNOT_LOAD_BACKEND_CLASS =
+  public static final int MSGID_CANNOT_LOAD_BACKEND_CLASS =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 63;
 
 
@@ -657,7 +567,7 @@ public class ToolMessages
    * three arguments, which are the class name, the DN of the configuration
    * entry, and a message explaining the problem that occurred.
    */
-  public static final int MSGID_LDIFEXPORT_CANNOT_INSTANTIATE_BACKEND_CLASS =
+  public static final int MSGID_CANNOT_INSTANTIATE_BACKEND_CLASS =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 64;
 
 
@@ -667,7 +577,7 @@ public class ToolMessages
    * entry does not define any base DNs.  This takes a single argument, which is
    * the DN of the backend configuration entry.
    */
-  public static final int MSGID_LDIFEXPORT_NO_BASES_FOR_BACKEND =
+  public static final int MSGID_NO_BASES_FOR_BACKEND =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 65;
 
 
@@ -678,26 +588,8 @@ public class ToolMessages
    * arguments, which are the DN of the backend configuration entry and a string
    * representation of the exception that was caught.
    */
-  public static final int MSGID_LDIFEXPORT_CANNOT_DETERMINE_BASES_FOR_BACKEND =
+  public static final int MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 66;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFIMPORT_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 67;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFIMPORT_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 68;
 
 
 
@@ -819,77 +711,6 @@ public class ToolMessages
 
 
   /**
-   * The message ID for the message that will be used as the description of the
-   * help argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFIMPORT_DESCRIPTION_USAGE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 82;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * initializing the command-line arguments.  This takes a single argument,
-   * which is an explanation of the problem that occurred.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 83;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the command-line arguments.  This takes a single argument, which is
-   * an explanation of the problem that occurred.
-   */
-  public static final int MSGID_LDIFIMPORT_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 84;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to bootstrap the Directory Server.  This takes a single argument,
-   * which is a string representation of the exception that was caught.
-   */
-  public static final int MSGID_LDIFIMPORT_SERVER_BOOTSTRAP_ERROR =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 85;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying load the Directory Server configuration.  This takes a single
-   * argument which is a message with information about the problem that
-   * occurred.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_LOAD_CONFIG =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 86;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to load the Directory Server schema.  This takes a single argument,
-   * which is a message with information about the problem that occurred.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_LOAD_SCHEMA =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 87;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to initialize the core Directory Server configuration.  This takes a
-   * single argument, which is a message with information about the problem that
-   * occurred.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CORE_CONFIG =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 88;
-
-
-
-  /**
    * The message ID for the message that will be used if an error occurs while
    * trying to decode an exclude filter.  This takes two arguments, which are
    * the provided filter string and a message explaining the problem that was
@@ -908,17 +729,6 @@ public class ToolMessages
    */
   public static final int MSGID_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 90;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to decode the base DN string.  This takes two arguments, which are
-   * the provided base DN string and a message explaining the problem that
-   * was encountered.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_DECODE_BASE_DN =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 91;
 
 
 
@@ -971,82 +781,6 @@ public class ToolMessages
    */
   public static final int MSGID_LDIFIMPORT_ERROR_DURING_IMPORT =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 96;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to decode the backend configuration base DN string.  This takes two
-   * arguments, which are the backend config base DN string and a message
-   * explaining the problem that occurred.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_DECODE_BACKEND_BASE_DN =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 97;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to retrieve the backend configuration base entry.  This takes two
-   * arguments, which are the DN of the entry and a message explaining the
-   * problem that occurred.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 98;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the backend class name.  This takes two arguments,
-   * which are the DN of the backend configuration entry and a message
-   * explaining the problem that occurred.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_DETERMINE_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 99;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to load a class for a Directory Server backend.  This takes three
-   * arguments, which are the class name, the DN of the configuration entry, and
-   * a message explaining the problem that occurred.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_LOAD_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 100;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to instantiate a class for a Directory Server backend.  This takes
-   * three arguments, which are the class name, the DN of the configuration
-   * entry, and a message explaining the problem that occurred.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_INSTANTIATE_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 101;
-
-
-
-  /**
-   * The message ID for the message that will be used if a backend configuration
-   * entry does not define any base DNs.  This takes a single argument, which is
-   * the DN of the backend configuration entry.
-   */
-  public static final int MSGID_LDIFIMPORT_NO_BASES_FOR_BACKEND =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 102;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the set of base DNs for a backend.  This takes two
-   * arguments, which are the DN of the backend configuration entry and a string
-   * representation of the exception that was caught.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_DETERMINE_BASES_FOR_BACKEND =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 103;
 
 
   /**
@@ -2075,7 +1809,7 @@ public class ToolMessages
    * verify indexes specifies the base DN of a backend that does not
    * support indexing.
    */
-  public static final int MSGID_VERIFYINDEX_WRONG_BACKEND_TYPE =
+  public static final int MSGID_BACKEND_NO_INDEXING_SUPPORT =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 212;
 
 
@@ -2124,7 +1858,7 @@ public class ToolMessages
    * the DN of the backend configuration entry and a message explaining the
    * problem that occurred.
    */
-  public static final int MSGID_LDIFIMPORT_CANNOT_DETERMINE_BACKEND_ID =
+  public static final int MSGID_CANNOT_DETERMINE_BACKEND_ID =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 217;
 
 
@@ -2151,111 +1885,11 @@ public class ToolMessages
 
 
   /**
-   * The message ID for the message that will be used as the description of the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_VERIFYINDEX_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 220;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_VERIFYINDEX_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 221;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * help argument.  This does not take any arguments.
-   */
-  public static final int MSGID_VERIFYINDEX_DESCRIPTION_USAGE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 222;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * initializing the command-line arguments.  This takes a single argument,
-   * which is an explanation of the problem that occurred.
-   */
-  public static final int MSGID_VERIFYINDEX_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 223;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the command-line arguments.  This takes a single argument, which is
-   * an explanation of the problem that occurred.
-   */
-  public static final int MSGID_VERIFYINDEX_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 224;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to bootstrap the Directory Server.  This takes a single argument,
-   * which is a string representation of the exception that was caught.
-   */
-  public static final int MSGID_VERIFYINDEX_SERVER_BOOTSTRAP_ERROR =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 225;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying load the Directory Server configuration.  This takes a single
-   * argument which is a message with information about the problem that
-   * occurred.
-   */
-  public static final int MSGID_VERIFYINDEX_CANNOT_LOAD_CONFIG =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 226;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to load the Directory Server schema.  This takes a single argument,
-   * which is a message with information about the problem that occurred.
-   */
-  public static final int MSGID_VERIFYINDEX_CANNOT_LOAD_SCHEMA =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 227;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to initialize the core Directory Server configuration.  This takes a
-   * single argument, which is a message with information about the problem that
-   * occurred.
-   */
-  public static final int MSGID_VERIFYINDEX_CANNOT_INITIALIZE_CORE_CONFIG =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 228;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to decode the base DN string.  This takes two arguments, which are
-   * the provided base DN string and a message explaining the problem that
-   * was encountered.
-   */
-  public static final int MSGID_VERIFYINDEX_CANNOT_DECODE_BASE_DN =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 229;
-
-
-
-  /**
    * The message ID for the message that will be used if multiple backends claim
    * to support the requested base DN.  This takes a single argument, which is
    * the requested base DN.
    */
-  public static final int MSGID_VERIFYINDEX_MULTIPLE_BACKENDS_FOR_BASE =
+  public static final int MSGID_MULTIPLE_BACKENDS_FOR_BASE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 230;
 
 
@@ -2265,95 +1899,8 @@ public class ToolMessages
    * support the requested base DN.  This takes a single argument, which is the
    * requested base DN.
    */
-  public static final int MSGID_VERIFYINDEX_NO_BACKENDS_FOR_BASE =
+  public static final int MSGID_NO_BACKENDS_FOR_BASE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 231;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to decode the backend configuration base DN string.  This takes two
-   * arguments, which are the backend config base DN string and a message
-   * explaining the problem that occurred.
-   */
-  public static final int MSGID_VERIFYINDEX_CANNOT_DECODE_BACKEND_BASE_DN =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 232;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to retrieve the backend configuration base entry.  This takes two
-   * arguments, which are the DN of the entry and a message explaining the
-   * problem that occurred.
-   */
-  public static final int MSGID_VERIFYINDEX_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 233;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the backend class name.  This takes two arguments,
-   * which are the DN of the backend configuration entry and a message
-   * explaining the problem that occurred.
-   */
-  public static final int MSGID_VERIFYINDEX_CANNOT_DETERMINE_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 234;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to load a class for a Directory Server backend.  This takes three
-   * arguments, which are the class name, the DN of the configuration entry, and
-   * a message explaining the problem that occurred.
-   */
-  public static final int MSGID_VERIFYINDEX_CANNOT_LOAD_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 235;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to instantiate a class for a Directory Server backend.  This takes
-   * three arguments, which are the class name, the DN of the configuration
-   * entry, and a message explaining the problem that occurred.
-   */
-  public static final int MSGID_VERIFYINDEX_CANNOT_INSTANTIATE_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 236;
-
-
-
-  /**
-   * The message ID for the message that will be used if a backend configuration
-   * entry does not define any base DNs.  This takes a single argument, which is
-   * the DN of the backend configuration entry.
-   */
-  public static final int MSGID_VERIFYINDEX_NO_BASES_FOR_BACKEND =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 237;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the set of base DNs for a backend.  This takes two
-   * arguments, which are the DN of the backend configuration entry and a string
-   * representation of the exception that was caught.
-   */
-  public static final int MSGID_VERIFYINDEX_CANNOT_DETERMINE_BASES_FOR_BACKEND =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 238;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the backend ID.  This takes two arguments, which are
-   * the DN of the backend configuration entry and a message explaining the
-   * problem that occurred.
-   */
-  public static final int MSGID_LDIFEXPORT_CANNOT_DETERMINE_BACKEND_ID =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 239;
 
 
 
@@ -2384,24 +1931,6 @@ public class ToolMessages
    */
   public static final int MSGID_LDIFEXPORT_INVALID_INCLUDE_BASE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 242;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_BACKUPDB_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 243;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_BACKUPDB_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 244;
 
 
 
@@ -2478,77 +2007,6 @@ public class ToolMessages
 
 
   /**
-   * The message ID for the message that will be used as the description of the
-   * help argument.  This does not take any arguments.
-   */
-  public static final int MSGID_BACKUPDB_DESCRIPTION_USAGE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 253;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * initializing the command-line arguments.  This takes a single argument,
-   * which is an explanation of the problem that occurred.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 254;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the command-line arguments.  This takes a single argument, which is
-   * an explanation of the problem that occurred.
-   */
-  public static final int MSGID_BACKUPDB_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 255;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to bootstrap the Directory Server.  This takes a single argument,
-   * which is a string representation of the exception that was caught.
-   */
-  public static final int MSGID_BACKUPDB_SERVER_BOOTSTRAP_ERROR =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 256;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying load the Directory Server configuration.  This takes a single
-   * argument which is a message with information about the problem that
-   * occurred.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_LOAD_CONFIG =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 257;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to load the Directory Server schema.  This takes a single argument,
-   * which is a message with information about the problem that occurred.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_LOAD_SCHEMA =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 258;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to initialize the core Directory Server configuration.  This takes a
-   * single argument, which is a message with information about the problem that
-   * occurred.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_INITIALIZE_CORE_CONFIG =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 259;
-
-
-
-  /**
    * The message ID for the message that will be used if multiple backends claim
    * to have the requested backend ID.  This takes a single argument, which is
    * the requested backend ID.
@@ -2613,93 +2071,6 @@ public class ToolMessages
    */
   public static final int MSGID_BACKUPDB_ERROR_DURING_BACKUP =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 265;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to decode the backend configuration base DN string.  This takes two
-   * arguments, which are the backend config base DN string and a message
-   * explaining the problem that occurred.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_DECODE_BACKEND_BASE_DN =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 266;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to retrieve the backend configuration base entry.  This takes two
-   * arguments, which are the DN of the entry and a message explaining the
-   * problem that occurred.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 267;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the backend class name.  This takes two arguments,
-   * which are the DN of the backend configuration entry and a message
-   * explaining the problem that occurred.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_DETERMINE_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 268;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to load a class for a Directory Server backend.  This takes three
-   * arguments, which are the class name, the DN of the configuration entry, and
-   * a message explaining the problem that occurred.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_LOAD_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 269;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to instantiate a class for a Directory Server backend.  This takes
-   * three arguments, which are the class name, the DN of the configuration
-   * entry, and a message explaining the problem that occurred.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_INSTANTIATE_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 270;
-
-
-
-  /**
-   * The message ID for the message that will be used if a backend configuration
-   * entry does not define any base DNs.  This takes a single argument, which is
-   * the DN of the backend configuration entry.
-   */
-  public static final int MSGID_BACKUPDB_NO_BASES_FOR_BACKEND =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 271;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the set of base DNs for a backend.  This takes two
-   * arguments, which are the DN of the backend configuration entry and a string
-   * representation of the exception that was caught.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_DETERMINE_BASES_FOR_BACKEND =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 272;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the backend ID.  This takes two arguments, which are
-   * the DN of the backend configuration entry and a message explaining the
-   * problem that occurred.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_DETERMINE_BACKEND_ID =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 273;
 
 
 
@@ -2807,28 +2178,8 @@ public class ToolMessages
    * initializing the crypto manager.  This takes a single argument, which is a
    * message explaining the problem that occurred.
    */
-  public static final int MSGID_LDIFEXPORT_CANNOT_INITIALIZE_CRYPTO_MANAGER =
+  public static final int MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 284;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * initializing the crypto manager.  This takes a single argument, which is a
-   * message explaining the problem that occurred.
-   */
-  public static final int MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CRYPTO_MANAGER =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 285;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * initializing the crypto manager.  This takes a single argument, which is a
-   * message explaining the problem that occurred.
-   */
-  public static final int MSGID_BACKUPDB_CANNOT_INITIALIZE_CRYPTO_MANAGER =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 286;
 
 
 
@@ -2848,24 +2199,6 @@ public class ToolMessages
    */
   public static final int MSGID_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 288;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_RESTOREDB_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 289;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_RESTOREDB_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 290;
 
 
 
@@ -2911,87 +2244,6 @@ public class ToolMessages
    */
   public static final int MSGID_RESTOREDB_DESCRIPTION_VERIFY_ONLY =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 295;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * help argument.  This does not take any arguments.
-   */
-  public static final int MSGID_RESTOREDB_DESCRIPTION_USAGE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 296;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * initializing the command-line arguments.  This takes a single argument,
-   * which is an explanation of the problem that occurred.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 297;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the command-line arguments.  This takes a single argument, which is
-   * an explanation of the problem that occurred.
-   */
-  public static final int MSGID_RESTOREDB_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 298;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to bootstrap the Directory Server.  This takes a single argument,
-   * which is a string representation of the exception that was caught.
-   */
-  public static final int MSGID_RESTOREDB_SERVER_BOOTSTRAP_ERROR =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 299;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying load the Directory Server configuration.  This takes a single
-   * argument which is a message with information about the problem that
-   * occurred.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_LOAD_CONFIG =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 300;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to load the Directory Server schema.  This takes a single argument,
-   * which is a message with information about the problem that occurred.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_LOAD_SCHEMA =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 301;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to initialize the core Directory Server configuration.  This takes a
-   * single argument, which is a message with information about the problem that
-   * occurred.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_INITIALIZE_CORE_CONFIG =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 302;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * initializing the crypto manager.  This takes a single argument, which is a
-   * message explaining the problem that occurred.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_INITIALIZE_CRYPTO_MANAGER =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 303;
 
 
 
@@ -3141,93 +2393,6 @@ public class ToolMessages
    */
   public static final int MSGID_RESTOREDB_ERROR_DURING_BACKUP =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 317;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to decode the backend configuration base DN string.  This takes two
-   * arguments, which are the backend config base DN string and a message
-   * explaining the problem that occurred.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_DECODE_BACKEND_BASE_DN =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 318;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to retrieve the backend configuration base entry.  This takes two
-   * arguments, which are the DN of the entry and a message explaining the
-   * problem that occurred.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 319;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the backend class name.  This takes two arguments,
-   * which are the DN of the backend configuration entry and a message
-   * explaining the problem that occurred.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_DETERMINE_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 320;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to load a class for a Directory Server backend.  This takes three
-   * arguments, which are the class name, the DN of the configuration entry, and
-   * a message explaining the problem that occurred.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_LOAD_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 321;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to instantiate a class for a Directory Server backend.  This takes
-   * three arguments, which are the class name, the DN of the configuration
-   * entry, and a message explaining the problem that occurred.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_INSTANTIATE_BACKEND_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 322;
-
-
-
-  /**
-   * The message ID for the message that will be used if a backend configuration
-   * entry does not define any base DNs.  This takes a single argument, which is
-   * the DN of the backend configuration entry.
-   */
-  public static final int MSGID_RESTOREDB_NO_BASES_FOR_BACKEND =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 323;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the set of base DNs for a backend.  This takes two
-   * arguments, which are the DN of the backend configuration entry and a string
-   * representation of the exception that was caught.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_DETERMINE_BASES_FOR_BACKEND =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 324;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the backend ID.  This takes two arguments, which are
-   * the DN of the backend configuration entry and a message explaining the
-   * problem that occurred.
-   */
-  public static final int MSGID_RESTOREDB_CANNOT_DETERMINE_BACKEND_ID =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 325;
 
 
 
@@ -3865,26 +3030,6 @@ public class ToolMessages
 
 
   /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to initialize the command-line argument parser.  This takes a
-   * single argument, which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_STOPDS_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 393;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the provided command-line arguments.  This takes a single argument,
-   * which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_STOPDS_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 394;
-
-
-
-  /**
    * The message ID for the message that will be used if two arguments that are
    * mutually exclusive were both provided.  This takes two arguments, which are
    * the long identifiers for the mutually-exclusive command line arguments.
@@ -4094,22 +3239,6 @@ public class ToolMessages
 
   /**
    * The message ID for the message that will be used as the description of the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFSEARCH_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 417;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFSEARCH_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 418;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
    * filterFile argument.  This does not take any arguments.
    */
   public static final int MSGID_LDIFSEARCH_DESCRIPTION_FILTER_FILE =
@@ -4154,34 +3283,6 @@ public class ToolMessages
    */
   public static final int MSGID_LDIFSEARCH_DESCRIPTION_TIME_LIMIT =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 424;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * help argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFSEARCH_DESCRIPTION_USAGE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 425;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to initialize the command-line argument parser.  This takes a
-   * single argument, which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_LDIFSEARCH_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 426;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the provided command-line arguments.  This takes a single argument,
-   * which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_LDIFSEARCH_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 427;
 
 
 
@@ -4366,50 +3467,6 @@ public class ToolMessages
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 446;
 
 
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFDIFF_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 447;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFDIFF_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 448;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * help argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFDIFF_DESCRIPTION_USAGE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 449;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to initialize the command-line argument parser.  This takes a
-   * single argument, which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_LDIFDIFF_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 450;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the provided command-line arguments.  This takes a single argument,
-   * which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_LDIFDIFF_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 451;
-
-
 
   /**
    * The message ID for the message that will be used if an error occurs while
@@ -4515,22 +3572,6 @@ public class ToolMessages
 
   /**
    * The message ID for the message that will be used as the description of the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_CONFIGDS_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 462;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_CONFIGDS_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 463;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
    * ldapPort argument.  This does not take any arguments.
    */
   public static final int MSGID_CONFIGDS_DESCRIPTION_LDAP_PORT =
@@ -4567,34 +3608,6 @@ public class ToolMessages
    */
   public static final int MSGID_CONFIGDS_DESCRIPTION_ROOT_PW_FILE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 468;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * help argument.  This does not take any arguments.
-   */
-  public static final int MSGID_CONFIGDS_DESCRIPTION_USAGE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 469;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to initialize the command-line argument parser.  This takes a
-   * single argument, which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_CONFIGDS_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 470;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the provided command-line arguments.  This takes a single argument,
-   * which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_CONFIGDS_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 471;
 
 
 
@@ -4744,24 +3757,6 @@ public class ToolMessages
    */
   public static final int MSGID_INSTALLDS_DESCRIPTION_PROGNAME =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 486;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description for the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_INSTALLDS_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 487;
-
-
-
-  /**
-   * The message ID for the message that will be used as the description for the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_INSTALLDS_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 488;
 
 
 
@@ -5622,22 +4617,6 @@ public class ToolMessages
 
   /**
    * The message ID for the message that will be used as the description of the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_MAKELDIF_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 574;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_MAKELDIF_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 575;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
    * templateFile argument.  This does not take any arguments.
    */
   public static final int MSGID_MAKELDIF_DESCRIPTION_TEMPLATE =
@@ -5666,26 +4645,6 @@ public class ToolMessages
    */
   public static final int MSGID_MAKELDIF_DESCRIPTION_HELP =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 579;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to initialize the command-line argument parser.  This takes a
-   * single argument, which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_MAKELDIF_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 580;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the provided command-line arguments.  This takes a single argument,
-   * which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_MAKELDIF_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 581;
 
 
 
@@ -6054,22 +5013,6 @@ public class ToolMessages
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 617;
 
 
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 618;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 619;
-
-
 
   /**
    * The message ID for the message that will be used as the description for the
@@ -6104,26 +5047,6 @@ public class ToolMessages
    */
   public static final int MSGID_LDIFMODIFY_DESCRIPTION_HELP =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 623;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to initialize the command-line argument parser.  This takes a
-   * single argument, which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_LDIFMODIFY_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 624;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the provided command-line arguments.  This takes a single argument,
-   * which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_LDIFMODIFY_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 625;
 
 
 
@@ -6386,35 +5309,6 @@ public class ToolMessages
 
 
   /**
-   * The message ID for the message that will be used as the description for the
-   * help argument.  It does not take any arguments.
-   */
-  public static final int MSGID_LDAPPWMOD_DESCRIPTION_USAGE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 653;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * initializing the command-line arguments.  This takes a single argument,
-   * which is an explanation of the problem that occurred.
-   */
-  public static final int MSGID_LDAPPWMOD_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 654;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the command-line arguments.  This takes a single argument, which is
-   * an explanation of the problem that occurred.
-   */
-  public static final int MSGID_LDAPPWMOD_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 655;
-
-
-
-  /**
    * The message ID for the message that will be used to indicate that two
    * arguments must not be used together.  This takes two arguments, which are
    * the long identifiers for the conflicting arguments.
@@ -6637,26 +5531,6 @@ public class ToolMessages
    */
   public static final int MSGID_WAIT4DEL_DESCRIPTION_HELP =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 678;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to initialize the command-line argument parser.  This takes a
-   * single argument, which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_WAIT4DEL_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 679;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the provided command-line arguments.  This takes a single argument,
-   * which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_WAIT4DEL_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 680;
 
 
 
@@ -7062,22 +5936,6 @@ public class ToolMessages
 
   /**
    * The message ID for the message that will be used as the description of the
-   * configClass argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LISTBACKENDS_DESCRIPTION_CONFIG_CLASS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 724;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configFile argument.  This does not take any arguments.
-   */
-  public static final int MSGID_LISTBACKENDS_DESCRIPTION_CONFIG_FILE =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 725;
-
-
-  /**
-   * The message ID for the message that will be used as the description of the
    * backendID argument.  This does not take any arguments.
    */
   public static final int MSGID_LISTBACKENDS_DESCRIPTION_BACKEND_ID =
@@ -7098,57 +5956,6 @@ public class ToolMessages
    */
   public static final int MSGID_LISTBACKENDS_DESCRIPTION_HELP =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 728;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * attempting to initialize the command-line argument parser.  This takes a
-   * single argument, which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_LISTBACKENDS_CANNOT_INITIALIZE_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 729;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the provided command-line arguments.  This takes a single argument,
-   * which is a message explaining the problem that occurred.
-   */
-  public static final int MSGID_LISTBACKENDS_ERROR_PARSING_ARGS =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 730;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to bootstrap the Directory Server.  This takes a single argument,
-   * which is a string representation of the exception that was caught.
-   */
-  public static final int MSGID_LISTBACKENDS_SERVER_BOOTSTRAP_ERROR =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 731;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying load the Directory Server configuration.  This takes a single
-   * argument which is a message with information about the problem that
-   * occurred.
-   */
-  public static final int MSGID_LISTBACKENDS_CANNOT_LOAD_CONFIG =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 732;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to load the Directory Server schema.  This takes a single argument,
-   * which is a message with information about the problem that occurred.
-   */
-  public static final int MSGID_LISTBACKENDS_CANNOT_LOAD_SCHEMA =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 733;
 
 
 
@@ -7247,52 +6054,6 @@ public class ToolMessages
    */
   public static final int MSGID_LISTBACKENDS_NO_VALID_BACKENDS =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 743;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to decode the base DN for backend configuration entries.  This takes
-   * two arguments, which are the base DN and a message explaining the problem
-   * that occurred.
-   */
-  public static final int MSGID_LISTBACKENDS_CANNOT_DECODE_BACKEND_BASE_DN =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 744;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to retrieve the backend configuration base entry.  This takes two
-   * arguments, which are the DN of the entry and a message explaining the
-   * problem that occurred.
-   */
-  public static final int
-       MSGID_LISTBACKENDS_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY =
-            CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 745;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the backend ID.  This takes two arguments, which are
-   * the DN of the backend configuration entry and a message explaining the
-   * problem that occurred.
-   */
-  public static final int MSGID_LISTBACKENDS_CANNOT_DETERMINE_BACKEND_ID =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 746;
-
-
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * trying to determine the set of base DNs for a backend.  This takes two
-   * arguments, which are the DN of the backend configuration entry and a string
-   * representation of the exception that was caught.
-   */
-  public static final int
-       MSGID_LISTBACKENDS_CANNOT_DETERMINE_BASES_FOR_BACKEND =
-            CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 747;
 
 
 
@@ -7770,23 +6531,6 @@ public class ToolMessages
         CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 820;
 
   /**
-   * The message ID for the message that will be used if an error occurs while
-   * initializing the command-line arguments.  This takes a single argument,
-   * which is an explanation of the problem that occurred.
-   */
-  public static final int
-        MSGID_CONFIGURE_WINDOWS_SERVICE_CANNOT_INITIALIZE_ARGS =
-        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 821;
-
-  /**
-   * The message ID for the message that will be used if an error occurs while
-   * parsing the command-line arguments.  This takes a single argument, which is
-   * an explanation of the problem that occurred.
-   */
-  public static final int MSGID_CONFIGURE_WINDOWS_SERVICE_ERROR_PARSING_ARGS =
-        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 822;
-
-  /**
    * The message ID for the message that will be used if an error occurs if
    * the user provided too many arguments.  This does not take any argument.
    */
@@ -7975,6 +6719,81 @@ public class ToolMessages
   public static final int MSGID_WINDOWS_SERVICE_CLEANUP_ERROR =
     CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 848;
 
+  /**
+   * The message ID for the message that will be used as the description for the
+   * rebuild-index tool.  This does not take any arguments.
+   */
+  public static final int MSGID_REBUILDINDEX_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 849;
+
+    /**
+   * The message ID for the message that will be used as the description of the
+   * index name argument.  This does not take any arguments.
+   */
+  public static final int MSGID_REBUILDINDEX_DESCRIPTION_BASE_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 850;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * index name argument.  This does not take any arguments.
+   */
+  public static final int MSGID_REBUILDINDEX_DESCRIPTION_INDEX_NAME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 851;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to perform index rebuild.  This takes a single argument,
+   * which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_REBUILDINDEX_ERROR_DURING_REBUILD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 852;
+
+  /**
+   * The message ID for the message that will be used if a request to
+   * rebuild indexes specifies the base DN of a backend that does not
+   * support indexing.
+   */
+  public static final int MSGID_REBUILDINDEX_WRONG_BACKEND_TYPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 853;
+
+  /**
+   * The message ID to inform at least one index is required for the rebuild
+   * process.
+   */
+  public static final int MSGID_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 854;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to acquire a lock for the backend being rebuilt.  This takes
+   * two arguments, which are the backend ID and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 855;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to release a lock for the backend being rebuilt.  This takes
+   * two arguments, which are the backend ID and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_REBUILDINDEX_CANNOT_UNLOCK_BACKEND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 856;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to acquire a lock for the backend being rebuilt.  This takes
+   * two arguments, which are the backend ID and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 857;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -8011,11 +6830,12 @@ public class ToolMessages
                     "password");
     registerMessage(MSGID_ENCPW_DESCRIPTION_ENCODED_PW_FILE,
                     "Encoded password file");
-    registerMessage(MSGID_ENCPW_DESCRIPTION_CONFIG_CLASS,
-                    "Specifies the fully-qualified name of the Java class " +
-                    "that serves as the configuration handler for the " +
-                    "Directory Server.");
-    registerMessage(MSGID_ENCPW_DESCRIPTION_CONFIG_FILE,
+    registerMessage(MSGID_DESCRIPTION_CONFIG_CLASS,
+                    "The fully-qualified name of the Java class to use as " +
+                    "the Directory Server configuration handler.  If this is " +
+                    "not provided, then a default of " +
+                    ConfigFileHandler.class.getName() + " will be used.");
+    registerMessage(MSGID_DESCRIPTION_CONFIG_FILE,
                     "Specifies the path to the Directory Server " +
                     "configuration file.");
     registerMessage(MSGID_ENCPW_DESCRIPTION_SCHEME,
@@ -8026,12 +6846,12 @@ public class ToolMessages
     registerMessage(MSGID_ENCPW_DESCRIPTION_USE_COMPARE_RESULT,
                     "Use the LDAP compare result as an exit code for the " +
                     "password comparison");
-    registerMessage(MSGID_ENCPW_DESCRIPTION_USAGE,
+    registerMessage(MSGID_DESCRIPTION_USAGE,
                     "Displays this usage information.");
-    registerMessage(MSGID_ENCPW_CANNOT_INITIALIZE_ARGS,
+    registerMessage(MSGID_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
                     "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_ENCPW_ERROR_PARSING_ARGS,
+    registerMessage(MSGID_ERROR_PARSING_ARGS,
                     "An error occurred while parsing the command-line " +
                     "arguments:  %s.");
     registerMessage(MSGID_ENCPW_NO_CLEAR_PW,
@@ -8040,16 +6860,16 @@ public class ToolMessages
     registerMessage(MSGID_ENCPW_NO_SCHEME,
                     "No password storage scheme was specified.  Use the --%s " +
                     "argument to specify the storage scheme.");
-    registerMessage(MSGID_ENCPW_SERVER_BOOTSTRAP_ERROR,
+    registerMessage(MSGID_SERVER_BOOTSTRAP_ERROR,
                     "An unexpected error occurred while attempting to " +
                     "bootstrap the Directory Server client-side code:  %s.");
-    registerMessage(MSGID_ENCPW_CANNOT_LOAD_CONFIG,
+    registerMessage(MSGID_CANNOT_LOAD_CONFIG,
                     "An error occurred while trying to load the Directory " +
                     "Server configuration:  %s.");
-    registerMessage(MSGID_ENCPW_CANNOT_LOAD_SCHEMA,
+    registerMessage(MSGID_CANNOT_LOAD_SCHEMA,
                     "An error occurred while trying to load the Directory " +
                     "Server schema:  %s.");
-    registerMessage(MSGID_ENCPW_CANNOT_INITIALIZE_CORE_CONFIG,
+    registerMessage(MSGID_CANNOT_INITIALIZE_CORE_CONFIG,
                     "An error occurred while trying to initialize the core " +
                     "Directory Server configuration:  %s.");
     registerMessage(MSGID_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES,
@@ -8085,13 +6905,6 @@ public class ToolMessages
                     "clear-text password:  %s.");
 
 
-    registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_CONFIG_CLASS,
-                    "Specifies the fully-qualified name of the Java class " +
-                    "that serves as the configuration handler for the " +
-                    "Directory Server.");
-    registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_CONFIG_FILE,
-                    "Specifies the path to the Directory Server " +
-                    "configuration file.");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_LDIF_FILE,
                     "Path to the LDIF file to be written");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_APPEND_TO_LDIF,
@@ -8121,27 +6934,7 @@ public class ToolMessages
                     "Encrypt the LDIF data as it is exported");
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_SIGN_HASH,
                     "Generate a signed hash of the export data");
-    registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_USAGE,
-                    "Display this usage information.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_SERVER_BOOTSTRAP_ERROR,
-                    "An unexpected error occurred while attempting to " +
-                    "bootstrap the Directory Server client-side code:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_LOAD_CONFIG,
-                    "An error occurred while trying to load the Directory " +
-                    "Server configuration:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_LOAD_SCHEMA,
-                    "An error occurred while trying to load the Directory " +
-                    "Server schema:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_INITIALIZE_CORE_CONFIG,
-                    "An error occurred while trying to initialize the core " +
-                    "Directory Server configuration:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_INITIALIZE_CRYPTO_MANAGER,
+    registerMessage(MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER,
                     "An error occurred while attempting to initialize the " +
                     "crypto manager:  %s.");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS,
@@ -8153,7 +6946,7 @@ public class ToolMessages
     registerMessage(MSGID_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER,
                     "Unable to decode include filter string \"%s\" as a " +
                     "valid search filter:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_DECODE_BASE_DN,
+    registerMessage(MSGID_CANNOT_DECODE_BASE_DN,
                     "Unable to decode base DN string \"%s\" as a valid " +
                     "distinguished name:  %s.");
     registerMessage(MSGID_LDIFEXPORT_MULTIPLE_BACKENDS_FOR_ID,
@@ -8186,31 +6979,30 @@ public class ToolMessages
                     "shared lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the export process exits, " +
                     "so no further action should be required.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_DECODE_BACKEND_BASE_DN,
+    registerMessage(MSGID_CANNOT_DECODE_BACKEND_BASE_DN,
                     "Unable to decode the backend configuration base DN " +
                     "string \"%s\" as a valid DN:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY,
+    registerMessage(MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY,
                     "Unable to retrieve the backend configuration base entry " +
                     "\"%s\" from the server configuration:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_DETERMINE_BACKEND_CLASS,
+    registerMessage(MSGID_CANNOT_DETERMINE_BACKEND_CLASS,
                     "Cannot determine the name of the Java class providing " +
                     "the logic for the backend defined in configuration " +
                     "entry %s:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_LOAD_BACKEND_CLASS,
+    registerMessage(MSGID_CANNOT_LOAD_BACKEND_CLASS,
                     "Unable to load class %s referenced in configuration " +
                     "entry %s for use as a Directory Server backend:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_INSTANTIATE_BACKEND_CLASS,
+    registerMessage(MSGID_CANNOT_INSTANTIATE_BACKEND_CLASS,
                     "Unable to create an instance of class %s referenced in " +
                     "configuration entry %s as a Directory Server backend:  " +
                     "%s.");
-    registerMessage(MSGID_LDIFEXPORT_NO_BASES_FOR_BACKEND,
+    registerMessage(MSGID_NO_BASES_FOR_BACKEND,
                     "No base DNs have been defined in backend configuration " +
-                    "entry %s.  This backend will not be evaluated in the " +
-                    "LDIF export process.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_DETERMINE_BASES_FOR_BACKEND,
+                    "entry %s.  This backend will not be evaluated.");
+    registerMessage(MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND,
                     "Unable to determine the set of base DNs defined in " +
                     "backend configuration entry %s:  %s.");
-    registerMessage(MSGID_LDIFEXPORT_CANNOT_DETERMINE_BACKEND_ID,
+    registerMessage(MSGID_CANNOT_DETERMINE_BACKEND_ID,
                     "Cannot determine the backend ID for the backend defined " +
                     "in configuration entry %s:  %s.");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_DECODE_INCLUDE_BASE,
@@ -8221,13 +7013,6 @@ public class ToolMessages
                     "backend with backend ID %s.");
 
 
-    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_CONFIG_CLASS,
-                    "Specifies the fully-qualified name of the Java class " +
-                    "that serves as the configuration handler for the " +
-                    "Directory Server.");
-    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_CONFIG_FILE,
-                    "Specifies the path to the Directory Server " +
-                    "configuration file.");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_LDIF_FILE,
                     "Path to the LDIF file to be imported");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_TEMPLATE_FILE,
@@ -8268,14 +7053,6 @@ public class ToolMessages
                     "LDIF file is encrypted");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_QUIET,
                     "Use quiet mode (no output)");
-    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_USAGE,
-                    "Display this usage information.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_LDIFIMPORT_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
     registerMessage(MSGID_LDIFIMPORT_CONFLICTING_OPTIONS,
                     "The %s and %s arguments are incompatible and may not be " +
                     "used together.");
@@ -8283,21 +7060,6 @@ public class ToolMessages
                     "Neither the %s or the %s argument was provided.  One " +
                     "of these arguments must be given to specify the source " +
                     "for the LDIF data to be imported.");
-    registerMessage(MSGID_LDIFIMPORT_SERVER_BOOTSTRAP_ERROR,
-                    "An unexpected error occurred while attempting to " +
-                    "bootstrap the Directory Server client-side code:  %s.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_LOAD_CONFIG,
-                    "An error occurred while trying to load the Directory " +
-                    "Server configuration:  %s.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_LOAD_SCHEMA,
-                    "An error occurred while trying to load the Directory " +
-                    "Server schema:  %s.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CORE_CONFIG,
-                    "An error occurred while trying to initialize the core " +
-                    "Directory Server configuration:  %s.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_INITIALIZE_CRYPTO_MANAGER,
-                    "An error occurred while attempting to initialize the " +
-                    "crypto manager:  %s.");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY,
                     "An error occurred while attempting to initialize the " +
                     "password policy components:  %s.");
@@ -8310,9 +7072,6 @@ public class ToolMessages
     registerMessage(MSGID_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER,
                     "Unable to decode include filter string \"%s\" as a " +
                     "valid search filter:  %s.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_DECODE_BASE_DN,
-                    "Unable to decode base DN string \"%s\" as a valid " +
-                    "distinguished name:  %s.");
     registerMessage(MSGID_LDIFIMPORT_MULTIPLE_BACKENDS_FOR_ID,
                     "Multiple Directory Server backends are configured with " +
                     "backend ID \"%s\".");
@@ -8352,33 +7111,6 @@ public class ToolMessages
                     "exclusive lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the import process exits, " +
                     "so no further action should be required.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_DECODE_BACKEND_BASE_DN,
-                    "Unable to decode the backend configuration base DN " +
-                    "string \"%s\" as a valid DN:  %s.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY,
-                    "Unable to retrieve the backend configuration base entry " +
-                    "\"%s\" from the server configuration:  %s.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_DETERMINE_BACKEND_ID,
-                    "Cannot determine the backend ID for the backend defined " +
-                    "in configuration entry %s:  %s.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_DETERMINE_BACKEND_CLASS,
-                    "Cannot determine the name of the Java class providing " +
-                    "the logic for the backend defined in configuration " +
-                    "entry %s:  %s.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_LOAD_BACKEND_CLASS,
-                    "Unable to load class %s referenced in configuration " +
-                    "entry %s for use as a Directory Server backend:  %s.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_INSTANTIATE_BACKEND_CLASS,
-                    "Unable to create an instance of class %s referenced in " +
-                    "configuration entry %s as a Directory Server backend:  " +
-                    "%s.");
-    registerMessage(MSGID_LDIFIMPORT_NO_BASES_FOR_BACKEND,
-                    "No base DNs have been defined in backend configuration " +
-                    "entry %s.  This backend will not be evaluated in the " +
-                    "LDIF import process.");
-    registerMessage(MSGID_LDIFIMPORT_CANNOT_DETERMINE_BASES_FOR_BACKEND,
-                    "Unable to determine the set of base DNs defined in " +
-                    "backend configuration entry %s:  %s.");
 
 
     registerMessage(MSGID_PROCESSING_OPERATION,
@@ -8815,35 +7547,8 @@ public class ToolMessages
     registerMessage(MSGID_VERIFYINDEX_VERIFY_CLEAN_REQUIRES_SINGLE_INDEX,
                     "Only one index at a time may be verified for " +
                     "cleanliness.");
-    registerMessage(MSGID_VERIFYINDEX_WRONG_BACKEND_TYPE,
+    registerMessage(MSGID_BACKEND_NO_INDEXING_SUPPORT,
                     "The backend does not support indexing.");
-    registerMessage(MSGID_VERIFYINDEX_DESCRIPTION_CONFIG_CLASS,
-                    "Specifies the fully-qualified name of the Java class " +
-                    "that serves as the configuration handler for the " +
-                    "Directory Server.");
-    registerMessage(MSGID_VERIFYINDEX_DESCRIPTION_CONFIG_FILE,
-                    "Specifies the path to the Directory Server " +
-                    "configuration file.");
-    registerMessage(MSGID_VERIFYINDEX_DESCRIPTION_USAGE,
-                    "Displays this usage information.");
-    registerMessage(MSGID_VERIFYINDEX_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_VERIFYINDEX_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
-    registerMessage(MSGID_VERIFYINDEX_SERVER_BOOTSTRAP_ERROR,
-                    "An unexpected error occurred while attempting to " +
-                    "bootstrap the Directory Server client-side code:  %s.");
-    registerMessage(MSGID_VERIFYINDEX_CANNOT_LOAD_CONFIG,
-                    "An error occurred while trying to load the Directory " +
-                    "Server configuration:  %s.");
-    registerMessage(MSGID_VERIFYINDEX_CANNOT_LOAD_SCHEMA,
-                    "An error occurred while trying to load the Directory " +
-                    "Server schema:  %s.");
-    registerMessage(MSGID_VERIFYINDEX_CANNOT_INITIALIZE_CORE_CONFIG,
-                    "An error occurred while trying to initialize the core " +
-                    "Directory Server configuration:  %s.");
     registerMessage(MSGID_VERIFYINDEX_CANNOT_LOCK_BACKEND,
                     "An error occurred while attempting to acquire a shared " +
                     "lock for backend %s:  %s.  This generally means that " +
@@ -8855,48 +7560,33 @@ public class ToolMessages
                     "shared lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the verification process " +
                     "exits, so no further action should be required.");
-    registerMessage(MSGID_VERIFYINDEX_CANNOT_DECODE_BASE_DN,
-                    "Unable to decode base DN string \"%s\" as a valid " +
-                    "distinguished name:  %s.");
-    registerMessage(MSGID_VERIFYINDEX_MULTIPLE_BACKENDS_FOR_BASE,
+    registerMessage(MSGID_MULTIPLE_BACKENDS_FOR_BASE,
                     "Multiple Directory Server backends are configured to " +
                     "support base DN \"%s\".");
-    registerMessage(MSGID_VERIFYINDEX_NO_BACKENDS_FOR_BASE,
+    registerMessage(MSGID_NO_BACKENDS_FOR_BASE,
                     "None of the Directory Server backends are configured " +
                     "to support the requested base DN \"%s\".");
-    registerMessage(MSGID_VERIFYINDEX_CANNOT_DECODE_BACKEND_BASE_DN,
-                    "Unable to decode the backend configuration base DN " +
-                    "string \"%s\" as a valid DN:  %s.");
-    registerMessage(MSGID_VERIFYINDEX_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY,
-                    "Unable to retrieve the backend configuration base entry " +
-                    "\"%s\" from the server configuration:  %s.");
-    registerMessage(MSGID_VERIFYINDEX_CANNOT_DETERMINE_BACKEND_CLASS,
-                    "Cannot determine the name of the Java class providing " +
-                    "the logic for the backend defined in configuration " +
-                    "entry %s:  %s.");
-    registerMessage(MSGID_VERIFYINDEX_CANNOT_LOAD_BACKEND_CLASS,
-                    "Unable to load class %s referenced in configuration " +
-                    "entry %s for use as a Directory Server backend:  %s.");
-    registerMessage(MSGID_VERIFYINDEX_CANNOT_INSTANTIATE_BACKEND_CLASS,
-                    "Unable to create an instance of class %s referenced in " +
-                    "configuration entry %s as a Directory Server backend:  " +
-                    "%s.");
-    registerMessage(MSGID_VERIFYINDEX_NO_BASES_FOR_BACKEND,
-                    "No base DNs have been defined in backend configuration " +
-                    "entry %s.  This backend will not be evaluated in the " +
-                    "data verification process.");
-    registerMessage(MSGID_VERIFYINDEX_CANNOT_DETERMINE_BASES_FOR_BACKEND,
-                    "Unable to determine the set of base DNs defined in " +
-                    "backend configuration entry %s:  %s.");
 
+    registerMessage(MSGID_REBUILDINDEX_TOOL_DESCRIPTION,
+                    "This utility may be used to rebuild index data within " +
+                    "a backend based on the Berkeley DB Java Edition.");
+    registerMessage(MSGID_REBUILDINDEX_DESCRIPTION_BASE_DN,
+                    "Specifies the base DN of a backend supporting indexing. " +
+                    "Rebuild is performed on indexes within the scope " +
+                    "of the given base DN.");
+    registerMessage(MSGID_REBUILDINDEX_DESCRIPTION_INDEX_NAME,
+                    "Specifies the names of index(es) to rebuild. For an " +
+                    "attribute index this is simply an attribute name.  " +
+                    "At least one index must be specified for rebuild.");
+    registerMessage(MSGID_REBUILDINDEX_ERROR_DURING_REBUILD,
+                    "An error occurred while attempting to perform index " +
+                    "rebuild:  %s.");
+    registerMessage(MSGID_REBUILDINDEX_WRONG_BACKEND_TYPE,
+                    "The backend does not support rebuilding of indexes.");
+    registerMessage(MSGID_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX,
+                    "At least one index must be spcified for the rebuild " +
+                    "process.");
 
-    registerMessage(MSGID_BACKUPDB_DESCRIPTION_CONFIG_CLASS,
-                    "Specifies the fully-qualified name of the Java class " +
-                    "that serves as the configuration handler for the " +
-                    "Directory Server.");
-    registerMessage(MSGID_BACKUPDB_DESCRIPTION_CONFIG_FILE,
-                    "Specifies the path to the Directory Server " +
-                    "configuration file.");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_BACKEND_ID,
                     "Backend ID for the backend to archive");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_BACKUP_ALL,
@@ -8918,29 +7608,6 @@ public class ToolMessages
                     "Generate a hash of the backup contents");
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_SIGN_HASH,
                     "Sign the hash of the backup contents");
-    registerMessage(MSGID_BACKUPDB_DESCRIPTION_USAGE,
-                    "Display this usage information.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_BACKUPDB_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
-    registerMessage(MSGID_BACKUPDB_SERVER_BOOTSTRAP_ERROR,
-                    "An unexpected error occurred while attempting to " +
-                    "bootstrap the Directory Server client-side code:  %s.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_LOAD_CONFIG,
-                    "An error occurred while trying to load the Directory " +
-                    "Server configuration:  %s.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_LOAD_SCHEMA,
-                    "An error occurred while trying to load the Directory " +
-                    "Server schema:  %s.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_INITIALIZE_CORE_CONFIG,
-                    "An error occurred while trying to initialize the core " +
-                    "Directory Server configuration:  %s.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_INITIALIZE_CRYPTO_MANAGER,
-                    "An error occurred while attempting to initialize the " +
-                    "crypto manager:  %s.");
     registerMessage(MSGID_BACKUPDB_MULTIPLE_BACKENDS_FOR_ID,
                     "Multiple Directory Server backends are configured with " +
                     "the requested backend ID \"%s\".");
@@ -8961,33 +7628,6 @@ public class ToolMessages
     registerMessage(MSGID_BACKUPDB_ERROR_DURING_BACKUP,
                     "An error occurred while attempting to back up backend " +
                     "%s with the requested configuration:  %s.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_DECODE_BACKEND_BASE_DN,
-                    "Unable to decode the backend configuration base DN " +
-                    "string \"%s\" as a valid DN:  %s.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY,
-                    "Unable to retrieve the backend configuration base entry " +
-                    "\"%s\" from the server configuration:  %s.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_DETERMINE_BACKEND_CLASS,
-                    "Cannot determine the name of the Java class providing " +
-                    "the logic for the backend defined in configuration " +
-                    "entry %s:  %s.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_LOAD_BACKEND_CLASS,
-                    "Unable to load class %s referenced in configuration " +
-                    "entry %s for use as a Directory Server backend:  %s.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_INSTANTIATE_BACKEND_CLASS,
-                    "Unable to create an instance of class %s referenced in " +
-                    "configuration entry %s as a Directory Server backend:  " +
-                    "%s.");
-    registerMessage(MSGID_BACKUPDB_NO_BASES_FOR_BACKEND,
-                    "No base DNs have been defined in backend configuration " +
-                    "entry %s.  This backend will not be evaluated in the " +
-                    "LDIF export process.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_DETERMINE_BASES_FOR_BACKEND,
-                    "Unable to determine the set of base DNs defined in " +
-                    "backend configuration entry %s:  %s.");
-    registerMessage(MSGID_BACKUPDB_CANNOT_DETERMINE_BACKEND_ID,
-                    "Cannot determine the backend ID for the backend defined " +
-                    "in configuration entry %s:  %s.");
     registerMessage(MSGID_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID,
                     "The %s and %s arguments may not be used together.  " +
                     "Exactly one of them must be provided.");
@@ -9032,13 +7672,6 @@ public class ToolMessages
                     "argument is also provided.");
 
 
-    registerMessage(MSGID_RESTOREDB_DESCRIPTION_CONFIG_CLASS,
-                    "Specifies the fully-qualified name of the Java class " +
-                    "that serves as the configuration handler for the " +
-                    "Directory Server.");
-    registerMessage(MSGID_RESTOREDB_DESCRIPTION_CONFIG_FILE,
-                    "Specifies the path to the Directory Server " +
-                    "configuration file.");
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_BACKEND_ID,
                     "Backend ID for the backend to restore");
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_BACKUP_ID,
@@ -9049,29 +7682,6 @@ public class ToolMessages
                     "List available backups in the backup directory");
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_VERIFY_ONLY,
                     "Verify the contents of the backup but do not restore it");
-    registerMessage(MSGID_RESTOREDB_DESCRIPTION_USAGE,
-                    "Display this usage information.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_RESTOREDB_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
-    registerMessage(MSGID_RESTOREDB_SERVER_BOOTSTRAP_ERROR,
-                    "An unexpected error occurred while attempting to " +
-                    "bootstrap the Directory Server client-side code:  %s.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_LOAD_CONFIG,
-                    "An error occurred while trying to load the Directory " +
-                    "Server configuration:  %s.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_LOAD_SCHEMA,
-                    "An error occurred while trying to load the Directory " +
-                    "Server schema:  %s.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_INITIALIZE_CORE_CONFIG,
-                    "An error occurred while trying to initialize the core " +
-                    "Directory Server configuration:  %s.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_INITIALIZE_CRYPTO_MANAGER,
-                    "An error occurred while attempting to initialize the " +
-                    "crypto manager:  %s.");
     registerMessage(MSGID_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY,
                     "An error occurred while attempting to examine the " +
                     "set of backups contained in backup directory %s:  %s.");
@@ -9119,33 +7729,6 @@ public class ToolMessages
                     "exclusive lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the restore process " +
                     "exits, so no further action should be required.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_DECODE_BACKEND_BASE_DN,
-                    "Unable to decode the backend configuration base DN " +
-                    "string \"%s\" as a valid DN:  %s.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY,
-                    "Unable to retrieve the backend configuration base entry " +
-                    "\"%s\" from the server configuration:  %s.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_DETERMINE_BACKEND_CLASS,
-                    "Cannot determine the name of the Java class providing " +
-                    "the logic for the backend defined in configuration " +
-                    "entry %s:  %s.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_LOAD_BACKEND_CLASS,
-                    "Unable to load class %s referenced in configuration " +
-                    "entry %s for use as a Directory Server backend:  %s.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_INSTANTIATE_BACKEND_CLASS,
-                    "Unable to create an instance of class %s referenced in " +
-                    "configuration entry %s as a Directory Server backend:  " +
-                    "%s.");
-    registerMessage(MSGID_RESTOREDB_NO_BASES_FOR_BACKEND,
-                    "No base DNs have been defined in backend configuration " +
-                    "entry %s.  This backend will not be evaluated in the " +
-                    "LDIF export process.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_DETERMINE_BASES_FOR_BACKEND,
-                    "Unable to determine the set of base DNs defined in " +
-                    "backend configuration entry %s:  %s.");
-    registerMessage(MSGID_RESTOREDB_CANNOT_DETERMINE_BACKEND_ID,
-                    "Cannot determine the backend ID for the backend defined " +
-                    "in configuration entry %s:  %s.");
     registerMessage(MSGID_DESCRIPTION_NOOP,
                     "Show what would be done but do not perform any operation");
     registerMessage(MSGID_DESCRIPTION_TYPES_ONLY,
@@ -9210,12 +7793,6 @@ public class ToolMessages
                     "Certificate trust store PIN file");
     registerMessage(MSGID_STOPDS_DESCRIPTION_SHOWUSAGE,
                     "Display this usage information.");
-    registerMessage(MSGID_STOPDS_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_STOPDS_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
     registerMessage(MSGID_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS,
                     "ERROR:  You may not provide both the %s and the %s " +
                     "arguments.");
@@ -9271,16 +7848,6 @@ public class ToolMessages
                     "The scope for the search.  It must be one of 'base', " +
                     "'one', 'sub', or 'subordinate'.  If it is not provided, " +
                     "then 'sub' will be used.");
-    registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_CONFIG_FILE,
-                    "The path to the Directory Server configuration file, " +
-                    "which will enable the use of the schema definitions " +
-                    "when processing the searches.  If it is not provided, " +
-                    "then schema processing will not be available.");
-    registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_CONFIG_CLASS,
-                    "The fully-qualified name of the Java class to use as " +
-                    "the Directory Server configuration handler.  If this is " +
-                    "not provided, then a default of " +
-                    ConfigFileHandler.class.getName() + " will be used.");
     registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_FILTER_FILE,
                     "The path to the file containing the search filter(s) " +
                     "to use.  If this is not provided, then the filter must " +
@@ -9301,14 +7868,6 @@ public class ToolMessages
     registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_TIME_LIMIT,
                     "Specifies the maximum length of time (in seconds) to " +
                     "spend processing.");
-    registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_USAGE,
-                    "Displays usage information for this program.");
-    registerMessage(MSGID_LDIFSEARCH_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_LDIFSEARCH_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
     registerMessage(MSGID_LDIFSEARCH_NO_FILTER,
                     "No search filter was specified.  Either a filter file " +
                     "or an individual search filter must be provided.");
@@ -9374,24 +7933,6 @@ public class ToolMessages
     registerMessage(MSGID_LDIFDIFF_DESCRIPTION_OVERWRITE_EXISTING,
                     "Indicates that any existing output file should be " +
                     "overwritten rather than appending to it.");
-    registerMessage(MSGID_LDIFDIFF_DESCRIPTION_CONFIG_FILE,
-                    "The path to the Directory Server configuration file, " +
-                    "which will enable the use of the schema definitions " +
-                    "when processing the LDIF data.  If it is not provided, " +
-                    "then schema processing will not be available.");
-    registerMessage(MSGID_LDIFDIFF_DESCRIPTION_CONFIG_CLASS,
-                    "The fully-qualified name of the Java class to use as " +
-                    "the Directory Server configuration handler.  If this is " +
-                    "not provided, then a default of " +
-                    ConfigFileHandler.class.getName() + " will be used.");
-    registerMessage(MSGID_LDIFDIFF_DESCRIPTION_USAGE,
-                    "Display this usage information.");
-    registerMessage(MSGID_LDIFDIFF_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_LDIFDIFF_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
     registerMessage(MSGID_LDIFDIFF_CANNOT_INITIALIZE_JMX,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server JMX subsystem based on the information " +
@@ -9426,13 +7967,6 @@ public class ToolMessages
                     "output:  %s.");
 
 
-    registerMessage(MSGID_CONFIGDS_DESCRIPTION_CONFIG_FILE,
-                    "The path to the Directory Server configuration file.");
-    registerMessage(MSGID_CONFIGDS_DESCRIPTION_CONFIG_CLASS,
-                    "The fully-qualified name of the Java class to use as " +
-                    "the Directory Server configuration handler.  If this is " +
-                    "not provided, then a default of " +
-                    ConfigFileHandler.class.getName() + " will be used.");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_LDAP_PORT,
                     "Specifies the port on which the Directory Server should " +
                     "listen for LDAP communication.");
@@ -9452,14 +7986,6 @@ public class ToolMessages
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_ROOT_PW_FILE,
                     "Specifies the path to a file containing the password " +
                     "for the initial root user for the Directory Server.");
-    registerMessage(MSGID_CONFIGDS_DESCRIPTION_USAGE,
-                    "Display this usage information.");
-    registerMessage(MSGID_CONFIGDS_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_CONFIGDS_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
     registerMessage(MSGID_CONFIGDS_CANNOT_ACQUIRE_SERVER_LOCK,
                     "An error occurred while attempting to acquire the " +
                     "server-wide lock file %s:  %s.  This generally means " +
@@ -9512,13 +8038,6 @@ public class ToolMessages
                     "Just verify that the JVM can be started properly.");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_PROGNAME,
                     "The setup command used to invoke this program.");
-    registerMessage(MSGID_INSTALLDS_DESCRIPTION_CONFIG_FILE,
-                    "The path to the Directory Server configuration file.");
-    registerMessage(MSGID_INSTALLDS_DESCRIPTION_CONFIG_CLASS,
-                    "The fully-qualified name of the Java class to use as " +
-                    "the Directory Server configuration handler.  If this is " +
-                    "not provided, then a default of " +
-                    ConfigFileHandler.class.getName() + " will be used.");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_CLI,
                     "Launch the installer in command-line mode (no GUI).");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_SILENT,
@@ -9834,13 +8353,6 @@ public class ToolMessages
     registerMessage(MSGID_MAKELDIF_TAG_NOT_ALLOWED_IN_BRANCH,
                     "Tag %s referenced on line %d of the template file is " +
                     "not allowed for use in branch definitions.");
-    registerMessage(MSGID_MAKELDIF_DESCRIPTION_CONFIG_FILE,
-                    "The path to the Directory Server configuration file.");
-    registerMessage(MSGID_MAKELDIF_DESCRIPTION_CONFIG_CLASS,
-                    "The fully-qualified name of the Java class to use as " +
-                    "the Directory Server configuration handler.  If this is " +
-                    "not provided, then a default of " +
-                    ConfigFileHandler.class.getName() + " will be used.");
     registerMessage(MSGID_MAKELDIF_DESCRIPTION_RESOURCE_PATH,
                     "Specifies the path to look for MakeLDIF resources " +
                     "(e.g., data files) not found in the current working " +
@@ -9854,13 +8366,7 @@ public class ToolMessages
                     "The seed to use to initialize the random number " +
                     "generator.");
     registerMessage(MSGID_MAKELDIF_DESCRIPTION_HELP,
-                    "Display this usage information.");
-    registerMessage(MSGID_MAKELDIF_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_MAKELDIF_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
+                    "Show this usage information.");
     registerMessage(MSGID_MAKELDIF_CANNOT_INITIALIZE_JMX,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server JMX subsystem based on the information " +
@@ -9950,16 +8456,6 @@ public class ToolMessages
     registerMessage(MSGID_LDIFMODIFY_MODIFY_NO_SUCH_ENTRY,
                     "Unable to modify entry %s because it does not exist " +
                     "in the data set.");
-    registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_FILE,
-                    "The path to the Directory Server configuration file, " +
-                    "which will enable the use of the schema definitions " +
-                    "when processing the updates.  If it is not provided, " +
-                    "then schema processing will not be available.");
-    registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_CONFIG_CLASS,
-                    "The fully-qualified name of the Java class to use as " +
-                    "the Directory Server configuration handler.  If this is " +
-                    "not provided, then a default of " +
-                    ConfigFileHandler.class.getName() + " will be used.");
     registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_SOURCE,
                     "Specifies the LDIF file containing the data to be " +
                     "updated.");
@@ -9970,12 +8466,6 @@ public class ToolMessages
                     "written.");
     registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_HELP,
                     "Displays this usage information.");
-    registerMessage(MSGID_LDIFMODIFY_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_LDIFMODIFY_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
     registerMessage(MSGID_LDIFMODIFY_CANNOT_INITIALIZE_JMX,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server JMX subsystem based on the information " +
@@ -10057,14 +8547,6 @@ public class ToolMessages
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE,
                     "The path to a file containing the PIN needed to access" +
                     "the contents of the trust store.");
-    registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_USAGE,
-                    "Display this usage information.");
-    registerMessage(MSGID_LDAPPWMOD_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_LDAPPWMOD_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
     registerMessage(MSGID_LDAPPWMOD_CONFLICTING_ARGS,
                     "The %s and %s arguments may not be provided together.");
     registerMessage(MSGID_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER,
@@ -10126,12 +8608,6 @@ public class ToolMessages
                     "target file to be deleted before exiting.");
     registerMessage(MSGID_WAIT4DEL_DESCRIPTION_HELP,
                     "Displays this usage information.");
-    registerMessage(MSGID_WAIT4DEL_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_WAIT4DEL_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
     registerMessage(MSGID_WAIT4DEL_CANNOT_OPEN_LOG_FILE,
                     "WARNING:  Unable to open log file %s for reading:  %s.");
     registerMessage(MSGID_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE,
@@ -10264,37 +8740,12 @@ public class ToolMessages
                     "DNs configured in the Directory Server.");
 
 
-    registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_CONFIG_CLASS,
-                    "The fully-qualified name of the Java class to use as " +
-                    "the Directory Server configuration handler.  If this is " +
-                    "not provided, then a default of " +
-                    ConfigFileHandler.class.getName() + " will be used.");
-    registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_CONFIG_FILE,
-                    "The path to the Directory Server configuration file, " +
-                    "which will enable the use of the schema definitions " +
-                    "when processing the updates.  If it is not provided, " +
-                    "then schema processing will not be available.");
     registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_BACKEND_ID,
                     "Backend ID of the backend for which to list the base DNs");
     registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_BASE_DN,
                     "Base DN for which to list the backend ID");
     registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_HELP,
                     "Display this usage information.");
-    registerMessage(MSGID_LISTBACKENDS_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-    registerMessage(MSGID_LISTBACKENDS_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
-    registerMessage(MSGID_LISTBACKENDS_SERVER_BOOTSTRAP_ERROR,
-                    "An unexpected error occurred while attempting to " +
-                    "bootstrap the Directory Server client-side code:  %s.");
-    registerMessage(MSGID_LISTBACKENDS_CANNOT_LOAD_CONFIG,
-                    "An error occurred while trying to load the Directory " +
-                    "Server configuration:  %s.");
-    registerMessage(MSGID_LISTBACKENDS_CANNOT_LOAD_SCHEMA,
-                    "An error occurred while trying to load the Directory " +
-                    "Server schema:  %s.");
     registerMessage(MSGID_LISTBACKENDS_CANNOT_GET_BACKENDS,
                     "An error occurred while trying to read backend " +
                     "information from the server configuration:  %s.");
@@ -10322,18 +8773,6 @@ public class ToolMessages
     registerMessage(MSGID_LISTBACKENDS_NO_VALID_BACKENDS,
                     "None of the provided backend IDs exist in the server " +
                     "configuration.");
-    registerMessage(MSGID_LISTBACKENDS_CANNOT_DECODE_BACKEND_BASE_DN,
-                    "Unable to decode the backend configuration base DN " +
-                    "string \"%s\" as a valid DN:  %s.");
-    registerMessage(MSGID_LISTBACKENDS_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY,
-                    "Unable to retrieve the backend configuration base entry " +
-                    "\"%s\" from the server configuration:  %s.");
-    registerMessage(MSGID_LISTBACKENDS_CANNOT_DETERMINE_BACKEND_ID,
-                    "Cannot determine the backend ID for the backend defined " +
-                    "in configuration entry %s:  %s.");
-    registerMessage(MSGID_LISTBACKENDS_CANNOT_DETERMINE_BASES_FOR_BACKEND,
-                    "Unable to determine the set of base DNs defined in " +
-                    "backend configuration entry %s:  %s.");
 
 
     registerMessage(MSGID_PROMPTTM_REJECTING_CLIENT_CERT,
@@ -10395,14 +8834,6 @@ public class ToolMessages
                     "Allows to disable the OpenDS service and to clean up the "+
                     "windows registry information associated with the "+
                     "provided service name.");
-
-    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_CANNOT_INITIALIZE_ARGS,
-                    "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
-
-    registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_ERROR_PARSING_ARGS,
-                    "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
 
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS,
                     "You can only provide one of the following arguments:"+
@@ -10471,6 +8902,26 @@ public class ToolMessages
 
     registerMessage(MSGID_WINDOWS_SERVICE_CLEANUP_MARKED_FOR_DELETION,
                     "Service %s has been marked for deletion.");
+
+    registerMessage(MSGID_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND,
+                    "An error occurred while attempting to acquire a shared " +
+                    "lock for backend %s:  %s.  This generally means that " +
+                    "some other process has an exclusive lock on this " +
+                    "backend (e.g., an LDIF import or a restore). The rebuild" +
+                    "process cannot continue.");
+
+    registerMessage(MSGID_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND,
+                    "An error occurred while attempting to acquire a " +
+                    "exclusive lock for backend %s:  %s.  This generally " +
+                    "means that some other process has an lock " +
+                    "on this backend or the server is running with this " +
+                    "backend online. The rebuild process cannot continue.");
+
+    registerMessage(MSGID_REBUILDINDEX_CANNOT_UNLOCK_BACKEND,
+                    "An error occurred while attempting to release the " +
+                    "shared lock for backend %s:  %s.  This lock should " +
+                    "automatically be cleared when the rebuild process " +
+                    "exits, so no further action should be required.");
   }
 }
 

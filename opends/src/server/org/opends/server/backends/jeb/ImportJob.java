@@ -387,6 +387,15 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
                                     indexConfig.getEqualityEntryLimit());
           mergers.add(indexMergeThread);
         }
+        if (indexConfig.isApproximateIndex())
+        {
+          Index index = attrIndex.approximateIndex;
+          String name = containerName + "_" + index.toString();
+          IndexMergeThread indexMergeThread =
+              new IndexMergeThread(name, config, ldifImportConfig, index,
+                                   indexConfig.getEqualityEntryLimit());
+          mergers.add(indexMergeThread);
+        }
       }
 
       // Id2Children index.

@@ -1125,6 +1125,18 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.331
   NAME 'ds-cfg-virtual-attribute-conflict-behavior'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.332
+  NAME 'ds-task-rebuild-base-dn'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.333
+  NAME 'ds-task-rebuild-index'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.334
+  NAME 'ds-task-rebuild-max-threads'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1560,4 +1572,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.91 NAME 'ds-cfg-virtual-attribute'
   ds-cfg-virtual-attribute-conflict-behavior )
   MAY ( ds-cfg-virtual-attribute-base-dn $ ds-cfg-virtual-attribute-group-dn $
   ds-cfg-virtual-attribute-filter ) X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.92
+  NAME 'ds-task-rebuild' SUP ds-task
+  MUST ( ds-task-rebuild-base-dn $ ds-task-rebuild-index )
+  MAY ( ds-task-rebuild-max-threads )
+  X-ORIGIN 'OpenDS Directory Server' )
 

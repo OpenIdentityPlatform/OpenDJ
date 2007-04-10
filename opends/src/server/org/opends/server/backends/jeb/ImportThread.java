@@ -166,6 +166,10 @@ public class ImportThread extends DirectoryThread
       {
         nIndexes++;
       }
+      if (indexConfig.isApproximateIndex())
+      {
+        nIndexes++;
+      }
     }
 
     // Divide the total buffer size by the number of threads
@@ -210,6 +214,14 @@ public class ImportThread extends DirectoryThread
              new IndexBuilder(importContext, attrIndex.orderingIndex,
                               indexConfig.getEqualityEntryLimit(),
                               indexBufferSize);
+        builders.add(indexBuilder);
+      }
+      if (indexConfig.isApproximateIndex())
+      {
+        IndexBuilder indexBuilder =
+            new IndexBuilder(importContext, attrIndex.approximateIndex,
+                             indexConfig.getEqualityEntryLimit(),
+                             indexBufferSize);
         builders.add(indexBuilder);
       }
     }

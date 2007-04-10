@@ -26,18 +26,9 @@
  */
 package org.opends.server.backends.jeb;
 
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.EnvironmentStats;
-import com.sleepycat.je.PreloadConfig;
-import com.sleepycat.je.PreloadStats;
-import com.sleepycat.je.PreloadStatus;
 import com.sleepycat.je.config.EnvironmentParams;
 import com.sleepycat.je.config.ConfigParam;
-import com.sleepycat.je.StatsConfig;
-import com.sleepycat.je.CheckpointConfig;
+import com.sleepycat.je.*;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -170,7 +161,25 @@ public class RootContainer
 
     if (debugEnabled())
     {
-      debugInfo(env.getConfig().toString());
+      debugInfo("JE (%s) environment opened with the following config: %n%s",
+                JEVersion.CURRENT_VERSION.toString(),
+                env.getConfig().toString());
+
+          // Get current size of heap in bytes
+    long heapSize = Runtime.getRuntime().totalMemory();
+
+    // Get maximum size of heap in bytes. The heap cannot grow beyond this size.
+    // Any attempt will result in an OutOfMemoryException.
+    long heapMaxSize = Runtime.getRuntime().maxMemory();
+
+    // Get amount of free memory within the heap in bytes. This size will
+      // increase
+    // after garbage collection and decrease as new objects are created.
+    long heapFreeSize = Runtime.getRuntime().freeMemory();
+
+      debugInfo("Current size of heap: %d bytes", heapSize);
+      debugInfo("Max size of heap: %d bytes", heapMaxSize);
+      debugInfo("Free memory in heap: %d bytes", heapFreeSize);
     }
   }
 

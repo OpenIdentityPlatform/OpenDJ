@@ -378,7 +378,7 @@ public class StopDS
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_STOPDS_CANNOT_INITIALIZE_ARGS;
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -393,7 +393,7 @@ public class StopDS
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_STOPDS_ERROR_PARSING_ARGS;
+      int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));

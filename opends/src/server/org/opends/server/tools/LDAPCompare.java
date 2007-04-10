@@ -544,7 +544,7 @@ public class LDAPCompare
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ENCPW_CANNOT_INITIALIZE_ARGS;
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -558,7 +558,7 @@ public class LDAPCompare
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_ENCPW_ERROR_PARSING_ARGS;
+      int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));

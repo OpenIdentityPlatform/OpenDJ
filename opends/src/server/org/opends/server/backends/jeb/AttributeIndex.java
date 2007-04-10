@@ -40,6 +40,7 @@ import com.sleepycat.je.Transaction;
 
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -106,6 +107,11 @@ public class AttributeIndex
   Index orderingIndex = null;
 
   /**
+   * The index database for attribute approximate.
+   */
+  Index approximateIndex = null;
+
+  /**
    * Create a new attribute index object.
    * @param entryContainer The entryContainer of this attribute index.
    * @param indexConfig The attribute index configuration.
@@ -153,6 +159,15 @@ public class AttributeIndex
                                      indexConfig.getEqualityEntryLimit(),
                                      indexConfig.getCursorEntryLimit());
     }
+    if (indexConfig.isApproximateIndex())
+    {
+      Indexer approximateIndexer = new ApproximateIndexer(indexConfig);
+      this.approximateIndex = new Index(this.entryContainer,
+                                        name + ".approximate",
+                                        approximateIndexer,
+                                        indexConfig.getEqualityEntryLimit(),
+                                        indexConfig.getCursorEntryLimit());
+    }
   }
 
   /**
@@ -185,6 +200,11 @@ public class AttributeIndex
     {
       orderingIndex.open(dbConfig);
     }
+
+    if (approximateIndex != null)
+    {
+      approximateIndex.open(dbConfig);
+    }
   }
 
   /**
@@ -204,38 +224,65 @@ public class AttributeIndex
     return indexConfig.getAttributeType();
   }
 
+  //TODO: Make all modify/add methods return success boolean
   /**
    * Update the attribute index for a new entry.
    *
    * @param txn         The database transaction to be used for the insertions.
    * @param entryID     The entry ID.
    * @param entry       The contents of the new entry.
+   * @return True if all the index keys for the entry are added. False if the
+   *         entry ID alreadly exists for some keys.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws JebException If an error occurs in the JE backend.
    */
-  public void addEntry(Transaction txn, EntryID entryID, Entry entry)
+  public boolean addEntry(Transaction txn, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException, JebException
   {
+    boolean success = true;
+
     if (equalityIndex != null)
     {
-      equalityIndex.addEntry(txn, entryID, entry);
+      if(!equalityIndex.addEntry(txn, entryID, entry))
+      {
+        success = false;
+      }
     }
 
     if (presenceIndex != null)
     {
-      presenceIndex.addEntry(txn, entryID, entry);
+      if(!presenceIndex.addEntry(txn, entryID, entry))
+      {
+        success = false;
+      }
     }
 
     if (substringIndex != null)
     {
-      substringIndex.addEntry(txn, entryID, entry);
+      if(!substringIndex.addEntry(txn, entryID, entry))
+      {
+        success = false;
+      }
     }
 
     if (orderingIndex != null)
     {
-      orderingIndex.addEntry(txn, entryID, entry);
+      if(!orderingIndex.addEntry(txn, entryID, entry))
+      {
+        success = false;
+      }
     }
+
+    if (approximateIndex != null)
+    {
+      if(!approximateIndex.addEntry(txn, entryID, entry))
+      {
+        success = false;
+      }
+    }
+
+    return success;
   }
 
   /**
@@ -269,6 +316,11 @@ public class AttributeIndex
     if (orderingIndex != null)
     {
       orderingIndex.removeEntry(txn, entryID, entry);
+    }
+
+    if(approximateIndex != null)
+    {
+      approximateIndex.removeEntry(txn, entryID, entry);
     }
   }
 
@@ -309,6 +361,11 @@ public class AttributeIndex
     if (orderingIndex != null)
     {
       orderingIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
+    }
+
+    if (approximateIndex != null)
+    {
+      approximateIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
     }
   }
 
@@ -794,6 +851,44 @@ public class AttributeIndex
   }
 
   /**
+   * Retrieve the entry IDs that might match an approximate filter.
+   *
+   * @param approximateFilter The approximate filter.
+   * @return The candidate entry IDs that might contain the filter
+   *         assertion value.
+   */
+  public EntryIDSet evaluateApproximateFilter(SearchFilter approximateFilter)
+  {
+    if (!indexConfig.isApproximateIndex())
+    {
+      return new EntryIDSet();
+    }
+
+    try
+    {
+      ApproximateMatchingRule approximateMatchingRule =
+          approximateFilter.getAttributeType().getApproximateMatchingRule();
+      // Make a key from the normalized assertion value.
+      byte[] keyBytes =
+           approximateMatchingRule.normalizeValue(
+               approximateFilter.getAssertionValue().getValue()).value();
+      DatabaseEntry key = new DatabaseEntry(keyBytes);
+
+      // Read the key.
+      return approximateIndex.readKey(key, null, LockMode.DEFAULT);
+    }
+    catch (DirectoryException e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+      return new EntryIDSet();
+    }
+  }
+
+
+  /**
    * Remove the index from disk. The index must not be open.
    * @throws DatabaseException If an error occurs in the JE database.
    */
@@ -816,6 +911,10 @@ public class AttributeIndex
     if (indexConfig.isOrderingIndex())
     {
       entryContainer.removeDatabase(name + ".ordering");
+    }
+    if (indexConfig.isApproximateIndex())
+    {
+      entryContainer.removeDatabase(name + ".approximate");
     }
   }
 
@@ -849,6 +948,60 @@ public class AttributeIndex
       entryLimitExceededCount += orderingIndex.getEntryLimitExceededCount();
     }
 
+    if (approximateIndex != null)
+    {
+      entryLimitExceededCount +=
+          approximateIndex.getEntryLimitExceededCount();
+    }
+
     return entryLimitExceededCount;
   }
+
+  /**
+   * Removes all records related to this attribute index.
+   * @param txn A JE database transaction to be used during the clear operation
+   *            or null if not required. Using transactions increases the chance
+   *            of lock contention.
+   * @return The number of records removed.
+   * @throws DatabaseException If an error occurs while cleaning the database.
+   */
+  public long clear(Transaction txn) throws DatabaseException
+  {
+    long deletedCount = 0;
+
+    if (equalityIndex != null)
+    {
+      deletedCount += equalityIndex.clear(txn);
+    }
+    if (presenceIndex != null)
+    {
+      deletedCount += presenceIndex.clear(txn);
+    }
+    if (substringIndex != null)
+    {
+      deletedCount += substringIndex.clear(txn);
+    }
+    if (orderingIndex != null)
+    {
+      deletedCount += orderingIndex.clear(txn);
+    }
+    if (approximateIndex != null)
+    {
+      deletedCount += approximateIndex.clear(txn);
+    }
+
+    return deletedCount;
+  }
+
+
+  /**
+   * Get a string representation of this object.
+   * @return return A string representation of this object.
+   */
+  public String toString()
+  {
+    return indexConfig.getAttributeType().getNameOrOID();
+  }
+
+
 }

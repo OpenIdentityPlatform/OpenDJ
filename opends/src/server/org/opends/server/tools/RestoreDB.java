@@ -38,8 +38,6 @@ import java.util.List;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.DNConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -58,9 +56,7 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Error.*;
-import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -142,7 +138,7 @@ public class RestoreDB
                               OPTION_LONG_CONFIG_CLASS, true, false,
                               true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
-                              MSGID_RESTOREDB_DESCRIPTION_CONFIG_CLASS);
+                              MSGID_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -150,7 +146,7 @@ public class RestoreDB
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
                               true, "{configFile}", null, null,
-                              MSGID_RESTOREDB_DESCRIPTION_CONFIG_FILE);
+                              MSGID_DESCRIPTION_CONFIG_FILE);
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -182,13 +178,13 @@ public class RestoreDB
 
       displayUsage =
            new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-                               MSGID_RESTOREDB_DESCRIPTION_USAGE);
+                               MSGID_DESCRIPTION_USAGE);
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_ARGS;
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -203,7 +199,7 @@ public class RestoreDB
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_RESTOREDB_ERROR_PARSING_ARGS;
+      int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -231,7 +227,7 @@ public class RestoreDB
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_RESTOREDB_SERVER_BOOTSTRAP_ERROR;
+        int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -244,14 +240,14 @@ public class RestoreDB
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_LOAD_CONFIG;
+        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
         String message = getMessage(msgID, ie.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_LOAD_CONFIG;
+        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -266,21 +262,21 @@ public class RestoreDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, ce.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, ie.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -295,21 +291,21 @@ public class RestoreDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CORE_CONFIG;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
         String message = getMessage(msgID, ce.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CORE_CONFIG;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
         String message = getMessage(msgID, ie.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CORE_CONFIG;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -323,21 +319,21 @@ public class RestoreDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
         String message = getMessage(msgID, ce.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
         String message = getMessage(msgID, ie.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -481,7 +477,7 @@ public class RestoreDB
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
     ArrayList<ConfigEntry> entryList   = new ArrayList<ConfigEntry>();
     ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
-    getBackends(backendList, entryList, dnList);
+    BackendToolUtils.getBackends(backendList, entryList, dnList);
 
 
     Backend     backend     = null;
@@ -595,230 +591,6 @@ public class RestoreDB
                message, msgID);
     }
     return 0;
-  }
-
-
-
-  /**
-   * Retrieves information about the backends defined in the Directory Server
-   * configuration.
-   *
-   * @param  backendList  A list into which instantiated (but not initialized)
-   *                      backend instances will be placed.
-   * @param  entryList    A list into which the config entries associated with
-   *                      the backends will be placed.
-   * @param  dnList       A list into which the set of base DNs for each backend
-   *                      will be placed.
-   */
-  private static void getBackends(ArrayList<Backend> backendList,
-                                  ArrayList<ConfigEntry> entryList,
-                                  ArrayList<List<DN>> dnList)
-  {
-    // Get the base entry for all backend configuration.
-    DN backendBaseDN = null;
-    try
-    {
-      backendBaseDN = DN.decode(DN_BACKEND_BASE);
-    }
-    catch (DirectoryException de)
-    {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_DECODE_BACKEND_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE, de.getErrorMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
-      System.exit(1);
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_DECODE_BACKEND_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
-
-      System.exit(1);
-    }
-
-    ConfigEntry baseEntry = null;
-    try
-    {
-      baseEntry = DirectoryServer.getConfigEntry(backendBaseDN);
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE, ce.getMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
-      System.exit(1);
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_RESTOREDB_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
-      System.exit(1);
-    }
-
-
-    // Iterate through the immediate children, attempting to parse them as
-    // backends.
-    for (ConfigEntry configEntry : baseEntry.getChildren().values())
-    {
-      // Get the backend ID attribute from the entry.  If there isn't one, then
-      // skip the entry.
-      String backendID = null;
-      try
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
-        StringConfigAttribute idStub =
-             new StringConfigAttribute(ATTR_BACKEND_ID, getMessage(msgID),
-                                       true, false, true);
-        StringConfigAttribute idAttr =
-             (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-        if (idAttr == null)
-        {
-          continue;
-        }
-        else
-        {
-          backendID = idAttr.activeValue();
-        }
-      }
-      catch (ConfigException ce)
-      {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    ce.getMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-
-
-      // Get the backend class name attribute from the entry.  If there isn't
-      // one, then just skip the entry.
-      String backendClassName = null;
-      try
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS;
-        StringConfigAttribute classStub =
-             new StringConfigAttribute(ATTR_BACKEND_CLASS, getMessage(msgID),
-                                       true, false, false);
-        StringConfigAttribute classAttr =
-             (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-        if (classAttr == null)
-        {
-          continue;
-        }
-        else
-        {
-          backendClassName = classAttr.activeValue();
-        }
-      }
-      catch (ConfigException ce)
-      {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_DETERMINE_BACKEND_CLASS;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    ce.getMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_DETERMINE_BACKEND_CLASS;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-
-      Class backendClass = null;
-      try
-      {
-        backendClass = Class.forName(backendClassName);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_LOAD_BACKEND_CLASS;
-        String message = getMessage(msgID, backendClassName,
-                                    String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-
-      Backend backend = null;
-      try
-      {
-        backend = (Backend) backendClass.newInstance();
-        backend.setBackendID(backendID);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_INSTANTIATE_BACKEND_CLASS;
-        String message = getMessage(msgID, backendClassName,
-                                    String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-
-
-      // Get the base DN attribute from the entry.  If there isn't one, then
-      // just skip this entry.
-      List<DN> baseDNs = null;
-      try
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
-        DNConfigAttribute baseDNStub =
-             new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID),
-                                   true, true, true);
-        DNConfigAttribute baseDNAttr =
-             (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-        if (baseDNAttr == null)
-        {
-          msgID = MSGID_RESTOREDB_NO_BASES_FOR_BACKEND;
-          String message = getMessage(msgID,
-                                      String.valueOf(configEntry.getDN()));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
-        }
-        else
-        {
-          baseDNs = baseDNAttr.activeValues();
-        }
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_RESTOREDB_CANNOT_DETERMINE_BASES_FOR_BACKEND;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-
-
-      backendList.add(backend);
-      entryList.add(configEntry);
-      dnList.add(baseDNs);
-    }
   }
 }
 

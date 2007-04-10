@@ -61,6 +61,11 @@ public class IndexConfig
   private boolean isOrdering = false;
 
   /**
+   * Indicates whether this index is configured for attribute approximate.
+   */
+  private boolean isApproximate = false;
+
+  /**
    * The index entry limit for the attribute equality database.
    */
   private int equalityEntryLimit = 4000;
@@ -174,6 +179,24 @@ public class IndexConfig
   public void setOrderingIndex(boolean isOrdering)
   {
     this.isOrdering = isOrdering;
+  }
+
+  /**
+   * Determine if this index is configured for attribute approximating.
+   * @return true if the index is configured for attribute approximating.
+   */
+  public boolean isApproximateIndex()
+  {
+    return isApproximate;
+  }
+
+  /**
+   * Configures this index for attribute approximating.
+   * @param isApproximate Sets attribute approximate indexing if true.
+   */
+  public void setApproximateIndex(boolean isApproximate)
+  {
+    this.isApproximate = isApproximate;
   }
 
   /**

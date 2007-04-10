@@ -150,7 +150,7 @@ public class BackUpDB
                               OPTION_LONG_CONFIG_CLASS, true, false,
                               true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
-                              MSGID_BACKUPDB_DESCRIPTION_CONFIG_CLASS);
+                              MSGID_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -158,7 +158,7 @@ public class BackUpDB
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
                               true, "{configFile}", null, null,
-                              MSGID_BACKUPDB_DESCRIPTION_CONFIG_FILE);
+                              MSGID_DESCRIPTION_CONFIG_FILE);
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -226,13 +226,13 @@ public class BackUpDB
       displayUsage =
            new BooleanArgument("help", OPTION_SHORT_HELP,
                                OPTION_LONG_HELP,
-                               MSGID_BACKUPDB_DESCRIPTION_USAGE);
+                               MSGID_DESCRIPTION_USAGE);
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_ARGS;
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -247,7 +247,7 @@ public class BackUpDB
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_BACKUPDB_ERROR_PARSING_ARGS;
+      int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -366,7 +366,7 @@ public class BackUpDB
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_SERVER_BOOTSTRAP_ERROR;
+        int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -379,14 +379,14 @@ public class BackUpDB
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_CONFIG;
+        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
         String message = getMessage(msgID, ie.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_CONFIG;
+        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -401,21 +401,21 @@ public class BackUpDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, ce.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, ie.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -430,21 +430,21 @@ public class BackUpDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CORE_CONFIG;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
         String message = getMessage(msgID, ce.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CORE_CONFIG;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
         String message = getMessage(msgID, ie.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CORE_CONFIG;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -458,21 +458,21 @@ public class BackUpDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
         String message = getMessage(msgID, ce.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
         String message = getMessage(msgID, ie.getMessage());
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -953,7 +953,7 @@ public class BackUpDB
     }
     catch (DirectoryException de)
     {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_DECODE_BACKEND_BASE_DN;
+      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
       String message = getMessage(msgID, DN_BACKEND_BASE, de.getErrorMessage());
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
@@ -961,7 +961,7 @@ public class BackUpDB
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_DECODE_BACKEND_BASE_DN;
+      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
       String message = getMessage(msgID, DN_BACKEND_BASE,
                                   stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
@@ -977,7 +977,7 @@ public class BackUpDB
     }
     catch (ConfigException ce)
     {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
+      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
       String message = getMessage(msgID, DN_BACKEND_BASE, ce.getMessage());
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
@@ -985,7 +985,7 @@ public class BackUpDB
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_BACKUPDB_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
+      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
       String message = getMessage(msgID, DN_BACKEND_BASE,
                                   stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
@@ -1020,7 +1020,7 @@ public class BackUpDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_DETERMINE_BACKEND_ID;
+        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     ce.getMessage());
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -1029,7 +1029,7 @@ public class BackUpDB
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_DETERMINE_BACKEND_ID;
+        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -1060,7 +1060,7 @@ public class BackUpDB
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_DETERMINE_BACKEND_CLASS;
+        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_CLASS;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     ce.getMessage());
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -1069,7 +1069,7 @@ public class BackUpDB
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_DETERMINE_BACKEND_CLASS;
+        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_CLASS;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -1084,7 +1084,7 @@ public class BackUpDB
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_LOAD_BACKEND_CLASS;
+        int    msgID   = MSGID_CANNOT_LOAD_BACKEND_CLASS;
         String message = getMessage(msgID, backendClassName,
                                     String.valueOf(configEntry.getDN()),
                                     stackTraceToSingleLineString(e));
@@ -1101,7 +1101,7 @@ public class BackUpDB
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_INSTANTIATE_BACKEND_CLASS;
+        int    msgID   = MSGID_CANNOT_INSTANTIATE_BACKEND_CLASS;
         String message = getMessage(msgID, backendClassName,
                                     String.valueOf(configEntry.getDN()),
                                     stackTraceToSingleLineString(e));
@@ -1124,7 +1124,7 @@ public class BackUpDB
              (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
         if (baseDNAttr == null)
         {
-          msgID = MSGID_BACKUPDB_NO_BASES_FOR_BACKEND;
+          msgID = MSGID_NO_BASES_FOR_BACKEND;
           String message = getMessage(msgID,
                                       String.valueOf(configEntry.getDN()));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -1137,7 +1137,7 @@ public class BackUpDB
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_BACKUPDB_CANNOT_DETERMINE_BASES_FOR_BACKEND;
+        int    msgID   = MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,

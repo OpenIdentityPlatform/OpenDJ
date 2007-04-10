@@ -206,7 +206,15 @@ public enum Privilege
    * privileges for a user, or to change the set of privileges
    * automatically assigned to a root user.
    */
-  PRIVILEGE_CHANGE("privilege-change");
+  PRIVILEGE_CHANGE("privilege-change"),
+
+
+
+  /**
+   * The privilege that provides the ability to rebuild one or more
+   * indexes in a backend that supports indexing.
+   */
+  INDEX_REBUILD("index-rebuild");
 
 
 
@@ -265,6 +273,7 @@ public enum Privilege
     PRIV_MAP.put("data-sync", DATA_SYNC);
     PRIV_MAP.put("update-schema", UPDATE_SCHEMA);
     PRIV_MAP.put("privilege-change", PRIVILEGE_CHANGE);
+    PRIV_MAP.put("index-rebuild", INDEX_REBUILD);
 
     PRIV_NAMES.add("bypass-acl");
     PRIV_NAMES.add("modify-acl");
@@ -287,6 +296,7 @@ public enum Privilege
     PRIV_NAMES.add("data-sync");
     PRIV_NAMES.add("update-schema");
     PRIV_NAMES.add("privilege-change");
+    PRIV_NAMES.add("index-rebuild");
 
     DEFAULT_ROOT_PRIV_SET.add(BYPASS_ACL);
     DEFAULT_ROOT_PRIV_SET.add(MODIFY_ACL);
@@ -304,6 +314,7 @@ public enum Privilege
     DEFAULT_ROOT_PRIV_SET.add(PASSWORD_RESET);
     DEFAULT_ROOT_PRIV_SET.add(UPDATE_SCHEMA);
     DEFAULT_ROOT_PRIV_SET.add(PRIVILEGE_CHANGE);
+    DEFAULT_ROOT_PRIV_SET.add(INDEX_REBUILD);
   }
 
 
