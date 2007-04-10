@@ -1088,6 +1088,26 @@ objectClass: top
 objectClass: ds-cfg-branch
 cn: Password Validators
 
+dn: cn=Attribute Value,cn=Password Validators,cn=config
+objectClass: top
+objectClass: ds-cfg-password-validator
+objectClass: ds-cfg-attribute-value-password-validator
+cn: Attribute Value
+ds-cfg-password-validator-class: org.opends.server.extensions.AttributeValuePasswordValidator
+ds-cfg-password-validator-enabled: true
+ds-cfg-test-reversed-password: true
+
+dn: cn=Dictionary,cn=Password Validators,cn=config
+objectClass: top
+objectClass: ds-cfg-password-validator
+objectClass: ds-cfg-dictionary-password-validator
+cn: Dictionary
+ds-cfg-password-validator-class: org.opends.server.extensions.DictionaryPasswordValidator
+ds-cfg-password-validator-enabled: false
+ds-cfg-dictionary-file: config/wordlist.txt
+ds-cfg-case-sensitive-validation: false
+ds-cfg-test-reversed-password: true
+
 dn: cn=Length-Based Password Validator,cn=Password Validators,cn=config
 objectClass: top
 objectClass: ds-cfg-password-validator

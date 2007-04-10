@@ -4835,6 +4835,111 @@ public class ExtensionsMessages
        CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 459;
 
 
+
+  /**
+   * The message ID for the message that will be used if the provided password
+   * is contained in the server's dictionary.  This does not take any arguments.
+   */
+  public static final int MSGID_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 460;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided password
+   * dictionary file does not exist.  This takes a single argument, which is the
+   * path to the dictionary file.
+   */
+  public static final int MSGID_DICTIONARY_VALIDATOR_NO_SUCH_FILE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 461;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to read the password file.  This takes two arguments, which is the
+   * path to the dictionary file and a string representation of the exception
+   * that was caught.
+   */
+  public static final int MSGID_DICTIONARY_VALIDATOR_CANNOT_READ_FILE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 462;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided password
+   * is contained in another attribute in the user's entry.  This does not take
+   * any arguments.
+   */
+  public static final int MSGID_ATTRVALUE_VALIDATOR_PASSWORD_IN_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 463;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided password
+   * contains a character not included in any of the defined character sets.
+   * This takes a single argument, which is the illegal character.
+   */
+  public static final int MSGID_CHARSET_VALIDATOR_ILLEGAL_CHARACTER =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 464;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided password
+   * contains too few passwords from a given character set.  This takes two
+   * arguments, which is a string of the characters from that set and the
+   * minimum number of characters from that set which must be used in passwords.
+   */
+  public static final int MSGID_CHARSET_VALIDATOR_TOO_FEW_CHARS_FROM_SET =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 465;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided character
+   * set definition does not contain a colon to separate the count from the
+   * character set.  This takes a single argument, which is the provided
+   * definition string.
+   */
+  public static final int MSGID_CHARSET_VALIDATOR_NO_COLON =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 466;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided character
+   * set definition does not contain any characters after the colon.  This takes
+   * a single argument, which is the provided definition string.
+   */
+  public static final int MSGID_CHARSET_VALIDATOR_NO_CHARS =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 467;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided character
+   * set definition is invalid because the value before the colon could not be
+   * parsed as positive integer.  This takes a single argument, which is the
+   * provided definition string.
+   */
+  public static final int MSGID_CHARSET_VALIDATOR_INVALID_COUNT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 468;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided character
+   * set definition contains a character that has already been used.  This takes
+   * two arguments, which are the provided definition string and the duplicate
+   * character.
+   */
+  public static final int MSGID_CHARSET_VALIDATOR_DUPLICATE_CHAR =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 469;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -6964,6 +7069,46 @@ public class ExtensionsMessages
     registerMessage(MSGID_SUBSCHEMASUBENTRY_VATTR_NOT_SEARCHABLE,
                     "The %s attribute is not searchable and should not be " +
                     "included in otherwise unindexed search filters.");
+
+
+    registerMessage(MSGID_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY,
+                    "The provided password was found in the server's " +
+                    "dictionary.");
+    registerMessage(MSGID_DICTIONARY_VALIDATOR_NO_SUCH_FILE,
+                    "The specified dictionary file %s does not exist.");
+    registerMessage(MSGID_DICTIONARY_VALIDATOR_CANNOT_READ_FILE,
+                    "An error occurred while attempting to load the " +
+                    "dictionary from file %s:  %s.");
+
+
+    registerMessage(MSGID_ATTRVALUE_VALIDATOR_PASSWORD_IN_ENTRY,
+                    "The provided password was found in another attribute " +
+                    "in the user entry.");
+
+
+    registerMessage(MSGID_CHARSET_VALIDATOR_ILLEGAL_CHARACTER,
+                    "The provided password contained character '%s' which is " +
+                    "not allowed for use in passwords.");
+    registerMessage(MSGID_CHARSET_VALIDATOR_TOO_FEW_CHARS_FROM_SET,
+                    "The provided password did not contain enough " +
+                    "characters from the character set '%s'.  The minimum " +
+                    "number of characters from that set that must be present " +
+                    "in user passwords is %d.");
+    registerMessage(MSGID_CHARSET_VALIDATOR_NO_COLON,
+                    "The provided character set definition '%s' is invalid " +
+                    "because it does not contain a colon to separate the " +
+                    "minimum count from the character set.");
+    registerMessage(MSGID_CHARSET_VALIDATOR_NO_CHARS,
+                    "The provided character set definition '%s' is invalid " +
+                    "because the provided character set is empty.");
+    registerMessage(MSGID_CHARSET_VALIDATOR_INVALID_COUNT,
+                    "The provided character set definition '%s' is invalid " +
+                    "because the value before the colon must be an integer " +
+                    "greater than zero.");
+    registerMessage(MSGID_CHARSET_VALIDATOR_DUPLICATE_CHAR,
+                    "The provided character set definition '%s' is invalid " +
+                    "because it contains character '%s' which has already " +
+                    "been used.");
   }
 }
 

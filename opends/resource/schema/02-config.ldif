@@ -1088,20 +1088,20 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.319
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.321
-  NAME 'ds-cfg-minimum-password-difference' 
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE 
+  NAME 'ds-cfg-minimum-password-difference'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.322
-  NAME 'ds-cfg-minimum-unique-characters' 
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE 
+  NAME 'ds-cfg-minimum-unique-characters'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.323
-  NAME 'ds-cfg-maximum-consecutive-length' 
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE 
+  NAME 'ds-cfg-maximum-consecutive-length'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.324
-  NAME 'ds-cfg-case-sensitive-validation' 
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE 
+  NAME 'ds-cfg-case-sensitive-validation'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.325
   NAME 'ds-cfg-virtual-attribute-class' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
@@ -1125,6 +1125,12 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.331
   NAME 'ds-cfg-virtual-attribute-conflict-behavior'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.336
+  NAME 'ds-cfg-dictionary-file' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.337
+  NAME 'ds-cfg-test-reversed-password' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.340
   NAME 'ds-task-rebuild-base-dn'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE
@@ -1572,6 +1578,14 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.91 NAME 'ds-cfg-virtual-attribute'
   ds-cfg-virtual-attribute-conflict-behavior )
   MAY ( ds-cfg-virtual-attribute-base-dn $ ds-cfg-virtual-attribute-group-dn $
   ds-cfg-virtual-attribute-filter ) X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.95
+  NAME 'ds-cfg-dictionary-password-validator' SUP ds-cfg-password-validator
+  STRUCTURAL MUST ( ds-cfg-dictionary-file $ ds-cfg-case-sensitive-validation $
+  ds-cfg-test-reversed-password ) X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.96
+  NAME 'ds-cfg-attribute-value-password-validator'
+  SUP ds-cfg-password-validator STRUCTURAL MUST ds-cfg-test-reversed-password
+  MAY ds-cfg-match-attribute X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.98
   NAME 'ds-task-rebuild' SUP ds-task
   MUST ( ds-task-rebuild-base-dn $ ds-task-rebuild-index )
