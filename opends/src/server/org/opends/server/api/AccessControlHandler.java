@@ -28,17 +28,10 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.*;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-
+import org.opends.server.types.Entry;
 
 
 /**
@@ -237,5 +230,23 @@ public abstract class AccessControlHandler
    */
   public abstract boolean maySend(SearchOperation searchOperation,
                                SearchResultReference searchReference);
+
+  /**
+   * Indicates whether a proxied authorization control is allowed
+   * based on the current operation and the new authorization
+   * entry.
+   *
+   * @param operation
+   *        The operation with which the proxied authorization
+   *        control is associated.
+   * @param newAuthorizationEntry
+   *        The new authorization entry related to the
+   *        proxied authorization control authorization ID.
+   * @return  <CODE>true</CODE> if the operation should be allowed by
+   *         the access control configuration, or <CODE>false</CODE>
+   *         if not.
+   */
+  public abstract boolean isProxiedAuthAllowed(Operation operation,
+                                        Entry newAuthorizationEntry);
 }
 

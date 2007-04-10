@@ -194,7 +194,7 @@ public class Aci  {
     public static final int ACI_ALL = 0x007F;
 
     /**
-     * ACI_PROXY is used for the PROXY right. Currently not used.
+     * ACI_PROXY is used for the PROXY right.
      */
     public static final int ACI_PROXY = 0x0080;
 

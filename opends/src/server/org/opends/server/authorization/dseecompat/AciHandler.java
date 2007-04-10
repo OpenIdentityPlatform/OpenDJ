@@ -72,6 +72,12 @@ public class AciHandler extends AccessControlHandler
     public static AttributeType globalAciType;
 
     /**
+     * String used to save the original authorization entry in an operation
+     * attachment if a proxied authorization control was seen.
+     */
+    public static String ORIG_AUTH_ENTRY="origAuthorizationEntry";
+
+    /**
      * This constructor instantiates the ACI handler class that performs the
      * main processing for the dseecompat ACI package. It does the following
      * initializations:
@@ -443,6 +449,32 @@ public class AciHandler extends AccessControlHandler
              return false;
           }
         }
+
+        //Check proxy authorization only if the entry has not already been
+        //processed (working on a new entry). If working on a new entry, then
+        //only do a proxy check if the right is not set to ACI_PROXY and the
+        //proxied authorization control has been decoded.
+        if(!container.hasSeenEntry()) {
+          if(!container.hasRights(ACI_PROXY) &&
+             container.isProxiedAuthorization()) {
+              int currentRights=container.getRights();
+              //Save the current rights so they can be put back if on success.
+              container.setRights(ACI_PROXY);
+              //Switch to the original authorization entry, not the proxied one.
+              container.useOrigAuthorizationEntry(true);
+              if(!accessAllowed(container))
+                  return false;
+              //Access is ok, put the original rights back.
+              container.setRights(currentRights);
+              //Put the proxied authorization entry back to the current
+              //authorization entry.
+              container.useOrigAuthorizationEntry(false);
+          }
+          //Set the seen flag so proxy processing is not performed for this
+          //entry again.
+          container.setSeenEntry(true);
+       }
+
         /*
          * First get all allowed candidate ACIs.
          */
@@ -714,7 +746,6 @@ public class AciHandler extends AccessControlHandler
      * @return  True if access is allowed.
      */
    public boolean isAllowed(CompareOperation operation) {
-
        AciLDAPOperationContainer operationContainer =
                new AciLDAPOperationContainer(operation, ACI_COMPARE);
        String baseName;
@@ -803,10 +834,12 @@ public class AciHandler extends AccessControlHandler
    */
   public SearchResultEntry filterEntry(SearchOperation operation,
                                        SearchResultEntry entry) {
-
       AciLDAPOperationContainer operationContainer =
               new AciLDAPOperationContainer(operation,
                                             (ACI_READ), entry);
+      //Proxy access check has already been done for this entry in the maySend
+      //method, set the seen flag to true to bypass any proxy check.
+      operationContainer.setSeenEntry(true);
       SearchResultEntry returnEntry;
       if(!skipAccessCheck(operation)) {
           returnEntry=accessAllowedAttrs(operationContainer);
@@ -816,10 +849,10 @@ public class AciHandler extends AccessControlHandler
   }
 
   /**
-   * Perform all needed RDN checks for the modifyDN operation. These checks
-   * are:
+   * Perform all needed RDN checks for the modifyDN operation. The old RDN is
+   * not equal to the new RDN. The access checks are:
    *
-   *  - Verify WRITE access to the entry.
+   *  - Verify WRITE access to the original entry.
    *  - Verfiy WRITE_ADD access on each RDN component of the new RDN. The
    *    WRITE_ADD access is used because this access could be restricted by
    *    the targattrfilters keyword.
@@ -829,18 +862,21 @@ public class AciHandler extends AccessControlHandler
    *
    * @param operation   The ModifyDN operation class containing information to
    * check access on.
+   * @param oldRDN      The old RDN component.
+   * @param newRDN      The new RDN component.
    * @return True if access is allowed.
    */
-  private boolean aciCheckRDNs(ModifyDNOperation operation) {
+  private boolean aciCheckRDNs(ModifyDNOperation operation, RDN oldRDN,
+                               RDN newRDN) {
       boolean ret;
+
       AciLDAPOperationContainer operationContainer =
               new AciLDAPOperationContainer(operation, (ACI_WRITE),
                       operation.getOriginalEntry());
       ret=accessAllowed(operationContainer);
       if(ret)
-          ret=checkRDN(ACI_WRITE_ADD,operation.getNewRDN(),operationContainer);
+          ret=checkRDN(ACI_WRITE_ADD, newRDN, operationContainer);
       if(ret && operation.deleteOldRDN()) {
-          RDN oldRDN=operation.getOriginalEntry().getDN().getRDN();
           ret =
             checkRDN(ACI_WRITE_DELETE, oldRDN, operationContainer);
       }
@@ -923,6 +959,8 @@ public class AciHandler extends AccessControlHandler
   public boolean isAllowed(ModifyDNOperation operation) {
       boolean ret=true;
       DN newSuperiorDN;
+      RDN oldRDN=operation.getOriginalEntry().getDN().getRDN();
+      RDN newRDN=operation.getNewRDN();
       if(!skipAccessCheck(operation)) {
           //If this is a modifyDN move to a new superior, then check if the
           //superior DN has import accesss.
@@ -933,19 +971,39 @@ public class AciHandler extends AccessControlHandler
                ret=false;
              }
           }
-          //Perform the RDN access checks.
-          if(ret)
-              ret=aciCheckRDNs(operation);
+          boolean rdnEquals=oldRDN.equals(newRDN);
+          //Perform the RDN access checks only if the RDNs are not equal.
+          if(ret && !rdnEquals)
+              ret=aciCheckRDNs(operation, oldRDN, newRDN);
+
           //If this is a modifyDN move to a new superior, then check if the
           //original entry DN has export access.
           if(ret && (newSuperiorDN != null)) {
               AciLDAPOperationContainer operationContainer =
                       new AciLDAPOperationContainer(operation, (ACI_EXPORT),
-                              operation.getOriginalEntry());
+                                             operation.getOriginalEntry());
+                 //The RDNs are not equal, skip the proxy check since it was
+                 //already performed in the aciCheckRDNs call above.
+                 if(!rdnEquals)
+                     operationContainer.setSeenEntry(true);
                  ret=accessAllowed(operationContainer);
           }
       }
       return ret;
+  }
+
+  //TODO Check access to control, issue #452.
+  /**
+   * Called when a proxied authorization control was decoded. Currently used
+   * to save the current authorization entry in an operation attachment, but
+   * eventually will be used to check access to the actual control.
+   * @param operation The operation to save the attachment to.
+   * @param entry  The new authorization entry.
+   * @return  True if the control is allowed access.
+   */
+  public boolean isProxiedAuthAllowed(Operation operation, Entry entry) {
+    operation.setAttachment(ORIG_AUTH_ENTRY, operation.getAuthorizationEntry());
+    return true;
   }
 
   //Not planned to be implemented methods.

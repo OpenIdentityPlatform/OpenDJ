@@ -33,6 +33,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.Entry;
 
 /**
  * This class implements a default access control provider for the
@@ -196,6 +197,14 @@ class DefaultAccessControlProvider implements AccessControlProvider {
         SearchResultReference searchReference) {
 
       return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isProxiedAuthAllowed(Operation operation, Entry entry) {
+     return true;
     }
   }
 }

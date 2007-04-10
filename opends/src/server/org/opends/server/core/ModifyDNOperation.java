@@ -1277,7 +1277,17 @@ modifyDNProcessing:
                 break modifyDNProcessing;
               }
 
+              if (AccessControlConfigManager.getInstance()
+                      .getAccessControlHandler().isProxiedAuthAllowed(this,
+                      authorizationEntry) == false) {
+                setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
+                int msgID = MSGID_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+                appendErrorMessage(getMessage(msgID, String.valueOf(entryDN)));
+
+                skipPostOperation = true;
+                break modifyDNProcessing;
+              }
               setAuthorizationEntry(authorizationEntry);
             }
             else if (oid.equals(OID_PROXIED_AUTH_V2))
@@ -1334,6 +1344,17 @@ modifyDNProcessing:
                 setResultCode(de.getResultCode());
                 appendErrorMessage(de.getErrorMessage());
 
+                break modifyDNProcessing;
+              }
+              if (AccessControlConfigManager.getInstance()
+                  .getAccessControlHandler().isProxiedAuthAllowed(this,
+                                                authorizationEntry) == false) {
+                setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+                int msgID = MSGID_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+                appendErrorMessage(getMessage(msgID, String.valueOf(entryDN)));
+
+                skipPostOperation = true;
                 break modifyDNProcessing;
               }
 

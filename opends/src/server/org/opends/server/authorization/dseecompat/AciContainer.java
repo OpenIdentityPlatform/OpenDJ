@@ -36,6 +36,7 @@ import org.opends.server.core.Operation;
 import org.opends.server.extensions.TLSConnectionSecurityProvider;
 import java.net.InetAddress;
 import java.util.LinkedList;
+import static org.opends.server.authorization.dseecompat.AciHandler.*;
 
 /**
  *  The AciContainer class contains all of the needed information to perform
@@ -109,6 +110,41 @@ implements AciTargetMatchContext, AciEvalContext {
      */
     private boolean targAttrFiltersMatch=false;
 
+    /*
+     * The authorization entry currently being evaluated. If proxied
+     * authorization is being used and the handler is doing a proxy access
+     * check, then this entry will switched to the original authorization entry
+     * rather than the proxy ID entry. If the check succeeds, it will be
+     * switched back for non-proxy access checking. If proxied authentication
+     * is not being used then this entry never changes.
+     */
+    private Entry authorizationEntry;
+
+    /*
+     * Used to save the current authorization entry when the authorization
+     * entry is switched during a proxy access check.
+     */
+    private Entry saveAuthorizationEntry;
+
+    /*
+     * This entry is only used if proxied authorization is being used.  It is
+     * the original authorization entry before the proxied authorization change.
+     */
+    private Entry origAuthorizationEntry=null;
+
+    /*
+     * True if proxied authorization is being used.
+     */
+    private boolean proxiedAuthorization=false;
+
+    /*
+     * Used by proxied authorization processing. True if the entry has already
+     * been processed by an access proxy check. Some operations might perform
+     * several access checks on the same entry (modify DN), this
+     * flag is used to bypass the proxy check after the initial evaluation.
+     */
+    private boolean seenEntry=false;
+
     /**
      * This constructor is used by all currently supported LDAP operations.
      *
@@ -123,7 +159,61 @@ implements AciTargetMatchContext, AciEvalContext {
       this.clientConnection=operation.getClientConnection();
       if(operation instanceof AddOperation)
           this.isAddOp=true;
+
+      //If the proxied authorization control was processed, then the operation
+      //will contain an attachment containing the original authorization entry.
+      this.origAuthorizationEntry =
+                      (Entry) operation.getAttachment(ORIG_AUTH_ENTRY);
+      if(origAuthorizationEntry != null)
+         this.proxiedAuthorization=true;
+      this.authorizationEntry=operation.getAuthorizationEntry();
+
+      //Reference the current authorization entry, so it can be put back
+      //if an access proxy check was performed.
+      this.saveAuthorizationEntry=this.authorizationEntry;
       this.rights = rights;
+    }
+
+  /**
+   * Returns true if an entry has already been processed by an access proxy
+   * check.
+   * @return True if an entry has already been processed by an access proxy
+   * check.
+   */
+   public boolean hasSeenEntry() {
+      return this.seenEntry;
+    }
+
+  /**
+   * Set to true if an entry has already been processsed by an access proxy
+   * check.
+   * @param val The value to set the seenEntry boolean to.
+   */
+    public void setSeenEntry(boolean val) {
+     this.seenEntry=val;
+    }
+
+  /**
+   * Returns true if proxied authorization is being used.
+   * @return  True if proxied authorization is being used.
+   */
+    public boolean isProxiedAuthorization() {
+         return this.proxiedAuthorization;
+    }
+
+  /**
+   * If the specified value is true, then the original authorization entry,
+   * which is the  entry before the switch performed by the proxied
+   * authorization control processing should be set to the current
+   * authorization entry. If the specified value is false then the proxied
+   * authorization entry is switched back using the saved copy.
+   * @param val The value used to select the authorization entry to use.
+   */
+    public void useOrigAuthorizationEntry(boolean val) {
+      if(val)
+        authorizationEntry=origAuthorizationEntry;
+      else
+        authorizationEntry=saveAuthorizationEntry;
     }
 
     /**
@@ -226,7 +316,7 @@ implements AciTargetMatchContext, AciEvalContext {
      * @return The client entry.
      */
     public Entry getClientEntry() {
-      return operation.getAuthorizationEntry();
+      return this.authorizationEntry;
     }
 
     /**
@@ -275,7 +365,7 @@ implements AciTargetMatchContext, AciEvalContext {
      * @return  The client's authorization DN.
      */
     public DN getClientDN() {
-      return operation.getAuthorizationDN();
+      return this.authorizationEntry.getDN();
     }
 
     /**
