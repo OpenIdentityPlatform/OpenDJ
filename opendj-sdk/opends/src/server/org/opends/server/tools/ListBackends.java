@@ -163,7 +163,7 @@ public class ListBackends
                               OPTION_LONG_CONFIG_CLASS, true, false,
                               true, OPTION_VALUE_CONFIG_CLASS,
                               ConfigFileHandler.class.getName(), null,
-                              MSGID_LISTBACKENDS_DESCRIPTION_CONFIG_CLASS);
+                              MSGID_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -171,7 +171,7 @@ public class ListBackends
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
                               true, "{configFile}", null, null,
-                              MSGID_LISTBACKENDS_DESCRIPTION_CONFIG_FILE);
+                              MSGID_DESCRIPTION_CONFIG_FILE);
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -197,7 +197,7 @@ public class ListBackends
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_LISTBACKENDS_CANNOT_INITIALIZE_ARGS;
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -212,7 +212,7 @@ public class ListBackends
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_LISTBACKENDS_ERROR_PARSING_ARGS;
+      int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -254,7 +254,7 @@ public class ListBackends
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LISTBACKENDS_SERVER_BOOTSTRAP_ERROR;
+        int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -267,14 +267,14 @@ public class ListBackends
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_LISTBACKENDS_CANNOT_LOAD_CONFIG;
+        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
         String message = getMessage(msgID, ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LISTBACKENDS_CANNOT_LOAD_CONFIG;
+        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -289,21 +289,21 @@ public class ListBackends
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_LISTBACKENDS_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, ce.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (InitializationException ie)
       {
-        int    msgID   = MSGID_LISTBACKENDS_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, ie.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LISTBACKENDS_CANNOT_LOAD_SCHEMA;
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
         String message = getMessage(msgID, stackTraceToSingleLineString(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
@@ -539,13 +539,13 @@ public class ListBackends
     }
     catch (DirectoryException de)
     {
-      int    msgID   = MSGID_LISTBACKENDS_CANNOT_DECODE_BACKEND_BASE_DN;
+      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
       String message = getMessage(msgID, DN_BACKEND_BASE, de.getErrorMessage());
       throw new ConfigException(msgID, message, de);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LISTBACKENDS_CANNOT_DECODE_BACKEND_BASE_DN;
+      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
       String message = getMessage(msgID, DN_BACKEND_BASE,
                                   stackTraceToSingleLineString(e));
       throw new ConfigException(msgID, message, e);
@@ -558,13 +558,13 @@ public class ListBackends
     }
     catch (ConfigException ce)
     {
-      int    msgID   = MSGID_LISTBACKENDS_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
+      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
       String message = getMessage(msgID, DN_BACKEND_BASE, ce.getMessage());
       throw new ConfigException(msgID, message, ce);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LISTBACKENDS_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
+      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
       String message = getMessage(msgID, DN_BACKEND_BASE,
                                   stackTraceToSingleLineString(e));
       throw new ConfigException(msgID, message, e);
@@ -598,14 +598,14 @@ public class ListBackends
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_LISTBACKENDS_CANNOT_DETERMINE_BACKEND_ID;
+        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     ce.getMessage());
         throw new ConfigException(msgID, message, ce);
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LISTBACKENDS_CANNOT_DETERMINE_BACKEND_ID;
+        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     stackTraceToSingleLineString(e));
         throw new ConfigException(msgID, message, e);
@@ -630,7 +630,7 @@ public class ListBackends
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LISTBACKENDS_CANNOT_DETERMINE_BASES_FOR_BACKEND;
+        int    msgID   = MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     stackTraceToSingleLineString(e));
         throw new ConfigException(msgID, message, e);

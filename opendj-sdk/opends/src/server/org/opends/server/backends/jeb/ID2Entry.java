@@ -26,6 +26,8 @@
  */
 package org.opends.server.backends.jeb;
 
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 
@@ -118,6 +120,12 @@ public class ID2Entry
     {
       database = entryContainer.openDatabase(dbConfig, name);
       threadLocalDatabase.set(database);
+
+      if(debugEnabled())
+      {
+        debugInfo("JE ID2Entry database %s opened with %d records.",
+                  database.getDatabaseName(), database.count());
+      }
     }
     return database;
   }
@@ -313,5 +321,14 @@ public class ID2Entry
   public long getRecordCount() throws DatabaseException
   {
     return EntryContainer.count(getDatabase());
+  }
+
+  /**
+   * Get a string representation of this object.
+   * @return return A string representation of this object.
+   */
+  public String toString()
+  {
+    return name;
   }
 }

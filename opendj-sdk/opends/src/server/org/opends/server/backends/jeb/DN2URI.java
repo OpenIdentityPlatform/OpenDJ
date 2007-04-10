@@ -63,6 +63,8 @@ import java.util.Set;
 import static org.opends.server.util.ServerConstants.ATTR_REFERRAL_URL;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.JebMessages.
      MSGID_JEB_REFERRAL_RESULT_MESSAGE;
@@ -155,6 +157,12 @@ public class DN2URI
     {
       database = entryContainer.openDatabase(dbConfig, name);
       threadLocalDatabase.set(database);
+
+      if(debugEnabled())
+      {
+        debugInfo("JE DN2URI database %s opened with %d records.",
+                  database.getDatabaseName(), database.count());
+      }
     }
     return database;
   }
@@ -346,20 +354,26 @@ public class DN2URI
    * @param txn A database transaction used for the update, or null if none is
    * required.
    * @param entry The entry to be added.
+   * @return True if the entry was added successfully or False otherwise.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public void addEntry(Transaction txn, Entry entry)
+  public boolean addEntry(Transaction txn, Entry entry)
        throws DatabaseException
   {
+    boolean success = true;
     Set<String> labeledURIs = entry.getReferralURLs();
     if (labeledURIs != null)
     {
       DN dn = entry.getDN();
       for (String labeledURI : labeledURIs)
       {
-        insert(txn, dn, labeledURI);
+        if(!insert(txn, dn, labeledURI))
+        {
+          success = false;
+        }
       }
     }
+    return success;
   }
 
   /**
@@ -378,6 +392,75 @@ public class DN2URI
     {
       delete(txn, entry.getDN());
     }
+  }
+
+  /**
+   * Open a JE cursor on the DN database.
+   * @param txn A JE database transaction to be used by the cursor,
+   * or null if none.
+   * @param cursorConfig The JE cursor configuration.
+   * @return A JE cursor.
+   * @throws DatabaseException If an error occurs while attempting to open
+   * the cursor.
+   */
+  public Cursor openCursor(Transaction txn, CursorConfig cursorConfig)
+       throws DatabaseException
+  {
+    return getDatabase().openCursor(txn, cursorConfig);
+  }
+
+    /**
+   * Removes all records from the database.
+   * @param txn A JE database transaction to be used during the clear operation
+   *            or null if not required. Using transactions increases the chance
+   *            of lock contention.
+   * @return The number of records removed.
+   * @throws DatabaseException If an error occurs while cleaning the database.
+   */
+  public long clear(Transaction txn) throws DatabaseException
+  {
+    long deletedCount = 0;
+    Cursor cursor = openCursor(txn, null);
+    try
+    {
+      if(debugEnabled())
+      {
+        debugVerbose("%d existing records will be deleted from the " +
+            "database", getRecordCount());
+      }
+      DatabaseEntry data = new DatabaseEntry();
+      DatabaseEntry key = new DatabaseEntry();
+
+      OperationStatus status;
+
+      // Step forward until we deleted all records.
+      for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
+           status == OperationStatus.SUCCESS;
+           status = cursor.getNext(key, data, LockMode.DEFAULT))
+      {
+        cursor.delete();
+        deletedCount++;
+      }
+      if(debugEnabled())
+      {
+        debugVerbose("%d records deleted", deletedCount);
+      }
+    }
+    catch(DatabaseException de)
+    {
+      if(debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      throw de;
+    }
+    finally
+    {
+      cursor.close();
+    }
+
+    return deletedCount;
   }
 
   /**
@@ -712,5 +795,26 @@ public class DN2URI
     }
 
     return true;
+  }
+
+  /**
+   * Get the count of the number of entries stored.
+   *
+   * @return The number of entries stored.
+   *
+   * @throws DatabaseException If an error occurs in the JE database.
+   */
+  public long getRecordCount() throws DatabaseException
+  {
+    return EntryContainer.count(getDatabase());
+  }
+
+  /**
+   * Get a string representation of this object.
+   * @return return A string representation of this object.
+   */
+  public String toString()
+  {
+    return name;
   }
 }

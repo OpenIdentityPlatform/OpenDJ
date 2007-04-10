@@ -634,6 +634,7 @@ public class Config
     indexTypeSet.add("equality");
     indexTypeSet.add("substring");
     indexTypeSet.add("ordering");
+    indexTypeSet.add("approximate");
     typeStub =
          new MultiChoiceConfigAttribute(ATTR_INDEX_TYPE, msg, false,
                                    true, true, indexTypeSet);
@@ -760,6 +761,16 @@ public class Config
           {
             indexConfig.setOrderingIndex(true);
             if (attrType.getOrderingMatchingRule() == null)
+            {
+              int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
+              String message = getMessage(messageID, attrType, indexType);
+              throw new ConfigException(messageID, message);
+            }
+          }
+          else if (indexType.equalsIgnoreCase("approximate"))
+          {
+            indexConfig.setApproximateIndex(true);
+            if(attrType.getApproximateMatchingRule() == null)
             {
               int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
               String message = getMessage(messageID, attrType, indexType);

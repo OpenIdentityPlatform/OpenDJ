@@ -214,6 +214,16 @@ public class TaskMessages
 
 
   /**
+   * The message ID for the message that will be used an attempt is made to
+   * invoke the index rebuild task by a user that does not have the required
+   * privileges.  This does not take any arguments.
+   */
+  public static final int MSGID_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 18;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -279,6 +289,9 @@ public class TaskMessages
     registerMessage(MSGID_TASK_LDIFEXPORT_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to initiate an " +
                     "LDIF export.");
+    registerMessage(MSGID_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to initiate an " +
+                    "index rebuild.");
   }
 }
 

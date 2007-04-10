@@ -172,8 +172,15 @@ public class IndexFilter
         candidates = evaluatePresenceFilter(filter);
         break;
 
-      case NOT:
       case APPROXIMATE_MATCH:
+        if (buffer != null)
+        {
+          filter.toString(buffer);
+        }
+        candidates = evaluateApproximateFilter(filter);
+        break;
+
+      case NOT:
       case EXTENSIBLE_MATCH:
       default:
         if (buffer != null)
@@ -502,6 +509,28 @@ public class IndexFilter
     else
     {
       candidates = attributeIndex.evaluateSubstringFilter(filter);
+    }
+    return candidates;
+  }
+
+  /**
+   * Evaluate an approximate filter against the indexes.
+   *
+   * @param approximateFilter The approximate filter to be evaluated.
+   * @return A set of entry IDs representing candidate entries.
+   */
+  private EntryIDSet evaluateApproximateFilter(SearchFilter approximateFilter)
+  {
+    EntryIDSet candidates;
+    AttributeIndex attributeIndex =
+         entryContainer.getAttributeIndex(approximateFilter.getAttributeType());
+    if (attributeIndex == null)
+    {
+      candidates = new EntryIDSet();
+    }
+    else
+    {
+      candidates = attributeIndex.evaluateApproximateFilter(approximateFilter);
     }
     return candidates;
   }

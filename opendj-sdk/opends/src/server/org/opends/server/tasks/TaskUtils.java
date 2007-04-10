@@ -93,7 +93,7 @@ public class TaskUtils
     }
     catch (ConfigException ce)
     {
-      int    msgID   = MSGID_LDIFIMPORT_CANNOT_DETERMINE_BACKEND_ID;
+      int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
       String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                   ce.getMessage());
       Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -102,7 +102,7 @@ public class TaskUtils
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFIMPORT_CANNOT_DETERMINE_BACKEND_ID;
+      int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
       String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                   stackTraceToSingleLineString(e));
       Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -130,7 +130,7 @@ public class TaskUtils
     }
     catch (DirectoryException de)
     {
-      int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_BACKEND_BASE_DN;
+      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
       String message = getMessage(msgID, DN_BACKEND_BASE, de.getErrorMessage());
       Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                      message, msgID);
@@ -138,7 +138,7 @@ public class TaskUtils
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_BACKEND_BASE_DN;
+      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
       String message = getMessage(msgID, DN_BACKEND_BASE,
                                   stackTraceToSingleLineString(e));
       Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -153,7 +153,7 @@ public class TaskUtils
     }
     catch (ConfigException ce)
     {
-      int    msgID   = MSGID_LDIFIMPORT_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
+      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
       String message = getMessage(msgID, DN_BACKEND_BASE, ce.getMessage());
       Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                      message, msgID);
@@ -161,7 +161,7 @@ public class TaskUtils
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_LDIFIMPORT_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
+      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
       String message = getMessage(msgID, DN_BACKEND_BASE,
                                   stackTraceToSingleLineString(e));
       Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -196,7 +196,7 @@ public class TaskUtils
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DETERMINE_BACKEND_ID;
+        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     ce.getMessage());
         Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -205,7 +205,7 @@ public class TaskUtils
       }
       catch (Exception e)
       {
-        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DETERMINE_BACKEND_ID;
+        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     stackTraceToSingleLineString(e));
         Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,

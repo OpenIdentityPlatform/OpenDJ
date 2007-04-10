@@ -1092,7 +1092,7 @@
     <echo message="      builds the server without the debug logging facility." />
     <echo message="      No debug logging messages will be included on test failures." />
     <echo message=""/>
-    <echo message="  -Dtest.debug.target=org.opends.server.core:level=verbose,category=data_access"/>
+    <echo message="  -Dorg.opends.test.debug.target=org.opends.server.core:level=verbose,category=data_access"/>
     <echo message="      for example only include debug messages in the core"/>
     <echo message="      package that are related to data access and at the" />
     <echo message="      verbose level or higher. The syntax of this target" />
@@ -1259,11 +1259,17 @@
   </target>
 
   <target name="enableweave">
-   <condition property="WEAVE_ENABLED" value="true">
-     <not>
-        <isset property="WEAVE_ENABLED" />
-     </not>
-   </condition>
+    <condition property="WEAVE_ENABLED" value="true">
+      <not>
+        <or>
+          <isset property="WEAVE_ENABLED" />
+          <isset property="test.groups" />
+          <isset property="test.packages" />
+          <isset property="test.classes" />
+          <isset property="test.methods" />
+        </or>
+      </not>
+    </condition>
   </target>
 
   <target name="testreport"

@@ -1505,7 +1505,14 @@ public class EntryContainer
       }
 
       // Update the referral database for referral entries.
-      dn2uri.addEntry(txn, entry);
+      if (!dn2uri.addEntry(txn, entry))
+      {
+        // Do not ever expect to come through here.
+        int msgID = MSGID_JEB_ADD_ENTRY_ALREADY_EXISTS;
+        String message = getMessage(msgID, entry.getDN().toString());
+        throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
+                                     message, msgID);
+      }
 
       // Insert into id2entry.
       if (!id2entry.insert(txn, entryID, entry))

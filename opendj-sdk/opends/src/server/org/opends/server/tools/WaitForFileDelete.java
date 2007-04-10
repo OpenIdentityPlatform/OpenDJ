@@ -165,7 +165,7 @@ public class WaitForFileDelete
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_WAIT4DEL_CANNOT_INITIALIZE_ARGS;
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return EXIT_CODE_INTERNAL_ERROR;
@@ -179,7 +179,7 @@ public class WaitForFileDelete
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_WAIT4DEL_ERROR_PARSING_ARGS;
+      int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));

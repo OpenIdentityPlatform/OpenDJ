@@ -26,50 +26,44 @@
  */
 package org.opends.server.tools;
 
-
-
-import org.opends.server.api.Backend;
-import org.opends.server.backends.jeb.BackendImpl;
-import org.opends.server.backends.jeb.VerifyConfig;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
-import org.opends.server.core.CoreConfigManager;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.LockFileManager;
-import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.StartupErrorLogger;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.InitializationException;
+import static org.opends.server.util.StaticUtils.wrapText;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
+import org.opends.server.extensions.ConfigFileHandler;
+
+import static org.opends.server.messages.ToolMessages.*;
+import org.opends.server.config.ConfigException;
+import org.opends.server.config.ConfigEntry;
+import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.Error.logError;
+import org.opends.server.loggers.StartupErrorLogger;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.CoreConfigManager;
+import org.opends.server.core.LockFileManager;
+import org.opends.server.types.*;
+import org.opends.server.api.Backend;
+import org.opends.server.backends.jeb.BackendImpl;
+import org.opends.server.backends.jeb.RebuildConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.loggers.Error.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
-
-
 
 /**
- * This program provides a utility to verify the contents of the indexes
+ * This program provides a utility to rebuild the contents of the indexes
  * of a Directory Server backend.  This will be a process that is
  * intended to run separate from Directory Server and not internally within the
  * server process (e.g., via the tasks interface).
  */
-public class VerifyIndex
+public class RebuildIndex
 {
   /**
-   * Processes the command-line arguments and invokes the verify process.
+   * Processes the command-line arguments and invokes the rebuild process.
    *
    * @param  args  The command-line arguments provided to this program.
    */
@@ -80,14 +74,13 @@ public class VerifyIndex
     StringArgument  configFile              = null;
     StringArgument  baseDNString            = null;
     StringArgument  indexList               = null;
-    BooleanArgument cleanMode               = null;
     BooleanArgument displayUsage            = null;
 
 
     // Create the command-line argument parser for use with this program.
-    String toolDescription = getMessage(MSGID_VERIFYINDEX_TOOL_DESCRIPTION);
+    String toolDescription = getMessage(MSGID_REBUILDINDEX_TOOL_DESCRIPTION);
     ArgumentParser argParser =
-         new ArgumentParser("org.opends.server.tools.VerifyIndex",
+         new ArgumentParser("org.opends.server.tools.RebuildIndex",
                             toolDescription, false);
 
 
@@ -96,9 +89,8 @@ public class VerifyIndex
     try
     {
       configClass =
-           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                              OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, OPTION_VALUE_CONFIG_CLASS,
+           new StringArgument("configclass", 'C', "configClass", true, false,
+                              true, "{configClass}",
                               ConfigFileHandler.class.getName(), null,
                               MSGID_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
@@ -114,10 +106,9 @@ public class VerifyIndex
 
 
       baseDNString =
-           new StringArgument("basedn", OPTION_SHORT_BASEDN,
-                              OPTION_LONG_BASEDN, true, false, true,
-                              OPTION_VALUE_BASEDN, null, null,
-                              MSGID_VERIFYINDEX_DESCRIPTION_BASE_DN);
+           new StringArgument("basedn", 'b', "baseDN", true, false, true,
+                              "{baseDN}", null, null,
+                              MSGID_REBUILDINDEX_DESCRIPTION_BASE_DN);
       argParser.addArgument(baseDNString);
 
 
@@ -125,17 +116,12 @@ public class VerifyIndex
            new StringArgument("index", 'i', "index",
                               false, true, true,
                               "{index}", null, null,
-                              MSGID_VERIFYINDEX_DESCRIPTION_INDEX_NAME);
+                              MSGID_REBUILDINDEX_DESCRIPTION_INDEX_NAME);
       argParser.addArgument(indexList);
-
-      cleanMode =
-           new BooleanArgument("clean", 'c', "clean",
-                               MSGID_VERIFYINDEX_DESCRIPTION_VERIFY_CLEAN);
-      argParser.addArgument(cleanMode);
 
 
       displayUsage =
-           new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
+           new BooleanArgument("help", 'H', "help",
                                MSGID_DESCRIPTION_USAGE);
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
@@ -184,9 +170,9 @@ public class VerifyIndex
     }
 
 
-    if (cleanMode.isPresent() && indexList.getValues().size() != 1)
+    if (indexList.getValues().size() <= 0)
     {
-      int    msgID   = MSGID_VERIFYINDEX_VERIFY_CLEAN_REQUIRES_SINGLE_INDEX;
+      int    msgID   = MSGID_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX;
       String message = getMessage(msgID);
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -318,18 +304,18 @@ public class VerifyIndex
     }
 
 
+
     // FIXME -- Install a custom logger to capture information about the state
     // of the verify process.
     StartupErrorLogger startupLogger = new StartupErrorLogger();
     startupLogger.initializeErrorLogger(null);
     addErrorLogger(startupLogger);
 
-
     // Decode the base DN provided by the user.
-    DN verifyBaseDN = null;
+    DN rebuildBaseDN = null;
     try
     {
-      verifyBaseDN = DN.decode(baseDNString.getValue());
+      rebuildBaseDN = DN.decode(baseDNString.getValue());
     }
     catch (DirectoryException de)
     {
@@ -350,17 +336,15 @@ public class VerifyIndex
       System.exit(1);
     }
 
-
-    // Get information about the backends defined in the server.  Iterate
-    // through them, finding the one backend to be verified.
-    Backend       backend         = null;
-    ConfigEntry   configEntry     = null;
-    DN[]          baseDNArray         = null;
+    // Get information about the backends defined in the server.
+    Backend backend = null;
+    ConfigEntry configEntry = null;
+    DN[]          baseDNArray = null;
 
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
     ArrayList<ConfigEntry> entryList   = new ArrayList<ConfigEntry>();
-    ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
-    BackendToolUtils.getBackends(backendList, entryList, dnList);
+    ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
+    int code = BackendToolUtils.getBackends(backendList, entryList, dnList);
 
     int numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
@@ -371,7 +355,7 @@ public class VerifyIndex
 
       for (DN baseDN : baseDNs)
       {
-        if (baseDN.equals(verifyBaseDN))
+        if (baseDN.equals(rebuildBaseDN))
         {
           if (backend == null)
           {
@@ -411,33 +395,23 @@ public class VerifyIndex
       System.exit(1);
     }
 
-    // Initialize the verify configuration.
-    VerifyConfig verifyConfig = new VerifyConfig();
-    verifyConfig.setBaseDN(verifyBaseDN);
-    if (cleanMode.isPresent())
+    // Initialize the rebuild configuration.
+    RebuildConfig rebuildConfig = new RebuildConfig();
+    rebuildConfig.setBaseDN(rebuildBaseDN);
+    for (String s : indexList.getValues())
     {
-      for (String s : indexList.getValues())
-      {
-        verifyConfig.addCleanIndex(s);
-      }
-    }
-    else
-    {
-      for (String s : indexList.getValues())
-      {
-        verifyConfig.addCompleteIndex(s);
-      }
+      rebuildConfig.addRebuildIndex(s);
     }
 
-
-    // Acquire a shared lock for the backend.
+    // Acquire an exclusive lock for the backend.
+    //TODO: Find a way to do this with the server online.
     try
     {
       String lockFile = LockFileManager.getBackendLockFileName(backend);
       StringBuilder failureReason = new StringBuilder();
-      if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
+      if (! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        int    msgID   = MSGID_VERIFYINDEX_CANNOT_LOCK_BACKEND;
+        int    msgID   = MSGID_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND;
         String message = getMessage(msgID, backend.getBackendID(),
                                     String.valueOf(failureReason));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -447,7 +421,7 @@ public class VerifyIndex
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_VERIFYINDEX_CANNOT_LOCK_BACKEND;
+      int    msgID   = MSGID_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND;
       String message = getMessage(msgID, backend.getBackendID(),
                                   stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -455,43 +429,43 @@ public class VerifyIndex
       return;
     }
 
-
-    // Launch the verify process.
+    // Launch the rebuild process.
     try
     {
       BackendImpl jebBackend = (BackendImpl)backend;
-      jebBackend.verifyBackend(verifyConfig, configEntry, baseDNArray, null);
+      jebBackend.rebuildBackend(rebuildConfig, configEntry, baseDNArray);
     }
     catch (Exception e)
     {
-      int    msgID   = MSGID_VERIFYINDEX_ERROR_DURING_VERIFY;
+      int    msgID   = MSGID_REBUILDINDEX_ERROR_DURING_REBUILD;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
     }
-
-
-    // Release the shared lock on the backend.
-    try
+    finally
     {
-      String lockFile = LockFileManager.getBackendLockFileName(backend);
-      StringBuilder failureReason = new StringBuilder();
-      if (! LockFileManager.releaseLock(lockFile, failureReason))
+      // Release the shared lock on the backend.
+      try
       {
-        int    msgID   = MSGID_VERIFYINDEX_CANNOT_UNLOCK_BACKEND;
+        String lockFile = LockFileManager.getBackendLockFileName(backend);
+        StringBuilder failureReason = new StringBuilder();
+        if (! LockFileManager.releaseLock(lockFile, failureReason))
+        {
+          int    msgID   = MSGID_REBUILDINDEX_CANNOT_UNLOCK_BACKEND;
+          String message = getMessage(msgID, backend.getBackendID(),
+                                      String.valueOf(failureReason));
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
+                   message, msgID);
+        }
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_REBUILDINDEX_CANNOT_UNLOCK_BACKEND;
         String message = getMessage(msgID, backend.getBackendID(),
-                                    String.valueOf(failureReason));
+                                    stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
                  message, msgID);
       }
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_VERIFYINDEX_CANNOT_UNLOCK_BACKEND;
-      String message = getMessage(msgID, backend.getBackendID(),
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
     }
   }
 }

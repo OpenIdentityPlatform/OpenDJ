@@ -436,6 +436,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     try
     {
       rootContainer.close();
+      rootContainer = null;
     }
     catch (DatabaseException e)
     {
@@ -1175,6 +1176,99 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
       VerifyJob verifyJob = new VerifyJob(config, verifyConfig);
       verifyJob.verifyBackend(rootContainer, statEntry);
+    }
+    catch (DatabaseException e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
+                                  e.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+    }
+    catch (JebException e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   e.getMessage(),
+                                   e.getMessageID());
+    }
+    finally
+    {
+      //If a root container was opened in this method as read only, close it
+      //to leave the backend in the same state.
+      if (openRootContainer && rootContainer != null)
+      {
+        try
+        {
+          rootContainer.close();
+          rootContainer = null;
+        }
+        catch (DatabaseException e)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+    }
+  }
+
+
+  /**
+   * Rebuild index(es) in the backend instance. Note that the server will not
+   * explicitly initialize this backend before calling this method.
+   * @param rebuildConfig The rebuild configuration.
+   * @param configEntry The backend instance configuration entry.
+   * @param  baseDNs      The set of base DNs that have been configured for this
+   *                      backend.
+   * @throws  ConfigException  If an unrecoverable problem arises during
+   *                           initialization.
+   * @throws  InitializationException  If a problem occurs during initialization
+   *                                   that is not related to the server
+   *                                   configuration.
+   * @throws DirectoryException If a Directory Server error occurs.
+   */
+  public void rebuildBackend(RebuildConfig rebuildConfig,
+                             ConfigEntry configEntry, DN[] baseDNs)
+       throws InitializationException, ConfigException, DirectoryException
+  {
+    // If the backend already has the root container open, we must use the same
+    // underlying root container
+    boolean openRootContainer = rootContainer == null;
+
+    // If the rootContainer is open, the backend is initizlied by something else
+    // We can't do any rebuild of system indexes while others are using this
+    // backend. Throw error. TODO: Need to make baseDNs disablable.
+    if(!openRootContainer && rebuildConfig.includesSystemIndex())
+    {
+      String message = getMessage(MSGID_JEB_REBUILD_BACKEND_ONLINE);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, MSGID_JEB_REBUILD_BACKEND_ONLINE);
+    }
+
+    try
+    {
+      if (openRootContainer)
+      {
+        // Initialize a config object.
+        config = new Config();
+        config.initializeConfig(configEntry, baseDNs);
+
+        // Open the database environment
+        rootContainer = new RootContainer(config, this);
+        rootContainer.open();
+        rootContainer.openEntryContainers(baseDNs);
+      }
+
+      RebuildJob rebuildJob = new RebuildJob(rebuildConfig);
+      rebuildJob.rebuildBackend(rootContainer);
     }
     catch (DatabaseException e)
     {

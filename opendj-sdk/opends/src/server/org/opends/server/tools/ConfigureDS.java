@@ -163,7 +163,7 @@ public class ConfigureDS
     {
       configFile = new StringArgument("configfile", 'c', "configFile", true,
                                       false, true, "{configFile}", null, null,
-                                      MSGID_CONFIGDS_DESCRIPTION_CONFIG_FILE);
+                                      MSGID_DESCRIPTION_CONFIG_FILE);
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
@@ -171,7 +171,7 @@ public class ConfigureDS
                              OPTION_LONG_CONFIG_CLASS, false,
                              false, true, OPTION_VALUE_CONFIG_CLASS,
                              ConfigFileHandler.class.getName(), null,
-                             MSGID_CONFIGDS_DESCRIPTION_CONFIG_CLASS);
+                             MSGID_DESCRIPTION_CONFIG_CLASS);
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
@@ -218,13 +218,13 @@ public class ConfigureDS
 
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
                                       OPTION_LONG_HELP,
-                                      MSGID_CONFIGDS_DESCRIPTION_USAGE);
+                                      MSGID_DESCRIPTION_USAGE);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CONFIGDS_CANNOT_INITIALIZE_ARGS;
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
@@ -238,7 +238,7 @@ public class ConfigureDS
     }
     catch (ArgumentException ae)
     {
-      int    msgID   = MSGID_CONFIGDS_ERROR_PARSING_ARGS;
+      int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));

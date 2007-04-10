@@ -180,9 +180,10 @@ public final class TestCaseUtils {
     }
     testRoot.mkdirs();
     //db_verify is second jeb backend used by the jeb verify test cases
+    //db_rebuild is the third jeb backend used by the jeb rebuild test cases
     String[] subDirectories = { "bak", "bin", "changelogDb", "classes",
                                 "config", "db", "db_verify", "ldif", "lib",
-                                "locks", "logs" };
+                                "locks", "logs", "db_rebuild" };
     for (String s : subDirectories)
     {
       new File(testRoot, s).mkdir();

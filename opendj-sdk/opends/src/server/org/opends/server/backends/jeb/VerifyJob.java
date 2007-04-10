@@ -39,6 +39,7 @@ import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.Transaction;
 
 import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
@@ -180,7 +181,7 @@ public class VerifyJob
  */
   enum IndexType
   {
-      PRES, EQ, SUBSTRING, ORDERING
+      PRES, EQ, SUBSTRING, ORDERING, APPROXIMATE
   }
 
   /**
@@ -529,6 +530,8 @@ public class VerifyJob
               attrIndex.substringIndex, IndexType.SUBSTRING);
       iterateAttrIndex(attrIndex.getAttributeType(),
               attrIndex.orderingIndex, IndexType.ORDERING);
+      iterateAttrIndex(attrIndex.getAttributeType(),
+              attrIndex.approximateIndex, IndexType.APPROXIMATE);
     }
   }
 
@@ -993,6 +996,12 @@ public class VerifyJob
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
 
+      OrderingMatchingRule orderingMatchingRule =
+          attrType.getOrderingMatchingRule();
+      ApproximateMatchingRule approximateMatchingRule =
+          attrType.getApproximateMatchingRule();
+      ASN1OctetString previousValue = null;
+
       OperationStatus status;
       for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
            status == OperationStatus.SUCCESS;
@@ -1026,6 +1035,7 @@ public class VerifyJob
         {
           byte[] value = key.getData();
           SearchFilter sf;
+          AttributeValue assertionValue;
 
           switch (indexType)
           {
@@ -1037,13 +1047,55 @@ public class VerifyJob
               sf = SearchFilter.createSubstringFilter(attrType,null,
                                                       subAnyElements,null);
               break;
-     /* TODO
-      * This ORDERING case needs further study
-      * about what type of SearchFilter should be created.
-      * case ORDERING:
-      * */
+            case ORDERING:
+              // Ordering index checking is two fold:
+              // 1. Make sure the entry has an attribute value that is the same
+              //    as the key. This is done by falling through to the next
+              //    case and create an equality filter.
+              // 2. Make sure the key value is greater then the previous key
+              //    value.
+              assertionValue =
+                  new AttributeValue(attrType, new ASN1OctetString(value));
+
+              sf = SearchFilter.createEqualityFilter(attrType,assertionValue);
+
+              if(orderingMatchingRule != null && previousValue != null)
+              {
+                ASN1OctetString thisValue = new ASN1OctetString(value);
+                int order = orderingMatchingRule.compareValues(thisValue,
+                                                               previousValue);
+                if(order > 0)
+                {
+                  errorCount++;
+                  if(debugEnabled())
+                  {
+                    debugError("Reversed ordering of index keys " +
+                        "(keys dumped in the order found in database)%n" +
+                        "Key 1:%n%s%nKey 2:%n%s",
+                               keyDump(index, thisValue.value()),
+                               keyDump(index,previousValue.value()));
+                  }
+                  continue;
+                }
+                else if(order == 0)
+                {
+                  errorCount++;
+                  if(debugEnabled())
+                  {
+                    debugError("Duplicate index keys%nKey 1:%n%s%nKey2:%n%s",
+                               keyDump(index, thisValue.value()),
+                               keyDump(index,previousValue.value()));
+                  }
+                  continue;
+                }
+                else
+                {
+                  previousValue = thisValue;
+                }
+              }
+              break;
             case EQ:
-              AttributeValue assertionValue =
+              assertionValue =
                    new AttributeValue(attrType, new ASN1OctetString(value));
 
               sf = SearchFilter.createEqualityFilter(attrType,assertionValue);
@@ -1051,6 +1103,12 @@ public class VerifyJob
 
             case PRES:
               sf = SearchFilter.createPresenceFilter(attrType);
+              break;
+
+            case APPROXIMATE:
+              // This must be handled differently since we can't use a search
+              // filter to see if the key matches.
+              sf = null;
               break;
 
             default:
@@ -1103,7 +1161,39 @@ public class VerifyJob
 
             try
             {
-              if (!sf.matchesEntry(entry))
+              boolean match = false;
+              if(indexType != IndexType.APPROXIMATE)
+              {
+                match = sf.matchesEntry(entry);
+              }
+              else
+              {
+                ByteString normalizedValue = new ASN1OctetString(value);
+                List<Attribute> attrs = entry.getAttribute(attrType);
+                if ((attrs != null) && (!attrs.isEmpty()))
+                {
+                  for (Attribute a : attrs)
+                  {
+                    for (AttributeValue v : a.getValues())
+                    {
+                      ByteString nv =
+                          approximateMatchingRule.normalizeValue(v.getValue());
+                      match = approximateMatchingRule.
+                          approximatelyMatch(nv, normalizedValue);
+                      if(match)
+                      {
+                        break;
+                      }
+                    }
+                    if(match)
+                    {
+                      break;
+                    }
+                  }
+                }
+              }
+
+              if (!match)
               {
                 errorCount++;
                 if (debugEnabled())
@@ -1464,6 +1554,7 @@ public class VerifyJob
     Index presenceIndex = attrIndex.presenceIndex;
     Index substringIndex = attrIndex.substringIndex;
     Index orderingIndex = attrIndex.orderingIndex;
+    Index approximateIndex = attrIndex.approximateIndex;
     IndexConfig indexConfig = attrIndex.indexConfig;
     DatabaseEntry presenceKey = AttributeIndex.presenceKey;
 
@@ -1631,6 +1722,49 @@ public class VerifyJob
                 debugError("Error reading database: %s%n%s",
                            e.getMessage(),
                            keyDump(orderingIndex, normalizedBytes));
+              }
+              errorCount++;
+            }
+          }
+          // Approximate index.
+          if (indexConfig.isApproximateIndex())
+          {
+            // Use the approximate matching rule to normalize the value.
+            ApproximateMatchingRule approximateRule =
+                attr.getAttributeType().getApproximateMatchingRule();
+
+            normalizedBytes =
+                approximateRule.normalizeValue(value.getValue()).value();
+
+            DatabaseEntry key = new DatabaseEntry(normalizedBytes);
+            try
+            {
+              ConditionResult cr;
+              cr = approximateIndex.containsID(txn, key, entryID);
+              if (cr == ConditionResult.FALSE)
+              {
+                if (debugEnabled())
+                {
+                  debugError("Missing ID %d%n%s",
+                             entryID.longValue(),
+                             keyDump(orderingIndex, normalizedBytes));
+                }
+                errorCount++;
+              }
+              else if (cr == ConditionResult.UNDEFINED)
+              {
+                incrEntryLimitStats(orderingIndex, normalizedBytes);
+              }
+            }
+            catch (DatabaseException e)
+            {
+              if (debugEnabled())
+              {
+                debugCaught(DebugLogLevel.ERROR, e);
+
+                debugError("Error reading database: %s%n%s",
+                           e.getMessage(),
+                           keyDump(approximateIndex, normalizedBytes));
               }
               errorCount++;
             }
