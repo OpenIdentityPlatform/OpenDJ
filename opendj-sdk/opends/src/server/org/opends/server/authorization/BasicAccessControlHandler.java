@@ -28,16 +28,10 @@ package org.opends.server.authorization;
 
 
 import org.opends.server.api.AccessControlHandler;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.*;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.Entry;
 
 /**
  * This class provides the implementation of the basic access control
@@ -168,5 +162,13 @@ final class BasicAccessControlHandler extends AccessControlHandler {
     // TODO: not yet implemented.
 
     return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isProxiedAuthAllowed(Operation operation, Entry entry) {
+     return true;
   }
 }

@@ -1758,7 +1758,17 @@ searchProcessing:
               break searchProcessing;
             }
 
+            if (AccessControlConfigManager.getInstance().
+                 getAccessControlHandler().isProxiedAuthAllowed(this,
+                                                 authorizationEntry) == false) {
+              setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
+              int msgID = MSGID_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+              appendErrorMessage(getMessage(msgID, String.valueOf(baseDN)));
+
+              skipPostOperation = true;
+              break searchProcessing;
+            }
             setAuthorizationEntry(authorizationEntry);
           }
           else if (oid.equals(OID_PROXIED_AUTH_V2))
@@ -1818,6 +1828,17 @@ searchProcessing:
               break searchProcessing;
             }
 
+            if (AccessControlConfigManager.getInstance()
+                .getAccessControlHandler().isProxiedAuthAllowed(this,
+                                                 authorizationEntry) == false) {
+              setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+              int msgID = MSGID_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+              appendErrorMessage(getMessage(msgID, String.valueOf(baseDN)));
+
+              skipPostOperation = true;
+              break searchProcessing;
+            }
 
             setAuthorizationEntry(authorizationEntry);
           }

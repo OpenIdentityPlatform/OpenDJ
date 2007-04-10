@@ -101,6 +101,7 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -1080,7 +1081,17 @@ modifyProcessing:
 
                 break modifyProcessing;
               }
+              if (AccessControlConfigManager.getInstance().
+                      getAccessControlHandler().isProxiedAuthAllowed(this,
+                      authorizationEntry) == false) {
+                setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
+                int msgID = MSGID_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+                appendErrorMessage(getMessage(msgID, String.valueOf(entryDN)));
+
+                skipPostOperation = true;
+                break modifyProcessing;
+              }
 
               setAuthorizationEntry(authorizationEntry);
             }
@@ -1141,7 +1152,17 @@ modifyProcessing:
                 break modifyProcessing;
               }
 
+              if (AccessControlConfigManager.getInstance().
+                      getAccessControlHandler().isProxiedAuthAllowed(this,
+                      authorizationEntry) == false) {
+                setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
+                int msgID = MSGID_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+                appendErrorMessage(getMessage(msgID, String.valueOf(entryDN)));
+
+                skipPostOperation = true;
+                break modifyProcessing;
+              }
               setAuthorizationEntry(authorizationEntry);
             }
 

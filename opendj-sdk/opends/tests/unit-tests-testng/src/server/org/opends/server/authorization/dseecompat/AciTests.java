@@ -182,6 +182,8 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String LEVEL_1_USER_DN = "cn=level1 user," + OU_BASE_DN;
   private static final String LEVEL_2_USER_DN = "cn=level2 user," + OU_INNER_DN;
   private static final String LEVEL_3_USER_DN = "cn=level3 user," + OU_LEAF_DN;
+  //The proxy DN.
+  private static final String PROXY_USER_DN = "cn=proxy user," + OU_BASE_DN;
 
   // We need to delete all of these between each test.  This list needs to be
   // bottom up so that it can be handed to LDAPDelete.
@@ -189,6 +191,7 @@ public class AciTests extends DirectoryServerTestCase {
     SALES_USER_1,
     SALES_USER_2,
     SALES_USER_3,
+    PROXY_USER_DN,
     LEVEL_3_USER_DN,
     LEVEL_2_USER_DN,
     LEVEL_1_USER_DN,
@@ -209,6 +212,10 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String BIND_RULE_USERDN_ALL = "userdn=\"ldap:///all\"";
   private static final String BIND_RULE_USERDN_ADMIN = "userdn=\"ldap:///" + ADMIN_DN + "\"";
   private static final String BIND_RULE_USERDN_LEVEL_1 = "userdn=\"ldap:///" + LEVEL_1_USER_DN + "\"";
+  //The proxy userdn bind rule.
+  private static final String BIND_RULE_USERDN_PROXY =
+                                     "userdn=\"ldap:///" + PROXY_USER_DN + "\"";
+
   private static final String BIND_RULE_USERDN_ANYONE = "userdn=\"ldap:///anyone\"";
   private static final String BIND_RULE_USERDN_PARENT = "userdn=\"ldap:///parent\"";
   private static final String BIND_RULE_USERDN_CN_RDN = "userdn=\"ldap:///CN=*,dc=example,dc=com\"";
@@ -305,6 +312,36 @@ public class AciTests extends DirectoryServerTestCase {
 
   private static final String ALLOW_ALL_TO_COMPARE =
              buildAciValue("name", "allow compare", "targetattr", "*", "target", "ldap:///cn=*," + OU_LEAF_DN, "allow(compare)", BIND_RULE_USERDN_ALL);
+
+  //The ACIs for the proxy tests.
+
+  private static final String ALLOW_PROXY_TO_IMPORT_MGR_NEW =
+          buildAciValue("name", "allow proxy import new mgr new tree", "target",
+                     MGR_NEW_DN_URL, "allow(import)", BIND_RULE_USERDN_PROXY);
+
+  private static final String ALLOW_PROXY_TO_IMPORT_MGR=
+             buildAciValue("name", "allow proxy import mgr tree", "target",
+                     MGR_DN_URL, "allow(import)", BIND_RULE_USERDN_PROXY);
+
+  private static final String ALLOW_PROXY_TO_EXPORT_MGR_NEW =
+          buildAciValue("name", "allow proxy export new mgr new tree", "target",
+                     MGR_NEW_DN_URL, "allow(export)", BIND_RULE_USERDN_PROXY);
+
+  private static final String ALLOW_PROXY_TO_EXPORT_MGR=
+             buildAciValue("name", "allow proxy export mgr tree", "target",
+                     MGR_DN_URL, "allow(export)", BIND_RULE_USERDN_PROXY);
+
+  private static final String ALLOW_PROXY_TO_WRITE_RDN_ATTRS=
+           buildAciValue("name", "allow proxy write to RDN attrs", "targetattr",
+                     "uid || cn || sn", "allow(write)", BIND_RULE_USERDN_PROXY);
+
+  private static final String ALLOW_PROXY_TO_MOVED_ENTRY =
+          buildAciValue("name", "allow proxy to moved entry", "targetattr", "*",
+                     "allow(search,read)", BIND_RULE_USERDN_PROXY);
+
+   private static final String ALLOW_PROXY_TO_LEVEL1 =
+          buildAciValue("name", "allow proxy to userdn level1", "targetattr", "*",
+                     "allow(proxy)", BIND_RULE_USERDN_LEVEL_1);
 
   private static final String ALLOW_ALL_TO_IMPORT_MGR_NEW =
              buildAciValue("name", "allow import mgr new tree", "target", MGR_NEW_DN_URL, "allow(import)", BIND_RULE_USERDN_ALL);
@@ -959,6 +996,8 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String LEVEL_1_USER_LDIF__SEARCH_TESTS = makeUserLdif(LEVEL_1_USER_DN, "level1", "user", "pa$$word");
   private static final String LEVEL_2_USER_LDIF__SEARCH_TESTS = makeUserLdif(LEVEL_2_USER_DN, "level2", "user", "pa$$word");
   private static final String LEVEL_3_USER_LDIF__SEARCH_TESTS = makeUserLdif(LEVEL_3_USER_DN, "level3", "user", "pa$$word");
+  private static final String PROXY_USER_LDIF__SEARCH_TESTS =
+                       makeUserLdif(PROXY_USER_DN, "proxy", "user", "pa$$word");
 
 
     private static final String SALES_USER_1__SEARCH_TESTS =
@@ -1050,7 +1089,7 @@ private static final String GLOBAL_DEFAULT_ACIS =
   String SELFWRITE_ACI =  makeAddAciLdif(OU_GROUP_1_DN,
                                         ALLOW_ALL_TO_SELFWRITE);
 
-  //ACIs used for modDN tests (export, import)
+  //ACIs used for standard modDN tests (export, import)
 
  private static final  String ACI_IMPORT_MGR_NEW =
                    makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_IMPORT_MGR_NEW);
@@ -1064,11 +1103,34 @@ private static final String GLOBAL_DEFAULT_ACIS =
  private static final  String ACI_EXPORT_MGR =
                    makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_EXPORT_MGR);
 
-  private static final String ACI_WRITE_RDN_ATTRS =
+ private static final String ACI_WRITE_RDN_ATTRS =
                    makeAddAciLdif(OU_BASE_DN, ALLOW_ALL_TO_WRITE_RDN_ATTRS);
 
-   private static final String ACI_MOVED_ENTRY =
+ private static final String ACI_MOVED_ENTRY =
                    makeAddAciLdif(SALES_USER_1, ALLOW_ALL_TO_MOVED_ENTRY);
+
+//ACIs used for proxied auth modDN tests
+
+  private static final  String ACI_PROXY_IMPORT_MGR_NEW =
+                   makeAddAciLdif(OU_BASE_DN, ALLOW_PROXY_TO_IMPORT_MGR_NEW);
+
+ private static final  String ACI_PROXY_IMPORT_MGR =
+                   makeAddAciLdif(OU_BASE_DN, ALLOW_PROXY_TO_IMPORT_MGR);
+
+ private static final  String ACI_PROXY_EXPORT_MGR_NEW =
+                   makeAddAciLdif(OU_BASE_DN, ALLOW_PROXY_TO_EXPORT_MGR_NEW);
+
+ private static final  String ACI_PROXY_EXPORT_MGR =
+                   makeAddAciLdif(OU_BASE_DN, ALLOW_PROXY_TO_EXPORT_MGR);
+
+ private static final String ACI_PROXY_WRITE_RDN_ATTRS =
+                   makeAddAciLdif(OU_BASE_DN, ALLOW_PROXY_TO_WRITE_RDN_ATTRS);
+
+ private static final String ACI_PROXY_LEVEL_1=
+                   makeAddAciLdif(OU_BASE_DN, ALLOW_PROXY_TO_LEVEL1);
+
+ private static final String ACI_PROXY_MOVED_ENTRY =
+                   makeAddAciLdif(SALES_USER_1, ALLOW_PROXY_TO_MOVED_ENTRY);
 
 //ACI used in testing the groupdn/roledn bind rule keywords.
 
@@ -1116,6 +1178,7 @@ private static final String GLOBAL_DEFAULT_ACIS =
             GROUP_1_LDIF__SEARCH_TESTS +
             GROUP_2_LDIF__SEARCH_TESTS +
             LEVEL_1_USER_LDIF__SEARCH_TESTS +
+            PROXY_USER_LDIF__SEARCH_TESTS +
             INNER_OU_FULL_LDIF__SEARCH_TESTS;
 
   private static final String NO_ACIS_LDIF = "";
@@ -1484,6 +1547,7 @@ private static final String GLOBAL_DEFAULT_ACIS =
   private static class SingleSearchParams {
     private final String _bindDn;
     private final String _bindPw;
+    private final String _proxyDN;
     private final String _searchBaseDn;
     private final String _searchFilter;
     private final String _searchScope;
@@ -1491,9 +1555,25 @@ private static final String GLOBAL_DEFAULT_ACIS =
     private final String _initialDitLdif;
     private final String _aciLdif;
 
+    public SingleSearchParams(String bindDn, String bindPw, String proxyDN,
+                              String searchBaseDn, String searchFilter,
+                              String searchScope, String expectedResultsLdif,
+                              String initialDitLdif, String aciLdif) {
+      _bindDn = bindDn;
+      _bindPw = bindPw;
+      _proxyDN=proxyDN;
+      _searchBaseDn = searchBaseDn;
+      _searchFilter = searchFilter;
+      _searchScope = searchScope;
+      _expectedResultsLdif = expectedResultsLdif;
+      _initialDitLdif = initialDitLdif;
+      _aciLdif = aciLdif;
+    }
+
     public SingleSearchParams(String bindDn, String bindPw, String searchBaseDn, String searchFilter, String searchScope, String expectedResultsLdif, String initialDitLdif, String aciLdif) {
       _bindDn = bindDn;
       _bindPw = bindPw;
+      _proxyDN = null;
       _searchBaseDn = searchBaseDn;
       _searchFilter = searchFilter;
       _searchScope = searchScope;
@@ -1505,6 +1585,7 @@ private static final String GLOBAL_DEFAULT_ACIS =
     public SingleSearchParams(SingleSearchParams that, String initialDitLdif, String aciLdif) {
       _bindDn = that._bindDn;
       _bindPw = that._bindPw;
+      _proxyDN = null;
       _searchBaseDn = that._searchBaseDn;
       _searchFilter = that._searchFilter;
       _searchScope = that._searchScope;
@@ -1524,6 +1605,16 @@ private static final String GLOBAL_DEFAULT_ACIS =
           "-p", getServerLdapPort(),
           "-b", _searchBaseDn,
           "-s", _searchScope,
+          _searchFilter};
+      } else if(_proxyDN != null) {
+        return new String[]{
+          "-h", "127.0.0.1",
+          "-p", getServerLdapPort(),
+          "-D", _bindDn,
+          "-w", _bindPw,
+          "-b", _searchBaseDn,
+          "-s", _searchScope,
+          "-Y", "dn:" + _proxyDN,
           _searchFilter};
       } else {
         return new String[]{
@@ -1657,6 +1748,58 @@ private static final String GLOBAL_DEFAULT_ACIS =
       } catch(Throwable e) {
           throw e;
       }
+  }
+
+
+  /**
+   * Test proxy keyword using modify DN. Exact test as testModDN, except using
+   * proxied authorization for modifies and searches.
+   *
+   * Add a set of ACIs to allow exports, imports and write rights to the
+   * proxy user PROXY_USER_DN. Also add an aci low in the DIT, with search and
+   * read rights to the proxy user. This is ACI is to test the
+   * ACI list after a move has been made. Add an ACI that allows LEVEL_1_USER_DN
+   * proxy authorization rights (proxy).
+   *
+   * Move the subtree binding as LEVEL_1_USER_DN using proxied authorization,
+   * search with base at new DN binding as LEVEL_1_USER_DN proxied
+   * authorization, then move the tree back binding as LEVEL_1_USER_DN using
+   * proxied authorization and lastly re-search with base at orig DN
+   * binding as LEVEL_1_USER_DN using proxied authorization.
+   * @throws Throwable
+   */
+  @Test
+  public void testProxyModDN() throws Throwable {
+    SingleSearchParams userParamOrig = new SingleSearchParams(LEVEL_1_USER_DN,
+                                      "pa$$word",PROXY_USER_DN, SALES_USER_1,
+                                      OBJECTCLASS_STAR, SCOPE_BASE,
+                                      null, null, null);
+    SingleSearchParams userParamNew = new SingleSearchParams(LEVEL_1_USER_DN,
+                                     "pa$$word",PROXY_USER_DN, SALES_USER_NEW_1,
+                                      OBJECTCLASS_STAR, SCOPE_BASE,
+                                      null, null, null);
+    try {
+      addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+      modEntries(ACI_PROXY_IMPORT_MGR, DIR_MGR_DN, DIR_MGR_PW);
+      modEntries(ACI_PROXY_IMPORT_MGR_NEW, DIR_MGR_DN, DIR_MGR_PW);
+      modEntries(ACI_PROXY_EXPORT_MGR, DIR_MGR_DN, DIR_MGR_PW);
+      modEntries(ACI_PROXY_EXPORT_MGR_NEW, DIR_MGR_DN, DIR_MGR_PW);
+      modEntries(ACI_PROXY_WRITE_RDN_ATTRS, DIR_MGR_DN, DIR_MGR_PW);
+      modEntries(ACI_PROXY_MOVED_ENTRY, DIR_MGR_DN, DIR_MGR_PW);
+      modEntries(ACI_PROXY_LEVEL_1, DIR_MGR_DN, DIR_MGR_PW);
+      String modrdnLdif =
+              makeModDN(SALES_DN, "cn=sales dept", "0", MANAGER_NEW_DN);
+      modEntries(modrdnLdif, LEVEL_1_USER_DN, "pa$$word", PROXY_USER_DN);
+      String userNewResults = ldapSearch(userParamNew.getLdapSearchArgs());
+      Assert.assertFalse(userNewResults.equals(""));
+      String modrdnLdif1 =
+                makeModDN(SALES_NEW_DN, "cn=sales dept", "0", MANAGER_DN);
+      modEntries(modrdnLdif1, LEVEL_1_USER_DN, "pa$$word", PROXY_USER_DN);
+      String userOrigResults = ldapSearch(userParamOrig.getLdapSearchArgs());
+      Assert.assertFalse(userOrigResults.equals(""));
+    } catch (Throwable e)  {
+      throw e;
+    }
   }
 
   /**
@@ -1997,20 +2140,22 @@ private static String _buildAciValue(String attr, String... aciFields) {
     Assert.assertEquals(0, retVal,  "Non-zero return code because, error: " + getOutputStreamContents());
     return getOutputStreamContents();
   }
-  /**
-   *
-   */
+
   private void
   modEntries(String ldif, String bindDn, String bindPassword)
           throws Exception {
-    modEntries(ldif, bindDn, bindPassword, true, false);
+    modEntries(ldif, bindDn, bindPassword, null, true, false);
   }
 
-  /**
-   *
-   */
-  private void modEntriesExpectFailure(String ldif, String bindDn, String bindPassword) throws Exception {
-    modEntries(ldif, bindDn, bindPassword, false, false);
+  private void
+  modEntries(String ldif, String bindDn, String bindPassword, String proxyDN)
+          throws Exception {
+    modEntries(ldif, bindDn, bindPassword, proxyDN, true, false);
+  }
+
+  private void modEntriesExpectFailure(String ldif, String bindDn,
+                                       String bindPassword) throws Exception {
+    modEntries(ldif, bindDn, bindPassword, null, false, false);
   }
 
   private void _modEntries(String ldif, String bindDn, String bindPassword,
@@ -2031,7 +2176,8 @@ private static String _buildAciValue(String attr, String... aciFields) {
   }
 
     private void modEntries(String ldif, String bindDn, String bindPassword,
-                          boolean expectSuccess, boolean contFlag)
+                          String proxyDN, boolean expectSuccess,
+                          boolean contFlag)
     throws Exception {
     File tempFile = getTemporaryLdifFile();
     TestCaseUtils.writeFile(tempFile, ldif);
@@ -2048,6 +2194,10 @@ private static String _buildAciValue(String attr, String... aciFields) {
     argList.add(tempFile.getAbsolutePath());
     if(contFlag)
         argList.add("-c");
+    if(proxyDN != null) {
+        argList.add("-Y");
+        argList.add("dn:" + proxyDN);
+    }
     String[] args = new String[argList.size()];
     ldapModify(argList.toArray(args), expectSuccess);
   }
@@ -2065,7 +2215,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
                 "changetype: modify",
                 "delete: " + attr,
                 attr + ":" + val));
-        modEntries(ldif.toString(), bindDN, pwd, errorOk, false);
+        modEntries(ldif.toString(), bindDN, pwd, null, errorOk, false);
     }
 
 
@@ -2090,7 +2240,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
                   "dn: "  + dn,
                   "changetype: modify",
                   "delete: " + attr));
-          modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW, errorOk, false);
+          modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW,  null, errorOk, false);
       }
 
     private void deleteEntries(String[] entries) throws Exception {
@@ -2102,7 +2252,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
                     "changetype: delete"
             ));
         }
-        modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW, true, true);
+        modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW, null, true, true);
     }
 
   /**
@@ -2214,7 +2364,8 @@ private static String _buildAciValue(String attr, String... aciFields) {
             "cn: " +  cn,
             "sn: " + sn,
             "givenName: " + givenName,
-            "userpassword: " + password);
+            "userpassword: " + password,
+            "ds-privilege-name: proxied-auth");
   }
 
     private static String makeUserLdif(String dn, String givenName, String sn,
