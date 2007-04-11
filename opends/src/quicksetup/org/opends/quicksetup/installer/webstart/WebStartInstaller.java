@@ -115,6 +115,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
           getRatio(InstallProgressStep.CONFIGURING_SERVER));
       notifyListeners(getTaskSeparator());
 
+      setInstallation(new Installation(getUserData().getServerLocation()));
+
       status = InstallProgressStep.CONFIGURING_SERVER;
       configureServer();
 

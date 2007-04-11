@@ -679,6 +679,27 @@ public class Utils
     return p.waitFor();
   }
 
+  /**
+   * Sets the permissions of the provided paths with the provided permission
+   * String.
+   * @param path to set permissions on.
+   * @param permissions the UNIX-mode file system permission representation
+   * (for example "644" or "755")
+   * @return the return code of the chmod command.
+   * @throws IOException if something goes wrong.
+   * @throws InterruptedException if the Runtime.exec method is interrupted.
+   */
+  public static int setPermissionsUnix(String path,
+      String permissions) throws IOException, InterruptedException
+  {
+    String[] args = new String[3];
+    args[0] = "chmod";
+    args[1] = permissions;
+    args[2] = path;
+    Process p = Runtime.getRuntime().exec(args);
+    return p.waitFor();
+  }
+
   // Very limited for the moment: apply only permissions to the current user and
   // does not work in non-English environments... to work in non English we
   // should use xcalcs but it does not come in the windows default install...
@@ -1202,6 +1223,54 @@ public class Utils
       }
     }
     return sb.toString();
+  }
+
+  /**
+   * Returns the file system permissions for a file.
+   * @param path the file for which we want the file permissions.
+   * @return the file system permissions for the file.
+   */
+  static public String getFileSystemPermissions(String path)
+  {
+    return getFileSystemPermissions(new File(path));
+  }
+
+  /**
+   * Returns the file system permissions for a file.
+   * @param file the file for which we want the file permissions.
+   * @return the file system permissions for the file.
+   */
+  static public String getFileSystemPermissions(File file)
+    {
+    String perm;
+    String name = file.getName();
+    if (file.getParent().endsWith(
+        File.separator + Installation.WINDOWS_BINARIES_PATH_RELATIVE) ||
+        file.getParent().endsWith(
+        File.separator + Installation.UNIX_BINARIES_PATH_RELATIVE))
+    {
+      if (name.endsWith(".bat"))
+      {
+        perm = "644";
+      }
+      else
+      {
+        perm = "755";
+      }
+    }
+    else if (name.endsWith(".sh"))
+    {
+      perm = "755";
+    } else if (name.endsWith(Installation.UNIX_SETUP_FILE_NAME) ||
+            name.endsWith(Installation.UNIX_UNINSTALL_FILE_NAME) ||
+            name.endsWith(Installation.UNIX_UPGRADE_FILE_NAME))
+    {
+      perm = "755";
+    } else
+    {
+      perm = "644";
+    }
+    return perm;
   }
 
 }

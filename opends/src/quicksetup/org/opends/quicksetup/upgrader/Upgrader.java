@@ -36,6 +36,12 @@ import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.server.tools.BackUpDB;
 import org.opends.server.tools.LDIFDiff;
+import org.opends.server.util.*;
+import org.opends.server.types.*;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.DirectoryServer;
 
 import java.awt.event.WindowEvent;
 import java.util.*;
@@ -51,7 +57,9 @@ import static org.opends.quicksetup.Installation.*;
  */
 public class Upgrader extends Application implements CliApplication {
 
-  /** Steps in the Upgrade wizard. */
+  /**
+   * Steps in the Upgrade wizard.
+   */
   enum UpgradeWizardStep implements WizardStep {
 
     WELCOME("welcome-step"),
@@ -76,7 +84,9 @@ public class Upgrader extends Application implements CliApplication {
     }
   }
 
-  /** Steps during the upgrade process. */
+  /**
+   * Steps during the upgrade process.
+   */
   enum UpgradeProgressStep implements ProgressStep {
 
     NOT_STARTED("summary-upgrade-not-started"),
@@ -85,15 +95,15 @@ public class Upgrader extends Application implements CliApplication {
 
     STOPPING_SERVER("summary-stopping"),
 
-    BACKING_UP_DATABASES("summary-upgrade-backing-up-db"),
-
-    BACKING_UP_FILESYSTEM("summary-upgrade-backing-up-files"),
-
     CALCULATING_SCHEMA_CUSTOMIZATIONS(
             "summary-upgrade-calculating-schema-customization"),
 
     CALCULATING_CONFIGURATION_CUSTOMIZATIONS(
             "summary-upgrade-calculating-config-customization"),
+
+    BACKING_UP_DATABASES("summary-upgrade-backing-up-db"),
+
+    BACKING_UP_FILESYSTEM("summary-upgrade-backing-up-files"),
 
     UPGRADING_COMPONENTS("summary-upgrade-upgrading-components"),
 
@@ -109,6 +119,8 @@ public class Upgrader extends Application implements CliApplication {
 
     CLEANUP("summary-upgrade-cleanup"),
 
+    ABORT("summary-upgrade-abort"),
+
     FINISHED_WITH_ERRORS("summary-upgrade-finished-with-errors"),
 
     FINISHED("summary-upgrade-finished-successfully");
@@ -121,6 +133,7 @@ public class Upgrader extends Application implements CliApplication {
 
     /**
      * Return a key for access a summary message.
+     *
      * @return String representing key for access summary in resource bundle
      */
     public String getSummaryMesssageKey() {
@@ -147,31 +160,46 @@ public class Upgrader extends Application implements CliApplication {
 
   // Root files that will be ignored during backup
   static private final String[] ROOT_FILES_TO_IGNORE_DURING_BACKUP = {
-    CHANGELOG_PATH_RELATIVE, // changelogDb
-    DATABASES_PATH_RELATIVE, // db
-    LOGS_PATH_RELATIVE, // logs
-    LOCKS_PATH_RELATIVE, // locks
-    HISTORY_PATH_RELATIVE // history
+          CHANGELOG_PATH_RELATIVE, // changelogDb
+          DATABASES_PATH_RELATIVE, // db
+          LOGS_PATH_RELATIVE, // logs
+          LOCKS_PATH_RELATIVE, // locks
+          HISTORY_PATH_RELATIVE // history
   };
 
   private ProgressStep currentProgressStep = UpgradeProgressStep.NOT_STARTED;
 
-  /** Assigned if an exception occurs during run(). */
+  /**
+   * Assigned if an exception occurs during run().
+   */
   private ApplicationException runException = null;
 
-  /** Helps with CLI specific tasks. */
+  /**
+   * Helps with CLI specific tasks.
+   */
   private UpgraderCliHelper cliHelper = null;
 
-  /** Directory where we keep files temporarily. */
+  /**
+   * Directory where we keep files temporarily.
+   */
   private File stagingDirectory = null;
 
-  /** Directory where backup is kept in case the upgrade needs reversion. */
+  /**
+   * Directory where backup is kept in case the upgrade needs reversion.
+   */
   private File backupDirectory = null;
 
-  /** ID that uniquely identifieds this invocation of the Upgrader in the
+  /**
+   * ID that uniquely identifieds this invocation of the Upgrader in the
    * historical logs.
    */
   private Long historicalOperationId;
+
+  /** SVN rev number of the current build. */
+  private Integer currentVersion = null;
+
+  /** SVN rev number of the build in the stage directory. */
+  private Integer stagedVersion = null;
 
   /**
    * {@inheritDoc}
@@ -214,7 +242,7 @@ public class Upgrader extends Application implements CliApplication {
    * {@inheritDoc}
    */
   public Integer getRatio(ProgressStep step) {
-    return 100 * ((UpgradeProgressStep)step).ordinal() /
+    return 100 * ((UpgradeProgressStep) step).ordinal() /
             EnumSet.allOf(UpgradeWizardStep.class).size();
   }
 
@@ -222,7 +250,7 @@ public class Upgrader extends Application implements CliApplication {
    * {@inheritDoc}
    */
   public String getSummary(ProgressStep step) {
-    return getMsg(((UpgradeProgressStep)step).getSummaryMesssageKey());
+    return getMsg(((UpgradeProgressStep) step).getSummaryMesssageKey());
   }
 
   /**
@@ -278,8 +306,7 @@ public class Upgrader extends Application implements CliApplication {
    * {@inheritDoc}
    */
   protected void updateUserData(WizardStep cStep, QuickSetup qs)
-          throws UserDataException
-  {
+          throws UserDataException {
   }
 
   /**
@@ -319,17 +346,11 @@ public class Upgrader extends Application implements CliApplication {
     // Reset exception just in case this application is rerun
     // for some reason
     runException = null;
-    Integer fromVersion = null;
-    Integer toVersion = null;
 
     try {
       try {
         setCurrentProgressStep(UpgradeProgressStep.INITIALIZING);
         initialize();
-        fromVersion = getStagedInstallation().getSvnRev();
-        toVersion = getInstallation().getSvnRev();
-        this.historicalOperationId =
-                writeInitialHistoricalRecord(fromVersion, toVersion);
       } catch (ApplicationException e) {
         LOG.log(Level.INFO, "error initializing upgrader", e);
         throw e;
@@ -343,6 +364,25 @@ public class Upgrader extends Application implements CliApplication {
           LOG.log(Level.INFO, "error stopping server", e);
           throw e;
         }
+      }
+
+      try {
+        setCurrentProgressStep(
+                UpgradeProgressStep.CALCULATING_SCHEMA_CUSTOMIZATIONS);
+        calculateSchemaCustomizations();
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO, "error calculating schema customizations", e);
+        throw e;
+      }
+
+      try {
+        setCurrentProgressStep(
+                UpgradeProgressStep.CALCULATING_CONFIGURATION_CUSTOMIZATIONS);
+        calculateConfigCustomizations();
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO,
+                "error calculating config customizations", e);
+        throw e;
       }
 
       try {
@@ -361,28 +401,9 @@ public class Upgrader extends Application implements CliApplication {
         throw e;
       }
 
-        try {
-          setCurrentProgressStep(
-              UpgradeProgressStep.CALCULATING_SCHEMA_CUSTOMIZATIONS);
-          calculateSchemaCustomizations();
-        } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "error calculating schema customizations", e);
-          throw e;
-        }
-
-        try {
-          setCurrentProgressStep(
-              UpgradeProgressStep.CALCULATING_CONFIGURATION_CUSTOMIZATIONS);
-          calculateConfigCustomizations();
-        } catch (ApplicationException e) {
-          LOG.log(Level.INFO,
-                  "error calculating config customizations", e);
-          throw e;
-        }
-
       try {
         setCurrentProgressStep(
-            UpgradeProgressStep.UPGRADING_COMPONENTS);
+                UpgradeProgressStep.UPGRADING_COMPONENTS);
         upgradeComponents();
       } catch (ApplicationException e) {
         LOG.log(Level.INFO,
@@ -390,16 +411,42 @@ public class Upgrader extends Application implements CliApplication {
         throw e;
       }
 
-//      setCurrentProgressStep(
-//              UpgradeProgressStep.APPLYING_SCHEMA_CUSTOMIZATIONS);
-//      sleepFor1();
-//      setCurrentProgressStep(
-//              UpgradeProgressStep.APPLYING_CONFIGURATION_CUSTOMIZATIONS);
-//      sleepFor1();
-//      setCurrentProgressStep(UpgradeProgressStep.VERIFYING);
-//      sleepFor1();
+      try {
+        setCurrentProgressStep(
+                UpgradeProgressStep.APPLYING_SCHEMA_CUSTOMIZATIONS);
+        applySchemaCustomizations();
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO,
+                "error applying schema customizations", e);
+        throw e;
+      }
 
+      try {
+        setCurrentProgressStep(
+                UpgradeProgressStep.APPLYING_CONFIGURATION_CUSTOMIZATIONS);
+        applyConfigurationCustomizations();
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO,
+                "error applying configuration customizations", e);
+        throw e;
+      }
 
+      if ("true".equals(
+              System.getProperty(
+                      "org.opends.upgrader.Upgrader.CreateError.CreateError")))
+      {
+        throw new ApplicationException(
+                null, "ARTIFICIAL ERROR FOR TESTING ABORT PROCESS", null);
+      }
+
+      try {
+        setCurrentProgressStep(UpgradeProgressStep.VERIFYING);
+        verifyUpgrade();
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO,
+                "error verifying upgrade", e);
+        throw e;
+      }
 
     } catch (ApplicationException ae) {
       this.runException = ae;
@@ -410,11 +457,6 @@ public class Upgrader extends Application implements CliApplication {
                       t);
     } finally {
       try {
-        setCurrentProgressStep(UpgradeProgressStep.CLEANUP);
-        cleanup();
-
-        // Write a record in the log file indicating success/failure
-        setCurrentProgressStep(UpgradeProgressStep.RECORDING_HISTORY);
         HistoricalRecord.Status status;
         String note = null;
         if (runException == null) {
@@ -422,16 +464,29 @@ public class Upgrader extends Application implements CliApplication {
         } else {
           status = HistoricalRecord.Status.FAILURE;
           note = runException.getLocalizedMessage();
+
+          // Abort the upgrade and put things back like we found it
+          ProgressStep lastProgressStep = getCurrentProgressStep();
+          setCurrentProgressStep(UpgradeProgressStep.ABORT);
+          abort(lastProgressStep);
         }
+
+        setCurrentProgressStep(UpgradeProgressStep.CLEANUP);
+        cleanup();
+
+        // Write a record in the log file indicating success/failure
+        setCurrentProgressStep(UpgradeProgressStep.RECORDING_HISTORY);
         writeHistoricalRecord(historicalOperationId,
-                fromVersion,
-                toVersion,
+                getCurrentVersion(),
+                getStagedVersion(),
                 status,
                 note);
 
       } catch (ApplicationException e) {
         System.err.print("error cleaning up after upgrade: " +
                 e.getLocalizedMessage());
+      } finally {
+
       }
     }
 
@@ -440,19 +495,213 @@ public class Upgrader extends Application implements CliApplication {
       setCurrentProgressStep(UpgradeProgressStep.FINISHED);
     } else {
       setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_ERRORS);
+      notifyListeners(runException.getLocalizedMessage() +
+              formatter.getLineBreak());
     }
 
+  }
+
+  /**
+   * Abort this upgrade and repair the installation.
+   *
+   * @param lastStep ProgressStep indicating how much work we will have to
+   *                 do to get the installation back like we left it
+   * @throws ApplicationException of something goes wrong
+   */
+  private void abort(ProgressStep lastStep) throws ApplicationException {
+    UpgradeProgressStep lastUpgradeStep = (UpgradeProgressStep) lastStep;
+    EnumSet<UpgradeProgressStep> stepsStarted =
+            EnumSet.range(UpgradeProgressStep.INITIALIZING, lastUpgradeStep);
+
+    if (stepsStarted.contains(UpgradeProgressStep.BACKING_UP_FILESYSTEM)) {
+
+      // Files were copied from the stage directory to the current
+      // directory.  Repair things by overwriting file in the
+      // root with those that were copied to the backup directory
+      // during backupFiles()
+
+      File root = getInstallation().getRootDirectory();
+      File backupDirectory;
+      try {
+        backupDirectory = getFilesBackupDirectory();
+        FileManager fm = new FileManager(this);
+        for (String fileName : backupDirectory.list()) {
+          File f = new File(backupDirectory, fileName);
+
+          // Do our best to restore the filesystem like
+          // we found it.  Just report potential problems
+          // to the user.
+          try {
+            fm.move(f, root, null);
+          } catch (Throwable t) {
+            notifyListeners("The following could not be restored after the" +
+                    "failed upgrade attempt.  You should restore this " +
+                    "file/directory manually: " + f + " to " + root);
+          }
+        }
+        fm.deleteRecursively(backupDirectory);
+      } catch (IOException e) {
+        LOG.log(Level.INFO, "error getting backup directory", e);
+      }
+    }
+
+
+  }
+
+  private void verifyUpgrade() throws ApplicationException {
+    try {
+      new ServerController(this).startServer();
+    } catch (QuickSetupException e) {
+      LOG.log(Level.INFO, "error starting server", e);
+    }
+  }
+
+  private void applyConfigurationCustomizations() throws ApplicationException {
+    try {
+      File configDiff = getCustomConfigDiffFile();
+      if (configDiff.exists()) {
+        applyCustomizationLdifFile(configDiff);
+      }
+    } catch (IOException e) {
+      LOG.log(Level.INFO, "error getting schema diff file", e);
+      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
+              "error applying configuration customization", e);
+    } catch (LDIFException e) {
+      LOG.log(Level.INFO, "error reading change record", e);
+      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
+              "error applying configuration customization", e);
+    }
+  }
+
+  private void applySchemaCustomizations() throws ApplicationException {
+    try {
+      File schemaDiff = getCustomSchemaDiffFile();
+      if (schemaDiff.exists()) {
+        applyCustomizationLdifFile(schemaDiff);
+      }
+    } catch (IOException e) {
+      LOG.log(Level.INFO, "error getting schema diff file", e);
+      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
+              "error applying schema customization", e);
+    } catch (LDIFException e) {
+      LOG.log(Level.INFO, "error reading change record", e);
+      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
+              "error applying schema customization", e);
+    }
+  }
+
+  private void startServerWithoutConnectionHandlers()
+          throws ApplicationException {
+    try {
+      ServerController control = new ServerController(this);
+      if (getInstallation().getStatus().isServerRunning()) {
+        control.stopServer();
+      }
+      control.startServerInProcess(true);
+    } catch (IOException e) {
+      LOG.log(Level.INFO, "could not determine server state", e);
+      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
+              "error trying to determine server state", e);
+    } catch (InitializationException e) {
+      LOG.log(Level.INFO, "could not start server", e);
+      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
+              "could not start server with handlers", e);
+    } catch (ConfigException e) {
+      LOG.log(Level.INFO, "configuration error starting server", e);
+      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
+              "configuration error starting server", e);
+    }
+  }
+
+  private void applyCustomizationLdifFile(File ldifFile)
+          throws IOException, LDIFException, ApplicationException {
+    try {
+      startServerWithoutConnectionHandlers();
+      InternalClientConnection cc =
+              InternalClientConnection.getRootConnection();
+      LDIFImportConfig importCfg =
+              new LDIFImportConfig(Utils.getPath(ldifFile));
+      LDIFReader ldifReader = new LDIFReader(importCfg);
+      ChangeRecordEntry cre;
+      while (null != (cre = ldifReader.readChangeRecord(false))) {
+        if (cre instanceof ModifyChangeRecordEntry) {
+          ModifyChangeRecordEntry mcre = (ModifyChangeRecordEntry) cre;
+          ByteString dnByteString =
+                  ByteStringFactory.create(mcre.getDN().toString());
+          ModifyOperation op =
+                  cc.processModify(dnByteString, mcre.getModifications());
+          ResultCode rc = op.getResultCode();
+          if (rc.equals(ResultCode.OBJECTCLASS_VIOLATION)) {
+            // try again without schema checking
+            DirectoryServer.setCheckSchema(false);
+            op = cc.processModify(dnByteString, mcre.getModifications());
+            rc = op.getResultCode();
+          }
+          if (rc.equals(ResultCode.SUCCESS)) {
+            if (DirectoryServer.checkSchema()) {
+              notifyListeners(
+                      getMsg("upgrade-mod",
+                              modListToString(op.getModifications()))
+                      + formatter.getLineBreak());
+            } else {
+              notifyListeners(
+                      getMsg("upgrade-mod-no-schema",
+                              modListToString(op.getModifications()))
+                      + formatter.getLineBreak());
+              DirectoryServer.setCheckSchema(true);
+            }
+          } else if (rc.equals(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS)) {
+            // ignore this error
+            notifyListeners(
+                    getMsg("upgrade-mod-ignore",
+                            modListToString(op.getModifications()))
+                    + formatter.getLineBreak());
+          } else {
+            // report the error to the user
+            StringBuilder error = op.getErrorMessage();
+            if (error != null) {
+              throw new ApplicationException(
+                      ApplicationException.Type.IMPORT_ERROR,
+                      "error processing custom configuration "
+                              + error.toString(),
+                      null);
+            }
+          }
+        } else {
+          throw new ApplicationException(
+                  ApplicationException.Type.IMPORT_ERROR,
+                  "unexpected change record type " + cre.getClass(),
+                  null);
+        }
+      }
+    } catch (Throwable t) {
+      // t.printStackTrace(System.out);
+      throw new ApplicationException(ApplicationException.Type.BUG,
+              t.getMessage(), t);
+    } finally {
+      getServerController().stopServerInProcess();
+    }
+  }
+
+  private String modListToString(List<Modification> modifications) {
+    StringBuilder modsMsg = new StringBuilder();
+    for(int i = 0; i < modifications.size(); i++) {
+      modsMsg.append(modifications.get(i).toString());
+      if (i < modifications.size() - 1) {
+        modsMsg.append(" ");
+      }
+    }
+    return modsMsg.toString();
   }
 
   private Long writeInitialHistoricalRecord(
           Integer fromVersion,
           Integer toVersion)
-          throws ApplicationException
-  {
+          throws ApplicationException {
     Long id;
     try {
       HistoricalLog log =
-            new HistoricalLog(getInstallation().getHistoryLogFile());
+              new HistoricalLog(getInstallation().getHistoryLogFile());
       id = log.append(fromVersion, toVersion,
               HistoricalRecord.Status.STARTED, null);
     } catch (IOException e) {
@@ -471,15 +720,8 @@ public class Upgrader extends Application implements CliApplication {
           throws ApplicationException {
     try {
       HistoricalLog log =
-            new HistoricalLog(getInstallation().getHistoryLogFile());
+              new HistoricalLog(getInstallation().getHistoryLogFile());
       log.append(id, from, to, status, note);
-
-      // FOR TESTING
-      List<HistoricalRecord> records = log.getRecords();
-      for(HistoricalRecord record : records) {
-        System.out.println(record);
-      }
-
     } catch (IOException e) {
       throw ApplicationException.createFileSystemException(
               "error logging operation", e);
@@ -493,7 +735,9 @@ public class Upgrader extends Application implements CliApplication {
       FileManager fm = new FileManager(this);
       for (String fileName : stageDir.list()) {
         File f = new File(stageDir, fileName);
-        fm.copyRecursively(f, root, new UpgradeFileFilter(stageDir));
+        fm.copyRecursively(f, root,
+                new UpgradeFileFilter(stageDir),
+                /*overwrite=*/true);
       }
     } catch (IOException e) {
       throw ApplicationException.createFileSystemException(
@@ -503,51 +747,60 @@ public class Upgrader extends Application implements CliApplication {
 
   private void calculateConfigCustomizations() throws ApplicationException {
     try {
-    if (getInstallation().getCurrentConfiguration().hasBeenModified()) {
-
-      try {
-        List<String> args = new ArrayList<String>();
-
-        args.add("-s"); // source LDIF
-        args.add(getInstallation().getCurrentConfigurationFile().
-                getCanonicalPath());
-
-        args.add("-t"); // target LDIF
-        args.add(getInstallation().getBaseConfigurationFile().
-                getCanonicalPath());
-
-        args.add("-o"); // output LDIF
-        args.add(getCustomConfigDiffFile().
-                getCanonicalPath());
-
-        // TODO i18n
-        notifyListeners("Diff'ing configuration with base configuration...");
-
-        int ret = LDIFDiff.mainDiff(args.toArray(new String[]{}), false);
-        if (ret != 0) {
-          StringBuffer msg = new StringBuffer()
-                  .append("'ldif-diff' tool returned error code ")
-                  .append(ret)
-                  .append(" when invoked with args :")
-                  .append(Utils.listToString(args, " "));
+      if (getInstallation().getCurrentConfiguration().hasBeenModified()) {
+        try {
+          ldifDiff(getInstallation().getBaseConfigurationFile(),
+                   getInstallation().getCurrentConfigurationFile(),
+                   getCustomConfigDiffFile());
+        } catch (Exception e) {
           throw ApplicationException.createFileSystemException(
-                  msg.toString(), null);
-        } else {
-          notifyListeners(formatter.getFormattedDone());
+                  "error determining configuration customizations", e);
         }
-      } catch (Exception e) {
-        throw ApplicationException.createFileSystemException(
-                "error determining configuration customizations", e);
+      } else {
+        // TODO i18n
+        notifyListeners("No configuration customizations to migrate" +
+                formatter.getLineBreak());
       }
-    } else {
-      // TODO i18n
-      notifyListeners("No configuration customizations to migrate" +
-                      formatter.getLineBreak());
-    }
     } catch (IOException e) {
       // TODO i18n
       throw ApplicationException.createFileSystemException(
               "could not determine configuration modifications", e);
+    }
+  }
+
+  private void ldifDiff(File source, File target, File output)
+          throws ApplicationException {
+    List<String> args = new ArrayList<String>();
+
+    args.add("-s"); // source LDIF
+    args.add(Utils.getPath(source));
+
+    args.add("-t"); // target LDIF
+    args.add(Utils.getPath(target));
+
+    args.add("-o"); // output LDIF
+    args.add(Utils.getPath(output));
+
+    args.add("-O"); // overwrite
+    args.add("-S"); // single-value changes
+
+    // TODO i18n
+    notifyListeners(formatter.getFormattedWithPoints("Diff'ing " +
+            Utils.getPath(source) + " with " +
+            Utils.getPath(target)));
+
+    int ret = LDIFDiff.mainDiff(args.toArray(new String[]{}), false);
+    if (ret != 0) {
+      StringBuffer sb = new StringBuffer()
+              .append("'ldif-diff' tool returned error code ")
+              .append(ret)
+              .append(" when invoked with args: ")
+              .append(Utils.listToString(args, " "));
+      notifyListeners(formatter.getLineBreak());
+      throw ApplicationException.createFileSystemException(sb.toString(),
+              null);
+    } else {
+      notifyListeners(formatter.getFormattedDone() + formatter.getLineBreak());
     }
   }
 
@@ -556,39 +809,11 @@ public class Upgrader extends Application implements CliApplication {
 
       // TODO i18n
       notifyListeners(
-              "Schema contains customizations and needs to be migrated");
-
+              "Schema contains customizations and needs to be migrated\n");
       try {
-        List<String> args = new ArrayList<String>();
-
-        args.add("-s"); // source LDIF
-        args.add(getInstallation().getSchemaConcatFile().
-                getCanonicalPath());
-
-        args.add("-t"); // target LDIF
-        args.add(getInstallation().getBaseSchemaFile().
-                getCanonicalPath());
-
-        args.add("-o"); // output LDIF
-        args.add(getCustomSchemaDiffFile().
-                getCanonicalPath());
-
-        // TODO i18n
-        notifyListeners("Diff'ing schema with base schema...");
-
-        int ret = LDIFDiff.mainDiff(args.toArray(new String[]{}), false);
-        if (ret != 0) {
-          StringBuffer sb = new StringBuffer()
-                  .append("'ldif-diff' tool returned error code ")
-                  .append(ret)
-                  .append(" when invoked with args: ")
-                  .append(Utils.listToString(args, " "));
-          throw ApplicationException.createFileSystemException(sb.toString(),
-                  null);
-        } else {
-          notifyListeners(formatter.getFormattedDone());
-        }
-
+        ldifDiff(getInstallation().getBaseSchemaFile(),
+                 getInstallation().getSchemaConcatFile(),
+                 getCustomSchemaDiffFile());
       } catch (Exception e) {
         throw ApplicationException.createFileSystemException(
                 "error determining schema customizations", e);
@@ -596,7 +821,7 @@ public class Upgrader extends Application implements CliApplication {
     } else {
       // TODO i18n
       notifyListeners("No schema customizations to migrate" +
-          formatter.getLineBreak());
+              formatter.getLineBreak());
     }
   }
 
@@ -605,10 +830,11 @@ public class Upgrader extends Application implements CliApplication {
       File filesBackupDirectory = getFilesBackupDirectory();
       FileManager fm = new FileManager(this);
       File root = getInstallation().getRootDirectory();
+      FileFilter filter = new UpgradeFileFilter(root);
       for (String fileName : root.list()) {
         File f = new File(root, fileName);
-        fm.copyRecursively(f, filesBackupDirectory,
-                new UpgradeFileFilter(root));
+        //fm.copyRecursively(f, filesBackupDirectory,
+        fm.move(f, filesBackupDirectory, filter);
       }
     } catch (Exception e) {
       throw new ApplicationException(
@@ -657,12 +883,16 @@ public class Upgrader extends Application implements CliApplication {
     try {
       stagingDir = getStageDirectory();
       FileManager fm = new FileManager(this);
+
+      // doing this seems to work betterh than just plain
+      // old delete
       fm.deleteRecursively(stagingDir);
+
     } catch (IOException e) {
       // TODO i18n
       throw ApplicationException.createFileSystemException(
               "error attempting to clean up tmp directory " +
-              stagingDir != null ? stagingDir.getName() : "null",
+                      stagingDir != null ? stagingDir.getName() : "null",
               e);
     }
   }
@@ -670,7 +900,14 @@ public class Upgrader extends Application implements CliApplication {
   private void initialize() throws ApplicationException {
     try {
       expandZipFile();
+
+      Integer fromVersion = getStagedVersion();
+      Integer toVersion = getCurrentVersion();
+      this.historicalOperationId =
+              writeInitialHistoricalRecord(fromVersion, toVersion);
+
       insureUpgradability();
+
     } catch (Exception e) {
       throw new ApplicationException(
               ApplicationException.Type.FILE_SYSTEM_ERROR,
@@ -713,14 +950,12 @@ public class Upgrader extends Application implements CliApplication {
   }
 
   private Installation getStagedInstallation()
-          throws IOException, ApplicationException
-  {
+          throws IOException, ApplicationException {
     return new Installation(getStageDirectory());
   }
 
   private void expandZipFile()
-          throws ApplicationException, IOException, QuickSetupException
-  {
+          throws ApplicationException, IOException, QuickSetupException {
     File installPackage = getUpgradeUserData().getInstallPackage();
     FileInputStream fis = new FileInputStream(installPackage);
     ZipExtractor extractor = new ZipExtractor(fis,
@@ -746,8 +981,7 @@ public class Upgrader extends Application implements CliApplication {
    * {@inheritDoc}
    */
   public UserData createUserData(String[] args, CurrentInstallStatus cis)
-          throws UserDataException
-  {
+          throws UserDataException {
     return getCliHelper().createUserData(args, cis);
   }
 
@@ -776,8 +1010,7 @@ public class Upgrader extends Application implements CliApplication {
   }
 
   private File getStageDirectory()
-          throws ApplicationException, IOException
-  {
+          throws ApplicationException, IOException {
     if (stagingDirectory == null) {
       File tmpDir = getTempDirectory();
       stagingDirectory =
@@ -793,7 +1026,7 @@ public class Upgrader extends Application implements CliApplication {
   }
 
   private UpgradeUserData getUpgradeUserData() {
-    return (UpgradeUserData)getUserData();
+    return (UpgradeUserData) getUserData();
   }
 
   private File getFilesBackupDirectory() throws IOException {
@@ -820,6 +1053,30 @@ public class Upgrader extends Application implements CliApplication {
   private File getCustomSchemaDiffFile() throws IOException {
     return new File(getUpgradeBackupDirectory(), "schema.custom.diff");
   }
+
+  private Integer getCurrentVersion() {
+    if (this.currentVersion == null) {
+      try {
+        currentVersion = getInstallation().getSvnRev();
+      } catch (QuickSetupException e) {
+        LOG.log(Level.INFO, "error trying to determine current version", e);
+      }
+    }
+    return currentVersion;
+  }
+
+  private Integer getStagedVersion() {
+    if (stagedVersion == null) {
+      try {
+        stagedVersion = getStagedInstallation().getSvnRev();
+      } catch (Exception e) {
+        LOG.log(Level.INFO, "error", e);
+      }
+    }
+    return stagedVersion;
+  }
+
+
 
   /**
    * Filter defining files we want to manage in the upgrade

@@ -50,6 +50,38 @@ public class FileManager {
   }
 
   /**
+   * Move a file.
+   * @param object File to move
+   * @param newParent File representing new parent directory
+   * @param filter that will be asked whether or not the operation should be
+   *        performed
+   * @throws ApplicationException if something goes wrong
+   */
+  public void move(File object, File newParent, FileFilter filter)
+          throws ApplicationException
+  {
+    // TODO: application notification
+    if (filter == null || filter.accept(object)) {
+      new MoveOperation(object, newParent).apply();
+    }
+  }
+
+  /**
+   * Deletes a single file or directory.
+   * @param object File to delete
+   * @param filter that will be asked whether or not the operation should be
+   *        performed
+   * @throws ApplicationException if something goes wrong
+   */
+  public void delete(File object, FileFilter filter)
+          throws ApplicationException
+  {
+    if (filter == null || filter.accept(object)) {
+      new DeleteOperation(object).apply();
+    }
+  }
+
+  /**
    * Deletes everything below the specified file.
    *
    * @param file the path to be deleted.
@@ -252,16 +284,17 @@ public class FileManager {
       String[] args = {objectFile.getAbsolutePath(),
               destination.getAbsolutePath()};
 
-      // If overwriting and the destination exists then kill it
-      if (destination.exists() && overwrite) {
-        deleteRecursively(destination);
-      }
-
       if (objectFile.isDirectory()) {
         if (!destination.exists()) {
             destination.mkdirs();
         }
       } else {
+
+        // If overwriting and the destination exists then kill it
+        if (destination.exists() && overwrite) {
+          deleteRecursively(destination);
+        }
+
         if (!destination.exists()) {
           if (insureParentsExist(destination)) {
             application.notifyListeners(application.getFormattedWithPoints(
@@ -277,6 +310,18 @@ public class FileManager {
               }
               fis.close();
               fos.close();
+
+              if (destination.exists()) {
+                // TODO:  set the file's permissions.  This is made easier in
+                // Java 1.6 but until then use the Utils methods
+                if (Utils.isUnix()) {
+                  String permissions =
+                          Utils.getFileSystemPermissions(objectFile);
+                  Utils.setPermissionsUnix(
+                          Utils.getPath(destination),
+                          permissions);
+                }
+              }
 
               application.notifyListeners(application.getFormattedDone() +
                       application.getLineBreak());
@@ -299,14 +344,6 @@ public class FileManager {
       }
     }
 
-    private boolean insureParentsExist(File f) {
-      File parent = f.getParentFile();
-      boolean b = parent.exists();
-      if (!b) {
-        b = parent.mkdirs();
-      }
-      return b;
-    }
   }
 
   /**
@@ -378,6 +415,53 @@ public class FileManager {
       application.notifyListeners(application.getFormattedDone() +
               application.getLineBreak());
     }
+  }
+
+  /**
+   * A delete operation.
+   */
+  private class MoveOperation extends FileOperation {
+
+    File destination = null;
+
+    /**
+     * Creates a delete operation.
+     * @param objectFile to delete
+     */
+    public MoveOperation(File objectFile, File newParent) {
+      super(objectFile);
+      this.destination = new File(newParent, objectFile.getName());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public FileOperation copyForChild(File child) {
+      return new MoveOperation(child, destination);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void apply() throws ApplicationException {
+      File objectFile = getObjectFile();
+      if (destination.exists()) {
+        deleteRecursively(destination);
+      }
+      if (!objectFile.renameTo(destination)) {
+        throw ApplicationException.createFileSystemException(
+                "failed to move " + objectFile + " to " + destination, null);
+      }
+    }
+  }
+
+  private boolean insureParentsExist(File f) {
+    File parent = f.getParentFile();
+    boolean b = parent.exists();
+    if (!b) {
+      b = parent.mkdirs();
+    }
+    return b;
   }
 
   private String getMsg(String key) {

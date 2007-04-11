@@ -77,9 +77,10 @@ public class UpgradeOracle {
    */
   public boolean isSupported() {
     boolean supported;
-    if (newVersion == currentVersion) {
+    if (// newVersion.equals(currentVersion) || // support this for reinstall?
+        newVersion < 1565) {
       supported = false;
-    } else {
+    }else {
       supported = true;
     }
     return supported;
