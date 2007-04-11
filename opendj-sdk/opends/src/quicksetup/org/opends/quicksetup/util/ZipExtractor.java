@@ -29,12 +29,10 @@ package org.opends.quicksetup.util;
 
 import org.opends.quicksetup.QuickSetupException;
 import org.opends.quicksetup.Application;
-import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.i18n.ResourceProvider;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.File;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
 import java.util.ArrayList;
@@ -228,7 +226,7 @@ public class ZipExtractor {
         }
       } else
       {
-        String perm = getFileSystemPermissions(path);
+        String perm = Utils.getFileSystemPermissions(path);
         ArrayList<String> list = permissions.get(perm);
         if (list == null)
         {
@@ -253,46 +251,6 @@ public class ZipExtractor {
   {
     // TODO We should get this dynamically during build?
     return "755";
-  }
-
-  /**
-   * Returns the file system permissions for a file.
-   * @param path the file for which we want the file permissions.
-   * @return the file system permissions for the file.
-   */
-  private String getFileSystemPermissions(String path)
-  {
-    // TODO We should get this dynamically during build?
-    String perm;
-
-    File file = new File(path);
-    if (file.getParent().endsWith(
-        File.separator + Installation.WINDOWS_BINARIES_PATH_RELATIVE) ||
-        file.getParent().endsWith(
-        File.separator + Installation.UNIX_BINARIES_PATH_RELATIVE))
-    {
-      if (path.endsWith(".bat"))
-      {
-        perm = "644";
-      }
-      else
-      {
-        perm = "755";
-      }
-    }
-    else if (path.endsWith(".sh"))
-    {
-      perm = "755";
-    } else if (path.endsWith(Installation.UNIX_SETUP_FILE_NAME) ||
-            path.endsWith(Installation.UNIX_UNINSTALL_FILE_NAME) ||
-            path.endsWith(Installation.UNIX_UPGRADE_FILE_NAME))
-    {
-      perm = "755";
-    } else
-    {
-      perm = "644";
-    }
-    return perm;
   }
 
 }

@@ -33,6 +33,7 @@ import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
+import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.FramePanel;
@@ -109,6 +110,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
   private UserData userData;
 
   private Installation installation;
+
+  private ServerController serverController;
 
   /** Formats progress messages. */
   protected ProgressMessageFormatter formatter;
@@ -187,6 +190,25 @@ public abstract class Application implements ProgressNotifier, Runnable {
       }
     }
     return installation;
+  }
+
+  /**
+   * Sets the application's installation.
+   * @param installation describing the application's OpenDS installation
+   */
+  protected void setInstallation(Installation installation) {
+    this.installation = installation;
+  }
+
+  /**
+   * Gets a server controller for use by this application.
+   * @return ServerController that can be used to start and stop the server.
+   */
+  public ServerController getServerController() {
+    if (serverController == null) {
+      serverController = new ServerController(this);
+    }
+    return serverController;
   }
 
   /**
@@ -281,7 +303,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param args the arguments to be passed to generate the resulting value.
    * @return the value associated to the key in the properties file.
    */
-  public String getMsg(String key, String[] args)
+  public String getMsg(String key, String... args)
   {
     return getI18n().getMsg(key, args);
   }

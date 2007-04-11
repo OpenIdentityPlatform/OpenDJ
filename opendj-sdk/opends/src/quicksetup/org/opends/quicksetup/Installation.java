@@ -311,7 +311,7 @@ public class Installation {
    */
   public File getBaseSchemaFile() throws QuickSetupException {
     return new File(getConfigurationUpgradeDirectory(),
-                  "config/upgrade/schema.ldif." + getSvnRev().toString());
+                  "schema.ldif." + getSvnRev().toString());
   }
 
   /**
@@ -471,7 +471,7 @@ public class Installation {
   public File createHistoryBackupDirectory() throws IOException {
     File backupDirectory =
             new File(getHistoryDirectory(),
-                    "upgrade-" + System.currentTimeMillis());
+                     Long.toString(System.currentTimeMillis()));
     if (backupDirectory.exists()) {
       backupDirectory.delete();
     }

@@ -29,6 +29,9 @@ package org.opends.quicksetup.util;
 
 import org.opends.quicksetup.*;
 import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.InitializationException;
+import org.opends.server.config.ConfigException;
 
 import javax.naming.NamingException;
 import java.util.ArrayList;
@@ -181,10 +184,54 @@ public class ServerController {
   }
 
   /**
+   * Starts the directory server within this process.
+   * @param disableConnectionHandlers boolean that when true starts the
+   * the server mode that is otherwise up and running but will not accept any
+   * connections from external clients (i.e., does not create or initialize the
+   * connection handlers). This could be useful, for example, in an upgrade mode
+   * where it might be helpful to start the server but don't want it to appear
+   * externally as if the server is online without connection handlers
+   * listening.
+   *
+   * @throws  ConfigException  If there is a problem with the Directory Server
+   *                           configuration that prevents a critical component
+   *                           from being instantiated.
+   *
+   * @throws  InitializationException  If some other problem occurs while
+   *                                   attempting to initialize and start the
+   *                                   Directory Server.
+   */
+  public void startServerInProcess(boolean disableConnectionHandlers)
+          throws InitializationException, ConfigException {
+    System.setProperty(
+            "org.opends.server.DisableConnectionHandlers",
+            disableConnectionHandlers ? "true" : null);
+    startServerInProcess();
+  }
+
+  /**
+   * Stops a server that had been running 'in process'.
+   */
+  public void stopServerInProcess() {
+    DirectoryServer.shutDown(ServerController.class.getName(),
+            "quicksetup requests shutdown");
+  }
+
+  /**
    * This methods starts the server.
    * @throws org.opends.quicksetup.QuickSetupException if something goes wrong.
    */
   public void startServer() throws QuickSetupException {
+    startServer(true);
+  }
+
+  /**
+   * This methods starts the server.
+   * @param verify boolean indicating whether this method will attempt to
+   * connect to the server after starting to verify that it is listening.
+   * @throws org.opends.quicksetup.QuickSetupException if something goes wrong.
+   */
+  private void startServer(boolean verify) throws QuickSetupException {
     application.notifyListeners(
             application.getFormattedProgress(
                     application.getMsg("progress-starting")) +
@@ -235,7 +282,7 @@ public class ServerController {
       {
         throw ex;
 
-      } else
+      } else if (verify)
       {
         /*
          * There are no exceptions from the readers and they are marked as
@@ -248,17 +295,27 @@ public class ServerController {
          * Try 5 times with an interval of 1 second between try.
          */
         boolean connected = false;
+        Configuration config =
+                application.getInstallation().getCurrentConfiguration();
+        int port = config.getPort();
+        String ldapUrl = "ldap://localhost:" + port;
+
+        // See if the application has prompted for credentials.  If
+        // not we'll just try to connect anonymously.
+        String userDn = application.getUserData().getDirectoryManagerDn();
+        String userPw = application.getUserData().getDirectoryManagerPwd();
+        if (userDn == null || userPw == null) {
+          userDn = null;
+          userPw = null;
+        }
+
         for (int i=0; i<5 && !connected; i++)
         {
-          // TODO: get this information from the installation instead
-          UserData userData = application.getUserData();
-          String ldapUrl = "ldap://localhost:" + userData.getServerPort();
           try
           {
             Utils.createLdapContext(
                 ldapUrl,
-                userData.getDirectoryManagerDn(),
-                userData.getDirectoryManagerPwd(), 3000, null);
+                userDn, userPw, 3000, null);
             connected = true;
           }
           catch (NamingException ne)
@@ -277,8 +334,7 @@ public class ServerController {
         }
         if (!connected)
         {
-          String[] arg = {String.valueOf(application.getUserData().
-                  getServerPort())};
+          String[] arg = {String.valueOf(port)};
           if (Utils.isWindows())
           {
 
@@ -299,6 +355,31 @@ public class ServerController {
       throw new QuickSetupException(QuickSetupException.Type.START_ERROR,
           application.getThrowableMsg("error-starting-server", ioe), ioe);
     }
+  }
+
+  /**
+   * Starts the OpenDS server in this process.
+   *
+   * @throws  ConfigException  If there is a problem with the Directory Server
+   *                           configuration that prevents a critical component
+   *                           from being instantiated.
+   *
+   * @throws  InitializationException  If some other problem occurs while
+   *                                   attempting to initialize and start the
+   *                                   Directory Server.
+   */
+  public void startServerInProcess()
+          throws InitializationException, ConfigException
+  {
+    // Bootstrap and start the Directory Server.
+    DirectoryServer directoryServer = DirectoryServer.getInstance();
+
+    directoryServer.bootstrapServer();
+    String configClass = "org.opends.server.extensions.ConfigFileHandler";
+    String configPath = Utils.getPath(
+            application.getInstallation().getCurrentConfigurationFile());
+    directoryServer.initializeConfiguration(configClass, configPath);
+    directoryServer.startServer();
   }
 
   /**
