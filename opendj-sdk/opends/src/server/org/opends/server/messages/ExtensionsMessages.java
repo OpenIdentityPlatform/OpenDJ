@@ -4941,6 +4941,78 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if the virtual static
+   * group has multiple targets.  This takes a single argument, which is the DN
+   * of the group.
+   */
+  public static final int MSGID_VIRTUAL_STATIC_GROUP_MULTIPLE_TARGETS =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 470;
+
+
+
+  /**
+   * The message ID for the message that will be used if the virtual static
+   * group has a target that can't be decoded as a DN.  This takes three
+   * arguments, which are the target group value, the group DN, and a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 471;
+
+
+
+  /**
+   * The message ID for the message that will be used if the virtual static
+   * group does not have a target group DN.  This takes a single argument, which
+   * is the DN of the group.
+   */
+  public static final int MSGID_VIRTUAL_STATIC_GROUP_NO_TARGET =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 472;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * nest a virtual static group.  This takes a single argument, which is the
+   * DN of the group.
+   */
+  public static final int MSGID_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 473;
+
+
+
+  /**
+   * The message ID for the message that will be used if the target group does
+   * not exist.  This takes two arguments, which is the target group DN and the
+   * virtual static group DN.
+   */
+  public static final int MSGID_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 474;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * alter the membership for a virtual static group.  This takes a single
+   * argument, which is the DN of the group.
+   */
+  public static final int
+       MSGID_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED =
+            CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 475;
+
+
+
+  /**
+   * The message ID for the message that will be used if a virtual static group
+   * target is also a virtual static group.  This takes two arguments, which are
+   * the object group DN and the target group DN.
+   */
+  public static final int MSGID_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL=
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 476;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7109,6 +7181,30 @@ public class ExtensionsMessages
                     "The provided character set definition '%s' is invalid " +
                     "because it contains character '%s' which has already " +
                     "been used.");
+
+
+    registerMessage(MSGID_VIRTUAL_STATIC_GROUP_MULTIPLE_TARGETS,
+                    "The virtual static group defined in entry %s contains " +
+                    "multiple target group DNs, but only one is allowed.");
+    registerMessage(MSGID_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET,
+                    "Unable to decode \"%s\" as the target DN for group %s:  " +
+                    "%s.");
+    registerMessage(MSGID_VIRTUAL_STATIC_GROUP_NO_TARGET,
+                    "The virtual static group defined in entry %s does not " +
+                    "contain a target group definition.");
+    registerMessage(MSGID_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED,
+                    "Virtual static groups do not support nesting.");
+    registerMessage(MSGID_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP,
+                    "Target group %s referenced by virtual static group %s " +
+                    "does not exist.");
+    registerMessage(MSGID_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED,
+                    "Altering membership for virtual static group %s is not " +
+                    "allowed.");
+    registerMessage(MSGID_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL,
+                    "Virtual static group %s references target group %s " +
+                    "which is itself a virtual static group.  One " +
+                    "virtual static group is not allowed to reference " +
+                    "another as its target group.");
   }
 }
 

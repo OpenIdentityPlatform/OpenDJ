@@ -79,9 +79,6 @@ import static org.opends.server.util.Validator.*;
 public class StaticGroup
        extends Group
 {
-
-
-
   // The attribute type used to hold the membership list for this group.
   private AttributeType memberAttributeType;
 
@@ -241,7 +238,8 @@ public class StaticGroup
     // FIXME -- This needs to exclude enhanced groups once we have support for
     // them.
     String filterString =
-         "(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))";
+         "(&(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))" +
+            "(!(objectClass=ds-virtual-static-group))";
     return SearchFilter.createFilterFromString(filterString);
   }
 
@@ -257,6 +255,13 @@ public class StaticGroup
 
     // FIXME -- This needs to exclude enhanced groups once we have support for
     //them.
+    ObjectClass virtualStaticGroupClass =
+         DirectoryConfig.getObjectClass(OC_VIRTUAL_STATIC_GROUP, true);
+    if (entry.hasObjectClass(virtualStaticGroupClass))
+    {
+      return false;
+    }
+
     ObjectClass groupOfNamesClass =
          DirectoryConfig.getObjectClass(OC_GROUP_OF_NAMES_LC, true);
     ObjectClass groupOfUniqueNamesClass =

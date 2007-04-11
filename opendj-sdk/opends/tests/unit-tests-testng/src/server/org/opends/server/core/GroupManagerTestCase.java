@@ -43,6 +43,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.extensions.DynamicGroup;
 import org.opends.server.extensions.StaticGroup;
+import org.opends.server.extensions.VirtualStaticGroup;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
@@ -100,6 +101,7 @@ public class GroupManagerTestCase
     LinkedHashSet<Class> groupClasses = new LinkedHashSet<Class>();
     groupClasses.add(StaticGroup.class);
     groupClasses.add(DynamicGroup.class);
+    groupClasses.add(VirtualStaticGroup.class);
 
     for (Group g : groupManager.getGroupImplementations())
     {

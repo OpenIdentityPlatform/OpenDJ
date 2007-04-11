@@ -490,6 +490,14 @@ public class ServerConstants
 
 
   /**
+   * The name of the attribute that is used to specify the DN of the target
+   * group for a virtual static group.
+   */
+  public static final String ATTR_TARGET_GROUP_DN = "ds-target-group-dn";
+
+
+
+  /**
    * The name of the attribute that is used to specify the total number of
    * connections established since startup, formatted in camel case.
    */
@@ -820,6 +828,15 @@ public class ServerConstants
    * The name of the untypedObject objectclass in all lowercase characters.
    */
   public static final String OC_UNTYPED_OBJECT_LC = "untypedobject";
+
+
+
+  /**
+   * The name of the ds-virtual-static-group objectclass in all lowercase
+   * characters.
+   */
+  public static final String OC_VIRTUAL_STATIC_GROUP =
+       "ds-virtual-static-group";
 
 
 
