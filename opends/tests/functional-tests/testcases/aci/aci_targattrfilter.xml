@@ -1163,7 +1163,7 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci8.ldif' % STAGED_DATA_DIR
+                    curr_aci_ldif_file = '%s/aci/aci_targattrfilter/add_aci8.ldif' % LOCAL_DATA_DIR
                     curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
                 </script>
         
