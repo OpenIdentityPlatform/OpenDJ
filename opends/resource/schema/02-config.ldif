@@ -1131,6 +1131,13 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.336
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.337
   NAME 'ds-cfg-test-reversed-password' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.338
+  NAME 'ds-cfg-character-set' EQUALITY caseExactMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.339
+  NAME 'ds-cfg-allow-unclassified-characters'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.340
   NAME 'ds-task-rebuild-base-dn'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE
@@ -1586,9 +1593,14 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.96
   NAME 'ds-cfg-attribute-value-password-validator'
   SUP ds-cfg-password-validator STRUCTURAL MUST ds-cfg-test-reversed-password
   MAY ds-cfg-match-attribute X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.97
+  NAME 'ds-cfg-character-set-password-validator' SUP ds-cfg-password-validator
+  STRUCTURAL MUST ( ds-cfg-character-set $
+  ds-cfg-allow-unclassified-characters ) X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.98
   NAME 'ds-task-rebuild' SUP ds-task
   MUST ( ds-task-rebuild-base-dn $ ds-task-rebuild-index )
   MAY ( ds-task-rebuild-max-threads )
   X-ORIGIN 'OpenDS Directory Server' )
+
 
