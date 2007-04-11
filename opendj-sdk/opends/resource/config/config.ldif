@@ -1097,6 +1097,19 @@ ds-cfg-password-validator-class: org.opends.server.extensions.AttributeValuePass
 ds-cfg-password-validator-enabled: true
 ds-cfg-test-reversed-password: true
 
+dn: cn=Character Set,cn=Password Validators,cn=config
+objectClass: top
+objectClass: ds-cfg-password-validator
+objectClass: ds-cfg-character-set-password-validator
+cn: Character Set
+ds-cfg-password-validator-class: org.opends.server.extensions.CharacterSetPasswordValidator
+ds-cfg-password-validator-enabled: true
+ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz
+ds-cfg-character-set: 1:ABCDEFGHIJKLMNOPQRSTUVWXYZ
+ds-cfg-character-set: 1:0123456789
+ds-cfg-character-set: 1:~!@#$%^&*()-_=+[]{}|;:,.<>/?
+ds-cfg-allow-unclassified-characters: true
+
 dn: cn=Dictionary,cn=Password Validators,cn=config
 objectClass: top
 objectClass: ds-cfg-password-validator

@@ -79,9 +79,6 @@ import org.opends.server.types.RDN;
  */
 public final class LDIFReader
 {
-
-
-
   // The reader that will be used to read the data.
   private BufferedReader reader;
 
@@ -243,7 +240,7 @@ public final class LDIFReader
         for (StringBuilder line : lines)
         {
           readAttribute(lines, line, entryDN, objectClasses, userAttributes,
-                        operationalAttributes);
+                        operationalAttributes, checkSchema);
         }
       }
       catch (LDIFException e)
@@ -814,6 +811,8 @@ public final class LDIFReader
    *                                for the current entry.
    * @param  operationalAttributes  The set of operational attributes decoded so
    *                                far for the current entry.
+   * @param  checkSchema            Indicates whether to perform schema
+   *                                validation for the attribute.
    *
    * @throws  LDIFException  If a problem occurs while trying to decode the
    *                         attribute contained in the provided entry.
@@ -822,7 +821,8 @@ public final class LDIFReader
        StringBuilder line, DN entryDN,
        HashMap<ObjectClass,String> objectClasses,
        HashMap<AttributeType,List<Attribute>> userAttributes,
-       HashMap<AttributeType,List<Attribute>> operationalAttributes)
+       HashMap<AttributeType,List<Attribute>> operationalAttributes,
+       boolean checkSchema)
           throws LDIFException
   {
     // Parse the attribute type description.
@@ -934,14 +934,40 @@ public final class LDIFReader
           LinkedHashSet<AttributeValue> valueSet = a.getValues();
           if (valueSet.contains(attributeValue))
           {
-            int    msgID   = MSGID_LDIF_DUPLICATE_ATTR;
-            String message = getMessage(msgID, String.valueOf(entryDN),
-                                        lastEntryLineNumber, attrName,
-                                        value.stringValue());
-            logToRejectWriter(lines, message);
-            throw new LDIFException(msgID, message, lastEntryLineNumber, true);
+            if (! checkSchema)
+            {
+              // If we're not doing schema checking, then it is possible that
+              // the attribute type should use case-sensitive matching and the
+              // values differ in capitalization.  Only reject the proposed
+              // value if we find another value that is exactly the same as the
+              // one that was provided.
+              for (AttributeValue v : valueSet)
+              {
+                if (v.getValue().equals(attributeValue.getValue()))
+                {
+                  int    msgID   = MSGID_LDIF_DUPLICATE_ATTR;
+                  String message = getMessage(msgID, String.valueOf(entryDN),
+                                              lastEntryLineNumber, attrName,
+                                              value.stringValue());
+                  logToRejectWriter(lines, message);
+                  throw new LDIFException(msgID, message, lastEntryLineNumber,
+                                          true);
+                }
+              }
+            }
+            else
+            {
+              int    msgID   = MSGID_LDIF_DUPLICATE_ATTR;
+              String message = getMessage(msgID, String.valueOf(entryDN),
+                                          lastEntryLineNumber, attrName,
+                                          value.stringValue());
+              logToRejectWriter(lines, message);
+              throw new LDIFException(msgID, message, lastEntryLineNumber,
+                                      true);
+            }
           }
-          else if (attrType.isSingleValue() && (! valueSet.isEmpty()))
+
+          if (attrType.isSingleValue() && (! valueSet.isEmpty()) && checkSchema)
           {
             int    msgID   = MSGID_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR;
             String message = getMessage(msgID, String.valueOf(entryDN),
@@ -949,11 +975,9 @@ public final class LDIFReader
             logToRejectWriter(lines, message);
             throw new LDIFException(msgID, message, lastEntryLineNumber, true);
           }
-          else
-          {
-            valueSet.add(attributeValue);
-            return;
-          }
+
+          valueSet.add(attributeValue);
+          return;
         }
       }
 
@@ -1469,7 +1493,7 @@ public final class LDIFReader
     for(StringBuilder line : lines)
     {
       readAttribute(lines, line, entryDN, objectClasses,
-          attributes, attributes);
+          attributes, attributes, importConfig.validateSchema());
     }
 
     // Reconstruct the object class attribute.
