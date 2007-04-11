@@ -1150,6 +1150,9 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.342
   NAME 'ds-task-rebuild-max-threads'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.343 NAME 'ds-target-group-dn'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1601,6 +1604,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.98
   NAME 'ds-task-rebuild' SUP ds-task
   MUST ( ds-task-rebuild-base-dn $ ds-task-rebuild-index )
   MAY ( ds-task-rebuild-max-threads )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.99
+  NAME 'ds-virtual-static-group' SUP top AUXILIARY MUST ds-target-group-dn
   X-ORIGIN 'OpenDS Directory Server' )
 
 
