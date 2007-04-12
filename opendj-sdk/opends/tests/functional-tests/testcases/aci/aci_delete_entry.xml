@@ -158,8 +158,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_allow-delete_aci1.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_allow-delete_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -167,11 +167,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -294,8 +294,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_allow-delete_aci2.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_allow-delete_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -303,11 +303,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -446,8 +446,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_allow-delete_aci3.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_allow-delete_aci3.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -455,11 +455,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -594,8 +594,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_allow-write_aci1.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_allow-write_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -603,11 +603,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -696,8 +696,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_targetfilter_aci1.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_targetfilter_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -705,11 +705,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -828,8 +828,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_targetfilter_aci2.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_targetfilter_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -837,11 +837,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -944,8 +944,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_targetfilter_aci3.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_targetfilter_aci3.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -953,11 +953,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1060,8 +1060,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_targetfilter_aci4.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_targetfilter_aci4.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1069,11 +1069,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1176,8 +1176,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_targetfilter_aci5.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_targetfilter_aci5.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1185,11 +1185,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1294,8 +1294,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_targetattr_aci1.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_targetattr_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1303,11 +1303,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1410,8 +1410,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_targetattr_aci2.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_targetattr_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1419,11 +1419,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1527,8 +1527,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_targattrfilter_aci1.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_targattrfilter_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1536,11 +1536,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1643,8 +1643,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_allow-delete_aci4.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_allow-delete_aci4.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1652,11 +1652,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1761,8 +1761,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_multi_acis1.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_multi_acis1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1770,11 +1770,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1877,8 +1877,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_multi_acis2.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_multi_acis2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1886,11 +1886,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1994,8 +1994,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_multi_acis3.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_multi_acis3.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2003,11 +2003,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2126,8 +2126,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_multi_acis4.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_multi_acis4.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2135,11 +2135,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2243,8 +2243,8 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
-                    curr_aci_ldif_file = '%s/aci/aci_delete_entry/add_multi_acis5.ldif' % LOCAL_DATA_DIR
-                    curr_aci=retrieve_aci('%s' % curr_aci_ldif_file);
+                    curr_aci_ldif_file = 'add_multi_acis5.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2252,11 +2252,11 @@
                 </message>
     
                 <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s' % curr_aci_ldif_file }
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
