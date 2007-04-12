@@ -7893,6 +7893,19 @@ public class DirectoryServer
     }
 
 
+    // The JDK logger doesn't allow you to deregister things, so we have to
+    // reset it.  This is necessary to avoid exceptions if you perform an
+    // in-core restart or stop the server and start a new instance in the same
+    // JVM (which currently isn't possible through any means other than an
+    // in-core restart but might be exposed at some point).
+    //
+    // FIXME -- This could cause problems with an application that's embedding
+    //          OpenDS and also using the JDK logger.  The solution for this
+    //          will come once we have rewritten the loggers so that we no
+    //          longer use the JDK logging framework.
+    java.util.logging.LogManager.getLogManager().reset();
+
+
     // Just in case there's something that isn't shut down properly, wait for
     // the monitor to give the OK to stop.
     shutdownMonitor.waitForMonitor();
