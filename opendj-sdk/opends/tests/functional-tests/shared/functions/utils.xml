@@ -446,6 +446,23 @@
     </function-prolog>
     <function-no-args />
     <sequence>
+
+      <!-- Check the SignalRaised flag -->    
+      <if expr="SignalRaised">
+        <sequence>
+          <message>
+            'A signal (%s) was raised during this test case' % SignalRaised
+          </message>
+          <tcstatus result="'fail'"/>
+        </sequence>
+      </if>
+
+      <!-- Reset the SignalRaised flag -->
+      <script>
+        SignalRaised='' 
+      </script>
+
+      <!-- Query the test case results -->            
       <call function="'queryTestcase'" />
       
       <script>
