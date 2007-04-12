@@ -44,7 +44,7 @@ import java.awt.event.WindowEvent;
 /**
  * This class is in charge of performing the uninstallation of Open DS.
  */
-public class Uninstaller extends Application implements CliApplication {
+public class Uninstaller extends GuiApplication implements CliApplication {
 
   private ProgressStep status = UninstallProgressStep.NOT_STARTED;
 

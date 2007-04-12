@@ -374,11 +374,10 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       throws QuickSetupException {
     ZipExtractor extractor =
             new ZipExtractor(is, minRatio, maxRatio,
-            getUserData().getServerLocation(),
             Utils.getNumberZipEntries(),
             getZipFileName(),
             this);
-    extractor.extract();
+    extractor.extract(getUserData().getServerLocation());
   }
 
   /**

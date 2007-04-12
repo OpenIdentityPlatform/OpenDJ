@@ -64,7 +64,7 @@ public class CurrentStepPanel extends QuickSetupPanel
    * The constructor of this class.
    * @param app Application used to create panels for populating the layout
    */
-  public CurrentStepPanel(Application app)
+  public CurrentStepPanel(GuiApplication app)
   {
     this.application = app;
     createLayout(app);
@@ -119,7 +119,7 @@ public class CurrentStepPanel extends QuickSetupPanel
    * Create the layout of the panel.
    * @param app Application used to create panels for populating the layout
    */
-  private void createLayout(Application app)
+  private void createLayout(GuiApplication app)
   {
 
     Set<? extends WizardStep> steps = app.getWizardSteps();

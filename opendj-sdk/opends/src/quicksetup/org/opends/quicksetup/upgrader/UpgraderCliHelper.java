@@ -44,12 +44,17 @@ import java.io.File;
  */
 public class UpgraderCliHelper extends CliApplicationHelper {
 
+  /** Short form of the option for specifying the installation package file. */
+  static public final Character FILE_OPTION_SHORT = 'F';
+
+  /** Long form of the option for specifying the installation package file. */
+  static public final String FILE_OPTION_LONG = "file";
+
   static private final Logger LOG =
           Logger.getLogger(UpgraderCliHelper.class.getName());
   BooleanArgument cliArg = null;
   BooleanArgument dryRunArg = null;
   StringArgument localInstallPackFileNameArg = null;
-  StringArgument remoteBuildNameArg = null;
 
   /**
    * Creates a set of user data from command line arguments and installation
@@ -77,12 +82,10 @@ public class UpgraderCliHelper extends CliApplicationHelper {
         } else {
           uud.setInstallPackage(installPackFile);
         }
-      } else if (remoteBuildNameArg.isPresent()) {
-        // TODO download build
       } else {
         // TODO i18N
         throw new UserDataException(null,
-                "either -F or -B option must be present");
+                "-F must be present");
       }
 
     } catch (ArgumentException e) {
@@ -110,14 +113,10 @@ public class UpgraderCliHelper extends CliApplicationHelper {
       argParser.addArgument(cliArg);
 
       localInstallPackFileNameArg =
-           new StringArgument("install package file", 'F', "package file",
+           new StringArgument("install package file",
+                   FILE_OPTION_SHORT, FILE_OPTION_LONG,
                    false, true, "{install package file}", 0);
       argParser.addArgument(localInstallPackFileNameArg);
-
-      remoteBuildNameArg =
-           new StringArgument("build name", 'B', "build name",
-                   false, false, "{build name}", 1);
-      argParser.addArgument(remoteBuildNameArg);
 
     } catch (ArgumentException e) {
       LOG.log(Level.INFO, "error", e);

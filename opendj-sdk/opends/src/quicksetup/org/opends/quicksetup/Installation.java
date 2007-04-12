@@ -29,6 +29,9 @@ package org.opends.quicksetup;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import org.opends.quicksetup.util.Utils;
 
@@ -93,7 +96,7 @@ public class Installation {
   /**
    * Path to the config/upgrade directory where upgrade base files are stored.
    */
-  public static final String CONFIG_UPGRADE_PATH = "upgrade";
+  public static final String UPGRADE_PATH = "upgrade";
 
   /**
    * Relative path to the change log database directory.
@@ -104,6 +107,11 @@ public class Installation {
    * Relative path to the locks directory.
    */
   public static final String LOCKS_PATH_RELATIVE = "locks";
+
+  /**
+   * Relative path to the locks directory.
+   */
+  public static final String TMP_PATH_RELATIVE = "tmp";
 
   /**
    * The relative path to the current Configuration LDIF file.
@@ -191,6 +199,44 @@ public class Installation {
    */
   public static final String HISTORY_LOG_FILE_NAME = "log";
 
+  /**
+   * Performs validation on the specified file to make sure that it is
+   * an actual OpenDS installation.
+   * @param rootDirectory File directory candidate
+   * @throws IllegalArgumentException if root directory does not appear to
+   * be an OpenDS installation root.
+   */
+  static public void validateRootDirectory(File rootDirectory)
+          throws IllegalArgumentException {
+    // TODO:  i18n
+    String failureReason = null;
+    if (!rootDirectory.exists()) {
+      failureReason = "is not a directory";
+    } else if (!rootDirectory.isDirectory()) {
+      failureReason = "does not exist";
+    } else {
+      String[] children = rootDirectory.list();
+      Set<String> childrenSet = new HashSet<String>(Arrays.asList(children));
+      String[] dirsToCheck = new String[] {
+              CONFIG_PATH_RELATIVE,
+              DATABASES_PATH_RELATIVE,
+              LIBRARIES_PATH_RELATIVE,
+              // perhaps we should check more
+      };
+      for (String dir : dirsToCheck) {
+        if (!childrenSet.contains(dir)) {
+          failureReason = "does not contain directory '" + dir + "'";
+        }
+      }
+    }
+    if (failureReason != null) {
+      throw new IllegalArgumentException("Install root '" +
+              Utils.getPath(rootDirectory) +
+              "' is not an OpenDS installation root: " +
+              " " + failureReason);
+    }
+  }
+
   private File rootDirectory;
 
   private Status status;
@@ -235,9 +281,46 @@ public class Installation {
    */
   public void setRootDirectory(File rootDirectory) throws NullPointerException {
     if (rootDirectory == null) {
-      throw new NullPointerException("install root cannot be null");
+      throw new NullPointerException("Install root cannot be null");
     }
+
+    // Hold off on doing more validation of rootDirectory since
+    // some applications (like the Installer) create an Installation
+    // before the actual bits have been laid down on the filesyste.
+
     this.rootDirectory = rootDirectory;
+  }
+
+  /**
+   * Indicates whether or not this installation appears to be an actual
+   * OpenDS installation.
+   * @return boolean where true indicates that this does indeed appear to be
+   * a valid OpenDS installation; false otherwise
+   */
+  public boolean isValid() {
+    boolean valid = true;
+    try {
+      validateRootDirectory(rootDirectory);
+    } catch (IllegalArgumentException e) {
+      valid = false;
+    }
+    return valid;
+  }
+
+  /**
+   * Creates a string explaining why this is not a legitimate OpenDS
+   * installation.  Null if this is in fact a vaild installation.
+   * @return localized message indicating the reason this is not an
+   * OpenDS installation
+   */
+  public String getInvalidityReason() {
+    String reason = null;
+    try {
+      validateRootDirectory(rootDirectory);
+    } catch (IllegalArgumentException e) {
+      reason = e.getLocalizedMessage();
+    }
+    return reason;
   }
 
   /**
@@ -453,6 +536,14 @@ public class Installation {
   }
 
   /**
+   * Gets the directory used to store files temporarily.
+   * @return File temporary directory
+   */
+  public File getTemporaryDirectory() {
+    return new File(getRootDirectory(), TMP_PATH_RELATIVE);
+  }
+
+  /**
    * Returns the directory where the lock files are stored.
    *
    * @return the path to the lock files.
@@ -495,7 +586,15 @@ public class Installation {
    * @return File representing the config/upgrade directory
    */
   public File getConfigurationUpgradeDirectory() {
-    return new File(getConfigurationDirectory(), CONFIG_UPGRADE_PATH);
+    return new File(getConfigurationDirectory(), UPGRADE_PATH);
+  }
+
+  /**
+   * Gets the directory where the upgrader stores files temporarily.
+   * @return File representing the upgrader's temporary directory
+   */
+  public File getTemporaryUpgradeDirectory() {
+    return new File(getTemporaryDirectory(), UPGRADE_PATH);
   }
 
   /**

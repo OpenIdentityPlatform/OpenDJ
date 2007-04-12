@@ -29,7 +29,6 @@ package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.ui.QuickSetupDialog;
@@ -55,7 +54,7 @@ import static org.opends.quicksetup.Installation.*;
  * QuickSetup application of ugrading the bits of an installation of
  * OpenDS.
  */
-public class Upgrader extends Application implements CliApplication {
+public class Upgrader extends GuiApplication implements CliApplication {
 
   /**
    * Steps in the Upgrade wizard.
@@ -92,6 +91,8 @@ public class Upgrader extends Application implements CliApplication {
     NOT_STARTED("summary-upgrade-not-started"),
 
     INITIALIZING("summary-upgrade-initializing"),
+
+    STARTING_SERVER("summary-starting"),
 
     STOPPING_SERVER("summary-stopping"),
 
@@ -164,7 +165,8 @@ public class Upgrader extends Application implements CliApplication {
           DATABASES_PATH_RELATIVE, // db
           LOGS_PATH_RELATIVE, // logs
           LOCKS_PATH_RELATIVE, // locks
-          HISTORY_PATH_RELATIVE // history
+          HISTORY_PATH_RELATIVE, // history
+          TMP_PATH_RELATIVE // tmp
   };
 
   private ProgressStep currentProgressStep = UpgradeProgressStep.NOT_STARTED;
@@ -197,6 +199,9 @@ public class Upgrader extends Application implements CliApplication {
 
   /** SVN rev number of the current build. */
   private Integer currentVersion = null;
+
+  /** New OpenDS bits. */
+  private Installation stagedInstallation = null;
 
   /** SVN rev number of the build in the stage directory. */
   private Integer stagedVersion = null;
@@ -352,8 +357,20 @@ public class Upgrader extends Application implements CliApplication {
         setCurrentProgressStep(UpgradeProgressStep.INITIALIZING);
         initialize();
       } catch (ApplicationException e) {
-        LOG.log(Level.INFO, "error initializing upgrader", e);
+        LOG.log(Level.INFO, "Error initializing upgrader", e);
         throw e;
+      }
+
+      if (!getInstallation().getStatus().isServerRunning()) {
+        try {
+          setCurrentProgressStep(UpgradeProgressStep.STARTING_SERVER);
+          startServerWithoutConnectionHandlers();
+          getServerController().stopServerInProcess();
+        } catch (ApplicationException e) {
+          LOG.log(Level.INFO, "Error starting server to insure configuration" +
+                  " changes have been written to the filesystem", e);
+          throw e;
+        }
       }
 
       if (getInstallation().getStatus().isServerRunning()) {
@@ -361,7 +378,7 @@ public class Upgrader extends Application implements CliApplication {
           setCurrentProgressStep(UpgradeProgressStep.STOPPING_SERVER);
           new ServerController(this).stopServer();
         } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "error stopping server", e);
+          LOG.log(Level.INFO, "Error stopping server", e);
           throw e;
         }
       }
@@ -371,7 +388,7 @@ public class Upgrader extends Application implements CliApplication {
                 UpgradeProgressStep.CALCULATING_SCHEMA_CUSTOMIZATIONS);
         calculateSchemaCustomizations();
       } catch (ApplicationException e) {
-        LOG.log(Level.INFO, "error calculating schema customizations", e);
+        LOG.log(Level.INFO, "Error calculating schema customizations", e);
         throw e;
       }
 
@@ -381,7 +398,7 @@ public class Upgrader extends Application implements CliApplication {
         calculateConfigCustomizations();
       } catch (ApplicationException e) {
         LOG.log(Level.INFO,
-                "error calculating config customizations", e);
+                "Error calculating config customizations", e);
         throw e;
       }
 
@@ -389,7 +406,7 @@ public class Upgrader extends Application implements CliApplication {
         setCurrentProgressStep(UpgradeProgressStep.BACKING_UP_DATABASES);
         backupDatabases();
       } catch (ApplicationException e) {
-        LOG.log(Level.INFO, "error backing up databases", e);
+        LOG.log(Level.INFO, "Error backing up databases", e);
         throw e;
       }
 
@@ -397,7 +414,7 @@ public class Upgrader extends Application implements CliApplication {
         setCurrentProgressStep(UpgradeProgressStep.BACKING_UP_FILESYSTEM);
         backupFilesytem();
       } catch (ApplicationException e) {
-        LOG.log(Level.INFO, "error backing up files", e);
+        LOG.log(Level.INFO, "Error backing up files", e);
         throw e;
       }
 
@@ -407,7 +424,7 @@ public class Upgrader extends Application implements CliApplication {
         upgradeComponents();
       } catch (ApplicationException e) {
         LOG.log(Level.INFO,
-                "error upgrading components", e);
+                "Error upgrading components", e);
         throw e;
       }
 
@@ -417,7 +434,7 @@ public class Upgrader extends Application implements CliApplication {
         applySchemaCustomizations();
       } catch (ApplicationException e) {
         LOG.log(Level.INFO,
-                "error applying schema customizations", e);
+                "Error applying schema customizations", e);
         throw e;
       }
 
@@ -427,10 +444,13 @@ public class Upgrader extends Application implements CliApplication {
         applyConfigurationCustomizations();
       } catch (ApplicationException e) {
         LOG.log(Level.INFO,
-                "error applying configuration customizations", e);
+                "Error applying configuration customizations", e);
         throw e;
       }
 
+      // This allows you to test whether or not he upgrader can successfully
+      // abort an upgrade once changes have been made to the installation
+      // path's filesystem.
       if ("true".equals(
               System.getProperty(
                       "org.opends.upgrader.Upgrader.CreateError.CreateError")))
@@ -444,7 +464,7 @@ public class Upgrader extends Application implements CliApplication {
         verifyUpgrade();
       } catch (ApplicationException e) {
         LOG.log(Level.INFO,
-                "error verifying upgrade", e);
+                "Error verifying upgrade", e);
         throw e;
       }
 
@@ -453,7 +473,7 @@ public class Upgrader extends Application implements CliApplication {
     } catch (Throwable t) {
       this.runException =
               new ApplicationException(ApplicationException.Type.BUG,
-                      t.getLocalizedMessage(),
+                      "Unexpected error: " + t.getLocalizedMessage(),
                       t);
     } finally {
       try {
@@ -476,6 +496,9 @@ public class Upgrader extends Application implements CliApplication {
 
         // Write a record in the log file indicating success/failure
         setCurrentProgressStep(UpgradeProgressStep.RECORDING_HISTORY);
+        notifyListeners("See '" +
+                Utils.getPath(getInstallation().getHistoryLogFile()) +
+                "'" + formatter.getLineBreak());
         writeHistoricalRecord(historicalOperationId,
                 getCurrentVersion(),
                 getStagedVersion(),
@@ -483,10 +506,8 @@ public class Upgrader extends Application implements CliApplication {
                 note);
 
       } catch (ApplicationException e) {
-        System.err.print("error cleaning up after upgrade: " +
+        System.err.print("Error cleaning up after upgrade: " +
                 e.getLocalizedMessage());
-      } finally {
-
       }
     }
 
@@ -536,12 +557,12 @@ public class Upgrader extends Application implements CliApplication {
           } catch (Throwable t) {
             notifyListeners("The following could not be restored after the" +
                     "failed upgrade attempt.  You should restore this " +
-                    "file/directory manually: " + f + " to " + root);
+                    "file/directory manually: '" + f + "' to '" + root + "'");
           }
         }
         fm.deleteRecursively(backupDirectory);
       } catch (IOException e) {
-        LOG.log(Level.INFO, "error getting backup directory", e);
+        LOG.log(Level.INFO, "Error getting backup directory", e);
       }
     }
 
@@ -552,7 +573,8 @@ public class Upgrader extends Application implements CliApplication {
     try {
       new ServerController(this).startServer();
     } catch (QuickSetupException e) {
-      LOG.log(Level.INFO, "error starting server", e);
+      LOG.log(Level.INFO, "Error starting server: " +
+              e.getLocalizedMessage(), e);
     }
   }
 
@@ -563,13 +585,17 @@ public class Upgrader extends Application implements CliApplication {
         applyCustomizationLdifFile(configDiff);
       }
     } catch (IOException e) {
-      LOG.log(Level.INFO, "error getting schema diff file", e);
+      String msg = "IO Error applying configuration customization: " +
+              e.getLocalizedMessage();
+      LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              "error applying configuration customization", e);
+              msg, e);
     } catch (LDIFException e) {
-      LOG.log(Level.INFO, "error reading change record", e);
+      String msg = "LDIF error applying configuration customization: " +
+              e.getLocalizedMessage();
+      LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              "error applying configuration customization", e);
+              msg, e);
     }
   }
 
@@ -580,13 +606,17 @@ public class Upgrader extends Application implements CliApplication {
         applyCustomizationLdifFile(schemaDiff);
       }
     } catch (IOException e) {
-      LOG.log(Level.INFO, "error getting schema diff file", e);
+      String msg = "IO Error applying schema customization: " +
+              e.getLocalizedMessage();
+      LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              "error applying schema customization", e);
+              msg, e);
     } catch (LDIFException e) {
-      LOG.log(Level.INFO, "error reading change record", e);
+      String msg = "LDIF error applying schema customization: " +
+              e.getLocalizedMessage();
+      LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              "error applying schema customization", e);
+              msg, e);
     }
   }
 
@@ -599,17 +629,23 @@ public class Upgrader extends Application implements CliApplication {
       }
       control.startServerInProcess(true);
     } catch (IOException e) {
-      LOG.log(Level.INFO, "could not determine server state", e);
+      String msg = "Failed to determine server state: " +
+              e.getLocalizedMessage();
+      LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              "error trying to determine server state", e);
+              msg, e);
     } catch (InitializationException e) {
-      LOG.log(Level.INFO, "could not start server", e);
+      String msg = "Failed to start server due to initialization error:" +
+              e.getLocalizedMessage();
+      LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              "could not start server with handlers", e);
+              msg, e);
     } catch (ConfigException e) {
-      LOG.log(Level.INFO, "configuration error starting server", e);
+      String msg = "Failed to start server due to configuration error: " +
+              e.getLocalizedMessage();
+      LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              "configuration error starting server", e);
+              msg, e);
     }
   }
 
@@ -675,7 +711,6 @@ public class Upgrader extends Application implements CliApplication {
         }
       }
     } catch (Throwable t) {
-      // t.printStackTrace(System.out);
       throw new ApplicationException(ApplicationException.Type.BUG,
               t.getMessage(), t);
     } finally {
@@ -705,8 +740,9 @@ public class Upgrader extends Application implements CliApplication {
       id = log.append(fromVersion, toVersion,
               HistoricalRecord.Status.STARTED, null);
     } catch (IOException e) {
+      String msg = "IO Error logging operation: " + e.getLocalizedMessage();
       throw ApplicationException.createFileSystemException(
-              "error logging operation", e);
+              msg, e);
     }
     return id;
   }
@@ -723,8 +759,8 @@ public class Upgrader extends Application implements CliApplication {
               new HistoricalLog(getInstallation().getHistoryLogFile());
       log.append(id, from, to, status, note);
     } catch (IOException e) {
-      throw ApplicationException.createFileSystemException(
-              "error logging operation", e);
+      String msg = "Error logging operation: " + e.getLocalizedMessage();
+      throw ApplicationException.createFileSystemException(msg, e);
     }
   }
 
@@ -741,7 +777,7 @@ public class Upgrader extends Application implements CliApplication {
       }
     } catch (IOException e) {
       throw ApplicationException.createFileSystemException(
-              "I/0 error upgrading components", e);
+              "I/0 error upgrading components: " + e.getLocalizedMessage(), e);
     }
   }
 
@@ -754,7 +790,8 @@ public class Upgrader extends Application implements CliApplication {
                    getCustomConfigDiffFile());
         } catch (Exception e) {
           throw ApplicationException.createFileSystemException(
-                  "error determining configuration customizations", e);
+                  "Error determining configuration customizations: "
+                  + e.getLocalizedMessage(), e);
         }
       } else {
         // TODO i18n
@@ -764,7 +801,8 @@ public class Upgrader extends Application implements CliApplication {
     } catch (IOException e) {
       // TODO i18n
       throw ApplicationException.createFileSystemException(
-              "could not determine configuration modifications", e);
+              "Could not determine configuration modifications: " +
+              e.getLocalizedMessage(), e);
     }
   }
 
@@ -809,14 +847,16 @@ public class Upgrader extends Application implements CliApplication {
 
       // TODO i18n
       notifyListeners(
-              "Schema contains customizations and needs to be migrated\n");
+              "Schema contains customizations and needs to be migrated" +
+              formatter.getLineBreak());
       try {
         ldifDiff(getInstallation().getBaseSchemaFile(),
                  getInstallation().getSchemaConcatFile(),
                  getCustomSchemaDiffFile());
       } catch (Exception e) {
         throw ApplicationException.createFileSystemException(
-                "error determining schema customizations", e);
+                "Error determining schema customizations: " +
+                e.getLocalizedMessage(), e);
       }
     } else {
       // TODO i18n
@@ -891,18 +931,17 @@ public class Upgrader extends Application implements CliApplication {
     } catch (IOException e) {
       // TODO i18n
       throw ApplicationException.createFileSystemException(
-              "error attempting to clean up tmp directory " +
-                      stagingDir != null ? stagingDir.getName() : "null",
+              "Error attempting to clean up tmp directory " +
+                      stagingDir != null ? stagingDir.getName() : "null" +
+              ": " + e.getLocalizedMessage(),
               e);
     }
   }
 
   private void initialize() throws ApplicationException {
     try {
-      expandZipFile();
-
-      Integer fromVersion = getStagedVersion();
-      Integer toVersion = getCurrentVersion();
+      Integer fromVersion = getCurrentVersion();
+      Integer toVersion = getStagedVersion();
       this.historicalOperationId =
               writeInitialHistoricalRecord(fromVersion, toVersion);
 
@@ -930,7 +969,8 @@ public class Upgrader extends Application implements CliApplication {
     } catch (QuickSetupException e) {
       LOG.log(Level.INFO, "error", e);
       throw ApplicationException.createFileSystemException(
-              "could not determine current version number", e);
+              "Could not determine current version number: " +
+              e.getLocalizedMessage(), e);
     }
 
     try {
@@ -938,7 +978,8 @@ public class Upgrader extends Application implements CliApplication {
     } catch (Exception e) {
       LOG.log(Level.INFO, "error", e);
       throw ApplicationException.createFileSystemException(
-              "could not determine upgrade version number", e);
+              "Could not determine upgrade version number: " +
+              e.getLocalizedMessage(), e);
     }
 
     UpgradeOracle uo = new UpgradeOracle(currentVersion, newVersion);
@@ -951,30 +992,20 @@ public class Upgrader extends Application implements CliApplication {
 
   private Installation getStagedInstallation()
           throws IOException, ApplicationException {
-    return new Installation(getStageDirectory());
-  }
-
-  private void expandZipFile()
-          throws ApplicationException, IOException, QuickSetupException {
-    File installPackage = getUpgradeUserData().getInstallPackage();
-    FileInputStream fis = new FileInputStream(installPackage);
-    ZipExtractor extractor = new ZipExtractor(fis,
-            1, 10, // TODO figure out these values
-            getStageDirectory().getCanonicalPath(),
-            Utils.getNumberZipEntries(),
-            installPackage.getName(), this);
-    extractor.extract();
-  }
-
-  /**
-   * Delays for a time FOR TESTING ONLY.
-   */
-  private void sleepFor1() {
-    try {
-      Thread.sleep(1000);
-    } catch (InterruptedException e) {
-
+    if (stagedInstallation == null) {
+      File stageDir = getStageDirectory();
+      try {
+        Installation.validateRootDirectory(stageDir);
+        stagedInstallation = new Installation(getStageDirectory());
+      } catch (IllegalArgumentException e) {
+        throw ApplicationException.createFileSystemException(
+                "Directory '" + getStageDirectory() +
+                        "' does not contain a staged installation of OpenDS" +
+                        " as was expected.  Verify that the new installation" +
+                        " package (.zip) is an OpenDS installation file", null);
+      }
     }
+    return stagedInstallation;
   }
 
   /**
@@ -1005,24 +1036,9 @@ public class Upgrader extends Application implements CliApplication {
     return cliHelper;
   }
 
-  private File getTempDirectory() {
-    return new File(System.getProperty("java.io.tmpdir"));
-  }
-
   private File getStageDirectory()
           throws ApplicationException, IOException {
-    if (stagingDirectory == null) {
-      File tmpDir = getTempDirectory();
-      stagingDirectory =
-              new File(tmpDir, "opends-upgrade-tmp-" +
-                      System.currentTimeMillis());
-      if (stagingDirectory.exists()) {
-        FileManager fm = new FileManager(this);
-        fm.deleteRecursively(stagingDirectory);
-      }
-      stagingDirectory.mkdirs();
-    }
-    return stagingDirectory;
+    return getInstallation().getTemporaryUpgradeDirectory();
   }
 
   private UpgradeUserData getUpgradeUserData() {
@@ -1075,8 +1091,6 @@ public class Upgrader extends Application implements CliApplication {
     }
     return stagedVersion;
   }
-
-
 
   /**
    * Filter defining files we want to manage in the upgrade

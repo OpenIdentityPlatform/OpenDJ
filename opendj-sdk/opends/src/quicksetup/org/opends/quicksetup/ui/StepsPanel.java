@@ -37,7 +37,7 @@ import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.opends.quicksetup.Application;
+import org.opends.quicksetup.GuiApplication;
 import org.opends.quicksetup.WizardStep;
 
 /**
@@ -56,13 +56,13 @@ public class StepsPanel extends QuickSetupPanel
 
   HashMap<WizardStep, JLabel> hmIcons = new HashMap<WizardStep, JLabel>();
 
-  Application application = null;
+  GuiApplication application = null;
 
   /**
    * Creates a StepsPanel.
    * @param app Application whose steps this class represents
    */
-  public StepsPanel(Application app)
+  public StepsPanel(GuiApplication app)
   {
     this.application = app;
     createLayout(app);
@@ -101,7 +101,7 @@ public class StepsPanel extends QuickSetupPanel
    * Creates the layout of the panel.
    * @param app Application whose steps this class represents
    */
-  private void createLayout(Application app)
+  private void createLayout(GuiApplication app)
   {
     setLayout(new GridBagLayout());
 
