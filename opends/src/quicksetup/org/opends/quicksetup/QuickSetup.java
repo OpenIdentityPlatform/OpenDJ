@@ -71,7 +71,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   static private final Logger LOG =
           Logger.getLogger(QuickSetup.class.getName());
 
-  private Application application;
+  private GuiApplication application;
 
   private CurrentInstallStatus installStatus;
 

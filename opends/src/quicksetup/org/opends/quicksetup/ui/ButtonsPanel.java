@@ -40,7 +40,7 @@ import javax.swing.JPanel;
 
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.WizardStep;
-import org.opends.quicksetup.Application;
+import org.opends.quicksetup.GuiApplication;
 import org.opends.quicksetup.uninstaller.Uninstaller;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.event.ButtonActionListener;
@@ -71,14 +71,14 @@ class ButtonsPanel extends QuickSetupPanel
 
   private JButton cancelButton;
 
-  private Application application;
+  private GuiApplication application;
 
   /**
    * Default constructor.
    * @param application Application running in QuickSetup
    *
    */
-  public ButtonsPanel(Application application)
+  public ButtonsPanel(GuiApplication application)
   {
     this.application = application;
     createButtons();

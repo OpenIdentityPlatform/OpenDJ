@@ -57,7 +57,7 @@ import javax.swing.*;
  * it is included in quicksetup.jar.
  *
  */
-public abstract class Installer extends Application {
+public abstract class Installer extends GuiApplication {
 
   /* Indicates that we've detected that there is something installed */
   boolean forceToDisplaySetup = false;

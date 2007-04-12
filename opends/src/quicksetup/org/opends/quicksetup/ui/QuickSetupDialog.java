@@ -80,7 +80,7 @@ public class QuickSetupDialog
   private HashSet<ButtonActionListener> buttonListeners =
       new HashSet<ButtonActionListener>();
 
-  private Application application;
+  private GuiApplication application;
 
   private boolean forceToDisplay;
 
@@ -89,7 +89,7 @@ public class QuickSetupDialog
    * @param app Application to run in as a wizard
    * @param installStatus of the current environment
    */
-  public QuickSetupDialog(Application app,
+  public QuickSetupDialog(GuiApplication app,
       CurrentInstallStatus installStatus)
   {
     if (app == null) {

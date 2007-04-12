@@ -30,54 +30,60 @@ package org.opends.quicksetup;
 import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
-import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
-import org.opends.quicksetup.util.ServerController;
-import org.opends.quicksetup.ui.QuickSetupDialog;
-import org.opends.quicksetup.ui.QuickSetupStepPanel;
-import org.opends.quicksetup.ui.FramePanel;
-import javax.swing.*;
-import java.io.*;
-import java.util.*;
+import org.opends.quicksetup.i18n.ResourceProvider;
+
+import java.io.PrintStream;
+import java.io.ByteArrayOutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.awt.event.WindowEvent;
+import java.util.HashSet;
 
 /**
- * This class represents an application that can be run in the context
- * of QuickSetup.  Examples of applications might be 'installer',
- * 'uninstaller' and 'upgrader'.
+ * This class represents an application that can be run in the context of
+ * QuickSetup.  Examples of applications might be 'installer', 'uninstaller'
+ * and 'upgrader'.
  */
 public abstract class Application implements ProgressNotifier, Runnable {
 
   static private final Logger LOG =
           Logger.getLogger(Application.class.getName());
 
-  /** The currently displayed wizard step. */
-  private WizardStep displayedStep;
-
   /** Represents current install state. */
   protected CurrentInstallStatus installStatus;
+
+  private HashSet<ProgressUpdateListener> listeners =
+      new HashSet<ProgressUpdateListener>();
+
+  private UserData userData;
+
+  private Installation installation;
+
+  private ServerController serverController;
+
+  /** Formats progress messages. */
+  protected ProgressMessageFormatter formatter;
 
   /**
    * Creates an application by instantiating the Application class
    * denoted by the System property
    * <code>org.opends.quicksetup.Application.class</code>.
    * @return Application object that was newly instantiated
-   * @throws ApplicationException if there was a problem creating
-   *         the new Application object
+   * @throws org.opends.quicksetup.ApplicationException if there was a problem
+   *  creating the new Application object
    */
-  static public Application create()
+  static public GuiApplication create()
           throws ApplicationException {
-    Application app;
+    GuiApplication app;
     String appClassName =
             System.getProperty("org.opends.quicksetup.Application.class");
     if (appClassName != null) {
       Class appClass = null;
       try {
         appClass = Class.forName(appClassName);
-        app = (Application) appClass.newInstance();
+        app = (GuiApplication) appClass.newInstance();
       } catch (ClassNotFoundException e) {
         LOG.log(Level.INFO, "error creating quicksetup application", e);
         String msg = "Application class " + appClass + " not found";
@@ -103,33 +109,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
     }
     return app;
   }
-
-  private HashSet<ProgressUpdateListener> listeners =
-      new HashSet<ProgressUpdateListener>();
-
-  private UserData userData;
-
-  private Installation installation;
-
-  private ServerController serverController;
-
-  /** Formats progress messages. */
-  protected ProgressMessageFormatter formatter;
-
-  /**
-   * Constructs an instance of an application.  Subclasses
-   * of this application must have a default constructor.
-   */
-  public Application() {
-    this.displayedStep = getFirstWizardStep();
-  }
-
-  /**
-   * Gets the frame title of the GUI application that will be used
-   * in some operating systems.
-   * @return internationalized String representing the frame title
-   */
-  abstract public String getFrameTitle();
 
   /**
    * Sets this instances user data.
@@ -165,16 +144,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
   public void removeProgressUpdateListener(ProgressUpdateListener l)
   {
     listeners.remove(l);
-  }
-
-  /**
-   * Returns whether the installer has finished or not.
-   * @return <CODE>true</CODE> if the install is finished or <CODE>false
-   * </CODE> if not.
-   */
-  public boolean isFinished()
-  {
-    return getCurrentProgressStep().isLast();
   }
 
   /**
@@ -512,56 +481,10 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
-   * Returns the initial wizard step.
-   * @return Step representing the first step to show in the wizard
-   */
-  public abstract WizardStep getFirstWizardStep();
-
-  /**
-   * Called by the quicksetup controller when the user advances to
-   * a new step in the wizard.  Applications are expected to manipulate
-   * the QuickSetupDialog to reflect the current step.
-   *
-   * @param step     Step indicating the new current step
-   * @param userData UserData representing the data specified by the user
-   * @param dlg      QuickSetupDialog hosting the wizard
-   */
-  protected void setDisplayedWizardStep(WizardStep step,
-                                        UserData userData,
-                                        QuickSetupDialog dlg) {
-    this.displayedStep = step;
-
-    // First call the panels to do the required updates on their layout
-    dlg.setDisplayedStep(step, userData);
-    setWizardDialogState(dlg, userData, step);
-  }
-
-  /**
-   * Called when the user advances to new step in the wizard.  Applications
-   * are expected to manipulate the QuickSetupDialog to reflect the current
-   * step.
-   * @param dlg QuickSetupDialog hosting the wizard
-   * @param userData UserData representing the data specified by the user
-   * @param step Step indicating the new current step
-   */
-  protected abstract void setWizardDialogState(QuickSetupDialog dlg,
-                                               UserData userData,
-                                               WizardStep step);
-
-  /**
    * Returns the installation path.
    * @return the installation path.
    */
   protected abstract String getInstallationPath();
-
-  /**
-   * Returns the tab formatted.
-   * @return the tab formatted.
-   */
-  protected String getTab()
-  {
-    return formatter.getTab();
-  }
 
   /**
    * Gets the current step.
@@ -592,216 +515,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   public void setCurrentInstallStatus(CurrentInstallStatus installStatus) {
     this.installStatus = installStatus;
-  }
-
-  /**
-   * Called by the controller when the window is closing.  The application
-   * can take application specific actions here.
-   * @param dlg QuickSetupDialog that will be closing
-   * @param evt The event from the Window indicating closing
-   */
-  abstract public void windowClosing(QuickSetupDialog dlg, WindowEvent evt);
-
-  /**
-   * This method is called when we detected that there is something installed
-   * we inform of this to the user and the user wants to proceed with the
-   * installation destroying the contents of the data and the configuration
-   * in the current installation.
-   */
-  public void forceToDisplay() {
-    // This is really only appropriate for Installer.
-    // The default implementation is to do nothing.
-    // The Installer application overrides this with
-    // whatever it needs.
-  }
-
-  /**
-   * Get the name of the button that will receive initial focus.
-   * @return ButtonName of the button to receive initial focus
-   */
-  abstract public ButtonName getInitialFocusButtonName();
-
-  /**
-   * Creates the main panel for the wizard dialog.
-   * @param dlg QuickSetupDialog used
-   * @return JPanel frame panel
-   */
-  public JPanel createFramePanel(QuickSetupDialog dlg) {
-    return new FramePanel(dlg.getStepsPanel(),
-            dlg.getCurrentStepPanel(),
-            dlg.getButtonsPanel());
-  }
-
-  /**
-   * Returns the set of wizard steps used in this application's wizard.
-   * @return Set of Step objects representing wizard steps
-   */
-  abstract public Set<? extends WizardStep> getWizardSteps();
-
-  /**
-   * Creates a wizard panel given a specific step.
-   * @param step for which a panel representation should be created
-   * @return QuickSetupStepPanel for representing the <code>step</code>
-   */
-  abstract public QuickSetupStepPanel createWizardStepPanel(WizardStep step);
-
-  /**
-   * Gets the next step in the wizard given a current step.
-   * @param step Step the current step
-   * @return Step the next step
-   */
-  abstract public WizardStep getNextWizardStep(WizardStep step);
-
-  /**
-   * Gets the previous step in the wizard given a current step.
-   * @param step Step the current step
-   * @return Step the previous step
-   */
-  abstract public WizardStep getPreviousWizardStep(WizardStep step);
-
-  /**
-   * Indicates whether or not the user is allowed to return to a previous
-   * step from <code>step</code>.
-   * @param step WizardStep for which the the return value indicates whether
-   * or not the user can return to a previous step
-   * @return boolean where true indicates the user can return to a previous
-   * step from <code>step</code>
-   */
-  public boolean canGoBack(WizardStep step) {
-    return !getFirstWizardStep().equals(step);
-  }
-
-  /**
-   * Indicates whether or not the user is allowed to move to a new
-   * step from <code>step</code>.
-   * @param step WizardStep for which the the return value indicates whether
-   * or not the user can move to a new step
-   * @return boolean where true indicates the user can move to a new
-   * step from <code>step</code>
-   */
-  public boolean canGoForward(WizardStep step) {
-    return getNextWizardStep(step) != null;
-  }
-
-  /**
-   * Inidicates whether or not the user is allowed to finish the wizard from
-   * <code>step</code>.
-   * @param step WizardStep for which the the return value indicates whether
-   * or not the user can finish the wizard
-   * @return boolean where true indicates the user can finish the wizard
-   */
-  public boolean canFinish(WizardStep step) {
-    return getNextWizardStep(step) != null;
-  }
-
-  /**
-   * Inidicates whether or not the user is allowed to quit the wizard from
-   * <code>step</code>.
-   * @param step WizardStep for which the the return value indicates whether
-   * or not the user can quit the wizard
-   * @return boolean where true indicates the user can quit the wizard
-   */
-  public boolean canQuit(WizardStep step) {
-    return false;
-  }
-
-  /**
-   * Inidicates whether or not the user is allowed to close the wizard from
-   * <code>step</code>.
-   * @param step WizardStep for which the the return value indicates whether
-   * or not the user can close the wizard
-   * @return boolean where true indicates the user can close the wizard
-   */
-  public boolean canClose(WizardStep step) {
-    return false;
-  }
-
-  /**
-   * Inidicates whether or not the user is allowed to cancel the wizard from
-   * <code>step</code>.
-   * @param step WizardStep for which the the return value indicates whether
-   * or not the user can cancel the wizard
-   * @return boolean where true indicates the user can cancel the wizard
-   */
-  public boolean canCancel(WizardStep step) {
-    return false;
-  }
-
-  /**
-   * Called when the user has clicked the 'previous' button.
-   * @param cStep WizardStep at which the user clicked the previous button
-   * @param qs QuickSetup controller
-   */
-  public abstract void previousClicked(WizardStep cStep, QuickSetup qs);
-
-  /**
-   * Called when the user has clicked the 'finish' button.
-   * @param cStep WizardStep at which the user clicked the previous button
-   * @param qs QuickSetup controller
-   */
-  public abstract void finishClicked(final WizardStep cStep,
-                                     final QuickSetup qs);
-
-  /**
-   * Called when the user has clicked the 'next' button.
-   * @param cStep WizardStep at which the user clicked the next button
-   * @param qs QuickSetup controller
-   */
-  public abstract void nextClicked(WizardStep cStep, QuickSetup qs);
-
-  /**
-   * Called when the user has clicked the 'close' button.
-   * @param cStep WizardStep at which the user clicked the close button
-   * @param qs QuickSetup controller
-   */
-  public abstract void closeClicked(WizardStep cStep, QuickSetup qs);
-
-  /**
-   * Called when the user has clicked the 'cancel' button.
-   * @param cStep WizardStep at which the user clicked the cancel button
-   * @param qs QuickSetup controller
-   */
-  public abstract void cancelClicked(WizardStep cStep, QuickSetup qs);
-
-  /**
-   * Called when the user has clicked the 'quit' button.
-   * @param step WizardStep at which the user clicked the quit button
-   * @param qs QuickSetup controller
-   */
-  abstract public void quitClicked(WizardStep step, QuickSetup qs);
-
-  /**
-   * Called whenever this application should update its user data from
-   * values found in QuickSetup.
-   * @param cStep current wizard step
-   * @param qs QuickSetup controller
-   * @throws UserDataException if there is a problem with the data
-   */
-  abstract protected void updateUserData(WizardStep cStep, QuickSetup qs)
-          throws UserDataException;
-
-  /**
-   * Gets the key for the close button's tool tip text.
-   * @return String key of the text in the resource bundle
-   */
-  public String getCloseButtonToolTip() {
-    return "close-button-tooltip";
-  }
-
-  /**
-   * Gets the key for the finish button's tool tip text.
-   * @return String key of the text in the resource bundle
-   */
-  public String getFinishButtonToolTip() {
-    return "finish-button-tooltip";
-  }
-
-  /**
-   * Gets the key for the finish button's label.
-   * @return String key of the text in the resource bundle
-   */
-  public String getFinishButtonLabel() {
-    return "finish-button-label";
   }
 
   /**
@@ -921,5 +634,4 @@ public abstract class Application implements ProgressNotifier, Runnable {
       println(new String(b, off, len));
     }
   }
-
 }

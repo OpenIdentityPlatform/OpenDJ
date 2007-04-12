@@ -31,8 +31,7 @@ import org.opends.quicksetup.QuickSetupException;
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.i18n.ResourceProvider;
 
-import java.io.InputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
 import java.util.ArrayList;
@@ -48,29 +47,53 @@ public class ZipExtractor {
   private InputStream is;
   private int minRatio;
   private int maxRatio;
-  private String basePath;
   private int numberZipEntries;
   private String zipFileName;
   private Application application;
 
   /**
    * Creates an instance of an ZipExtractor.
+   * @param zipFile File the zip file to extract
+   * @param minRatio int indicating the max ration
+   * @param maxRatio int indicating the min ration
+   * @param numberZipEntries number of entries in the input stream
+   * @param app application to be notified about progress
+   * @throws FileNotFoundException if the specified file does not exist
+   * @throws IllegalArgumentException if the zip file is not a zip file
+   */
+  public ZipExtractor(File zipFile, int minRatio, int maxRatio,
+                                      int numberZipEntries,
+                                      Application app)
+    throws FileNotFoundException, IllegalArgumentException
+  {
+    this(new FileInputStream(zipFile),
+      minRatio,
+      maxRatio,
+      numberZipEntries,
+      zipFile.getName(),
+      app);
+    if (!zipFile.getName().endsWith(".zip")) {
+      // TODO i18n
+      throw new IllegalArgumentException("File must have extension .zip");
+    }
+  }
+
+  /**
+   * Creates an instance of an ZipExtractor.
    * @param is InputStream of zip file content
    * @param minRatio int indicating the max ration
    * @param maxRatio int indicating the min ration
-   * @param basePath filesystem location where content will be unzipped
    * @param numberZipEntries number of entries in the input stream
    * @param zipFileName name of the input zip file
    * @param app application to be notified about progress
    */
   public ZipExtractor(InputStream is, int minRatio, int maxRatio,
-                                      String basePath, int numberZipEntries,
+                                      int numberZipEntries,
                                       String zipFileName,
                                       Application app) {
     this.is = is;
     this.minRatio = minRatio;
     this.maxRatio = maxRatio;
-    this.basePath = basePath;
     this.numberZipEntries = numberZipEntries;
     this.zipFileName = zipFileName;
     this.application = app;
@@ -78,9 +101,19 @@ public class ZipExtractor {
 
   /**
    * Performs the zip extraction.
+   * @param destination File where the zip file will be extracted
    * @throws QuickSetupException if something goes wrong
    */
-  public void extract() throws QuickSetupException {
+  public void extract(File destination) throws QuickSetupException {
+    extract(Utils.getPath(destination));
+  }
+
+  /**
+   * Performs the zip extraction.
+   * @param destination File where the zip file will be extracted
+   * @throws QuickSetupException if something goes wrong
+   */
+  public void extract(String destination) throws QuickSetupException {
 
     ZipInputStream zipIn = new ZipInputStream(is);
     int nEntries = 1;
@@ -112,7 +145,7 @@ public class ZipExtractor {
         {
           try
           {
-            copyZipEntry(entry, basePath, zipFirstPath, zipIn,
+            copyZipEntry(entry, destination, zipFirstPath, zipIn,
             ratioBeforeCompleted, ratioWhenCompleted, permissions, application);
 
           } catch (IOException ioe)
@@ -201,7 +234,7 @@ public class ZipExtractor {
     {
       entryName = entryName.substring(zipFirstPath.length());
     }
-    String path = Utils.getPath(basePath, entryName);
+    String path = Utils.getPath(new File(basePath, entryName));
 
     String progressSummary =
             ResourceProvider.getInstance().getMsg("progress-extracting",

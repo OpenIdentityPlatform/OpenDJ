@@ -82,7 +82,11 @@ cd "${WORKING_DIR}"
 
 
 # Configure the appropriate CLASSPATH to test.
-CLASSPATH=${INSTANCE_ROOT}/classes
+for JAR in ${INSTANCE_ROOT}/tmp/upgrade/lib/*.jar
+do
+  CLASSPATH=${CLASSPATH}:${JAR}
+done
+CLASSPATH=${CLASSPATH}:${INSTANCE_ROOT}/classes
 for JAR in ${INSTANCE_ROOT}/lib/*.jar
 do
   CLASSPATH=${CLASSPATH}:${JAR}
@@ -115,6 +119,15 @@ else
   fi
 fi
 
+if [ -r "./tmp/upgrade" ]
+then
+  rm -fr "./tmp/upgrade"
+fi
+# Launch the build extractor.
+"${JAVA_BIN}" org.opends.quicksetup.upgrader.BuildExtractor "${@}"
 
-# Launch the uninstall process.
-"${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
+if test ${?} -eq 0
+then
+  # Launch the upgrade process.
+  "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
+fi
