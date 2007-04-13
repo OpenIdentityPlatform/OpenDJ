@@ -32,27 +32,24 @@ set INSTANCE_ROOT=%DIR_HOME%
 
 :checkJavaBin
 if "%JAVA_BIN%" == "" goto noJavaBin
-goto setClassPath
+goto callExtractor
 
 :noJavaBin
 if "%JAVA_HOME%" == "" goto noJavaHome
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
 set JAVA_BIN=%JAVA_HOME%\bin\java.exe
-goto setClassPath
+goto callExtractor
 
 :noJavaHome
 if not exist "%DIR_HOME%\bat\set-java-home.bat" goto noSetJavaHome
 call "%DIR_HOME%\bat\set-java-home.bat"
 set JAVA_BIN=%JAVA_HOME%\bin\java.exe
-goto setClassPath
+goto callExtractor
 
 :noSetJavaHome
 echo Error: JAVA_HOME environment variable is not set.
 echo        Please set it to a valid Java 5 installation.
 goto end
-
-:setClassPath
-FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bat\setcp.bat" %%x
 
 set PATH=%SystemRoot%
 
@@ -63,8 +60,19 @@ goto callJava
 "%DIR_HOME%\lib\winlauncher.exe" launch "%DIR_HOME%" "%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.upgrader.UpgradeLauncher
 goto end
 
-:callJava
-"%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.upgrader.UpgradeLauncher %*
+:callExtractor
+if EXIST .\tmp\upgrade rd .\tmp\upgrade /s /q
+set CLASSPATH=""
+FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bat\setcp.bat" %%x
+"%JAVA_BIN%" org.opends.quicksetup.upgrader.BuildExtractor %*
+if %ERRORLEVEL%==0 goto callUpgrader
+goto end
+
+:callUpgrader
+set CLASSPATH=""
+FOR %%x in ("%DIR_HOME%\tmp\upgrade\lib\*.jar") DO call "%DIR_HOME%\bat\setcp.bat" %%x
+"%JAVA_BIN%" org.opends.quicksetup.upgrader.UpgradeLauncher %*
+if EXIST .\tmp\upgrade rd .\tmp\upgrade /s /q
 goto end
 
 :end

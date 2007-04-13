@@ -77,7 +77,7 @@ public class FileManager {
           throws ApplicationException
   {
     if (filter == null || filter.accept(object)) {
-      new DeleteOperation(object).apply();
+      new DeleteOperation(object, false).apply();
     }
   }
 
@@ -88,7 +88,7 @@ public class FileManager {
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
   public void deleteRecursively(File file) throws ApplicationException {
-    deleteRecursively(file, null);
+    deleteRecursively(file, null, false);
   }
 
   /**
@@ -97,11 +97,13 @@ public class FileManager {
    * @param file   the path to be deleted.
    * @param filter the filter of the files to know if the file can be deleted
    *               directly or not.
+   * @param onExit when true just marks the files for deletion after the
+   *        JVM exits rather than deleting the files immediately.
    * @throws ApplicationException if something goes wrong.
    */
-  public void deleteRecursively(File file, FileFilter filter)
+  public void deleteRecursively(File file, FileFilter filter, boolean onExit)
           throws ApplicationException {
-    operateRecursively(new DeleteOperation(file), filter);
+    operateRecursively(new DeleteOperation(file, onExit), filter);
   }
 
   /**
@@ -351,19 +353,25 @@ public class FileManager {
    */
   private class DeleteOperation extends FileOperation {
 
+    private boolean afterExit;
+
     /**
      * Creates a delete operation.
      * @param objectFile to delete
+     * @param afterExit boolean indicates that the actual delete
+     * is to take place after this program exists.  This is useful
+     * for cleaning up files that are currently in use.
      */
-    public DeleteOperation(File objectFile) {
+    public DeleteOperation(File objectFile, boolean afterExit) {
       super(objectFile);
+      this.afterExit = afterExit;
     }
 
     /**
      * {@inheritDoc}
      */
     public FileOperation copyForChild(File child) {
-      return new DeleteOperation(child);
+      return new DeleteOperation(child, afterExit);
     }
 
     /**
@@ -390,7 +398,12 @@ public class FileManager {
        */
       int nTries = 5;
       for (int i = 0; i < nTries && !delete; i++) {
-        delete = file.delete();
+        if (afterExit) {
+          file.deleteOnExit();
+          delete = true;
+        } else {
+          delete = file.delete();
+        }
         if (!delete) {
           try {
             Thread.sleep(1000);
