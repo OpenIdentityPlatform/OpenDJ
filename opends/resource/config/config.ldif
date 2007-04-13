@@ -1741,22 +1741,26 @@ ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
 dn: cn=Virtual Static member,cn=Virtual Attributes,cn=config
 objectClass: top
 objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-member-virtual-attribute
 cn: Virtual Static member
 ds-cfg-virtual-attribute-class: org.opends.server.extensions.MemberVirtualAttributeProvider
 ds-cfg-virtual-attribute-enabled: true
 ds-cfg-virtual-attribute-type: member
 ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
 ds-cfg-virtual-attribute-filter: (&(objectClass=groupOfNames)(objectClass=ds-virtual-static-group))
+ds-cfg-allow-retrieving-membership: false
 
 dn: cn=Virtual Static uniqueMember,cn=Virtual Attributes,cn=config
 objectClass: top
 objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-member-virtual-attribute
 cn: Virtual Static uniqueMember
 ds-cfg-virtual-attribute-class: org.opends.server.extensions.MemberVirtualAttributeProvider
 ds-cfg-virtual-attribute-enabled: true
 ds-cfg-virtual-attribute-type: uniqueMember
 ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
 ds-cfg-virtual-attribute-filter: (&(objectClass=groupOfUniqueNames)(objectClass=ds-virtual-static-group))
+ds-cfg-allow-retrieving-membership: false
 
 dn: cn=Work Queue,cn=config
 objectClass: top
