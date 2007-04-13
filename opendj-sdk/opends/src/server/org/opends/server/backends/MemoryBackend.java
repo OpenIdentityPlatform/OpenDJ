@@ -271,7 +271,13 @@ public class MemoryBackend
    */
   public synchronized Entry getEntry(DN entryDN)
   {
-    return entryMap.get(entryDN);
+    Entry entry = entryMap.get(entryDN);
+    if (entry != null)
+    {
+      entry = entry.duplicate(true);
+    }
+
+    return entry;
   }
 
 
@@ -292,7 +298,7 @@ public class MemoryBackend
   public synchronized void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    Entry e = entry.duplicate(true);
+    Entry e = entry.duplicate(false);
 
     // See if the target entry already exists.  If so, then fail.
     DN entryDN = e.getDN();
@@ -438,7 +444,7 @@ public class MemoryBackend
                                         ModifyOperation modifyOperation)
          throws DirectoryException
   {
-    Entry e = entry.duplicate(true);
+    Entry e = entry.duplicate(false);
 
     // Make sure the entry exists.  If not, then throw an exception.
     DN entryDN = e.getDN();
@@ -463,7 +469,7 @@ public class MemoryBackend
                                        ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    Entry e = entry.duplicate(true);
+    Entry e = entry.duplicate(false);
 
     // Make sure that the target entry exists.
     if (! entryMap.containsKey(currentDN))
@@ -573,6 +579,11 @@ public class MemoryBackend
                                    matchedDN, null);
     }
 
+    if (baseEntry != null)
+    {
+      baseEntry = baseEntry.duplicate(true);
+    }
+
 
     // If it's a base-level search, then just get that entry and return it if it
     // matches the filter.
@@ -588,6 +599,7 @@ public class MemoryBackend
       // Walk through all entries and send the ones that match.
       for (Entry e : entryMap.values())
       {
+        e = e.duplicate(true);
         if (e.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(e))
         {
           searchOperation.returnEntry(e, new LinkedList<Control>());
