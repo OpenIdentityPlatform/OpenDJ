@@ -233,7 +233,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   protected String getInstallationPath() {
-    return Utils.getInstallPathFromClasspath();
+    // The upgrader runs from the bits extracted by BuildExtractor
+    // in the staging directory.  So 'stagePath' below will point
+    // to the staging directory [installroot]/tmp/upgrade.  However
+    // we still want the Installation to point at the build being
+    // upgraded so the install path reported in [installroot].
+
+    String stagePath = Utils.getInstallPathFromClasspath();
+    File f = new File(stagePath);
+    return Utils.getPath(f.getParentFile().getParentFile());
   }
 
   /**
@@ -924,9 +932,11 @@ public class Upgrader extends GuiApplication implements CliApplication {
       stagingDir = getStageDirectory();
       FileManager fm = new FileManager(this);
 
-      // doing this seems to work betterh than just plain
-      // old delete
-      fm.deleteRecursively(stagingDir);
+      // Doing this seems to work better than just plain
+      // old delete.  Note that on Windows there are file
+      // locking issues to we mark files for deletion after
+      // this JVM exits
+      fm.deleteRecursively(stagingDir, null, /*onExit=*/true);
 
     } catch (IOException e) {
       // TODO i18n
