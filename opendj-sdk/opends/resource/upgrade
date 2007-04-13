@@ -123,11 +123,37 @@ if [ -r "./tmp/upgrade" ]
 then
   rm -fr "./tmp/upgrade"
 fi
+
 # Launch the build extractor.
+# Configure the appropriate CLASSPATH.
+# BuildExtractor uses the existing install's
+# jars
+CLASSPATH=${CLASSPATH}:${INSTANCE_ROOT}/classes
+for JAR in ${INSTANCE_ROOT}/lib/*.jar
+do
+  CLASSPATH=${CLASSPATH}:${JAR}
+done
+export CLASSPATH
 "${JAVA_BIN}" org.opends.quicksetup.upgrader.BuildExtractor "${@}"
 
 if test ${?} -eq 0
 then
+  # Configure the appropriate CLASSPATH.
+  # Unlike BuildExtractor, the Upgrader uses
+  # the newly extracted build's jars.
+  CLASSPATH=${INSTANCE_ROOT}/tmp/upgrade/classes
+  for JAR in ${INSTANCE_ROOT}/tmp/upgrade/lib/*.jar
+  do
+    CLASSPATH=${CLASSPATH}:${JAR}
+  done
+  export CLASSPATH
+  echo ${CLASSPATH}
   # Launch the upgrade process.
   "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
+
+  # Clean up if necessary
+  if [ -r "./tmp/upgrade" ]
+  then
+    rm -fr "./tmp/upgrade"
+  fi
 fi
