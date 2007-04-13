@@ -1156,6 +1156,9 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.343 NAME 'ds-target-group-dn'
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.344
   NAME 'ds-cfg-virtual-attribute-value' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.345
+  NAME 'ds-cfg-allow-retrieving-membership' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1614,5 +1617,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.99 NAME 'ds-virtual-static-group'
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.100
   NAME 'ds-cfg-user-defined-virtual-attribute' SUP ds-cfg-virtual-attribute
   STRUCTURAL MUST ds-cfg-virtual-attribute-value
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.101
+  NAME 'ds-cfg-member-virtual-attribute' SUP ds-cfg-virtual-attribute
+  STRUCTURAL MUST ds-cfg-allow-retrieving-membership
   X-ORIGIN 'OpenDS Directory Server' )
 

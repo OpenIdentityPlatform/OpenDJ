@@ -525,3 +525,13 @@ ds-cfg-database-checkpointer-bytes-interval: 20 megabytes
 ds-cfg-database-checkpointer-wakeup-interval: 30 seconds
 ds-cfg-database-lock-num-lock-tables: 19
 
+dn: cn=Virtual Static member,cn=Virtual Attributes,cn=config
+changetype: modify
+replace: ds-cfg-allow-retrieving-membership
+ds-cfg-allow-retrieving-membership: true
+
+dn: cn=Virtual Static uniqueMember,cn=Virtual Attributes,cn=config
+changetype: modify
+replace: ds-cfg-allow-retrieving-membership
+ds-cfg-allow-retrieving-membership: true
+

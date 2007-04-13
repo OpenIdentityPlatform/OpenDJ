@@ -837,6 +837,65 @@ public class VirtualStaticGroupTestCase
 
 
   /**
+   * Tests the behavior of the member virtual attribute with different settings
+   * for the "allow retrieving membership" attribute.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAllowRetrievingMembership()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntries(LDIF_LINES);
+
+    Entry e = DirectoryServer.getEntry(vmd1);
+    assertNotNull(e);
+    assertTrue(e.hasAttribute(memberType));
+
+    Attribute a = e.getAttribute(memberType).get(0);
+    assertEquals(a.getValues().size(), 1);
+
+    AttributeValue v = new AttributeValue(memberType, u4.toString());
+    assertTrue(a.hasValue(v));
+
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    LinkedList<Modification> mods = new LinkedList<Modification>();
+    mods.add(new Modification(ModificationType.REPLACE,
+         new Attribute("ds-cfg-allow-retrieving-membership", "false")));
+    DN definitionDN =
+         DN.decode("cn=Virtual Static member,cn=Virtual Attributes,cn=config");
+    ModifyOperation modifyOperation = conn.processModify(definitionDN, mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    e = DirectoryServer.getEntry(vmd1);
+    assertNotNull(e);
+    assertTrue(e.hasAttribute(memberType));
+
+    a = e.getAttribute(memberType).get(0);
+    assertEquals(a.getValues().size(), 0);
+
+    v = new AttributeValue(memberType, u4.toString());
+    assertTrue(a.hasValue(v));
+
+
+    mods = new LinkedList<Modification>();
+    mods.add(new Modification(ModificationType.REPLACE,
+         new Attribute("ds-cfg-allow-retrieving-membership", "true")));
+    modifyOperation = conn.processModify(definitionDN, mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    cleanUp();
+  }
+
+
+
+  /**
    * Removes all of the groups that have been added to the server.
    *
    * @throws  Exception  If an unexpected problem occurs.

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:managed-object name="member-virtual-attribute"
+plural-name="user-defined-virtual-attributes"
+package="org.opends.server.admin.std" extends="virtual-attribute"
+xmlns:adm="http://www.opends.org/admin"
+xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to generate a member or uniqueMember attribute whose values are the
+    DNs of the members of a specified group.  This is used to implement virtual
+    static group functionality, in which it is possible to create an entry which
+    looks like a static group but obtains all of its membership from a dynamic
+    group (or some other type of group, including another static group).
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.101</ldap:oid>
+      <ldap:name>ds-cfg-member-virtual-attribute</ldap:name>
+      <ldap:superior>ds-cfg-virtual-attribute</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="allow-retrieving-membership" mandatory="true">
+    <adm:synopsis>
+      Indicates whether to handle requests that request all values for the
+      virtual attribute.  This can be a very expensive operation in some cases,
+      and is not in-line with the primary function of virtual static groups,
+      which is to make it possible to use static group idioms to determine
+      whether a given user is a member.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.345</ldap:oid>
+        <ldap:name>ds-cfg-allow-retrieving-membership</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

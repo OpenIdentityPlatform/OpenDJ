@@ -32,7 +32,8 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.opends.server.admin.std.server.VirtualAttributeCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.MemberVirtualAttributeCfg;
 import org.opends.server.api.Group;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
@@ -42,6 +43,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -62,11 +64,15 @@ import static org.opends.server.util.ServerConstants.*;
  * uniqueMember attribute.
  */
 public class MemberVirtualAttributeProvider
-       extends VirtualAttributeProvider<VirtualAttributeCfg>
+       extends VirtualAttributeProvider<MemberVirtualAttributeCfg>
+       implements ConfigurationChangeListener<MemberVirtualAttributeCfg>
 {
   // The attribute type used to indicate which target group should be used to
   // obtain the member list.
   private AttributeType targetGroupType;
+
+  // The current configuration for this member virtual attribute.
+  private MemberVirtualAttributeCfg currentConfig;
 
 
 
@@ -88,9 +94,12 @@ public class MemberVirtualAttributeProvider
    */
   @Override()
   public void initializeVirtualAttributeProvider(
-                            VirtualAttributeCfg configuration)
+                            MemberVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
   {
+    configuration.addMemberChangeListener(this);
+    currentConfig = configuration;
+
     targetGroupType =
          DirectoryServer.getAttributeType(ATTR_TARGET_GROUP_DN, true);
   }
@@ -115,6 +124,11 @@ public class MemberVirtualAttributeProvider
   public LinkedHashSet<AttributeValue> getValues(Entry entry,
                                                  VirtualAttributeRule rule)
   {
+    if (! currentConfig.isAllowRetrievingMembership())
+    {
+      return new LinkedHashSet<AttributeValue>(0);
+    }
+
     Group g = DirectoryServer.getGroupManager().getGroupInstance(entry.getDN());
     if (g == null)
     {
@@ -335,6 +349,33 @@ public class MemberVirtualAttributeProvider
   {
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
     return;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+                      MemberVirtualAttributeCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // The new configuration should always be acceptable.
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+                                 MemberVirtualAttributeCfg configuration)
+  {
+    // Just accept the new configuration as-is.
+    currentConfig = configuration;
+
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }
 
