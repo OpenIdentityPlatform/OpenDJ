@@ -239,7 +239,7 @@ public class StaticGroup
     // them.
     String filterString =
          "(&(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))" +
-            "(!(objectClass=ds-virtual-static-group))";
+            "(!(objectClass=ds-virtual-static-group)))";
     return SearchFilter.createFilterFromString(filterString);
   }
 
