@@ -2299,6 +2299,28 @@ public class ServerConstants
 
 
   /**
+   * The name of the system property that can be used to specify the concurrency
+   * level for the lock table.  This should be set to the maximum number of
+   * threads that could attempt to interact with the lock table at any given
+   * time.
+   */
+  public static final String PROPERTY_LOCK_MANAGER_CONCURRENCY_LEVEL =
+       "org.opends.server.LockManagerConcurrencyLevel";
+
+
+
+  /**
+   * The name of the system property that can be used to specify the initial
+   * table size for the server lock table.  This can be used to ensure that the
+   * lock table has the appropriate size for the expected number of locks that
+   * will be held at any given time.
+   */
+  public static final String PROPERTY_LOCK_MANAGER_TABLE_SIZE =
+       "org.opends.server.LockManagerTableSize";
+
+
+
+  /**
    * The name of the system property that can be used to determine whether the
    * Directory Server is starting up for the purpose of running the unit tests.
    */

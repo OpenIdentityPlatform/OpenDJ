@@ -31,15 +31,10 @@ package org.opends.server.types;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugError;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugWarning;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -52,29 +47,24 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LockManager
 {
+  /**
+   * The default initial size to use for the lock table.
+   */
+  public static final int DEFAULT_INITIAL_TABLE_SIZE = 64;
 
 
 
   /**
-   * The number of buckets into which the set of global DN locks will
-   * be broken.
+   * The default concurrency level to use for the lock table.
    */
-  public static final int NUM_GLOBAL_DN_LOCKS =
-       (10 * Runtime.getRuntime().availableProcessors());
+  public static final int DEFAULT_CONCURRENCY_LEVEL = 32;
 
 
 
   /**
-   * The initial capacity to use for the DN lock hashtable.
+   * The default load factor to use for the lock table.
    */
-  public static final int DN_TABLE_INITIAL_SIZE = 50;
-
-
-
-  /**
-   * The load factor to use for the DN lock hashtable.
-   */
-  public static final float DN_TABLE_LOAD_FACTOR = 0.75F;
+  public static final float DEFAULT_LOAD_FACTOR = 0.75F;
 
 
 
@@ -86,152 +76,133 @@ public class LockManager
 
 
 
-  // The set of global DN locks that we need to ensure thread safety
-  // for all of the other operations.
-  private static ReentrantLock[] globalDNLocks;
-
   // The set of entry locks that the server knows about.
-  private static ConcurrentHashMap<DN,ReentrantReadWriteLock>
-                      entryLocks;
+  private static
+       ConcurrentHashMap<DN,ReentrantReadWriteLock> lockTable;
 
 
 
   // Initialize all of the lock variables.
   static
   {
-    // Create the set of global DN locks.
-    globalDNLocks = new ReentrantLock[NUM_GLOBAL_DN_LOCKS];
-    for (int i=0; i < NUM_GLOBAL_DN_LOCKS; i++)
+    // Determine the concurrency level to use.  We'll let it be
+    // specified by a system property, but if it isn't specified then
+    // we'll set the default value based on the number of CPUs in the
+    // system.
+    int concurrencyLevel = -1;
+    String propertyStr =
+         System.getProperty(PROPERTY_LOCK_MANAGER_CONCURRENCY_LEVEL);
+    if (propertyStr != null)
     {
-      globalDNLocks[i] = new ReentrantLock();
+      try
+      {
+        concurrencyLevel = Integer.parseInt(propertyStr);
+      } catch (Exception e) {}
+    }
+
+    if (concurrencyLevel <= 0)
+    {
+      concurrencyLevel =
+           Math.max(DEFAULT_CONCURRENCY_LEVEL,
+                    (2*Runtime.getRuntime().availableProcessors()));
+    }
+
+
+    // Set the lock table size either to a user-defined value from a
+    // property or a hard-coded default.
+    int lockTableSize = DEFAULT_INITIAL_TABLE_SIZE;
+    propertyStr =
+         System.getProperty(PROPERTY_LOCK_MANAGER_TABLE_SIZE);
+    if (propertyStr != null)
+    {
+      try
+      {
+        lockTableSize = Integer.parseInt(propertyStr);
+      } catch (Exception e) {}
     }
 
 
     // Create an empty table for holding the entry locks.
-    entryLocks = new ConcurrentHashMap<DN,ReentrantReadWriteLock>(
-         DN_TABLE_INITIAL_SIZE, DN_TABLE_LOAD_FACTOR,
-         NUM_GLOBAL_DN_LOCKS);
+    lockTable = new ConcurrentHashMap<DN,ReentrantReadWriteLock>(
+         lockTableSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
   }
 
 
 
   /**
    * Attempts to acquire a read lock on the specified entry.  It will
-   * succeed only if the lock is not already held.  If any blocking is
-   * required, then this call will fail rather than block.
+   * succeed only if the write lock is not already held.  If any
+   * blocking is required, then this call will fail rather than block.
    *
    * @param  entryDN  The DN of the entry for which to obtain the read
    *                  lock.
    *
-   * @return  The read lock that was acquired, or <CODE>null</CODE> if
-   *          it was not possible to obtain a read lock for some
-   *          reason.
+   * @return  The read lock that was acquired, or {@code null} if it
+   *          was not possible to obtain a read lock for some reason.
    */
   public static Lock tryLockRead(DN entryDN)
   {
-    int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
+    ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
+    Lock readLock = entryLock.readLock();
+    readLock.lock();
 
-
-    // Get the hash code for the provided entry DN and determine which
-    // global lock to acquire.  This will ensure that no two threads
-    // will be allowed to lock or unlock the same entry at any given
-    // time, but should allow other entries with different hash codes
-    // to be processed.
-    ReentrantLock globalLock;
-    try
+    ReentrantReadWriteLock existingLock =
+         lockTable.putIfAbsent(entryDN, entryLock);
+    if (existingLock == null)
     {
-      globalLock = globalDNLocks[hashCode % NUM_GLOBAL_DN_LOCKS];
-      if (! globalLock.tryLock())
+      return readLock;
+    }
+    else
+    {
+      // There's a lock in the table, but it could potentially be
+      // unheld.  We'll do an unsafe check to see whether it might be
+      // held and if so then fail to acquire the lock.
+      if (existingLock.isWriteLocked())
       {
+        readLock.unlock();
         return null;
       }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+
+      // We will never remove a lock from the table without holding
+      // its monitor.  Since there's already a lock in the table, then
+      // get its monitor and try to acquire the lock.  This should
+      // prevent the owner from releasing the lock and removing it
+      // from the table before it can be acquired by another thread.
+      synchronized (existingLock)
       {
-        debugCaught(DebugLogLevel.ERROR, e);
-
-        // This is not fine.  Some unexpected error occurred.
-        debugError(
-            "Unexpected exception while trying to obtain the " +
-                "global lock for entry %s: %s",
-            entryDN, stackTraceToSingleLineString(e));
-      }
-      return null;
-    }
-
-
-
-    // At this point we have the global lock for this bucket.  We must
-    // use a try/catch/finally block to ensure that the global lock is
-    // always released no matter what.
-    try
-    {
-      // Now check to see if the entry is already in the lock table.
-      ReentrantReadWriteLock entryLock = entryLocks.get(entryDN);
-      if (entryLock == null)
-      {
-        // No lock exists for the entry.  Create one and put it in the
-        // table.
-        entryLock = new ReentrantReadWriteLock();
-        if (entryLock.readLock().tryLock())
+        ReentrantReadWriteLock existingLock2 =
+             lockTable.putIfAbsent(entryDN, entryLock);
+        if (existingLock2 == null)
         {
-          entryLocks.put(entryDN, entryLock);
-          return entryLock.readLock();
+          return readLock;
+        }
+        else if (existingLock == existingLock2)
+        {
+          // We were able to synchronize on the lock's monitor while
+          // the lock was still in the table.  Try to acquire it now
+          // (which will succeed if the lock isn't held by anything)
+          // and either return it or return null.
+          readLock.unlock();
+          readLock = existingLock.readLock();
+          if (readLock.tryLock())
+          {
+            return readLock;
+          }
+          else
+          {
+            return null;
+          }
         }
         else
         {
-          // This should never happen since we just created the lock.
-          if (debugEnabled())
-          {
-            debugError(
-                "Unable to acquire read lock on newly-created lock " +
-                "for entry %s", entryDN);
-          }
+          // If this happens, then it means that while we were waiting
+          // the existing lock was unlocked and removed from the table
+          // and a new one was created and added to the table.  This
+          // is more trouble than it's worth, so return null.
+          readLock.unlock();
           return null;
         }
       }
-      else
-      {
-        // There is already a lock for the entry.  Try to get its read
-        // lock.
-        if (entryLock.readLock().tryLock())
-        {
-          // We got the read lock.  We don't need to do anything else.
-          return entryLock.readLock();
-        }
-        else
-        {
-          // We couldn't get the read lock.  Write a debug message.
-          if (debugEnabled())
-          {
-            debugWarning(
-                "Unable to acquire a read lock for entry %s that " +
-                "was already present in the lock table.", entryDN);
-          }
-          return null;
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-
-        // This is not fine.  Some unexpected error occurred.
-        debugError(
-            "Unexpected exception while trying to obtain a read " +
-                "lock for entry %s: %s",
-            entryDN, stackTraceToSingleLineString(e));
-      }
-      return null;
-    }
-    finally
-    {
-      // This will always be called even after a return.
-      globalLock.unlock();
     }
   }
 
@@ -248,9 +219,8 @@ public class LockManager
    * @param  entryDN  The DN of the entry for which to obtain the read
    *                  lock.
    *
-   * @return  The read lock that was acquired, or <CODE>null</CODE> if
-   *          it was not possible to obtain a read lock for some
-   *          reason.
+   * @return  The read lock that was acquired, or {@code null} if it
+   *          was not possible to obtain a read lock for some reason.
    */
   public static Lock lockRead(DN entryDN)
   {
@@ -262,9 +232,9 @@ public class LockManager
   /**
    * Attempts to acquire a read lock for the specified entry.
    * Multiple threads can hold the read lock concurrently for an entry
-   * as long as the write lock is held.  If the write lock is held,
-   * then no other read or write locks will be allowed for that entry
-   * until the write lock is released.
+   * as long as the write lock is not held.  If the write lock is
+   * held, then no other read or write locks will be allowed for that
+   * entry until the write lock is released.
    *
    * @param  entryDN  The DN of the entry for which to obtain the read
    *                  lock.
@@ -277,139 +247,85 @@ public class LockManager
    */
   public static Lock lockRead(DN entryDN, long timeout)
   {
-    int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
-
-
-    // Get the hash code for the provided entry DN and determine which
-    // global lock to acquire.  This will ensure that no two threads
-    // will be allowed to lock or unlock the same entry at any given
-    // time, but should allow other entries with different hash codes
-    // to be processed.
-    ReentrantLock globalLock;
-    try
+    // First, try to get the lock without blocking.
+    Lock readLock = tryLockRead(entryDN);
+    if (readLock != null)
     {
-      globalLock = globalDNLocks[hashCode % NUM_GLOBAL_DN_LOCKS];
-      if (! globalLock.tryLock(timeout, TimeUnit.MILLISECONDS))
+      return readLock;
+    }
+
+    ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
+    readLock = entryLock.readLock();
+    readLock.lock();
+
+    ReentrantReadWriteLock existingLock =
+         lockTable.putIfAbsent(entryDN, entryLock);
+    if (existingLock == null)
+    {
+      return readLock;
+    }
+
+    long surrenderTime = System.currentTimeMillis() + timeout;
+    readLock.unlock();
+    readLock = existingLock.readLock();
+
+    while (true)
+    {
+      try
+      {
+        // See if we can acquire the lock while it's still in the
+        // table within the given timeout.
+        if (readLock.tryLock(timeout, TimeUnit.MILLISECONDS))
+        {
+          synchronized (existingLock)
+          {
+            if (lockTable.get(entryDN) == existingLock)
+            {
+              // We acquired the lock within the timeout and it's
+              // still in the lock table, so we're good to go.
+              return readLock;
+            }
+            else
+            {
+              ReentrantReadWriteLock existingLock2 =
+                   lockTable.putIfAbsent(entryDN, existingLock);
+              if (existingLock2 == null)
+              {
+                // The lock had already been removed from the table,
+                // but nothing had replaced it before we put it back,
+                // so we're good to go.
+                return readLock;
+              }
+              else
+              {
+                readLock.unlock();
+                existingLock = existingLock2;
+                readLock     = existingLock.readLock();
+              }
+            }
+          }
+        }
+        else
+        {
+          // We couldn't acquire the lock before the timeout occurred,
+          // so we have to fail.
+          return null;
+        }
+      } catch (InterruptedException ie) {}
+
+
+      // There are only two reasons we should be here:
+      // - If the attempt to acquire the lock was interrupted.
+      // - If we acquired the lock but it had already been removed
+      //   from the table and another one had replaced it before we
+      //   could put it back.
+      // Our only recourse is to try again, but we need to reduce the
+      // timeout to account for the time we've already waited.
+      timeout = surrenderTime - System.currentTimeMillis();
+      if (timeout <= 0)
       {
         return null;
       }
-    }
-    catch (InterruptedException ie)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, ie);
-      }
-
-      // This is fine.  The thread trying to acquire the lock was
-      // interrupted.
-      return null;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // This is not fine.  Some unexpected error occurred.
-      if (debugEnabled())
-      {
-        debugError(
-            "Unexpected exception while trying to obtain the " +
-                "global lock for entry %s: %s",
-            entryDN, stackTraceToSingleLineString(e));
-      }
-      return null;
-    }
-
-
-
-    // At this point we have the global lock for this bucket.  We must
-    // use a try/catch/finally block to ensure that the global lock is
-    // always released no matter what.
-    try
-    {
-      // Now check to see if the entry is already in the lock table.
-      ReentrantReadWriteLock entryLock = entryLocks.get(entryDN);
-      if (entryLock == null)
-      {
-        // No lock exists for the entry.  Create one and put it in the
-        // table.
-        entryLock = new ReentrantReadWriteLock();
-        if (entryLock.readLock().tryLock(timeout,
-                                         TimeUnit.MILLISECONDS))
-        {
-          entryLocks.put(entryDN, entryLock);
-          return entryLock.readLock();
-        }
-        else
-        {
-          // This should never happen since we just created the lock.
-          if (debugEnabled())
-          {
-            debugError(
-                "Unable to acquire read lock on newly-created lock " +
-                "for entry %s", entryDN);
-          }
-          return null;
-        }
-      }
-      else
-      {
-        // There is already a lock for the entry.  Try to get its read
-        // lock.
-        if (entryLock.readLock().tryLock(timeout,
-                                         TimeUnit.MILLISECONDS))
-        {
-          // We got the read lock.  We don't need to do anything else.
-          return entryLock.readLock();
-        }
-        else
-        {
-          // We couldn't get the read lock.  Write a debug message.
-          if (debugEnabled())
-          {
-            debugWarning(
-                "Unable to acquire a read lock for entry %s that " +
-                "was already present in the lock table.", entryDN);
-          }
-          return null;
-        }
-      }
-    }
-    catch (InterruptedException ie)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, ie);
-      }
-
-      // This is fine.  The thread trying to acquire the lock was
-      // interrupted.
-      return null;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // This is not fine.  Some unexpected error occurred.
-      if (debugEnabled())
-      {
-        debugError(
-            "Unexpected exception while trying to obtain a read " +
-                "lock for entry %s: %s",
-            entryDN, stackTraceToSingleLineString(e));
-      }
-      return null;
-    }
-    finally
-    {
-      // This will always be called even after a return.
-      globalLock.unlock();
     }
   }
 
@@ -429,111 +345,68 @@ public class LockManager
    */
   public static Lock tryLockWrite(DN entryDN)
   {
-    int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
+    ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
+    Lock writeLock = entryLock.writeLock();
+    writeLock.lock();
 
-
-    // Get the hash code for the provided entry DN and determine which
-    // global lock to acquire.  This will ensure that no two threads
-    // will be allowed to lock or unlock the same entry at any given
-    // time, but should allow other entries with different hash codes
-    // to be processed.
-    ReentrantLock globalLock;
-    try
+    ReentrantReadWriteLock existingLock =
+         lockTable.putIfAbsent(entryDN, entryLock);
+    if (existingLock == null)
     {
-      globalLock = globalDNLocks[hashCode % NUM_GLOBAL_DN_LOCKS];
-      if (! globalLock.tryLock())
+      return writeLock;
+    }
+    else
+    {
+      // There's a lock in the table, but it could potentially be
+      // unheld.  We'll do an unsafe check to see whether it might be
+      // held and if so then fail to acquire the lock.
+      if ((existingLock.getReadLockCount() > 0) ||
+          (existingLock.isWriteLocked()))
       {
+        writeLock.unlock();
         return null;
       }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+
+      // We will never remove a lock from the table without holding
+      // its monitor.  Since there's already a lock in the table, then
+      // get its monitor and try to acquire the lock.  This should
+      // prevent the owner from releasing the lock and removing it
+      // from the table before it can be acquired by another thread.
+      synchronized (existingLock)
       {
-        debugCaught(DebugLogLevel.ERROR, e);
-
-        // This is not fine.  Some unexpected error occurred.
-        debugError(
-            "Unexpected exception while trying to obtain the " +
-                "global lock for entry %s: %s",
-            entryDN, stackTraceToSingleLineString(e));
-      }
-      return null;
-    }
-
-
-
-    // At this point we have the global lock for this bucket.  We must
-    // use a try/catch/finally block to ensure that the global lock is
-    // always released no matter what.
-    try
-    {
-      // Now check to see if the entry is already in the lock table.
-      ReentrantReadWriteLock entryLock = entryLocks.get(entryDN);
-      if (entryLock == null)
-      {
-        // No lock exists for the entry.  Create one and put it in the
-        // table.
-        entryLock = new ReentrantReadWriteLock();
-        if (entryLock.writeLock().tryLock())
+        ReentrantReadWriteLock existingLock2 =
+             lockTable.putIfAbsent(entryDN, entryLock);
+        if (existingLock2 == null)
         {
-          entryLocks.put(entryDN, entryLock);
-          return entryLock.writeLock();
+          return writeLock;
+        }
+        else if (existingLock == existingLock2)
+        {
+          // We were able to synchronize on the lock's monitor while
+          // the lock was still in the table.  Try to acquire it now
+          // (which will succeed if the lock isn't held by anything)
+          // and either return it or return null.
+          writeLock.unlock();
+          writeLock = existingLock.writeLock();
+          if (writeLock.tryLock())
+          {
+            return writeLock;
+          }
+          else
+          {
+            return null;
+          }
         }
         else
         {
-          // This should never happen since we just created the lock.
-          if (debugEnabled())
-          {
-            debugError(
-                "Unable to acquire write lock on newly-created " +
-                    "lock for entry %s", entryDN);
-          }
+          // If this happens, then it means that while we were waiting
+          // the existing lock was unlocked and removed from the table
+          // and a new one was created and added to the table.  This
+          // is more trouble than it's worth, so return null.
+          writeLock.unlock();
           return null;
         }
       }
-      else
-      {
-        // There is already a lock for the entry.  Try to get its
-        // write lock.
-        if (entryLock.writeLock().tryLock())
-        {
-          // We got the write lock.  We don't need to do anything
-          // else.
-          return entryLock.writeLock();
-        }
-        else
-        {
-          // We couldn't get the write lock.  Write a debug message.
-          if (debugEnabled())
-          {
-            debugWarning(
-                "Unable to acquire the write lock for entry %s " +
-                    "that was already present in the lock table.",
-                entryDN);
-          }
-          return null;
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-
-        // This is not fine.  Some unexpected error occurred.
-        debugError(
-            "Unexpected exception while trying to obtain the write " +
-                "lock for entry %s: %s",
-            entryDN, stackTraceToSingleLineString(e));
-      }
-      return null;
-    }
-    finally
-    {
-      // This will always be called even after a return.
-      globalLock.unlock();
     }
   }
 
@@ -575,138 +448,85 @@ public class LockManager
    */
   public static Lock lockWrite(DN entryDN, long timeout)
   {
-    int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
-
-
-    // Get the hash code for the provided entry DN and determine which
-    // global lock to acquire.  This will ensure that no two threads
-    // will be allowed to lock or unlock the same entry at any given
-    // time, but should allow other entries with different hash codes
-    // to be processed.
-    ReentrantLock globalLock;
-    try
+    // First, try to get the lock without blocking.
+    Lock writeLock = tryLockWrite(entryDN);
+    if (writeLock != null)
     {
-      globalLock = globalDNLocks[hashCode % NUM_GLOBAL_DN_LOCKS];
-      if (! globalLock.tryLock(timeout, TimeUnit.MILLISECONDS))
+      return writeLock;
+    }
+
+    ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
+    writeLock = entryLock.writeLock();
+    writeLock.lock();
+
+    ReentrantReadWriteLock existingLock =
+         lockTable.putIfAbsent(entryDN, entryLock);
+    if (existingLock == null)
+    {
+      return writeLock;
+    }
+
+    long surrenderTime = System.currentTimeMillis() + timeout;
+    writeLock.unlock();
+    writeLock = existingLock.writeLock();
+
+    while (true)
+    {
+      try
+      {
+        // See if we can acquire the lock while it's still in the
+        // table within the given timeout.
+        if (writeLock.tryLock(timeout, TimeUnit.MILLISECONDS))
+        {
+          synchronized (existingLock)
+          {
+            if (lockTable.get(entryDN) == existingLock)
+            {
+              // We acquired the lock within the timeout and it's
+              // still in the lock table, so we're good to go.
+              return writeLock;
+            }
+            else
+            {
+              ReentrantReadWriteLock existingLock2 =
+                   lockTable.putIfAbsent(entryDN, existingLock);
+              if (existingLock2 == null)
+              {
+                // The lock had already been removed from the table,
+                // but nothing had replaced it before we put it back,
+                // so we're good to go.
+                return writeLock;
+              }
+              else
+              {
+                writeLock.unlock();
+                existingLock  = existingLock2;
+                writeLock     = existingLock.writeLock();
+              }
+            }
+          }
+        }
+        else
+        {
+          // We couldn't acquire the lock before the timeout occurred,
+          // so we have to fail.
+          return null;
+        }
+      } catch (InterruptedException ie) {}
+
+
+      // There are only two reasons we should be here:
+      // - If the attempt to acquire the lock was interrupted.
+      // - If we acquired the lock but it had already been removed
+      //   from the table and another one had replaced it before we
+      //   could put it back.
+      // Our only recourse is to try again, but we need to reduce the
+      // timeout to account for the time we've already waited.
+      timeout = surrenderTime - System.currentTimeMillis();
+      if (timeout <= 0)
       {
         return null;
       }
-    }
-    catch (InterruptedException ie)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, ie);
-      }
-
-      // This is fine.  The thread trying to acquire the lock was
-      // interrupted.
-      return null;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // This is not fine.  Some unexpected error occurred.
-      if (debugEnabled())
-      {
-        debugError(
-            "Unexpected exception while trying to obtain the " +
-                "global lock for entry %s: %s",
-            entryDN, stackTraceToSingleLineString(e));
-      }
-      return null;
-    }
-
-
-
-    // At this point we have the global lock for this bucket.  We must
-    // use a try/catch/finally block to ensure that the global lock is
-    // always released no matter what.
-    try
-    {
-      // Now check to see if the entry is already in the lock table.
-      ReentrantReadWriteLock entryLock = entryLocks.get(entryDN);
-      if (entryLock == null)
-      {
-        // No lock exists for the entry.  Create one and put it in the
-        // table.
-        entryLock = new ReentrantReadWriteLock();
-        if (entryLock.writeLock().tryLock(timeout,
-                                          TimeUnit.MILLISECONDS))
-        {
-          entryLocks.put(entryDN, entryLock);
-          return entryLock.writeLock();
-        }
-        else
-        {
-          // This should never happen since we just created the lock.
-          if (debugEnabled())
-          {
-            debugError(
-                "Unable to acquire write lock on newly-created " +
-                    "lock for entry %s", entryDN.toString());
-          }
-          return null;
-        }
-      }
-      else
-      {
-        // There is already a lock for the entry.  Try to get its
-        // write lock.
-        if (entryLock.writeLock().tryLock(timeout,
-                                          TimeUnit.MILLISECONDS))
-        {
-          // We got the write lock.  We don't need to do anything
-          // else.
-          return entryLock.writeLock();
-        }
-        else
-        {
-          // We couldn't get the write lock.  Write a debug message.
-          if (debugEnabled())
-          {
-            debugWarning(
-                "Unable to acquire the write lock for entry %s " +
-                    "that was already present in the lock table.",
-                entryDN);
-          }
-          return null;
-        }
-      }
-    }
-    catch (InterruptedException ie)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, ie);
-      }
-
-      // This is fine.  The thread trying to acquire the lock was
-      // interrupted.
-      return null;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-
-        // This is not fine.  Some unexpected error occurred.
-        debugError(
-            "Unexpected exception while trying to obtain the write " +
-            "lock for entry %s: %s",
-            entryDN, stackTraceToSingleLineString(e));
-      }
-      return null;
-    }
-    finally
-    {
-      // This will always be called even after a return.
-      globalLock.unlock();
     }
   }
 
@@ -721,99 +541,36 @@ public class LockManager
    */
   public static void unlock(DN entryDN, Lock lock)
   {
-    // Unlock the entry without grabbing any additional locks.
-    try
+    // Get the corresponding read-write lock from the lock table.
+    ReentrantReadWriteLock existingLock = lockTable.get(entryDN);
+    if (existingLock == null)
+    {
+      // This shouldn't happen, but if it does then all we can do is
+      // release the lock and return.
+      lock.unlock();
+      return;
+    }
+
+    // See if there's anything waiting on the lock.  If so, then we
+    // can't remove it from the table when we unlock it.
+    if (existingLock.hasQueuedThreads() ||
+        (existingLock.getReadLockCount() > 1))
     {
       lock.unlock();
-    }
-    catch (Exception e)
-    {
-      // This should never happen.  However, if it does, then just
-      // capture the exception and continue because it may still be
-      // necessary to remove the lock for the entry from the table.
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-
-
-    int hashCode = (entryDN.hashCode() & 0x7FFFFFFF);
-
-
-    // Now grab the global lock for the entry and check to see if we
-    // can remove it from the table.
-    ReentrantLock globalLock;
-    try
-    {
-      globalLock = globalDNLocks[hashCode % NUM_GLOBAL_DN_LOCKS];
-
-      // This will block until it acquires the lock or until it is
-      // interrupted.
-      globalLock.lockInterruptibly();
-    }
-    catch (InterruptedException ie)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, ie);
-      }
-
-      // The lock trying to acquire the lock was interrupted.  In this
-      // case, we'll just return.  The worst that could happen here is
-      // that a lock that isn't held by anything is still in the table
-      // which will just consume a little memory.
       return;
     }
-    catch (Exception e)
+    else
     {
-      if (debugEnabled())
+      lock.unlock();
+      synchronized (existingLock)
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        if ((! existingLock.isWriteLocked()) &&
+            (existingLock.getReadLockCount() == 0))
+        {
+          lockTable.remove(entryDN, existingLock);
+        }
       }
-
-      // This is not fine.  Some unexpected error occurred.  But
-      // again, the worst that could happen is that we may not clean
-      // up an unheld lock, which isn't really that big a deal unless
-      // it happens too often.
-      debugError(
-          "Unexpected exception while trying to obtain the global " +
-              "lock for entry %s: %s",
-          entryDN, stackTraceToSingleLineString(e));
       return;
-    }
-
-
-    // At this point we have the global lock for this bucket.  We must
-    // use a try/catch/finally block to ensure that the global lock is
-    // always released no matter what.
-    try
-    {
-      ReentrantReadWriteLock entryLock = entryLocks.get(entryDN);
-      if ((entryLock != null) &&
-          (entryLock.getReadLockCount() == 0) &&
-          (! entryLock.isWriteLocked()))
-      {
-        // This lock isn't held so we can remove it from the table.
-        entryLocks.remove(entryDN);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // This should never happen.
-      debugError(
-          "Unexpected exception while trying to determine whether " +
-              "the lock for entry %s can be removed: %s",
-          entryDN, stackTraceToSingleLineString(e));
-    }
-    finally
-    {
-      globalLock.unlock();
     }
   }
 
@@ -829,13 +586,13 @@ public class LockManager
    *                  from the table.
    *
    * @return  The read write lock that was removed from the table, or
-   *          <CODE>null</CODE> if nothing was in the table for the
+   *          {@code null} if nothing was in the table for the
    *          specified entry.  If a lock object is returned, it may
    *          be possible to get information about who was holding it.
    */
   public static ReentrantReadWriteLock destroyLock(DN entryDN)
   {
-    return entryLocks.remove(entryDN);
+    return lockTable.remove(entryDN);
   }
 
 
@@ -848,7 +605,7 @@ public class LockManager
    */
   public static int lockTableSize()
   {
-    return entryLocks.size();
+    return lockTable.size();
   }
 }
 
