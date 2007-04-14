@@ -343,9 +343,12 @@ public class PluginConfigManager
 
       if (configuration != null)
       {
-        Method method =
-             plugin.getClass().getMethod("initializePlugin", Set.class,
-                  configuration.definition().getServerConfigurationClass());
+        Method method = plugin.getClass().getMethod("initializeInternal",
+                                                    DN.class, Set.class);
+        method.invoke(plugin, configuration.dn(), pluginTypes);
+
+        method = plugin.getClass().getMethod("initializePlugin", Set.class,
+                      configuration.definition().getServerConfigurationClass());
         method.invoke(plugin, pluginTypes, configuration);
       }
 
