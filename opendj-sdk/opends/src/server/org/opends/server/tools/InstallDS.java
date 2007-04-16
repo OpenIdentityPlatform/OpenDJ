@@ -841,7 +841,7 @@ public class InstallDS
     argList.add(configFileName);
     argList.add("-p");
     argList.add(String.valueOf(ldapPortNumber));
-    argList.add("-j");
+    argList.add("-x");
     argList.add(String.valueOf(jmxPortNumber));
 
     for (DN dn : baseDNs)
