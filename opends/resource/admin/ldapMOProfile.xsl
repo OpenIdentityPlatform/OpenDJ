@@ -36,12 +36,26 @@
     Document parsing.
   -->
   <xsl:template match="/">
+    <xsl:if
+      test="not($this/adm:profile[@name='ldap']/ldap:object-class/ldap:name) and not($this-is-root)">
+      <xsl:message terminate="yes">
+        <xsl:value-of
+          select="concat('No object class found for managed object definition ', $this-name)" />
+      </xsl:message>
+    </xsl:if>
     <xsl:value-of
       select="concat('objectclass=',
                      normalize-space($this/adm:profile[@name='ldap']/ldap:object-class/ldap:name),
                      '&#xa;')" />
     <xsl:for-each select="$this-all-properties">
       <xsl:sort select="@name" />
+      <xsl:if
+        test="not(adm:profile[@name='ldap']/ldap:attribute/ldap:name)">
+        <xsl:message terminate="yes">
+          <xsl:value-of
+            select="concat('No attribute type found for property ', @name, ' in managed object definition ', $this-name)" />
+        </xsl:message>
+      </xsl:if>
       <xsl:value-of
         select="concat('attribute.',
                        normalize-space(@name),
@@ -51,6 +65,12 @@
     </xsl:for-each>
     <xsl:for-each select="$this-all-relations">
       <xsl:sort select="@name" />
+      <xsl:if test="not(adm:profile[@name='ldap']/ldap:rdn-sequence)">
+        <xsl:message terminate="yes">
+          <xsl:value-of
+            select="concat('No RDN sequence found for relation ', @name, ' in managed object definition ', $this-name)" />
+        </xsl:message>
+      </xsl:if>
       <xsl:value-of
         select="concat('rdn.',
                        normalize-space(@name),
