@@ -1,0 +1,3550 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="aci_modify_entry"/>
+
+  <function name="aci_modify_entry">
+
+    <sequence>
+
+      <block name="'aci-modify-entry'">
+      
+        <sequence>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+                Place suite-specific test information here.
+                #@TestSuiteName             ACI Modify Entry Tests
+                #@TestSuitePurpose          Test the ACI Support for modify.  
+                #@TestSuiteGroup            ACI Modify Entry Tests
+                #@TestScript                aci_modify_entry.xml
+          -->
+    
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Preamble
+                #@TestIssue                 444
+                #@TestPurpose               Add additional entries
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager adds additional entries.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all operations.
+                                            
+            -->
+          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+          <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Preamble'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                   'ACI: Modify: Preamble - Adding Entries For Modify Tests'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeAdded'   : '%s/aci/aci_modify_entry/aci_startup_modify_tests.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+ 
+<!-- replace attribute tests -->
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - userdn equals all
+                #@TestIssue                 444
+                #@TestPurpose               Modifies an attribute with targetattr=* and userdn =all
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to modify.ksh Test Cases tp3 -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - userdn equals all'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - userdn equals all, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - userdn equals all, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - userdn equals all, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry1a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - userdn equals all, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - userdn equals all, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - targetattr equals three attributes
+                #@TestIssue                 444
+                #@TestPurpose               Modify an attribute where targetattr equals three attributes
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies a prohibited attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to modify.ksh Test Cases tp1 and tp2 -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - targetattr equals three attributes'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr equals three attributes, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr equals three attributes, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr equals three attributes, user modifying prohibited attr in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry2.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr equals three attributes, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry2a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr equals three attributes, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr equals three attributes, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - targetattr not equals three attributes
+                #@TestIssue                 444
+                #@TestPurpose               Modify an attribute with targetattr not equals three attributes
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies a prohibited attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to modify.ksh Test Cases tp1 and tp2 -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_aci3.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry3.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes, user modifying prohibited attr in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry3.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry3a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - write not allowed
+                #@TestIssue                 444
+                #@TestPurpose               Modify an attribute where write is not allowed
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies a prohibited attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, and 
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - write not allowed'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_aci4.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - write not allowed, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - write not allowed, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_entry4.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - write not allowed, user modifying prohibited attr in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_entry4.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - write not allowed, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_entry4a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - write not allowed, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - write not allowed, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - targetattr and targattrfilters 
+                #@TestIssue                 444
+                #@TestPurpose               Modify an attribute with a combination of targetattr and targattrfilters
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies a prohibited attribute value by targattrfilter in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in a prohibited entry that is in the targeted branch.
+                #@TestStep                  Client modifies a prohibited attribute value by targetattr in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to modify.ksh Test Cases tp1 and tp2 -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_aci5.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targattrfilter) in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying prohibited entry (by targattrfilter) from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5.2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targetattr) in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5.3.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, overall allow, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - targetfilter with three statements with or, one statement true
+                #@TestIssue                 444
+                #@TestPurpose               Modify an attribute with targetfilter with three statements with or, one statement true
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in a prohibited entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_aci6.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry6.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true, user modifying prohibited attr in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry6.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry6a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - targetfilter not equals three statements with and, all statements true 
+                #@TestIssue                 444
+                #@TestPurpose               Modify an attribute with targetfilter not equals three statements with and, all statements true
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in a prohibited entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true '">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_aci7.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true , preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true , user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry7.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true , user modifying prohibited attr in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry7.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true , user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry7a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true , admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true , user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - multiple ACIs 1, overall deny
+                #@TestIssue                 444
+                #@TestPurpose               Modify attribute value with 2 ACIs, overall deny  
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - multiple ACIs 1, overall deny'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_multi_acis8.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 1, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 1, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry8.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 1, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry8a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 1, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_multi_acis.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 1, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - multiple ACIs 2, overall allow 
+                #@TestIssue                 444
+                #@TestPurpose               Modify attribute value with 2 ACIs, overall allow 
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - multiple ACIs 2, overall allow '">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_multi_acis9.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 2, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 2, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry9.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 2, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry9a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 2, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_multi_acis.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 2, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+             
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - multiple ACIs 3, mixed allow and deny 
+                #@TestIssue                 444
+                #@TestPurpose               Modify attribute value with 2 ACIs, mixed allow and deny by userdn 
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry by a prohibited user in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 2, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - multiple ACIs 3, mixed allow and deny '">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_multi_acis10.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 3, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 3, user modifying entry by prohibited user from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry10.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 3, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry10.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 3, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry10a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 3, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_multi_acis.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 3, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+             
+           <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - multiple ACIs 4, overall allow with many ACIs 
+                #@TestIssue                 444
+                #@TestPurpose               Modify attribute value with many ACIs, overall allow with many ACIs 
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - multiple ACIs 4, overall allow with many ACIs'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_multi_acis11.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 4, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 4, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry11.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 4, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry11a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 4, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_multi_acis2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 4, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+             
+           <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Modify Attribute Value - multiple ACIs 5, mixed allow and deny with many ACIs 
+                #@TestIssue                 444
+                #@TestPurpose               Modify attribute value with many ACIs, mixed allow and deny with many ACIs
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client modifies an attribute value in an entry by a prohibited user in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client modifies an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client modifies an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 2, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Modify Attribute Value - multiple ACIs 5, mixed allow and deny with many ACIs'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_modify_multi_acis12.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 5, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 5, user modifying entry by prohibited user from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 5, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry12.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 5, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry12a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 5, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_multi_acis2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Modify Attribute Value - multiple ACIs 5, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+             
+<!-- delete attribute tests -->
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Delete Attribute Value - userdn equals dn
+                #@TestIssue                 444
+                #@TestPurpose               Deletes an attribute from an entry where targetattr=* and userdn=[a dn]
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client deletes an attribute value with a prohibited user in an entry in the targeted branch.
+                #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client deletes an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client deletes an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 2, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Delete Attribute Value - userdn equals dn'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_delete_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Delete Attribute Value - userdn equals dn, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - userdn equals dn, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - userdn equals dn, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - userdn equals dn, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete1a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - userdn equals dn, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - userdn equals dn, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Delete Attribute Value - targetattr equals one attribute
+                #@TestIssue                 444
+                #@TestPurpose               Delete an attribute with targetattr equals one attribute
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client deletes a prohibited attribute value in an entry in the targeted branch.
+                #@TestStep                  Client deletes an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client deletes an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to modify.ksh Test Cases tp1 and tp2 -->
+            <testcase name="'ACI: Modify: Delete Attribute Value - targetattr equals one attribute'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_delete_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr equals one attribute, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr equals one attribute, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr equals one attribute, user modifying prohibited attr in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete2.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr equals one attribute, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete2a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr equals one attribute, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr equals one attribute, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Delete Attribute Value - targetattr not equals one attribute
+                #@TestIssue                 444
+                #@TestPurpose               Delete an attribute with targetattr not equals one attribute
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client deletes a prohibited attribute value in an entry in the targeted branch.
+                #@TestStep                  Client deletes an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client deletes an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to modify.ksh Test Cases tp1 and tp2 -->
+            <testcase name="'ACI: Modify: Delete Attribute Value - targetattr not equals one attribute'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_delete_aci3.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr not equals one attribute, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr not equals one attribute, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete3.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr not equals one attribute, user modifying prohibited attr in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete3.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr not equals one attribute, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete2a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr not equals one attribute, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Ddelete Attribute Value - targetattr not equals one attribute, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Delete Attribute Value - write not allowed
+                #@TestIssue                 444
+                #@TestPurpose               Deletes an attribute where write is not allowed
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client deletes a prohibited attribute value in an entry in the targeted branch.
+                #@TestStep                  Client deletes an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client deletes an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, and 
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Delete Attribute Value - write not allowed'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_delete_aci4.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Delete Attribute Value - write not allowed, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - write not allowed, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_delete4.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - write not allowed, user modifying prohibited attr in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_delete4.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - write not allowed, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_delete4a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - write not allowed, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - write not allowed, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Delete Attribute Value - targetattr and targattrfilter 
+                #@TestIssue                 444
+                #@TestPurpose               Delete an attribute with a combination of targetattr and targattrfilter
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client deletes a prohibited attribute value by targattrfilter in an entry in the targeted branch.
+                #@TestStep                  Client deletes an attribute value in a prohibited entry that is in the targeted branch.
+                #@TestStep                  Client deletes a prohibited attribute value by targetattr in an entry in the targeted branch.
+                #@TestStep                  Client deletes an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client deletes an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_delete_aci5.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targattrfilter) in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying prohibited entry (by targattrfilter) from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5.2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targetattr) in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5.3.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, overall allow, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+         <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Delete Attribute Value - targetfilter with three statements with or, none true
+                #@TestIssue                 444
+                #@TestPurpose               Delete an attribute with targetfilter with three statements with or, none true
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client deletes an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client deletes an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Delete Attribute Value - targetfilter with three statements with or, none true'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_delete_aci6.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetfilter with three statements with or, none true, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetfilter with three statements with or, none true, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete6.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetfilter with three statements with or, none true, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete6a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetfilter with three statements with or, none true, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetfilter with three statements with or, none true, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Delete Attribute Value - targetfilter equals three statements with and, all statements false 
+                #@TestIssue                 444
+                #@TestPurpose               Delete an attribute with targetfilter equals three statements with and, all statements false
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client deletes an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client deletes an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client deletes an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Delete Attribute Value - targetfilter equals three statements with and, all statements false'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_delete_aci7.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetfilter equals three statements with and, all statements false, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetfilter equals three statements with and, all statements false, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete7.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetfilter equals three statements with and, all statements false, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete7a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetfilter equals three statements with and, all statements false, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Delete Attribute Value - targetfilter equals three statements with and, all statements false, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+<!-- add attribute tests -->
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Add Attribute Value - userdn not equals dn
+                #@TestIssue                 444
+                #@TestPurpose               Adds an attribute to an entry with targetattr=* and userdn not equals to a dn
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client adds an attribute with a prohibited user in an entry in the targeted branch.
+                #@TestStep                  Client adds an attribute in an entry in the targeted branch.
+                #@TestStep                  Client adds an attribute in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client adds an attribute in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 2, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Add Attribute Value - userdn not equals dn'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_add_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Add Attribute Value - userdn not equals dn, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - userdn not equals dn, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - userdn not equals dn, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - userdn not equals dn, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add1a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - userdn not equals dn, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - userdn not equals dn, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Add Attribute Value - targetattr equals one attribute not present
+                #@TestIssue                 444
+                #@TestPurpose               Add an attribute value to an entry with targetattr equals one attribute not present
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client adds an attribute in an entry in the targeted branch.
+                #@TestStep                  Client adds a prohibited attribute in an entry in the targeted branch.
+                #@TestStep                  Client adds an attribute in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client adds an value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to modify.ksh Test Cases tp1 and tp2 -->
+            <testcase name="'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_add_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present, user modifying prohibited attr in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add2.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add2a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Add Attribute Value - targetattr not equals attribute, add multi-values
+                #@TestIssue                 444
+                #@TestPurpose               Add multi-valued attribute to an entry with targetattr not equals attribute, add multi-values
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client adds an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client adds another attribute value in an entry in the targeted branch.
+                #@TestStep                  Client adds a prohibited attribute value in an entry in the targeted branch.
+                #@TestStep                  Client adds an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client adds an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for steps 1 and 2, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <!-- cross reference to modify.ksh Test Cases tp1 and tp2 -->
+            <testcase name="'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_add_aci3.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add3.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, user modifying entry with second attribute value from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add3.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, user modifying prohibited attr in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add3.2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add3a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Add Attribute Value - write not allowed
+                #@TestIssue                 444
+                #@TestPurpose               Adds an attribute value where write is not allowed
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client adds an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client adds a prohibited attribute value in an entry in the targeted branch.
+                #@TestStep                  Client adds an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client adds an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, and 
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Add Attribute Value - write not allowed'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_add_aci4.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Add Attribute Value - write not allowed, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - write not allowed, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_add4.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - write not allowed, user modifying prohibited attr in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_add4.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - write not allowed, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_add4a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - write not allowed, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - write not allowed, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Add Attribute Value - targetattr and targattrfilter 
+                #@TestIssue                 444
+                #@TestPurpose               Add an attribute value with a combination of targetattr and targattrfilter
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client adds an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client adds a prohibited attribute value by targattrfilter in an entry in the targeted branch.
+                #@TestStep                  Client adds an attribute value in a prohibited entry that is in the targeted branch.
+                #@TestStep                  Client adds a prohibited attribute value by targetattr in an entry in the targeted branch.
+                #@TestStep                  Client adds an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client adds an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Add Attribute Value - targetattr and targattrfilter'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_add_aci5.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_add5.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targattrfilter) in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_add5.1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying prohibited entry (by targattrfilter) from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_add5.2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targetattr) in entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_add5.3.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, overall allow, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+         <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Add Attribute Value - targetfilter not equals three statements with or, none true
+                #@TestIssue                 444
+                #@TestPurpose               Add an attribute value with targetfilter not equals three statements with or, none true
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client adds an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client adds an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client adds an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with or, none true'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_add_aci6.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with or, none true, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with or, none true, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_add6.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with or, none true, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete6a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with or, none true, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with or, none true, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Entry Tests
+                #@TestName                  Add Attribute Value - targetfilter equals three statements with and, all statements false 
+                #@TestIssue                 444
+                #@TestPurpose               Add an attribute with targetfilter equals three statements with and, all statements false
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client adds an attribute value in an entry in the targeted branch.
+                #@TestStep                  Client adds an attribute value in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client adds an attribute value in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with and, all statements false'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_add_aci7.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_entry/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetfilternot equals three statements with and, all statements false, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with and, all statements false, user modifying entry from targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_add7.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with and, all statements false, user modifying entry from non-targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_add7a.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with and, all statements false, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with and, all statements false, user modifying entry in previously targeted branch'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+   
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>
