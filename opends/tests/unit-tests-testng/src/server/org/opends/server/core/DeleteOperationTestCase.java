@@ -847,7 +847,7 @@ public class DeleteOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(5000);
@@ -899,7 +899,7 @@ public class DeleteOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(5000);
@@ -952,7 +952,7 @@ public class DeleteOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(5000);
@@ -1005,7 +1005,7 @@ public class DeleteOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(5000);

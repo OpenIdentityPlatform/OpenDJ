@@ -119,8 +119,7 @@ public class CancelExtendedOperationTestCase
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
-    Socket socket = new Socket("127.0.0.1",
-                               (int) TestCaseUtils.getServerLdapPort());
+    Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(socket);
     ASN1Writer writer = new ASN1Writer(socket);
 
@@ -210,8 +209,7 @@ public class CancelExtendedOperationTestCase
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
-    Socket socket = new Socket("127.0.0.1",
-                               (int) TestCaseUtils.getServerLdapPort());
+    Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(socket);
     ASN1Writer writer = new ASN1Writer(socket);
 
@@ -305,8 +303,7 @@ public class CancelExtendedOperationTestCase
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
-    Socket socket = new Socket("127.0.0.1",
-                               (int) TestCaseUtils.getServerLdapPort());
+    Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(socket);
     ASN1Writer writer = new ASN1Writer(socket);
 
@@ -385,8 +382,7 @@ public class CancelExtendedOperationTestCase
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
-    Socket socket = new Socket("127.0.0.1",
-                               (int) TestCaseUtils.getServerLdapPort());
+    Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(socket);
     ASN1Writer writer = new ASN1Writer(socket);
 
@@ -451,8 +447,7 @@ public class CancelExtendedOperationTestCase
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
-    Socket socket = new Socket("127.0.0.1",
-                               (int) TestCaseUtils.getServerLdapPort());
+    Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(socket);
     ASN1Writer writer = new ASN1Writer(socket);
 
@@ -552,8 +547,7 @@ public class CancelExtendedOperationTestCase
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
-    Socket socket = new Socket("127.0.0.1",
-                               (int) TestCaseUtils.getServerLdapPort());
+    Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(socket);
     ASN1Writer writer = new ASN1Writer(socket);
 
@@ -633,8 +627,7 @@ public class CancelExtendedOperationTestCase
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
-    Socket socket = new Socket("127.0.0.1",
-                               (int) TestCaseUtils.getServerLdapPort());
+    Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(socket);
     ASN1Writer writer = new ASN1Writer(socket);
 
@@ -718,8 +711,7 @@ public class CancelExtendedOperationTestCase
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
-    Socket socket = new Socket("127.0.0.1",
-                               (int) TestCaseUtils.getServerLdapPort());
+    Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(socket);
     ASN1Writer writer = new ASN1Writer(socket);
 
@@ -772,8 +764,7 @@ public class CancelExtendedOperationTestCase
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
-    Socket socket = new Socket("127.0.0.1",
-                               (int) TestCaseUtils.getServerLdapPort());
+    Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(socket);
     ASN1Writer writer = new ASN1Writer(socket);
 
@@ -822,8 +813,7 @@ public class CancelExtendedOperationTestCase
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
-    Socket socket = new Socket("127.0.0.1",
-                               (int) TestCaseUtils.getServerLdapPort());
+    Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(socket);
     ASN1Writer writer = new ASN1Writer(socket);
 

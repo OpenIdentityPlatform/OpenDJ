@@ -237,7 +237,7 @@ public class SearchOperationTestCase extends OperationTestCase
        throws IOException, LDAPException, ASN1Exception, InterruptedException
   {
     // Establish a connection to the server.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     try
     {
       ASN1Reader r = new ASN1Reader(s);

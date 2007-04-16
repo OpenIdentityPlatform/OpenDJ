@@ -334,7 +334,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   @Test()
   public void testAuthWAIDefCfg() throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(s);
     ASN1Writer writer = new ASN1Writer(s);
 
@@ -367,7 +367,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   @Test()
   public void testUnauthWAIDefCfg() throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(s);
     ASN1Writer writer = new ASN1Writer(s);
 
@@ -632,7 +632,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   public void testUnauthWAINewCfg() throws UnsupportedEncodingException,
                                           IOException,ClientException
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(s);
     ASN1Writer writer = new ASN1Writer(s);
     AtomicInteger nextMessageID = new AtomicInteger(1);

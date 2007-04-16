@@ -218,7 +218,7 @@ public class AbandonOperationTestCase
 
     // Establish a connection to the server.  It can be unauthenticated for the
     // purpose of this test.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Writer w = new ASN1Writer(s);
 
 
@@ -261,7 +261,7 @@ public class AbandonOperationTestCase
 
     // Establish a connection to the server.  It can be unauthenticated for the
     // purpose of this test.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Writer w = new ASN1Writer(s);
 
 
@@ -295,7 +295,7 @@ public class AbandonOperationTestCase
 
 
     // Establish a connection to the server and bind as a root user.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -375,7 +375,7 @@ public class AbandonOperationTestCase
 
 
     // Establish a connection to the server and bind as a root user.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -460,7 +460,7 @@ public class AbandonOperationTestCase
 
 
     // Establish a connection to the server and bind as a root user.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -530,7 +530,7 @@ public class AbandonOperationTestCase
 
 
     // Establish a connection to the server and bind as a root user.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -600,7 +600,7 @@ public class AbandonOperationTestCase
 
 
     // Establish a connection to the server and bind as a root user.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -691,7 +691,7 @@ public class AbandonOperationTestCase
 
 
     // Establish a connection to the server and bind as a root user.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -762,7 +762,7 @@ public class AbandonOperationTestCase
 
 
     // Establish a connection to the server and bind as a root user.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);

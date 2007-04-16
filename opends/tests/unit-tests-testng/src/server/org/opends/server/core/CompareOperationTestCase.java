@@ -639,7 +639,7 @@ public class CompareOperationTestCase extends OperationTestCase
     // compare operation does not proceed.
 
     // Establish a connection to the server.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     try
     {
       ASN1Reader r = new ASN1Reader(s);
