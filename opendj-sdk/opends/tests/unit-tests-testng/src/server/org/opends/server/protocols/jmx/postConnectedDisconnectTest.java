@@ -76,7 +76,7 @@ public class postConnectedDisconnectTest extends JmxTestCase
     env.put("jmx.remote.credentials", credentials);
     env.put("jmx.remote.x.client.connection.check.period",0);
     OpendsJmxConnector opendsConnector = new OpendsJmxConnector("localhost",
-        (int) TestCaseUtils.getServerJmxPort(), env);
+        TestCaseUtils.getServerJmxPort(), env);
     opendsConnector.connect();
     assertNotNull(opendsConnector);
 

@@ -61,12 +61,18 @@ import org.opends.server.loggers.debug.DebugConfiguration;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.ChangeRecordEntry;
+import org.opends.server.util.AddChangeRecordEntry;
+import org.opends.server.util.DeleteChangeRecordEntry;
+import org.opends.server.util.ModifyChangeRecordEntry;
+import org.opends.server.util.ModifyDNChangeRecordEntry;
 
 import static org.testng.Assert.*;
 
@@ -551,7 +557,7 @@ public final class TestCaseUtils {
    *
    * @return The port number.
    */
-  public static long getServerLdapPort()
+  public static int getServerLdapPort()
   {
     return serverLdapPort;
   }
@@ -562,7 +568,7 @@ public final class TestCaseUtils {
    *
    * @return The port number.
    */
-  public static long getServerJmxPort()
+  public static int getServerJmxPort()
   {
     return serverJmxPort;
   }
@@ -573,7 +579,7 @@ public final class TestCaseUtils {
    *
    * @return The port number.
    */
-  public static long getServerLdapsPort()
+  public static int getServerLdapsPort()
   {
     return serverLdapsPort;
   }
@@ -818,6 +824,43 @@ public final class TestCaseUtils {
     {
       addEntry(entry);
     }
+  }
+
+
+
+  /**
+   * Applies a set of modifications to the server as described in the provided
+   * set of lines (using LDIF change form).  The changes will be applied over
+   * LDAP using the ldapmodify tool using the "cn=Directory Manager" account.
+   *
+   * @param  lines  The set of lines including the changes to make to the
+   *                server.
+   *
+   * @return  The result code from applying the set of modifications.  if it is
+   *          nonzero, then there was a failure of some kind.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static int applyModifications(String... lines)
+         throws Exception
+  {
+    if (! SERVER_STARTED)
+    {
+      startServer();
+    }
+
+    String path = createTempFile(lines);
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(serverLdapPort),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-a",
+      "-f", path
+    };
+
+    return LDAPModify.mainModify(args, false, null, null);
   }
 
 

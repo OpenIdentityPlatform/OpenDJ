@@ -920,7 +920,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreParseSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -960,7 +960,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreOperationSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1001,7 +1001,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostOperationSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1042,7 +1042,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostResponseSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1082,7 +1082,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreParseSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1122,7 +1122,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreOperationSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1163,7 +1163,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostOperationSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1204,7 +1204,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostResponseSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1244,7 +1244,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreParseSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1285,7 +1285,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreOperationSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1327,7 +1327,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostOperationSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1369,7 +1369,7 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostResponseSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1412,7 +1412,7 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreParseSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1447,7 +1447,7 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreOperationSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1483,7 +1483,7 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreParseSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1518,7 +1518,7 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreOperationSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1553,7 +1553,7 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreParseSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1589,7 +1589,7 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreOperationSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);
@@ -1922,7 +1922,7 @@ public class BindOperationTestCase
     String dnString = "uid=rebind.test,o=test";
     DN userDN = DN.decode(dnString);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(6000);

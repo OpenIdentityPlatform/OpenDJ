@@ -130,7 +130,7 @@ public class AddSchemaFileTaskTestCase
 
     String taskDNStr =
          "ds-task-id=add-single-valid-file,cn=Scheduled Tasks,cn=Tasks";
-    String path = TestCaseUtils.createTempFile(
+    int resultCode = TestCaseUtils.applyModifications(
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",
@@ -139,17 +139,7 @@ public class AddSchemaFileTaskTestCase
          "ds-task-id: add-single-valid-file",
          "ds-task-class-name: org.opends.server.tasks.AddSchemaFileTask",
          "ds-task-schema-file-name: 05-single-valid.ldif");
-
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(resultCode, 0);
 
     Task task = getCompletedTask(DN.decode(taskDNStr));
     assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
@@ -263,7 +253,7 @@ public class AddSchemaFileTaskTestCase
 
     String taskDNStr =
          "ds-task-id=add-multiple-valid-files,cn=Scheduled Tasks,cn=Tasks";
-    String path = TestCaseUtils.createTempFile(
+    int resultCode = TestCaseUtils.applyModifications(
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",
@@ -273,17 +263,7 @@ public class AddSchemaFileTaskTestCase
          "ds-task-class-name: org.opends.server.tasks.AddSchemaFileTask",
          "ds-task-schema-file-name: 05-multiple-valid-1.ldif",
          "ds-task-schema-file-name: 05-multiple-valid-2.ldif");
-
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(resultCode, 0);
 
     Task task = getCompletedTask(DN.decode(taskDNStr));
     assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
@@ -305,24 +285,14 @@ public class AddSchemaFileTaskTestCase
   {
     String taskDNStr =
          "ds-task-id=add-missing-file-names,cn=Scheduled Tasks,cn=Tasks";
-    String path = TestCaseUtils.createTempFile(
+    int resultCode = TestCaseUtils.applyModifications(
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",
          "objectClass: ds-task",
          "ds-task-id: add-missing-file-names",
          "ds-task-class-name: org.opends.server.tasks.AddSchemaFileTask");
-
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertFalse(resultCode == 0);
   }
 
 
@@ -339,7 +309,7 @@ public class AddSchemaFileTaskTestCase
   {
     String taskDNStr =
          "ds-task-id=add-missing-file,cn=Scheduled Tasks,cn=Tasks";
-    String path = TestCaseUtils.createTempFile(
+    int resultCode = TestCaseUtils.applyModifications(
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",
@@ -348,17 +318,7 @@ public class AddSchemaFileTaskTestCase
          "ds-task-id: add-missing-file",
          "ds-task-class-name: org.opends.server.tasks.AddSchemaFileTask",
          "ds-task-schema-file-name: 05-missing.ldif");
-
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertFalse(resultCode == 0);
   }
 
 
@@ -388,7 +348,7 @@ public class AddSchemaFileTaskTestCase
     emptyFile.createNewFile();
 
     String taskDNStr = "ds-task-id=add-empty-file,cn=Scheduled Tasks,cn=Tasks";
-    String path = TestCaseUtils.createTempFile(
+    int resultCode = TestCaseUtils.applyModifications(
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",
@@ -397,17 +357,7 @@ public class AddSchemaFileTaskTestCase
          "ds-task-id: add-empty-file",
          "ds-task-class-name: org.opends.server.tasks.AddSchemaFileTask",
          "ds-task-schema-file-name: 05-empty.ldif");
-
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(resultCode, 0);
 
     Task task = getCompletedTask(DN.decode(taskDNStr));
     assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
@@ -436,7 +386,7 @@ public class AddSchemaFileTaskTestCase
 
     String taskDNStr =
          "ds-task-id=add-invalid-file,cn=Scheduled Tasks,cn=Tasks";
-    String path = TestCaseUtils.createTempFile(
+    int resultCode = TestCaseUtils.applyModifications(
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",
@@ -445,17 +395,7 @@ public class AddSchemaFileTaskTestCase
          "ds-task-id: add-invalid-file",
          "ds-task-class-name: org.opends.server.tasks.AddSchemaFileTask",
          "ds-task-schema-file-name: 05-invalid.ldif");
-
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
-
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertFalse(resultCode == 0);
     invalidFile.delete();
   }
 

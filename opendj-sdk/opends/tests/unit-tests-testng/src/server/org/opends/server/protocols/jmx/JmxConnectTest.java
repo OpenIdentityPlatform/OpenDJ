@@ -368,8 +368,8 @@ public class JmxConnectTest extends JmxTestCase {
   public void sslConnect() throws Exception {
     // Enable SSL by setting ds-cfg-use-ssl boolean and the
     // certificate alias using ds-cfg-ssl-cert-nickname attribute.
-    int initJmxPort = (int) TestCaseUtils.getServerJmxPort();
-    
+    int initJmxPort = TestCaseUtils.getServerJmxPort();
+
     Entry entry = TestCaseUtils
         .makeEntry(
             "dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config",

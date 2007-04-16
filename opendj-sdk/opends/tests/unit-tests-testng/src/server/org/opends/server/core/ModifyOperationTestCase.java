@@ -3540,7 +3540,7 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(3000);
@@ -3734,7 +3734,7 @@ public class ModifyOperationTestCase
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(3000);
@@ -3933,7 +3933,7 @@ public class ModifyOperationTestCase
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(3000);
@@ -4136,7 +4136,7 @@ public class ModifyOperationTestCase
   {
     TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(5000);
@@ -4195,7 +4195,7 @@ public class ModifyOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(5000);
@@ -4255,7 +4255,7 @@ public class ModifyOperationTestCase
   {
     TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(5000);
@@ -4315,7 +4315,7 @@ public class ModifyOperationTestCase
   {
     TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
     r.setIOTimeout(5000);

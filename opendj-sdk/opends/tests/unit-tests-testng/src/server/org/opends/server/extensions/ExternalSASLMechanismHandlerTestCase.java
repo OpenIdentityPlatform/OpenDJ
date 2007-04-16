@@ -311,7 +311,7 @@ public class ExternalSASLMechanismHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(s);
     ASN1Writer writer = new ASN1Writer(s);
 

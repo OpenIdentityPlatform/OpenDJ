@@ -170,7 +170,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithValidDNAndPWNoControls()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -199,7 +199,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithNullDNAndPWNoControls()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -226,7 +226,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithEmptyDNAndPWNoControls()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -254,7 +254,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithDNButNoPassword()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -289,7 +289,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithDNButInvalidPassword()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -324,7 +324,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithPasswordPolicyControl()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -354,7 +354,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindNullMechanism()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -390,7 +390,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindEmptyMechanism()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -426,7 +426,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindInvalidMechanism()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -463,7 +463,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindAnonymousDisabled()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -507,7 +507,7 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -546,7 +546,7 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -583,7 +583,7 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -630,7 +630,7 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -676,7 +676,7 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -743,7 +743,7 @@ public class LDAPAuthenticationHandlerTestCase
     DirectoryServer.deregisterSASLMechanismHandler("CRAM-MD5");
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -810,7 +810,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -848,7 +848,7 @@ public class LDAPAuthenticationHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -892,7 +892,7 @@ public class LDAPAuthenticationHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -958,7 +958,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1022,7 +1022,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1064,7 +1064,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindCRAMMD5NullProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1102,7 +1102,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindCRAMMD5EmptyProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1143,7 +1143,7 @@ public class LDAPAuthenticationHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1188,7 +1188,7 @@ public class LDAPAuthenticationHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1259,7 +1259,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1326,7 +1326,7 @@ public class LDAPAuthenticationHandlerTestCase
     DirectoryServer.deregisterSASLMechanismHandler("DIGEST-MD5");
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1398,7 +1398,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1462,7 +1462,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1502,7 +1502,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5NullProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1540,7 +1540,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5EmptyProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1579,7 +1579,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5InvalidProperty()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1621,7 +1621,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MultipleAuthIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1664,7 +1664,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MEmptyAuthID()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1706,7 +1706,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MultipleRealms()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1778,7 +1778,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1824,7 +1824,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5UnsupportedQoPAuthInt()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1876,7 +1876,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5UnsupportedQoPAuthConf()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1927,7 +1927,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5InvalidQoP()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -1978,7 +1978,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MultipleQoPs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2031,7 +2031,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MultipleDigestURIs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2083,7 +2083,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MultipleAuthzIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2135,7 +2135,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5InvalidAuthDN()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2184,7 +2184,7 @@ public class LDAPAuthenticationHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2255,7 +2255,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2324,7 +2324,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2396,7 +2396,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2476,7 +2476,7 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = factory.createSocket("127.0.0.1",
-                                    (int) TestCaseUtils.getServerLdapsPort());
+                                    TestCaseUtils.getServerLdapsPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2547,7 +2547,7 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = factory.createSocket("127.0.0.1",
-                                    (int) TestCaseUtils.getServerLdapsPort());
+                                    TestCaseUtils.getServerLdapsPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2616,7 +2616,7 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = factory.createSocket("127.0.0.1",
-                                    (int) TestCaseUtils.getServerLdapsPort());
+                                    TestCaseUtils.getServerLdapsPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2691,7 +2691,7 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = factory.createSocket("127.0.0.1",
-                                    (int) TestCaseUtils.getServerLdapsPort());
+                                    TestCaseUtils.getServerLdapsPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2724,7 +2724,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPINullProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2761,7 +2761,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIEmptyProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2799,7 +2799,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIEmptyAuthID()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2841,7 +2841,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIMultipleAuthIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2884,7 +2884,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIMultipleAuthzIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2931,7 +2931,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIMultipleKDCs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -2978,7 +2978,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIMultipleQoPs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3027,7 +3027,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIUnsupportedQoPAuthInt()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3074,7 +3074,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIUnsupportedQoPAuthConf()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3120,7 +3120,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIInvalidQoP()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3166,7 +3166,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIMultipleRealms()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3213,7 +3213,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIInvalidProperty()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3259,7 +3259,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPINoAuthID()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3328,7 +3328,7 @@ public class LDAPAuthenticationHandlerTestCase
     DirectoryServer.deregisterSASLMechanismHandler("PLAIN");
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3393,7 +3393,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3428,7 +3428,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainNullProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3465,7 +3465,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainEmptyProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3503,7 +3503,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainMultipleAuthIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3546,7 +3546,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainZeroLengthAuthID()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3588,7 +3588,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainMultipleAuthzIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3635,7 +3635,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainInvalidProperty()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3681,7 +3681,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainNoAuthID()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3726,7 +3726,7 @@ public class LDAPAuthenticationHandlerTestCase
     TestCaseUtils.initializeTestBackend(true);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3783,7 +3783,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3841,7 +3841,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3878,7 +3878,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testRequestAuthorizationIdentityUnauthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3902,7 +3902,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testRequestAuthorizationIdentitySimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3931,7 +3931,7 @@ public class LDAPAuthenticationHandlerTestCase
   public void testRequestAuthorizationIdentitySimpleRootUser()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -3983,7 +3983,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -4016,7 +4016,7 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -4078,7 +4078,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -4140,7 +4140,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -4214,7 +4214,7 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = factory.createSocket("127.0.0.1",
-                                    (int) TestCaseUtils.getServerLdapsPort());
+                                    TestCaseUtils.getServerLdapsPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 
@@ -4268,7 +4268,7 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
     ASN1Writer w = new ASN1Writer(s);
 

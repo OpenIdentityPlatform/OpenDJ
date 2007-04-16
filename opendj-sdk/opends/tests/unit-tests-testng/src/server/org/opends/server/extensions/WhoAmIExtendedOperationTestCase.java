@@ -162,7 +162,7 @@ public class WhoAmIExtendedOperationTestCase
   public void testAsLDAPRootUser()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(s);
     ASN1Writer writer = new ASN1Writer(s);
 
@@ -195,7 +195,7 @@ public class WhoAmIExtendedOperationTestCase
   public void testAsLDAPAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(s);
     ASN1Writer writer = new ASN1Writer(s);
 
@@ -246,7 +246,7 @@ public class WhoAmIExtendedOperationTestCase
     assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
 
 
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader reader = new ASN1Reader(s);
     ASN1Writer writer = new ASN1Writer(s);
 

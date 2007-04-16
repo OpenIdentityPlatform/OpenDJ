@@ -1110,7 +1110,7 @@ public class TestModifyDNOperation extends OperationTestCase
 
 
     // Establish a connection to the server.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
 
     InvocationCounterPlugin.resetAllCounters();
 
@@ -1128,7 +1128,7 @@ public class TestModifyDNOperation extends OperationTestCase
     BindResponseProtocolOp bindResponse = bindMessage.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-    assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000)); 
+    assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
     InvocationCounterPlugin.resetAllCounters();
     ModifyDNRequestProtocolOp modifyRequest =
         new ModifyDNRequestProtocolOp(
@@ -1159,7 +1159,7 @@ public class TestModifyDNOperation extends OperationTestCase
     // modify DN operation does not proceed.
 
     // Establish a connection to the server.
-    Socket s = new Socket("127.0.0.1", (int) TestCaseUtils.getServerLdapPort());
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     try
     {
       ASN1Reader r = new ASN1Reader(s);
