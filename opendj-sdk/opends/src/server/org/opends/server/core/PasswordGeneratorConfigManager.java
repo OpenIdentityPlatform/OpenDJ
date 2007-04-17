@@ -366,7 +366,7 @@ public class PasswordGeneratorConfigManager
    *                        password generator, or {@code null} if the
    *                        password generator should not be initialized.
    *
-   * @return  The possibly initialized password validator.
+   * @return  The possibly initialized password generator.
    *
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the password generator.
