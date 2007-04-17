@@ -237,6 +237,7 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String BIND_RULE_IP_NOT_MISC_AND_LOCALHOST = "ip!=\"72.5.124.61,127.0.0.1\"";
   private static final String BIND_RULE_DNS_LOCALHOST = "dns=\"localhost\"";
   private static final String BIND_RULE_DNS_NOT_LOCALHOST = "dns!=\"localhost\"";
+  private static final String BIND_RULE_DNS_ALL= "dns=\"*\"";
 
   private static final String BIND_RULE_THIS_HOUR = getTimeOfDayRuleNextHour();
   private static final String BIND_RULE_PREVIOUS_HOUR = getTimeOfDayRulePreviousHour();
@@ -464,6 +465,9 @@ public class AciTests extends DirectoryServerTestCase {
 
   private static final String ALLOW_ALL_TO_NON_DNS_LOCALHOST =
           buildAciValue("name", "allow all to non localhost", "targetattr", "*", "allow(all)", BIND_RULE_DNS_NOT_LOCALHOST);
+
+  private static final String ALLOW_ALL_TO_DNS_ALL =
+          buildAciValue("name", "allow all to dns all", "targetattr", "*", "allow(all)", BIND_RULE_DNS_ALL);
 
   private static final String DENY_ALL_TO_DNS_LOCALHOST =
           buildAciValue("name", "deny all to localhost", "targetattr", "*", "deny(all)", BIND_RULE_DNS_LOCALHOST);
@@ -1141,6 +1145,10 @@ private static final String GLOBAL_DEFAULT_ACIS =
    private static final
  String GROUP1_GROUPDN_MODS =  makeAddAciLdif(OU_LEAF_DN,
                                          ALLOW_SEARCH_TO_GROUP1_GROUPDN);
+
+  //Aci to test dns="*".
+  private static final
+ String DNS_ALL_ACI =  makeAddAciLdif(OU_LEAF_DN, ALLOW_ALL_TO_DNS_ALL);
 
   // ou=leaf,ou=inner,ou=acitest,dc=example,dc=com and everything under it
   private static final String LEAF_OU_FULL_LDIF__SEARCH_TESTS =
@@ -1876,6 +1884,28 @@ private static final String GLOBAL_DEFAULT_ACIS =
                 throw e;
           }
   }
+
+  /**
+   * Test ACI using dns="*" bind rule pattern. Search should succeed.
+   * @throws Throwable  If the search doesn't return any entries.
+   */
+  @Test()
+   public void testDNSWildCard()  throws Throwable {
+        SingleSearchParams userParam =
+            new SingleSearchParams(LEVEL_1_USER_DN,
+                                   "pa$$word", LEVEL_3_USER_DN,
+                                   OBJECTCLASS_STAR, SCOPE_BASE,
+                                   null, null, null);
+        try {
+            addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+            modEntries(DNS_ALL_ACI, DIR_MGR_DN, DIR_MGR_PW);
+            String userResults = ldapSearch(userParam.getLdapSearchArgs());
+            Assert.assertFalse(userResults.equals(""));
+        } catch(Throwable e) {
+                throw e;
+        }
+ }
+
 
   /**
   * Test group and role bind rule ACI keywords. Both groupdn and roledn keywords
