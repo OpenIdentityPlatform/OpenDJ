@@ -34,6 +34,11 @@ import java.io.IOException;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.synchronization.protocol.AckMessage;
+import org.opends.server.synchronization.protocol.ErrorMessage;
+import org.opends.server.synchronization.protocol.DoneMessage;
+import org.opends.server.synchronization.protocol.EntryMessage;
+import org.opends.server.synchronization.protocol.InitializeRequestMessage;
+import org.opends.server.synchronization.protocol.InitializeTargetMessage;
 import org.opends.server.synchronization.protocol.ProtocolSession;
 import org.opends.server.synchronization.protocol.SynchronizationMessage;
 import org.opends.server.synchronization.protocol.UpdateMessage;
@@ -116,6 +121,33 @@ public class ServerReader extends DirectoryThread
           WindowMessage windowMsg = (WindowMessage) msg;
           handler.updateWindow(windowMsg);
         }
+        else if (msg instanceof InitializeRequestMessage)
+        {
+          InitializeRequestMessage initializeMsg =
+            (InitializeRequestMessage) msg;
+          handler.process(initializeMsg);
+        }
+        else if (msg instanceof InitializeTargetMessage)
+        {
+          InitializeTargetMessage initializeMsg = (InitializeTargetMessage) msg;
+          handler.process(initializeMsg);
+        }
+        else if (msg instanceof EntryMessage)
+        {
+          EntryMessage entryMsg = (EntryMessage) msg;
+          handler.process(entryMsg);
+        }
+        else if (msg instanceof DoneMessage)
+        {
+          DoneMessage doneMsg = (DoneMessage) msg;
+          handler.process(doneMsg);
+        }
+        else if (msg instanceof ErrorMessage)
+        {
+          ErrorMessage errorMsg = (ErrorMessage) msg;
+          handler.process(errorMsg);
+        }
+
       }
     } catch (IOException e)
     {
