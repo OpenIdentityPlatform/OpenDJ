@@ -45,7 +45,7 @@ import java.io.File;
 public class UpgraderCliHelper extends CliApplicationHelper {
 
   /** Short form of the option for specifying the installation package file. */
-  static public final Character FILE_OPTION_SHORT = 'F';
+  static public final Character FILE_OPTION_SHORT = 'f';
 
   /** Long form of the option for specifying the installation package file. */
   static public final String FILE_OPTION_LONG = "file";
@@ -85,7 +85,7 @@ public class UpgraderCliHelper extends CliApplicationHelper {
       } else {
         // TODO i18N
         throw new UserDataException(null,
-                "-F must be present");
+                "-f must be present");
       }
 
     } catch (ArgumentException e) {

@@ -65,10 +65,11 @@ public class ProgressPanel extends QuickSetupStepPanel
 
   /**
    * ProgressPanel constructor.
+   * @param application Application this panel represents
    */
-  public ProgressPanel()
+  public ProgressPanel(GuiApplication application)
   {
-    createLayout();
+    super(application);
   }
 
   /**

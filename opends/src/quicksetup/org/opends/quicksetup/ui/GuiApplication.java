@@ -25,11 +25,9 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup;
+package org.opends.quicksetup.ui;
 
-import org.opends.quicksetup.ui.FramePanel;
-import org.opends.quicksetup.ui.QuickSetupDialog;
-import org.opends.quicksetup.ui.QuickSetupStepPanel;
+import org.opends.quicksetup.*;
 
 import javax.swing.*;
 import java.awt.event.WindowEvent;
@@ -65,16 +63,6 @@ public abstract class GuiApplication extends Application {
   abstract public String getFrameTitle();
 
   /**
-   * Returns whether the installer has finished or not.
-   * @return <CODE>true</CODE> if the install is finished or <CODE>false
-   * </CODE> if not.
-   */
-  public boolean isFinished()
-  {
-    return getCurrentProgressStep().isLast();
-  }
-
-  /**
    * Returns the initial wizard step.
    * @return Step representing the first step to show in the wizard
    */
@@ -89,7 +77,7 @@ public abstract class GuiApplication extends Application {
    * @param userData UserData representing the data specified by the user
    * @param dlg      QuickSetupDialog hosting the wizard
    */
-  protected void setDisplayedWizardStep(WizardStep step,
+  public void setDisplayedWizardStep(WizardStep step,
                                         UserData userData,
                                         QuickSetupDialog dlg) {
     this.displayedStep = step;
@@ -301,9 +289,10 @@ public abstract class GuiApplication extends Application {
    * values found in QuickSetup.
    * @param cStep current wizard step
    * @param qs QuickSetup controller
-   * @throws UserDataException if there is a problem with the data
+   * @throws org.opends.quicksetup.UserDataException if there is a problem with
+   *  the data
    */
-  abstract protected void updateUserData(WizardStep cStep, QuickSetup qs)
+  public abstract void updateUserData(WizardStep cStep, QuickSetup qs)
           throws UserDataException;
 
   /**

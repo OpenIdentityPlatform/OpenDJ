@@ -27,24 +27,15 @@
 
 package org.opends.quicksetup.ui;
 
-import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.util.Utils;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-
-import javax.swing.Box;
-import javax.swing.DefaultListModel;
-import javax.swing.JCheckBox;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.border.EmptyBorder;
-
-import org.opends.quicksetup.CurrentInstallStatus;
-import org.opends.quicksetup.installer.FieldName;
-import org.opends.quicksetup.util.Utils;
 
 /**
  * This is the panel displayed when the user is uninstalling Open DS.  It is
@@ -65,13 +56,15 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
 
   /**
    * The constructor of this class.
+   * @param application Application this panel represents
    * @param installStatus the object describing the current installation status.
    *
    */
-  public ConfirmUninstallPanel(CurrentInstallStatus installStatus)
+  public ConfirmUninstallPanel(GuiApplication application,
+                               CurrentInstallStatus installStatus)
   {
+    super(application);
     this.installStatus = installStatus;
-    createLayout();
   }
 
   /**

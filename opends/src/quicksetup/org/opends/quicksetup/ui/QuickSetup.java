@@ -25,25 +25,23 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup;
+package org.opends.quicksetup.ui;
 
 import org.opends.quicksetup.event.ButtonActionListener;
+import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
-import org.opends.quicksetup.event.ProgressUpdateListener;
+import org.opends.quicksetup.*;
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.installer.FieldName;
-import org.opends.quicksetup.ui.QuickSetupDialog;
-import org.opends.quicksetup.ui.UIFactory;
-import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
-import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
+import org.opends.quicksetup.util.BackgroundTask;
+import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
-import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.Level;
+import java.util.Map;
 
 /**
  * This class is responsible for doing the following:
@@ -220,7 +218,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * of flickering. So the idea here is to have a minimal time between 2 updates
    * of the progress dialog (specified by UPDATE_PERIOD).
    *
-   * @see #progressUpdate(ProgressUpdateEvent)
+   * @see #progressUpdate(org.opends.quicksetup.event.ProgressUpdateEvent)
    */
   private void runDisplayUpdater()
   {
@@ -648,31 +646,5 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   private boolean isWebStart()
   {
     return Utils.isWebStart();
-  }
-}
-/**
- * This class is just used to specify which are the default values that will be
- * proposed to the user in the Data Options panel of the Installation wizard.
- *
- */
-class DefaultDataOptions extends DataOptions
-{
-  /**
-   * Default constructor.
-   *
-   */
-  public DefaultDataOptions()
-  {
-    super(Type.CREATE_BASE_ENTRY, "dc=example,dc=com");
-  }
-
-  /**
-   * Get the number of entries that will be automatically generated.
-   *
-   * @return the number of entries that will be automatically generated.
-   */
-  public int getNumberEntries()
-  {
-    return 2000;
   }
 }

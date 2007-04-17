@@ -61,11 +61,13 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
 
   /**
    * Constructor of the QuickSetupErrorPanel.
-   *
+   * @param application Application this panel represents
    * @param installStatus the current install status.
    */
-  public QuickSetupErrorPanel(CurrentInstallStatus installStatus)
+  public QuickSetupErrorPanel(GuiApplication application,
+                              CurrentInstallStatus installStatus)
   {
+    super(application);
     JPanel p1 = new JPanel(new GridBagLayout());
     p1.setBackground(UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
     p1.setBorder(UIFactory.DIALOG_PANEL_BORDER);

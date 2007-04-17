@@ -109,7 +109,8 @@ public class BuildExtractor extends Application implements Runnable {
     if (args != null) {
       for (int i = 0; i < args.length; i++) {
         if (args[i].equals("--" + UpgraderCliHelper.FILE_OPTION_LONG) ||
-                args[i].equals("-" + UpgraderCliHelper.FILE_OPTION_SHORT)) {
+                args[i].equalsIgnoreCase(
+                        "-" + UpgraderCliHelper.FILE_OPTION_SHORT)) {
           if (i < args.length - 1) {
             buildFileName = args[i+ 1];
           }

@@ -31,6 +31,8 @@ import java.awt.event.ComponentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.HashSet;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -43,7 +45,6 @@ import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.ProgressDescriptor;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
@@ -61,6 +62,9 @@ import org.opends.quicksetup.util.Utils;
  */
 public class QuickSetupDialog
 {
+  static private final Logger LOG =
+          Logger.getLogger(QuickSetupDialog.class.getName());
+
   private JFrame frame;
 
   private QuickSetupErrorPanel installedPanel;
@@ -466,7 +470,13 @@ public class QuickSetupDialog
    */
   public void setFocusOnButton(ButtonName buttonName)
   {
-    getButton(buttonName).requestFocusInWindow();
+    JButton button = getButton(buttonName);
+    if (button != null) {
+      button.requestFocusInWindow();
+    } else {
+      LOG.log(Level.INFO, "Focus requested for unknown button '" +
+              buttonName + "'");
+    }
   }
 
   /**
@@ -519,7 +529,9 @@ public class QuickSetupDialog
   {
     if (installedPanel == null)
     {
-      installedPanel = new QuickSetupErrorPanel(installStatus);
+      installedPanel = new QuickSetupErrorPanel(
+              application,
+              installStatus);
     }
     return installedPanel;
   }

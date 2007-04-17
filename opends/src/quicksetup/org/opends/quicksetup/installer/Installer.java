@@ -36,6 +36,7 @@ import java.awt.event.WindowEvent;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.installer.ui.InstallReviewPanel;
 import org.opends.server.util.SetupUtils;
 
 import javax.swing.*;
@@ -268,15 +269,15 @@ public abstract class Installer extends GuiApplication {
   public QuickSetupStepPanel createWizardStepPanel(WizardStep step) {
     QuickSetupStepPanel p = null;
     if (step == WELCOME) {
-        p = new InstallWelcomePanel();
+        p = new InstallWelcomePanel(this);
     } else if (step == SERVER_SETTINGS) {
-        p = new ServerSettingsPanel(getUserData());
+        p = new ServerSettingsPanel(this);
     } else if (step == DATA_OPTIONS) {
-        p = new DataOptionsPanel(getUserData());
+        p = new DataOptionsPanel(this);
     } else if (step == REVIEW) {
-        p = new ReviewPanel(getUserData());
+        p = new InstallReviewPanel(this);
     } else if (step == PROGRESS) {
-        p = new ProgressPanel();
+        p = new ProgressPanel(this);
     }
     return p;
   }
@@ -697,7 +698,7 @@ public abstract class Installer extends GuiApplication {
    *           valid.
    *
    */
-  protected void updateUserData(WizardStep cStep, QuickSetup qs)
+  public void updateUserData(WizardStep cStep, QuickSetup qs)
           throws UserDataException
   {
     if (cStep == SERVER_SETTINGS) {

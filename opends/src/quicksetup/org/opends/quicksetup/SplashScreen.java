@@ -206,7 +206,7 @@ public class SplashScreen extends Window
   {
     try
     {
-      quickSetupClass = Class.forName("org.opends.quicksetup.QuickSetup");
+      quickSetupClass = Class.forName("org.opends.quicksetup.ui.QuickSetup");
       quickSetup = quickSetupClass.newInstance();
       quickSetupClass.getMethod("initialize", new Class[]
         { String[].class }).invoke(quickSetup, new Object[]
@@ -222,7 +222,7 @@ public class SplashScreen extends Window
 
   /**
    * This method displays the QuickSetup dialog.
-   * @see QuickSetup#display
+   * @see org.opends.quicksetup.ui.QuickSetup#display
    * This method assumes that is being called outside the event thread.
    * This method can be overwritten by subclasses to construct other objects
    * different than the Quick Setup.

@@ -39,26 +39,31 @@ public enum Step implements WizardStep
    * Welcome step for the installation.
    */
   WELCOME("welcome-step"),
+
+  /**
+   * Confirmation panel for the uninstallation.
+   */
+  CONFIRM_UNINSTALL("confirm-uninstall-step"),
+
   /**
    * Server Settings step (path, port, etc.).
    */
   SERVER_SETTINGS("server-settings-step"),
+
   /**
    * Data Options panel (suffix dn, LDIF path, etc.).
    */
   DATA_OPTIONS("data-options-step"),
+
   /**
    * Review panel for the install.
    */
   REVIEW("review-step"),
+
   /**
    * Progress panel.
    */
-  PROGRESS("progress-step"),
-  /**
-   * Confirmation panel for the uninstallation.
-   */
-  CONFIRM_UNINSTALL("confirm-uninstall-step");
+  PROGRESS("progress-step");
 
   private String msgKey;
 

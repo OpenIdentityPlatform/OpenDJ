@@ -27,24 +27,18 @@
 
 package org.opends.quicksetup.ui;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import java.util.HashSet;
-
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.WizardStep;
-import org.opends.quicksetup.GuiApplication;
-import org.opends.quicksetup.uninstaller.Uninstaller;
-import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
+import org.opends.quicksetup.installer.Installer;
+import org.opends.quicksetup.uninstaller.Uninstaller;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.HashSet;
 
 /**
  * This class contains the buttons in the bottom of the Install/Uninstall
@@ -71,8 +65,6 @@ class ButtonsPanel extends QuickSetupPanel
 
   private JButton cancelButton;
 
-  private GuiApplication application;
-
   /**
    * Default constructor.
    * @param application Application running in QuickSetup
@@ -80,7 +72,7 @@ class ButtonsPanel extends QuickSetupPanel
    */
   public ButtonsPanel(GuiApplication application)
   {
-    this.application = application;
+    super(application);
     createButtons();
     layoutButtons();
   }
@@ -112,6 +104,7 @@ class ButtonsPanel extends QuickSetupPanel
    */
   public void setDisplayedStep(WizardStep step)
   {
+    GuiApplication application = getApplication();
     previousButton.setVisible(application.canGoBack(step));
     nextButton.setVisible(application.canGoForward(step));
     finishButton.setVisible(application.canFinish(step));
@@ -128,35 +121,36 @@ class ButtonsPanel extends QuickSetupPanel
   public JButton getButton(ButtonName buttonName)
   {
     JButton b = null;
-    switch (buttonName)
-    {
-    case NEXT:
-      b = nextButton;
-      break;
+    if (buttonName != null) {
+      switch (buttonName) {
+        case NEXT:
+          b = nextButton;
+          break;
 
-    case PREVIOUS:
-      b = previousButton;
-      break;
+        case PREVIOUS:
+          b = previousButton;
+          break;
 
-    case QUIT:
-      b = quitButton;
-      break;
+        case QUIT:
+          b = quitButton;
+          break;
 
-    case CLOSE:
-      b = closeButton;
-      break;
+        case CLOSE:
+          b = closeButton;
+          break;
 
-    case FINISH:
-      b = finishButton;
-      break;
+        case FINISH:
+          b = finishButton;
+          break;
 
-    case CANCEL:
-      b = cancelButton;
-      break;
+        case CANCEL:
+          b = cancelButton;
+          break;
 
-    default:
-      throw new IllegalArgumentException("Unknown button name: " +
-          buttonName);
+        default:
+          throw new IllegalArgumentException("Unknown button name: " +
+                  buttonName);
+      }
     }
 
     return b;
@@ -180,6 +174,8 @@ class ButtonsPanel extends QuickSetupPanel
     tooltip = "quit-button-install-tooltip";
     quitButton =
         createButton("quit-button-label", tooltip, ButtonName.QUIT);
+
+    GuiApplication application = getApplication();
 
     tooltip = application.getCloseButtonToolTip();
     closeButton = createButton("close-button-label", tooltip, ButtonName.CLOSE);
@@ -228,7 +224,7 @@ class ButtonsPanel extends QuickSetupPanel
     nextFinishPanel.add(nextButton, gbcAux);
 
     // TODO: remove this hack
-    if (application instanceof Installer) {
+    if (getApplication() instanceof Installer) {
       nextFinishPanel.add(finishButton, gbcAux);
     }
     width =
@@ -249,7 +245,7 @@ class ButtonsPanel extends QuickSetupPanel
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
 
     // TODO: remove this hack
-    if (application instanceof Uninstaller) {
+    if (getApplication() instanceof Uninstaller) {
       gbc.insets.right = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
       add(finishButton, gbc);
       gbc.insets.right = 0;

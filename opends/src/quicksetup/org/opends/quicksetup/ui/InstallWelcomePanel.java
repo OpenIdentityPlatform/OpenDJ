@@ -42,11 +42,11 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
 
   /**
    * Default constructor.
-   *
+   * @param app Application this panel represents
    */
-  public InstallWelcomePanel()
+  public InstallWelcomePanel(GuiApplication app)
   {
-    createLayout();
+    super(app);
   }
 
   /**

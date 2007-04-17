@@ -42,7 +42,6 @@ import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.event.BrowseActionListener;
-import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.UserData;
 
@@ -77,15 +76,15 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
 
   /**
    * Constructor of the panel.
-   * @param defaultUserData the default values that must be used to initialize
+   * @param application Application this panel represents
    * the fields of the panel.
    */
-  public ServerSettingsPanel(UserData defaultUserData)
+  public ServerSettingsPanel(GuiApplication application)
   {
-    this.defaultUserData = defaultUserData;
+    super(application);
+    this.defaultUserData = application.getUserData();
     this.displayServerLocation = isWebStart();
     populateLabelAndFieldMaps();
-    createLayout();
     addFocusListeners();
   }
 
@@ -368,7 +367,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     {
       LabelFieldDescriptor desc = hm.get(fieldName);
       String defaultValue = getDefaultValue(fieldName);
-      JTextComponent field = makeJTextComponent(desc, defaultValue);
+      JTextComponent field = UIFactory.makeJTextComponent(desc, defaultValue);
       JLabel label = makeJLabel(desc);
 
       hmFields.put(fieldName, field);
@@ -384,7 +383,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
             LabelFieldDescriptor.FieldType.TEXTFIELD,
             LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.PATH_FIELD_SIZE);
     lServerLocation = makeJLabel(desc);
-    tfServerLocationParent = makeJTextComponent(desc, "");
+    tfServerLocationParent = UIFactory.makeJTextComponent(desc, "");
     lServerLocation.setLabelFor(tfServerLocationParent);
 
     desc =
@@ -393,7 +392,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
             LabelFieldDescriptor.FieldType.TEXTFIELD,
             LabelFieldDescriptor.LabelType.PRIMARY,
             UIFactory.RELATIVE_PATH_FIELD_SIZE);
-    tfServerLocationRelativePath = makeJTextComponent(desc, "");
+    tfServerLocationRelativePath = UIFactory.makeJTextComponent(desc, "");
     String defaultPath = getDefaultValue(FieldName.SERVER_LOCATION);
     if (defaultPath != null)
     {
