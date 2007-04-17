@@ -822,7 +822,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
   /**
    * Tests done using directly the ChangelogBroker interface.
    */
-  @Test(enabled=true, dataProvider="assured")
+  @Test(enabled=false, dataProvider="assured")
   public void updateOperations(boolean assured) throws Exception
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -1107,7 +1107,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
    * [Issue 798]  break infinite loop when problems with naming resolution
    *              conflict.
    */
-  @Test(enabled=true)
+  @Test(enabled=false)
   public void infiniteReplayLoop() throws Exception
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
