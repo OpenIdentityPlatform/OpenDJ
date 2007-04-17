@@ -1,0 +1,1353 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="aci_compare_tests"/>
+
+  <function name="aci_compare_tests">
+
+    <sequence>
+
+      <block name="'aci-compare-tests'">
+      
+        <sequence>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+                Place suite-specific test information here.
+                #@TestSuiteName             ACI Compare Tests
+                #@TestSuitePurpose          Test the ACI Support for compare.  
+                #@TestSuiteGroup            ACI Compare Entry Tests
+                #@TestScript                aci_compare_tests.xml
+          -->
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Compare Tests
+                #@TestName                  Preamble
+                #@TestIssue                 441
+                #@TestPurpose               Modify global ACIs
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager removes global ACI allowing compares
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0.
+            -->
+          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+          <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Compare: Preamble'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                   'ACI: Comparet: Preamble - Removing Search Global ACI'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rm_global_search.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+          
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Compare Tests
+                #@TestName                  Compare Attr - userdn equals all
+                #@TestIssue                 441
+                #@TestPurpose               Compare an attribute in an entry against an ACI where userdn equals all
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client compares an attribute in an entry in the targeted branch.
+                #@TestStep                  Client compares an attribute in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client compares an attribute in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+                                            The return string for step 1 is evaluated to contain the substring, true.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Compare: Compare Attr - userdn equals all'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_compare_tests/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Compare: Compare Attr - userdn equals all, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - userdn equals all, user comparing attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'true' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - userdn equals all, user comparing attribute in non-targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'ACI: Compare: Compare Attr - userdn equals all, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Compare: Compare Attr - userdn equals all, user comparing attribute in previously targeted branch'
+                </message>
+    
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Cupertino',
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Compare Tests
+                #@TestName                  Compare Attr - userdn not equals a dn
+                #@TestIssue                 441
+                #@TestPurpose               Compare an attribute in an entry against an ACI where userdn not equals a dn
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client compares an attribute in an entry in the targeted branch.
+                #@TestStep                  Client compares an attribute in an entry in the targeted branch with a prohibited user.
+                #@TestStep                  Client compares an attribute in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client compares an attribute in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+                                            The return string for step 1 is evaluated to contain the substring, true.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Compare: Compare Attr - userdn not equals a dn'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_compare_tests/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Compare: Compare Attr - userdn not equals a dn, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - userdn not equals a dn, user comparing attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'true' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - userdn not equals a dn, user comparing attribute in non-targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                 'ACI: Compare: Compare Attr - userdn not equals a dn, user comparing attribute in non-targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'ACI: Compare: Compare Attr - userdn not equals a dn, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Compare: Compare Attr - userdn not equals a dn, user comparing attribute in previously targeted branch'
+                </message>
+    
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Cupertino',
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+           <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Compare Tests
+                #@TestName                  Compare Attr - compare not allowed
+                #@TestIssue                 441
+                #@TestPurpose               Compare an attribute in an entry against an ACI where compare is not allowed
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client compares an attribute in an entry in the targeted branch.
+                #@TestStep                  Client compares an attribute in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client compares an attribute in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns
+                                            50 for all ldapcompare steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Compare: Compare Attr - compare not allowed'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci3.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_compare_tests/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Compare: Compare Attr - compare not allowed, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - userdn compare not allowed, user comparing attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                 'ACI: Compare: Compare Attr - userdn compare not allowed, user comparing attribute in non-targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'ACI: Compare: Compare Attr - userdn compare not allowed, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Compare: Compare Attr - userdn compare not allowed, user comparing attribute in previously targeted branch'
+                </message>
+    
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Cupertino',
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Compare Tests
+                #@TestName                  Compare Attr - targetattr with one attribute
+                #@TestIssue                 441
+                #@TestPurpose               Compare an attribute in an entry against an ACI with a targetattr with one attribute
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client compares an attribute in an entry in the targeted branch.
+                #@TestStep                  Client compares a prohibited attribute in an entry in the targeted branch.
+                #@TestStep                  Client compares an attribute in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client compares an attribute in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+                                            The return string for step 1 is evaluated to contain the substring, true.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Compare: Compare Attr - targetattr with one attribute'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci4.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_compare_tests/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Compare: Compare Attr - targetattr with one attribute, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - targetattr with one attribute, user comparing attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'true' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - targetattr with one attribute, user comparing prohibited attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'roomnumber:4376',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                 'ACI: Compare: Compare Attr - targetattr with one attribute, user comparing attribute in non-targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'ACI: Compare: Compare Attr - targetattr with one attribute, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Compare: Compare Attr - targetattr with one attribute, user comparing attribute in previously targeted branch'
+                </message>
+    
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Cupertino',
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Compare Tests
+                #@TestName                  Compare Attr - targetfilter with one statement
+                #@TestIssue                 441
+                #@TestPurpose               Compare an attribute in an entry against an ACI with a targetfilter with one statement
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client compares an attribute in an entry in the targeted branch.
+                #@TestStep                  Client compares an attribute in a prohibited entry in the targeted branch.
+                #@TestStep                  Client compares an attribute in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client compares an attribute in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+                                            The return string for step 1 is evaluated to contain the substring, true.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Compare: Compare Attr - targetfilter with one statement'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci5.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_compare_tests/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Compare: Compare Attr - targetfilter with one statement, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - targetfilter with one statement, user comparing attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'true' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - targetfilter with one statement, user comparing prohibited attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'roomnumber:4376',
+                    'entryToBeCompared'     : 'uid=jrunner, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                 <message>
+                 'ACI: Compare: Compare Attr - targetfilter with one statement, user comparing attribute in non-targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'ACI: Compare: Compare Attr - targetfilter with one statement, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Compare: Compare Attr - targetfilter with one statement, user comparing attribute in previously targeted branch'
+                </message>
+    
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Cupertino',
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Compare Tests
+                #@TestName                  Compare Attr - targetattrfilter with add:,del:
+                #@TestIssue                 441
+                #@TestPurpose               Compare an attribute in an entry against an ACI with a targetattrfilter with add:,del
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client compares an attribute in an entry in the targeted branch.
+                #@TestStep                  Client compares a second attribute in an entry in the targeted branch.
+                #@TestStep                  Client compares an attribute in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client compares an attribute in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for steps 1 and 2, and
+                                            50 for all other steps.
+                                            The return string for steps 1 and 2 is evaluated to contain the substring, true.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Compare: Compare Attr - targetattrfilter with add:,del:'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci6.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_compare_tests/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'true' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing prohibited attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'roomnumber:4376',
+                    'entryToBeCompared'     : 'uid=jrunner, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'false' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing attribute in non-targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing attribute in previously targeted branch'
+                </message>
+    
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Cupertino',
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Compare Tests
+                #@TestName                  Compare Attr - targetattrfilter with add:,del:, returns false
+                #@TestIssue                 441
+                #@TestPurpose               Compare an attribute in an entry against an ACI with a targetattrfilter with add:,del
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client compares an attribute in an entry in the targeted branch.
+                #@TestStep                  Client compares a second attribute in an entry in the targeted branch.
+                #@TestStep                  Client compares an attribute in an entry that is not in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client compares an attribute in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for steps 1 and 2, and
+                                            50 for all other steps.
+                                            The return string for steps 1 and 2 is evaluated to contain the substring, true.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci7.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_compare_tests/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'true' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing prohibited attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'roomnumber:4376',
+                    'entryToBeCompared'     : 'uid=jrunner, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'false' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing attribute in non-targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing attribute in previously targeted branch'
+                </message>
+    
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Cupertino',
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Compare Tests
+                #@TestName                  Compare Attr - Multi ACIs 1, overall deny
+                #@TestIssue                 441
+                #@TestPurpose               Compare an attribute in an entry against two ACIs, overall deny 
+                #@TestPreamble              Admin adds acis.
+                #@TestStep                  Client compares an attribute in an entry in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client compares an attribute in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Compare: Compare Attr - Multi ACIs 1, overall deny'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_multi_acis8.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_compare_tests/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Compare: Compare Attr - Multi ACIs 1, overall deny, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - Multi ACIs 1, overall deny, user comparing attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'ACI: Compare: Compare Attr - Multi ACIs 1, overall deny, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/del_multi_acis.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Compare: Compare Attr - Multi ACIs 1, overall deny, user comparing attribute in previously targeted branch'
+                </message>
+    
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Cupertino',
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Compare Tests
+                #@TestName                  Compare Attr - Multi ACIs 2, overall allow
+                #@TestIssue                 441
+                #@TestPurpose               Compare an attribute in an entry against two ACIs, overall allow 
+                #@TestPreamble              Admin adds acis.
+                #@TestStep                  Client compares an attribute in an entry in the targeted branch.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client compares an attribute in an entry in the previously targeted branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for ACI add and delete operations, 
+                                            0 for step 1, and
+                                            50 for all other steps.
+                                            The return string for step 1 is evaluated to contain the substring, true.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Compare: Compare Attr - Multi ACIs 2, overall allow'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_multi_acis9.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_compare_tests/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Compare: Compare Attr - Multi ACIs 2, overall allow, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                 'ACI: Compare: Compare Attr - Multi ACIs 2, overall allow, user comparing attribute in targeted branch'
+                </message>
+  
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'true' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'true'"/>
+                </if>
+    
+                <message>
+                   'ACI: Compare: Compare Attr - Multi ACIs 2, overall allow, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_compare_tests/del_multi_acis.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Compare: Compare Attr - Multi ACIs 2, overall allow, user comparing attribute in previously targeted branch'
+                </message>
+    
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Cupertino',
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+            <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Compare Tests
+              #@TestName                  Postamble
+              #@TestIssue                 441
+              #@TestPurpose               Reset global ACI to default settings
+              #@TestPreamble              none
+              #@TestStep                  Directory Manager replaces default global aci.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Compare: Postamble'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+                <message>
+                   'ACI: Compare: Resetting Search Global ACI'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_reset_global_search.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+   
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>

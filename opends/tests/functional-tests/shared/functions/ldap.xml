@@ -749,11 +749,18 @@
         <returnstdout/>
       </process>
       
+      <script>
+        SearchRC=RC
+        SearchResult=STAXResult
+      </script>
+      
       <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+        { 'returncode' : SearchRC ,
+          'result'     : SearchResult }
       </call>
           
+      <return>SearchResult</return>
+
     </sequence>
     
   </function>
