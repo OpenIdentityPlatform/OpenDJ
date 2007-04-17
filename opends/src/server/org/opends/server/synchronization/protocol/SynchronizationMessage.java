@@ -47,6 +47,13 @@ public abstract class SynchronizationMessage
   static final byte MSG_TYPE_CHANGELOG_START = 7;
   static final byte MSG_TYPE_WINDOW = 8;
   static final byte MSG_TYPE_HEARTBEAT = 9;
+  static final byte MSG_TYPE_INITIALIZE_REQUEST = 10;
+  static final byte MSG_TYPE_INITIALIZE_TARGET = 11;
+  static final byte MSG_TYPE_ENTRY = 12;
+  static final byte MSG_TYPE_DONE = 13;
+  static final byte MSG_TYPE_ERROR = 14;
+  // Adding a new type of message here probably requires to
+  // change accordingly generateMsg method below
 
   /**
    * Return the byte[] representation of this message.
@@ -60,6 +67,11 @@ public abstract class SynchronizationMessage
    * MSG_TYPE_CHANGELOG_START
    * MSG_TYPE_WINDOW
    * MSG_TYPE_HEARTBEAT
+   * MSG_TYPE_INITIALIZE
+   * MSG_TYPE_INITIALIZE_TARGET
+   * MSG_TYPE_ENTRY
+   * MSG_TYPE_DONE
+   * MSG_TYPE_ERROR
    *
    * @return the byte[] representation of this message.
    */
@@ -106,6 +118,21 @@ public abstract class SynchronizationMessage
       break;
       case MSG_TYPE_HEARTBEAT:
         msg = new HeartbeatMessage(buffer);
+      break;
+      case MSG_TYPE_INITIALIZE_REQUEST:
+        msg = new InitializeRequestMessage(buffer);
+      break;
+      case MSG_TYPE_INITIALIZE_TARGET:
+        msg = new InitializeTargetMessage(buffer);
+      break;
+      case MSG_TYPE_ENTRY:
+        msg = new EntryMessage(buffer);
+      break;
+      case MSG_TYPE_DONE:
+        msg = new DoneMessage(buffer);
+      break;
+      case MSG_TYPE_ERROR:
+        msg = new ErrorMessage(buffer);
       break;
       default:
         throw new DataFormatException("received message with unknown type");

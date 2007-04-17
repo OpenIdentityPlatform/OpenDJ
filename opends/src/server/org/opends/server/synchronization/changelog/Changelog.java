@@ -111,7 +111,7 @@ public class Changelog implements Runnable, ConfigurableComponent
   static final String CHANGELOG_PORT_ATTR = "ds-cfg-changelog-port";
   static final String WINDOW_SIZE_ATTR = "ds-cfg-window-size";
   static final String QUEUE_SIZE_ATTR = "ds-cfg-changelog-max-queue-size";
-  static final String CHANGELOG_DIR_PATH_ATTR = "ds-cfg-changelog-db-dirname";
+  static final String CHANGELOG_DIR_PATH_ATTR = "ds-cfg-changelog-db-directory";
   static final String PURGE_DELAY_ATTR = "ds-cfg-changelog-purge-delay";
 
 
