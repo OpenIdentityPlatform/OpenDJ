@@ -973,7 +973,7 @@ public class InstallDS
 
       if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
       {
-        argList.add("-S");
+        argList.add("-s");
         argList.add("0");
       }
 
