@@ -30,7 +30,7 @@ package org.opends.quicksetup.uninstaller;
 import org.opends.quicksetup.*;
 import static org.opends.quicksetup.Step.PROGRESS;
 import static org.opends.quicksetup.Step.REVIEW;
-import org.opends.quicksetup.installer.FieldName;
+import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.BackgroundTask;
@@ -651,9 +651,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   public QuickSetupStepPanel createWizardStepPanel(WizardStep step) {
     QuickSetupStepPanel p = null;
     if (step == Step.CONFIRM_UNINSTALL) {
-      p = new ConfirmUninstallPanel(installStatus);
+      p = new ConfirmUninstallPanel(this, installStatus);
     } else if (step == Step.PROGRESS) {
-      p = new ProgressPanel();
+      p = new ProgressPanel(this);
     }
     return p;
   }

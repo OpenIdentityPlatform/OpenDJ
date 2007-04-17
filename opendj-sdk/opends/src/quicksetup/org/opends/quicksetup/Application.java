@@ -34,6 +34,7 @@ import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.quicksetup.ui.GuiApplication;
 
 import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
@@ -515,6 +516,16 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   public void setCurrentInstallStatus(CurrentInstallStatus installStatus) {
     this.installStatus = installStatus;
+  }
+
+  /**
+   * Returns whether the installer has finished or not.
+   * @return <CODE>true</CODE> if the install is finished or <CODE>false
+   * </CODE> if not.
+   */
+  public boolean isFinished()
+  {
+    return getCurrentProgressStep().isLast();
   }
 
   /**

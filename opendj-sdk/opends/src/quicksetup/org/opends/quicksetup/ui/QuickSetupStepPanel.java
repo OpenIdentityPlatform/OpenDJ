@@ -40,11 +40,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
-import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.ProgressDescriptor;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
@@ -74,6 +72,22 @@ implements HyperlinkListener
   */
   private HashMap<String, URLWorker> hmURLWorkers =
       new HashMap<String, URLWorker>();
+
+  /**
+   * Creates a default instance.
+   * @param application Application this panel represents
+   */
+  public QuickSetupStepPanel(GuiApplication application) {
+    super(application);
+  }
+
+  /**
+   * Initializes this panel.  Called soon after creation.  In general this
+   * is where maps should be populated etc.
+   */
+  public void initialize() {
+    createLayout();
+  }
 
   /**
    * Called just before the panel is shown: used to update the contents of the
@@ -219,7 +233,7 @@ implements HyperlinkListener
    * Creates the layout of the panel.
    *
    */
-  protected void createLayout()
+  private void createLayout()
   {
     setLayout(new GridBagLayout());
 
@@ -286,47 +300,6 @@ implements HyperlinkListener
     {
       addVerticalGlue(this);
     }
-  }
-
-  /**
-   * Commodity method that returns a JTextComponent based on a
-   * LabelFieldDescriptor.
-   * @param desc the LabelFieldDescriptor describing the JTextField.
-   * @param defaultValue the default value used to initialize the
-   * JTextComponent.
-   * @return a JTextComponent based on a
-   * LabelFieldDescriptor.
-   */
-  protected JTextComponent makeJTextComponent(LabelFieldDescriptor desc,
-      String defaultValue)
-  {
-    JTextComponent field;
-    switch (desc.getType())
-    {
-    case TEXTFIELD:
-
-      field =
-          UIFactory.makeJTextField(defaultValue, desc.getTooltip(), desc
-              .getSize(), UIFactory.TextStyle.TEXTFIELD);
-      break;
-
-    case PASSWORD:
-
-      field =
-          UIFactory.makeJPasswordField(defaultValue, desc.getTooltip(), desc
-              .getSize(), UIFactory.TextStyle.PASSWORD_FIELD);
-      break;
-
-    case READ_ONLY:
-
-      field =
-          UIFactory.makeTextPane(defaultValue, UIFactory.TextStyle.READ_ONLY);
-      break;
-
-    default:
-      throw new IllegalArgumentException("Unknown type: " + desc.getType());
-    }
-    return field;
   }
 
   /**

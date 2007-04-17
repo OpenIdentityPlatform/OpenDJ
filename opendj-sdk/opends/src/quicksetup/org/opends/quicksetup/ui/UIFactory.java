@@ -36,22 +36,8 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.util.HashMap;
 
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JEditorPane;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPasswordField;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.ListCellRenderer;
-import javax.swing.UIManager;
+import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
@@ -645,6 +631,14 @@ public class UIFactory
   }
 
   /**
+   * Creates a JComboBox.
+   * @return JComboBox a new combo box
+   */
+  static public JComboBox makeJComboBox() {
+    return new JComboBox();
+  }
+
+  /**
    * Creates a JButton with the given label and tooltip.
    * @param label the text of the button.
    * @param tooltip the tooltip of the button.
@@ -667,6 +661,24 @@ public class UIFactory
     b.setOpaque(false);
 
     return b;
+  }
+
+  /**
+   * Commodity method that returns a JLabel based on a LabelFieldDescriptor.
+   * @param desc the LabelFieldDescriptor describing the JLabel.
+   * @return a JLabel based on a LabelFieldDescriptor.
+   */
+  static public JLabel makeJLabel(LabelFieldDescriptor desc)
+  {
+    UIFactory.TextStyle style;
+    if (desc.getLabelType() == LabelFieldDescriptor.LabelType.PRIMARY)
+    {
+      style = UIFactory.TextStyle.PRIMARY_FIELD_VALID;
+    } else
+    {
+      style = UIFactory.TextStyle.SECONDARY_FIELD_VALID;
+    }
+    return makeJLabel(UIFactory.IconType.NO_ICON, desc.getLabel(), style);
   }
 
   /**
@@ -697,6 +709,47 @@ public class UIFactory
 
     setTextStyle(l, style);
     return l;
+  }
+
+  /**
+   * Commodity method that returns a JTextComponent based on a
+   * LabelFieldDescriptor.
+   * @param desc the LabelFieldDescriptor describing the JTextField.
+   * @param defaultValue the default value used to initialize the
+   * JTextComponent.
+   * @return a JTextComponent based on a
+   * LabelFieldDescriptor.
+   */
+  static public JTextComponent makeJTextComponent(LabelFieldDescriptor desc,
+      String defaultValue)
+  {
+    JTextComponent field;
+    switch (desc.getType())
+    {
+    case TEXTFIELD:
+
+      field =
+          makeJTextField(defaultValue, desc.getTooltip(), desc
+              .getSize(), TextStyle.TEXTFIELD);
+      break;
+
+    case PASSWORD:
+
+      field =
+          makeJPasswordField(defaultValue, desc.getTooltip(), desc
+              .getSize(), TextStyle.PASSWORD_FIELD);
+      break;
+
+    case READ_ONLY:
+
+      field =
+          makeTextPane(defaultValue, TextStyle.READ_ONLY);
+      break;
+
+    default:
+      throw new IllegalArgumentException("Unknown type: " + desc.getType());
+    }
+    return field;
   }
 
   /**
@@ -910,6 +963,9 @@ public class UIFactory
    */
   public static ImageIcon getImageIcon(IconType iconType)
   {
+    if (iconType == null) {
+      iconType = IconType.NO_ICON;
+    }
     ImageIcon icon = hmIcons.get(iconType);
     if ((icon == null) && (iconType != IconType.NO_ICON))
     {
@@ -979,6 +1035,7 @@ public class UIFactory
     setTextStyle(pane, style);
     pane.setEditable(false);
     pane.setBorder(new EmptyBorder(0, 0, 0, 0));
+    pane.setOpaque(false);
     return pane;
   }
 
@@ -1357,6 +1414,9 @@ public class UIFactory
    */
   private static String getIconTooltip(IconType iconType)
   {
+    if (iconType == null) {
+      iconType = IconType.NO_ICON;
+    }
     String tooltip;
     switch (iconType)
     {

@@ -28,11 +28,13 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.upgrader.ui.WelcomePanel;
+import org.opends.quicksetup.upgrader.ui.ChooseVersionPanel;
+import org.opends.quicksetup.upgrader.ui.UpgraderReviewPanel;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.ServerController;
-import org.opends.quicksetup.ui.QuickSetupDialog;
-import org.opends.quicksetup.ui.QuickSetupStepPanel;
+import org.opends.quicksetup.ui.*;
 import org.opends.server.tools.BackUpDB;
 import org.opends.server.tools.LDIFDiff;
 import org.opends.server.util.*;
@@ -182,11 +184,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private UpgraderCliHelper cliHelper = null;
 
   /**
-   * Directory where we keep files temporarily.
-   */
-  private File stagingDirectory = null;
-
-  /**
    * Directory where backup is kept in case the upgrade needs reversion.
    */
   private File backupDirectory = null;
@@ -292,21 +289,56 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public QuickSetupStepPanel createWizardStepPanel(WizardStep step) {
-    return null;
+    QuickSetupStepPanel pnl = null;
+    if (UpgradeWizardStep.WELCOME.equals(step)) {
+      pnl = new WelcomePanel(this);
+    } else if (UpgradeWizardStep.CHOOSE_VERSION.equals(step)) {
+      pnl = new ChooseVersionPanel(this);
+    } else if (UpgradeWizardStep.REVIEW.equals(step)) {
+      pnl = new UpgraderReviewPanel(this);
+    } else if (UpgradeWizardStep.PROGRESS.equals(step)) {
+      pnl = new ProgressPanel(this);
+    }
+    return pnl;
   }
 
   /**
    * {@inheritDoc}
    */
-  public Step getNextWizardStep(WizardStep step) {
-    return null;
+  public WizardStep getNextWizardStep(WizardStep step) {
+    WizardStep next = null;
+    if (UpgradeWizardStep.WELCOME.equals(step)) {
+      next = UpgradeWizardStep.CHOOSE_VERSION;
+    } else if (UpgradeWizardStep.CHOOSE_VERSION.equals(step)) {
+      next = UpgradeWizardStep.REVIEW;
+    } else if (UpgradeWizardStep.REVIEW.equals(step)) {
+      next = UpgradeWizardStep.PROGRESS;
+    }
+    return next;
   }
 
   /**
    * {@inheritDoc}
    */
   public WizardStep getPreviousWizardStep(WizardStep step) {
-    return null;
+    WizardStep prev = null;
+    if (UpgradeWizardStep.PROGRESS.equals(step)) {
+      prev = UpgradeWizardStep.REVIEW;
+    } else if (UpgradeWizardStep.REVIEW.equals(step)) {
+      prev = UpgradeWizardStep.CHOOSE_VERSION;
+    } else if (UpgradeWizardStep.CHOOSE_VERSION.equals(step)) {
+      prev = UpgradeWizardStep.WELCOME;
+    }
+    return prev;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean canCancel(WizardStep step) {
+    return UpgradeWizardStep.WELCOME == step ||
+            UpgradeWizardStep.CHOOSE_VERSION == step ||
+            UpgradeWizardStep.REVIEW == step;
   }
 
   /**
@@ -318,7 +350,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  protected void updateUserData(WizardStep cStep, QuickSetup qs)
+  public void updateUserData(WizardStep cStep, QuickSetup qs)
           throws UserDataException {
   }
 
@@ -350,6 +382,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public void cancelClicked(WizardStep cStep, QuickSetup qs) {
+    // TODO: confirm cancel
+    System.exit(1);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean canFinish(WizardStep step) {
+    return UpgradeWizardStep.REVIEW.equals(step);
   }
 
   /**

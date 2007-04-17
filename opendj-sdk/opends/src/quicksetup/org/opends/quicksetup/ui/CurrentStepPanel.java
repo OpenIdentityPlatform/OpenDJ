@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.Set;
 
 import org.opends.quicksetup.event.ButtonActionListener;
-import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.*;
 
@@ -58,15 +57,13 @@ public class CurrentStepPanel extends QuickSetupPanel
   private HashMap<WizardStep, QuickSetupStepPanel> hmPanels =
       new HashMap<WizardStep, QuickSetupStepPanel>();
 
-  private Application application;
-
   /**
    * The constructor of this class.
    * @param app Application used to create panels for populating the layout
    */
   public CurrentStepPanel(GuiApplication app)
   {
-    this.application = app;
+    super(app);
     createLayout(app);
   }
 
@@ -127,6 +124,7 @@ public class CurrentStepPanel extends QuickSetupPanel
       for (WizardStep step : steps) {
         QuickSetupStepPanel panel = app.createWizardStepPanel(step);
         if (panel != null) {
+          panel.initialize();
           hmPanels.put(step, panel);
         }
       }
@@ -144,7 +142,7 @@ public class CurrentStepPanel extends QuickSetupPanel
 
     // For aesthetical reasons we add a little bit of height
     // TODO: remove this hack
-    if (application instanceof Installer)
+    if (getApplication() instanceof Installer)
     {
       minHeight += UIFactory.EXTRA_DIALOG_HEIGHT;
     }

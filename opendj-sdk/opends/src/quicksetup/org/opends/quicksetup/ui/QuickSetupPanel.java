@@ -43,13 +43,16 @@ abstract class QuickSetupPanel extends JPanel
 {
   private static final long serialVersionUID = 2096518919339628055L;
 
+  private GuiApplication application;
+
   /**
    * The basic constructor to be called by the subclasses.
-   *
+   * @param application Application this panel represents
    */
-  protected QuickSetupPanel()
+  protected QuickSetupPanel(GuiApplication application)
   {
     super();
+    this.application = application;
     setOpaque(false);
   }
 
@@ -78,6 +81,14 @@ abstract class QuickSetupPanel extends JPanel
     }
 
     return w;
+  }
+
+  /**
+   * Gets the application this panel represents.
+   * @return GuiApplication this panel represents
+   */
+  protected GuiApplication getApplication() {
+    return this.application;
   }
 
   /**

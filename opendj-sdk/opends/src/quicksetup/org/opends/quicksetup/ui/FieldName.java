@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.installer;
+package org.opends.quicksetup.ui;
 
 /**
  * This is an enumeration used to identify the different fields that we have
@@ -111,4 +111,5 @@ public enum FieldName
    * The value associated with this is a Set of String.
    */
   EXTERNAL_LOG_FILES
+
 }

@@ -46,7 +46,6 @@ import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.DataOptions;
-import org.opends.quicksetup.installer.FieldName;
 import org.opends.quicksetup.UserData;
 
 /**
@@ -75,16 +74,16 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
   /**
    * Constructor of the panel.
-   * @param defaultUserData the default values that must be used to initialize
+   * @param application Application represented by this panel
    * the fields of the panel.
    */
-  public DataOptionsPanel(UserData defaultUserData)
+  public DataOptionsPanel(GuiApplication application)
   {
-    this.defaultUserData = defaultUserData;
+    super(application);
+    this.defaultUserData = application.getUserData();
     populateComponentMaps();
     addDocumentListeners();
     addFocusListeners();
-    createLayout();
   }
 
   /**
@@ -288,30 +287,10 @@ public class DataOptionsPanel extends QuickSetupStepPanel
   private JPanel createBrowseButtonPanel(FieldName fieldName,
       JButton browseButton)
   {
-    GridBagConstraints gbc = new GridBagConstraints();
-
-    JPanel panel = new JPanel(new GridBagLayout());
-    panel.setOpaque(false);
-    gbc.insets = UIFactory.getEmptyInsets();
-    gbc.gridwidth = 4;
-    gbc.weightx = 0.0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    panel.add(getLabel(fieldName), gbc);
-
-    gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
-    gbc.gridwidth--;
-    gbc.weightx = 0.1;
-    panel.add(getField(fieldName), gbc);
-
-    gbc.insets.left = UIFactory.LEFT_INSET_BROWSE;
-    gbc.gridwidth = GridBagConstraints.RELATIVE;
-    panel.add(browseButton, gbc);
-
-    gbc.weightx = 1.0;
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    panel.add(Box.createHorizontalGlue(), gbc);
-
-    return panel;
+    return Utilities.createBrowseButtonPanel(
+            getLabel(fieldName),
+            getField(fieldName),
+            browseButton);
   }
 
   /**
@@ -430,11 +409,11 @@ public class DataOptionsPanel extends QuickSetupStepPanel
       LabelFieldDescriptor desc = hm.get(fieldName);
 
       String defaultValue = getDefaultStringValue(fieldName);
-      field = makeJTextComponent(desc, defaultValue);
+      field = UIFactory.makeJTextComponent(desc, defaultValue);
 
       hmFields.put(fieldName, field);
 
-      JLabel l = makeJLabel(desc);
+      JLabel l = UIFactory.makeJLabel(desc);
 
       l.setLabelFor(field);
 
