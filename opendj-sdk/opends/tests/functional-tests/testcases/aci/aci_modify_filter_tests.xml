@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="aci_modify_filter_tests"/>
+
+  <function name="aci_modify_filter_tests">
+
+    <sequence>
+
+      <block name="'aci-modify-filter-tests'">
+      
+        <sequence>
+  
+          <script>
+            CurrentTestPath['group']='security'
+          </script>
+        
+          <call function="'testGroup_Preamble'"/>
+     
+          <!---
+                Place suite-specific test information here.
+                #@TestSuiteName             ACI Modify Filter Tests
+                #@TestSuitePurpose          Test the ACI Support for combinations of targetattr and targattrfilters for modify operations.  
+                #@TestSuiteGroup            ACI Modify Filter Tests
+                #@TestScript                aci_modify_filter_test.xml
+          -->
+    
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 1 - targetattr equals wildcard, targattrfilters equal add and del
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(l=Sunny*),del=l:(l=Sunny*) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci1.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci1'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 2 - targetattr equals wildcard, targattrfilters equal add and del both with not equal [filter]
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(!(l=Sunny*)) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci2.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci2'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 3 - targetattr equals wildcard, targattrfilters equal add and del, both with not equal [filter] and no match
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(!(l=Anythingelse*)),del=l:(!(l=Anythingelse*)) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci3.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci3'" />
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 4 - targetattr equals wildcard, targattrfilters equal add and del, both with not equal [filter] and no match
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(l=Anythingelse*),del=l:(l=Anythingelse*) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci4.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci4'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 5 - targetattr equals wildcard, targattrfilters equal add and del, add with not equal [filter] 
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(l=Sunny*) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci5.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci5'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 6 - targetattr equals wildcard, targattrfilters equal add and del, del with not equal [filter] 
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= * )(targattrfilters= add=l:(l=Sunny*),del=l:(!(l=Sunny*)) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci6.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci6'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 11 - targetattr equals l, targattrfilters equal add and del
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(l=Sunny*),del=l:(l=Sunny*) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci11.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci11'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 12 - targetattr equals l, targattrfilters equal add and del both with not equal [filter]
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(!(l=Sunny*)) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci12.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci12'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 13 - targetattr equals l, targattrfilters equal add and del, both with not equal [filter] and no match
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(!(l=Anythingelse*)),del=l:(!(l=Anythingelse*)) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci13.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci13'" />
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 14 - targetattr equals l, targattrfilters equal add and del, both with not equal [filter] and no match
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(l=Anythingelse*),del=l:(l=Anythingelse*) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci14.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci14'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 15 - targetattr equals l, targattrfilters equal add and del, add with not equal [filter] 
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(l=Sunny*) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci15.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci15'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 16 - targetattr equals l, targattrfilters equal add and del, del with not equal [filter] 
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= l )(targattrfilters= add=l:(l=Sunny*),del=l:(!(l=Sunny*)) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci16.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci16'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 21 - targetattr equals carlicense, targattrfilters equal add and del
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(l=Sunny*),del=l:(l=Sunny*) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci21.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci21'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 22 - targetattr equals carlicense, targattrfilters equal add and del both with not equal [filter]
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(!(l=Sunny*)) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci22.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci22'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 23 - targetattr equals carlicense, targattrfilters equal add and del, both with not equal [filter] and no match
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(!(l=Anythingelse*)),del=l:(!(l=Anythingelse*)) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci23.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci23'" />
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 24 - targetattr equals carlicense, targattrfilters equal add and del, both with not equal [filter] and no match
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(l=Anythingelse*),del=l:(l=Anythingelse*) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci24.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci24'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 25 - targetattr equals carlicense, targattrfilters equal add and del, add with not equal [filter] 
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(!(l=Sunny*)),del=l:(l=Sunny*) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci25.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci25'" />
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Modify Filter Tests
+                #@TestName                  ACI 26 - targetattr equals carlicense, targattrfilters equal add and del, del with not equal [filter] 
+                #@TestIssue                 444
+                #@TestPurpose               (targetattr= carlicense )(targattrfilters= add=l:(l=Sunny*),del=l:(!(l=Sunny*)) )
+                #@TestPreamble              Directory Manager adds ACI and adds entries to test
+                #@TestStep                  For entry 0, delete entire entry
+                #@TestStep                  For entry 1, replace attribute l with Sunnyfield
+                #@TestStep                  For entry 2, replace attribute l with Austin
+                #@TestStep                  For entry 3, replace attribute carlicense with new value
+                #@TestStep                  For entry 4, add attribute l with Sunnyfield
+                #@TestStep                  For entry 5, add attribute l with Austin
+                #@TestStep                  For entry 6, add attribute carlicense with new value
+                #@TestStep                  For entry 7, delete attribute l with Sunnyvale
+                #@TestStep                  For entry 8, delete attribute l
+                #@TestStep                  For entry 9, delete attribute carlicense
+                #@TestPostamble             Directory Manager removes ACI and removes entries that were tested
+                #@TestResult                Success if OpenDS returns 0 or 50
+                                            where appropriate
+          -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_filter_tests_aci26.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_filter_tests_aci26'" />
+  
+          <call function="'testGroup_Postamble'"/>
+        
+        </sequence>
+      
+      </block>
+      
+    </sequence>
+
+  </function>
+
+</stax>

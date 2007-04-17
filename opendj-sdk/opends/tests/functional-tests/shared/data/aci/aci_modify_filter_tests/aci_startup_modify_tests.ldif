@@ -1,0 +1,260 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Portions Copyright 2007 Sun Microsystems, Inc.
+#
+
+dn: o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+o: ACI Tests
+objectclass: top
+objectclass: organization
+
+dn: ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: aci branch
+
+dn: ou=People, ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: People
+
+dn: uid=duser1, ou=People, ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+cn: Dir User1
+sn: User1
+givenname: Dir
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: duser1
+mail: duser1@example.com
+telephonenumber: +1 408 555 4798
+facsimiletelephonenumber: +1 408 555 9751
+roomnumber: 4612
+userpassword: sprain
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=duser2, ou=People, ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+cn: Dir User2
+sn: User2
+givenname: Dir
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: duser2
+mail: duser2@example.com
+telephonenumber: +1 408 555 9187
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 4117
+userpassword: irrefutable
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=duser3, ou=People, ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+cn: Dir User3
+sn: User3
+givenname: Dir
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Human Resources
+ou: People
+l: Sunnyvale
+uid: duser3
+mail: duser3@example.com
+telephonenumber: +1 408 555 5625
+facsimiletelephonenumber: +1 408 555 3372
+roomnumber: 2871
+userpassword: bribery
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=duser4, ou=People, ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+cn: Dir User4
+sn: User4
+givenname: Dir
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+l: Sunnyvale
+uid: duser4
+mail: duser4@example.com
+telephonenumber: +1 408 555 8585
+facsimiletelephonenumber: +1 408 555 7472
+roomnumber: 3472
+userpassword: inflict
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=duser5, ou=People, ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+cn: Dir User5
+sn: User5
+givenname: Dir
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: duser5
+mail: duser5@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=duser6, ou=People, ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+cn: Dir User6
+sn: User6
+givenname: Dir
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: duser6
+mail: duser6@example.com
+telephonenumber: +1 408 555 6201
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 1269
+userpassword: ruling
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=duser7, ou=People, ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+cn: Dir User7
+sn: User7
+givenname: Dir
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Sunnyvale
+uid: duser7
+mail: duser7@example.com
+telephonenumber: +1 408 555 9069
+facsimiletelephonenumber: +1 408 555 1992
+roomnumber: 4178
+userpassword: forsook
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=duser8, ou=People, ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+cn: Dir User8
+sn: User8
+givenname: Dir
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Human Resources
+ou: People
+l: Sunnyvale
+uid: duser8
+mail: duser8@example.com
+telephonenumber: +1 408 555 1296
+facsimiletelephonenumber: +1 408 555 1992
+roomnumber: 0194
+userpassword: apples
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=duser9, ou=People, ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+cn: Dir User9
+sn: User9
+givenname: Dir
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+l: Sunnyvale
+uid: duser9
+mail: duser9@example.com
+telephonenumber: +1 408 555 1122
+facsimiletelephonenumber: +1 408 555 8721
+roomnumber: 2942
+userpassword: destroy
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=duser0, ou=People, ou=aci branch, o=Modify Filter Tests, o=ACI Tests, dc=example,dc=com
+cn: Dir User0
+sn: User0
+givenname: Dir
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Human Resources
+ou: People
+l: Sunnyvale
+uid: duser0
+mail: duser0@example.com
+telephonenumber: +1 408 555 1596
+facsimiletelephonenumber: +1 408 555 9751
+roomnumber: 1124
+userpassword: squatted
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
