@@ -73,7 +73,7 @@ public class DNS implements KeywordBindRule {
      * @param patterns List of dns patterns to match against.
      * @param type An enumeration representing the bind rule type.
      */
-    private DNS(LinkedList<String> patterns, EnumBindRuleType type) {
+    DNS(LinkedList<String> patterns, EnumBindRuleType type) {
         this.patterns=patterns;
         this.type=type;
     }
@@ -194,54 +194,36 @@ public class DNS implements KeywordBindRule {
         return matched.getRet(type, false);
     }
 
-    /*
-     * TODO Verify that a DNS pattern of "*" is valid by writing a unit
-     * test. Probably isn't.
-     *
-     * TODO Evaluate if extending the wild-card matching to multiple name
-     * components should be supported. Currently wild-cards are only permitted
-     * in the leftmost field and the rest of the domain name components must
-     * match.
-     *
-     * TODO Evaluate extending wild-card matching to non-complete name matching.
-     *
-     * Is it acceptable to have a DNS address of just "*"
-     * (which presumably will match any system)?
-     *
-     * Is it acceptable for a wildcard to match multiple name components?  For
-     * example, is "*.example.com" supposed to be considered a match for
-     * "host.east.example.com"?  Similarly, would a pattern like
-     * "www.*.example.com" match "www.newyork.east.example.com"?  It doesn't
-     * appear that the current implementation matches either of them.
-     *
-     * Is it acceptable for a wildcard to appear as anything other than a
-     * complete name component?  For example, if I have three web servers
-     * "www1.example.com","www2.example.com", and "www3.example.com", then
-     * can I use "www*.example.com"? It doesn't appear that the current
-     * implementation allows that.  Further, would "www*.example.com" match
-     * cases like "www.example.com" or "www1.east.example.com"?
-     */
     /**
      * Checks an array containing the remote client's hostname against
      * patterns specified in the bind rule expression. Wild-cards are
      * only permitted in the leftmost field and the rest of the domain
-     * name array components must match.
+     * name array components must match. A single wild-card matches any
+     * hostname.
      * @param remoteHostName  Array containing components of the remote clients
      * hostname (split on ".").
      * @param pat  An array containing the pattern specified in
      * the bind rule expression. The first array slot may be a wild-card "*".
      * @return  True if the remote hostname matches the pattern.
      */
-    private boolean evalHostName(String[] remoteHostName, String[] pat) {
-        if(remoteHostName.length != pat.length)
-            return false;
-        for(int i=0;i<remoteHostName.length;i++)
-        {
-            if(!pat[i].equals("*")) {
-                if(!pat[i].equalsIgnoreCase(remoteHostName[i]))
-                    return false;
-            }
-        }
+      boolean evalHostName(String[] remoteHostName, String[] pat) {
+      boolean wildCard=pat[0].equals("*");
+      //Check if there is a single wild-card.
+      if(pat.length == 1 && wildCard)
         return true;
+      int remoteHnIndex=remoteHostName.length-pat.length;
+      if(remoteHnIndex < 0)
+        return false;
+      int patternIndex=0;
+      if(!wildCard)
+          remoteHnIndex=0;
+      else {
+          patternIndex=1;
+          remoteHnIndex++;
+      }
+      for(int i=remoteHnIndex ;i<remoteHostName.length;i++)
+            if(!pat[patternIndex++].equalsIgnoreCase(remoteHostName[i]))
+                return false;
+      return true;
     }
 }
