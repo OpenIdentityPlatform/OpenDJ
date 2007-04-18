@@ -19,7 +19,8 @@
       <xsd:documentation>A numeric OID.</xsd:documentation>
     </xsd:annotation>
     <xsd:restriction base="xsd:token">
-      <xsd:pattern value="([0-9]+(\.[0-9]+)*)|([a-zA-Z][a-zA-Z0-9\-_]*-oid)" />
+      <xsd:pattern
+        value="([0-9]+(\.[0-9]+)*)|([a-zA-Z][a-zA-Z0-9\-_]*-oid)" />
     </xsd:restriction>
   </xsd:simpleType>
   <xsd:simpleType name="name-type">
@@ -90,6 +91,15 @@
         </xsd:element>
       </xsd:sequence>
     </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="naming-attribute" type="tns:name-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines which LDAP attribute should be used to name child
+        managed objects referenced by a relation. When not specified,
+        "cn" is used by default.
+      </xsd:documentation>
+    </xsd:annotation>
   </xsd:element>
   <xsd:element name="rdn-sequence" type="xsd:token">
     <xsd:annotation>
