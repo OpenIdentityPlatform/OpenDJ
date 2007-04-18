@@ -60,9 +60,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LDAPAttribute
 {
-
-
-
   // The set of values for this attribute.
   private ArrayList<ASN1OctetString> values;
 
@@ -114,14 +111,21 @@ public class LDAPAttribute
    */
   public LDAPAttribute(Attribute attribute)
   {
-    StringBuilder attrName = new StringBuilder(attribute.getName());
-    for (String o : attribute.getOptions())
+    if (attribute.hasOptions())
     {
-      attrName.append(";");
-      attrName.append(o);
-    }
+      StringBuilder attrName = new StringBuilder(attribute.getName());
+      for (String o : attribute.getOptions())
+      {
+        attrName.append(";");
+        attrName.append(o);
+      }
 
-    this.attributeType = attrName.toString();
+      this.attributeType = attrName.toString();
+    }
+    else
+    {
+      this.attributeType = attribute.getName();
+    }
 
     LinkedHashSet<AttributeValue> attrValues = attribute.getValues();
     if ((attrValues == null) || attrValues.isEmpty())
@@ -192,14 +196,7 @@ public class LDAPAttribute
     }
     else
     {
-      ArrayList<ASN1Element> valueElements =
-           new ArrayList<ASN1Element>(values.size());
-      for (ASN1OctetString s : values)
-      {
-        valueElements.add(s);
-      }
-
-      elements.add(new ASN1Set(valueElements));
+      elements.add(new ASN1Set(new ArrayList<ASN1Element>(values)));
     }
 
     return new ASN1Sequence(elements);

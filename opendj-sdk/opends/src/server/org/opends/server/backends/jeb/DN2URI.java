@@ -674,8 +674,7 @@ public class DN2URI
      * reverse order we must set the first byte (the comma).
      * No possibility of overflow here.
      */
-    byte[] end = suffix.clone();
-    end[0] = (byte) (end[0] + 1);
+    byte[] end = null;
 
     DatabaseEntry data = new DatabaseEntry();
     DatabaseEntry key = new DatabaseEntry(suffix);
@@ -692,6 +691,12 @@ public class DN2URI
              status == OperationStatus.SUCCESS;
              status = cursor.getNextNoDup(key, data, LockMode.DEFAULT))
         {
+          if (end == null)
+          {
+            end = suffix.clone();
+            end[0] = (byte) (end[0] + 1);
+          }
+
           int cmp = comparator.compare(key.getData(), end);
           if (cmp >= 0)
           {

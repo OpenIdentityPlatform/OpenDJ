@@ -52,6 +52,7 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.util.LDIFException;
 
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
@@ -581,17 +582,18 @@ public class Entry
       return null;
     }
 
+    AttributeType ocType =
+         DirectoryServer.getObjectClassAttributeType();
+
     LinkedHashSet<AttributeValue> ocValues =
          new LinkedHashSet<AttributeValue>(objectClasses.size());
     for (String s : objectClasses.values())
     {
-      ocValues.add(new AttributeValue(new ASN1OctetString(s),
-                            new ASN1OctetString(toLowerCase(s))));
+      ocValues.add(new AttributeValue(ocType,
+                                      new ASN1OctetString(s)));
     }
 
-    return new Attribute(
-                    DirectoryServer.getObjectClassAttributeType(),
-                    "objectClass", ocValues);
+    return new Attribute(ocType, ATTR_OBJECTCLASS, ocValues);
   }
 
 
