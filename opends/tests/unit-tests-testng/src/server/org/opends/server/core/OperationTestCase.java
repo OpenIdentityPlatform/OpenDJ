@@ -31,6 +31,7 @@ package org.opends.server.core;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.util.StaticUtils;
@@ -56,7 +57,23 @@ public abstract class OperationTestCase
   // The LDAPStatistics object associated with the LDAPS connection handler.
   protected LDAPStatistics ldapsStatistics;
 
+  @BeforeMethod
+  public void setUpQuiesceServer()
+  {
+    TestCaseUtils.quiesceServer();
+  }
 
+  /**
+   * Since the PostResponse plugins are called after the response is sent
+   * back to the client, a client (e.g. a test case) can get a response before
+   * the PostResponse plugins have been called.  So that we can verify that the
+   * PostResponse plugins were called, the tests call this method to ensure
+   * that all operations in the server have been completed.
+   */
+  protected void ensurePostReponseHasRun()
+  {
+    TestCaseUtils.quiesceServer();
+  }
 
   /**
    * Ensures that the Directory Server is running.

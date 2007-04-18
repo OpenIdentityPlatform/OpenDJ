@@ -79,6 +79,7 @@ import static org.testng.Assert.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.tasks.TaskUtils;
+import org.opends.server.api.WorkQueue;
 
 /**
  * This class defines some utility functions which can be used by test
@@ -313,6 +314,28 @@ public final class TestCaseUtils {
     assertTrue(InvocationCounterPlugin.startupCalled());
 
     SERVER_STARTED = true;
+  }
+
+  /**
+   * Bring the server to a quiescent state.  This includes waiting for all
+   * operations to complete.  This can be used in a @BeforeMethod setup method
+   * to make sure that the server has finished processing all operations
+   * from previous tests.
+   */
+  public static void quiesceServer() 
+  {
+    waitForOpsToComplete();
+  }
+
+  /**
+   * This can be made public if quiesceServer becomes too heavy-weight in
+   * some circumstance.
+   */
+  private static void waitForOpsToComplete()
+  {
+    WorkQueue workQueue = DirectoryServer.getWorkQueue();
+    final long NO_TIMEOUT = -1;
+    workQueue.waitUntilIdle(NO_TIMEOUT);
   }
 
   /**

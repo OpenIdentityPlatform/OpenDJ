@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
@@ -878,6 +879,7 @@ public class BindOperationTestCase
     assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
     assertTrue(InvocationCounterPlugin.getPreOperationCount() > 0);
     assertTrue(InvocationCounterPlugin.getPostOperationCount() > 0);
+    ensurePostReponseHasRun();
     assertTrue(InvocationCounterPlugin.getPostResponseCount() > 0);
   }
 
@@ -905,6 +907,7 @@ public class BindOperationTestCase
     assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
     assertTrue(InvocationCounterPlugin.getPreOperationCount() > 0);
     assertTrue(InvocationCounterPlugin.getPostOperationCount() > 0);
+    ensurePostReponseHasRun();
     assertTrue(InvocationCounterPlugin.getPostResponseCount() > 0);
   }
 
@@ -1941,6 +1944,10 @@ public class BindOperationTestCase
     assertEquals(DirectoryServer.getAuthenticatedUsers().get(userDN).size(),
                  1);
 
+    // We occasionally run into
+    // ProtocolMessages.MSGID_LDAP_CLIENT_DUPLICATE_MESSAGE_ID, so we wait
+    // for previous ops to complete.
+    TestCaseUtils.quiesceServer();
     bindRequest = new BindRequestProtocolOp(
                            new ASN1OctetString("cn=Directory Manager"), 3,
                            new ASN1OctetString("password"));
@@ -1949,7 +1956,7 @@ public class BindOperationTestCase
 
     message = LDAPMessage.decode(r.readElement().decodeAsSequence());
     bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
+    assertEquals(bindResponse.getResultCode(), 0, message.toString());
 
     assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
 
