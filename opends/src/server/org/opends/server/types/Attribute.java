@@ -176,7 +176,7 @@ public class Attribute
     this.attributeType = attributeType;
     this.name          = name;
 
-    if (options == null)
+    if ((options == null) || options.isEmpty())
     {
       this.options = new LinkedHashSet<String>(0);
       lowerOptions = options;
@@ -184,7 +184,7 @@ public class Attribute
     else
     {
       this.options = options;
-      lowerOptions = new LinkedHashSet<String>();
+      lowerOptions = new LinkedHashSet<String>(options.size());
       for (String option : options)
       {
         lowerOptions.add(toLowerCase(option));
@@ -193,7 +193,7 @@ public class Attribute
 
     if (values == null)
     {
-      this.values = new LinkedHashSet<AttributeValue>();
+      this.values = new LinkedHashSet<AttributeValue>(0);
     }
     else
     {
@@ -868,11 +868,7 @@ public class Attribute
   public Attribute duplicate(boolean omitValues)
   {
     LinkedHashSet<String> optionsCopy =
-         new LinkedHashSet<String>(options.size());
-    for (String s : options)
-    {
-      optionsCopy.add(s);
-    }
+         new LinkedHashSet<String>(options);
 
     if (omitValues)
     {
