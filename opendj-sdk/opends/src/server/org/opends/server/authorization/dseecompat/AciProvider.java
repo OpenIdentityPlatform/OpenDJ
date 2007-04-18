@@ -58,8 +58,7 @@ public class AciProvider implements
      * method.
      *
      * @param configuration
-     *          The entry containing the configuration Access Control
-     *          entry.
+     *          The config handler containing the access control configuration.
      * @throws ConfigException
      *           If the initialization fails.
      * @throws InitializationException
