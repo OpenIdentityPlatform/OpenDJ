@@ -9,7 +9,6 @@
     <adm:user-friendly-name />
     is the provider class for the dseecompt ACI.
   </adm:synopsis>
-  
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.87</ldap:oid>
@@ -17,7 +16,6 @@
       <ldap:superior>ds-cfg-access-control-handler</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  
   <adm:property name="global-aci" mandatory="false"
     multi-valued="true">
     <adm:synopsis>
@@ -27,6 +25,10 @@
        <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
+          Defines a global access control rule, which will always be
+          interpreted for any entry anywhere in the server (although it
+          may be overridden by more specific access control rules placed
+          in the data).
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -40,6 +42,5 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  
 </adm:managed-object>
 
