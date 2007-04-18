@@ -153,6 +153,14 @@ public class SetupUtils
       return OperatingSystem.WINDOWS == getOperatingSystem();
   }
 
+  /**
+   * Returns a String representation of the OS we are running.
+   * @return a String representation of the OS we are running.
+   */
+  public static String getOSString()
+  {
+    return getOperatingSystem().toString();
+  }
 
   /**
    * Commodity method to help identifying the OS we are running on.

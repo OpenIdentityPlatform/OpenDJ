@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.LDIFException;
@@ -62,6 +63,11 @@ public class ConfigFromFile
     DirectoryServer.getObjectClass("ds-cfg-backend", true);
   private final ObjectClass administrativeUserOc =
     DirectoryServer.getObjectClass("ds-cfg-root-dn", true);
+  private final ObjectClass syncProviderOc =
+    DirectoryServer.getObjectClass("ds-cfg-synchronization-provider", true);
+  private final ObjectClass syncConfigOc =
+    DirectoryServer.getObjectClass("ds-cfg-synchronization-provider-config",
+    true);
 
   private HashSet<ListenerDescriptor> listeners =
     new HashSet<ListenerDescriptor>();
@@ -69,7 +75,8 @@ public class ConfigFromFile
     new HashSet<DatabaseDescriptor>();
   private HashSet<String> administrativeUsers = new HashSet<String>();
   private String errorMessage;
-
+  private boolean synchronizationConfigured = false;
+  private HashSet<String> synchronizedSuffixes = new HashSet<String>();
 
   /**
    * Default constructor.
@@ -87,6 +94,11 @@ public class ConfigFromFile
   public void readConfiguration()
   {
     errorMessage = null;
+    listeners.clear();
+    databases.clear();
+    administrativeUsers.clear();
+    synchronizationConfigured = false;
+    synchronizedSuffixes.clear();
     try
     {
       Installation installation =
@@ -99,6 +111,7 @@ public class ConfigFromFile
       {
         updateConfig(entry);
       }
+      updateSynchronization();
     }
     catch (IOException ioe)
     {
@@ -246,6 +259,14 @@ public class ConfigFromFile
    {
      updateConfigWithAdministrativeUser(entry);
    }
+   else if (entry.hasObjectClass(syncProviderOc))
+   {
+     updateConfigWithSyncProviderEntry(entry);
+   }
+   else if (entry.hasObjectClass(syncConfigOc))
+   {
+     updateConfigWithSyncConfig(entry);
+   }
   }
 
   /**
@@ -350,13 +371,26 @@ public class ConfigFromFile
    */
   private void updateConfigWithBackend(Entry entry)
   {
-    String baseDn = getFirstValue(entry, "ds-cfg-backend-base-dn");
     String id = getFirstValue(entry, "ds-cfg-backend-id");
     int nEntries = -1; // Unknown
 
     if (!isConfigBackend(id))
     {
-      databases.add(new DatabaseDescriptor(id, baseDn, nEntries));
+      Set<String> baseDns = new TreeSet<String>();
+      baseDns.addAll(getValues(entry, "ds-cfg-backend-base-dn"));
+      Set<BaseDNDescriptor> replicas = new LinkedHashSet<BaseDNDescriptor>();
+
+      for (String baseDn : baseDns)
+      {
+        replicas.add(getBaseDNDescriptor(entry, baseDn));
+      }
+
+      DatabaseDescriptor db = new DatabaseDescriptor(id, replicas, nEntries);
+      databases.add(db);
+      for (BaseDNDescriptor rep: replicas)
+      {
+        rep.setDatabase(db);
+      }
     }
   }
 
@@ -368,6 +402,70 @@ public class ConfigFromFile
   private void updateConfigWithAdministrativeUser(Entry entry)
   {
     administrativeUsers.addAll(getValues(entry, "ds-cfg-alternate-bind-dn"));
+  }
+
+  /**
+   * Updates the synchronization configuration data we expose to the user with
+   * the provided entry object.
+   * @param entry the entry to analyze.
+   */
+  private void updateConfigWithSyncProviderEntry(Entry entry)
+  {
+    if ("true".equalsIgnoreCase(getFirstValue(entry,
+        "ds-cfg-synchronization-provider-enabled")))
+    {
+      synchronizationConfigured = true;
+    }
+    else
+    {
+      synchronizationConfigured = false;
+    }
+  }
+
+
+  /**
+   * Updates the databases suffixes with the list of synchronized suffixes
+   * found.
+   */
+  private void updateSynchronization()
+  {
+    if (synchronizationConfigured)
+    {
+      for (String suffixDn: synchronizedSuffixes)
+      {
+        BaseDNDescriptor replica = null;
+        for (DatabaseDescriptor db: databases)
+        {
+          Set<BaseDNDescriptor> replicas = db.getBaseDns();
+          for (BaseDNDescriptor rep: replicas)
+          {
+            if (Utils.areDnsEqual(rep.getDn(), suffixDn))
+            {
+              replica = rep;
+              break;
+            }
+          }
+          if (replica != null)
+          {
+            break;
+          }
+        }
+        if (replica != null)
+        {
+          replica.setType(BaseDNDescriptor.Type.SYNCHRONIZED);
+        }
+      }
+    }
+  }
+
+  /**
+   * Updates the synchronization configuration data we expose to the user with
+   * the provided entry object.
+   * @param entry the entry to analyze.
+   */
+  private void updateConfigWithSyncConfig(Entry entry)
+  {
+    synchronizedSuffixes.addAll(getValues(entry, "ds-cfg-synchronization-dn"));
   }
 
   /**
@@ -416,5 +514,14 @@ public class ConfigFromFile
       v = values.iterator().next();
     }
     return v;
+  }
+
+  /**
+   * Create a non synchronized base DN descriptor.
+   */
+  private BaseDNDescriptor getBaseDNDescriptor(Entry entry, String baseDn)
+  {
+    return new BaseDNDescriptor(BaseDNDescriptor.Type.NOT_SYNCHRONIZED,
+        baseDn, null, -1, -1);
   }
 }

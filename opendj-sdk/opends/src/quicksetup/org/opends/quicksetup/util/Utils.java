@@ -63,6 +63,8 @@ import org.opends.server.util.SetupUtils;
  */
 public class Utils
 {
+  private static final int DEFAULT_LDAP_CONNECT_TIMEOUT = 3000;
+
   private static final int BUFFER_SIZE = 1024;
 
   private static final int MAX_LINE_WIDTH = 80;
@@ -266,6 +268,15 @@ public class Utils
   public static boolean isUnix()
   {
     return SetupUtils.isUnix();
+  }
+
+  /**
+   * Returns a String representation of the OS we are running.
+   * @return a String representation of the OS we are running.
+   */
+  public static String getOSString()
+  {
+    return SetupUtils.getOSString();
   }
 
   /**
@@ -855,7 +866,8 @@ public class Utils
     try
     {
       InitialLdapContext ctx =
-        Utils.createLdapContext(ldapUrl, dn, pwd, 3000, null);
+        Utils.createLdapContext(ldapUrl, dn, pwd,
+            Utils.getDefaultLDAPTimeout(), null);
 
       /*
        * Search for the config to check that it is the directory manager.
@@ -950,13 +962,13 @@ public class Utils
    * Displays an error message dialog.
    *
    * @param parent
-   *          the parent frame of the error dialog.
+   *          the parent component of the error dialog.
    * @param msg
    *          the error message.
    * @param title
    *          the title for the dialog.
    */
-  public static void displayError(JFrame parent, String msg, String title)
+  public static void displayError(Component parent, String msg, String title)
   {
     JOptionPane.showMessageDialog(parent, msg, title,
         JOptionPane.ERROR_MESSAGE);
@@ -1104,6 +1116,17 @@ public class Utils
       }
     }
     return (InitialLdapContext) pair[0];
+  }
+
+  /**
+   * Returns the default LDAP timeout in milliseconds when we try to connect to
+   * a server.
+   * @return the default LDAP timeout in milliseconds when we try to connect to
+   * a server.
+   */
+  public static int getDefaultLDAPTimeout()
+  {
+    return DEFAULT_LDAP_CONNECT_TIMEOUT;
   }
 
   /**

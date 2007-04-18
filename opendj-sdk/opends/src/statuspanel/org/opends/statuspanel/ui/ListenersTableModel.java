@@ -35,6 +35,7 @@ import java.util.TreeSet;
 
 import javax.swing.table.AbstractTableModel;
 
+import org.opends.quicksetup.ui.SortableTableModel;
 import org.opends.statuspanel.ListenerDescriptor;
 import org.opends.statuspanel.i18n.ResourceProvider;
 

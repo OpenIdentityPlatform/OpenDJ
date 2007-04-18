@@ -27,9 +27,13 @@
 
 package org.opends.statuspanel;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
+import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -55,6 +59,12 @@ public class ConfigFromLDAP
     new HashSet<DatabaseDescriptor>();
   private HashSet<String> administrativeUsers = new HashSet<String>();
   private String errorMessage;
+  private boolean synchronizationConfigured = false;
+  private HashSet<String> synchronizedSuffixes = new HashSet<String>();
+  private HashMap<String, Integer> hmMissingChanges =
+    new HashMap<String, Integer>();
+  private HashMap<String, Integer> hmAgeOfOldestMissingChanges =
+    new HashMap<String, Integer>();
 
   private String dn;
   private String pwd;
@@ -130,6 +140,10 @@ public class ConfigFromLDAP
     listeners.clear();
     databases.clear();
     administrativeUsers.clear();
+    synchronizationConfigured = false;
+    synchronizedSuffixes.clear();
+    hmMissingChanges.clear();
+    hmAgeOfOldestMissingChanges.clear();
     javaVersion = null;
     openConnections = -1;
 
@@ -138,6 +152,7 @@ public class ConfigFromLDAP
       InitialLdapContext ctx = getDirContext();
       updateAdministrativeUsers(ctx);
       updateListeners(ctx);
+      updateSynchronization(ctx);
       updateDatabases(ctx);
       javaVersion = getJavaVersion(ctx);
       openConnections = getOpenConnections(ctx);
@@ -304,6 +319,124 @@ public class ConfigFromLDAP
 
       updateConfigWithConnectionHandler(sr);
 
+    }
+  }
+
+  /**
+   * Updates the synchronization configuration data we expose to the user with
+   * the provided InitialLdapContext.
+   * @param ctx the InitialLdapContext to use to update the configuration.
+   * @throws NamingException if there was an error.
+   */
+  private void updateSynchronization(InitialLdapContext ctx)
+  throws NamingException
+  {
+    SearchControls ctls = new SearchControls();
+    ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
+    ctls.setReturningAttributes(
+        new String[] {
+            "ds-cfg-synchronization-provider-enabled"
+        });
+    String filter = "(objectclass=ds-cfg-synchronization-provider)";
+
+    LdapName jndiName = new LdapName(
+      "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
+
+    try
+    {
+      NamingEnumeration syncProviders = ctx.search(jndiName, filter, ctls);
+
+      while(syncProviders.hasMore())
+      {
+        SearchResult sr = (SearchResult)syncProviders.next();
+
+        if ("true".equalsIgnoreCase(getFirstValue(sr,
+          "ds-cfg-synchronization-provider-enabled")))
+        {
+          synchronizationConfigured = true;
+        }
+      }
+    }
+    catch (NameNotFoundException nse)
+    {
+    }
+
+    ctls = new SearchControls();
+    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+    ctls.setReturningAttributes(
+        new String[] {
+            "ds-cfg-synchronization-dn"
+        });
+    filter = "(objectclass=ds-cfg-synchronization-provider-config)";
+
+    jndiName = new LdapName(
+      "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
+
+    try
+    {
+      NamingEnumeration syncProviders = ctx.search(jndiName, filter, ctls);
+
+      while(syncProviders.hasMore())
+      {
+        SearchResult sr = (SearchResult)syncProviders.next();
+
+        synchronizedSuffixes.addAll(getValues(sr, "ds-cfg-synchronization-dn"));
+      }
+    }
+    catch (NameNotFoundException nse)
+    {
+    }
+
+    ctls = new SearchControls();
+    ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+    ctls.setReturningAttributes(
+    new String[] {
+      "approximate-delay", "waiting-changes", "base-dn"
+    });
+    filter = "(approximate-delay=*)";
+
+    jndiName = new LdapName("cn=monitor");
+
+    if (synchronizedSuffixes.size() > 0)
+    {
+      try
+      {
+        NamingEnumeration monitorEntries = ctx.search(jndiName, filter, ctls);
+
+        while(monitorEntries.hasMore())
+        {
+          SearchResult sr = (SearchResult)monitorEntries.next();
+
+          String dn = getFirstValue(sr, "base-dn");
+
+          for (String baseDn: synchronizedSuffixes)
+          {
+
+            if (Utils.areDnsEqual(dn, baseDn))
+            {
+              try
+              {
+                hmAgeOfOldestMissingChanges.put(baseDn,
+                  new Integer(getFirstValue(sr, "approximate-delay")));
+              }
+              catch (Throwable t)
+              {
+              }
+              try
+              {
+                hmMissingChanges.put(baseDn,
+                  new Integer(getFirstValue(sr, "waiting-changes")));
+              }
+              catch (Throwable t)
+              {
+              }
+            }
+          }
+        }
+      }
+      catch (NameNotFoundException nse)
+      {
+      }
     }
   }
 
@@ -481,6 +614,58 @@ public class ConfigFromLDAP
   }
 
   /**
+   * Create the base DN descriptor.  Assumes that the synchronizedSuffixes Set
+   * and synchronizationConfigured have already been initialized.
+   */
+  private BaseDNDescriptor getBaseDNDescriptor(InitialLdapContext ctx,
+      String baseDn)
+  throws NamingException
+  {
+    BaseDNDescriptor.Type type;
+    int missingChanges = -1;
+    int ageOfOldestMissingChange = -1;
+    String mapSuffixDn = null;
+
+    boolean replicated = false;
+    if (synchronizationConfigured)
+    {
+      for (String suffixDn: synchronizedSuffixes)
+      {
+        if (Utils.areDnsEqual(baseDn, suffixDn))
+        {
+          replicated = true;
+          mapSuffixDn = suffixDn;
+          break;
+        }
+      }
+    }
+    if (replicated)
+    {
+      type = BaseDNDescriptor.Type.SYNCHRONIZED;
+
+      Integer missing = hmMissingChanges.get(mapSuffixDn);
+      Integer age = hmAgeOfOldestMissingChanges.get(mapSuffixDn);
+
+      if (age != null)
+      {
+        ageOfOldestMissingChange = age.intValue();
+      }
+
+      if (missing != null)
+      {
+        missingChanges = missing.intValue();
+      }
+    }
+    else
+    {
+      type = BaseDNDescriptor.Type.NOT_SYNCHRONIZED;
+    }
+
+    return new BaseDNDescriptor(type, baseDn, null, ageOfOldestMissingChange,
+      missingChanges);
+  }
+
+  /**
    * Updates the listener configuration data we expose to the user with the
    * provided SearchResult object.
    * @param entry the entry to analyze.
@@ -587,13 +772,26 @@ public class ConfigFromLDAP
       InitialLdapContext ctx)
   throws NamingException
   {
-    String baseDn = getFirstValue(entry, "ds-cfg-backend-base-dn");
     String id = getFirstValue(entry, "ds-cfg-backend-id");
 
     if (!isConfigBackend(id))
     {
+      Set<String> baseDns = new TreeSet<String>();
+      baseDns.addAll(getValues(entry, "ds-cfg-backend-base-dn"));
+      Set<BaseDNDescriptor> replicas = new LinkedHashSet<BaseDNDescriptor>();
       int nEntries = getEntryCount(ctx, id);
-      databases.add(new DatabaseDescriptor(id, baseDn, nEntries));
+
+      for (String baseDn : baseDns)
+      {
+        replicas.add(getBaseDNDescriptor(ctx, baseDn));
+      }
+
+      DatabaseDescriptor db = new DatabaseDescriptor(id, replicas, nEntries);
+      databases.add(db);
+      for (BaseDNDescriptor rep: replicas)
+      {
+        rep.setDatabase(db);
+      }
     }
   }
 
