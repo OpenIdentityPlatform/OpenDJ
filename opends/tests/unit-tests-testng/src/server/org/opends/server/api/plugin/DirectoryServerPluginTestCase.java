@@ -31,11 +31,13 @@ package org.opends.server.api.plugin;
 import java.util.HashSet;
 
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
 
 import org.opends.server.plugins.NullPlugin;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.operation.*;
+import org.opends.server.TestCaseUtils;
 
 import static org.testng.Assert.*;
 
@@ -47,6 +49,12 @@ import static org.testng.Assert.*;
 public class DirectoryServerPluginTestCase
        extends PluginAPITestCase
 {
+  @BeforeClass
+  public void initServer() throws Exception 
+  {
+    TestCaseUtils.startServer();
+  }
+
   /**
    * Tests the <CODE>getPluginEntryDN</CODE> method.
    *
