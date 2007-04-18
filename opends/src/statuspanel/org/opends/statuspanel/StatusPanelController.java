@@ -1086,7 +1086,7 @@ StatusPanelButtonListener
             String line = reader.readLine();
             while (line != null)
             {
-              StringBuffer buf = new StringBuffer();
+              StringBuilder buf = new StringBuilder();
               if (!isFirstLine)
               {
                 buf.append(formatter.getLineBreak());

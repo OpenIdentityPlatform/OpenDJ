@@ -27,6 +27,8 @@
 
 package org.opends.statuspanel;
 
+import java.util.Set;
+
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -36,19 +38,20 @@ import org.opends.quicksetup.util.Utils;
 public class DatabaseDescriptor
 {
   private String backendID;
-  private String baseDn;
+  private Set<BaseDNDescriptor> baseDns;
   private int entries;
 
   /**
    * Constructor for this class.
    * @param backendID the backend ID of the Database.
-   * @param baseDn the base DN associated with the Database.
+   * @param baseDns the base DNs associated with the Database.
    * @param entries the number of entries in the Database.
    */
-  public DatabaseDescriptor(String backendID, String baseDn, int entries)
+  public DatabaseDescriptor(String backendID, Set<BaseDNDescriptor> baseDns,
+      int entries)
   {
     this.backendID = backendID;
-    this.baseDn = baseDn;
+    this.baseDns = baseDns;
     this.entries = entries;
   }
 
@@ -62,12 +65,12 @@ public class DatabaseDescriptor
   }
 
   /**
-   * Return the base DN associated with the database.
-   * @return the base DN associated with the database.
+   * Returns the Base DN objects associated with the database.
+   * @return the Base DN objects associated with the database.
    */
-  public String getBaseDn()
+  public Set<BaseDNDescriptor> getBaseDns()
   {
-    return baseDn;
+    return baseDns;
   }
 
   /**
@@ -92,8 +95,29 @@ public class DatabaseDescriptor
       {
         DatabaseDescriptor desc = (DatabaseDescriptor)v;
         equals = getBackendID().equals(desc.getBackendID()) &&
-        Utils.areDnsEqual(getBaseDn(), desc.getBaseDn()) &&
         (getEntries() == desc.getEntries());
+
+        if (equals)
+        {
+          for (BaseDNDescriptor baseDn1 : baseDns)
+          {
+            boolean found = false;
+            for (BaseDNDescriptor baseDn2 : desc.getBaseDns())
+            {
+              found = Utils.areDnsEqual(baseDn1.getDn(),
+                  baseDn2.getDn());
+              if (found)
+              {
+                break;
+              }
+            }
+            if (!found)
+            {
+              equals = false;
+              break;
+            }
+          }
+        }
       }
     }
     else
@@ -108,6 +132,11 @@ public class DatabaseDescriptor
    */
   public int hashCode()
   {
-    return (getBackendID() + getBaseDn() + getEntries()).hashCode();
+    StringBuilder buf = new StringBuilder();
+    for (BaseDNDescriptor rep: getBaseDns())
+    {
+      buf.append(rep.getDn());
+    }
+    return (getBackendID() + buf.toString() + getEntries()).hashCode();
   }
 }

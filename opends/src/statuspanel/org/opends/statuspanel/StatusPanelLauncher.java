@@ -76,7 +76,7 @@ public class StatusPanelLauncher
    *
    * This code also assumes that if the call to SplashWindow.main worked (and
    * the splash screen was displayed) we will never get out of it (we will call
-   * a System.exit() when we close the graphical uninstall dialog).
+   * a System.exit() when we close the graphical status dialog).
    *
    * @params String[] args the arguments used to call the SplashWindow main
    *         method

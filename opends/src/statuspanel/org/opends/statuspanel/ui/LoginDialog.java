@@ -336,7 +336,7 @@ public class LoginDialog extends JDialog
           if (ldapUrl != null)
           {
             ctx = Utils.createLdapContext(ldapUrl, tfDn.getText(),
-                  tfPwd.getText(), 3000, null);
+                  tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null);
           }
           else
           {

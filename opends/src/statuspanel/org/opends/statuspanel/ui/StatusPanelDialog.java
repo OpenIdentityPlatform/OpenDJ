@@ -42,6 +42,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -60,15 +61,17 @@ import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
+import org.opends.statuspanel.DatabaseDescriptor;
+import org.opends.statuspanel.BaseDNDescriptor;
 import org.opends.statuspanel.ServerStatusDescriptor;
 import org.opends.statuspanel.event.StatusPanelButtonListener;
 import org.opends.statuspanel.i18n.ResourceProvider;
@@ -161,7 +164,6 @@ public class StatusPanelDialog extends JFrame
 
     int minWidth = Math.min(packedMinWidth, MAXIMAL_WIDTH);
     int minHeight = Math.min(packedMinHeight, MAXIMAL_HEIGHT);
-
 
     addComponentListener(new MinimumSizeComponentListener(this,
         minWidth, minHeight));
@@ -681,9 +683,9 @@ public class StatusPanelDialog extends JFrame
     p.add(createSubsectionTitle(getMsg("listeners-title")), gbc);
 
     listenersTableModel = new ListenersTableModel();
-    listenersTable = createTable(listenersTableModel,
+    listenersTable = UIFactory.makeSortableTable(listenersTableModel,
         new ListenersCellRenderer(),
-        new HeaderRenderer());
+        UIFactory.makeHeaderRenderer());
 
     gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
     p.add(listenersTable.getTableHeader(), gbc);
@@ -719,8 +721,9 @@ public class StatusPanelDialog extends JFrame
     p.add(createSubsectionTitle(getMsg("databases-title")), gbc);
 
     dbTableModel = new DatabasesTableModel();
-    dbTable = createTable(dbTableModel, new DatabasesCellRenderer(),
-        new HeaderRenderer());
+    dbTable = UIFactory.makeSortableTable(dbTableModel,
+        new DatabasesCellRenderer(),
+        UIFactory.makeHeaderRenderer());
     toolTipManager.registerComponent(dbTable);
 
     gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
@@ -788,47 +791,6 @@ public class StatusPanelDialog extends JFrame
     l.setText(text);
     l.setIcon(null);
     l.setToolTipText(null);
-  }
-
-  /**
-   * Returns a table created with the provided model and renderers.
-   * @param tableModel the table model.
-   * @param renderer the cell renderer.
-   * @param headerRenderer the header renderer.
-   * @return a table created with the provided model and renderers.
-   */
-  private JTable createTable(final SortableTableModel tableModel,
-      TableCellRenderer renderer,
-      TableCellRenderer headerRenderer)
-  {
-    final JTable table = new JTable(tableModel);
-    table.setShowGrid(true);
-    table.setGridColor(UIFactory.PANEL_BORDER_COLOR);
-    table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
-    table.setBackground(UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
-    table.getTableHeader().setBackground(UIFactory.DEFAULT_BACKGROUND);
-    table.setRowMargin(0);
-
-    for (int i=0; i<tableModel.getColumnCount(); i++)
-    {
-      TableColumn col = table.getColumn(table.getColumnName(i));
-      col.setCellRenderer(renderer);
-      col.setHeaderRenderer(headerRenderer);
-    }
-    MouseAdapter listMouseListener = new MouseAdapter() {
-      public void mouseClicked(MouseEvent e) {
-        TableColumnModel columnModel = table.getColumnModel();
-        int viewColumn = columnModel.getColumnIndexAtX(e.getX());
-        int sortedBy = table.convertColumnIndexToModel(viewColumn);
-        if (e.getClickCount() == 1 && sortedBy != -1) {
-          tableModel.setSortAscending(!tableModel.isSortAscending());
-          tableModel.setSortColumn(sortedBy);
-          tableModel.forceResort();
-        }
-      }
-    };
-    table.getTableHeader().addMouseListener(listMouseListener);
-    return table;
   }
 
   /**
@@ -942,7 +904,9 @@ public class StatusPanelDialog extends JFrame
       }
 
       setTextValue(lAdministrativeUsers,"<html>"+
-          Utils.getStringFromCollection(ordered, "<br>"));
+          UIFactory.applyFontToHtml(
+              Utils.getStringFromCollection(ordered, "<br>"),
+              UIFactory.READ_ONLY_FONT));
     }
     else
     {
@@ -1069,7 +1033,13 @@ public class StatusPanelDialog extends JFrame
    */
   private void updateDatabaseContents(ServerStatusDescriptor desc)
   {
-    dbTableModel.setData(desc.getDatabases());
+    Set<BaseDNDescriptor> replicas = new HashSet<BaseDNDescriptor>();
+    Set<DatabaseDescriptor> dbs = desc.getDatabases();
+    for (DatabaseDescriptor db: dbs)
+    {
+      replicas.addAll(db.getBaseDns());
+    }
+    dbTableModel.setData(replicas);
 
     if (dbTableModel.getRowCount() == 0)
     {
@@ -1097,6 +1067,7 @@ public class StatusPanelDialog extends JFrame
       dbTable.setVisible(true);
       dbTable.getTableHeader().setVisible(true);
       lDbTableEmpty.setVisible(false);
+      updateTableSizes(dbTable);
     }
   }
 
@@ -1133,6 +1104,108 @@ public class StatusPanelDialog extends JFrame
   private ResourceProvider getI18n()
   {
     return ResourceProvider.getInstance();
+  }
+
+  /**
+   * Updates the size of the table rows according to the size of the
+   * rendered component.
+   * @param table the table to handle.
+   */
+  private void updateTableSizes(JTable table)
+  {
+    updateTableColumnWidth(table);
+    updateTableRowHeight(table);
+
+    /*
+    int totalWidth = 0;
+    int colMargin = table.getColumnModel().getColumnMargin();
+
+    int totalHeight = 0;
+
+    TableColumn tcol = table.getColumnModel().getColumn(0);
+    TableCellRenderer renderer = tcol.getHeaderRenderer();
+    Component comp = renderer.getTableCellRendererComponent(table,
+        table.getModel().getColumnName(0), false, false, 0, 0);
+    totalHeight = (int)comp.getPreferredSize().getHeight();
+    for (int row=0; row<table.getRowCount(); row++)
+    {
+      totalHeight += table.getRowHeight(row);
+    }
+
+    for (int col=0; col<table.getColumnCount(); col++)
+    {
+      tcol = table.getColumnModel().getColumn(col);
+      totalWidth += tcol.getPreferredWidth() + colMargin;
+    }
+
+    table.setPreferredScrollableViewportSize(
+        new Dimension(totalWidth, totalHeight));
+        */
+  }
+
+  /**
+   * Updates the height of the table rows according to the size of the
+   * rendered component.
+   * @param table the table to handle.
+   */
+  private void updateTableRowHeight(JTable table)
+  {
+    int headerMaxHeight = 0;
+
+    for (int col=0; col<table.getColumnCount(); col++)
+    {
+      TableColumn tcol = table.getColumnModel().getColumn(col);
+      TableCellRenderer renderer = tcol.getHeaderRenderer();
+      Component comp = renderer.getTableCellRendererComponent(table,
+          table.getModel().getColumnName(col), false, false, 0, col);
+      int colHeight = (int)comp.getPreferredSize().getHeight();
+      headerMaxHeight = Math.max(headerMaxHeight, colHeight);
+    }
+    JTableHeader header = table.getTableHeader();
+    header.setPreferredSize(new Dimension(
+        (int)header.getPreferredSize().getWidth(),
+        headerMaxHeight));
+
+    for (int row=0; row<table.getRowCount(); row++)
+    {
+      int rowMaxHeight = table.getRowHeight();
+      for (int col=0; col<table.getColumnCount(); col++)
+      {
+        TableCellRenderer renderer = table.getCellRenderer(row, col);
+        Component comp = table.prepareRenderer(renderer, row, col);
+        int colHeight = (int)comp.getPreferredSize().getHeight();
+        rowMaxHeight = Math.max(rowMaxHeight, colHeight);
+      }
+      table.setRowHeight(row, rowMaxHeight);
+    }
+  }
+
+  /**
+   * Updates the height of the table columns according to the size of the
+   * rendered component.
+   * @param table the table to handle.
+   */
+  private void updateTableColumnWidth(JTable table)
+  {
+
+    int margin = table.getIntercellSpacing().width;
+    for (int col=0; col<table.getColumnCount(); col++)
+    {
+      int colMaxWidth;
+      TableColumn tcol = table.getColumnModel().getColumn(col);
+      TableCellRenderer renderer = tcol.getHeaderRenderer();
+      Component comp = renderer.getTableCellRendererComponent(table,
+          table.getModel().getColumnName(col), false, false, 0, col);
+      colMaxWidth = (int)comp.getPreferredSize().getWidth();
+      for (int row=0; row<table.getRowCount(); row++)
+      {
+        renderer = table.getCellRenderer(row, col);
+        comp = table.prepareRenderer(renderer, row, col);
+        int colWidth = (int)comp.getPreferredSize().getWidth() + (2 * margin);
+        colMaxWidth = Math.max(colMaxWidth, colWidth);
+      }
+      tcol.setPreferredWidth(colMaxWidth);
+    }
   }
 
   /**
@@ -1176,6 +1249,18 @@ public class StatusPanelDialog extends JFrame
       if (value instanceof String)
       {
         setTextValue(this, (String)value);
+      }
+      else if (value instanceof Set)
+      {
+        LinkedHashSet<String> baseDns = new LinkedHashSet<String>();
+        for (Object v : (Set)value)
+        {
+          baseDns.add((String)v);
+        }
+        setTextValue(this, "<html>" +
+            UIFactory.applyFontToHtml(Utils.getStringFromCollection(
+                baseDns, "<br>"),
+                UIFactory.SECONDARY_FIELD_VALID_FONT));
       }
       else
       {
@@ -1253,46 +1338,6 @@ public class StatusPanelDialog extends JFrame
       else
       {
         setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-      }
-      return this;
-    }
-  }
-
-  /**
-   * Class used to render the table headers.
-   */
-  class HeaderRenderer extends JLabel implements TableCellRenderer
-  {
-    private static final long serialVersionUID = -8604332267021523835L;
-
-    /**
-     * Default constructor.
-     */
-    public HeaderRenderer()
-    {
-      super();
-      UIFactory.setTextStyle(this, UIFactory.TextStyle.PRIMARY_FIELD_VALID);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Component getTableCellRendererComponent(JTable table, Object value,
-        boolean isSelected, boolean hasFocus, int row, int column) {
-      setTextValue(this, (String)value);
-      if (column == 0)
-      {
-        setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(1, 1, 1, 1,
-                UIFactory.PANEL_BORDER_COLOR),
-                BorderFactory.createEmptyBorder(4, 4, 4, 4)));
-      }
-      else
-      {
-        setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(1, 0, 1, 1,
-                UIFactory.PANEL_BORDER_COLOR),
-                BorderFactory.createEmptyBorder(4, 4, 4, 4)));
       }
       return this;
     }

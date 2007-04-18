@@ -34,12 +34,18 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
+
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import org.opends.quicksetup.i18n.ResourceProvider;
 
@@ -78,9 +84,13 @@ public class UIFactory
   public static final int LEFT_INSET_STEP = 5;
 
   /**
+   * Specifies the extra left inset for the sub-steps.
+   */
+  public static final int LEFT_INSET_SUBSTEP = 10;
+  /**
    * Specifies the top inset for the instructions sub panel.
    */
-  public static final int TOP_INSET_INSTRUCTIONS_SUBPANEL = 10;
+  public static final int TOP_INSET_INSTRUCTIONS_SUBPANEL = 5;
 
   /**
    * Specifies the top inset for input subpanel.
@@ -173,6 +183,11 @@ public class UIFactory
   public static final int LEFT_INSET_COPY_BUTTON = 10;
 
   /**
+   * Specifies the left inset for a subordinate subpanel.
+   */
+  public static final int LEFT_INSET_SUBPANEL_SUBORDINATE = 30;
+
+  /**
    * Specifies the left inset for the progress bar.
    */
   public static final int BOTTOM_INSET_PROGRESS_BAR = 10;
@@ -191,6 +206,16 @@ public class UIFactory
    * Specifies the number of columns of a text field for a relative path.
    */
   public static final int RELATIVE_PATH_FIELD_SIZE = 10;
+
+  /**
+   * Specifies the number of columns of a text field for a host name.
+   */
+  public static final int HOST_FIELD_SIZE = 20;
+
+  /**
+   * Specifies the number of columns of a text field for a UID.
+   */
+  public static final int UID_FIELD_SIZE = 15;
 
   /**
    * Specifies the number of columns of a text field for a port.
@@ -335,7 +360,7 @@ public class UIFactory
    * Specifies the font for the instructions of the current panel.
    */
   public static final Font INSTRUCTIONS_FONT =
-    Font.decode("Arial-PLAIN-14");
+    Font.decode("Arial-PLAIN-12");
 
   /**
    * Specifies the font for the instructions of the current panel.
@@ -1087,12 +1112,62 @@ public class UIFactory
    */
   public static String applyFontToHtml(String html, Font font)
   {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
 
     buf.append("<span style=\"").append(getFontStyle(font)).append("\">")
         .append(html).append(SPAN_CLOSE);
 
     return buf.toString();
+  }
+
+  /**
+   * Returns a table created with the provided model and renderers.
+   * @param tableModel the table model.
+   * @param renderer the cell renderer.
+   * @param headerRenderer the header renderer.
+   * @return a table created with the provided model and renderers.
+   */
+  public static JTable makeSortableTable(final SortableTableModel tableModel,
+      TableCellRenderer renderer,
+      TableCellRenderer headerRenderer)
+  {
+    final JTable table = new JTable(tableModel);
+    table.setShowGrid(true);
+    table.setGridColor(UIFactory.PANEL_BORDER_COLOR);
+    table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+    table.setBackground(UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
+    table.getTableHeader().setBackground(UIFactory.DEFAULT_BACKGROUND);
+    table.setRowMargin(0);
+
+    for (int i=0; i<tableModel.getColumnCount(); i++)
+    {
+      TableColumn col = table.getColumn(table.getColumnName(i));
+      col.setCellRenderer(renderer);
+      col.setHeaderRenderer(headerRenderer);
+    }
+    MouseAdapter listMouseListener = new MouseAdapter() {
+      public void mouseClicked(MouseEvent e) {
+        TableColumnModel columnModel = table.getColumnModel();
+        int viewColumn = columnModel.getColumnIndexAtX(e.getX());
+        int sortedBy = table.convertColumnIndexToModel(viewColumn);
+        if (e.getClickCount() == 1 && sortedBy != -1) {
+          tableModel.setSortAscending(!tableModel.isSortAscending());
+          tableModel.setSortColumn(sortedBy);
+          tableModel.forceResort();
+        }
+      }
+    };
+    table.getTableHeader().addMouseListener(listMouseListener);
+    return table;
+  }
+
+  /**
+   * Creates a header renderer for a JTable with our own look and feel.
+   * @return a header renderer for a JTable with our own look and feel.
+   */
+  public static TableCellRenderer makeHeaderRenderer()
+  {
+    return new HeaderRenderer();
   }
 
   /**
@@ -1107,7 +1182,7 @@ public class UIFactory
    */
   public static String applyFontToHtmlWithDiv(String html, Font font)
   {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
 
     buf.append("<div style=\"").append(getFontStyle(font)).append("\">")
         .append(html).append(DIV_CLOSE);
@@ -1122,7 +1197,7 @@ public class UIFactory
    */
   private static String getFontStyle(Font font)
   {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
 
     buf.append("font-family:" + font.getName()).append(
         ";font-size:" + font.getSize() + "pt");
@@ -1506,6 +1581,46 @@ public class UIFactory
       }
     };
     return renderer;
+  }
+}
+
+/**
+ * Class used to render the table headers.
+ */
+class HeaderRenderer extends JLabel implements TableCellRenderer
+{
+  private static final long serialVersionUID = -8604332267021523835L;
+
+  /**
+   * Default constructor.
+   */
+  public HeaderRenderer()
+  {
+    super();
+    UIFactory.setTextStyle(this, UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Component getTableCellRendererComponent(JTable table, Object value,
+      boolean isSelected, boolean hasFocus, int row, int column) {
+    setText((String)value);
+    if (column == 0)
+    {
+      setBorder(BorderFactory.createCompoundBorder(
+          BorderFactory.createMatteBorder(1, 1, 1, 1,
+              UIFactory.PANEL_BORDER_COLOR),
+              BorderFactory.createEmptyBorder(4, 4, 4, 4)));
+    }
+    else
+    {
+      setBorder(BorderFactory.createCompoundBorder(
+          BorderFactory.createMatteBorder(1, 0, 1, 1,
+              UIFactory.PANEL_BORDER_COLOR),
+              BorderFactory.createEmptyBorder(4, 4, 4, 4)));
+    }
+    return this;
   }
 }
 

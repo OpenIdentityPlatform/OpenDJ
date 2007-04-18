@@ -31,6 +31,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
@@ -717,9 +718,15 @@ class StatusCli
     else
     {
       DatabasesTableModel databasesTableModel = new DatabasesTableModel();
-      databasesTableModel.setData(desc.getDatabases());
+      Set<BaseDNDescriptor> replicas = new HashSet<BaseDNDescriptor>();
+      Set<DatabaseDescriptor> dbs = desc.getDatabases();
+      for (DatabaseDescriptor db: dbs)
+      {
+        replicas.addAll(db.getBaseDns());
+      }
+      databasesTableModel.setData(replicas);
 
-      writeTableModel(databasesTableModel, desc);
+      writeDatabasesTableModel(databasesTableModel, desc);
     }
   }
 
@@ -769,6 +776,12 @@ class StatusCli
     return getMsg("not-available-label", false);
   }
 
+  /**
+   * Writes the contents of the provided table model simulating a table layout
+   * using text.
+   * @param tableModel the TableModel.
+   * @param desc the Server Status descriptor.
+   */
   private void writeTableModel(TableModel tableModel,
       ServerStatusDescriptor desc)
   {
@@ -828,7 +841,7 @@ class StatusCli
       totalWidth += maxWidths[i];
     }
 
-    StringBuffer headerLine = new StringBuffer();
+    StringBuilder headerLine = new StringBuilder();
     for (int i=0; i<maxWidths.length; i++)
     {
       String header = tableModel.getColumnName(i);
@@ -840,7 +853,7 @@ class StatusCli
       }
     }
     System.out.println(wrap(headerLine.toString()));
-    StringBuffer t = new StringBuffer();
+    StringBuilder t = new StringBuilder();
     for (int i=0; i<headerLine.length(); i++)
     {
       t.append("=");
@@ -849,7 +862,7 @@ class StatusCli
 
     for (int i=0; i<tableModel.getRowCount(); i++)
     {
-      StringBuffer line = new StringBuffer();
+      StringBuilder line = new StringBuilder();
       for (int j=0; j<tableModel.getColumnCount(); j++)
       {
         int extra = maxWidths[j];
@@ -896,9 +909,118 @@ class StatusCli
     }
   }
 
+  /**
+   * Writes the contents of the provided database table model.  Every base DN
+   * is written in a block containing pairs of labels and values.
+   * @param tableModel the TableModel.
+   * @param desc the Server Status descriptor.
+   */
+  private void writeDatabasesTableModel(DatabasesTableModel tableModel,
+  ServerStatusDescriptor desc)
+  {
+    boolean isRunning =
+      desc.getStatus() == ServerStatusDescriptor.ServerStatus.STARTED;
+
+    int labelWidth = 0;
+    String[] labels = new String[tableModel.getColumnCount()];
+    for (int i=0; i<tableModel.getColumnCount(); i++)
+    {
+      String header;
+      if (i == 5)
+      {
+        header = getMsg("age-of-oldest-missing-change-column-cli", false);
+      }
+      else
+      {
+        header = tableModel.getColumnName(i);
+      }
+      labels[i] = header+":";
+      labelWidth = Math.max(labelWidth, labels[i].length());
+    }
+
+    String synchronizedLabel = getMsg("suffix-synchronized-label", false);
+    for (int i=0; i<tableModel.getRowCount(); i++)
+    {
+      if (i > 0)
+      {
+        System.out.println();
+      }
+      for (int j=0; j<tableModel.getColumnCount(); j++)
+      {
+        String value;
+        Object v = tableModel.getValueAt(i, j);
+        if (v != null)
+        {
+          if (v instanceof String)
+          {
+            value = (String)v;
+          }
+          else if (v instanceof Integer)
+          {
+            int nEntries = ((Integer)v).intValue();
+            if (nEntries >= 0)
+            {
+              value = String.valueOf(nEntries);
+            }
+            else
+            {
+              if (!isRunning)
+              {
+                value = getNotAvailableBecauseServerIsDownText();
+              }
+              if (!desc.isAuthenticated())
+              {
+                value = getNotAvailableBecauseAuthenticationIsRequiredText();
+              }
+              else
+              {
+                value = getNotAvailableText();
+              }
+            }
+          }
+          else
+          {
+            throw new IllegalStateException("Unknown object type: "+v);
+          }
+        }
+        else
+        {
+          value = "";
+        }
+
+        if (value.equals(getNotAvailableText()))
+        {
+          if (!isRunning)
+          {
+            value = getNotAvailableBecauseServerIsDownText();
+          }
+          if (!desc.isAuthenticated())
+          {
+            value = getNotAvailableBecauseAuthenticationIsRequiredText();
+          }
+        }
+
+        boolean doWrite = true;
+        if ((j == 4) || (j == 5))
+        {
+          // If the suffix is not replicated we do not have to display these
+          // lines.
+          if (!synchronizedLabel.equals(tableModel.getValueAt(i, 3)))
+          {
+            doWrite = false;
+          }
+        }
+        if (doWrite)
+        {
+          writeLabelValue(labels[j], value, labelWidth);
+        }
+      }
+    }
+  }
+
   private void writeLabelValue(String label, String value, int maxLabelWidth)
   {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     buf.append(label);
 
     int extra = maxLabelWidth - label.length();
@@ -922,7 +1044,7 @@ class StatusCli
     String centered;
     if (text.length() <= Utils.getCommandLineMaxLineWidth() - 8)
     {
-      StringBuffer buf = new StringBuffer();
+      StringBuilder buf = new StringBuilder();
       int extra = Math.min(10,
           (Utils.getCommandLineMaxLineWidth() - 8 - text.length()) / 2);
       for (int i=0; i<extra; i++)

@@ -35,7 +35,8 @@ import java.util.TreeSet;
 
 import javax.swing.table.AbstractTableModel;
 
-import org.opends.statuspanel.DatabaseDescriptor;
+import org.opends.quicksetup.ui.SortableTableModel;
+import org.opends.statuspanel.BaseDNDescriptor;
 import org.opends.statuspanel.i18n.ResourceProvider;
 
 /**
@@ -44,16 +45,19 @@ import org.opends.statuspanel.i18n.ResourceProvider;
  *
  */
 public class DatabasesTableModel extends AbstractTableModel
-implements SortableTableModel, Comparator<DatabaseDescriptor>
+implements SortableTableModel, Comparator<BaseDNDescriptor>
 {
   private static final long serialVersionUID = -5650762484071136983L;
-  private HashSet<DatabaseDescriptor> data = new HashSet<DatabaseDescriptor>();
-  private ArrayList<DatabaseDescriptor> dataArray =
-    new ArrayList<DatabaseDescriptor>();
+  private HashSet<BaseDNDescriptor> data = new HashSet<BaseDNDescriptor>();
+  private ArrayList<BaseDNDescriptor> dataArray =
+    new ArrayList<BaseDNDescriptor>();
   private final String[] COLUMN_NAMES = {
-    getMsg("backendid-column"),
     getMsg("basedn-column"),
-    getMsg("number-entries-column")
+    getMsg("backendid-column"),
+    getMsg("number-entries-column"),
+    getMsg("synchronized-column"),
+    getMsg("missing-changes-column"),
+    getMsg("age-of-oldest-missing-change-column")
   };
   private int sortColumn = 0;
   private boolean sortAscending = true;
@@ -62,15 +66,15 @@ implements SortableTableModel, Comparator<DatabaseDescriptor>
    * Sets the data for this table model.
    * @param newData the data for this table model.
    */
-  public void setData(Set<DatabaseDescriptor> newData)
+  public void setData(Set<BaseDNDescriptor> newData)
   {
     if (!newData.equals(data))
     {
       data.clear();
       data.addAll(newData);
       dataArray.clear();
-      TreeSet<DatabaseDescriptor> sortedSet =
-        new TreeSet<DatabaseDescriptor>(this);
+      TreeSet<BaseDNDescriptor> sortedSet =
+        new TreeSet<BaseDNDescriptor>(this);
       sortedSet.addAll(data);
       dataArray.addAll(sortedSet);
       fireTableDataChanged();
@@ -84,8 +88,8 @@ implements SortableTableModel, Comparator<DatabaseDescriptor>
   public void forceResort()
   {
     dataArray.clear();
-    TreeSet<DatabaseDescriptor> sortedSet =
-      new TreeSet<DatabaseDescriptor>(this);
+    TreeSet<BaseDNDescriptor> sortedSet =
+      new TreeSet<BaseDNDescriptor>(this);
     sortedSet.addAll(data);
     dataArray.addAll(sortedSet);
     fireTableDataChanged();
@@ -93,77 +97,189 @@ implements SortableTableModel, Comparator<DatabaseDescriptor>
 
   /**
    * Comparable implementation.
-   * @param desc1 the first database descriptor to compare.
-   * @param desc2 the second database descriptor to compare.
+   * @param desc1 the first replica descriptor to compare.
+   * @param desc2 the second replica descriptor to compare.
    * @return 1 if according to the sorting options set by the user the first
    * database descriptor must be put before the second descriptor, 0 if they
    * are equivalent in terms of sorting and -1 if the second descriptor must
    * be put before the first descriptor.
    */
-  public int compare(DatabaseDescriptor desc1, DatabaseDescriptor desc2)
+  public int compare(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
   {
     int result = 0;
     if (sortColumn == 0)
     {
-      result = desc1.getBackendID().compareTo(desc2.getBackendID());
+      result = compareDns(desc1, desc2);
 
       if (result == 0)
       {
-        result = desc1.getBaseDn().compareTo(desc2.getBaseDn());
+        result = compareBackendIDs(desc1, desc2);
       }
 
       if (result == 0)
       {
-        if (desc1.getEntries() > desc2.getEntries())
-        {
-          result = 1;
-        }
-        else if (desc1.getEntries() < desc2.getEntries())
-        {
-          result = -1;
-        }
+        result = compareEntries(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareSync(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareMissingChanges(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareAgeOfOldestMissingChange(desc1, desc2);
       }
     }
-    else if (sortColumn == 1)
+
+    if (sortColumn == 1)
     {
-      result = desc1.getBaseDn().compareTo(desc2.getBaseDn());
+      result = compareBackendIDs(desc1, desc2);
 
       if (result == 0)
       {
-        result = desc1.getBackendID().compareTo(desc2.getBackendID());
+        result = compareDns(desc1, desc2);
       }
 
       if (result == 0)
       {
-        if (desc1.getEntries() > desc2.getEntries())
-        {
-          result = 1;
-        }
-        else if (desc1.getEntries() < desc2.getEntries())
-        {
-          result = -1;
-        }
+        result = compareEntries(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareSync(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareMissingChanges(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareAgeOfOldestMissingChange(desc1, desc2);
       }
     }
-    else
+    else if (sortColumn == 2)
     {
-      if (desc1.getEntries() > desc2.getEntries())
+      result = compareEntries(desc1, desc2);
+
+      if (result == 0)
       {
-        result = 1;
-      }
-      else if (desc1.getEntries() < desc2.getEntries())
-      {
-        result = -1;
+        result = compareBackendIDs(desc1, desc2);
       }
 
       if (result == 0)
       {
-        result = desc1.getBackendID().compareTo(desc2.getBackendID());
+        result = compareDns(desc1, desc2);
       }
 
       if (result == 0)
       {
-        result = desc1.getBaseDn().compareTo(desc2.getBaseDn());
+        result = compareSync(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareMissingChanges(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareAgeOfOldestMissingChange(desc1, desc2);
+      }
+    }
+    else if (sortColumn == 3)
+    {
+      result = compareSync(desc1, desc2);
+
+      if (result == 0)
+      {
+        result = compareBackendIDs(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareDns(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareEntries(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareMissingChanges(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareAgeOfOldestMissingChange(desc1, desc2);
+      }
+    }
+    else if (sortColumn == 4)
+    {
+      result = compareMissingChanges(desc1, desc2);
+
+      if (result == 0)
+      {
+        result = compareBackendIDs(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareDns(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareEntries(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareSync(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareAgeOfOldestMissingChange(desc1, desc2);
+      }
+    }
+    else if (sortColumn == 5)
+    {
+      result = compareAgeOfOldestMissingChange(desc1, desc2);
+
+      if (result == 0)
+      {
+        result = compareBackendIDs(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareDns(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareEntries(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareSync(desc1, desc2);
+      }
+
+      if (result == 0)
+      {
+        result = compareMissingChanges(desc1, desc2);
       }
     }
 
@@ -180,7 +296,7 @@ implements SortableTableModel, Comparator<DatabaseDescriptor>
    */
   public int getColumnCount()
   {
-    return 3;
+    return 6;
   }
 
   /**
@@ -197,18 +313,34 @@ implements SortableTableModel, Comparator<DatabaseDescriptor>
   public Object getValueAt(int row, int col)
   {
     Object v;
-    DatabaseDescriptor desc = dataArray.get(row);
+    BaseDNDescriptor desc = dataArray.get(row);
     if (col == 0)
     {
-      v = desc.getBackendID();
+      v = desc.getDn();
     }
     else if (col == 1)
     {
-      v = desc.getBaseDn();
+      v = desc.getDatabase().getBackendID();
+    }
+    else if (col == 2)
+    {
+      v = getValueForEntries(desc);
+    }
+    else if (col == 3)
+    {
+      v = getStringForSyncState(desc);
+    }
+    else if (col == 4)
+    {
+      v = getValueForMissingChanges(desc);
+    }
+    else if (col == 5)
+    {
+      v = getValueForOldestMissingChange(desc);
     }
     else
     {
-      v = new Integer(desc.getEntries());
+      throw new IllegalArgumentException("Invalid col number: "+col);
     }
     return v;
   }
@@ -257,6 +389,174 @@ implements SortableTableModel, Comparator<DatabaseDescriptor>
     this.sortColumn = sortColumn;
   }
 
+  /*
+   * Several comparison methods to be able to sort the table model.
+   */
+  private int compareBackendIDs(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
+  {
+    return desc1.getDatabase().getBackendID().compareTo(
+      desc2.getDatabase().getBackendID());
+  }
+
+  private int compareEntries(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
+  {
+    int n1 = desc1.getDatabase().getEntries();
+    int n2 = desc2.getDatabase().getEntries();
+    return compareIntegers(n1, n2);
+  }
+
+  private int compareIntegers(int n1, int n2)
+  {
+    if (n1 == n2)
+    {
+      return 0;
+    }
+    if (n1 > n2)
+    {
+      return 1;
+    }
+    return -1;
+  }
+
+  private int compareDns(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
+  {
+    return desc1.getDn().compareTo(desc2.getDn());
+  }
+
+  private int compareSync(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
+  {
+    return (String.valueOf(desc1.getType()).compareTo(
+        String.valueOf(desc2.getType())));
+  }
+
+  private int compareMissingChanges(BaseDNDescriptor desc1,
+      BaseDNDescriptor desc2)
+  {
+    return compareIntegers(desc1.getMissingChanges(),
+        desc2.getMissingChanges());
+  }
+
+  private int compareAgeOfOldestMissingChange(BaseDNDescriptor desc1,
+      BaseDNDescriptor desc2)
+  {
+    return compareIntegers(desc1.getAgeOfOldestMissingChange(),
+        desc2.getAgeOfOldestMissingChange());
+  }
+
+  /**
+   * Returns the Object describing the number of entries of a given Base DN.
+   * The Object will be an Integer unless the database of the Base DN contains
+   * several Base DNs.  In this case we return a String.
+   * @param rep the Base DN object to handle.
+   * @return the Object describing the number of entries of a given Base DN.
+   */
+  private Object getValueForEntries(BaseDNDescriptor rep)
+  {
+    Object v;
+    int nEntries = rep.getDatabase().getEntries();
+    if ((rep.getDatabase().getBaseDns().size() > 1) &&
+      (nEntries >= 0))
+    {
+      String[] args = {
+        String.valueOf(nEntries),
+        rep.getDatabase().getBackendID()
+      };
+      v = getMsg("number-entries-multiple-suffixes-in-db", args);
+    }
+    else
+    {
+      v = new Integer(nEntries);
+    }
+    return v;
+  }
+
+  /**
+   * Returns the Object describing the number of missing changes of a given Base
+   * DN.  The Object will be a String unless the base DN is
+   * synchronized and we could not find a valid value (in this case we return
+   * an Integer with the invalid value).
+   * @param rep the Base DN object to handle.
+   * @return the Object describing the number of missing changes of
+   * a given Base DN.
+   */
+  private Object getValueForMissingChanges(BaseDNDescriptor rep)
+  {
+    Object v;
+    if (rep.getType() == BaseDNDescriptor.Type.SYNCHRONIZED)
+    {
+      v = new Integer(rep.getMissingChanges());
+    }
+    else
+    {
+      v = getMsg("not-applicable-label");
+    }
+    return v;
+  }
+
+  /**
+   * Returns the Object describing the age of oldest missing change of
+   * a given Base DN.  The Object will be a String unless the base DN is
+   * synchronized and we could not find a valid value (in this case we return
+   * an Integer with the invalid value).
+   * @param rep the Base DN object to handle.
+   * @return the Object describing the age of oldest missing change of
+   * a given Base DN.
+   */
+  private Object getValueForOldestMissingChange(BaseDNDescriptor rep)
+  {
+    Object v;
+    if (rep.getType() == BaseDNDescriptor.Type.SYNCHRONIZED)
+    {
+      int age = rep.getAgeOfOldestMissingChange();
+      if (age >= 0)
+      {
+        int remainingSeconds = age % 60;
+        int minutes = age / 60;
+        int remainingMinutes = minutes % 60;
+        int hours = minutes / 60;
+
+        String sMinutes = (remainingMinutes>=10)?
+        String.valueOf(remainingMinutes) : "0"+remainingMinutes;
+
+        String sSeconds = (remainingSeconds>=10)?
+        String.valueOf(remainingSeconds) : "0"+remainingSeconds;
+
+        String sHours = (hours>=10)?String.valueOf(hours):"0"+hours;
+
+        v = sHours+":"+sMinutes+":"+sSeconds;
+      }
+      else
+      {
+        v = new Integer(age);
+      }
+    }
+    else
+    {
+      v = getMsg("not-applicable-label");
+    }
+    return v;
+  }
+
+  /**
+   * Returns the localized String describing the synchronization state of
+   * a given Base DN.
+   * @param rep the Base DN object to handle.
+   * @return the localized String describing the synchronization state of
+   * a given Base DN.
+   */
+  private String getStringForSyncState(BaseDNDescriptor rep)
+  {
+    String s;
+    if (rep.getType() == BaseDNDescriptor.Type.SYNCHRONIZED)
+    {
+      s = getMsg("suffix-synchronized-label");
+    }
+    else
+    {
+      s = getMsg("suffix-not-synchronized-label");
+    }
+    return s;
+  }
 
   /**
    * The following three methods are just commodity methods to get localized
@@ -265,6 +565,11 @@ implements SortableTableModel, Comparator<DatabaseDescriptor>
   private String getMsg(String key)
   {
     return getI18n().getMsg(key);
+  }
+
+  private String getMsg(String key, String[] args)
+  {
+    return getI18n().getMsg(key, args);
   }
 
   private ResourceProvider getI18n()
