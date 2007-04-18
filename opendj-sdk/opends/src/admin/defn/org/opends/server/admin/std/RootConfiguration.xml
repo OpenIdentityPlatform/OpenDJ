@@ -21,6 +21,14 @@
       </ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
+    <adm:relation name="access-control-handler">
+    <adm:one-to-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Access Control Handler,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
   <adm:relation name="identity-mapper">
     <adm:one-to-many />
     <adm:profile name="ldap">

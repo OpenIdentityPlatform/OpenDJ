@@ -27,6 +27,7 @@
 
 package org.opends.server.authorization.dseecompat;
 
+import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
 import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
@@ -36,9 +37,6 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.types.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import org.opends.server.config.StringConfigAttribute;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
@@ -98,12 +96,13 @@ public class AciHandler extends AccessControlHandler
      *  - Processes all "aci" attributes found in the "cn=config" naming
      *    context and adds them to the ACI list cache.
      *
-     * @param configEntry The configuration entry passed in from the provider.
+     * @param configuration The configuration entry passed in from the provider.
      * @throws InitializationException if there is a problem processing the
      * config entry or config naming context.
     */
-    public AciHandler(ConfigEntry configEntry) throws InitializationException  {
-        aciList = new AciList(configEntry.getDN());
+    public AciHandler(DseeCompatAccessControlHandlerCfg configuration)
+    throws InitializationException  {
+        aciList = new AciList(configuration.dn());
         AciListenerManager aciListenerMgr =
             new AciListenerManager(aciList);
         DirectoryServer.registerChangeNotificationListener(aciListenerMgr);
@@ -114,7 +113,7 @@ public class AciHandler extends AccessControlHandler
                DirectoryServer.getAttributeType(ATTR_AUTHZ_GLOBAL_ACI)) == null)
             globalAciType =
                  DirectoryServer.getDefaultAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
-        processGlobalAcis(configEntry);
+        processGlobalAcis(configuration);
         processConfigAcis();
     }
 
@@ -127,21 +126,23 @@ public class AciHandler extends AccessControlHandler
      * @throws InitializationException If there is an error reading
      * the global ACIs from the configuration entry.
      */
-    private void processGlobalAcis(ConfigEntry configEntry)
+    private void processGlobalAcis(
+        DseeCompatAccessControlHandlerCfg configuration)
     throws InitializationException {
-        int msgID = MSGID_ACI_DESCRIPTION_GLOBAL_ACI;
-        StringConfigAttribute aciGlobalStub =
-                new StringConfigAttribute(ATTR_AUTHZ_GLOBAL_ACI,
-                        getMessage(msgID), false, true, false);
+        int msgID;
+        SortedSet<String> globalAci = configuration.getGlobalACI();
         try {
-            StringConfigAttribute aciGlobalAttr =
-                    (StringConfigAttribute)
-                            configEntry.getConfigAttribute(aciGlobalStub);
-            if (aciGlobalAttr != null)   {
+            if (globalAci != null)   {
+                LinkedHashSet<AttributeValue> attVals =
+                  new LinkedHashSet<AttributeValue>(globalAci.size());
+                for (String aci : globalAci)
+                {
+                  attVals.add(new AttributeValue(globalAciType,aci));
+                }
                 Attribute attr = new Attribute(globalAciType,
                         globalAciType.toString(),
-                        aciGlobalAttr.getActiveValues());
-                Entry e = new Entry(configEntry.getDN(), null, null, null);
+                        attVals);
+                Entry e = new Entry(configuration.dn(), null, null, null);
                 e.addAttribute(attr, new ArrayList<AttributeValue>());
                 int aciCount =  aciList.addAci(e, false, true);
                 msgID  = MSGID_ACI_ADD_LIST_GLOBAL_ACIS;
@@ -156,12 +157,12 @@ public class AciHandler extends AccessControlHandler
                         ErrorLogSeverity.INFORMATIONAL, message, msgID);
 
             }
-        }  catch (ConfigException e) {
+        }  catch (Exception e) {
             if (debugEnabled())
                 debugCaught(DebugLogLevel.ERROR, e);
             msgID = MSGID_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI;
             String message =
-                    getMessage(msgID, String.valueOf(configEntry.getDN()),
+                    getMessage(msgID, String.valueOf(configuration.dn()),
                     stackTraceToSingleLineString(e));
             throw new InitializationException(msgID, message, e);
         }

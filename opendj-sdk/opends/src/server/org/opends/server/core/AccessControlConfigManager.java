@@ -26,7 +26,6 @@
  */
 package org.opends.server.core;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
@@ -36,18 +35,22 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.AccessControlHandlerCfgDefn;
+import org.opends.server.admin.std.server.AccessControlHandlerCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccessControlProvider;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
@@ -76,7 +79,7 @@ public final class AccessControlConfigManager
   private AtomicReference<AccessControlProvider> accessControlProvider;
 
   // The current configuration.
-  private Configuration currentConfiguration;
+  private PrivateACLConfiguration currentConfiguration;
 
   /**
    * Get the single application-wide access control manager instance.
@@ -132,37 +135,26 @@ public final class AccessControlConfigManager
   void initializeAccessControl() throws ConfigException,
       InitializationException {
 
-    // Get the access control handler configuration entry.
-    ConfigEntry configEntry;
-    try {
-      DN configEntryDN = DN.decode(DN_AUTHZ_HANDLER_CONFIG);
-      configEntry = DirectoryServer.getConfigEntry(configEntryDN);
-    } catch (Exception e) {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
+    // Get the root configuration object.
+    ServerManagementContext managementContext =
+         ServerManagementContext.getInstance();
+    RootCfg rootConfiguration =
+         managementContext.getRootConfiguration();
 
-      int msgID = MSGID_CONFIG_AUTHZ_CANNOT_GET_ENTRY;
-      String message = getMessage(msgID,
-          stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
-    }
+    // Don't register as an add and delete listener with the root configuration
+    // as we can have only one object at a given time.
 
-    // The access control handler entry must exist.
-    if (configEntry == null) {
-      int msgID = MSGID_CONFIG_AUTHZ_ENTRY_DOES_NOT_EXIST;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
-    }
+    // //Initialize the current Access control.
+    AccessControlHandlerCfg accessControlConfiguration =
+           rootConfiguration.getAccessControlHandler();
 
     // Parse the configuration entry.
-    Configuration configuration = Configuration
-        .readConfiguration(configEntry);
+    PrivateACLConfiguration configuration = PrivateACLConfiguration
+        .readConfiguration(accessControlConfiguration);
 
     // We have a valid usable entry, so register a change listener in
     // order to handle configuration changes.
-    configEntry.registerChangeListener(new ChangeListener());
+    accessControlConfiguration.addChangeListener(new ChangeListener());
 
     // The configuration looks valid, so install it.
     updateConfiguration(configuration);
@@ -191,10 +183,10 @@ public final class AccessControlConfigManager
    *           If the access control handler provider could not be
    *           instantiated.
    */
-  private void updateConfiguration(Configuration newConfiguration)
+  private void updateConfiguration(PrivateACLConfiguration newConfiguration)
       throws ConfigException, InitializationException {
 
-    DN configEntryDN = newConfiguration.getConfigEntry().getDN();
+    DN configEntryDN = newConfiguration.getConfiguration().dn();
     Class<? extends AccessControlProvider> newHandlerClass = null;
 
     if (currentConfiguration == null) {
@@ -227,9 +219,10 @@ public final class AccessControlConfigManager
     // finalize the old
     // one and instantiate the new.
     if (newHandlerClass != null) {
-      AccessControlProvider newHandler;
+      AccessControlProvider<? extends AccessControlHandlerCfg> newHandler ;
       try {
-        newHandler = newHandlerClass.newInstance();
+          newHandler = loadProvider(newHandlerClass.getName(), newConfiguration
+            .getConfiguration());
       } catch (Exception e) {
         if (debugEnabled())
         {
@@ -244,9 +237,6 @@ public final class AccessControlConfigManager
       }
 
       // Switch the handlers without interfering with other threads.
-      newHandler.initializeAccessControlHandler(newConfiguration
-          .getConfigEntry());
-
       AccessControlProvider oldHandler = accessControlProvider
           .getAndSet(newHandler);
 
@@ -289,19 +279,22 @@ public final class AccessControlConfigManager
   /**
    * Internal class implementing the change listener interface.
    */
-  private class ChangeListener implements ConfigChangeListener {
+  private class ChangeListener implements
+      ConfigurationChangeListener<AccessControlHandlerCfg>
+  {
 
     /**
      * {@inheritDoc}
      */
-    public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-        StringBuilder unacceptableReason) {
-
+    public boolean isConfigurationChangeAcceptable(
+        AccessControlHandlerCfg configuration,
+        List<String> unacceptableReasons)
+    {
       try {
         // Parse the configuration entry.
-        Configuration.readConfiguration(configEntry);
+        PrivateACLConfiguration.readConfiguration(configuration);
       } catch (ConfigException e) {
-        unacceptableReason.append(e.getMessage());
+        unacceptableReasons.add(e.getMessage());
         return false;
       }
 
@@ -312,15 +305,16 @@ public final class AccessControlConfigManager
      * {@inheritDoc}
      */
     public ConfigChangeResult applyConfigurationChange(
-        ConfigEntry configEntry) {
+        AccessControlHandlerCfg configuration)
+    {
 
       ResultCode resultCode = ResultCode.SUCCESS;
       ArrayList<String> messages = new ArrayList<String>();
 
       try {
         // Parse the configuration entry.
-        Configuration newConfiguration = Configuration
-            .readConfiguration(configEntry);
+        PrivateACLConfiguration newConfiguration = PrivateACLConfiguration
+            .readConfiguration(configuration);
 
         // The configuration looks valid, so install it.
         updateConfiguration(newConfiguration);
@@ -339,7 +333,7 @@ public final class AccessControlConfigManager
   /**
    * Internal class used to represent the parsed configuration entry.
    */
-  private static class Configuration {
+  private static class PrivateACLConfiguration {
 
     // Flag indicating whether or not access control is enabled.
     private boolean enabled;
@@ -349,35 +343,36 @@ public final class AccessControlConfigManager
     private Class<? extends AccessControlProvider> providerClass;
 
     // The entry that this object is mapped to.
-    private ConfigEntry configEntry;
+    private AccessControlHandlerCfg configuration;
 
     /**
      * Parses a configuration entry and, if it is valid, returns an
      * object representation of it.
      *
-     * @param configEntry
+     * @param configuration
      *          The access control configuration entry.
      * @return An object representation of the parsed configuration.
      * @throws ConfigException
      *           If a the access control configuration is invalid.
      */
-    public static Configuration readConfiguration(
-        ConfigEntry configEntry) throws ConfigException {
+    public static PrivateACLConfiguration readConfiguration(
+        AccessControlHandlerCfg configuration) throws ConfigException {
 
       // The access control configuration entry must have the correct
       // object class.
-      if (configEntry.hasObjectClass(OC_AUTHZ_HANDLER_CONFIG) == false) {
+      if (configuration.getAclHandlerClass() == null) {
         int msgID = MSGID_CONFIG_AUTHZ_ENTRY_DOES_NOT_HAVE_OBJECT_CLASS;
-        String message = getMessage(msgID, configEntry.toString());
+        String message = getMessage(msgID, configuration.toString());
         throw new ConfigException(msgID, message);
       }
 
       // Parse the attributes.
-      boolean enabled = getEnabledAttribute(configEntry);
-      Class<? extends AccessControlProvider> providerClass =
-        getClassAttribute(configEntry);
+      boolean enabled = configuration.isEnabled() ;
 
-      return new Configuration(configEntry, enabled, providerClass);
+      Class<? extends AccessControlProvider> providerClass =
+        getClassAttribute(configuration);
+
+      return new PrivateACLConfiguration(configuration, enabled, providerClass);
     }
 
     /**
@@ -407,105 +402,51 @@ public final class AccessControlConfigManager
      *
      * @return Returns the configuration entry.
      */
-    public ConfigEntry getConfigEntry() {
-      return configEntry;
+    public AccessControlHandlerCfg getConfiguration() {
+      return configuration;
     }
 
     /**
      * Construct a new configuration object with the specified parsed
      * attribute values.
      *
-     * @param configEntry
+     * @param configuration
      *          The associated access control configuration entry.
      * @param enabled
      *          The value of the enabled attribute.
      * @param providerClass
      *          The access control provider class.
      */
-    private Configuration(ConfigEntry configEntry, boolean enabled,
+    private PrivateACLConfiguration(
+        AccessControlHandlerCfg configuration, boolean enabled,
         Class<? extends AccessControlProvider> providerClass) {
 
-      this.configEntry = configEntry;
+      this.configuration = configuration;
       this.enabled = enabled;
       this.providerClass = providerClass;
     }
 
-    /**
-     * Read the value of the attribute which indicates whether or not
-     * access control is enabled.
-     *
-     * @param configEntry
-     *          The access control configuration entry.
-     * @return The boolean value of the enabled attribute.
-     * @throws ConfigException
-     *           If the enabled attribute could not be read or if it
-     *           contains an invalid value.
-     */
-    private static boolean getEnabledAttribute(ConfigEntry configEntry)
-        throws ConfigException {
-
-      // See if the entry contains an attribute that indicates whether
-      // or not access control should be enabled.
-      try {
-        BooleanConfigAttribute enabledAttrStub = new BooleanConfigAttribute(
-            ATTR_AUTHZ_HANDLER_ENABLED,
-            getMessage(MSGID_CONFIG_AUTHZ_DESCRIPTION_ENABLED), false);
-
-        BooleanConfigAttribute enabledAttr = (BooleanConfigAttribute)
-          configEntry.getConfigAttribute(enabledAttrStub);
-
-        if (enabledAttr == null) {
-          int msgID = MSGID_CONFIG_AUTHZ_NO_ENABLED_ATTR;
-          String message = getMessage(msgID, configEntry.getDN()
-              .toString());
-          throw new ConfigException(msgID, message);
-        } else {
-          // We have a valid attribute - return it.
-          return enabledAttr.activeValue();
-        }
-      } catch (ConfigException e) {
-        int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_DETERMINE_ENABLED_STATE;
-        String message = getMessage(msgID, configEntry.getDN()
-            .toString(), stackTraceToSingleLineString(e));
-        throw new ConfigException(msgID, message, e);
-      }
-    }
 
     /**
      * Read the value of the attribute which indicates which access
      * control implementation class to use. This method checks the
      * validity of the class name.
      *
-     * @param configEntry
-     *          The access control configuration entry.
+     * @param configuration
+     *          The access control configuration.
      * @return The access control provider class.
      * @throws ConfigException
      *           If the class attribute could not be read or if it
      *           contains an invalid class name.
      */
     private static Class<? extends AccessControlProvider> getClassAttribute(
-        ConfigEntry configEntry) throws ConfigException {
+        AccessControlHandlerCfg configuration) throws ConfigException {
 
       // If access control is enabled then make sure that the class
       // attribute is present.
       try {
-        StringConfigAttribute classAttrStub = new StringConfigAttribute(
-            ATTR_AUTHZ_HANDLER_CLASS,
-            getMessage(MSGID_CONFIG_AUTHZ_DESCRIPTION_CLASS), true,
-            false, false);
-
-        StringConfigAttribute classAttr = (StringConfigAttribute) configEntry
-            .getConfigAttribute(classAttrStub);
-
-        if (classAttr == null) {
-          int msgID = MSGID_CONFIG_AUTHZ_NO_CLASS_ATTR;
-          String message = getMessage(msgID, configEntry.getDN()
-              .toString());
-          throw new ConfigException(msgID, message);
-        }
-
         // Load the access control implementation class.
-        String className = classAttr.activeValue();
+        String className = configuration.getAclHandlerClass();
         try {
           return DirectoryServer.loadClass(className).asSubclass(
               AccessControlProvider.class);
@@ -517,7 +458,7 @@ public final class AccessControlConfigManager
 
           int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_LOAD_CLASS;
           String message = getMessage(msgID, className, String
-              .valueOf(configEntry.getDN().toString()),
+              .valueOf(configuration.dn().toString()),
               stackTraceToSingleLineString(e));
           throw new ConfigException(msgID, message, e);
         } catch (ClassCastException e) {
@@ -528,14 +469,14 @@ public final class AccessControlConfigManager
 
           int msgID = MSGID_CONFIG_AUTHZ_BAD_CLASS;
           String message = getMessage(msgID, className, String
-              .valueOf(configEntry.getDN().toString()),
+              .valueOf(configuration.dn().toString()),
               AccessControlProvider.class.getName(),
               stackTraceToSingleLineString(e));
           throw new ConfigException(msgID, message, e);
         }
       } catch (ConfigException e) {
         int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_DETERMINE_CLASS;
-        String message = getMessage(msgID, configEntry.getDN()
+        String message = getMessage(msgID, configuration.dn()
             .toString(), stackTraceToSingleLineString(e));
         throw new ConfigException(msgID, message, e);
       }
@@ -553,7 +494,7 @@ public final class AccessControlConfigManager
    */
   public DN getComponentEntryDN()
   {
-    return currentConfiguration.getConfigEntry().getDN();
+    return currentConfiguration.getConfiguration().dn();
   }
 
 
@@ -593,6 +534,58 @@ public final class AccessControlConfigManager
                ALERT_DESCRIPTION_ACCESS_CONTROL_ENABLED);
 
     return alerts;
+  }
+
+  /**
+   * Loads the specified class, instantiates it as a AccessControlProvider, and
+   * optionally initializes that instance.
+   *
+   * @param  className      The fully-qualified name of the Access Control
+   *                        provider class to load, instantiate, and initialize.
+   * @param  configuration  The configuration to use to initialize the
+   *                        Access Control Provider, or {@code null} if the
+   *                        Access Control Provider should not be initialized.
+   *
+   * @return  The possibly initialized Access Control Provider.
+   *
+   * @throws  InitializationException  If a problem occurred while attempting to
+   *                                   initialize the Access Control Provider.
+   */
+  private AccessControlProvider<? extends AccessControlHandlerCfg>
+               loadProvider(String className,
+                             AccessControlHandlerCfg configuration)
+          throws InitializationException
+  {
+    try
+    {
+      AccessControlHandlerCfgDefn definition =
+        AccessControlHandlerCfgDefn.getInstance();
+      ClassPropertyDefinition propertyDefinition =
+           definition.getAclHandlerClassPropertyDefinition();
+      Class<? extends AccessControlProvider> providerClass =
+           propertyDefinition.loadClass(className, AccessControlProvider.class);
+      AccessControlProvider<? extends AccessControlHandlerCfg> provider =
+           (AccessControlProvider<? extends AccessControlHandlerCfg>)
+           providerClass.newInstance();
+
+      if (configuration != null)
+      {
+        Method method =
+          provider.getClass().getMethod("initializeAccessControlHandler",
+                  configuration.definition().getServerConfigurationClass());
+        method.invoke(provider, configuration);
+      }
+
+      return provider;
+    }
+    catch (Exception e)
+    {
+      int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER;
+      String message = getMessage(msgID, className,
+                                  String.valueOf(configuration.dn()),
+                                  stackTraceToSingleLineString(e));
+      throw new InitializationException(msgID, message, e);
+    }
   }
 }
 

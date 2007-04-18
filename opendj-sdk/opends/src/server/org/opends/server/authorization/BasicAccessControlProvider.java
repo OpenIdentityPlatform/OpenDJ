@@ -26,9 +26,9 @@
  */
 package org.opends.server.authorization;
 
+import org.opends.server.admin.std.server.AccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccessControlProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
 
@@ -59,8 +59,10 @@ public class BasicAccessControlProvider implements
   /**
    * {@inheritDoc}
    */
-  public void initializeAccessControlHandler(ConfigEntry configEntry)
-      throws ConfigException, InitializationException {
+  public void initializeAccessControlHandler(
+      AccessControlHandlerCfg configuration) throws ConfigException,
+      InitializationException
+  {
 
     // Avoid potential race conditions constructing the handler instance
     // and create it here.

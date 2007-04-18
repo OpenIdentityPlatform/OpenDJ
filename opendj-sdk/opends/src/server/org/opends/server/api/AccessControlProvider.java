@@ -26,7 +26,7 @@
  */
 package org.opends.server.api;
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.AccessControlHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
 
@@ -34,16 +34,21 @@ import org.opends.server.types.InitializationException;
  * This class defines an interface for managing the life-cycle of an
  * access control handler. The access control handler configuration
  * should specify the name of a class implementing this interface.
+ *
+ * @param <T>
+ *          The type of connection handler configuration handled by
+ *          this connection handler implementation.
  */
-public interface AccessControlProvider {
+public interface AccessControlProvider
+  <T extends AccessControlHandlerCfg> {
 
   /**
    * Initializes the access control handler implementation based on
    * the information in the provided configuration entry.
    *
-   * @param configEntry
-   *          The configuration entry that contains the information to
-   *          use to initialize this access control handler.
+   * @param configuration
+   *          The configuration object that contains the information
+   *          to use to initialize this access control handler.
    * @throws ConfigException
    *           If an unrecoverable problem arises in the process of
    *           performing the initialization.
@@ -51,7 +56,7 @@ public interface AccessControlProvider {
    *           If a problem occurs during initialization that is not
    *           related to the server configuration.
    */
-  void initializeAccessControlHandler(ConfigEntry configEntry)
+  void initializeAccessControlHandler(T configuration)
       throws ConfigException, InitializationException;
 
   /**
