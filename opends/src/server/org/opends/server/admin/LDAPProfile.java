@@ -79,8 +79,8 @@ public final class LDAPProfile {
    */
   public String getInstantiableRelationChildRDNType(
       InstantiableRelationDefinition<?, ?> r) {
-    // For now, assume always "cn".
-    return "cn";
+    return resource.getString(r.getParentDefinition(),
+        "naming-attribute." + r.getName());
   }
 
 

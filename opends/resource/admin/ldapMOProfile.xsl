@@ -77,6 +77,21 @@
                        '=',
                        normalize-space(adm:profile[@name='ldap']/ldap:rdn-sequence),
                        '&#xa;')" />
+      <xsl:choose>
+        <xsl:when
+          test="adm:profile[@name='ldap']/ldap:naming-attribute">
+          <xsl:value-of
+            select="concat('naming-attribute.',
+                       normalize-space(@name),
+                       '=',
+                       normalize-space(adm:profile[@name='ldap']/ldap:naming-attribute),
+                       '&#xa;')" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of
+            select="concat('naming-attribute.', normalize-space(@name), '=cn&#xa;')" />
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:for-each>
   </xsl:template>
 </xsl:stylesheet>
