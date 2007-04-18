@@ -38,15 +38,25 @@ import java.util.Set;
 
 
 /**
- * This class is used to map configuration elements to their LDAP schema names.
+ * This class is used to map configuration elements to their LDAP
+ * schema names.
  */
-public final class LDAPProfile {
+public abstract class LDAPProfile {
+
+  // This class is abstract so that we can derive a mock LDAP profile
+  // for testing.
 
   // The singleton instance.
-  private static final LDAPProfile INSTANCE = new LDAPProfile();
+  private static final LDAPProfile INSTANCE = new MyLDAPProfile();
 
-  // The LDAP profile property table.
-  private final ManagedObjectDefinitionResource resource;
+
+
+  /**
+   * Protected default constructor.
+   */
+  protected LDAPProfile() {
+    // No implementation required.
+  }
 
 
 
@@ -61,43 +71,143 @@ public final class LDAPProfile {
 
 
 
-  // Private constructor.
-  private LDAPProfile() {
-    this.resource = ManagedObjectDefinitionResource.createForProfile("ldap");
+  /**
+   * Concrete implementation.
+   */
+  private static class MyLDAPProfile extends LDAPProfile {
+
+    // The LDAP profile property table.
+    private final ManagedObjectDefinitionResource resource;
+
+
+
+    // Private constructor.
+    private MyLDAPProfile() {
+      this.resource = ManagedObjectDefinitionResource
+          .createForProfile("ldap");
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getInstantiableRelationChildRDNType(
+        InstantiableRelationDefinition<?, ?> r) {
+      return resource.getString(r.getParentDefinition(),
+          "naming-attribute." + r.getName());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public List<String> getInstantiableRelationObjectClasses(
+        InstantiableRelationDefinition<?, ?> r) {
+      return Arrays.asList(new String[] { "top", "ds-cfg-branch" });
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
+      return resource.getString(r.getParentDefinition(), "rdn."
+          + r.getName());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getFilter(AbstractManagedObjectDefinition<?, ?> d) {
+      StringBuilder builder = new StringBuilder();
+      builder.append("(ObjectClass=");
+      builder.append(getObjectClass(d));
+      builder.append(')');
+      return builder.toString();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getObjectClass(
+        AbstractManagedObjectDefinition<?, ?> d) {
+      return resource.getString(d, "objectclass");
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public List<String> getObjectClasses(
+        AbstractManagedObjectDefinition<?, ?> d) {
+      LinkedList<String> objectClasses = new LinkedList<String>();
+      Set<String> s = new HashSet<String>();
+
+      // Add the object classes from the parent hierarchy.
+      while (d != null) {
+        String oc = getObjectClass(d);
+        if (!s.contains(oc)) {
+          objectClasses.addFirst(oc);
+          s.add(oc);
+        }
+        d = d.getParent();
+      }
+
+      // Make sure that we have top.
+      if (!s.contains("top")) {
+        objectClasses.addFirst("top");
+      }
+
+      return objectClasses;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getAttributeName(ManagedObjectDefinition<?, ?> d,
+        PropertyDefinition<?> pd) {
+      return resource.getString(d, "attribute." + pd.getName());
+    }
   }
 
 
 
   /**
-   * Gets the LDAP RDN attribute type for child entries of an instantiable
-   * relation.
+   * Gets the LDAP RDN attribute type for child entries of an
+   * instantiable relation.
    *
    * @param r
    *          The instantiable relation.
-   * @return Returns the LDAP RDN attribute type for child entries of an
-   *         instantiable relation.
+   * @return Returns the LDAP RDN attribute type for child entries of
+   *         an instantiable relation.
    */
-  public String getInstantiableRelationChildRDNType(
-      InstantiableRelationDefinition<?, ?> r) {
-    return resource.getString(r.getParentDefinition(),
-        "naming-attribute." + r.getName());
-  }
+  public abstract String getInstantiableRelationChildRDNType(
+      InstantiableRelationDefinition<?, ?> r);
 
 
 
   /**
-   * Gets the LDAP object classes associated with an instantiable relation
-   * branch. The branch is the parent entry of child managed objects.
+   * Gets the LDAP object classes associated with an instantiable
+   * relation branch. The branch is the parent entry of child managed
+   * objects.
    *
    * @param r
    *          The instantiable relation.
-   * @return Returns the LDAP object classes associated with an instantiable
-   *         relation branch.
+   * @return Returns the LDAP object classes associated with an
+   *         instantiable relation branch.
    */
-  public List<String> getInstantiableRelationObjectClasses(
-      InstantiableRelationDefinition<?, ?> r) {
-    return Arrays.asList(new String[] { "top", "ds-cfg-branch" });
-  }
+  public abstract List<String> getInstantiableRelationObjectClasses(
+      InstantiableRelationDefinition<?, ?> r);
 
 
 
@@ -106,95 +216,69 @@ public final class LDAPProfile {
    *
    * @param r
    *          The relation.
-   * @return Returns the LDAP RDN sequence associatied with a relation.
+   * @return Returns the LDAP RDN sequence associatied with a
+   *         relation.
    */
-  public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
-    return resource.getString(r.getParentDefinition(), "rdn." + r.getName());
-  }
+  public abstract String getRelationRDNSequence(
+      RelationDefinition<?, ?> r);
 
 
 
   /**
-   * Get an LDAP filter string which can be used to search for entries matching
-   * the specified definition.
+   * Get an LDAP filter string which can be used to search for entries
+   * matching the specified definition.
    *
    * @param d
    *          The managed object definition.
    * @return Returns the LDAP filter.
    */
-  public String getFilter(AbstractManagedObjectDefinition<?, ?> d) {
-    StringBuilder builder = new StringBuilder();
-    builder.append("(ObjectClass=");
-    builder.append(getObjectClass(d));
-    builder.append(')');
-    return builder.toString();
-  }
+  public abstract String getFilter(
+      AbstractManagedObjectDefinition<?, ?> d);
 
 
 
   /**
-   * Get the principle object class associated with the specified definition.
-   *
-   * @param d
-   *          The managed object definition.
-   * @return Returns the principle object class associated with the specified
-   *         definition.
-   */
-  public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
-    return resource.getString(d, "objectclass");
-  }
-
-
-
-  /**
-   * Get all the object classes associated with the specified definition.
-   * <p>
-   * The returned list is ordered such that the uppermost object classes appear
-   * first (e.g. top).
-   *
-   * @param d
-   *          The managed object definition.
-   * @return Returns all the object classes associated with the specified
-   *         definition.
-   */
-  public List<String> getObjectClasses(
-      AbstractManagedObjectDefinition<?, ?> d) {
-    LinkedList<String> objectClasses = new LinkedList<String>();
-    Set<String> s = new HashSet<String>();
-
-    // Add the object classes from the parent hierarchy.
-    while (d != null) {
-      String oc = getObjectClass(d);
-      if (!s.contains(oc)) {
-        objectClasses.addFirst(oc);
-        s.add(oc);
-      }
-      d = d.getParent();
-    }
-
-    // Make sure that we have top.
-    if (!s.contains("top")) {
-      objectClasses.addFirst("top");
-    }
-
-    return objectClasses;
-  }
-
-
-
-  /**
-   * Get the name of the LDAP attribute associated with the specified property
+   * Get the principle object class associated with the specified
    * definition.
+   *
+   * @param d
+   *          The managed object definition.
+   * @return Returns the principle object class associated with the
+   *         specified definition.
+   */
+  public abstract String getObjectClass(
+      AbstractManagedObjectDefinition<?, ?> d);
+
+
+
+  /**
+   * Get all the object classes associated with the specified
+   * definition.
+   * <p>
+   * The returned list is ordered such that the uppermost object
+   * classes appear first (e.g. top).
+   *
+   * @param d
+   *          The managed object definition.
+   * @return Returns all the object classes associated with the
+   *         specified definition.
+   */
+  public abstract List<String> getObjectClasses(
+      AbstractManagedObjectDefinition<?, ?> d);
+
+
+
+  /**
+   * Get the name of the LDAP attribute associated with the specified
+   * property definition.
    *
    * @param d
    *          The managed object definition.
    * @param pd
    *          The property definition.
-   * @return Returns the name of the LDAP attribute associated with the
-   *         specified property definition.
+   * @return Returns the name of the LDAP attribute associated with
+   *         the specified property definition.
    */
-  public String getAttributeName(ManagedObjectDefinition<?, ?> d,
-      PropertyDefinition<?> pd) {
-    return resource.getString(d, "attribute." + pd.getName());
-  }
+  public abstract String getAttributeName(
+      ManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd);
 }
