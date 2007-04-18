@@ -3074,6 +3074,48 @@ public class SchemaMessages
 
 
   /**
+   * The message ID for the message that will be used if a generalized time
+   * value contains an illegal character in the fraction component.  This takes
+   * two arguments, which are the value string and the illegal character.
+   */
+  public static final int
+       MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR =
+            CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 275;
+
+
+
+  /**
+   * The message ID for the message that will be used if a generalized time
+   * value contains an empty fractional component.  This takes a single
+   * argument, which is the value string.
+   */
+  public static final int MSGID_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION =
+       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 276;
+
+
+
+  /**
+   * The message ID for the message that will be used if a generalized time
+   * value does not contain any time zone information.  This takes a single
+   * argument, which is the value string.
+   */
+  public static final int MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO =
+       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 277;
+
+
+
+  /**
+   * The message ID for the message that will be used if a generalized time
+   * value represents an invalid date or time (e.g., September 31).  This takes
+   * two arguments, which are the value string and a string representation of
+   * the exception that was caught.
+   */
+  public static final int MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME =
+       CATEGORY_MASK_SCHEMA | SEVERITY_MASK_SEVERE_WARNING | 278;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -3181,6 +3223,22 @@ public class SchemaMessages
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NORMALIZE_FAILURE,
                     "An unexpected error occurred while trying to normalize " +
                     "value %s as a generalized time value:  %s.");
+    registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR,
+                    "The provided value %s is not a valid generalized time " +
+                    "value because it contains illegal character %s in the " +
+                    "fraction component.");
+    registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION,
+                    "The provided value %s is not a valid generalized time " +
+                    "value because it does not contain at least one digit " +
+                    "after the period to use as the fractional component.");
+    registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO,
+                    "The provided value %s is not a valid generalized time " +
+                    "value because it does not end with 'Z' or a time zone " +
+                    "offset.");
+    registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME,
+                    "The provided value %s is not a valid generalized time " +
+                    "value because it represents an invalid time (e.g., a " +
+                    "date that does not exist):  %s.");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_DN_INVALID,
