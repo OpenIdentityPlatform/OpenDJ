@@ -213,6 +213,7 @@ public class SearchOperationTestCase extends OperationTestCase
     assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
     assertEquals(InvocationCounterPlugin.getPreOperationCount(), 1);
     assertEquals(InvocationCounterPlugin.getPostOperationCount(), 1);
+    ensurePostReponseHasRun();
     assertEquals(InvocationCounterPlugin.getPostResponseCount(), 1);
   }
 
