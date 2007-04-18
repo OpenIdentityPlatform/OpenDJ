@@ -40,7 +40,7 @@
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
-          org.opends.server.authorization.dseecompat.AciProvider
+          org.opends.server.api.AccessControlProvider
         </adm:instance-of>
       </adm:java-class>
     </adm:syntax>
