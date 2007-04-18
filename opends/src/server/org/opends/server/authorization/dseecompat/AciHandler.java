@@ -96,7 +96,8 @@ public class AciHandler extends AccessControlHandler
      *  - Processes all "aci" attributes found in the "cn=config" naming
      *    context and adds them to the ACI list cache.
      *
-     * @param configuration The configuration entry passed in from the provider.
+     * @param configuration The config handler containing the ACI
+     *  configuration information.
      * @throws InitializationException if there is a problem processing the
      * config entry or config naming context.
     */
@@ -122,7 +123,8 @@ public class AciHandler extends AccessControlHandler
      * entry and adds them to that ACI list cache. It also logs messages about
      * the number of ACI attribute types added to the cache. This method is
      * called once at startup.
-     * @param configEntry  The configuraion entry to search for global ACIs.
+     * @param configuration   The config handler containing the ACI
+     *  configuration information.
      * @throws InitializationException If there is an error reading
      * the global ACIs from the configuration entry.
      */
