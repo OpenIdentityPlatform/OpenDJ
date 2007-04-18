@@ -96,8 +96,23 @@ final class DNBuilder implements ManagedObjectPathSerializer {
    * Create a new DN builder.
    */
   public DNBuilder() {
+    this(LDAPProfile.getInstance());
+  }
+
+
+
+  /**
+   * Create a new DN builder with the provided LDAP profile.
+   * <p>
+   * This constructor is package private and only intended for testing
+   * purposes against a mock LDAP profile.
+   *
+   * @param profile
+   *          The LDAP profile to use when building the DN.
+   */
+  DNBuilder(LDAPProfile profile) {
     this.dn = DN.nullDN();
-    this.profile = LDAPProfile.getInstance();
+    this.profile = profile;
   }
 
 
