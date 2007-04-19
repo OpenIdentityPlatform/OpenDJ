@@ -28,6 +28,8 @@
 package org.opends.server.admin;
 
 import static org.testng.Assert.*;
+
+import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.testng.annotations.*;
 
 import java.util.EnumSet;
@@ -74,9 +76,11 @@ public class ClassPropertyDefinitionTest {
   @Test(dataProvider = "testBuilderAddInstanceOf")
   public void testBuilderAddInstanceOf(String className) {
     ClassPropertyDefinition.Builder localBuilder =
-            ClassPropertyDefinition.createBuilder("test-property");
+            ClassPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
+                "test-property");
     localBuilder.addInstanceOf(className);
-    ClassPropertyDefinition cpd = localBuilder.buildInstance("test-property",
+    ClassPropertyDefinition cpd = localBuilder.buildInstance(
+        RootCfgDefn.getInstance(), "test-property",
             EnumSet.noneOf(PropertyOption.class),
             new UndefinedDefaultBehaviorProvider<String>());
     List<String> instances = cpd.getInstanceOfInterface();
@@ -104,9 +108,11 @@ public class ClassPropertyDefinitionTest {
           expectedExceptions = {IllegalArgumentException.class})
   public void testBuilderAddInstanceOf2(String className) {
     ClassPropertyDefinition.Builder localBuilder =
-            ClassPropertyDefinition.createBuilder("test-property");
+            ClassPropertyDefinition.createBuilder(
+                RootCfgDefn.getInstance(), "test-property");
     localBuilder.addInstanceOf(className);
-    ClassPropertyDefinition cpd = localBuilder.buildInstance("test-property",
+    ClassPropertyDefinition cpd = localBuilder.buildInstance(
+        RootCfgDefn.getInstance(), "test-property",
             EnumSet.noneOf(PropertyOption.class),
             new UndefinedDefaultBehaviorProvider<String>());
     List<String> instances = cpd.getInstanceOfInterface();
@@ -138,9 +144,11 @@ public class ClassPropertyDefinitionTest {
   public <T> void testLoadClass(String interfaceName, String loadClassName,
                             Class<T> instanceOfClass, Class expectedClass) {
     ClassPropertyDefinition.Builder localBuilder =
-            ClassPropertyDefinition.createBuilder("test-property");
+            ClassPropertyDefinition.createBuilder(
+                RootCfgDefn.getInstance(), "test-property");
     localBuilder.addInstanceOf(interfaceName);
-    ClassPropertyDefinition cpd = localBuilder.buildInstance("test-property",
+    ClassPropertyDefinition cpd = localBuilder.buildInstance(
+        RootCfgDefn.getInstance(), "test-property",
             EnumSet.noneOf(PropertyOption.class),
             new UndefinedDefaultBehaviorProvider<String>());
     Class clazz = cpd.loadClass(loadClassName, instanceOfClass);
@@ -173,9 +181,11 @@ public class ClassPropertyDefinitionTest {
   public <T> void testLoadClass2(String interfaceName, String loadClassName,
                             Class<T> instanceOfClass, Class expectedClass) {
     ClassPropertyDefinition.Builder localBuilder =
-            ClassPropertyDefinition.createBuilder("test-property");
+            ClassPropertyDefinition.createBuilder(
+                RootCfgDefn.getInstance(), "test-property");
     localBuilder.addInstanceOf(interfaceName);
-    ClassPropertyDefinition cpd = localBuilder.buildInstance("test-property",
+    ClassPropertyDefinition cpd = localBuilder.buildInstance(
+        RootCfgDefn.getInstance(), "test-property",
             EnumSet.noneOf(PropertyOption.class),
             new UndefinedDefaultBehaviorProvider<String>());
     Class clazz = cpd.loadClass(loadClassName, instanceOfClass);

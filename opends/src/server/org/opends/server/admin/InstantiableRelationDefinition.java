@@ -27,6 +27,8 @@
 
 package org.opends.server.admin;
 
+import java.util.Locale;
+
 
 
 /**
@@ -77,6 +79,37 @@ public final class InstantiableRelationDefinition
    */
   public final String getPluralName() {
     return pluralName;
+  }
+
+
+
+  /**
+   * Gets the user friendly plural name of this relation definition in
+   * the default locale.
+   *
+   * @return Returns the user friendly plural name of this relation
+   *         definition in the default locale.
+   */
+  public final String getUserFriendlyPluralName() {
+    return getUserFriendlyPluralName(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the user friendly plural name of this relation definition in
+   * the specified locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the user friendly plural name of this relation
+   *         definition in the specified locale.
+   */
+  public final String getUserFriendlyPluralName(Locale locale) {
+    String property = "relation." + getName()
+        + ".user-friendly-plural-name";
+    return ManagedObjectDefinitionI18NResource.getInstance()
+        .getMessage(getParentDefinition(), property, locale);
   }
 
 

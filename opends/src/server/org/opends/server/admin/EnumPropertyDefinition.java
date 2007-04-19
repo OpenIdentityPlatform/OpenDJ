@@ -33,7 +33,9 @@ import static org.opends.server.util.Validator.ensureNotNull;
 
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 
 
 
@@ -64,8 +66,9 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
 
 
     // Private constructor
-    private Builder(String propertyName) {
-      super(propertyName);
+    private Builder(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+      super(d, propertyName);
       this.enumClass = null;
     }
 
@@ -90,14 +93,15 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
      */
     @Override
     protected EnumPropertyDefinition<E> buildInstance(
-        String propertyName, EnumSet<PropertyOption> options,
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
+        EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<E> defaultBehavior) {
       // Make sure that the enumeration class has been defined.
       if (enumClass == null) {
         throw new IllegalStateException("Enumeration class undefined");
       }
 
-      return new EnumPropertyDefinition<E>(propertyName, options,
+      return new EnumPropertyDefinition<E>(d, propertyName, options,
           defaultBehavior, enumClass);
     }
   }
@@ -115,13 +119,16 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
    * @param <E>
    *          The enumeration that should be used for values of this
    *          property definition.
+   * @param d
+   *          The managed object definition associated with this
+   *          property definition.
    * @param propertyName
    *          The property name.
    * @return Returns the new enumeration property definition builder.
    */
   public static <E extends Enum<E>> Builder<E> createBuilder(
-      String propertyName) {
-    return new Builder<E>(propertyName);
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    return new Builder<E>(d, propertyName);
   }
 
   // The enumeration class.
@@ -133,10 +140,11 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
 
 
   // Private constructor.
-  private EnumPropertyDefinition(String propertyName,
+  private EnumPropertyDefinition(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<E> defaultBehavior, Class<E> enumClass) {
-    super(enumClass, propertyName, options, defaultBehavior);
+    super(d, enumClass, propertyName, options, defaultBehavior);
     this.enumClass = enumClass;
 
     // Initialize the decoding map.
@@ -186,6 +194,50 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
    */
   public Class<E> getEnumClass() {
     return enumClass;
+  }
+
+
+
+  /**
+   * Gets the synopsis of the specified enumeration value of this
+   * enumeration property definition in the default locale.
+   *
+   * @param value
+   *          The enumeration value.
+   * @return Returns the synopsis of the specified enumeration value
+   *         of this enumeration property definition in the default
+   *         locale.
+   */
+  public final String getValueSynopsis(E value) {
+    return getValueSynopsis(Locale.getDefault(), value);
+  }
+
+
+
+  /**
+   * Gets the synopsis of the specified enumeration value of this
+   * enumeration property definition in the specified locale.
+   *
+   * @param value
+   *          The enumeration value.
+   * @param locale
+   *          The locale.
+   * @return Returns the synopsis of the specified enumeration value
+   *         of this enumeration property definition in the specified
+   *         locale.
+   */
+  public final String getValueSynopsis(Locale locale, E value) {
+    ManagedObjectDefinitionI18NResource resource =
+      ManagedObjectDefinitionI18NResource.getInstance();
+    String property = "property." + getName()
+        + ".syntax.enumeration.value." + value.toString()
+        + ".synopsis";
+    try {
+      return resource.getMessage(getManagedObjectDefinition(),
+          property, locale);
+    } catch (MissingResourceException e) {
+      return null;
+    }
   }
 
 

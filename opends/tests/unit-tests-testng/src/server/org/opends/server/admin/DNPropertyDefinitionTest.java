@@ -32,6 +32,7 @@ package org.opends.server.admin;
 import static org.testng.Assert.assertEquals;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.BeforeClass;
@@ -83,7 +84,7 @@ public class DNPropertyDefinitionTest {
   public void testBuilderSetBaseDN(String baseDN)
       throws DirectoryException {
     DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition
-        .createBuilder("test-property");
+        .createBuilder(RootCfgDefn.getInstance(), "test-property");
     localBuilder.setBaseDN(baseDN);
     DNPropertyDefinition pd = localBuilder.getInstance();
 
@@ -151,7 +152,7 @@ public class DNPropertyDefinitionTest {
   public void testValidateLegalValues(String baseDN, String value)
       throws DirectoryException {
     DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition
-        .createBuilder("test-property");
+        .createBuilder(RootCfgDefn.getInstance(), "test-property");
     localBuilder.setBaseDN(baseDN);
     DNPropertyDefinition pd = localBuilder.getInstance();
     pd.validateValue(DN.decode(value));
@@ -173,7 +174,7 @@ public class DNPropertyDefinitionTest {
   public void testValidateIllegalValues(String baseDN, String value)
       throws DirectoryException {
     DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition
-        .createBuilder("test-property");
+        .createBuilder(RootCfgDefn.getInstance(), "test-property");
     localBuilder.setBaseDN(baseDN);
     DNPropertyDefinition pd = localBuilder.getInstance();
     pd.validateValue(DN.decode(value));
@@ -192,7 +193,7 @@ public class DNPropertyDefinitionTest {
   @Test(dataProvider = "testLegalValues")
   public void testDecodeLegalValues(String baseDN, String value) {
     DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition
-        .createBuilder("test-property");
+        .createBuilder(RootCfgDefn.getInstance(), "test-property");
     localBuilder.setBaseDN(baseDN);
     DNPropertyDefinition pd = localBuilder.getInstance();
     pd.decodeValue(value);
@@ -211,7 +212,7 @@ public class DNPropertyDefinitionTest {
   @Test(dataProvider = "testIllegalValues", expectedExceptions = IllegalPropertyValueStringException.class)
   public void testDecodeIllegalValues(String baseDN, String value) {
     DNPropertyDefinition.Builder localBuilder = DNPropertyDefinition
-        .createBuilder("test-property");
+        .createBuilder(RootCfgDefn.getInstance(), "test-property");
     localBuilder.setBaseDN(baseDN);
     DNPropertyDefinition pd = localBuilder.getInstance();
     pd.decodeValue(value);

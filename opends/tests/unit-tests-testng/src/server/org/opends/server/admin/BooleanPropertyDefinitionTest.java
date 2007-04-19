@@ -28,6 +28,8 @@
 package org.opends.server.admin;
 
 import static org.testng.Assert.*;
+
+import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.testng.annotations.*;
 
 import java.util.EnumSet;
@@ -44,7 +46,8 @@ public class BooleanPropertyDefinitionTest {
    */
   @BeforeClass
   public void setUp() {
-    builder = BooleanPropertyDefinition.createBuilder("test-property");
+    builder = BooleanPropertyDefinition.createBuilder(
+        RootCfgDefn.getInstance(), "test-property");
   }
 
   /**
@@ -119,7 +122,7 @@ public class BooleanPropertyDefinitionTest {
   }
 
   private BooleanPropertyDefinition createPropertyDefinition() {
-    return builder.buildInstance("test-property",
+    return builder.buildInstance(RootCfgDefn.getInstance(), "test-property",
             EnumSet.noneOf(PropertyOption.class),
             new UndefinedDefaultBehaviorProvider<Boolean>());
   }

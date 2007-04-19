@@ -81,8 +81,9 @@ public final class BooleanPropertyDefinition extends
       AbstractBuilder<Boolean, BooleanPropertyDefinition> {
 
     // Private constructor
-    private Builder(String propertyName) {
-      super(propertyName);
+    private Builder(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+      super(d, propertyName);
     }
 
 
@@ -91,10 +92,11 @@ public final class BooleanPropertyDefinition extends
      * {@inheritDoc}
      */
     @Override
-    protected BooleanPropertyDefinition buildInstance(String propertyName,
+    protected BooleanPropertyDefinition buildInstance(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<Boolean> defaultBehavior) {
-      return new BooleanPropertyDefinition(propertyName, options,
+      return new BooleanPropertyDefinition(d, propertyName, options,
           defaultBehavior);
     }
 
@@ -105,21 +107,26 @@ public final class BooleanPropertyDefinition extends
   /**
    * Create a boolean property definition builder.
    *
+   * @param d
+   *          The managed object definition associated with this
+   *          property definition.
    * @param propertyName
    *          The property name.
    * @return Returns the new boolean property definition builder.
    */
-  public static Builder createBuilder(String propertyName) {
-    return new Builder(propertyName);
+  public static Builder createBuilder(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    return new Builder(d, propertyName);
   }
 
 
 
   // Private constructor.
-  private BooleanPropertyDefinition(String propertyName,
+  private BooleanPropertyDefinition(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<Boolean> defaultBehavior) {
-    super(Boolean.class, propertyName, options, defaultBehavior);
+    super(d, Boolean.class, propertyName, options, defaultBehavior);
   }
 
 

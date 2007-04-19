@@ -32,6 +32,8 @@ package org.opends.server.admin;
 import static org.opends.server.util.Validator.ensureNotNull;
 
 import java.util.EnumSet;
+import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.Set;
 
 
@@ -56,6 +58,9 @@ public abstract class AbstractPropertyDefinition<T> implements
   protected abstract static class AbstractBuilder<T,
       D extends PropertyDefinition<T>> {
 
+    //  The abstract managed object
+    private final AbstractManagedObjectDefinition<?, ?> definition;
+
     // The name of this property definition.
     private final String propertyName;
 
@@ -70,10 +75,15 @@ public abstract class AbstractPropertyDefinition<T> implements
     /**
      * Create a property definition builder.
      *
+     * @param d
+     *          The managed object definition associated with this
+     *          property definition.
      * @param propertyName
      *          The property name.
      */
-    protected AbstractBuilder(String propertyName) {
+    protected AbstractBuilder(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+      this.definition = d;
       this.propertyName = propertyName;
       this.options = EnumSet.noneOf(PropertyOption.class);
       this.defaultBehavior = new UndefinedDefaultBehaviorProvider<T>();
@@ -87,7 +97,7 @@ public abstract class AbstractPropertyDefinition<T> implements
      * @return The new property definition.
      */
     public final D getInstance() {
-      return buildInstance(propertyName, options, defaultBehavior);
+      return buildInstance(definition, propertyName, options, defaultBehavior);
     }
 
 
@@ -120,8 +130,12 @@ public abstract class AbstractPropertyDefinition<T> implements
 
 
     /**
-     * Build a property definition based on the properties of this builder.
+     * Build a property definition based on the properties of this
+     * builder.
      *
+     * @param d
+     *          The managed object definition associated with this
+     *          property definition.
      * @param propertyName
      *          The property name.
      * @param options
@@ -130,7 +144,8 @@ public abstract class AbstractPropertyDefinition<T> implements
      *          The default behavior provider.
      * @return The new property definition.
      */
-    protected abstract D buildInstance(String propertyName,
+    protected abstract D buildInstance(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<T> defaultBehavior);
   }
@@ -147,11 +162,17 @@ public abstract class AbstractPropertyDefinition<T> implements
   // The default behavior provider.
   private final DefaultBehaviorProvider<T> defaultBehavior;
 
+  // The abstract managed object
+  private final AbstractManagedObjectDefinition<?, ?> definition;
+
 
 
   /**
    * Create a property definition.
    *
+   * @param d
+   *          The managed object definition associated with this
+   *          property definition.
    * @param theClass
    *          The property value class.
    * @param propertyName
@@ -161,11 +182,14 @@ public abstract class AbstractPropertyDefinition<T> implements
    * @param defaultBehavior
    *          The default behavior provider.
    */
-  protected AbstractPropertyDefinition(Class<T> theClass, String propertyName,
+  protected AbstractPropertyDefinition(AbstractManagedObjectDefinition<?,?> d,
+      Class<T> theClass, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<T> defaultBehavior) {
-    ensureNotNull(theClass, propertyName, options, defaultBehavior);
+    ensureNotNull(d, theClass, propertyName);
+    ensureNotNull(options, defaultBehavior);
 
+    this.definition = d;
     this.theClass = theClass;
     this.propertyName = propertyName;
     this.options = EnumSet.copyOf(options);
@@ -280,8 +304,72 @@ public abstract class AbstractPropertyDefinition<T> implements
   /**
    * {@inheritDoc}
    */
+  public final String getDescription() {
+    return getDescription(Locale.getDefault());
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final String getDescription(Locale locale) {
+    ManagedObjectDefinitionI18NResource resource =
+      ManagedObjectDefinitionI18NResource.getInstance();
+    String property = "property." + propertyName + ".description";
+    try {
+      return resource.getMessage(definition, property, locale);
+    } catch (MissingResourceException e) {
+      return null;
+    }
+  }
+
+
+
+  /**
+   * Gets the managed object definition associated with this property
+   * definition.
+   *
+   * @return Returns the managed object definition associated with
+   *         this property definition.
+   */
+  public final AbstractManagedObjectDefinition<?, ?>
+      getManagedObjectDefinition() {
+    return definition;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public final String getName() {
     return propertyName;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final String getSynopsis() {
+    return getSynopsis(Locale.getDefault());
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final String getSynopsis(Locale locale) {
+    ManagedObjectDefinitionI18NResource resource =
+      ManagedObjectDefinitionI18NResource.getInstance();
+    String property = "property." + propertyName + ".synopsis";
+    try {
+      return resource.getMessage(definition, property, locale);
+    } catch (MissingResourceException e) {
+      return null;
+    }
   }
 
 

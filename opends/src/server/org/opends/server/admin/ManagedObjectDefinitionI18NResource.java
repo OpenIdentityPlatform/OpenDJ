@@ -44,47 +44,71 @@ import java.util.ResourceBundle;
  */
 public final class ManagedObjectDefinitionI18NResource {
 
-  // Mapping from definition to resource bundle.
-  private final Map<AbstractManagedObjectDefinition, ResourceBundle> resources;
-
-  // The resource name prefix.
-  private final String prefix;
+  // Application-wide set of instances.
+  private static final Map<String, ManagedObjectDefinitionI18NResource>
+    INSTANCES = new HashMap<String, ManagedObjectDefinitionI18NResource>();
 
 
 
   /**
-   * Creates a new internationalized resource instance which can be
-   * used to retrieve the localized descriptions for the managed
-   * objects and their associated properties and relations.
+   * Gets the internationalized resource instance which can be used to
+   * retrieve the localized descriptions for the managed objects and
+   * their associated properties and relations.
    *
    * @return Returns the I18N resource instance.
    */
-  public static ManagedObjectDefinitionI18NResource create() {
-    return new ManagedObjectDefinitionI18NResource("admin.messages");
+  public static ManagedObjectDefinitionI18NResource getInstance() {
+    return getInstance("admin.messages");
   }
 
 
 
   /**
-   * Creates a new internationalized resource instance for the named
+   * Gets the internationalized resource instance for the named
    * profile.
    *
    * @param profile
    *          The name of the profile.
    * @return Returns the I18N resource instance for the named profile.
    */
-  public static ManagedObjectDefinitionI18NResource createForProfile(
+  public static ManagedObjectDefinitionI18NResource getInstanceForProfile(
       String profile) {
-    return new ManagedObjectDefinitionI18NResource("admin.profiles."
-        + profile);
+    return getInstance("admin.profiles." + profile);
   }
+
+
+
+  // Get a resource instance creating it if necessary.
+  private synchronized static ManagedObjectDefinitionI18NResource getInstance(
+      String prefix) {
+    ManagedObjectDefinitionI18NResource instance = INSTANCES
+        .get(prefix);
+
+    if (instance == null) {
+      instance = new ManagedObjectDefinitionI18NResource(prefix);
+      INSTANCES.put(prefix, instance);
+    }
+
+    return instance;
+  }
+
+
+
+  // Mapping from definition to locale-based resource bundle.
+  private final Map<AbstractManagedObjectDefinition,
+    Map<Locale, ResourceBundle>> resources;
+
+
+
+  // The resource name prefix.
+  private final String prefix;
 
 
 
   // Private constructor.
   private ManagedObjectDefinitionI18NResource(String prefix) {
-    this.resources =
-      new HashMap<AbstractManagedObjectDefinition, ResourceBundle>();
+    this.resources = new HashMap<AbstractManagedObjectDefinition,
+      Map<Locale, ResourceBundle>>();
     this.prefix = prefix;
   }
 
@@ -106,29 +130,6 @@ public final class ManagedObjectDefinitionI18NResource {
   public String getMessage(AbstractManagedObjectDefinition d,
       String key) throws MissingResourceException {
     return getMessage(d, key, Locale.getDefault(), (String[]) null);
-  }
-
-
-
-  /**
-   * Get the parameterized internationalized message associated with
-   * the specified key in the default locale.
-   *
-   * @param d
-   *          The managed object definition.
-   * @param key
-   *          The resource key.
-   * @param args
-   *          Arguments that should be inserted into the retrieved
-   *          message.
-   * @return Returns the internationalized message associated with the
-   *         specified key in the default locale.
-   * @throws MissingResourceException
-   *           If the key was not found.
-   */
-  public String getMessage(AbstractManagedObjectDefinition d,
-      String key, String... args) throws MissingResourceException {
-    return getMessage(d, key, Locale.getDefault(), args);
   }
 
 
@@ -188,24 +189,52 @@ public final class ManagedObjectDefinitionI18NResource {
 
 
 
+  /**
+   * Get the parameterized internationalized message associated with
+   * the specified key in the default locale.
+   *
+   * @param d
+   *          The managed object definition.
+   * @param key
+   *          The resource key.
+   * @param args
+   *          Arguments that should be inserted into the retrieved
+   *          message.
+   * @return Returns the internationalized message associated with the
+   *         specified key in the default locale.
+   * @throws MissingResourceException
+   *           If the key was not found.
+   */
+  public String getMessage(AbstractManagedObjectDefinition d,
+      String key, String... args) throws MissingResourceException {
+    return getMessage(d, key, Locale.getDefault(), args);
+  }
+
+
+
   // Retrieve the resource bundle associated with a managed object and
-  // locale,
-  // lazily loading it if necessary.
+  // locale, lazily loading it if necessary.
   private synchronized ResourceBundle getResourceBundle(
       AbstractManagedObjectDefinition d, Locale locale)
       throws MissingResourceException {
-    ResourceBundle r = resources.get(d);
-
-    if (r == null) {
-      // Load the resource file.
-      String baseName = prefix + "." + d.getClass().getName();
-      r = ResourceBundle.getBundle(baseName, locale,
-          ClassLoaderProvider.getInstance().getClassLoader());
-
-      // Cache the resource.
-      resources.put(d, r);
+    // First get the locale-resource mapping, creating it if
+    // necessary.
+    Map<Locale, ResourceBundle> map = resources.get(d);
+    if (map == null) {
+      map = new HashMap<Locale, ResourceBundle>();
+      resources.put(d, map);
     }
 
-    return r;
+    // Now get the resource based on the locale, loading it if
+    // necessary.
+    ResourceBundle resourceBundle = map.get(locale);
+    if (resourceBundle == null) {
+      String baseName = prefix + "." + d.getClass().getName();
+      resourceBundle = ResourceBundle.getBundle(baseName, locale,
+          ClassLoaderProvider.getInstance().getClassLoader());
+      map.put(locale, resourceBundle);
+    }
+
+    return resourceBundle;
   }
 }

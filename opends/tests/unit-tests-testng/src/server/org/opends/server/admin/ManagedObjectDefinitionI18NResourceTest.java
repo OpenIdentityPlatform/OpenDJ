@@ -44,7 +44,7 @@ public class ManagedObjectDefinitionI18NResourceTest {
    */
   @BeforeClass
   public void setUp() {
-    modr = ManagedObjectDefinitionI18NResource.createForProfile("ldap");
+    modr = ManagedObjectDefinitionI18NResource.getInstanceForProfile("ldap");
   }
 
   /**

@@ -124,8 +124,9 @@ public final class DurationPropertyDefinition extends
 
 
     // Private constructor
-    private Builder(String propertyName) {
-      super(propertyName);
+    private Builder(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+      super(d, propertyName);
     }
 
 
@@ -319,9 +320,10 @@ public final class DurationPropertyDefinition extends
      */
     @Override
     protected DurationPropertyDefinition buildInstance(
+        AbstractManagedObjectDefinition<?, ?> d,
         String propertyName, EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<Long> defaultBehavior) {
-      return new DurationPropertyDefinition(propertyName, options,
+      return new DurationPropertyDefinition(d, propertyName, options,
           defaultBehavior, baseUnit, maximumUnit, lowerLimit,
           upperLimit, allowUnlimited);
     }
@@ -332,23 +334,28 @@ public final class DurationPropertyDefinition extends
   /**
    * Create a duration property definition builder.
    *
+   * @param d
+   *          The managed object definition associated with this
+   *          property definition.
    * @param propertyName
    *          The property name.
    * @return Returns the new integer property definition builder.
    */
-  public static Builder createBuilder(String propertyName) {
-    return new Builder(propertyName);
+  public static Builder createBuilder(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    return new Builder(d, propertyName);
   }
 
 
 
   // Private constructor.
-  private DurationPropertyDefinition(String propertyName,
+  private DurationPropertyDefinition(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<Long> defaultBehavior,
       DurationUnit baseUnit, DurationUnit maximumUnit,
       Long lowerLimit, Long upperLimit, boolean allowUnlimited) {
-    super(Long.class, propertyName, options, defaultBehavior);
+    super(d, Long.class, propertyName, options, defaultBehavior);
     this.baseUnit = baseUnit;
     this.maximumUnit = maximumUnit;
     this.lowerLimit = lowerLimit;

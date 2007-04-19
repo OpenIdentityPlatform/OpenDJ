@@ -32,6 +32,8 @@ package org.opends.server.admin;
 import static org.opends.server.util.Validator.ensureNotNull;
 
 import java.util.EnumSet;
+import java.util.Locale;
+import java.util.MissingResourceException;
 
 
 
@@ -67,8 +69,9 @@ public final class StringPropertyDefinition extends
 
 
     // Private constructor
-    private Builder(String propertyName) {
-      super(propertyName);
+    private Builder(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+      super(d, propertyName);
     }
 
 
@@ -91,10 +94,11 @@ public final class StringPropertyDefinition extends
      * {@inheritDoc}
      */
     @Override
-    protected StringPropertyDefinition buildInstance(String propertyName,
+    protected StringPropertyDefinition buildInstance(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<String> defaultBehavior) {
-      return new StringPropertyDefinition(propertyName, options,
+      return new StringPropertyDefinition(d, propertyName, options,
           defaultBehavior, isCaseInsensitive);
     }
 
@@ -105,23 +109,71 @@ public final class StringPropertyDefinition extends
   /**
    * Create a string property definition builder.
    *
+   * @param d
+   *          The managed object definition associated with this
+   *          property definition.
    * @param propertyName
    *          The property name.
    * @return Returns the new string property definition builder.
    */
-  public static Builder createBuilder(String propertyName) {
-    return new Builder(propertyName);
+  public static Builder createBuilder(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    return new Builder(d, propertyName);
   }
 
 
 
   // Private constructor.
-  private StringPropertyDefinition(String propertyName,
+  private StringPropertyDefinition(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<String> defaultBehavior,
       boolean isCaseInsensitive) {
-    super(String.class, propertyName, options, defaultBehavior);
+    super(d, String.class, propertyName, options, defaultBehavior);
     this.isCaseInsensitive = isCaseInsensitive;
+  }
+
+
+
+  /**
+   * Gets the pattern synopsis of this string property definition in
+   * the default locale.
+   *
+   * @return Returns the pattern synopsis of this string property
+   *         definition in the default locale, or <code>null</code>
+   *         if there is no pattern synopsis (which is the case when
+   *         there is no pattern matching defined for this string
+   *         property definition).
+   */
+  public String getPatternSynopsis() {
+    return getPatternSynopsis(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the optional pattern synopsis of this string property
+   * definition in the specified locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the pattern synopsis of this string property
+   *         definition in the specified locale, or <code>null</code>
+   *         if there is no pattern synopsis (which is the case when
+   *         there is no pattern matching defined for this string
+   *         property definition).
+   */
+  public String getPatternSynopsis(Locale locale) {
+    ManagedObjectDefinitionI18NResource resource =
+      ManagedObjectDefinitionI18NResource.getInstance();
+    String property = "property." + getName()
+        + ".syntax.string.pattern.synopsis";
+    try {
+      return resource.getMessage(getManagedObjectDefinition(),
+          property, locale);
+    } catch (MissingResourceException e) {
+      return null;
+    }
   }
 
 
