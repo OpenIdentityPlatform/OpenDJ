@@ -43,7 +43,8 @@ import org.opends.server.types.Entry;
  * access control is disabled and implements a default access control
  * decision function which grants access to everything and anyone.
  */
-class DefaultAccessControlProvider implements AccessControlProvider {
+class DefaultAccessControlProvider
+  implements AccessControlProvider <AccessControlHandlerCfg> {
 
   /**
    * The single handler instance.
