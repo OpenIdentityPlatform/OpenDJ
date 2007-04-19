@@ -32,7 +32,9 @@ package org.opends.server.admin;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 
@@ -154,6 +156,41 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
+   * Gets the optional description of this managed object definition
+   * in the default locale.
+   *
+   * @return Returns the description of this managed object definition
+   *         in the default locale, or <code>null</code> if there is
+   *         no description.
+   */
+  public final String getDescription() {
+    return getDescription(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the optional description of this managed object definition
+   * in the specified locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the description of this managed object definition
+   *         in the specified locale, or <code>null</code> if there
+   *         is no description.
+   */
+  public final String getDescription(Locale locale) {
+    try {
+      return ManagedObjectDefinitionI18NResource.getInstance()
+          .getMessage(this, "description", locale);
+    } catch (MissingResourceException e) {
+      return null;
+    }
+  }
+
+
+
+  /**
    * Get the name of the definition.
    *
    * @return Returns the name of the definition.
@@ -168,7 +205,8 @@ public abstract class AbstractManagedObjectDefinition
    * Get the parent managed object definition, if applicable.
    *
    * @return Returns the parent of this managed object definition, or
-   *         <code>null</code> if this definition does not have a parent.
+   *         <code>null</code> if this definition does not have a
+   *         parent.
    */
   public final AbstractManagedObjectDefinition<? super C,
       ? super S> getParent() {
@@ -261,6 +299,93 @@ public abstract class AbstractManagedObjectDefinition
   public final Collection<RelationDefinition<?,?>> getRelationDefinitions() {
     return Collections.unmodifiableCollection(relationDefinitions
         .values());
+  }
+
+
+
+  /**
+   * Gets the synopsis of this managed object definition in the
+   * default locale.
+   *
+   * @return Returns the synopsis of this managed object definition in
+   *         the default locale.
+   */
+  public final String getSynopsis() {
+    return getSynopsis(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the synopsis of this managed object definition in the
+   * specified locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the synopsis of this managed object definition in
+   *         the specified locale.
+   */
+  public final String getSynopsis(Locale locale) {
+    return ManagedObjectDefinitionI18NResource.getInstance()
+        .getMessage(this, "synopsis", locale);
+  }
+
+
+
+  /**
+   * Gets the user friendly name of this managed object definition in
+   * the default locale.
+   *
+   * @return Returns the user friendly name of this managed object
+   *         definition in the default locale.
+   */
+  public final String getUserFriendlyName() {
+    return getUserFriendlyName(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the user friendly name of this managed object definition in
+   * the specified locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the user friendly name of this managed object
+   *         definition in the specified locale.
+   */
+  public final String getUserFriendlyName(Locale locale) {
+    return ManagedObjectDefinitionI18NResource.getInstance()
+        .getMessage(this, "user-friendly-name", locale);
+  }
+
+
+
+  /**
+   * Gets the user friendly plural name of this managed object
+   * definition in the default locale.
+   *
+   * @return Returns the user friendly plural name of this managed
+   *         object definition in the default locale.
+   */
+  public final String getUserFriendlyPluralName() {
+    return getUserFriendlyPluralName(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the user friendly plural name of this managed object
+   * definition in the specified locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the user friendly plural name of this managed
+   *         object definition in the specified locale.
+   */
+  public final String getUserFriendlyPluralName(Locale locale) {
+    return ManagedObjectDefinitionI18NResource.getInstance()
+        .getMessage(this, "user-friendly-plural-name", locale);
   }
 
 

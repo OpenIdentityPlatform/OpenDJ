@@ -29,6 +29,8 @@ package org.opends.server.admin;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+
+import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -337,11 +339,11 @@ public class SizePropertyDefinitionTest {
   }
 
   private SizePropertyDefinition.Builder createTestBuilder() {
-    return SizePropertyDefinition.createBuilder("test-property-name");
+    return SizePropertyDefinition.createBuilder(RootCfgDefn.getInstance(), "test-property-name");
   }
 
   private SizePropertyDefinition buildTestDefinition(SizePropertyDefinition.Builder builder) {
-    return builder.buildInstance("test-prop",
+    return builder.buildInstance(RootCfgDefn.getInstance(), "test-prop",
             EnumSet.noneOf(PropertyOption.class),
             new DefinedDefaultBehaviorProvider<Long>("0"));
   }

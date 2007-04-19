@@ -559,11 +559,11 @@
     <xsl:choose>
       <xsl:when test="string-length($generic-type) != 0">
         <xsl:value-of
-          select="concat('      ', $type, '.Builder&lt;', $generic-type, '&gt; builder = ', $type, '.createBuilder(&quot;',@name, '&quot;);&#xa;')" />
+          select="concat('      ', $type, '.Builder&lt;', $generic-type, '&gt; builder = ', $type, '.createBuilder(INSTANCE, &quot;',@name, '&quot;);&#xa;')" />
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of
-          select="concat('      ', $type, '.Builder builder = ', $type, '.createBuilder(&quot;',@name, '&quot;);&#xa;')" />
+          select="concat('      ', $type, '.Builder builder = ', $type, '.createBuilder(INSTANCE, &quot;',@name, '&quot;);&#xa;')" />
       </xsl:otherwise>
     </xsl:choose>
     <xsl:if test="string(@multi-valued) = 'true'">
@@ -607,7 +607,7 @@
           </xsl:when>
           <xsl:when test="adm:default-behavior/adm:alias">
             <xsl:value-of
-              select="concat('      builder.setDefaultBehaviorProvider(new AliasDefaultBehaviorProvider&lt;', $value-type,'&gt;());&#xa;')" />
+              select="concat('      builder.setDefaultBehaviorProvider(new AliasDefaultBehaviorProvider&lt;', $value-type,'&gt;(INSTANCE, &quot;', @name, '&quot;));&#xa;')" />
           </xsl:when>
           <xsl:when test="adm:default-behavior/adm:defined">
             <xsl:value-of

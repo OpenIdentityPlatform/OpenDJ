@@ -58,8 +58,9 @@ public final class IPAddressPropertyDefinition extends
       AbstractBuilder<InetAddress, IPAddressPropertyDefinition> {
 
     // Private constructor
-    private Builder(String propertyName) {
-      super(propertyName);
+    private Builder(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+      super(d, propertyName);
     }
 
 
@@ -68,10 +69,11 @@ public final class IPAddressPropertyDefinition extends
      * {@inheritDoc}
      */
     @Override
-    protected IPAddressPropertyDefinition buildInstance(String propertyName,
+    protected IPAddressPropertyDefinition buildInstance(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<InetAddress> defaultBehavior) {
-      return new IPAddressPropertyDefinition(propertyName, options,
+      return new IPAddressPropertyDefinition(d, propertyName, options,
           defaultBehavior);
     }
 
@@ -82,21 +84,26 @@ public final class IPAddressPropertyDefinition extends
   /**
    * Create a IP address property definition builder.
    *
+   * @param d
+   *          The managed object definition associated with this
+   *          property definition.
    * @param propertyName
    *          The property name.
    * @return Returns the new IP address property definition builder.
    */
-  public static Builder createBuilder(String propertyName) {
-    return new Builder(propertyName);
+  public static Builder createBuilder(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    return new Builder(d, propertyName);
   }
 
 
 
   // Private constructor.
-  private IPAddressPropertyDefinition(String propertyName,
+  private IPAddressPropertyDefinition(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<InetAddress> defaultBehavior) {
-    super(InetAddress.class, propertyName, options, defaultBehavior);
+    super(d, InetAddress.class, propertyName, options, defaultBehavior);
   }
 
 

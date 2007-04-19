@@ -213,6 +213,14 @@
       <param name="base-dir" expression="${src.dir}" />
     </xslt>
 
+    <!-- Compile the Directory Server extension configuration I18N message files. -->
+    <xslt basedir="${src.dir}" destdir="${classes.dir}/admin/messages" style="${admin.dir}/messageMO.xsl">
+      <include name="**/*Configuration.xml" />
+      <exclude name="org/opends/server/admin/std/*.xml" />
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
+      <param name="base-dir" expression="${src.dir}" />
+    </xslt>
+
     <!-- Compile the Directory Server extension configuration manifest file. -->
     <tempfile property="admin.temp.dir" destDir="${classes.dir}" />
     <mkdir dir="${admin.temp.dir}" />

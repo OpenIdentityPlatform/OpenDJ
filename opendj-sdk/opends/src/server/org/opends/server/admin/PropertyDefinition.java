@@ -31,6 +31,7 @@ package org.opends.server.admin;
 
 import java.io.Serializable;
 import java.util.Comparator;
+import java.util.Locale;
 
 
 
@@ -178,11 +179,61 @@ public interface PropertyDefinition<T> extends Comparator<T>,
 
 
   /**
+   * Gets the optional description of this property definition in the
+   * default locale.
+   *
+   * @return Returns the description of this property definition in
+   *         the default locale, or <code>null</code> if there is no
+   *         description.
+   */
+  String getDescription();
+
+
+
+  /**
+   * Gets the optional description of this property definition in the
+   * specified locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the description of this property definition in
+   *         the specified locale, or <code>null</code> if there is
+   *         no description.
+   */
+  String getDescription(Locale locale);
+
+
+
+  /**
    * Get the name of the property.
    *
    * @return Returns the name of the property.
    */
   String getName();
+
+
+
+  /**
+   * Gets the synopsis of this property definition in the default
+   * locale.
+   *
+   * @return Returns the synopsis of this property definition in the
+   *         default locale.
+   */
+  String getSynopsis();
+
+
+
+  /**
+   * Gets the synopsis of this property definition in the specified
+   * locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the synopsis of this property definition in the
+   *         specified locale.
+   */
+  String getSynopsis(Locale locale);
 
 
 

@@ -29,6 +29,7 @@ package org.opends.server.admin;
 
 import static org.testng.Assert.*;
 
+import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.testng.annotations.*;
 
 import java.util.EnumSet;
@@ -324,11 +325,11 @@ public class IntegerPropertyDefinitionTest {
   }
 
   private IntegerPropertyDefinition.Builder createTestBuilder() {
-    return IntegerPropertyDefinition.createBuilder("test-property-name");
+    return IntegerPropertyDefinition.createBuilder(RootCfgDefn.getInstance(), "test-property-name");
   }
 
   private IntegerPropertyDefinition buildTestDefinition(IntegerPropertyDefinition.Builder builder) {
-    return builder.buildInstance("test-prop",
+    return builder.buildInstance(RootCfgDefn.getInstance(), "test-prop",
             EnumSet.noneOf(PropertyOption.class),
             new DefinedDefaultBehaviorProvider<Integer>("0"));
   }

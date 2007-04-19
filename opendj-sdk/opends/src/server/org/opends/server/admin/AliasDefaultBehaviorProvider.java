@@ -26,6 +26,8 @@
  */
 package org.opends.server.admin;
 
+import java.util.Locale;
+
 
 
 /**
@@ -42,11 +44,30 @@ package org.opends.server.admin;
 public final class AliasDefaultBehaviorProvider<T> implements
     DefaultBehaviorProvider<T> {
 
+  // The managed object definition associated with this default
+  // behavior.
+  private final AbstractManagedObjectDefinition<?, ?> definition;
+
+  // The name of the property definition associated with this default
+  // behavior.
+  private final String propertyName;
+
+
+
   /**
    * Create an alias default behavior provider.
+   *
+   * @param d
+   *          The managed object definition associated with this
+   *          default behavior.
+   * @param propertyName
+   *          The name of the property definition associated with this
+   *          default behavior.
    */
-  public AliasDefaultBehaviorProvider() {
-    // No implementation required.
+  public AliasDefaultBehaviorProvider(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    this.definition = d;
+    this.propertyName = propertyName;
   }
 
 
@@ -56,6 +77,38 @@ public final class AliasDefaultBehaviorProvider<T> implements
    */
   public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
     return v.visitAlias(this, p);
+  }
+
+
+
+  /**
+   * Gets the synopsis of this alias default behavior in the
+   * default locale.
+   *
+   * @return Returns the synopsis of this alias default behavior in
+   *         the default locale.
+   */
+  public final String getSynopsis() {
+    return getSynopsis(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the synopsis of this alias default behavior in the specified
+   * locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the synopsis of this alias default behavior in
+   *         the specified locale.
+   */
+  public final String getSynopsis(Locale locale) {
+    ManagedObjectDefinitionI18NResource resource =
+      ManagedObjectDefinitionI18NResource.getInstance();
+    String property = "property." + propertyName
+        + ".default-behavior.alias.synopsis";
+    return resource.getMessage(definition, property, locale);
   }
 
 }

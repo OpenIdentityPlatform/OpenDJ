@@ -32,6 +32,8 @@ package org.opends.server.admin;
 import static org.opends.server.util.Validator.ensureNotNull;
 
 import java.util.EnumSet;
+import java.util.Locale;
+import java.util.MissingResourceException;
 
 
 
@@ -84,8 +86,9 @@ public final class IntegerPropertyDefinition extends
 
 
     // Private constructor
-    private Builder(String propertyName) {
-      super(propertyName);
+    private Builder(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+      super(d, propertyName);
     }
 
 
@@ -153,10 +156,11 @@ public final class IntegerPropertyDefinition extends
      * {@inheritDoc}
      */
     @Override
-    protected IntegerPropertyDefinition buildInstance(String propertyName,
+    protected IntegerPropertyDefinition buildInstance(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<Integer> defaultBehavior) {
-      return new IntegerPropertyDefinition(propertyName, options,
+      return new IntegerPropertyDefinition(d, propertyName, options,
           defaultBehavior, lowerLimit, upperLimit, allowUnlimited);
     }
 
@@ -167,22 +171,27 @@ public final class IntegerPropertyDefinition extends
   /**
    * Create an integer property definition builder.
    *
+   * @param d
+   *          The managed object definition associated with this
+   *          property definition.
    * @param propertyName
    *          The property name.
    * @return Returns the new integer property definition builder.
    */
-  public static Builder createBuilder(String propertyName) {
-    return new Builder(propertyName);
+  public static Builder createBuilder(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    return new Builder(d, propertyName);
   }
 
 
 
   // Private constructor.
-  private IntegerPropertyDefinition(String propertyName,
+  private IntegerPropertyDefinition(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<Integer> defaultBehavior, int lowerLimit,
       Integer upperLimit, boolean allowUnlimited) {
-    super(Integer.class, propertyName, options, defaultBehavior);
+    super(d, Integer.class, propertyName, options, defaultBehavior);
     this.lowerLimit = lowerLimit;
     this.upperLimit = upperLimit;
     this.allowUnlimited = allowUnlimited;
@@ -209,6 +218,44 @@ public final class IntegerPropertyDefinition extends
    */
   public Integer getUpperLimit() {
     return upperLimit;
+  }
+
+
+
+  /**
+   * Gets the optional unit synopsis of this integer property
+   * definition in the default locale.
+   *
+   * @return Returns the unit synopsis of this integer property
+   *         definition in the default locale, or <code>null</code>
+   *         if there is no unit synopsis.
+   */
+  public String getUnitSynopsis() {
+    return getUnitSynopsis(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the optional unit synopsis of this integer property
+   * definition in the specified locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the unit synopsis of this integer property
+   *         definition in the specified locale, or <code>null</code>
+   *         if there is no unit synopsis.
+   */
+  public String getUnitSynopsis(Locale locale) {
+    ManagedObjectDefinitionI18NResource resource =
+      ManagedObjectDefinitionI18NResource.getInstance();
+    String property = "property." + getName() + ".syntax.integer.unit-synopsis";
+    try {
+      return resource.getMessage(getManagedObjectDefinition(),
+          property, locale);
+    } catch (MissingResourceException e) {
+      return null;
+    }
   }
 
 

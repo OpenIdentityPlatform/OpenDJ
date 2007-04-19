@@ -32,6 +32,8 @@ package org.opends.server.admin;
 import static org.testng.Assert.assertEquals;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.RootCfgDefn;
+import org.opends.server.backends.jeb.RootContainer;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.testng.annotations.BeforeClass;
@@ -146,7 +148,7 @@ public class AttributeTypePropertyDefinitionTest {
   // Create a new definition.
   private AttributeTypePropertyDefinition createPropertyDefinition() {
     AttributeTypePropertyDefinition.Builder builder = AttributeTypePropertyDefinition
-        .createBuilder("test-property");
+        .createBuilder(RootCfgDefn.getInstance(), "test-property");
     return builder.getInstance();
   }
 

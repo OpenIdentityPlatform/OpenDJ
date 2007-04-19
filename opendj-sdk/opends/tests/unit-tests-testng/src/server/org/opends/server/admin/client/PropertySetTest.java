@@ -32,6 +32,7 @@ import org.testng.annotations.*;
 import org.opends.server.admin.*;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ServerManagedObject;
+import org.opends.server.admin.std.meta.RootCfgDefn;
 
 import java.util.*;
 
@@ -68,21 +69,21 @@ public class PropertySetTest {
   @BeforeClass
   public void setUp() {
     BooleanPropertyDefinition.Builder builder =
-            BooleanPropertyDefinition.createBuilder("test-bool-prop");
+            BooleanPropertyDefinition.createBuilder(RootCfgDefn.getInstance(), "test-bool-prop");
     DefinedDefaultBehaviorProvider<Boolean> dbp =
             new DefinedDefaultBehaviorProvider<Boolean>(BOOL_DEFAULT.toString());
     builder.setDefaultBehaviorProvider(dbp);
     testBoolPropertyDefinition = builder.getInstance();
 
     StringPropertyDefinition.Builder builder2 =
-            StringPropertyDefinition.createBuilder("test-sv-str-prop");
+            StringPropertyDefinition.createBuilder(RootCfgDefn.getInstance(), "test-sv-str-prop");
     DefinedDefaultBehaviorProvider<String> dbp2 =
             new DefinedDefaultBehaviorProvider<String>(STR_DEFAULT);
     builder2.setDefaultBehaviorProvider(dbp2);
     testSvStringPropertyDefinition = builder2.getInstance();
 
     StringPropertyDefinition.Builder builder3 =
-            StringPropertyDefinition.createBuilder("test-mv-str-prop");
+            StringPropertyDefinition.createBuilder(RootCfgDefn.getInstance(), "test-mv-str-prop");
     DefinedDefaultBehaviorProvider<String> dbp3 =
             new DefinedDefaultBehaviorProvider<String>(STR_DEFAULT);
     builder3.setDefaultBehaviorProvider(dbp3);

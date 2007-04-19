@@ -52,8 +52,9 @@ public final class AttributeTypePropertyDefinition extends
       AbstractBuilder<AttributeType, AttributeTypePropertyDefinition> {
 
     // Private constructor
-    private Builder(String propertyName) {
-      super(propertyName);
+    private Builder(AbstractManagedObjectDefinition<?, ?> d,
+        String propertyName) {
+      super(d, propertyName);
     }
 
 
@@ -63,9 +64,10 @@ public final class AttributeTypePropertyDefinition extends
      */
     @Override
     protected AttributeTypePropertyDefinition buildInstance(
-        String propertyName, EnumSet<PropertyOption> options,
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
+        EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<AttributeType> defaultBehavior) {
-      return new AttributeTypePropertyDefinition(propertyName,
+      return new AttributeTypePropertyDefinition(d, propertyName,
           options, defaultBehavior);
     }
   }
@@ -84,13 +86,17 @@ public final class AttributeTypePropertyDefinition extends
   /**
    * Create a attribute type property definition builder.
    *
+   * @param d
+   *          The managed object definition associated with this
+   *          property definition.
    * @param propertyName
    *          The property name.
    * @return Returns the new attribute type property definition
    *         builder.
    */
-  public static Builder createBuilder(String propertyName) {
-    return new Builder(propertyName);
+  public static Builder createBuilder(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    return new Builder(d, propertyName);
   }
 
 
@@ -125,10 +131,11 @@ public final class AttributeTypePropertyDefinition extends
 
 
   // Private constructor.
-  private AttributeTypePropertyDefinition(String propertyName,
+  private AttributeTypePropertyDefinition(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<AttributeType> defaultBehavior) {
-    super(AttributeType.class, propertyName, options,
+    super(d, AttributeType.class, propertyName, options,
         defaultBehavior);
   }
 

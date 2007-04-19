@@ -1373,6 +1373,12 @@
       <param name="base-dir" expression="${admin.defn.dir}" />
     </xslt>
 
+    <!-- Generate I18N messages for core administration components. -->
+    <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/messages" includes="**/*Configuration.xml" style="${admin.rules.dir}/messagesMO.xsl">
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
+      <param name="base-dir" expression="${admin.defn.dir}" />
+    </xslt>
+
     <!-- Generate manifest file for core administration components. -->
     <tempfile property="admin.temp.dir" destDir="${build.dir}" prefix="tmp" />
     <mkdir dir="${admin.temp.dir}" />

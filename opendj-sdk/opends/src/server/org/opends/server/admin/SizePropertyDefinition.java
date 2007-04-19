@@ -88,8 +88,9 @@ public final class SizePropertyDefinition extends
 
 
     // Private constructor
-    private Builder(String propertyName) {
-      super(propertyName);
+    private Builder(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+      super(d, propertyName);
     }
 
 
@@ -198,10 +199,11 @@ public final class SizePropertyDefinition extends
      * {@inheritDoc}
      */
     @Override
-    protected SizePropertyDefinition buildInstance(String propertyName,
+    protected SizePropertyDefinition buildInstance(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<Long> defaultBehavior) {
-      return new SizePropertyDefinition(propertyName, options,
+      return new SizePropertyDefinition(d, propertyName, options,
           defaultBehavior, lowerLimit, upperLimit, allowUnlimited);
     }
 
@@ -212,22 +214,27 @@ public final class SizePropertyDefinition extends
   /**
    * Create an memory size property definition builder.
    *
+   * @param d
+   *          The managed object definition associated with this
+   *          property definition.
    * @param propertyName
    *          The property name.
    * @return Returns the new integer property definition builder.
    */
-  public static Builder createBuilder(String propertyName) {
-    return new Builder(propertyName);
+  public static Builder createBuilder(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    return new Builder(d, propertyName);
   }
 
 
 
   // Private constructor.
-  private SizePropertyDefinition(String propertyName,
+  private SizePropertyDefinition(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<Long> defaultBehavior, Long lowerLimit,
       Long upperLimit, boolean allowUnlimited) {
-    super(Long.class, propertyName, options, defaultBehavior);
+    super(d, Long.class, propertyName, options, defaultBehavior);
     this.lowerLimit = lowerLimit;
     this.upperLimit = upperLimit;
     this.allowUnlimited = allowUnlimited;

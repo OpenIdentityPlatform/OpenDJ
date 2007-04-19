@@ -69,8 +69,9 @@ public final class DNPropertyDefinition extends
 
 
     // Private constructor
-    private Builder(String propertyName) {
-      super(propertyName);
+    private Builder(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+      super(d, propertyName);
     }
 
 
@@ -117,10 +118,11 @@ public final class DNPropertyDefinition extends
      * {@inheritDoc}
      */
     @Override
-    protected DNPropertyDefinition buildInstance(String propertyName,
+    protected DNPropertyDefinition buildInstance(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<DN> defaultBehavior) {
-      return new DNPropertyDefinition(propertyName, options,
+      return new DNPropertyDefinition(d, propertyName, options,
           defaultBehavior, baseDN);
     }
   }
@@ -130,21 +132,26 @@ public final class DNPropertyDefinition extends
   /**
    * Create a DN property definition builder.
    *
+   * @param d
+   *          The managed object definition associated with this
+   *          property definition.
    * @param propertyName
    *          The property name.
    * @return Returns the new boolean property definition builder.
    */
-  public static Builder createBuilder(String propertyName) {
-    return new Builder(propertyName);
+  public static Builder createBuilder(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    return new Builder(d, propertyName);
   }
 
 
 
   // Private constructor.
-  private DNPropertyDefinition(String propertyName,
+  private DNPropertyDefinition(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<DN> defaultBehavior, DN baseDN) {
-    super(DN.class, propertyName, options, defaultBehavior);
+    super(d, DN.class, propertyName, options, defaultBehavior);
     this.baseDN = baseDN;
   }
 

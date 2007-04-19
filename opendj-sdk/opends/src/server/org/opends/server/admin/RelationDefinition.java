@@ -29,6 +29,11 @@ package org.opends.server.admin;
 
 
 
+import java.util.Locale;
+import java.util.MissingResourceException;
+
+
+
 /**
  * Relation definitions define relationships between types of managed
  * objects. In addition they define the ownership model:
@@ -86,8 +91,8 @@ public abstract class RelationDefinition
 
 
   /**
-   * Create a new managed object relation definition with the specified name and
-   * referenced managed object definition.
+   * Create a new managed object relation definition with the
+   * specified name and referenced managed object definition.
    *
    * @param pd
    *          The parent managed object definition.
@@ -96,11 +101,77 @@ public abstract class RelationDefinition
    * @param cd
    *          The child managed object definition.
    */
-  protected RelationDefinition(AbstractManagedObjectDefinition<?, ?> pd,
-      String name, AbstractManagedObjectDefinition<C, S> cd) {
+  protected RelationDefinition(
+      AbstractManagedObjectDefinition<?, ?> pd, String name,
+      AbstractManagedObjectDefinition<C, S> cd) {
     this.name = name;
     this.pd = pd;
     this.cd = cd;
+  }
+
+
+
+  /**
+   * Apply a visitor to this relation definition.
+   *
+   * @param <R>
+   *          The return type of the visitor's methods.
+   * @param <P>
+   *          The type of the additional parameters to the visitor's
+   *          methods.
+   * @param v
+   *          The relation definition visitor.
+   * @param p
+   *          Optional additional visitor parameter.
+   * @return Returns a result as specified by the visitor.
+   */
+  public abstract <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p);
+
+
+
+  /**
+   * Get the definition of the child managed object.
+   *
+   * @return Returns the definition of the child managed object.
+   */
+  public final AbstractManagedObjectDefinition<C, S> getChildDefinition() {
+    return cd;
+  }
+
+
+
+  /**
+   * Gets the optional description of this relation definition in the
+   * default locale.
+   *
+   * @return Returns the description of this relation definition in
+   *         the default locale, or <code>null</code> if there is no
+   *         description.
+   */
+  public final String getDescription() {
+    return getDescription(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the optional description of this relation definition in the
+   * specified locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the description of this relation definition in
+   *         the specified locale, or <code>null</code> if there is
+   *         no description.
+   */
+  public final String getDescription(Locale locale) {
+    try {
+      String property = "relation." + name + ".description";
+      return ManagedObjectDefinitionI18NResource.getInstance()
+          .getMessage(getParentDefinition(), property, locale);
+    } catch (MissingResourceException e) {
+      return null;
+    }
   }
 
 
@@ -128,12 +199,61 @@ public abstract class RelationDefinition
 
 
   /**
-   * Get the definition of the child managed object.
+   * Gets the synopsis of this relation definition in the default
+   * locale.
    *
-   * @return Returns the definition of the child managed object.
+   * @return Returns the synopsis of this relation definition in the
+   *         default locale.
    */
-  public final AbstractManagedObjectDefinition<C, S> getChildDefinition() {
-    return cd;
+  public final String getSynopsis() {
+    return getSynopsis(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the synopsis of this relation definition in the specified
+   * locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the synopsis of this relation definition in the
+   *         specified locale.
+   */
+  public final String getSynopsis(Locale locale) {
+    String property = "relation." + name + ".synopsis";
+    return ManagedObjectDefinitionI18NResource.getInstance()
+        .getMessage(getParentDefinition(), property, locale);
+  }
+
+
+
+  /**
+   * Gets the user friendly name of this relation definition in the
+   * default locale.
+   *
+   * @return Returns the user friendly name of this relation
+   *         definition in the default locale.
+   */
+  public final String getUserFriendlyName() {
+    return getUserFriendlyName(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the user friendly name of this relation definition in the
+   * specified locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the user friendly name of this relation
+   *         definition in the specified locale.
+   */
+  public final String getUserFriendlyName(Locale locale) {
+    String property = "relation." + name + ".user-friendly-name";
+    return ManagedObjectDefinitionI18NResource.getInstance()
+        .getMessage(getParentDefinition(), property, locale);
   }
 
 
@@ -151,31 +271,12 @@ public abstract class RelationDefinition
 
 
   /**
-   * Append a string representation of the managed object relation to the
-   * provided string builder.
+   * Append a string representation of the managed object relation to
+   * the provided string builder.
    *
    * @param builder
-   *          The string builder where the string representation should be
-   *          appended.
+   *          The string builder where the string representation
+   *          should be appended.
    */
   public abstract void toString(StringBuilder builder);
-
-
-
-  /**
-   * Apply a visitor to this relation definition.
-   *
-   * @param <R>
-   *          The return type of the visitor's methods.
-   * @param <P>
-   *          The type of the additional parameters to the visitor's
-   *          methods.
-   * @param v
-   *          The relation definition visitor.
-   * @param p
-   *          Optional additional visitor parameter.
-   * @return Returns a result as specified by the visitor.
-   */
-  public abstract <R, P> R accept(RelationDefinitionVisitor<R, P> v,
-      P p);
 }

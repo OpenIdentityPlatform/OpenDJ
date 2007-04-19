@@ -68,8 +68,9 @@ public final class ClassPropertyDefinition extends
 
 
     // Private constructor
-    private Builder(String propertyName) {
-      super(propertyName);
+    private Builder(
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+      super(d, propertyName);
 
       this.instanceOfInterfaces = new LinkedList<String>();
     }
@@ -119,9 +120,10 @@ public final class ClassPropertyDefinition extends
      */
     @Override
     protected ClassPropertyDefinition buildInstance(
+        AbstractManagedObjectDefinition<?, ?> d,
         String propertyName, EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<String> defaultBehavior) {
-      return new ClassPropertyDefinition(propertyName, options,
+      return new ClassPropertyDefinition(d, propertyName, options,
           defaultBehavior, instanceOfInterfaces);
     }
 
@@ -146,12 +148,16 @@ public final class ClassPropertyDefinition extends
   /**
    * Create a class property definition builder.
    *
+   * @param d
+   *          The managed object definition associated with this
+   *          property definition.
    * @param propertyName
    *          The property name.
    * @return Returns the new class property definition builder.
    */
-  public static Builder createBuilder(String propertyName) {
-    return new Builder(propertyName);
+  public static Builder createBuilder(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    return new Builder(d, propertyName);
   }
 
 
@@ -201,11 +207,12 @@ public final class ClassPropertyDefinition extends
 
 
   // Private constructor.
-  private ClassPropertyDefinition(String propertyName,
+  private ClassPropertyDefinition(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<String> defaultBehavior,
       List<String> instanceOfInterfaces) {
-    super(String.class, propertyName, options, defaultBehavior);
+    super(d, String.class, propertyName, options, defaultBehavior);
 
     this.instanceOfInterfaces = Collections
         .unmodifiableList(new LinkedList<String>(instanceOfInterfaces));
