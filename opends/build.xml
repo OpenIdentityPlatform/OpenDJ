@@ -457,6 +457,7 @@
                target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
                memoryMaximumSize="${MEM}">
       <include name="**/org/opends/server/util/SetupUtils.java"/>
+    	<include name="**/org/opends/server/util/CertificateManager.java"/>
       <include name="**/org/opends/server/util/DynamicConstants.java"/>
       <include name="**/org/opends/server/types/OperatingSystem.java"/>
       <compilerarg value="-Xlint:all" />
@@ -561,6 +562,7 @@
                        target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
                        memoryMaximumSize="${MEM}">
       <include name="**/org/opends/server/util/SetupUtils.java"/>
+    	<include name="**/org/opends/server/util/CertificateManager.java"/>
       <include name="**/org/opends/server/util/DynamicConstants.java"/>
       <include name="**/org/opends/server/types/OperatingSystem.java"/>
       <compilerarg value="-Xlint:all" />

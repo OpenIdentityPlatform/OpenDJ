@@ -64,6 +64,10 @@ public enum FieldName
    */
   DIRECTORY_BASE_DN, // the value associated with this is a String
   /**
+  * The value associated with this is a SecurityOptions object.
+  */
+  SECURITY_OPTIONS,
+  /**
    * The value associated with this is a DataOptions.Type.
    */
   DATA_OPTIONS,

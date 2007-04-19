@@ -72,7 +72,11 @@ public class BrowseActionListener implements ActionListener
     /**
      * The Browser is used to retrieve an LDIF file.
      */
-    OPEN_LDIF_FILE
+    OPEN_LDIF_FILE,
+    /**
+     * The Browser is used to retrieve a generic file.
+     */
+    GENERIC_FILE
   }
 
   /**
@@ -117,6 +121,13 @@ public class BrowseActionListener implements ActionListener
       fc.setFileFilter(ldifFiles);
       break;
 
+    case GENERIC_FILE:
+      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      fc.setDialogType(JFileChooser.OPEN_DIALOG);
+      fc.setDialogTitle(i18n.getMsg("open-generic-file-dialog-title"));
+
+      break;
+
     default:
       throw new IllegalArgumentException("Unknown BrowseType: " + type);
     }
@@ -159,6 +170,10 @@ public class BrowseActionListener implements ActionListener
       break;
 
     case OPEN_LDIF_FILE:
+      returnVal = fc.showOpenDialog(parent);
+      break;
+
+    case GENERIC_FILE:
       returnVal = fc.showOpenDialog(parent);
       break;
 

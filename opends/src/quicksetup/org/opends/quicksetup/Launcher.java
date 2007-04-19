@@ -141,10 +141,17 @@ public abstract class Launcher {
     {
       public void run()
       {
-        // Setup MacOSX native menu bar before AWT is loaded.
-        Utils.setMacOSXMenuBar(getFrameTitle());
-        SplashScreen.main(args);
-        returnValue[0] = 0;
+        try
+        {
+          // Setup MacOSX native menu bar before AWT is loaded.
+          Utils.setMacOSXMenuBar(getFrameTitle());
+          SplashScreen.main(args);
+          returnValue[0] = 0;
+        }
+        catch (Throwable t)
+        {
+          t.printStackTrace();
+        }
       }
     });
     /*
@@ -152,7 +159,7 @@ public abstract class Launcher {
      * problems with the display environment.
      */
     PrintStream printStream = System.err;
-    System.setErr(new EmptyPrintStream());
+    //System.setErr(new EmptyPrintStream());
     t.start();
     try
     {

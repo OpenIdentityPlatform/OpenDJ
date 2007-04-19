@@ -38,7 +38,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 
-
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.border.Border;

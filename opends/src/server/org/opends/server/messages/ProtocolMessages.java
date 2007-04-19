@@ -4347,6 +4347,7 @@ public class ProtocolMessages
 
 
 
+
   /**
    * The message ID for the message that will be used if an error occurs while
    * attempting to configure the connection security provider for a new
@@ -4378,7 +4379,13 @@ public class ProtocolMessages
   public static final int MSGID_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 403;
 
-
+  /**
+   * The message ID for the message that will be used as the description of the
+   * configuration attribute specifying whether to enable the LDAPS
+   * connection handler.
+   */
+  public static final int MSGID_LDAPS_CONNHANDLER_DESCRIPTION_ENABLE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 404;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -5306,6 +5313,9 @@ public class ProtocolMessages
                     "configuration attribute will not take effect until the " +
                     "connection handler is disabled and re-enabled, or until " +
                     "the Directory Server is restarted.");
+    registerMessage(MSGID_LDAPS_CONNHANDLER_DESCRIPTION_ENABLE,
+                    "Specifies whether to enable the LDAPS connection " +
+                    "handler.");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_BACKLOG,
                     "Specifies the accept queue size, which controls the " +
                     "number of new connection attempts that may be allowed " +

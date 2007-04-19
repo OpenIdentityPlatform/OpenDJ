@@ -31,6 +31,7 @@ package org.opends.server.tools;
 import java.util.LinkedList;
 
 import org.opends.server.api.ConfigHandler;
+import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.IntegerConfigAttribute;
@@ -52,6 +53,7 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.messages.ConfigMessages.*;
+import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
@@ -102,6 +104,12 @@ public class ConfigureDS
 
 
   /**
+   * The DN of the configuration entry defining the LDAPS connection handler.
+   */
+  private static final String DN_LDAPS_CONNECTION_HANDLER =
+       "cn=LDAPS Connection Handler," + DN_CONNHANDLER_BASE;
+
+  /**
    * The DN of the configuration entry defining the JMX connection handler.
    */
   private static final String DN_JMX_CONNECTION_HANDLER =
@@ -146,15 +154,20 @@ public class ConfigureDS
   public static int configMain(String[] args)
   {
     BooleanArgument   showUsage;
+    BooleanArgument   enableStartTLS;
     FileBasedArgument rootPasswordFile;
     IntegerArgument   ldapPort;
+    IntegerArgument   ldapsPort;
     IntegerArgument   jmxPort;
     StringArgument    baseDNString;
     StringArgument    configClass;
     StringArgument    configFile;
     StringArgument    rootDNString;
     StringArgument    rootPassword;
-
+    StringArgument    keyManagerProviderDN;
+    StringArgument    trustManagerProviderDN;
+    StringArgument    certNickName;
+    StringArgument    keyManagerPath;
 
     String toolDescription = getMessage(MSGID_CONFIGDS_TOOL_DESCRIPTION);
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
@@ -182,11 +195,61 @@ public class ConfigureDS
                                      MSGID_CONFIGDS_DESCRIPTION_LDAP_PORT);
       argParser.addArgument(ldapPort);
 
+      ldapsPort = new IntegerArgument("ldapsPort", 'P', "ldapsPort", false,
+          false, true, "{ldapPort}", 636, null, true, 1, true, 65535,
+          MSGID_CONFIGDS_DESCRIPTION_LDAPS_PORT);
+      argParser.addArgument(ldapsPort);
+
+      enableStartTLS = new BooleanArgument("enableStartTLS",
+          OPTION_SHORT_START_TLS, "enableStartTLS",
+          MSGID_CONFIGDS_DESCRIPTION_ENABLE_START_TLS);
+      argParser.addArgument(enableStartTLS);
+
       jmxPort = new IntegerArgument("jmxport", 'x', "jmxPort", false, false,
           true, "{jmxPort}", SetupUtils.getDefaultJMXPort(), null, true, 1,
           true, 65535,
           MSGID_CONFIGDS_DESCRIPTION_JMX_PORT);
       argParser.addArgument(jmxPort);
+
+      keyManagerProviderDN = new StringArgument("keymanagerproviderdn",
+          'k',
+          "keyManagerProviderDN",
+          false, false,
+          true, "{keyManagerProviderDN}",
+          null,
+          null,
+          MSGID_CONFIGDS_DESCRIPTION_KEYMANAGER_PROVIDER_DN);
+      argParser.addArgument(keyManagerProviderDN);
+
+      trustManagerProviderDN = new StringArgument("trustmanagerproviderdn",
+          't',
+          "trustManagerProviderDN",
+          false, false,
+          true, "{trustManagerProviderDN}",
+          null,
+          null,
+          MSGID_CONFIGDS_DESCRIPTION_TRUSTMANAGER_PROVIDER_DN);
+      argParser.addArgument(trustManagerProviderDN);
+
+      keyManagerPath = new StringArgument("keymanagerpath",
+          'm',
+          "keyManagerPath",
+          false, false, true,
+          "{keyManagerPath}",
+          null,
+          null,
+          MSGID_CONFIGDS_DESCRIPTION_KEYMANAGER_PATH);
+      argParser.addArgument(keyManagerPath);
+
+      certNickName = new StringArgument("certnickname",
+          'a',
+          "certNickName",
+          false, false,
+          true, "{certNickName}",
+          null,
+          null,
+          MSGID_CONFIGDS_DESCRIPTION_CERTNICKNAME);
+      argParser.addArgument(certNickName);
 
       baseDNString = new StringArgument("basedn", OPTION_SHORT_BASEDN,
                                         OPTION_LONG_BASEDN, false, true,
@@ -399,6 +462,86 @@ public class ConfigureDS
       ConfigHandler configHandler = directoryServer.getConfigHandler();
 
 
+      // Check that the key manager provided is valid.
+      if (keyManagerProviderDN.isPresent())
+      {
+        DN dn = null;
+        try
+        {
+          dn = DN.decode(keyManagerProviderDN.getValue());
+        }
+        catch (DirectoryException de)
+        {
+          int    msgID   = MSGID_CONFIGDS_CANNOT_PARSE_KEYMANAGER_PROVIDER_DN;
+          String message = getMessage(msgID,
+              keyManagerProviderDN.getValue(),
+              de.getErrorMessage());
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+
+        try
+        {
+          configHandler.getConfigEntry(dn);
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_CONFIG_KEYMANAGER_CANNOT_GET_BASE;
+          String message = getMessage(msgID,
+              keyManagerProviderDN.getValue(),
+              String.valueOf(e));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+
+      // Check that the trust manager provided is valid.
+      if (trustManagerProviderDN.isPresent())
+      {
+        DN dn = null;
+        try
+        {
+          dn = DN.decode(trustManagerProviderDN.getValue());
+        }
+        catch (DirectoryException de)
+        {
+          int  msgID   = MSGID_CONFIGDS_CANNOT_PARSE_TRUSTMANAGER_PROVIDER_DN;
+          String message = getMessage(msgID,
+              trustManagerProviderDN.getValue(),
+              de.getErrorMessage());
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+
+        try
+        {
+          configHandler.getConfigEntry(dn);
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE;
+          String message = getMessage(msgID,
+              trustManagerProviderDN.getValue(),
+              String.valueOf(e));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+
+      // Check that the keystore path values are valid.
+      if (keyManagerPath.isPresent())
+      {
+        if (!keyManagerProviderDN.isPresent())
+        {
+          int    msgID   = MSGID_CONFIGDS_KEYMANAGER_PROVIDER_DN_REQUIRED;
+          String message = getMessage(msgID,
+              keyManagerProviderDN.getLongIdentifier(),
+              keyManagerPath.getLongIdentifier());
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+
       // If one or more base DNs were specified, then update the config
       // accordingly.
       if (baseDNs != null)
@@ -449,6 +592,36 @@ public class ConfigureDS
         }
       }
 
+//    If an LDAPS port was specified, then update the config accordingly.
+      if (ldapsPort.isPresent())
+      {
+        try
+        {
+          DN ldapListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+          ConfigEntry configEntry =
+               configHandler.getConfigEntry(ldapListenerDN);
+
+          int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_PORT;
+          IntegerConfigAttribute portAttr =
+               new IntegerConfigAttribute(ATTR_LISTEN_PORT, getMessage(msgID),
+                                          true, false, true, true, 1, true,
+                                          65535, ldapsPort.getIntValue());
+          configEntry.putConfigAttribute(portAttr);
+          msgID = MSGID_LDAPS_CONNHANDLER_DESCRIPTION_ENABLE;
+          BooleanConfigAttribute enablePortAttr =
+            new BooleanConfigAttribute(ATTR_CONNECTION_HANDLER_ENABLED,
+                getMessage(msgID), true, true, true);
+          configEntry.putConfigAttribute(enablePortAttr);
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_LDAPS_PORT;
+          String message = getMessage(msgID, String.valueOf(e));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+
 //    If an JMX port was specified, then update the config accordingly.
       if (jmxPort.isPresent())
       {
@@ -474,6 +647,235 @@ public class ConfigureDS
         }
       }
 
+      // Start TLS configuration
+      if (enableStartTLS.isPresent())
+      {
+        try
+        {
+          DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+          ConfigEntry configEntry =
+               configHandler.getConfigEntry(ldapListenerDN);
+
+          int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_ALLOW_STARTTLS;
+          BooleanConfigAttribute startTLS =
+            new BooleanConfigAttribute(ATTR_ALLOW_STARTTLS,
+                getMessage(msgID), true, true, true);
+          configEntry.putConfigAttribute(startTLS);
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_CONFIGDS_CANNOT_ENABLE_STARTTLS;
+          String message = getMessage(msgID, String.valueOf(e));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+
+      // Key manager provider
+      if (keyManagerProviderDN.isPresent())
+      {
+        if (enableStartTLS.isPresent() || ldapsPort.isPresent())
+        {
+          try
+          {
+            // Enable the key manager
+            DN dn = DN.decode(keyManagerProviderDN.getValue());
+            ConfigEntry configEntry = configHandler.getConfigEntry(dn);
+
+            int msgID = MSGID_CONFIG_KEYMANAGER_DESCRIPTION_ENABLED;
+            BooleanConfigAttribute enableAttr =
+              new BooleanConfigAttribute(ATTR_KEYMANAGER_ENABLED,
+                  getMessage(msgID), true, true, true);
+            configEntry.putConfigAttribute(enableAttr);
+          }
+          catch (Exception e)
+          {
+            int    msgID   = MSGID_CONFIGDS_CANNOT_ENABLE_KEYMANAGER;
+            String message = getMessage(msgID, String.valueOf(e));
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            return 1;
+          }
+        }
+
+        try
+        {
+          if (enableStartTLS.isPresent())
+          {
+            // Use the key manager specified for the LDAP connection handler.
+            DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+            ConfigEntry configEntry =
+              configHandler.getConfigEntry(ldapListenerDN);
+
+            int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN;
+            StringConfigAttribute keyManagerProviderAttr =
+              new StringConfigAttribute(ATTR_KEYMANAGER_DN, getMessage(msgID),
+                  false, false, true, keyManagerProviderDN.getValue());
+            configEntry.putConfigAttribute(keyManagerProviderAttr);
+          }
+
+          if (ldapsPort.isPresent())
+          {
+            // Use the key manager specified for the LDAPS connection handler.
+            DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+            ConfigEntry configEntry =
+              configHandler.getConfigEntry(ldapsListenerDN);
+
+            int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN;
+            StringConfigAttribute keyManagerProviderAttr =
+              new StringConfigAttribute(ATTR_KEYMANAGER_DN,
+                  getMessage(msgID), false, false,
+                  true, keyManagerProviderDN.getValue());
+            configEntry.putConfigAttribute(keyManagerProviderAttr);
+          }
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_KEYMANAGER_REFERENCE;
+          String message = getMessage(msgID, String.valueOf(e));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+
+        if (keyManagerPath.isPresent())
+        {
+          try
+          {
+            // Enable the key manager
+            DN dn = DN.decode(keyManagerProviderDN.getValue());
+            ConfigEntry configEntry = configHandler.getConfigEntry(dn);
+
+            int msgID = MSGID_FILE_KEYMANAGER_DESCRIPTION_FILE;
+            StringConfigAttribute pathAttr =
+              new StringConfigAttribute(ATTR_KEYSTORE_FILE,
+                  getMessage(msgID), true, true, true,
+                  keyManagerPath.getValue());
+            configEntry.putConfigAttribute(pathAttr);
+          }
+          catch (Exception e)
+          {
+            String message = String.valueOf(e);
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            return 1;
+          }
+        }
+      }
+      if (trustManagerProviderDN.isPresent())
+      {
+        if (enableStartTLS.isPresent() || ldapsPort.isPresent())
+        {
+          // Enable the trust manager
+          try
+          {
+            DN dn = DN.decode(trustManagerProviderDN.getValue());
+            ConfigEntry configEntry = configHandler.getConfigEntry(dn);
+
+            int msgID = MSGID_CONFIG_TRUSTMANAGER_DESCRIPTION_ENABLED;
+            BooleanConfigAttribute enableAttr =
+              new BooleanConfigAttribute(ATTR_TRUSTMANAGER_ENABLED,
+                  getMessage(msgID), true, true, true);
+            configEntry.putConfigAttribute(enableAttr);
+          }
+          catch (Exception e)
+          {
+            int    msgID   = MSGID_CONFIGDS_CANNOT_ENABLE_TRUSTMANAGER;
+            String message = getMessage(msgID, String.valueOf(e));
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            return 1;
+          }
+        }
+
+        try
+        {
+          if (enableStartTLS.isPresent())
+          {
+            // Use the trust manager specified for the LDAP connection handler.
+            DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+            ConfigEntry configEntry =
+              configHandler.getConfigEntry(ldapListenerDN);
+
+            int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN;
+            StringConfigAttribute trustManagerProviderAttr =
+              new StringConfigAttribute(ATTR_TRUSTMANAGER_DN,
+                  getMessage(msgID), false, false,
+                  true, trustManagerProviderDN.getValue());
+            configEntry.putConfigAttribute(trustManagerProviderAttr);
+          }
+
+          if (ldapsPort.isPresent())
+          {
+            // Use the trust manager specified for the LDAPS connection handler.
+            DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+            ConfigEntry configEntry =
+              configHandler.getConfigEntry(ldapsListenerDN);
+
+            int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN;
+            StringConfigAttribute trustManagerProviderAttr =
+              new StringConfigAttribute(ATTR_TRUSTMANAGER_DN,
+                  getMessage(msgID), false, false,
+                  true, trustManagerProviderDN.getValue());
+            configEntry.putConfigAttribute(trustManagerProviderAttr);
+          }
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_TRUSTMANAGER_REFERENCE;
+          String message = getMessage(msgID, String.valueOf(e));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+
+      if (certNickName.isPresent())
+      {
+        try
+        {
+          int msgID = MSGID_LDAP_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME;
+          StringConfigAttribute certNickNameAttr =
+            new StringConfigAttribute(ATTR_SSL_CERT_NICKNAME, getMessage(msgID),
+                false, false, true, certNickName.getValue());
+
+          if (ldapPort.isPresent())
+          {
+            // Use the key manager specified for the LDAP connection handler.
+            DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+            ConfigEntry configEntry =
+              configHandler.getConfigEntry(ldapListenerDN);
+
+            configEntry.putConfigAttribute(certNickNameAttr);
+          }
+
+          if (ldapsPort.isPresent())
+          {
+            // Use the key manager specified for the LDAPS connection handler.
+            DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+            ConfigEntry configEntry =
+              configHandler.getConfigEntry(ldapsListenerDN);
+
+            configEntry.putConfigAttribute(certNickNameAttr);
+          }
+
+          if (jmxPort.isPresent())
+          {
+            msgID = MSGID_JMX_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME;
+            certNickNameAttr = new StringConfigAttribute(ATTR_SSL_CERT_NICKNAME,
+                getMessage(msgID), false, false, true, certNickName.getValue());
+
+            // Use the key manager specified for the JMX connection handler.
+            DN jmxListenerDN = DN.decode(DN_JMX_CONNECTION_HANDLER);
+            ConfigEntry configEntry =
+              configHandler.getConfigEntry(jmxListenerDN);
+
+            configEntry.putConfigAttribute(certNickNameAttr);
+          }
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME;
+          String message = getMessage(msgID, String.valueOf(e));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
 
       // If a root user DN and password were specified, then update the config
       // accordingly.

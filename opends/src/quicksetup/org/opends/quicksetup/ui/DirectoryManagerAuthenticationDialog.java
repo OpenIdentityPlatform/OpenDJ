@@ -357,7 +357,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
 
         } catch (NamingException ne)
         {
-          if (installStatus.isServerRunning())
+          if (CurrentInstallStatus.isServerRunning())
           {
             throw ne;
           }

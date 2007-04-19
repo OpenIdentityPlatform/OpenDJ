@@ -73,8 +73,10 @@ public class InstallReviewPanel extends ReviewPanel {
     {
       setFieldValue(FieldName.SERVER_LOCATION, userData.getServerLocation());
     }
-    setFieldValue(FieldName.SERVER_PORT, String.valueOf(userData
-        .getServerPort()));
+    setFieldValue(FieldName.SERVER_PORT,
+        String.valueOf(userData.getServerPort()));
+    setFieldValue(FieldName.SECURITY_OPTIONS,
+        getSecurityOptionsString(userData.getSecurityOptions(), false));
     setFieldValue(FieldName.DIRECTORY_MANAGER_DN, userData
         .getDirectoryManagerDn());
     setFieldValue(FieldName.DIRECTORY_BASE_DN, userData.getDataOptions()
@@ -130,6 +132,11 @@ public class InstallReviewPanel extends ReviewPanel {
 
     hm.put(FieldName.SERVER_PORT, new LabelFieldDescriptor(
         getMsg("server-port-label"), getMsg("server-port-tooltip"),
+        LabelFieldDescriptor.FieldType.READ_ONLY,
+        LabelFieldDescriptor.LabelType.PRIMARY, 0));
+
+    hm.put(FieldName.SECURITY_OPTIONS, new LabelFieldDescriptor(
+        getMsg("server-security-label"), getMsg("server-security-tooltip"),
         LabelFieldDescriptor.FieldType.READ_ONLY,
         LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
@@ -248,17 +255,23 @@ public class InstallReviewPanel extends ReviewPanel {
     if (displayServerLocation)
     {
       fieldNames =
-          new FieldName[]
-            { FieldName.SERVER_LOCATION, FieldName.SERVER_PORT,
-                FieldName.DIRECTORY_MANAGER_DN,
-                FieldName.DIRECTORY_BASE_DN,
-                FieldName.DATA_OPTIONS };
-    } else
+        new FieldName[]
+          {
+            FieldName.SERVER_LOCATION, FieldName.SERVER_PORT,
+            FieldName.SECURITY_OPTIONS, FieldName.DIRECTORY_MANAGER_DN,
+            FieldName.DIRECTORY_BASE_DN,
+            FieldName.DATA_OPTIONS
+          };
+    }
+    else
     {
       fieldNames =
-          new FieldName[]
-            { FieldName.SERVER_PORT, FieldName.DIRECTORY_MANAGER_DN,
-                FieldName.DIRECTORY_BASE_DN, FieldName.DATA_OPTIONS };
+        new FieldName[]
+          {
+            FieldName.SERVER_PORT, FieldName.SECURITY_OPTIONS,
+            FieldName.DIRECTORY_MANAGER_DN,
+            FieldName.DIRECTORY_BASE_DN, FieldName.DATA_OPTIONS
+          };
     }
 
     for (int i = 0; i < fieldNames.length; i++)

@@ -187,9 +187,13 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     panel.add(auxPanel, gbc);
 
+    int h1 = getLabel(FieldName.DATA_OPTIONS).getPreferredSize().height;
+    int h2 = getRadioButton(DataOptions.Type.CREATE_BASE_ENTRY).
+    getPreferredSize().height;
+    int additionalInset = Math.abs(h2 - h1) / 2;
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.weightx = 0.0;
-    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD + additionalInset;
     gbc.insets.left = 0;
     gbc.anchor = GridBagConstraints.NORTHWEST;
     panel.add(getLabel(FieldName.DATA_OPTIONS), gbc);

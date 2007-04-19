@@ -3365,7 +3365,7 @@ public class ConfigMessages
    * key manager provider enabled attribute.  This does not take any arguments.
    */
   public static final int MSGID_CONFIG_KEYMANAGER_DESCRIPTION_ENABLED =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 313;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 313;
 
 
 

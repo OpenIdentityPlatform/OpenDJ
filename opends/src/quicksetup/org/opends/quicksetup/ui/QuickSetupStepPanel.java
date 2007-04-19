@@ -44,6 +44,7 @@ import javax.swing.event.HyperlinkListener;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.ProgressDescriptor;
+import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
@@ -388,6 +389,91 @@ implements HyperlinkListener
       formatter = new HtmlProgressMessageFormatter();
     }
     return formatter;
+  }
+
+  /**
+   * Returns a localized String representation of the provided SecurityOptions
+   * object.
+   * @param ops the SecurityOptions object from which we want to obtain the
+   * String representation.
+   * @param html whether the resulting String must be in HTML or not.
+   * @return a localized String representation of the provided SecurityOptions
+   * object.
+   */
+  protected String getSecurityOptionsString(SecurityOptions ops, boolean html)
+  {
+    StringBuilder buf = new StringBuilder();
+
+    if (ops.getCertificateType() ==
+      SecurityOptions.CertificateType.NO_CERTIFICATE)
+    {
+      buf.append(getMsg("no-security"));
+    }
+    else
+    {
+      if (ops.getEnableStartTLS())
+      {
+        buf.append(getMsg("enable-starttls"));
+      }
+      if (ops.getEnableSSL())
+      {
+        if (buf.length() > 0)
+        {
+          if (html)
+          {
+            buf.append("<br>");
+          }
+          else
+          {
+            buf.append("\n");
+          }
+        }
+        String[] arg = new String[] {String.valueOf(ops.getSslPort())};
+        buf.append(getMsg("enable-ssl", arg));
+      }
+      if (html)
+      {
+        buf.append("<br>");
+      }
+      else
+      {
+        buf.append("\n");
+      }
+      String certMsg;
+      switch (ops.getCertificateType())
+      {
+      case SELF_SIGNED_CERTIFICATE:
+        certMsg = getMsg("self-signed-certificate");
+        break;
+
+      case JKS:
+        certMsg = getMsg("jks-certificate");
+        break;
+
+      case PKCS11:
+        certMsg = getMsg("pkcs11-certificate");
+        break;
+
+      case PKCS12:
+        certMsg = getMsg("pkcs12-certificate");
+        break;
+
+      default:
+        throw new IllegalStateException("Unknown certificate options type: "+
+            ops.getCertificateType());
+      }
+      buf.append(certMsg);
+    }
+
+    if (html)
+    {
+      return "<html>"+UIFactory.applyFontToHtml(buf.toString(),
+          UIFactory.SECONDARY_FIELD_VALID_FONT);
+    }
+    else
+    {
+      return buf.toString();
+    }
   }
 
   /**
