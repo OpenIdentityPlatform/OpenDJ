@@ -720,10 +720,19 @@ public final class ServerManagedObject<S extends Configuration>
     validateRelationDefinition(d);
 
     DN baseDN = DNBuilder.create(path, d);
-    ConfigEntry configEntry = getListenerConfigEntry(baseDN);
+    ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
     ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path,
         d, listener);
-    configEntry.registerAddListener(adaptor);
+
+    if (relationEntry != null) {
+      relationEntry.registerAddListener(adaptor);
+    } else {
+      // The relation entry does not exist yet so register a delayed
+      // add listener.
+      ConfigAddListener delayedListener = new DelayedConfigAddListener(
+          configEntry.getDN(), baseDN, adaptor);
+      configEntry.registerAddListener(delayedListener);
+    }
   }
 
 
@@ -795,11 +804,19 @@ public final class ServerManagedObject<S extends Configuration>
     validateRelationDefinition(d);
 
     DN baseDN = DNBuilder.create(path, d);
-    ConfigEntry configEntry = getListenerConfigEntry(baseDN);
-
+    ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
     ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(
         path, d, listener);
-    configEntry.registerDeleteListener(adaptor);
+
+    if (relationEntry != null) {
+      relationEntry.registerDeleteListener(adaptor);
+    } else {
+      // The relation entry does not exist yet so register a delayed
+      // add listener.
+      ConfigAddListener delayedListener = new DelayedConfigAddListener(
+          configEntry.getDN(), baseDN, adaptor);
+      configEntry.registerAddListener(delayedListener);
+    }
   }
 
 
@@ -851,11 +868,13 @@ public final class ServerManagedObject<S extends Configuration>
       DN baseDN, ConfigurationAddListener<M> listener) {
     try {
       ConfigEntry configEntry = getListenerConfigEntry(baseDN);
-      for (ConfigAddListener l : configEntry.getAddListeners()) {
-        if (l instanceof ConfigAddListenerAdaptor) {
-          ConfigAddListenerAdaptor adaptor = (ConfigAddListenerAdaptor) l;
-          if (adaptor.getConfigurationAddListener() == listener) {
-            configEntry.deregisterAddListener(adaptor);
+      if (configEntry != null) {
+        for (ConfigAddListener l : configEntry.getAddListeners()) {
+          if (l instanceof ConfigAddListenerAdaptor) {
+            ConfigAddListenerAdaptor adaptor = (ConfigAddListenerAdaptor) l;
+            if (adaptor.getConfigurationAddListener() == listener) {
+              configEntry.deregisterAddListener(adaptor);
+            }
           }
         }
       }
@@ -875,11 +894,15 @@ public final class ServerManagedObject<S extends Configuration>
       ConfigurationDeleteListener<M> listener) {
     try {
       ConfigEntry configEntry = getListenerConfigEntry(baseDN);
-      for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
-        if (l instanceof ConfigDeleteListenerAdaptor) {
-          ConfigDeleteListenerAdaptor adaptor = (ConfigDeleteListenerAdaptor) l;
-          if (adaptor.getConfigurationDeleteListener() == listener) {
-            configEntry.deregisterDeleteListener(adaptor);
+      if (configEntry != null) {
+        for (ConfigDeleteListener l : configEntry
+            .getDeleteListeners()) {
+          if (l instanceof ConfigDeleteListenerAdaptor) {
+            ConfigDeleteListenerAdaptor adaptor =
+              (ConfigDeleteListenerAdaptor) l;
+            if (adaptor.getConfigurationDeleteListener() == listener) {
+              configEntry.deregisterDeleteListener(adaptor);
+            }
           }
         }
       }
@@ -915,7 +938,7 @@ public final class ServerManagedObject<S extends Configuration>
 
 
   // Gets a config entry required for a listener and throws a config
-  // exception on failure.
+  // exception on failure or returns null if the entry does not exist.
   private ConfigEntry getListenerConfigEntry(DN dn)
       throws ConfigException {
     // Attempt to retrieve the listener base entry.
@@ -932,14 +955,6 @@ public final class ServerManagedObject<S extends Configuration>
       String message = getMessage(msgID, String.valueOf(dn),
           stackTraceToSingleLineString(e));
       throw new ConfigException(msgID, message, e);
-    }
-
-    // The configuration handler is free to return null indicating
-    // that the entry does not exist.
-    if (configEntry == null) {
-      int msgID = AdminMessages.MSGID_ADMIN_LISTENER_BASE_DOES_NOT_EXIST;
-      String message = getMessage(msgID, String.valueOf(dn));
-      throw new ConfigException(msgID, message);
     }
 
     return configEntry;
