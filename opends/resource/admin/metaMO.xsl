@@ -251,7 +251,7 @@
                        '  }&#xa;')" />
     </xsl:if>
     <!--
-      Generate property definition getters for local properties.
+      Generate property definition getters for all properties.
     -->
     <xsl:for-each select="$this-all-properties">
       <xsl:sort select="@name" />
@@ -261,7 +261,7 @@
       <xsl:call-template name="generate-property-definition-getter" />
     </xsl:for-each>
     <!--
-      Generate relation definition getters for local relations.
+      Generate relation definition getters for all relations.
     -->
     <xsl:for-each select="$this-all-relations">
       <xsl:sort select="@name" />
@@ -1612,6 +1612,21 @@
               select="concat(@managed-object-package, '.server.', $java-class-name, 'Cfg')" />
           </xsl:element>
         </xsl:for-each>
+        <xsl:if test="$this-all-relations/adm:one-to-many">
+          <import>
+            org.opends.server.admin.InstantiableRelationDefinition
+          </import>
+        </xsl:if>
+        <xsl:if test="$this-all-relations/adm:one-to-zero-or-one">
+          <import>
+            org.opends.server.admin.OptionalRelationDefinition
+          </import>
+        </xsl:if>
+        <xsl:if test="$this-all-relations/adm:one-to-one">
+          <import>
+            org.opends.server.admin.SingletonRelationDefinition
+          </import>
+        </xsl:if>
         <xsl:choose>
           <xsl:when test="$this-is-abstract">
             <import>
@@ -1640,9 +1655,6 @@
             <import>org.opends.server.types.DN</import>
             <xsl:if test="$this-all-relations/adm:one-to-many">
               <import>
-                org.opends.server.admin.InstantiableRelationDefinition
-              </import>
-              <import>
                 org.opends.server.admin.server.ConfigurationAddListener
               </import>
               <import>
@@ -1652,9 +1664,6 @@
             </xsl:if>
             <xsl:if test="$this-all-relations/adm:one-to-zero-or-one">
               <import>
-                org.opends.server.admin.OptionalRelationDefinition
-              </import>
-              <import>
                 org.opends.server.admin.server.ConfigurationAddListener
               </import>
               <import>
@@ -1663,9 +1672,6 @@
               <import>org.opends.server.config.ConfigException</import>
             </xsl:if>
             <xsl:if test="$this-all-relations/adm:one-to-one">
-              <import>
-                org.opends.server.admin.SingletonRelationDefinition
-              </import>
               <import>org.opends.server.config.ConfigException</import>
             </xsl:if>
             <xsl:if test="$this-all-properties[@multi-valued='true']">
