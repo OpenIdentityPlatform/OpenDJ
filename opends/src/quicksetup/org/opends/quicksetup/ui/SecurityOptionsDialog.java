@@ -142,7 +142,6 @@ public class SecurityOptionsDialog extends JDialog
     {
       ic = UIFactory.IconType.MINIMIZED;
     }
-    setIconImage(UIFactory.getImageIcon(ic).getImage());
     Utils.centerOnComponent(this, parent);
   }
 
