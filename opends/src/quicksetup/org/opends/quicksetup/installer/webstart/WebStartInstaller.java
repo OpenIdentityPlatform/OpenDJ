@@ -141,18 +141,18 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
 
       writeJavaHome();
 
-      if (getUserData().getStartServer())
-      {
-        notifyListeners(getTaskSeparator());
-        status = InstallProgressStep.STARTING_SERVER;
-        new ServerController(this).startServer();
-      }
-
       if (Utils.isWindows())
       {
           notifyListeners(getTaskSeparator());
           status = InstallProgressStep.ENABLING_WINDOWS_SERVICE;
           enableWindowsService();
+      }
+
+      if (getUserData().getStartServer())
+      {
+        notifyListeners(getTaskSeparator());
+        status = InstallProgressStep.STARTING_SERVER;
+        new ServerController(this).startServer();
       }
 
       status = InstallProgressStep.FINISHED_SUCCESSFULLY;
