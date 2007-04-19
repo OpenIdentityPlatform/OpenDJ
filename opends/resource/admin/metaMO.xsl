@@ -1494,7 +1494,7 @@
       <xsl:value-of select="'    /**&#xa;'" />
       <xsl:call-template name="add-java-comment">
         <xsl:with-param name="indent-text" select="'     *'" />
-        <xsl:with-param name="content" select="adm:description" />
+        <xsl:with-param name="content" select="adm:synopsis" />
       </xsl:call-template>
       <xsl:value-of select="'     */&#xa;'" />
       <xsl:value-of select="'    '" />
