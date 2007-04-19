@@ -221,8 +221,15 @@ public final class AccessControlConfigManager
     if (newHandlerClass != null) {
       AccessControlProvider<? extends AccessControlHandlerCfg> newHandler ;
       try {
+        if (newConfiguration.isEnabled())
+        {
           newHandler = loadProvider(newHandlerClass.getName(), newConfiguration
             .getConfiguration());
+        }
+        else
+        {
+          newHandler = new DefaultAccessControlProvider();
+        }
       } catch (Exception e) {
         if (debugEnabled())
         {
