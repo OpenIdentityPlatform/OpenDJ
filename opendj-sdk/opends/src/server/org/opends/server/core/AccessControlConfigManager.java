@@ -229,6 +229,7 @@ public final class AccessControlConfigManager
         else
         {
           newHandler = new DefaultAccessControlProvider();
+          newHandler.initializeAccessControlHandler(null);
         }
       } catch (Exception e) {
         if (debugEnabled())
