@@ -429,6 +429,8 @@
   </target>
 
   <target name="weave" if="weave.enabled" depends="compile, prepweave">
+    <echo message="  Weaving the source code with automatic AspectJ debug logging."/>
+    <echo message="  Build with -DWEAVE_ENABLED=false to turn this off."/>
     <taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
       <classpath>
         <pathelement location="${aj.lib.dir}/aspectjtools.jar" />
