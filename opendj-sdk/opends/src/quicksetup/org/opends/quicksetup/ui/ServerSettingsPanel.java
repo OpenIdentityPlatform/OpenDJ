@@ -30,6 +30,8 @@ package org.opends.quicksetup.ui;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
@@ -37,12 +39,14 @@ import java.util.HashMap;
 
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.UserData;
 
 /**
@@ -56,9 +60,17 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
 
   private Component lastFocusComponent;
 
+  private JLabel lSecurity;
+
+  private JButton secureAccessButton;
+
   private JButton browseButton;
 
   private boolean displayServerLocation;
+
+  private boolean canUpdateSecurity;
+
+  private SecurityOptions securityOptions;
 
   private HashMap<FieldName, JLabel> hmLabels =
       new HashMap<FieldName, JLabel>();
@@ -72,6 +84,8 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
 
   private JLabel lServerLocation;
 
+  private SecurityOptionsDialog dlg;
+
   private static final long serialVersionUID = -15911406930993035L;
 
   /**
@@ -84,6 +98,9 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     super(application);
     this.defaultUserData = application.getUserData();
     this.displayServerLocation = isWebStart();
+    canUpdateSecurity =
+      org.opends.server.util.CertificateManager.mayUseCertificateManager();
+    securityOptions = defaultUserData.getSecurityOptions();
     populateLabelAndFieldMaps();
     addFocusListeners();
   }
@@ -114,7 +131,12 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
         }
       }
 
-    } else
+    }
+    else if (fieldName == FieldName.SECURITY_OPTIONS)
+    {
+      value = securityOptions;
+    }
+    else
     {
       JTextComponent field = getField(fieldName);
       if (field != null)
@@ -157,9 +179,13 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     GridBagConstraints gbc = new GridBagConstraints();
 
     FieldName[] fieldNames =
-          { FieldName.SERVER_PORT, FieldName.DIRECTORY_MANAGER_DN,
-              FieldName.DIRECTORY_MANAGER_PWD,
-              FieldName.DIRECTORY_MANAGER_PWD_CONFIRM };
+    {
+        FieldName.SERVER_PORT,
+        FieldName.SECURITY_OPTIONS,
+        FieldName.DIRECTORY_MANAGER_DN,
+        FieldName.DIRECTORY_MANAGER_PWD,
+        FieldName.DIRECTORY_MANAGER_PWD_CONFIRM
+    };
 
     JPanel auxPanel;
     // Add the server location widgets
@@ -211,7 +237,21 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       gbc.weightx = 0.0;
       gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
       gbc.insets.left = 0;
-      gbc.anchor = GridBagConstraints.WEST;
+      boolean isSecurityField = fieldName == FieldName.SECURITY_OPTIONS;
+
+      int securityInsetsTop = Math.abs(
+          getLDAPSecureAccessButton().getPreferredSize().height -
+          getLabel(fieldName).getPreferredSize().height) / 2;
+
+      if (isSecurityField)
+      {
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.insets.top += securityInsetsTop;
+      }
+      else
+      {
+        gbc.anchor = GridBagConstraints.WEST;
+      }
       panel.add(getLabel(fieldName), gbc);
 
       auxPanel = new JPanel(new GridBagLayout());
@@ -221,18 +261,41 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
       gbc.gridwidth = GridBagConstraints.REMAINDER;
+
       panel.add(auxPanel, gbc);
 
       boolean isPortField = fieldName == FieldName.SERVER_PORT;
       gbc.insets = UIFactory.getEmptyInsets();
-      if (isPortField) {
+      if (isPortField || (isSecurityField && canUpdateSecurity))
+      {
         gbc.gridwidth = 3;
-      } else {
+      }
+      else
+      {
         gbc.gridwidth = GridBagConstraints.RELATIVE;
       }
       gbc.weightx = 0.0;
-      auxPanel.add(getField(fieldName), gbc);
-      if (isPortField) {
+      if (isSecurityField)
+      {
+        gbc.insets.top = securityInsetsTop;
+        if (canUpdateSecurity)
+        {
+          auxPanel.add(lSecurity, gbc);
+        }
+        else
+        {
+          auxPanel.add(UIFactory.makeJLabel(UIFactory.IconType.WARNING,
+              getMsg("cannot-update-security-warning"),
+              UIFactory.TextStyle.SECONDARY_FIELD_VALID), gbc);
+        }
+      }
+      else
+      {
+        auxPanel.add(getField(fieldName), gbc);
+      }
+
+      if (isPortField)
+      {
         JLabel l =
                 UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
                         getPortHelpMessage(),
@@ -241,9 +304,17 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
         gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
         auxPanel.add(l, gbc);
       }
-
+      else if (isSecurityField && canUpdateSecurity)
+      {
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        gbc.insets.left = UIFactory.LEFT_INSET_BROWSE;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.insets.top = 0;
+        auxPanel.add(getLDAPSecureAccessButton(), gbc);
+      }
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       gbc.weightx = 1.0;
+      gbc.fill = GridBagConstraints.HORIZONTAL;
       auxPanel.add(Box.createHorizontalGlue(), gbc);
     }
     addVerticalGlue(panel);
@@ -304,7 +375,8 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       if (defaultUserData.getServerPort() > 0)
       {
         value = String.valueOf(defaultUserData.getServerPort());
-      } else
+      }
+      else
       {
         value = "";
       }
@@ -320,6 +392,11 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
 
     case DIRECTORY_MANAGER_PWD_CONFIRM:
       value = defaultUserData.getDirectoryManagerPwd();
+      break;
+
+    case SECURITY_OPTIONS:
+      value = getSecurityOptionsString(defaultUserData.getSecurityOptions(),
+          true);
       break;
 
     default:
@@ -342,6 +419,11 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
         getMsg("server-port-label"), getMsg("server-port-tooltip"),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.PORT_FIELD_SIZE));
+
+    hm.put(FieldName.SECURITY_OPTIONS, new LabelFieldDescriptor(
+        getMsg("server-security-label"), getMsg("server-security-tooltip"),
+        LabelFieldDescriptor.FieldType.READ_ONLY,
+        LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
     hm.put(FieldName.DIRECTORY_MANAGER_DN, new LabelFieldDescriptor(
         getMsg("server-directory-manager-dn-label"),
@@ -367,11 +449,20 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     {
       LabelFieldDescriptor desc = hm.get(fieldName);
       String defaultValue = getDefaultValue(fieldName);
-      JTextComponent field = UIFactory.makeJTextComponent(desc, defaultValue);
+
       JLabel label = makeJLabel(desc);
 
-      hmFields.put(fieldName, field);
-      label.setLabelFor(field);
+      if (fieldName != FieldName.SECURITY_OPTIONS)
+      {
+        JTextComponent field = UIFactory.makeJTextComponent(desc, defaultValue);
+        hmFields.put(fieldName, field);
+        label.setLabelFor(field);
+      }
+      else
+      {
+        lSecurity = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+            defaultValue, UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+      }
 
       hmLabels.put(fieldName, label);
     }
@@ -431,6 +522,36 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
   }
 
   /**
+   * Returns the configure secure access button.
+   * If it does not exist creates the secure access button.
+   * @return the secure access button.
+   */
+  private JButton getLDAPSecureAccessButton()
+  {
+    if (secureAccessButton == null)
+    {
+      secureAccessButton =
+          UIFactory.makeJButton(getMsg("server-security-button-label"),
+              getMsg("server-security-button-tooltip"));
+
+      secureAccessButton.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent ev)
+        {
+          getConfigureSecureAccessDialog().display(securityOptions);
+          if (!getConfigureSecureAccessDialog().isCancelled())
+          {
+            securityOptions =
+              getConfigureSecureAccessDialog().getSecurityOptions();
+            lSecurity.setText(getSecurityOptionsString(securityOptions, true));
+          }
+        }
+      });
+    }
+    return secureAccessButton;
+  }
+
+  /**
    * Returns the label associated with the given field name.
    * @param fieldName the field name for which we want to retrieve the JLabel.
    * @return the label associated with the given field name.
@@ -472,6 +593,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     {
       tf.addFocusListener(l);
     }
+    getLDAPSecureAccessButton().addFocusListener(l);
     getBrowseButton().addFocusListener(l);
     if (Utils.isWebStart())
     {
@@ -497,5 +619,15 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       s = getMsg("cannot-use-default-port");
     }
     return s;
+  }
+
+  private SecurityOptionsDialog getConfigureSecureAccessDialog()
+  {
+    if (dlg == null)
+    {
+      dlg = new SecurityOptionsDialog((JFrame)getMainWindow(), securityOptions);
+      dlg.setModal(true);
+    }
+    return dlg;
   }
 }

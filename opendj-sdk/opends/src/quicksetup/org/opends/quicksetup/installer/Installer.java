@@ -29,16 +29,22 @@ package org.opends.quicksetup.installer;
 import static org.opends.quicksetup.Step.*;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.util.*;
 import java.awt.event.WindowEvent;
 
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.*;
+import org.opends.server.util.CertificateManager;
 import org.opends.quicksetup.installer.ui.InstallReviewPanel;
 import org.opends.server.util.SetupUtils;
 
+import javax.naming.ldap.Rdn;
 import javax.swing.*;
 
 
@@ -66,9 +72,15 @@ public abstract class Installer extends GuiApplication {
   // Constants used to do checks
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
 
-  private static final int MIN_PORT_VALUE = 1;
+  /**
+   * The minimum integer value that can be used for a port.
+   */
+  public static final int MIN_PORT_VALUE = 1;
 
-  private static final int MAX_PORT_VALUE = 65535;
+  /**
+   * The maximum integer value that can be used for a port.
+   */
+  public static final int MAX_PORT_VALUE = 65535;
 
   private static final int MIN_NUMBER_ENTRIES = 1;
 
@@ -440,6 +452,65 @@ public abstract class Installer extends GuiApplication {
     argList.add(Utils.getPath(getInstallation().getCurrentConfigurationFile()));
     argList.add("-p");
     argList.add(String.valueOf(getUserData().getServerPort()));
+
+    SecurityOptions sec = getUserData().getSecurityOptions();
+    if (sec.getEnableSSL())
+    {
+      argList.add("-P");
+      argList.add(String.valueOf(sec.getSslPort()));
+    }
+
+    if (sec.getEnableStartTLS())
+    {
+      argList.add("-q");
+    }
+
+    switch (sec.getCertificateType())
+    {
+    case SELF_SIGNED_CERTIFICATE:
+      argList.add("-k");
+      argList.add("cn=JKS,cn=Key Manager Providers,cn=config");
+      argList.add("-t");
+      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
+      break;
+    case JKS:
+      argList.add("-k");
+      argList.add("cn=JKS,cn=Key Manager Providers,cn=config");
+      argList.add("-t");
+      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
+      argList.add("-m");
+      argList.add(sec.getKeystorePath());
+      argList.add("-a");
+      argList.add(sec.getAliasToUse());
+      break;
+    case PKCS12:
+      argList.add("-k");
+      argList.add("cn=PKCS12,cn=Key Manager Providers,cn=config");
+      argList.add("-t");
+      // We are going to import the PCKS12 certificate in a JKS truststore
+      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
+      argList.add("-m");
+      argList.add(sec.getKeystorePath());
+      argList.add("-a");
+      argList.add(sec.getAliasToUse());
+      break;
+    case PKCS11:
+      argList.add("-k");
+      argList.add("cn=PKCS11,cn=Key Manager Providers,cn=config");
+      argList.add("-t");
+      // We are going to import the PCKS11 certificate in a JKS truststore
+      argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
+      argList.add("-a");
+      argList.add(sec.getAliasToUse());
+      break;
+    case NO_CERTIFICATE:
+      // Nothing to do.
+      break;
+    default:
+      throw new IllegalStateException("Unknown certificate type: "+
+          sec.getCertificateType());
+    }
+
     argList.add("-x");
     argList.add(String.valueOf(getUserData().getServerJMXPort()));
 
@@ -470,6 +541,113 @@ public abstract class Installer extends GuiApplication {
       throw new QuickSetupException(
           QuickSetupException.Type.CONFIGURATION_ERROR,
           getThrowableMsg("error-configuring", null, t), t);
+    }
+
+    try
+    {
+      SecurityOptions.CertificateType certType = sec.getCertificateType();
+      if (certType != SecurityOptions.CertificateType.NO_CERTIFICATE)
+      {
+        notifyListeners(getLineBreak());
+        notifyListeners(getFormattedWithPoints(
+            getMsg("progress-updating-certificates")));
+      }
+      CertificateManager certManager;
+      CertificateManager trustManager;
+      File f;
+      switch (certType)
+      {
+      case NO_CERTIFICATE:
+        // Nothing to do
+        break;
+      case SELF_SIGNED_CERTIFICATE:
+        String pwd = getSelfSignedCertificatePwd();
+        certManager = new CertificateManager(
+            getSelfSignedKeystorePath(),
+            CertificateManager.KEY_STORE_TYPE_JKS,
+            pwd);
+        certManager.generateSelfSignedCertificate("server-cert",
+            getSelfSignedCertificateSubjectDN(sec),
+            getSelfSignedCertificateValidity());
+        exportCertificate(certManager, "server-cert",
+            getTemporaryCertificatePath());
+
+        trustManager = new CertificateManager(
+            getTrustManagerPath(),
+            CertificateManager.KEY_STORE_TYPE_JKS,
+            pwd);
+        trustManager.addCertificate("server-cert",
+            new File(getTemporaryCertificatePath()));
+        Utils.createFile(getKeystorePinPath(), pwd);
+        f = new File(getTemporaryCertificatePath());
+        f.delete();
+
+        break;
+      case JKS:
+        certManager = new CertificateManager(
+            sec.getKeystorePath(),
+            CertificateManager.KEY_STORE_TYPE_JKS,
+            sec.getKeystorePassword());
+        exportCertificate(certManager, sec.getAliasToUse(),
+            getTemporaryCertificatePath());
+
+        trustManager = new CertificateManager(
+            getTrustManagerPath(),
+            CertificateManager.KEY_STORE_TYPE_JKS,
+            sec.getKeystorePassword());
+        trustManager.addCertificate(sec.getAliasToUse(),
+            new File(getTemporaryCertificatePath()));
+        Utils.createFile(getKeystorePinPath(), sec.getKeystorePassword());
+        f = new File(getTemporaryCertificatePath());
+        f.delete();
+        break;
+      case PKCS12:
+        certManager = new CertificateManager(
+            sec.getKeystorePath(),
+            CertificateManager.KEY_STORE_TYPE_PKCS12,
+            sec.getKeystorePassword());
+        exportCertificate(certManager, sec.getAliasToUse(),
+            getTemporaryCertificatePath());
+
+        trustManager = new CertificateManager(
+            getTrustManagerPath(),
+            CertificateManager.KEY_STORE_TYPE_JKS,
+            sec.getKeystorePassword());
+        trustManager.addCertificate(sec.getAliasToUse(),
+            new File(getTemporaryCertificatePath()));
+        Utils.createFile(getKeystorePinPath(), sec.getKeystorePassword());
+        f = new File(getTemporaryCertificatePath());
+        f.delete();
+        break;
+      case PKCS11:
+        certManager = new CertificateManager(
+            CertificateManager.KEY_STORE_PATH_PKCS11,
+            CertificateManager.KEY_STORE_TYPE_PKCS11,
+            sec.getKeystorePassword());
+        exportCertificate(certManager, sec.getAliasToUse(),
+            getTemporaryCertificatePath());
+
+        trustManager = new CertificateManager(
+            getTrustManagerPath(),
+            CertificateManager.KEY_STORE_TYPE_JKS,
+            sec.getKeystorePassword());
+        trustManager.addCertificate(sec.getAliasToUse(),
+            new File(getTemporaryCertificatePath()));
+        Utils.createFile(getKeystorePinPath(), sec.getKeystorePassword());
+        break;
+      default:
+        throw new IllegalStateException("Unknown certificate type: "+certType);
+      }
+      if (certType != SecurityOptions.CertificateType.NO_CERTIFICATE)
+      {
+        notifyListeners(getFormattedDone());
+      }
+    }
+    catch (Throwable t)
+    {
+      throw new QuickSetupException(
+          QuickSetupException.Type.CONFIGURATION_ERROR,
+          getThrowableMsg("error-configuring-certificate", null, t), t);
     }
   }
 
@@ -535,7 +713,7 @@ public abstract class Installer extends GuiApplication {
     String[] arg =
       { getUserData().getDataOptions().getLDIFPath() };
     notifyListeners(getFormattedProgress(getMsg("progress-importing-ldif", arg))
-        + formatter.getLineBreak());
+        + getLineBreak());
 
     ArrayList<String> argList = new ArrayList<String>();
     argList.add("-C");
@@ -582,7 +760,7 @@ public abstract class Installer extends GuiApplication {
       { String.valueOf(nEntries) };
     notifyListeners(getFormattedProgress(getMsg(
         "progress-import-automatically-generated", arg))
-        + formatter.getLineBreak());
+        + getLineBreak());
 
     ArrayList<String> argList = new ArrayList<String>();
     argList.add("-C");
@@ -783,9 +961,10 @@ public abstract class Installer extends GuiApplication {
 
     // Check the port
     String sPort = qs.getFieldStringValue(FieldName.SERVER_PORT);
+    int port = -1;
     try
     {
-      int port = Integer.parseInt(sPort);
+      port = Integer.parseInt(sPort);
       if ((port < MIN_PORT_VALUE) || (port > MAX_PORT_VALUE))
       {
         String[] args =
@@ -818,6 +997,52 @@ public abstract class Installer extends GuiApplication {
       errorMsgs.add(getMsg("invalid-port-value-range", args));
       qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
     }
+
+    // Check the secure port
+    SecurityOptions sec =
+      (SecurityOptions)qs.getFieldValue(FieldName.SECURITY_OPTIONS);
+    int securePort = sec.getSslPort();
+    if (sec.getEnableSSL())
+    {
+      if ((securePort < MIN_PORT_VALUE) || (securePort > MAX_PORT_VALUE))
+      {
+        String[] args =
+          { String.valueOf(MIN_PORT_VALUE), String.valueOf(MAX_PORT_VALUE) };
+        errorMsgs.add(getMsg("invalid-secure-port-value-range", args));
+        qs.displayFieldInvalid(FieldName.SECURITY_OPTIONS, true);
+      } else if (!Utils.canUseAsPort(securePort))
+      {
+        if (Utils.isPriviledgedPort(securePort))
+        {
+          errorMsgs.add(getMsg("cannot-bind-priviledged-port", new String[]
+            { String.valueOf(securePort) }));
+        } else
+        {
+          errorMsgs.add(getMsg("cannot-bind-port", new String[]
+            { String.valueOf(securePort) }));
+        }
+        qs.displayFieldInvalid(FieldName.SECURITY_OPTIONS, true);
+
+      }
+      else if (port == securePort)
+      {
+        errorMsgs.add(getMsg("equal-ports",
+            new String[] { String.valueOf(securePort) }));
+        qs.displayFieldInvalid(FieldName.SECURITY_OPTIONS, true);
+        qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
+      }
+      else
+      {
+        getUserData().setSecurityOptions(sec);
+        qs.displayFieldInvalid(FieldName.SECURITY_OPTIONS, false);
+      }
+    }
+    else
+    {
+      getUserData().setSecurityOptions(sec);
+      qs.displayFieldInvalid(FieldName.SECURITY_OPTIONS, false);
+    }
+
 
     // Check the Directory Manager DN
     String dmDn = qs.getFieldStringValue(FieldName.DIRECTORY_MANAGER_DN);
@@ -876,7 +1101,8 @@ public abstract class Installer extends GuiApplication {
       qs.displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM, false);
     }
 
-    int defaultJMXPort = UserData.getDefaultJMXPort();
+    int defaultJMXPort =
+      UserData.getDefaultJMXPort(new int[] {port, securePort});
     if (defaultJMXPort != -1)
     {
       getUserData().setServerJMXPort(defaultJMXPort);
@@ -1035,4 +1261,156 @@ public abstract class Installer extends GuiApplication {
     return 15 * 1024 * 1024;
   }
 
+  /**
+   * Returns the keystore path to be used for generating a self-signed
+   * certificate.
+   * @return the keystore path to be used for generating a self-signed
+   * certificate.
+   */
+  private String getSelfSignedKeystorePath()
+  {
+    String parentFile = Utils.getPath(getInstallationPath(),
+        Installation.CONFIG_PATH_RELATIVE);
+    return (Utils.getPath(parentFile, "keystore"));
+  }
+
+  /**
+   * Returns the trustmanager path to be used for generating a self-signed
+   * certificate.
+   * @return the trustmanager path to be used for generating a self-signed
+   * certificate.
+   */
+  private String getTrustManagerPath()
+  {
+    String parentFile = Utils.getPath(getInstallationPath(),
+        Installation.CONFIG_PATH_RELATIVE);
+    return (Utils.getPath(parentFile, "truststore"));
+  }
+
+  /**
+   * Returns the path of the self-signed that we export to be able to create
+   * a truststore.
+   * @return the path of the self-signed that is exported.
+   */
+  private String getTemporaryCertificatePath()
+  {
+    String parentFile = Utils.getPath(getInstallationPath(),
+        Installation.CONFIG_PATH_RELATIVE);
+    return (Utils.getPath(parentFile, "server-cert.txt"));
+  }
+
+  /**
+   * Returns the path to be used to store the password of the keystore.
+   * @return the path to be used to store the password of the keystore.
+   */
+  private String getKeystorePinPath()
+  {
+    String parentFile = Utils.getPath(getInstallationPath(),
+        Installation.CONFIG_PATH_RELATIVE);
+    return (Utils.getPath(parentFile, "keystore.pin"));
+  }
+
+
+  /**
+   * Returns the validity period to be used to generate the self-signed
+   * certificate.
+   * @return the validity period to be used to generate the self-signed
+   * certificate.
+   */
+  private int getSelfSignedCertificateValidity()
+  {
+    return 2 * 365;
+  }
+
+  /**
+   * Returns the Subject DN to be used to generate the self-signed certificate.
+   * @return the Subject DN to be used to generate the self-signed certificate.
+   */
+  private String getSelfSignedCertificateSubjectDN(SecurityOptions sec)
+  {
+    return "cn="+Rdn.escapeValue(sec.getSelfSignedCertificateName())+
+    ",O=OpenDS Self-Signed Certificate";
+  }
+
+  /**
+   * Returns a randomly generated password for the self-signed certificate
+   * keystore.
+   * @return a randomly generated password for the self-signed certificate
+   * keystore.
+   */
+  private String getSelfSignedCertificatePwd()
+  {
+    int pwdLength = 50;
+    char[] pwd = new char[pwdLength];
+    Random random = new Random();
+    for (int pos=0; pos < pwdLength; pos++) {
+        int type = getRandomInt(random,3);
+        char nextChar = getRandomChar(random,type);
+        pwd[pos] = nextChar;
+    }
+
+    String pwdString = new String(pwd);
+    return pwdString;
+  }
+
+  private void exportCertificate(CertificateManager certManager, String alias,
+      String path) throws CertificateEncodingException, IOException,
+      KeyStoreException
+  {
+    Certificate certificate = certManager.getCertificate(alias);
+
+    byte[] certificateBytes = certificate.getEncoded();
+
+    FileOutputStream outputStream = new FileOutputStream(path, false);
+    outputStream.write(certificateBytes);
+    outputStream.close();
+  }
+
+  /* The next two methods are used to generate the random password for the
+   * self-signed certificate. */
+  private char getRandomChar(Random random, int type)
+  {
+    char generatedChar;
+    int next = random.nextInt();
+    int d;
+
+    switch (type)
+    {
+    case 0:
+      // Will return a figure
+      d = next % 10;
+      if (d < 0)
+      {
+        d = d * (-1);
+      }
+      generatedChar = (char) (d+48);
+      break;
+    case 1:
+      // Will return a lower case letter
+      d = next % 26;
+      if (d < 0)
+      {
+        d = d * (-1);
+      }
+      generatedChar =  (char) (d + 97);
+      break;
+    default:
+      // Will return a capital letter
+      d = (next % 26);
+      if (d < 0)
+      {
+        d = d * (-1);
+      }
+      generatedChar = (char) (d + 65) ;
+    }
+
+    return generatedChar;
+  }
+
+  private static int getRandomInt(Random random,int modulo)
+  {
+    int value = 0;
+    value = (random.nextInt() & modulo);
+    return value;
+  }
 }

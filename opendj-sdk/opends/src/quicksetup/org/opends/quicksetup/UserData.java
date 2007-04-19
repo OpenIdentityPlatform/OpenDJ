@@ -40,6 +40,7 @@ public class UserData {
   private String directoryManagerDn;
   private String directoryManagerPwd;
   private DataOptions dataOptions;
+  private SecurityOptions securityOptions;
   private int serverJMXPort;
   private boolean startServer;
   private boolean stopServer;
@@ -63,6 +64,10 @@ public class UserData {
     setDirectoryManagerDn("cn=Directory Manager");
 
     setDataOptions(defaultDataOptions);
+    SecurityOptions sec = SecurityOptions.createNoCertificateOptions();
+    sec.setSslPort(getDefaultSslPort());
+    sec.setCertificateUserName(getDefaultSelfSignedName());
+    setSecurityOptions(sec);
   }
 
   /**
@@ -219,11 +224,34 @@ public class UserData {
   }
 
   /**
+   * Returns the SecurityOptions representing the SSL/StartTLS configuration
+   * chosen by the user.
+   * @return the SecurityOptions representing the SSL/StartTLS configuration
+   * chosen by the user.
+   */
+  public SecurityOptions getSecurityOptions()
+  {
+    return securityOptions;
+  }
+
+  /**
+   * Sets the SecurityOptions representing the SSL/StartTLS configuration
+   * chosen by the user.
+   * @param securityOptions the SecurityOptions representing the SSL/StartTLS
+   * configuration chosen by the user.
+   */
+  public void setSecurityOptions(SecurityOptions securityOptions)
+  {
+    this.securityOptions = securityOptions;
+  }
+
+  /**
    * Provides the port that will be proposed to the user in the second page of
-   * the installation wizard. It will check whether we can use 389 and if not it
-   * will return -1.
+   * the installation wizard. It will check whether we can use ports of type
+   * X389 and if not it will return -1.
    *
-   * @return the port 389 if it is available and we can use and -1 if not.
+   * @return the free port of type x389 if it is available and we can use and -1
+   * if not.
    */
   static public int getDefaultPort()
   {
@@ -241,18 +269,50 @@ public class UserData {
   }
 
   /**
+   * Provides the port that will be proposed to the user in the security dialog
+   *  of the installation wizard. It will check whether we can use ports of type
+   * X636 and if not it will return -1.
+   *
+   * @return the free port of type X636 if it is available and we can use and -1
+   * if not.
+   */
+  static int getDefaultSslPort()
+  {
+    int defaultPort = -1;
+
+    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
+    {
+      int port = i + 636;
+      if (Utils.canUseAsPort(port))
+      {
+        defaultPort = port;
+      }
+    }
+    return defaultPort;
+  }
+
+  /**
    * Provides the port that will be used by default for JMX.
    *
+   * @param forbiddenPorts an array of ports that we cannot use.
    * @return the port X689 if it is available and we can use and -1 if not.
    */
-  static public int getDefaultJMXPort()
+  static public int getDefaultJMXPort(int[] forbiddenPorts)
   {
     int defaultJMXPort = -1;
 
     for (int i=0;i<65000 && (defaultJMXPort == -1);i+=1000)
     {
       int port = i + SetupUtils.getDefaultJMXPort();
-      if (Utils.canUseAsPort(port))
+      boolean isForbidden = false;
+      if (forbiddenPorts != null)
+      {
+        for (int j=0; j<forbiddenPorts.length && !isForbidden; j++)
+        {
+          isForbidden = forbiddenPorts[j] == port;
+        }
+      }
+      if (!isForbidden && Utils.canUseAsPort(port))
       {
         defaultJMXPort = port;
       }
@@ -260,4 +320,20 @@ public class UserData {
     return defaultJMXPort;
   }
 
+  /**
+   * Provides the default name for the self signed certificate that will be
+   * created.
+   */
+  private String getDefaultSelfSignedName()
+  {
+    String name = "";
+    try
+    {
+      name = java.net.InetAddress.getLocalHost().getHostName();
+    }
+    catch (Throwable t)
+    {
+    }
+    return name;
+  }
 }

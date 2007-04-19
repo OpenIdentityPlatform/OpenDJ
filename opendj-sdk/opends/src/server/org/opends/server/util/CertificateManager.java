@@ -332,6 +332,7 @@ public class CertificateManager
       aliasList.add(aliasEnumeration.nextElement());
     }
 
+
     String[] aliases = new String[aliasList.size()];
     return aliasList.toArray(aliases);
   }
@@ -646,7 +647,6 @@ public class CertificateManager
   }
 
 
-
   /**
    * Removes the specified certificate from the key store.
    *
@@ -854,6 +854,19 @@ public class CertificateManager
     catch (Exception e)
     {
       throw new KeyStoreException(String.valueOf(e), e);
+    }
+    finally
+    {
+      if (keyStoreInputStream != null)
+      {
+        try
+        {
+          keyStoreInputStream.close();
+        }
+        catch (Throwable t)
+        {
+        }
+      }
     }
   }
 }

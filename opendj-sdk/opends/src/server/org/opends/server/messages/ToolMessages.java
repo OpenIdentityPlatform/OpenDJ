@@ -6796,6 +6796,139 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description of the
+   * ldapsPort argument.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIGDS_DESCRIPTION_LDAPS_PORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 858;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to update the LDAP secure port.  This takes a single argument,
+   * which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_CONFIGDS_CANNOT_UPDATE_LDAPS_PORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 859;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * enableStartTLS argument.  This does not take any arguments.
+   */
+  public static final int MSGID_CONFIGDS_DESCRIPTION_ENABLE_START_TLS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 860;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * Key Manager Provider DN argument for the connection handlers.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_CONFIGDS_DESCRIPTION_KEYMANAGER_PROVIDER_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 861;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * Trust Manager Provider DN argument for the connection handlers.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_CONFIGDS_DESCRIPTION_TRUSTMANAGER_PROVIDER_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 862;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to parse the DN provided for the key manager provider.  This
+   * takes two arguments, the dn valud provided by the user and a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_CONFIGDS_CANNOT_PARSE_KEYMANAGER_PROVIDER_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 863;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to parse the DN provided for the trust manager provider.  This
+   * takes two arguments, the dn valud provided by the user and a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_CONFIGDS_CANNOT_PARSE_TRUSTMANAGER_PROVIDER_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 864;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to enable StartTLS.  This takes a single argument,
+   * which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_CONFIGDS_CANNOT_ENABLE_STARTTLS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 865;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to enable the key manager provider.  This takes a single
+   * argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_CONFIGDS_CANNOT_ENABLE_KEYMANAGER =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 866;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to enable the trust manager provider.  This takes a single
+   * argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_CONFIGDS_CANNOT_ENABLE_TRUSTMANAGER =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 867;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to update the key manager provider DN in one of the connection
+   * handlers.  This takes a single argument, which is a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_CONFIGDS_CANNOT_UPDATE_KEYMANAGER_REFERENCE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 868;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to update the trust manager provider DN in one of the connection
+   * handlers.  This takes a single argument, which is a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_CONFIGDS_CANNOT_UPDATE_TRUSTMANAGER_REFERENCE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 869;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * Certificate Key Manager Path for the Key Manager Provider entry.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_CONFIGDS_DESCRIPTION_KEYMANAGER_PATH =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 870;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * Certificate Nick Name for the connection handlers.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_CONFIGDS_DESCRIPTION_CERTNICKNAME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 871;
+
+  /**
+   * The message ID for the message that will be used if the user provided a key
+   * manager provider path without providing a key manager provider DN.  This
+   * takes as argument the two argument names.
+   */
+  public static final int MSGID_CONFIGDS_KEYMANAGER_PROVIDER_DN_REQUIRED =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 872;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to update the certificate nickname in one of the connection
+   * handlers.  This takes a single argument, which is a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 873;
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7970,9 +8103,58 @@ public class ToolMessages
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_LDAP_PORT,
                     "Specifies the port on which the Directory Server should " +
                     "listen for LDAP communication.");
+    registerMessage(MSGID_CONFIGDS_DESCRIPTION_LDAPS_PORT,
+                    "Specifies the port on which the Directory Server should " +
+                    "listen for LDAPS communication.");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_JMX_PORT,
                     "Specifies the port on which the Directory Server should " +
                     "listen for JMX communication.");
+    registerMessage(MSGID_CONFIGDS_DESCRIPTION_ENABLE_START_TLS,
+                    "Specifies whether to enable or not StartTLS.");
+    registerMessage(MSGID_CONFIGDS_DESCRIPTION_KEYMANAGER_PROVIDER_DN,
+                    "Specifies the DN of the key manager provider to use " +
+                    "for SSL and/or StartTLS.");
+    registerMessage(MSGID_CONFIGDS_DESCRIPTION_TRUSTMANAGER_PROVIDER_DN,
+                    "Specifies the DN of the trust manager provider to use " +
+                    "for SSL and/or StartTLS.");
+    registerMessage(MSGID_CONFIGDS_DESCRIPTION_KEYMANAGER_PATH,
+                    "Specifies the path of the keystore to be used by the " +
+                    "key manager provider.");
+    registerMessage(MSGID_CONFIGDS_DESCRIPTION_CERTNICKNAME,
+                    "Specifies the nickname of the certificate that the " +
+                    "connection handler should use when accepting SSL-based " +
+                    "connections or performing StartTLS negotiation.");
+    registerMessage(MSGID_CONFIGDS_CANNOT_PARSE_KEYMANAGER_PROVIDER_DN,
+                    "An error occurred while attempting to parse key manager " +
+                    "provider DN value \"%s\" as a DN:  %s.");
+    registerMessage(MSGID_CONFIGDS_CANNOT_PARSE_TRUSTMANAGER_PROVIDER_DN,
+                    "An error occurred while attempting to parse trust " +
+                    "manager provider DN value \"%s\" as a DN:  %s.");
+    registerMessage(MSGID_CONFIGDS_CANNOT_ENABLE_STARTTLS,
+                    "An error occurred while attempting to enable StartTLS: " +
+                    "%s.");
+    registerMessage(MSGID_CONFIGDS_CANNOT_ENABLE_KEYMANAGER,
+                    "An error occurred while attempting to enable key " +
+                    "manager provider entry: %s.");
+    registerMessage(MSGID_CONFIGDS_CANNOT_ENABLE_TRUSTMANAGER,
+                    "An error occurred while attempting to enable trust " +
+                    "manager provider entry: %s.");
+    registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_KEYMANAGER_REFERENCE,
+                    "An error occurred while attempting to update the key " +
+                    "manager provider DN used for LDAPS communication: " +
+                    "%s.");
+    registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_TRUSTMANAGER_REFERENCE,
+                    "An error occurred while attempting to update the trust " +
+                    "manager provider DN used for LDAPS communication: " +
+                    "%s.");
+    registerMessage(MSGID_CONFIGDS_KEYMANAGER_PROVIDER_DN_REQUIRED,
+                    "ERROR:  You must provide the %s argument when providing " +
+                    "the %s argument.");
+    registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME,
+                    "An error occurred while attempting to update the " +
+                    "nickname of the certificate that the " +
+                    "connection handler should use when accepting SSL-based " +
+                    "connections or performing StartTLS negotiation: %s.");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_BASE_DN,
                     "Specifies the base DN for user information in the " +
                     "Directory Server.  Multiple base DNs may be provided " +
@@ -8018,6 +8200,9 @@ public class ToolMessages
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_LDAP_PORT,
                     "An error occurred while attempting to update the port " +
                     "on which to listen for LDAP communication:  %s.");
+    registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_LDAPS_PORT,
+                    "An error occurred while attempting to update the port " +
+                    "on which to listen for LDAPS communication:  %s.");
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_JMX_PORT,
                     "An error occurred while attempting to update the port " +
                     "on which to listen for JMX communication:  %s.");
