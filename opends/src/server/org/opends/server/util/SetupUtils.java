@@ -203,7 +203,15 @@ public class SetupUtils
     }
 
 
-    File binDirectory = new File(serverRoot, "bin");
+    File binDirectory;
+    if (isWindows())
+    {
+      binDirectory = new File(serverRoot, "bat");
+    }
+    else
+    {
+      binDirectory = new File(serverRoot, "bin");
+    }
     File setJavaHomeFile;
     if (isWindows())
     {
