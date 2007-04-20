@@ -31,24 +31,19 @@ package org.opends.server.backends.task;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.Backend;
-import org.opends.server.api.ConfigurableComponent;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.IntegerWithUnitConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.BackupConfig;
@@ -70,9 +65,11 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.util.Validator;
+import org.opends.server.admin.std.server.TaskBackendCfg;
+import org.opends.server.admin.std.meta.TaskBackendCfgDefn;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 
 
 /**
@@ -82,16 +79,10 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class TaskBackend
        extends Backend
-       implements ConfigurableComponent
+       implements ConfigurationChangeListener<TaskBackendCfg>
 {
-  /**
-   * The set of time units that will be used for expressing the task retention
-   * time.
-   */
-  private static final LinkedHashMap<String,Double> timeUnits =
-       new LinkedHashMap<String,Double>();
-
-
+  // The current configuration state.
+  private TaskBackendCfg currentConfig;
 
   // The DN of the configuration entry for this backend.
   private DN configEntryDN;
@@ -129,22 +120,6 @@ public class TaskBackend
 
 
 
-  static
-  {
-    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1D);
-    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1D);
-    timeUnits.put(TIME_UNIT_MINUTES_ABBR, 60D);
-    timeUnits.put(TIME_UNIT_MINUTES_FULL, 60D);
-    timeUnits.put(TIME_UNIT_HOURS_ABBR, (double) (60 * 60));
-    timeUnits.put(TIME_UNIT_HOURS_FULL, (double) (60 * 60));
-    timeUnits.put(TIME_UNIT_DAYS_ABBR, (double) (60 * 60 * 24));
-    timeUnits.put(TIME_UNIT_DAYS_FULL, (double) (60 * 60 * 24));
-    timeUnits.put(TIME_UNIT_WEEKS_ABBR, (double) (60 * 60 * 24 * 7));
-    timeUnits.put(TIME_UNIT_WEEKS_FULL, (double) (60 * 60 * 24 * 7));
-  }
-
-
-
   /**
    * Creates a new backend with the provided information.  All backend
    * implementations must implement a default constructor that use
@@ -158,36 +133,16 @@ public class TaskBackend
   }
 
 
-
   /**
-   * Initializes this backend based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this backend.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
   {
-    // Make sure that a configuration entry was provided.  If not, then we will
-    // not be able to complete the initialization.
-    if (configEntry == null)
-    {
-      int    msgID   = MSGID_TASKBE_CONFIG_ENTRY_NULL;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
-    }
+    Validator.ensureNotNull(configEntry);
+    TaskBackendCfg cfg = getTaskBackendCfg(configEntry);
 
-    configEntryDN = configEntry.getDN();
+    configEntryDN = cfg.dn();
 
 
     // Make sure that the provided set of base DNs contains exactly one value.
@@ -256,68 +211,11 @@ public class TaskBackend
 
     // Get the retention time that will be used to determine how long task
     // information stays around once the associated task is completed.
-    int msgID = MSGID_TASKBE_DESCRIPTION_RETENTION_TIME;
-    IntegerWithUnitConfigAttribute retentionStub =
-         new IntegerWithUnitConfigAttribute(ATTR_TASK_RETENTION_TIME,
-                                            getMessage(msgID), false, timeUnits,
-                                            true, 0, false, 0);
-    try
-    {
-      IntegerWithUnitConfigAttribute retentionAttr =
-           (IntegerWithUnitConfigAttribute)
-           configEntry.getConfigAttribute(retentionStub);
-      if (retentionAttr == null)
-      {
-        retentionTime = DEFAULT_TASK_RETENTION_TIME;
-      }
-      else
-      {
-        retentionTime = retentionAttr.activeCalculatedValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_TASKBE_CANNOT_INITIALIZE_RETENTION_TIME;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
-    }
+    retentionTime = cfg.getTaskRetentionTime();
 
 
     // Get the path to the task data backing file.
-    msgID = MSGID_TASKBE_DESCRIPTION_BACKING_FILE;
-    StringConfigAttribute taskFileStub =
-         new StringConfigAttribute(ATTR_TASK_BACKING_FILE, getMessage(msgID),
-                                   true, false, false);
-    try
-    {
-      StringConfigAttribute taskFileAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(taskFileStub);
-      if (taskFileAttr == null)
-      {
-        taskBackingFile = DirectoryServer.getServerRoot() + File.separator +
-                          CONFIG_DIR_NAME + File.separator + TASK_FILE_NAME;
-      }
-      else
-      {
-        taskBackingFile = taskFileAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_TASKBE_CANNOT_INITIALIZE_BACKING_FILE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
-    }
+    taskBackingFile = cfg.getTaskBackingFile();
 
 
     // Create the scheduler and initialize it from the backing file.
@@ -331,7 +229,8 @@ public class TaskBackend
 
 
     // Register with the Directory Server as a configurable component.
-    DirectoryServer.registerConfigurableComponent(this);
+    currentConfig = cfg;
+    cfg.addTaskChangeListener(this);
 
 
     // Register the task base as a private suffix.
@@ -346,7 +245,7 @@ public class TaskBackend
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
+      int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
       String message = getMessage(msgID, taskRootDN.toString(),
                                   stackTraceToSingleLineString(e));
       throw new InitializationException(msgID, message, e);
@@ -368,7 +267,7 @@ public class TaskBackend
    */
   public void finalizeBackend()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig.removeTaskChangeListener(this);
 
 
     try
@@ -1029,17 +928,7 @@ public class TaskBackend
 
 
   /**
-   * Exports the contents of this backend to LDIF.  This method should only be
-   * called if <CODE>supportsLDIFExport</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  exportConfig  The configuration to use when performing the export.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              export.
+   * {@inheritDoc}
    */
   public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
                          LDIFExportConfig exportConfig)
@@ -1066,17 +955,7 @@ public class TaskBackend
 
 
   /**
-   * Imports information from an LDIF file into this backend.  This method
-   * should only be called if <CODE>supportsLDIFImport</CODE> returns
-   * <CODE>true</CODE>.  Note that the server will not explicitly initialize
-   * this backend before calling this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  importConfig  The configuration to use when performing the import.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              import.
+   * {@inheritDoc}
    */
   public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
                          LDIFImportConfig importConfig)
@@ -1135,17 +1014,7 @@ public class TaskBackend
 
 
   /**
-   * Creates a backup of the contents of this backend in a form that may be
-   * restored at a later date if necessary.  This method should only be called
-   * if <CODE>supportsBackup</CODE> returns <CODE>true</CODE>.  Note that the
-   * server will not explicitly initialize this backend before calling this
-   * method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  backupConfig  The configuration to use when performing the backup.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              backup.
+   * {@inheritDoc}
    */
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
@@ -1191,17 +1060,7 @@ public class TaskBackend
 
 
   /**
-   * Restores a backup of the contents of this backend.  This method should only
-   * be called if <CODE>supportsRestore</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry    The configuration entry for this backend.
-   * @param  restoreConfig  The configuration to use when performing the
-   *                        restore.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              restore.
+   * {@inheritDoc}
    */
   public void restoreBackup(ConfigEntry configEntry,
                             RestoreConfig restoreConfig)
@@ -1213,116 +1072,48 @@ public class TaskBackend
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
-  {
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-    String description = getMessage(MSGID_TASKBE_DESCRIPTION_BACKING_FILE);
-    attrList.add(new StringConfigAttribute(ATTR_TASK_BACKING_FILE, description,
-                                           true, false, false,
-                                           taskBackingFile));
-
-    description = getMessage(MSGID_TASKBE_DESCRIPTION_RETENTION_TIME);
-    attrList.add(new IntegerWithUnitConfigAttribute(ATTR_TASK_RETENTION_TIME,
-                                                    description, false,
-                                                    timeUnits, true, 0, false,
-                                                    0, retentionTime,
-                                                    TIME_UNIT_SECONDS_FULL));
-
-    return attrList;
-  }
-
-
-
-  /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
+  public boolean isConfigurationChangeAcceptable(TaskBackendCfg configEntry,
                                             List<String> unacceptableReasons)
   {
     boolean configIsAcceptable = true;
 
 
-    String description = getMessage(MSGID_TASKBE_DESCRIPTION_BACKING_FILE);
-    StringConfigAttribute backingStub =
-         new StringConfigAttribute(ATTR_TASK_BACKING_FILE, description, true,
-                                   false, false);
     try
     {
-      StringConfigAttribute backingAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(backingStub);
-      if (backingAttr == null)
+      String tmpBackingFile = configEntry.getTaskBackingFile();
+      if (! taskBackingFile.equals(tmpBackingFile))
       {
-        int msgID = MSGID_TASKBE_NO_BACKING_FILE;
-        unacceptableReasons.add(getMessage(msgID, ATTR_TASK_BACKING_FILE));
-        configIsAcceptable = false;
-      }
-      else
-      {
-        String tmpBackingFile = backingAttr.pendingValue();
-        if (! taskBackingFile.equals(tmpBackingFile))
+        File f = getFileForPath(tmpBackingFile);
+        if (f.exists())
         {
-          File f = getFileForPath(tmpBackingFile);
-          if (f.exists())
+          int msgID = MSGID_TASKBE_BACKING_FILE_EXISTS;
+          unacceptableReasons.add(getMessage(msgID, tmpBackingFile));
+          configIsAcceptable = false;
+        }
+        else
+        {
+          File p = f.getParentFile();
+          if (p == null)
           {
-            int msgID = MSGID_TASKBE_BACKING_FILE_EXISTS;
+            int msgID = MSGID_TASKBE_INVALID_BACKING_FILE_PATH;
             unacceptableReasons.add(getMessage(msgID, tmpBackingFile));
             configIsAcceptable = false;
           }
-          else
+          else if (! p.exists())
           {
-            File p = f.getParentFile();
-            if (p == null)
-            {
-              int msgID = MSGID_TASKBE_INVALID_BACKING_FILE_PATH;
-              unacceptableReasons.add(getMessage(msgID, tmpBackingFile));
-              configIsAcceptable = false;
-            }
-            else if (! p.exists())
-            {
-              int msgID = MSGID_TASKBE_BACKING_FILE_MISSING_PARENT;
-              unacceptableReasons.add(getMessage(msgID, p.getPath(),
-                                                 tmpBackingFile));
-              configIsAcceptable = false;
-            }
-            else if (! p.isDirectory())
-            {
-              int msgID = MSGID_TASKBE_BACKING_FILE_PARENT_NOT_DIRECTORY;
-              unacceptableReasons.add(getMessage(msgID, p.getPath(),
-                                                 tmpBackingFile));
-              configIsAcceptable = false;
-            }
+            int msgID = MSGID_TASKBE_BACKING_FILE_MISSING_PARENT;
+            unacceptableReasons.add(getMessage(msgID, p.getPath(),
+                                               tmpBackingFile));
+            configIsAcceptable = false;
+          }
+          else if (! p.isDirectory())
+          {
+            int msgID = MSGID_TASKBE_BACKING_FILE_PARENT_NOT_DIRECTORY;
+            unacceptableReasons.add(getMessage(msgID, p.getPath(),
+                                               tmpBackingFile));
+            configIsAcceptable = false;
           }
         }
       }
@@ -1342,36 +1133,6 @@ public class TaskBackend
     }
 
 
-    description = getMessage(MSGID_TASKBE_DESCRIPTION_RETENTION_TIME);
-    IntegerWithUnitConfigAttribute retentionStub =
-         new IntegerWithUnitConfigAttribute(ATTR_TASK_RETENTION_TIME,
-                                            description, false, timeUnits,
-                                            true, 0, false, 0);
-    try
-    {
-      IntegerWithUnitConfigAttribute retentionAttr =
-           (IntegerWithUnitConfigAttribute)
-           configEntry.getConfigAttribute(retentionStub);
-      if (retentionAttr == null)
-      {
-        int msgID = MSGID_TASKBE_NO_RETENTION_TIME;
-        unacceptableReasons.add(getMessage(msgID, ATTR_TASK_RETENTION_TIME));
-        configIsAcceptable = false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_TASKBE_ERROR_GETTING_RETENTION_TIME;
-      unacceptableReasons.add(getMessage(msgID, ATTR_TASK_RETENTION_TIME,
-                                         stackTraceToSingleLineString(e)));
-
-      configIsAcceptable = false;
-    }
 
 
     return configIsAcceptable;
@@ -1380,23 +1141,9 @@ public class TaskBackend
 
 
   /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange(TaskBackendCfg configEntry)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -1404,23 +1151,10 @@ public class TaskBackend
 
 
     String tmpBackingFile = taskBackingFile;
-    String description = getMessage(MSGID_TASKBE_DESCRIPTION_BACKING_FILE);
-    StringConfigAttribute backingStub =
-         new StringConfigAttribute(ATTR_TASK_BACKING_FILE, description, true,
-                                   false, false);
     try
     {
-      StringConfigAttribute backingAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(backingStub);
-      if (backingAttr == null)
       {
-        int msgID = MSGID_TASKBE_NO_BACKING_FILE;
-        messages.add(getMessage(msgID, ATTR_TASK_BACKING_FILE));
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-      }
-      else
-      {
-        tmpBackingFile = backingAttr.pendingValue();
+        tmpBackingFile = configEntry.getTaskBackingFile();
         if (! taskBackingFile.equals(tmpBackingFile))
         {
           File f = getFileForPath(tmpBackingFile);
@@ -1470,48 +1204,7 @@ public class TaskBackend
     }
 
 
-    long tmpRetentionTime = retentionTime;
-    description = getMessage(MSGID_TASKBE_DESCRIPTION_RETENTION_TIME);
-    IntegerWithUnitConfigAttribute retentionStub =
-         new IntegerWithUnitConfigAttribute(ATTR_TASK_RETENTION_TIME,
-                                            description, false, timeUnits,
-                                            true, 0, false, 0);
-    try
-    {
-      IntegerWithUnitConfigAttribute retentionAttr =
-           (IntegerWithUnitConfigAttribute)
-           configEntry.getConfigAttribute(retentionStub);
-      if (retentionAttr == null)
-      {
-        int msgID = MSGID_TASKBE_NO_RETENTION_TIME;
-        messages.add(getMessage(msgID, ATTR_TASK_RETENTION_TIME));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-        }
-      }
-      else
-      {
-        tmpRetentionTime = retentionAttr.activeCalculatedValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_TASKBE_ERROR_GETTING_RETENTION_TIME;
-      messages.add(getMessage(msgID, ATTR_TASK_RETENTION_TIME,
-                              stackTraceToSingleLineString(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-    }
+    long tmpRetentionTime = configEntry.getTaskRetentionTime();
 
 
     if (resultCode == ResultCode.SUCCESS)
@@ -1537,6 +1230,7 @@ public class TaskBackend
     }
 
 
+    currentConfig = configEntry;
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
@@ -1652,6 +1346,14 @@ public class TaskBackend
   public RecurringTask getRecurringTask(DN taskEntryDN)
   {
     return taskScheduler.getRecurringTask(taskEntryDN);
+  }
+
+
+
+  private static TaskBackendCfg getTaskBackendCfg(ConfigEntry configEntry)
+      throws ConfigException {
+    return BackendConfigManager.getConfiguration(
+         TaskBackendCfgDefn.getInstance(), configEntry);
   }
 }
 

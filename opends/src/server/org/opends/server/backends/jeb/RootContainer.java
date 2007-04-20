@@ -42,6 +42,8 @@ import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.FilePermission;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
@@ -57,7 +59,12 @@ import static org.opends.server.messages.JebMessages.
     MSGID_JEB_CLEAN_DATABASE_FINISH;
 import static org.opends.server.messages.JebMessages.
     MSGID_JEB_SET_PERMISSIONS_FAILED;
+import static org.opends.server.messages.JebMessages.
+     MSGID_JEB_CONFIG_ATTR_REQUIRES_RESTART;
 import org.opends.server.api.Backend;
+import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.core.DirectoryServer;
 
 /**
  * Wrapper class for the JE environment. Root container holds all the entry
@@ -65,6 +72,7 @@ import org.opends.server.api.Backend;
  * of the entry containers.
  */
 public class RootContainer
+     implements ConfigurationChangeListener<JEBackendCfg>
 {
 
   /**
@@ -88,12 +96,6 @@ public class RootContainer
   private DatabaseEnvironmentMonitor monitor;
 
   /**
-   * A configurable component to handle changes to the configuration of
-   * the database environment.
-   */
-  private ConfigurableEnvironment configurableEnv;
-
-  /**
    * The base DNs contained in this entryContainer.
    */
   private ConcurrentHashMap<DN, EntryContainer> entryContainers;
@@ -114,7 +116,6 @@ public class RootContainer
   public RootContainer(Config config, Backend backend)
   {
     this.env = null;
-    this.configurableEnv = null;
     this.monitor = null;
     this.entryContainers = new ConcurrentHashMap<DN, EntryContainer>();
     this.backend = backend;
@@ -288,7 +289,7 @@ public class RootContainer
    */
   public void openEntryContainers(DN[] baseDNs) throws DatabaseException
   {
-    EntryID id = null;
+    EntryID id;
     EntryID highestID = null;
     for(DN baseDN : baseDNs)
     {
@@ -328,26 +329,6 @@ public class RootContainer
     getEntryContainer(baseDN).close();
     getEntryContainer(baseDN).removeContainer();
     entryContainers.remove(baseDN);
-  }
-
-  /**
-   * Get the ConfigurableEnvironment object for JE environment used by this
-   * root container.
-   *
-   * @return The ConfigurableEnvironment object.
-   */
-  public ConfigurableEnvironment getConfigurableEnvironment()
-  {
-    if(configurableEnv == null)
-    {
-      DN envConfigDN = config.getEnvConfigDN();
-      if (envConfigDN != null)
-      {
-        configurableEnv = new ConfigurableEnvironment(envConfigDN, env);
-      }
-    }
-
-    return configurableEnv;
   }
 
   /**
@@ -559,77 +540,6 @@ public class RootContainer
   }
 
   /**
-   * Apply new configuration to the JE environment.
-   *
-   * @param newConfig The new configuration to apply.
-   * @throws DatabaseException If an error occurs while applying the new
-   *                           configuration.
-   */
-  public void applyNewConfig(Config newConfig) throws DatabaseException
-  {
-    // Check for changes to the database directory permissions
-    FilePermission oldPermission = config.getBackendPermission();
-    FilePermission newPermission = newConfig.getBackendPermission();
-
-    if(FilePermission.canSetPermissions() &&
-        !FilePermission.toUNIXMode(oldPermission).equals(
-        FilePermission.toUNIXMode(newPermission)))
-    {
-      try
-      {
-        if(!FilePermission.setPermissions(newConfig.getBackendDirectory(),
-                                          newPermission))
-        {
-          throw new Exception();
-        }
-      }
-      catch(Exception e)
-      {
-        // Log an warning that the permissions were not set.
-        int msgID = MSGID_JEB_SET_PERMISSIONS_FAILED;
-        String message = getMessage(msgID,
-                                    config.getBackendDirectory().getPath());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-                 message, msgID);
-      }
-    }
-
-    // Check if any JE non-mutable properties were changed.
-    EnvironmentConfig oldEnvConfig = this.config.getEnvironmentConfig();
-    EnvironmentConfig newEnvConfig = newConfig.getEnvironmentConfig();
-    Map paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
-    for (Object o : paramsMap.values())
-    {
-      ConfigParam param = (ConfigParam)o;
-      if (!param.isMutable())
-      {
-        String oldValue = oldEnvConfig.getConfigParam(param.getName());
-        String newValue = newEnvConfig.getConfigParam(param.getName());
-        if (!oldValue.equalsIgnoreCase(newValue))
-        {
-          if(debugEnabled())
-          {
-            debugInfo("The change to the following property will " +
-                      "take effect when the backend is restarted: " +
-                      param.getName());
-          }
-        }
-      }
-    }
-
-    // This takes care of changes to the JE environment for those
-    // properties that are mutable at runtime.
-    env.setMutableConfig(newConfig.getEnvironmentConfig());
-
-    config = newConfig;
-
-    if (debugEnabled())
-    {
-      debugInfo(env.getConfig().toString());
-    }
-  }
-
-  /**
    * Get the environment stats of the JE environment used in this root
    * container.
    *
@@ -704,5 +614,100 @@ public class RootContainer
   public Long getHighestEntryID()
   {
     return (nextid.get() - 1);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+       JEBackendCfg cfg,
+       List<String> unacceptableReasons)
+  {
+    boolean acceptable = true;
+
+    // This listener handles only the changes to JE properties.
+
+    try
+    {
+      ConfigurableEnvironment.parseConfigEntry(cfg);
+    }
+    catch (Exception e)
+    {
+      unacceptableReasons.add(e.getMessage());
+      acceptable = false;
+    }
+
+    return acceptable;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(JEBackendCfg cfg)
+  {
+    ConfigChangeResult ccr;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    try
+    {
+      // Check if any JE non-mutable properties were changed.
+      EnvironmentConfig oldEnvConfig = env.getConfig();
+      EnvironmentConfig newEnvConfig =
+           ConfigurableEnvironment.parseConfigEntry(cfg);
+      Map paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
+      for (Object o : paramsMap.values())
+      {
+        ConfigParam param = (ConfigParam) o;
+        if (!param.isMutable())
+        {
+          String oldValue = oldEnvConfig.getConfigParam(param.getName());
+          String newValue = newEnvConfig.getConfigParam(param.getName());
+          if (!oldValue.equalsIgnoreCase(newValue))
+          {
+            adminActionRequired = true;
+            String configAttr = ConfigurableEnvironment.
+                 getAttributeForProperty(param.getName());
+            if (configAttr != null)
+            {
+              int msgID = MSGID_JEB_CONFIG_ATTR_REQUIRES_RESTART;
+              messages.add(getMessage(msgID, configAttr));
+            }
+            if(debugEnabled())
+            {
+              debugInfo("The change to the following property will " +
+                        "take effect when the backend is restarted: " +
+                        param.getName());
+            }
+          }
+        }
+      }
+
+      // This takes care of changes to the JE environment for those
+      // properties that are mutable at runtime.
+      env.setMutableConfig(newEnvConfig);
+
+      if (debugEnabled())
+      {
+        debugInfo(env.getConfig().toString());
+      }
+    }
+    catch (Exception e)
+    {
+      messages.add(e.getMessage());
+      ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+                                   adminActionRequired,
+                                   messages);
+      return ccr;
+    }
+
+
+    ccr = new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
+                                 messages);
+    return ccr;
   }
 }

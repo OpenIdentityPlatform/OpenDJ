@@ -31,42 +31,38 @@ package org.opends.server.core;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.api.ConfigurableComponent;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.DNConfigAttribute;
-import org.opends.server.config.MultiChoiceConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.WritabilityMode;
+import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigConstants;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.Error.*;
+import org.opends.server.types.*;
+import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.server.ServerManagedObject;
+import org.opends.server.admin.server.ConfigExceptionFactory;
+import org.opends.server.admin.server.ServerManagedObjectDecodingException;
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.meta.BackendCfgDefn;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.ManagedObjectPath;
+import org.opends.server.admin.DefinitionDecodingException;
 
 
 /**
@@ -76,8 +72,10 @@ import static org.opends.server.util.StaticUtils.*;
  * started, and then will manage any changes to them while the server is
  * running.
  */
-public class BackendConfigManager
-       implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
+public class BackendConfigManager implements
+     ConfigurationChangeListener<BackendCfg>,
+     ConfigurationAddListener<BackendCfg>,
+     ConfigurationDeleteListener<BackendCfg>
 {
 
 
@@ -85,9 +83,6 @@ public class BackendConfigManager
   // The mapping between configuration entry DNs and their corresponding
   // backend implementations.
   private ConcurrentHashMap<DN,Backend> registeredBackends;
-
-  // The DN of the associated configuration entry.
-  private DN configEntryDN;
 
 
 
@@ -118,13 +113,21 @@ public class BackendConfigManager
     registeredBackends = new ConcurrentHashMap<DN,Backend>();
 
 
+    // Create an internal server management context and retrieve
+    // the root configuration.
+    ServerManagementContext context = ServerManagementContext.getInstance();
+    RootCfg root = context.getRootConfiguration();
+
+    // Register add and delete listeners.
+    root.addBackendAddListener(this);
+    root.addBackendDeleteListener(this);
 
     // Get the configuration entry that is at the root of all the backends in
     // the server.
     ConfigEntry backendRoot;
     try
     {
-      configEntryDN = DN.decode(DN_BACKEND_BASE);
+      DN configEntryDN = DN.decode(ConfigConstants.DN_BACKEND_BASE);
       backendRoot   = DirectoryServer.getConfigEntry(configEntryDN);
     }
     catch (Exception e)
@@ -137,6 +140,7 @@ public class BackendConfigManager
       int    msgID   = MSGID_CONFIG_BACKEND_CANNOT_GET_CONFIG_BASE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
       throw new ConfigException(msgID, message, e);
+
     }
 
 
@@ -151,701 +155,313 @@ public class BackendConfigManager
     }
 
 
-    // Register as an add and delete listener for the base entry so that we can
-    // be notified if new backends are added or existing backends are removed.
-    backendRoot.registerAddListener(this);
-    backendRoot.registerDeleteListener(this);
-
-
-    // Iterate through the set of immediate children below the backend config
-    // root.
-    for (ConfigEntry backendEntry : backendRoot.getChildren().values())
+    // Initialize existing backends.
+    for (String name : root.listBackends())
     {
-      DN backendDN = backendEntry.getDN();
+      // Get the handler's configuration.
+      // This will decode and validate its properties.
+      BackendCfg backendCfg = root.getBackend(name);
 
+      DN backendDN = backendCfg.dn();
+      String backendID = backendCfg.getBackendId();
 
-      // Register as a change listener for this backend entry so that we will
-      // be notified of any changes that may be made to it.
-      backendEntry.registerChangeListener(this);
+      // Register as a change listener for this backend so that we can be
+      // notified when it is disabled or enabled.
+      backendCfg.addChangeListener(this);
 
-
-      // Check to see if this entry appears to contain a backend configuration.
-      // If not, log a warning and skip it.
-      try
+      // Ignore this handler if it is disabled.
+      if (backendCfg.isBackendEnabled())
       {
-        SearchFilter backendFilter =
-             SearchFilter.createFilterFromString("(objectClass=" + OC_BACKEND +
-                                                 ")");
-        if (! backendFilter.matchesEntry(backendEntry.getEntry()))
+        // If there is already a backend registered with the specified ID,
+        // then log an error and skip it.
+        if (DirectoryServer.hasBackend(backendCfg.getBackendId()))
         {
-          int msgID = MSGID_CONFIG_BACKEND_ENTRY_DOES_NOT_HAVE_BACKEND_CONFIG;
-          String message = getMessage(msgID, String.valueOf(backendDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          continue;
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
-        String message = getMessage(msgID, String.valueOf(backendDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // See if the entry contains an attribute that indicates whether the
-      // backend should be enabled.  If it does not, or if it is not set to
-      // "true", then skip it.
-      int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_ENABLED;
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_BACKEND_ENABLED, getMessage(msgID),
-                                      false);
-      try
-      {
-        BooleanConfigAttribute enabledAttr =
-             (BooleanConfigAttribute)
-             backendEntry.getConfigAttribute(enabledStub);
-        if (enabledAttr == null)
-        {
-          // The attribute is not present, so this backend will be disabled.
-          // Log a message and continue.
-          msgID = MSGID_CONFIG_BACKEND_NO_ENABLED_ATTR;
-          String message = getMessage(msgID, String.valueOf(backendDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          continue;
-        }
-        else if (! enabledAttr.activeValue())
-        {
-          // The backend is explicitly disabled.  Log a mild warning and
-          // continue.
-          msgID = MSGID_CONFIG_BACKEND_DISABLED;
-          String message = getMessage(msgID, String.valueOf(backendDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.INFORMATIONAL, message, msgID);
-          continue;
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
-        String message = getMessage(msgID, String.valueOf(backendDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // See if the entry contains an attribute that specifies the backend ID.
-      // If it does not, then log an error and skip it.
-      msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
-      String backendID = null;
-      StringConfigAttribute idStub =
-           new StringConfigAttribute(ATTR_BACKEND_ID, getMessage(msgID),
-                                     true, false, true);
-      try
-      {
-        StringConfigAttribute idAttr =
-             (StringConfigAttribute) backendEntry.getConfigAttribute(idStub);
-        if (idAttr == null)
-        {
-          msgID = MSGID_CONFIG_BACKEND_NO_BACKEND_ID;
-          String message = getMessage(msgID, String.valueOf(backendDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          continue;
-        }
-        else
-        {
-          backendID = idAttr.activeValue();
-
-          // If there is already a backend registered with the specified ID,
-          // then log an error and skip it.
-          if (DirectoryServer.hasBackend(backendID))
-          {
-            msgID = MSGID_CONFIG_BACKEND_DUPLICATE_BACKEND_ID;
-            String message = getMessage(msgID, backendID,
-                                        String.valueOf(backendDN));
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-            continue;
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(backendDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // Get the writability mode for this backend.  It must be provided.
-      LinkedHashSet<String> writabilityModes = new LinkedHashSet<String>(3);
-      writabilityModes.add(WritabilityMode.ENABLED.toString());
-      writabilityModes.add(WritabilityMode.DISABLED.toString());
-      writabilityModes.add(WritabilityMode.INTERNAL_ONLY.toString());
-
-      msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_WRITABILITY;
-      WritabilityMode writabilityMode = null;
-      MultiChoiceConfigAttribute writabilityStub =
-           new MultiChoiceConfigAttribute(ATTR_BACKEND_WRITABILITY_MODE,
-                                          getMessage(msgID), true, false, false,
-                                          writabilityModes);
-      try
-      {
-        MultiChoiceConfigAttribute writabilityAttr =
-             (MultiChoiceConfigAttribute)
-             backendEntry.getConfigAttribute(writabilityStub);
-        if (writabilityAttr == null)
-        {
-          msgID = MSGID_CONFIG_BACKEND_NO_WRITABILITY_MODE;
-          String message = getMessage(msgID, String.valueOf(backendDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-          continue;
-        }
-        else
-        {
-          writabilityMode =
-               WritabilityMode.modeForName(writabilityAttr.activeValue());
-          if (writabilityMode == null)
-          {
-            msgID = MSGID_CONFIG_BACKEND_INVALID_WRITABILITY_MODE;
-            String message =
-                 getMessage(msgID, String.valueOf(backendDN),
-                            String.valueOf(writabilityAttr.activeValue()));
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-            continue;
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_WRITABILITY;
-        String message = getMessage(msgID, String.valueOf(backendDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // See if the entry contains an attribute that specifies the base DNs for
-      // the backend.  If it does not, then log an error and skip it.
-      msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
-      DN[] baseDNs = null;
-      DNConfigAttribute baseDNStub =
-           new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID),
-                                 true, true, true);
-      try
-      {
-        DNConfigAttribute baseDNAttr =
-             (DNConfigAttribute) backendEntry.getConfigAttribute(baseDNStub);
-        if (baseDNAttr == null)
-        {
-          msgID = MSGID_CONFIG_BACKEND_NO_BASE_DNS;
-          String message = getMessage(msgID, String.valueOf(backendDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-          continue;
-        }
-        else
-        {
-          List<DN> dnList = baseDNAttr.activeValues();
-          baseDNs = new DN[dnList.size()];
-          dnList.toArray(baseDNs);
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BASE_DNS;
-        String message = getMessage(msgID, String.valueOf(backendDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // See if the entry contains an attribute that specifies the class name
-      // for the backend implementation.  If it does, then load it and make sure
-      // that it's a valid backend implementation.  There is no such attribute,
-      // the specified class cannot be loaded, or it does not contain a valid
-      // backend implementation, then log an error and skip it.
-      String className;
-      msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS;
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_BACKEND_CLASS, getMessage(msgID),
-                                     true, false, true);
-      try
-      {
-        StringConfigAttribute classAttr =
-             (StringConfigAttribute) backendEntry.getConfigAttribute(classStub);
-        if (classAttr == null)
-        {
-          msgID = MSGID_CONFIG_BACKEND_NO_CLASS_ATTR;
-          String message = getMessage(msgID, String.valueOf(backendDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-          continue;
-        }
-        else
-        {
-          className = classAttr.activeValue();
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_BACKEND_CANNOT_GET_CLASS;
-        String message = getMessage(msgID, String.valueOf(backendDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-      Backend backend;
-      try
-      {
-        Class backendClass = DirectoryServer.loadClass(className);
-        backend = (Backend) backendClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
-        String message = getMessage(msgID, String.valueOf(className),
-                                    String.valueOf(backendDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // If this backend is a configuration manager, then we don't want to do
-      // any more with it because the configuration will have already been
-      // started.
-      if (backend instanceof ConfigHandler)
-      {
-        continue;
-      }
-
-
-      // Set the backend ID and writability mode for this backend.
-      backend.setBackendID(backendID);
-      backend.setWritabilityMode(writabilityMode);
-
-
-      // Acquire a shared lock on this backend.  This will prevent operations
-      // like LDIF import or restore from occurring while the backend is active.
-      try
-      {
-        String lockFile = LockFileManager.getBackendLockFileName(backend);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
-        {
-          msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
+          int msgID = MSGID_CONFIG_BACKEND_DUPLICATE_BACKEND_ID;
           String message = getMessage(msgID, backendID,
-                                      String.valueOf(failureReason));
+                                      String.valueOf(backendDN));
           logError(ErrorLogCategory.CONFIGURATION,
                    ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          // FIXME -- Do we need to send an admin alert?
           continue;
         }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
+
+        // See if the entry contains an attribute that specifies the class name
+        // for the backend implementation.  If it does, then load it and make
+        // sure that it's a valid backend implementation.  There is no such
+        // attribute, the specified class cannot be loaded, or it does not
+        // contain a valid backend implementation, then log an error and skip
+        // it.
+        String className = backendCfg.getBackendClass();
+        Class backendClass;
+
+        Backend backend;
+        try
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          backendClass = DirectoryServer.loadClass(className);
+          backend = (Backend) backendClass.newInstance();
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          int msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
+          String message = getMessage(msgID, String.valueOf(className),
+                                      String.valueOf(backendDN),
+                                      stackTraceToSingleLineString(e));
+          logError(ErrorLogCategory.CONFIGURATION,
+                   ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+          continue;
         }
 
-        msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
-        String message = getMessage(msgID, backendID,
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-        // FIXME -- Do we need to send an admin alert?
-        continue;
-      }
 
-
-      // Perform the necessary initialization for the backend entry.
-      try
-      {
-        backend.initializeBackend(backendEntry, baseDNs);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
+        // If this backend is a configuration manager, then we don't want to do
+        // any more with it because the configuration will have already been
+        // started.
+        if (backend instanceof ConfigHandler)
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          continue;
         }
 
-        msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
-        String message = getMessage(msgID, String.valueOf(className),
-                                    String.valueOf(backendDN),
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
 
+        // See if the entry contains an attribute that specifies the writability
+        // mode.
+        WritabilityMode writabilityMode = WritabilityMode.ENABLED;
+        BackendCfgDefn.BackendWritabilityMode bwm =
+             backendCfg.getBackendWritabilityMode();
+        switch (bwm)
+        {
+          case DISABLED:
+            writabilityMode = WritabilityMode.DISABLED;
+            break;
+          case ENABLED:
+            writabilityMode = WritabilityMode.ENABLED;
+            break;
+          case INTERNAL_ONLY:
+            writabilityMode = WritabilityMode.INTERNAL_ONLY;
+            break;
+        }
+
+        // Set the backend ID and writability mode for this backend.
+        backend.setBackendID(backendID);
+        backend.setWritabilityMode(writabilityMode);
+
+
+        // Acquire a shared lock on this backend.  This will prevent operations
+        // like LDIF import or restore from occurring while the backend is
+        // active.
         try
         {
           String lockFile = LockFileManager.getBackendLockFileName(backend);
           StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.releaseLock(lockFile, failureReason))
+          if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
           {
+            int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
+            String message = getMessage(msgID, backendID,
+                                        String.valueOf(failureReason));
+            logError(ErrorLogCategory.CONFIGURATION,
+                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+            // FIXME -- Do we need to send an admin alert?
+            continue;
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
+          String message = getMessage(msgID, backendID,
+                                      stackTraceToSingleLineString(e));
+          logError(ErrorLogCategory.CONFIGURATION,
+                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          // FIXME -- Do we need to send an admin alert?
+          continue;
+        }
+
+
+        // Perform the necessary initialization for the backend entry.
+        DN[] baseDNs = new DN[backendCfg.getBackendBaseDN().size()];
+        baseDNs = backendCfg.getBackendBaseDN().toArray(baseDNs);
+        try
+        {
+          backend.initializeBackend(
+               DirectoryServer.getConfigEntry(backendCfg.dn()), baseDNs);
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          int msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
+          String message = getMessage(msgID, String.valueOf(className),
+                                      String.valueOf(backendDN),
+                                      stackTraceToSingleLineString(e));
+          logError(ErrorLogCategory.CONFIGURATION,
+                   ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+
+          try
+          {
+            String lockFile = LockFileManager.getBackendLockFileName(backend);
+            StringBuilder failureReason = new StringBuilder();
+            if (! LockFileManager.releaseLock(lockFile, failureReason))
+            {
+              msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
+              message = getMessage(msgID, backendID,
+                                   String.valueOf(failureReason));
+              logError(ErrorLogCategory.CONFIGURATION,
+                       ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+              // FIXME -- Do we need to send an admin alert?
+            }
+          }
+          catch (Exception e2)
+          {
+            if (debugEnabled())
+            {
+              debugCaught(DebugLogLevel.ERROR, e2);
+            }
+
             msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
             message = getMessage(msgID, backendID,
-                                 String.valueOf(failureReason));
+                                 stackTraceToSingleLineString(e2));
             logError(ErrorLogCategory.CONFIGURATION,
                      ErrorLogSeverity.SEVERE_WARNING, message, msgID);
             // FIXME -- Do we need to send an admin alert?
           }
+
+          continue;
         }
-        catch (Exception e2)
+
+
+        // Notify any backend initialization listeners.
+        for (BackendInitializationListener listener :
+             DirectoryServer.getBackendInitializationListeners())
+        {
+          listener.performBackendInitializationProcessing(backend);
+        }
+
+
+        // Register the backend with the server.
+        try
+        {
+          DirectoryServer.registerBackend(backend);
+        }
+        catch (Exception e)
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e2);
+            debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
-          message = getMessage(msgID, backendID,
-                               stackTraceToSingleLineString(e2));
+          int msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
+          String message = getMessage(msgID, backendID,
+                                      stackTraceToSingleLineString(e));
           logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                   ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
           // FIXME -- Do we need to send an admin alert?
         }
 
-        continue;
+
+        // Put this backend in the hash so that we will be able to find it if it
+        // is altered.
+        registeredBackends.put(backendDN, backend);
+
       }
-
-
-      // Notify any backend initialization listeners.
-      for (BackendInitializationListener listener :
-           DirectoryServer.getBackendInitializationListeners())
+      else
       {
-        listener.performBackendInitializationProcessing(backend);
+        // The backend is explicitly disabled.  Log a mild warning and
+        // continue.
+        int msgID = MSGID_CONFIG_BACKEND_DISABLED;
+        String message = getMessage(msgID, String.valueOf(backendDN));
+        logError(ErrorLogCategory.CONFIGURATION,
+                 ErrorLogSeverity.INFORMATIONAL, message, msgID);
       }
-
-
-      // Register the backend with the server.
-      try
-      {
-        DirectoryServer.registerBackend(backend);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
-        String message = getMessage(msgID, backendID,
-                                    stackTraceToSingleLineString(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        // FIXME -- Do we need to send an admin alert?
-      }
-
-
-      // Put this backend in the hash so that we will be able to find it if it
-      // is altered.
-      registeredBackends.put(backendDN, backend);
     }
   }
 
 
-
   /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * modification is acceptable to this change listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested update.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed change is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
-  public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
+  public boolean isConfigurationChangeAcceptable(
+       BackendCfg configEntry,
+       List<String> unacceptableReason)
   {
-    DN backendDN = configEntry.getDN();
+    DN backendDN = configEntry.dn();
 
 
-    // Check to see if this entry appears to contain a backend configuration.
-    // If not, log a warning and skip it.
-    try
+    Set<DN> baseDNs = configEntry.getBackendBaseDN();
+
+    // See if the backend is registered with the server.  If it is, then
+    // see what's changed and whether those changes are acceptable.
+    Backend backend = registeredBackends.get(backendDN);
+    if (backend != null)
     {
-      SearchFilter backendFilter =
-           SearchFilter.createFilterFromString("(objectClass=" + OC_BACKEND +
-                                               ")");
-      if (! backendFilter.matchesEntry(configEntry.getEntry()))
+      LinkedHashSet<DN> removedDNs = new LinkedHashSet<DN>();
+      for (DN dn : backend.getBaseDNs())
       {
-        int msgID = MSGID_CONFIG_BACKEND_ENTRY_DOES_NOT_HAVE_BACKEND_CONFIG;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
+        removedDNs.add(dn);
       }
 
-      int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // See if the entry contains an attribute that indicates whether the
-    // backend should be enabled.  If it does not, or if it is not set to
-    // "true", then skip it.
-    int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_BACKEND_ENABLED, getMessage(msgID),
-                                    false);
-    try
-    {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(enabledStub);
-      if (enabledAttr == null)
+      LinkedHashSet<DN> addedDNs = new LinkedHashSet<DN>();
+      for (DN dn : baseDNs)
       {
-        // The attribute is not present, so this backend will be disabled.
-        msgID = MSGID_CONFIG_BACKEND_NO_ENABLED_ATTR;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
+        addedDNs.add(dn);
       }
 
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // See if the entry contains an attribute that specifies the backend ID.  If
-    // it does not, then reject it.
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
-    StringConfigAttribute idStub =
-         new StringConfigAttribute(ATTR_BACKEND_ID, getMessage(msgID), true,
-                                   false, true);
-    try
-    {
-      StringConfigAttribute idAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-      if (idAttr == null)
+      Iterator<DN> iterator = removedDNs.iterator();
+      while (iterator.hasNext())
       {
-        // The attribute is not present.  We will not allow this.
-        msgID = MSGID_CONFIG_BACKEND_NO_BACKEND_ID;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BACKEND_ID;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // See if the entry contains an attribute that specifies the writability
-    // mode.  If it does not, then reject it.
-    LinkedHashSet<String> writabilityModes = new LinkedHashSet<String>(3);
-    writabilityModes.add(WritabilityMode.ENABLED.toString());
-    writabilityModes.add(WritabilityMode.DISABLED.toString());
-    writabilityModes.add(WritabilityMode.INTERNAL_ONLY.toString());
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_WRITABILITY;
-    MultiChoiceConfigAttribute writabilityStub =
-         new MultiChoiceConfigAttribute(ATTR_BACKEND_WRITABILITY_MODE,
-                                        getMessage(msgID), true, false, false,
-                                        writabilityModes);
-    try
-    {
-      MultiChoiceConfigAttribute writabilityAttr =
-           (MultiChoiceConfigAttribute)
-           configEntry.getConfigAttribute(writabilityStub);
-      if (writabilityAttr == null)
-      {
-        msgID = MSGID_CONFIG_BACKEND_NO_WRITABILITY_MODE;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_WRITABILITY;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // See if the entry contains an attribute that specifies the set of base DNs
-    // for the backend.  If it does not, then skip it.
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
-    DNConfigAttribute baseDNStub =
-         new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID), true,
-                               true, true);
-    try
-    {
-      DNConfigAttribute baseDNAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-      if (baseDNAttr == null)
-      {
-        // The attribute is not present.  We will not allow this.
-        msgID = MSGID_CONFIG_BACKEND_NO_BASE_DNS;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-
-      // See if the backend is registered with the server.  If it is, then
-      // see what's changed and whether those changes are acceptable.
-      Backend backend = registeredBackends.get(configEntryDN);
-      if (backend != null)
-      {
-        LinkedHashSet<DN> removedDNs = new LinkedHashSet<DN>();
-        for (DN dn : backend.getBaseDNs())
+        DN dn = iterator.next();
+        if (addedDNs.remove(dn))
         {
-          removedDNs.add(dn);
-        }
-
-        LinkedHashSet<DN> addedDNs = new LinkedHashSet<DN>();
-        for (DN dn : baseDNAttr.pendingValues())
-        {
-          addedDNs.add(dn);
-        }
-
-        Iterator<DN> iterator = removedDNs.iterator();
-        while (iterator.hasNext())
-        {
-          DN dn = iterator.next();
-          if (addedDNs.remove(dn))
-          {
-            iterator.remove();
-          }
-        }
-
-        for (DN dn : addedDNs)
-        {
-          try
-          {
-            DirectoryServer.registerBaseDN(dn, backend, false, true);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            unacceptableReason.append(de.getMessage());
-            return false;
-          }
-        }
-
-        for (DN dn : removedDNs)
-        {
-          try
-          {
-            DirectoryServer.deregisterBaseDN(dn, true);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            unacceptableReason.append(de.getMessage());
-            return false;
-          }
+          iterator.remove();
         }
       }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+
+      for (DN dn : addedDNs)
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        try
+        {
+          DirectoryServer.registerBaseDN(dn, backend, false, true);
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          unacceptableReason.add(de.getMessage());
+          return false;
+        }
       }
 
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BASE_DNS;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                stackTraceToSingleLineString(e)));
-      return false;
+      for (DN dn : removedDNs)
+      {
+        try
+        {
+          DirectoryServer.deregisterBaseDN(dn, true);
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          unacceptableReason.add(de.getMessage());
+          return false;
+        }
+      }
     }
 
 
@@ -854,47 +470,15 @@ public class BackendConfigManager
     // that it's a valid backend implementation.  There is no such attribute,
     // the specified class cannot be loaded, or it does not contain a valid
     // backend implementation, then log an error and skip it.
-    String className;
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_BACKEND_CLASS, getMessage(msgID),
-                                   true, false, true);
-    try
-    {
-      StringConfigAttribute classAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        msgID = MSGID_CONFIG_BACKEND_NO_CLASS_ATTR;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-      else
-      {
-        className = classAttr.pendingValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_CANNOT_GET_CLASS;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
+    String className = configEntry.getBackendClass();
     try
     {
       Class backendClass = DirectoryServer.loadClass(className);
       if (! Backend.class.isAssignableFrom(backendClass))
       {
-        msgID = MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(className),
-                                             String.valueOf(backendDN)));
+        int msgID = MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND;
+        unacceptableReason.add(getMessage(msgID, String.valueOf(className),
+                                          String.valueOf(backendDN)));
         return false;
       }
     }
@@ -905,10 +489,10 @@ public class BackendConfigManager
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(className),
-                                           String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
+      int msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
+      unacceptableReason.add(getMessage(msgID, String.valueOf(className),
+                                        String.valueOf(backendDN),
+                                        stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -920,79 +504,24 @@ public class BackendConfigManager
   }
 
 
-
   /**
-   * Attempts to apply a new configuration to this Directory Server component
-   * based on the provided changed entry.
-   *
-   * @param  configEntry  The configuration entry that containing the updated
-   *                      configuration for this component.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
+  public ConfigChangeResult applyConfigurationChange(BackendCfg cfg)
   {
-    DN                backendDN           = configEntry.getDN();
+    DN                backendDN           = cfg.dn();
     Backend           backend             = registeredBackends.get(backendDN);
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
 
 
-    // Check to see if this entry appears to contain a backend configuration.
-    // If not, log a warning and skip it.
-    try
-    {
-      SearchFilter backendFilter =
-           SearchFilter.createFilterFromString("(objectClass=" + OC_BACKEND +
-                                               ")");
-      if (! backendFilter.matchesEntry(configEntry.getEntry()))
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ENTRY_DOES_NOT_HAVE_BACKEND_CONFIG;
-        messages.add(getMessage(msgID, String.valueOf(backendDN)));
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
     // See if the entry contains an attribute that indicates whether the
     // backend should be enabled.
     boolean needToEnable = false;
-    int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_BACKEND_ENABLED, getMessage(msgID),
-                                    false);
     try
     {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(enabledStub);
-      if (enabledAttr == null)
-      {
-        // The attribute is not present.  We won't allow this.
-        msgID = MSGID_CONFIG_BACKEND_NO_ENABLED_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(backendDN)));
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else if (enabledAttr.pendingValue())
+      if (cfg.isBackendEnabled())
       {
         // The backend is marked as enabled.  See if that is already true.
         if (backend == null)
@@ -1029,7 +558,7 @@ public class BackendConfigManager
             StringBuilder failureReason = new StringBuilder();
             if (! LockFileManager.releaseLock(lockFile, failureReason))
             {
-              msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
+              int msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
               String message = getMessage(msgID, backend.getBackendID(),
                                           String.valueOf(failureReason));
               logError(ErrorLogCategory.CONFIGURATION,
@@ -1044,7 +573,7 @@ public class BackendConfigManager
               debugCaught(DebugLogLevel.ERROR, e2);
             }
 
-            msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
+            int msgID = MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK;
             String message = getMessage(msgID, backend.getBackendID(),
                                         stackTraceToSingleLineString(e2));
             logError(ErrorLogCategory.CONFIGURATION,
@@ -1068,7 +597,7 @@ public class BackendConfigManager
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
+      int msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
       messages.add(getMessage(msgID, String.valueOf(backendDN),
                               stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
@@ -1078,141 +607,32 @@ public class BackendConfigManager
 
     // See if the entry contains an attribute that specifies the backend ID for
     // the backend.
-    String backendID = null;
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
-    StringConfigAttribute idStub =
-         new StringConfigAttribute(ATTR_BACKEND_ID, getMessage(msgID), true,
-                                   false, true);
-    try
-    {
-      StringConfigAttribute idAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-      if (idAttr == null)
-      {
-        // The attribute is not present.  We won't allow this.
-        msgID = MSGID_CONFIG_BACKEND_NO_BACKEND_ID;
-        messages.add(getMessage(msgID, String.valueOf(backendDN)));
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else
-      {
-        backendID = idAttr.pendingValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BACKEND_ID;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
+    String backendID = cfg.getBackendId();
 
     // See if the entry contains an attribute that specifies the writability
     // mode.
-    LinkedHashSet<String> writabilityModes = new LinkedHashSet<String>(3);
-    writabilityModes.add(WritabilityMode.ENABLED.toString());
-    writabilityModes.add(WritabilityMode.DISABLED.toString());
-    writabilityModes.add(WritabilityMode.INTERNAL_ONLY.toString());
-
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_WRITABILITY;
-    WritabilityMode writabilityMode = null;
-    MultiChoiceConfigAttribute writabilityStub =
-         new MultiChoiceConfigAttribute(ATTR_BACKEND_WRITABILITY_MODE,
-                                        getMessage(msgID), true, false, false,
-                                        writabilityModes);
-    try
+    WritabilityMode writabilityMode = WritabilityMode.ENABLED;
+    BackendCfgDefn.BackendWritabilityMode bwm =
+         cfg.getBackendWritabilityMode();
+    switch (bwm)
     {
-      MultiChoiceConfigAttribute writabilityAttr =
-           (MultiChoiceConfigAttribute)
-           configEntry.getConfigAttribute(writabilityStub);
-      if (writabilityStub == null)
-      {
-        msgID = MSGID_CONFIG_BACKEND_NO_WRITABILITY_MODE;
-        messages.add(getMessage(msgID, String.valueOf(backendDN)));
-
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else
-      {
-        writabilityMode =
-             WritabilityMode.modeForName(writabilityAttr.activeValue());
-        if (writabilityMode == null)
-        {
-          msgID = MSGID_CONFIG_BACKEND_INVALID_WRITABILITY_MODE;
-          messages.add(getMessage(msgID, String.valueOf(backendDN),
-                            String.valueOf(writabilityAttr.activeValue())));
-          resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_WRITABILITY;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      case DISABLED:
+        writabilityMode = WritabilityMode.DISABLED;
+        break;
+      case ENABLED:
+        writabilityMode = WritabilityMode.ENABLED;
+        break;
+      case INTERNAL_ONLY:
+        writabilityMode = WritabilityMode.INTERNAL_ONLY;
+        break;
     }
 
 
     // See if the entry contains an attribute that specifies the base DNs for
     // the backend.
-    DN[] baseDNs = null;
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
-    DNConfigAttribute baseDNStub =
-         new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID), true,
-                               true, true);
-    try
-    {
-      DNConfigAttribute baseDNAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-      if (baseDNAttr == null)
-      {
-        // The attribute is not present.  We won't allow this.
-        msgID = MSGID_CONFIG_BACKEND_NO_BASE_DNS;
-        messages.add(getMessage(msgID, String.valueOf(backendDN)));
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else
-      {
-        List<DN> baseList = baseDNAttr.pendingValues();
-        baseDNs = new DN[baseList.size()];
-        baseList.toArray(baseDNs);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BASE_DNS;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
+    Set<DN> baseList = cfg.getBackendBaseDN();
+    DN[] baseDNs = new DN[baseList.size()];
+    baseList.toArray(baseDNs);
 
 
     // See if the entry contains an attribute that specifies the class name
@@ -1220,42 +640,7 @@ public class BackendConfigManager
     // that it's a valid backend implementation.  There is no such attribute,
     // the specified class cannot be loaded, or it does not contain a valid
     // backend implementation, then log an error and skip it.
-    String className;
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_BACKEND_CLASS, getMessage(msgID),
-                                   true, false, true);
-    try
-    {
-      StringConfigAttribute classAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        msgID = MSGID_CONFIG_BACKEND_NO_CLASS_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(backendDN)));
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else
-      {
-        className = classAttr.pendingValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_CANNOT_GET_CLASS;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired,
-                                    messages);
-    }
+    String className = cfg.getBackendClass();
 
 
     // See if this backend is currently active and if so if the name of the
@@ -1274,7 +659,7 @@ public class BackendConfigManager
             // It appears to be a valid backend class.  We'll return that the
             // change is successful, but indicate that some administrative
             // action is required.
-            msgID = MSGID_CONFIG_BACKEND_ACTION_REQUIRED_TO_CHANGE_CLASS;
+            int msgID = MSGID_CONFIG_BACKEND_ACTION_REQUIRED_TO_CHANGE_CLASS;
             messages.add(getMessage(msgID, String.valueOf(backendDN),
                                     backend.getClass().getName(), className));
             adminActionRequired = true;
@@ -1284,7 +669,7 @@ public class BackendConfigManager
           else
           {
             // It is not a valid backend class.  This is an error.
-            msgID = MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND;
+            int msgID = MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND;
             messages.add(getMessage(msgID, String.valueOf(className),
                                     String.valueOf(backendDN)));
             resultCode = ResultCode.CONSTRAINT_VIOLATION;
@@ -1299,7 +684,7 @@ public class BackendConfigManager
             debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
+          int msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
           messages.add(getMessage(msgID, String.valueOf(className),
                                   String.valueOf(backendDN),
                                   stackTraceToSingleLineString(e)));
@@ -1315,15 +700,16 @@ public class BackendConfigManager
     // backend.  Try to do so.
     if (needToEnable)
     {
+      Class backendClass;
       try
       {
-        Class backendClass = DirectoryServer.loadClass(className);
+        backendClass = DirectoryServer.loadClass(className);
         backend = (Backend) backendClass.newInstance();
       }
       catch (Exception e)
       {
         // It is not a valid backend class.  This is an error.
-        msgID = MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND;
+        int msgID = MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND;
         messages.add(getMessage(msgID, String.valueOf(className),
                                 String.valueOf(backendDN)));
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
@@ -1345,7 +731,7 @@ public class BackendConfigManager
         StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
         {
-          msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
+          int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
           String message = getMessage(msgID, backendID,
                                       String.valueOf(failureReason));
           logError(ErrorLogCategory.CONFIGURATION,
@@ -1366,7 +752,7 @@ public class BackendConfigManager
           debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
+        int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
         String message = getMessage(msgID, backendID,
                                     stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.CONFIGURATION,
@@ -1383,7 +769,8 @@ public class BackendConfigManager
 
       try
       {
-        backend.initializeBackend(configEntry, baseDNs);
+        backend.initializeBackend(
+             DirectoryServer.getConfigEntry(cfg.dn()), baseDNs);
       }
       catch (Exception e)
       {
@@ -1392,7 +779,7 @@ public class BackendConfigManager
           debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
+        int msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
         messages.add(getMessage(msgID, String.valueOf(className),
                                 String.valueOf(backendDN),
                                 stackTraceToSingleLineString(e)));
@@ -1452,7 +839,7 @@ public class BackendConfigManager
           debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
+        int msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
         String message = getMessage(msgID, backendID,
                                     stackTraceToSingleLineString(e));
 
@@ -1486,203 +873,33 @@ public class BackendConfigManager
   }
 
 
-
   /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * add is acceptable to this add listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested add.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed entry is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
-  public boolean configAddIsAcceptable(ConfigEntry configEntry,
-                                       StringBuilder unacceptableReason)
+  public boolean isConfigurationAddAcceptable(
+       BackendCfg configEntry,
+       List<String> unacceptableReason)
   {
-    DN backendDN = configEntry.getDN();
-
-
-    // Check to see if this entry appears to contain a backend configuration.
-    // If not then fail.
-    try
-    {
-      SearchFilter backendFilter =
-           SearchFilter.createFilterFromString("(objectClass=" + OC_BACKEND +
-                                               ")");
-      if (! backendFilter.matchesEntry(configEntry.getEntry()))
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ENTRY_DOES_NOT_HAVE_BACKEND_CONFIG;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // See if the entry contains an attribute that indicates whether the
-    // backend should be enabled.  If it does not, or if it is not set to
-    // "true", then skip it.
-    int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_BACKEND_ENABLED, getMessage(msgID),
-                                    false);
-    try
-    {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(enabledStub);
-      if (enabledAttr == null)
-      {
-        // The attribute is not present.  We will not allow this.
-        msgID = MSGID_CONFIG_BACKEND_NO_ENABLED_ATTR;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
+    DN backendDN = configEntry.dn();
 
 
     // See if the entry contains an attribute that specifies the backend ID.  If
     // it does not, then skip it.
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
-    StringConfigAttribute idStub =
-         new StringConfigAttribute(ATTR_BACKEND_ID, getMessage(msgID), true,
-                                   false, true);
-    try
+    String backendID = configEntry.getBackendId();
+    if (DirectoryServer.hasBackend(backendID))
     {
-      StringConfigAttribute idAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-      if (idAttr == null)
-      {
-        // The attribute is not present.  We will not allow this.
-        msgID = MSGID_CONFIG_BACKEND_NO_BACKEND_ID;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-      else
-      {
-        String backendID = idAttr.activeValue();
-        if (DirectoryServer.hasBackend(backendID))
-        {
-          msgID = MSGID_CONFIG_BACKEND_DUPLICATE_BACKEND_ID;
-          unacceptableReason.append(getMessage(msgID,
-                                               String.valueOf(backendDN)));
-          return false;
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BACKEND_ID;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // See if the entry contains an attribute that specifies the writability
-    // mode.  If it does not, then reject it.
-    LinkedHashSet<String> writabilityModes = new LinkedHashSet<String>(3);
-    writabilityModes.add(WritabilityMode.ENABLED.toString());
-    writabilityModes.add(WritabilityMode.DISABLED.toString());
-    writabilityModes.add(WritabilityMode.INTERNAL_ONLY.toString());
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_WRITABILITY;
-    MultiChoiceConfigAttribute writabilityStub =
-         new MultiChoiceConfigAttribute(ATTR_BACKEND_WRITABILITY_MODE,
-                                        getMessage(msgID), true, false, false,
-                                        writabilityModes);
-    try
-    {
-      MultiChoiceConfigAttribute writabilityAttr =
-           (MultiChoiceConfigAttribute)
-           configEntry.getConfigAttribute(writabilityStub);
-      if (writabilityAttr == null)
-      {
-        msgID = MSGID_CONFIG_BACKEND_NO_WRITABILITY_MODE;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_WRITABILITY;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
+      int msgID = MSGID_CONFIG_BACKEND_DUPLICATE_BACKEND_ID;
+      unacceptableReason.add(getMessage(msgID,
+                                        String.valueOf(backendDN)));
       return false;
     }
 
 
     // See if the entry contains an attribute that specifies the set of base DNs
     // for the backend.  If it does not, then skip it.
-    List<DN> baseDNs = null;
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
-    DNConfigAttribute baseDNStub =
-         new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID), true,
-                               true, true);
-    try
-    {
-      DNConfigAttribute baseDNAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-      if (baseDNAttr == null)
-      {
-        // The attribute is not present.  We will not allow this.
-        msgID = MSGID_CONFIG_BACKEND_NO_BASE_DNS;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-      else
-      {
-        baseDNs = baseDNAttr.pendingValues();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BASE_DNS;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                stackTraceToSingleLineString(e)));
-      return false;
-    }
+    Set<DN> baseList = configEntry.getBackendBaseDN();
+    DN[] baseDNs = new DN[baseList.size()];
+    baseList.toArray(baseDNs);
 
 
     // See if the entry contains an attribute that specifies the class name
@@ -1690,38 +907,7 @@ public class BackendConfigManager
     // that it's a valid backend implementation.  There is no such attribute,
     // the specified class cannot be loaded, or it does not contain a valid
     // backend implementation, then log an error and skip it.
-    String className;
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_BACKEND_CLASS, getMessage(msgID),
-                                   true, false, true);
-    try
-    {
-      StringConfigAttribute classAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        msgID = MSGID_CONFIG_BACKEND_NO_CLASS_ATTR;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
-        return false;
-      }
-      else
-      {
-        className = classAttr.pendingValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_CANNOT_GET_CLASS;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
+    String className = configEntry.getBackendClass();
 
     Backend backend;
     try
@@ -1736,42 +922,42 @@ public class BackendConfigManager
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(className),
-                                           String.valueOf(backendDN),
-                                           stackTraceToSingleLineString(e)));
+      int msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
+      unacceptableReason.add(getMessage(msgID, String.valueOf(className),
+                                        String.valueOf(backendDN),
+                                        stackTraceToSingleLineString(e)));
       return false;
     }
 
 
     // If the backend is a configurable component, then make sure that its
     // configuration is valid.
-    if (backend instanceof ConfigurableComponent)
-    {
-      ConfigurableComponent cc = (ConfigurableComponent) backend;
-      LinkedList<String> errorMessages = new LinkedList<String>();
-      if (! cc.hasAcceptableConfiguration(configEntry, errorMessages))
-      {
-        if (errorMessages.isEmpty())
-        {
-          msgID = MSGID_CONFIG_BACKEND_UNACCEPTABLE_CONFIG;
-          unacceptableReason.append(getMessage(msgID,
-                                               String.valueOf(configEntryDN)));
-        }
-        else
-        {
-          Iterator<String> iterator = errorMessages.iterator();
-          unacceptableReason.append(iterator.next());
-          while (iterator.hasNext())
-          {
-            unacceptableReason.append("  ");
-            unacceptableReason.append(iterator.next());
-          }
-        }
-
-        return false;
-      }
-    }
+//    if (backend instanceof ConfigurableComponent)
+//    {
+//      ConfigurableComponent cc = (ConfigurableComponent) backend;
+//      LinkedList<String> errorMessages = new LinkedList<String>();
+//      if (! cc.hasAcceptableConfiguration(configEntry, errorMessages))
+//      {
+//        if (errorMessages.isEmpty())
+//        {
+//          int msgID = MSGID_CONFIG_BACKEND_UNACCEPTABLE_CONFIG;
+//          unacceptableReason.add(getMessage(msgID,
+//                                            String.valueOf(configEntryDN)));
+//        }
+//        else
+//        {
+//          Iterator<String> iterator = errorMessages.iterator();
+//          unacceptableReason.add(iterator.next());
+//          while (iterator.hasNext())
+//          {
+//            unacceptableReason.add("  ");
+//            unacceptableReason.add(iterator.next());
+//          }
+//        }
+//
+//        return false;
+//      }
+//    }
 
 
     // Make sure that all of the base DNs are acceptable for use in the server.
@@ -1783,12 +969,12 @@ public class BackendConfigManager
       }
       catch (DirectoryException de)
       {
-        unacceptableReason.append(de.getMessage());
+        unacceptableReason.add(de.getMessage());
         return false;
       }
       catch (Exception e)
       {
-        unacceptableReason.append(stackTraceToSingleLineString(e));
+        unacceptableReason.add(stackTraceToSingleLineString(e));
         return false;
       }
     }
@@ -1803,17 +989,11 @@ public class BackendConfigManager
 
 
   /**
-   * Attempts to apply a new configuration based on the provided added entry.
-   *
-   * @param  configEntry  The new configuration entry that contains the
-   *                      configuration to apply.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
+  public ConfigChangeResult applyConfigurationAdd(BackendCfg cfg)
   {
-    DN                backendDN           = configEntry.getDN();
+    DN                backendDN           = cfg.dn();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -1821,241 +1001,66 @@ public class BackendConfigManager
 
     // Register as a change listener for this backend entry so that we will
     // be notified of any changes that may be made to it.
-    configEntry.registerChangeListener(this);
-
-
-    // Check to see if this entry appears to contain a backend configuration.
-    // If not then fail.
-    try
-    {
-      SearchFilter backendFilter =
-           SearchFilter.createFilterFromString("(objectClass=" + OC_BACKEND +
-                                               ")");
-      if (! backendFilter.matchesEntry(configEntry.getEntry()))
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ENTRY_DOES_NOT_HAVE_BACKEND_CONFIG;
-        messages.add(getMessage(msgID, String.valueOf(backendDN)));
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
+    cfg.addChangeListener(this);
 
 
     // See if the entry contains an attribute that indicates whether the
     // backend should be enabled.  If it does not, or if it is not set to
     // "true", then skip it.
-    int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_BACKEND_ENABLED, getMessage(msgID),
-                                    false);
-    try
+    if (!cfg.isBackendEnabled())
     {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(enabledStub);
-      if (enabledAttr == null)
-      {
-        // The attribute is not present, so this backend will be disabled.  We
-        // will log a message to indicate that it won't be enabled and return.
-        msgID = MSGID_CONFIG_BACKEND_NO_ENABLED_ATTR;
-        String message = getMessage(msgID, String.valueOf(backendDN));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-        messages.add(message);
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else if (! enabledAttr.activeValue())
-      {
-        // The backend is explicitly disabled.  We will log a message to
-        // indicate that it won't be enabled and return.
-        msgID = MSGID_CONFIG_BACKEND_DISABLED;
-        String message = getMessage(msgID, String.valueOf(backendDN));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.INFORMATIONAL, message, msgID);
-        messages.add(message);
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
+      // The backend is explicitly disabled.  We will log a message to
+      // indicate that it won't be enabled and return.
+      int msgID = MSGID_CONFIG_BACKEND_DISABLED;
+      String message = getMessage(msgID, String.valueOf(backendDN));
+      logError(ErrorLogCategory.CONFIGURATION,
+               ErrorLogSeverity.INFORMATIONAL, message, msgID);
+      messages.add(message);
+      return new ConfigChangeResult(resultCode, adminActionRequired,
+                                    messages);
     }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
 
 
     // See if the entry contains an attribute that specifies the backend ID.  If
     // it does not, then skip it.
-    String backendID;
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
-    StringConfigAttribute idStub =
-         new StringConfigAttribute(ATTR_BACKEND_ID, getMessage(msgID), true,
-                                   false, true);
-    try
+    String backendID = cfg.getBackendId();
+    if (DirectoryServer.hasBackend(backendID))
     {
-      StringConfigAttribute idAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-      if (idAttr == null)
-      {
-        msgID = MSGID_CONFIG_BACKEND_NO_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(backendDN));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-        messages.add(message);
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else
-      {
-        backendID = idAttr.pendingValue();
-        if (DirectoryServer.hasBackend(backendID))
-        {
-          msgID = MSGID_CONFIG_BACKEND_DUPLICATE_BACKEND_ID;
-          String message = getMessage(msgID, String.valueOf(backendDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          messages.add(message);
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BACKEND_ID;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      int msgID = MSGID_CONFIG_BACKEND_DUPLICATE_BACKEND_ID;
+      String message = getMessage(msgID, String.valueOf(backendDN));
+      logError(ErrorLogCategory.CONFIGURATION,
+               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+      messages.add(message);
+      return new ConfigChangeResult(resultCode, adminActionRequired,
+                                    messages);
     }
 
 
     // See if the entry contains an attribute that specifies the writability
     // mode.
-    LinkedHashSet<String> writabilityModes = new LinkedHashSet<String>(3);
-    writabilityModes.add(WritabilityMode.ENABLED.toString());
-    writabilityModes.add(WritabilityMode.DISABLED.toString());
-    writabilityModes.add(WritabilityMode.INTERNAL_ONLY.toString());
-
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_WRITABILITY;
-    WritabilityMode writabilityMode = null;
-    MultiChoiceConfigAttribute writabilityStub =
-         new MultiChoiceConfigAttribute(ATTR_BACKEND_WRITABILITY_MODE,
-                                        getMessage(msgID), true, false, false,
-                                        writabilityModes);
-    try
+    WritabilityMode writabilityMode = WritabilityMode.ENABLED;
+    BackendCfgDefn.BackendWritabilityMode bwm =
+         cfg.getBackendWritabilityMode();
+    switch (bwm)
     {
-      MultiChoiceConfigAttribute writabilityAttr =
-           (MultiChoiceConfigAttribute)
-           configEntry.getConfigAttribute(writabilityStub);
-      if (writabilityAttr == null)
-      {
-        msgID = MSGID_CONFIG_BACKEND_NO_WRITABILITY_MODE;
-        messages.add(getMessage(msgID, String.valueOf(backendDN)));
-
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else
-      {
-        writabilityMode =
-             WritabilityMode.modeForName(writabilityAttr.activeValue());
-        if (writabilityMode == null)
-        {
-          msgID = MSGID_CONFIG_BACKEND_INVALID_WRITABILITY_MODE;
-          messages.add(getMessage(msgID, String.valueOf(backendDN),
-                            String.valueOf(writabilityAttr.activeValue())));
-          resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_WRITABILITY;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      case DISABLED:
+        writabilityMode = WritabilityMode.DISABLED;
+        break;
+      case ENABLED:
+        writabilityMode = WritabilityMode.ENABLED;
+        break;
+      case INTERNAL_ONLY:
+        writabilityMode = WritabilityMode.INTERNAL_ONLY;
+        break;
     }
 
 
     // See if the entry contains an attribute that specifies the base DNs for
     // the entry.  If it does not, then skip it.
-    DN[] baseDNs = null;
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
-    DNConfigAttribute baseDNStub =
-         new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID),
-                               true, true, true);
-    try
-    {
-      DNConfigAttribute baseDNAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-      if (baseDNAttr == null)
-      {
-        msgID = MSGID_CONFIG_BACKEND_NO_BASE_DNS;
-        String message = getMessage(msgID, String.valueOf(backendDN));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-        messages.add(message);
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else
-      {
-        List<DN> dnList = baseDNAttr.pendingValues();
-        baseDNs = new DN[dnList.size()];
-        dnList.toArray(baseDNs);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BASE_DNS;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
+    Set<DN> dnList = cfg.getBackendBaseDN();
+    DN[] baseDNs = new DN[dnList.size()];
+    dnList.toArray(baseDNs);
 
 
     // See if the entry contains an attribute that specifies the class name
@@ -2063,46 +1068,13 @@ public class BackendConfigManager
     // that it's a valid backend implementation.  There is no such attribute,
     // the specified class cannot be loaded, or it does not contain a valid
     // backend implementation, then log an error and skip it.
-    String className;
-    msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_BACKEND_CLASS, getMessage(msgID),
-                                   true, false, true);
-    try
-    {
-      StringConfigAttribute classAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        msgID = MSGID_CONFIG_BACKEND_NO_CLASS_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(backendDN)));
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-      else
-      {
-        className = classAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_BACKEND_CANNOT_GET_CLASS;
-      messages.add(getMessage(msgID, String.valueOf(backendDN),
-                              stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
+    String className = cfg.getBackendClass();
+    Class backendClass;
 
     Backend backend;
     try
     {
-      Class backendClass = DirectoryServer.loadClass(className);
+      backendClass = DirectoryServer.loadClass(className);
       backend = (Backend) backendClass.newInstance();
     }
     catch (Exception e)
@@ -2112,7 +1084,7 @@ public class BackendConfigManager
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
+      int msgID = MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE;
       messages.add(getMessage(msgID, String.valueOf(className),
                               String.valueOf(backendDN),
                               stackTraceToSingleLineString(e)));
@@ -2135,7 +1107,7 @@ public class BackendConfigManager
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
+        int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
         String message = getMessage(msgID, backendID,
                                     String.valueOf(failureReason));
         logError(ErrorLogCategory.CONFIGURATION,
@@ -2156,7 +1128,7 @@ public class BackendConfigManager
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
+      int msgID = MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK;
       String message = getMessage(msgID, backendID,
                                   stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.CONFIGURATION,
@@ -2174,7 +1146,8 @@ public class BackendConfigManager
     // Perform the necessary initialization for the backend entry.
     try
     {
-      backend.initializeBackend(configEntry, baseDNs);
+      backend.initializeBackend(
+           DirectoryServer.getConfigEntry(cfg.dn()), baseDNs);
     }
     catch (Exception e)
     {
@@ -2183,7 +1156,7 @@ public class BackendConfigManager
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
+      int msgID = MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE;
       messages.add(getMessage(msgID, String.valueOf(className),
                               String.valueOf(backendDN),
                               stackTraceToSingleLineString(e)));
@@ -2243,7 +1216,7 @@ public class BackendConfigManager
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
+      int msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
       String message = getMessage(msgID, backendID,
                                   stackTraceToSingleLineString(e));
 
@@ -2263,24 +1236,14 @@ public class BackendConfigManager
   }
 
 
-
   /**
-   * Indicates whether it is acceptable to remove the provided configuration
-   * entry.
-   *
-   * @param  configEntry         The configuration entry that will be removed
-   *                             from the configuration.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed delete is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry may be removed from the
-   *          configuration, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
-  public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
+  public boolean isConfigurationDeleteAcceptable(
+       BackendCfg configEntry,
+       List<String> unacceptableReason)
   {
-    DN backendDN = configEntry.getDN();
+    DN backendDN = configEntry.dn();
 
 
     // See if this backend config manager has a backend registered with the
@@ -2304,24 +1267,18 @@ public class BackendConfigManager
     else
     {
       int msgID = MSGID_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(backendDN)));
+      unacceptableReason.add(getMessage(msgID, String.valueOf(backendDN)));
       return false;
     }
   }
 
 
-
   /**
-   * Attempts to apply a new configuration based on the provided deleted entry.
-   *
-   * @param  configEntry  The new configuration entry that has been deleted.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
+  public ConfigChangeResult applyConfigurationDelete(BackendCfg configEntry)
   {
-    DN                backendDN           = configEntry.getDN();
+    DN                backendDN           = configEntry.dn();
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
@@ -2363,7 +1320,7 @@ public class BackendConfigManager
       }
 
       DirectoryServer.deregisterBackend(backend);
-      configEntry.deregisterChangeListener(this);
+      configEntry.removeChangeListener(this);
 
       // Remove the shared lock for this backend.
       try
@@ -2406,5 +1363,54 @@ public class BackendConfigManager
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
   }
+
+  /**
+   * Gets the configuration corresponding to a config entry.
+   *
+   * @param <S>
+   *          The type of server configuration.
+   * @param definition
+   *          The required definition of the required managed object.
+   * @param configEntry
+   *          A configuration entry.
+   * @return Returns the server-side configuration.
+   * @throws ConfigException
+   *           If the entry could not be decoded.
+   */
+  public static <S extends Configuration> S getConfiguration(
+      AbstractManagedObjectDefinition<?, S> definition, ConfigEntry configEntry)
+      throws ConfigException {
+
+    try {
+      ServerManagedObject<? extends S> mo = ServerManagedObject
+          .decode(ManagedObjectPath.emptyPath(), definition,
+              configEntry);
+      return mo.getConfiguration();
+    } catch (DefinitionDecodingException e) {
+      throw ConfigExceptionFactory.getInstance()
+          .createDecodingExceptionAdaptor(configEntry.getDN(), e);
+    } catch (ServerManagedObjectDecodingException e) {
+      throw ConfigExceptionFactory.getInstance()
+          .createDecodingExceptionAdaptor(e);
+    }
+  }
+
+
+
+  /**
+   * Gets the backend configuration corresponding to a backend config entry.
+   *
+   * @param configEntry A backend config entry.
+   * @return Returns the backend configuration.
+   * @throws ConfigException If the config entry could not be decoded.
+   */
+  public static BackendCfg getBackendCfg(ConfigEntry configEntry)
+      throws ConfigException
+  {
+    return getConfiguration(BackendCfgDefn.getInstance(), configEntry);
+  }
+
+
+
 }
 

@@ -1015,7 +1015,7 @@ public class CoreMessages
    * The message ID for the message that will be used if an attempt is made to
    * normalize the value for an attribute type that does not have an equality
    * matching rule.  This takes two arguments, which are the value to normalize
-   * and the the name of the attribute type.
+   * and the name of the attribute type.
    */
   public static final int MSGID_ATTR_TYPE_NORMALIZE_NO_MR =
        CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 125;
@@ -6269,7 +6269,7 @@ public class CoreMessages
                     "The Directory Server has completed the configuration " +
                     "bootstrapping process.");
     registerMessage(MSGID_CANNOT_LOAD_CONFIG_HANDLER_CLASS,
-                    "Unable to load class %s to serve as the the Directory " +
+                    "Unable to load class %s to serve as the Directory " +
                     "Server configuration handler:  %s.");
     registerMessage(MSGID_CANNOT_INSTANTIATE_CONFIG_HANDLER,
                     "Unable to create an instance of class %s to serve as " +
@@ -6727,7 +6727,7 @@ public class CoreMessages
     registerMessage(MSGID_ADD_ASSERTION_FAILED,
                     "Entry %s cannot be added because the request contained " +
                     "an LDAP assertion control and the associated filter did " +
-                    "not match the contents of the the provided entry.");
+                    "not match the contents of the provided entry.");
     registerMessage(MSGID_ADD_CANNOT_PROCESS_ASSERTION_FILTER,
                     "Entry %s cannot be added because the request contained " +
                     "an LDAP assertion control, but an error occurred while " +

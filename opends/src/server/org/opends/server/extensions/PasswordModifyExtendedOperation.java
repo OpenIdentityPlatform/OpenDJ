@@ -1379,6 +1379,9 @@ public class PasswordModifyExtendedOperation
     }
 
 
+    // Save this configuration for future reference.
+    currentConfig = config;
+
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }

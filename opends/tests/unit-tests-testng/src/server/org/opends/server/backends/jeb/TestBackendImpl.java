@@ -26,31 +26,26 @@
  */
 package org.opends.server.backends.jeb;
 
-import java.io.File;
 import java.util.*;
 
 import org.opends.server.TestCaseUtils;
-import static
-    org.opends.server.messages.ConfigMessages.MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.meta.JEBackendCfgDefn;
+import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.DNConfigAttribute;
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_BASE_DN;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import static
     org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.AfterClass;
 
 import static org.testng.Assert.*;
@@ -61,10 +56,8 @@ import com.sleepycat.je.DatabaseEntry;
  * BackendImpl Tester.
  */
 public class TestBackendImpl extends JebTestCase {
-  private File tempDir;
   private String homeDirName;
 
-  private DN[] baseDNs;
   private BackendImpl backend;
 
   private List<Entry> topEntries;
@@ -84,81 +77,9 @@ public class TestBackendImpl extends JebTestCase {
     // sure the server is started.
     TestCaseUtils.startServer();
 
-    tempDir = TestCaseUtils.createTemporaryDirectory("jebimporttest");
-    homeDirName = tempDir.getAbsolutePath();
+    homeDirName = "db_index_test";
 
-    EnvManager.createHomeDir(homeDirName);
-
-    Entry configEntry = TestCaseUtils.makeEntry(
-        "dn: ds-cfg-backend-id=userRoot,cn=Backends,cn=config",
-        "objectClass: top",
-        "objectClass: ds-cfg-backend",
-        "objectClass: ds-cfg-je-backend",
-        "ds-cfg-backend-index-entry-limit: 13",
-        "ds-cfg-backend-enabled: true",
-        "ds-cfg-backend-class: org.opends.server.backends.jeb.BackendImpl",
-        "ds-cfg-backend-id: userRoot",
-        "ds-cfg-backend-directory:: " +
-            Base64.encode(homeDirName.getBytes()));
-
-    ConfigEntry backendConfigEntry = new ConfigEntry(configEntry, null);
-
-    Entry indexEntry = TestCaseUtils.makeEntry(
-        "dn: cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config\n" +
-            "objectClass: top\n" +
-            "objectClass: ds-cfg-branch\n" +
-            "cn: Index\n");
-
-    ConfigEntry indexConfigEntry = new ConfigEntry(indexEntry,
-        backendConfigEntry);
-    backendConfigEntry.addChild(indexConfigEntry);
-
-    List<Entry> indexEntries = TestCaseUtils.makeEntries(
-        "dn: ds-cfg-index-attribute=cn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config\n" +
-            "objectClass: top\n" +
-            "objectClass: ds-cfg-je-index\n" +
-            "ds-cfg-index-attribute: cn\n" +
-            "ds-cfg-index-type: presence\n" +
-            "ds-cfg-index-type: equality\n" +
-            "ds-cfg-index-type: substring\n" +
-            "ds-cfg-index-type: ordering\n" +
-            "ds-cfg-index-type: approximate\n" +
-            "\n" +
-            "dn: ds-cfg-index-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config\n" +
-            "objectClass: top\n" +
-            "objectClass: ds-cfg-je-index\n" +
-            "ds-cfg-index-attribute: employeeNumber\n" +
-            "ds-cfg-index-type: presence\n" +
-            "ds-cfg-index-type: equality\n" +
-            "ds-cfg-index-type: substring\n" +
-            "ds-cfg-index-type: ordering\n" +
-            "\n" +
-            "dn: ds-cfg-index-attribute=title,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config\n" +
-            "objectClass: top\n" +
-            "objectClass: ds-cfg-je-index\n" +
-            "ds-cfg-index-attribute: title\n" +
-            "ds-cfg-index-type: presence\n" +
-            "ds-cfg-index-type: equality\n" +
-            "ds-cfg-index-type: substring\n" +
-            "ds-cfg-index-type: ordering\n");
-
-    ConfigEntry attribIndexConfigEntry;
-
-    for (Entry attribIndexEntry : indexEntries) {
-      attribIndexConfigEntry = new ConfigEntry(attribIndexEntry,
-          indexConfigEntry);
-      indexConfigEntry.addChild(attribIndexConfigEntry);
-    }
-
-
-    baseDNs = new DN[]
-        {
-            DN.decode("dc=test,dc=com"),
-            DN.decode("dc=test1,dc=com")
-        };
-
-    backend = new BackendImpl();
-    backend.initializeBackend(backendConfigEntry, baseDNs);
+    backend = (BackendImpl)DirectoryServer.getBackend("indexTestRoot");
 
     topEntries = TestCaseUtils.makeEntries(
         "dn: dc=test,dc=com",
@@ -594,8 +515,6 @@ public class TestBackendImpl extends JebTestCase {
 
   @AfterClass
   public void cleanUp() throws Exception {
-    backend.finalizeBackend();
-    TestCaseUtils.deleteDirectory(tempDir);
   }
 
   @Test(expectedExceptions = DirectoryException.class)
@@ -620,7 +539,6 @@ public class TestBackendImpl extends JebTestCase {
 
   @Test(dependsOnMethods = "testAdd")
   public void testSearchScope() throws Exception {
-    ArrayList<Control> noControls = new ArrayList<Control>(0);
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
 
@@ -667,7 +585,6 @@ public class TestBackendImpl extends JebTestCase {
 
   @Test(dependsOnMethods = "testAdd")
   public void testSearchIndex() throws Exception {
-    ArrayList<Control> noControls = new ArrayList<Control>(0);
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
     LinkedHashSet<String> attribs = new LinkedHashSet<String>();
@@ -923,7 +840,6 @@ public class TestBackendImpl extends JebTestCase {
     AttributeIndex index;
     HashSet<ASN1OctetString> addKeys;
     DatabaseEntry key;
-    PresenceIndexer presenceIndexer;
     EqualityIndexer equalityIndexer;
     SubstringIndexer substringIndexer;
     OrderingIndexer orderingIndexer;
@@ -1235,21 +1151,24 @@ public class TestBackendImpl extends JebTestCase {
       "testModifyDNNewSuperior"})
   public void testApplyConfig() throws Exception {
     Entry configEntry = TestCaseUtils.makeEntry(
-        "dn: ds-cfg-backend-id=userRoot,cn=Backends,cn=config",
+        "dn: ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-backend",
         "objectClass: ds-cfg-je-backend",
         "ds-cfg-backend-base-dn: dc=test,dc=com",
         "ds-cfg-backend-base-dn: dc=newsuffix,dc=com",
         "ds-cfg-backend-enabled: true",
+        "ds-cfg-backend-writability-mode: enabled",
         "ds-cfg-backend-class: org.opends.server.backends.jeb.BackendImpl",
-        "ds-cfg-backend-id: userRoot",
+        "ds-cfg-backend-id: indexTestRoot",
         "ds-cfg-backend-directory:: " +
-            Base64.encode(homeDirName.getBytes()));
+            Base64.encode(homeDirName.getBytes()),
+        "ds-cfg-backend-import-temp-directory: importTmp");
 
-    ConfigEntry backendConfigEntry = new ConfigEntry(configEntry, null);
+    JEBackendCfg cfg = AdminTestCaseUtils.getConfiguration(
+         JEBackendCfgDefn.getInstance(), configEntry);
 
-    backend.applyNewConfiguration(backendConfigEntry, true);
+    backend.applyConfigurationChange(cfg);
 
     RootContainer rootContainer = backend.getRootContainer();
 
@@ -1267,16 +1186,12 @@ public class TestBackendImpl extends JebTestCase {
       assertNotNull(backend.getEntry(entry.getDN()));
     }
 
-    ArrayList<Control> noControls = new ArrayList<Control>(0);
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
     LinkedHashSet<String> attribs = new LinkedHashSet<String>();
     attribs.add(ATTR_DEBUG_SEARCH_INDEX);
 
     String debugString;
-    int finalStartPos;
-    int finalEndPos;
-    int finalCount;
 
     InternalSearchOperation search =
         conn.processSearch(DN.decode("dc=test,dc=com"),

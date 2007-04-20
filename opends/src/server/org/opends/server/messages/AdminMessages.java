@@ -223,7 +223,7 @@ public final class AdminMessages {
             + "retrieve the managed object configuration entry %s: %s.");
 
     registerMessage(MSGID_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST,
-        "The the managed object configuration entry %s does not "
+        "The managed object configuration entry %s does not "
             + "appear to exist in the Directory Server "
             + "configuration. This is a required entry.");
 

@@ -28,25 +28,20 @@ package org.opends.server.backends.jeb;
 
 import static org.testng.AssertJUnit.assertTrue;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
+import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.meta.JEBackendCfgDefn;
+import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.DN;
-import org.opends.server.util.LDIFReader;
+import org.opends.server.util.Base64;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.AfterClass;
-
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
 
 /**
  * EntryContainer tester.
@@ -121,7 +116,7 @@ public class TestEntryContainer extends JebTestCase {
   private File tempDir;
   private String homeDirName;
 
-  private ArrayList<Entry> entryList;
+  private List<Entry> entryList;
 
   private long calculatedHighestID = 0;
 
@@ -140,28 +135,11 @@ public class TestEntryContainer extends JebTestCase {
     tempDir = TestCaseUtils.createTemporaryDirectory("jebtest");
     homeDirName = tempDir.getAbsolutePath();
 
-    // Convert the test LDIF string to a byte array
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    OutputStreamWriter outputStreamWriter = new OutputStreamWriter(
-        byteArrayOutputStream);
-    outputStreamWriter.write(ldifString);
-    outputStreamWriter.flush();
-    byte[] originalLDIFBytes = byteArrayOutputStream.toByteArray();
-
-    LDIFReader reader = new LDIFReader(new LDIFImportConfig(
-        new ByteArrayInputStream(originalLDIFBytes)));
-
     // Create a set of entries
-    entryList = new ArrayList<Entry>();
-    long entryID = 0;
-    Entry entry;
-    while ((entry = reader.readEntry(false)) != null) {
-      entryID++;
-      entryList.add(entry);
-    }
+    entryList = TestCaseUtils.entriesFromLdifString(ldifString);
 
     // Remember the highest entryID
-    calculatedHighestID = entryID;
+    calculatedHighestID = entryList.size();
   }
 
   /**
@@ -184,13 +162,32 @@ public class TestEntryContainer extends JebTestCase {
   @Test()
   public void test1() throws Exception {
     EnvManager.createHomeDir(homeDirName);
-    RootContainer rootContainer = new RootContainer(new Config(), null);
+    Entry configEntry = TestCaseUtils.makeEntry(
+         "dn: ds-cfg-backend-id=userRoot,cn=Backends,cn=config",
+              "objectClass: top",
+              "objectClass: ds-cfg-backend",
+              "objectClass: ds-cfg-je-backend",
+              "ds-cfg-backend-enabled: true",
+              "ds-cfg-backend-class: " +
+                   "org.opends.server.backends.jeb.BackendImpl",
+              "ds-cfg-backend-id: userRoot",
+              "ds-cfg-backend-writability-mode: enabled",
+              "ds-cfg-backend-base-dn: dc=com",
+              "ds-cfg-backend-directory:: " +
+                   Base64.encode(homeDirName.getBytes()),
+              "ds-cfg-backend-import-temp-directory: importTmp");
+    JEBackendCfg cfg = AdminTestCaseUtils.getConfiguration(
+         JEBackendCfgDefn.getInstance(), configEntry);
+    Config backendConfig = new Config();
+    backendConfig.initializeConfig(cfg,
+                                   cfg.getBackendBaseDN().toArray(new DN[0]));
+    RootContainer rootContainer = new RootContainer(backendConfig, null);
     rootContainer.open(new File(homeDirName),
                        new FilePermission(true, true, true),
                        false, true, true, false, true, true);
 
     EntryContainer entryContainer =
-        rootContainer.openEntryContainer(DirectoryServer.getSchemaDN());
+        rootContainer.openEntryContainer(DN.decode("dc=com"));
 
     EntryID actualHighestID = entryContainer.getHighestEntryID();
     assertTrue(actualHighestID.equals(new EntryID(0)));

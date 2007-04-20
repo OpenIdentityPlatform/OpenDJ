@@ -5377,7 +5377,7 @@ public class SchemaBackendTestCase
          throws Exception
   {
     DN configEntryDN =
-            DN.decode("ds-cfg-backend-id=schema,cn=Backends,cn=config");
+            DN.decode("cn=schema,cn=Backends,cn=config");
     DN[] baseDNs = { DN.decode("cn=schema") };
 
     ConfigEntry configEntry =
