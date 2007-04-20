@@ -222,9 +222,9 @@ public class ConfigurableEnvironment
     }
     String methodBaseName = builder.toString();
 
-    Class configClass = JEBackendCfg.class;
+    Class<JEBackendCfg> configClass = JEBackendCfg.class;
     JEBackendCfgDefn defn = JEBackendCfgDefn.getInstance();
-    Class defClass = defn.getClass();
+    Class<? extends JEBackendCfgDefn> defClass = defn.getClass();
 
     PropertyDefinition propDefn =
          (PropertyDefinition)defClass.getMethod("get" + methodBaseName +
