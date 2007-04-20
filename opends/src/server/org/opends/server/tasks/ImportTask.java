@@ -491,7 +491,7 @@ public class ImportTask extends Task
       }
 
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               e.getErrorMessage(), e.getErrorMessageID());
+               e.getErrorMessage(), e.getMessageID());
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -615,7 +615,7 @@ public class ImportTask extends Task
         }
 
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 e.getErrorMessage(), e.getErrorMessageID());
+                 e.getErrorMessage(), e.getMessageID());
         return TaskState.STOPPED_BY_ERROR;
       }
       DirectoryServer.notifyImportEnded(backend, importConfig, true);

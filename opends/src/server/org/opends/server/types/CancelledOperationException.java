@@ -27,17 +27,15 @@
 package org.opends.server.types;
 
 
+
 /**
  * This class defines an exception that may be thrown if the operation
  * being processed is cancelled for some reason (e.g., an abandon or
  * cancel request from the client).
  */
 public class CancelledOperationException
-       extends Exception
+       extends IdentifiedException
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler
    * because this class extends <CODE>java.lang.Exception</CODE>,

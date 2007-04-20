@@ -308,7 +308,7 @@ public class RestoreTask extends Task
       }
 
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               e.getErrorMessage(), e.getErrorMessageID());
+               e.getErrorMessage(), e.getMessageID());
       return TaskState.STOPPED_BY_ERROR;
     }
 
@@ -377,7 +377,7 @@ public class RestoreTask extends Task
         }
 
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 e.getErrorMessage(), e.getErrorMessageID());
+                 e.getErrorMessage(), e.getMessageID());
         errorsEncountered = true;
       }
       DirectoryServer.notifyRestoreEnded(backend, restoreConfig, true);

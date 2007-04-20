@@ -26,12 +26,18 @@
  */
 package org.opends.server.synchronization.changelog;
 
+
+
+import org.opends.server.types.IdentifiedException;
+
+
+
 /**
  * This class define an Exception that must be used when some error
  * condition was detected in the changelog database that cannot be recovered
  * automatically.
  */
-public class ChangelogDBException extends Exception
+public class ChangelogDBException extends IdentifiedException
 {
   private int messageID;
 

@@ -26,6 +26,7 @@
  */
 package org.opends.server.authorization.dseecompat;
 
+import org.opends.server.types.IdentifiedException;
 
 /**
  * The AciException class defines an exception that may be thrown
@@ -33,9 +34,7 @@ package org.opends.server.authorization.dseecompat;
  * or during evaluation of an LDAP operation using a set of applicable
  * ACIs.
  */
-public class AciException extends Exception {
-
-
+public class AciException extends IdentifiedException {
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class extends <CODE>java.lang.Exception</CODE>, which implements the

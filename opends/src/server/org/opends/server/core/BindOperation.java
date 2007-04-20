@@ -1034,7 +1034,7 @@ bindProcessing:
         }
 
         setResultCode(ResultCode.INVALID_CREDENTIALS);
-        setAuthFailureReason(de.getErrorMessageID(), de.getErrorMessage());
+        setAuthFailureReason(de.getMessageID(), de.getErrorMessage());
         break bindProcessing;
       }
 
@@ -1187,7 +1187,7 @@ bindProcessing:
               }
 
               setResultCode(ResultCode.INVALID_CREDENTIALS);
-              setAuthFailureReason(de.getErrorMessageID(),
+              setAuthFailureReason(de.getMessageID(),
                                    de.getErrorMessage());
 
               userEntry = null;

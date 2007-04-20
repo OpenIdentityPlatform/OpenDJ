@@ -28,12 +28,16 @@ package org.opends.server.tools.makeldif;
 
 
 
+import org.opends.server.types.IdentifiedException;
+
+
+
 /**
  * This class defines an exception that can be thrown if a problem occurs during
  * MakeLDIF processing.
  */
 public class MakeLDIFException
-       extends Exception
+       extends IdentifiedException
 {
   /**
    * The serial version identifier required to satisfy the compiler because this

@@ -283,7 +283,7 @@ public class DirectoryExceptionTestCase
     assertNotNull(de.getResultCode());
 
     de.getErrorMessage();
-    de.getErrorMessageID();
+    de.getMessageID();
     de.getMatchedDN();
     de.getReferralURLs();
   }

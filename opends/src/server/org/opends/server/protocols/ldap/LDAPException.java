@@ -29,6 +29,7 @@ package org.opends.server.protocols.ldap;
 
 
 import org.opends.server.types.DN;
+import org.opends.server.types.IdentifiedException;
 
 
 
@@ -37,7 +38,7 @@ import org.opends.server.types.DN;
  * interacting with an LDAP protocol element.
  */
 public class LDAPException
-       extends Exception
+       extends IdentifiedException
 {
   /**
    * The serial version identifier required to satisfy the compiler because this

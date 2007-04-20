@@ -28,12 +28,16 @@ package org.opends.server.util.args;
 
 
 
+import org.opends.server.types.IdentifiedException;
+
+
+
 /**
  * This class defines an exception that may be thrown if there is a problem with
  * an argument definition.
  */
 public class ArgumentException
-       extends Exception
+       extends IdentifiedException
 {
   /**
    * The serial version identifier required to satisfy the compiler because this

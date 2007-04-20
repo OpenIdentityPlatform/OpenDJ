@@ -32,11 +32,8 @@ package org.opends.server.types;
  * occurs while trying to initialize a Directory Server component.
  */
 public class InitializationException
-       extends Exception
+       extends IdentifiedException
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler
    * because this class extends <CODE>java.lang.Exception</CODE>,

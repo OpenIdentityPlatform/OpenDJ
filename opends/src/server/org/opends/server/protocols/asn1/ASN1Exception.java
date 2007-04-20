@@ -28,6 +28,7 @@ package org.opends.server.protocols.asn1;
 
 
 
+import org.opends.server.types.IdentifiedException;
 
 
 
@@ -36,11 +37,8 @@ package org.opends.server.protocols.asn1;
  * interacting with an ASN.1 element.
  */
 public class ASN1Exception
-       extends Exception
+       extends IdentifiedException
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class extends <CODE>java.lang.Exception</CODE>, which implements the

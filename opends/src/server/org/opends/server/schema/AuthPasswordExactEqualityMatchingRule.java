@@ -188,7 +188,7 @@ public class AuthPasswordExactEqualityMatchingRule
           throw de;
         case WARN:
           logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   de.getErrorMessage(), de.getErrorMessageID());
+                   de.getErrorMessage(), de.getMessageID());
           return new ASN1OctetString(value.stringValue());
         default:
           return new ASN1OctetString(value.stringValue());

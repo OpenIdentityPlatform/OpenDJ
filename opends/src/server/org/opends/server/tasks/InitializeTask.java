@@ -153,7 +153,7 @@ public class InitializeTask extends Task
     catch(InterruptedException ie) {}
     catch(DirectoryException de)
     {
-      int msgID   = de.getErrorMessageID();
+      int msgID   = de.getMessageID();
       String message = getMessage(msgID, de.getErrorMessage());
       logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
@@ -180,7 +180,7 @@ public class InitializeTask extends Task
     {
       if (de != null)
       {
-        int msgID   = de.getErrorMessageID();
+        int msgID   = de.getMessageID();
         String message = getMessage(msgID, de.getErrorMessage());
         logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
