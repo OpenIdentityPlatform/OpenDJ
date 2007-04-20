@@ -407,7 +407,7 @@ public class GSSAPIStateInfo
       }
 
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-      bindOperation.setAuthFailureReason(de.getErrorMessageID(),
+      bindOperation.setAuthFailureReason(de.getMessageID(),
                                          de.getErrorMessage());
       clientConnection.setSASLAuthStateInfo(null);
       return false;

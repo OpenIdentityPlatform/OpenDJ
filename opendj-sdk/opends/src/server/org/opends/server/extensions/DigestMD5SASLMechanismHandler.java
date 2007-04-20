@@ -432,7 +432,7 @@ public class DigestMD5SASLMechanismHandler
       {
         // We couldn't parse the token value, so it must be malformed.
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-        bindOperation.setAuthFailureReason(de.getErrorMessageID(),
+        bindOperation.setAuthFailureReason(de.getMessageID(),
                                            de.getErrorMessage());
         return;
       }

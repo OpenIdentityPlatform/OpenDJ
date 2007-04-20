@@ -27,16 +27,18 @@
 package org.opends.server.util;
 
 
+
+import org.opends.server.types.IdentifiedException;
+
+
+
 /**
  * This class defines an exception that may be thrown while attempting to parse
  * LDIF content.
  */
 public final class LDIFException
-       extends Exception
+       extends IdentifiedException
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class extends <CODE>java.lang.Exception</CODE>, which implements the

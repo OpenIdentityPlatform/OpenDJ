@@ -220,7 +220,7 @@ public class GeneralizedTimeEqualityMatchingRule
 
         case WARN:
           logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-                   de.getErrorMessage(), de.getErrorMessageID());
+                   de.getErrorMessage(), de.getMessageID());
           return new ASN1OctetString(value.value());
 
         default:

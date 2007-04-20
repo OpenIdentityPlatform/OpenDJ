@@ -51,6 +51,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.IdentifiedException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
 
@@ -72,9 +73,6 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public final class StaticUtils
 {
-
-
-
   /**
    * Private constructor to prevent instantiation.
    */
@@ -1430,6 +1428,86 @@ public final class StaticUtils
       return o1.equals(o2);
     }
   }
+
+
+
+  /**
+   * Retrieves the best human-readable message for the provided exception.  For
+   * exceptions defined in the OpenDS project, it will attempt to use the
+   * message (combining it with the message ID if available).  For some
+   * exceptions that use encapsulation (e.g., InvocationTargetException), it
+   * will be unwrapped and the cause will be treated.  For all others, the
+   *
+   *
+   * @param  t  The {@code Throwable} object for which to retrieve the message.
+   *
+   * @return  The human-readable message generated for the provided exception.
+   */
+  public static String getExceptionMessage(Throwable t)
+  {
+    if (t instanceof IdentifiedException)
+    {
+      IdentifiedException ie = (IdentifiedException) t;
+
+      StringBuilder message = new StringBuilder();
+      message.append(ie.getMessage());
+      message.append(" (id=");
+      message.append(ie.getMessageID());
+      message.append(")");
+      return message.toString();
+    }
+    else if (t instanceof NullPointerException)
+    {
+      StackTraceElement[] stackElements = t.getStackTrace();
+
+      StringBuilder message = new StringBuilder();
+      message.append("NullPointerException(");
+      message.append(stackElements[0].getFileName());
+      message.append(":");
+      message.append(stackElements[0].getLineNumber());
+      message.append(")");
+      return message.toString();
+    }
+    else if ((t instanceof InvocationTargetException) &&
+             (t.getCause() != null))
+    {
+      return getExceptionMessage(t.getCause());
+    }
+    else
+    {
+      StringBuilder message = new StringBuilder();
+
+      String className = t.getClass().getName();
+      int periodPos = className.lastIndexOf('.');
+      if (periodPos > 0)
+      {
+        message.append(className.substring(periodPos+1));
+      }
+      else
+      {
+        message.append(className);
+      }
+
+      message.append("(");
+      if (t.getMessage() == null)
+      {
+        StackTraceElement[] stackElements = t.getStackTrace();
+        message.append(stackElements[0].getFileName());
+        message.append(":");
+        message.append(stackElements[0].getLineNumber());
+      }
+      else
+      {
+        message.append(t.getMessage());
+      }
+
+      message.append(")");
+
+      return message.toString();
+    }
+  }
+
+
 
   /**
    * Retrieves a stack trace from the provided exception as a single-line

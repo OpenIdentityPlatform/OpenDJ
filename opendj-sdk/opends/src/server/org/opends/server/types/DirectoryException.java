@@ -32,17 +32,13 @@ import java.util.List;
 
 
 
-
 /**
  * This class defines an exception that may be thrown if a problem
  * occurs in the Directory Server.
  */
 public class DirectoryException
-       extends Exception
+       extends IdentifiedException
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler
    * because this class extends <CODE>java.lang.Exception</CODE>,
@@ -214,7 +210,7 @@ public class DirectoryException
    * @return  The unique ID for the error message associated with this
    *          directory exception.
    */
-  public final int getErrorMessageID()
+  public final int getMessageID()
   {
     return errorMessageID;
   }

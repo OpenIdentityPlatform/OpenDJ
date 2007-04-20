@@ -26,15 +26,19 @@
  */
 package org.opends.server.backends.jeb;
 
+
+
+import org.opends.server.types.IdentifiedException;
+
+
+
 /**
  * This class defines an exception that may be thrown if a problem occurs in the
  * JE backend database.
  */
 public class JebException
-     extends Exception
+     extends IdentifiedException
 {
-
-
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class extends <CODE>java.lang.Exception</CODE>, which implements the

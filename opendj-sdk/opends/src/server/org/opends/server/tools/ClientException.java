@@ -28,12 +28,16 @@ package org.opends.server.tools;
 
 
 
+import org.opends.server.types.IdentifiedException;
+
+
+
 /**
  * This class defines an exception that may be thrown if a local problem occurs
  * in a Directory Server client.
  */
 public class ClientException
-       extends Exception
+       extends IdentifiedException
 {
   /**
    * The serial version identifier required to satisfy the compiler because this

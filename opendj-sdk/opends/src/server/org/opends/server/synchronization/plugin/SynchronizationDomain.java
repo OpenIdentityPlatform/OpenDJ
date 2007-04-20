@@ -962,7 +962,7 @@ public class SynchronizationDomain extends DirectoryThread
             catch(DirectoryException de)
             {
               // Returns an error message to notify the sender
-              int msgID = de.getErrorMessageID();
+              int msgID = de.getMessageID();
               ErrorMessage errorMsg = new ErrorMessage(initMsg.getsenderID(),
                   msgID, de.getMessage());
               broker.publish(errorMsg);
@@ -980,7 +980,7 @@ public class SynchronizationDomain extends DirectoryThread
             catch(DirectoryException de)
             {
               // Return an error message to notify the sender
-              int msgID = de.getErrorMessageID();
+              int msgID = de.getMessageID();
               ErrorMessage errorMsg = new ErrorMessage(initMsg.getsenderID(),
                   msgID, de.getMessage());
               log(getMessage(msgID, backend.getBackendID()) + de.getMessage());

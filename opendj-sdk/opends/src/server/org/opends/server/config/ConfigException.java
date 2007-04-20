@@ -28,6 +28,7 @@ package org.opends.server.config;
 
 
 
+import org.opends.server.types.IdentifiedException;
 
 
 
@@ -36,11 +37,8 @@ package org.opends.server.config;
  * interactions with the Directory Server configuration.
  */
 public class ConfigException
-       extends Exception
+       extends IdentifiedException
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class extends <CODE>java.lang.Exception</CODE>, which implements the

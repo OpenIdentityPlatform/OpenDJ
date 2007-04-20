@@ -2589,7 +2589,7 @@ public class Schema
       // If we got an error as a result of a circular reference, then
       // we want to make sure that the schema element we call out is
       // the one that is at the root of the problem.
-      if (de.getErrorMessageID() ==
+      if (de.getMessageID() ==
           MSGID_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE)
       {
         int    msgID   = MSGID_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE;

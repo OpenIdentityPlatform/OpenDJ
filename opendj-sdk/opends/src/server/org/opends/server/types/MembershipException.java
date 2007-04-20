@@ -32,11 +32,8 @@ package org.opends.server.types;
  * occurs while attempting to iterate across the members of a group.
  */
 public class MembershipException
-       extends Exception
+       extends IdentifiedException
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler
    * because this class extends <CODE>java.lang.Exception</CODE>,
@@ -126,7 +123,7 @@ public class MembershipException
    *
    * @return  The unique identifier for the error message.
    */
-  public final int getErrorMessageID()
+  public final int getMessageID()
   {
     return errorMessageID;
   }
