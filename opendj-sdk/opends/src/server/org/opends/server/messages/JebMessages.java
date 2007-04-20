@@ -63,11 +63,6 @@ public class JebMessages
   public static final int MSGID_JEB_OPEN_ENV_FAIL =
        CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 3;
 
-/*
-  public static final int MSGID_JEB_EMPTY_MESSAGE =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 4;
-*/
-
   /**
    * The message ID of an error indicating that the current highest entry ID
    * in the database could not be determined.  This message takes no arguments.
@@ -132,11 +127,6 @@ public class JebMessages
   public static final int MSGID_JEB_ENTRY_DATABASE_CORRUPT =
        CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 12;
 
-/*
-  public static final int MSGID_JEB_SUFFIXES_NOT_SPECIFIED =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 13;
-*/
-
   /**
    * The message ID of an error indicating that an exception was raised by the
    * JE library while accessing the database.  This message takes one string
@@ -144,11 +134,6 @@ public class JebMessages
    */
   public static final int MSGID_JEB_DATABASE_EXCEPTION =
        CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 14;
-
-/*
-  public static final int MSGID_JEB_JMX_CANNOT_REGISTER_MBEAN =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 15;
-*/
 
   /**
    * The message ID used to describe the attribute which configures
@@ -176,55 +161,6 @@ public class JebMessages
 
   /**
    * The message ID used to describe the attribute which configures
-   * the database cache size as a percentage of Java VM heap size.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_CACHE_PERCENT =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 19;
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the database cache size as an approximate number of bytes.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_CACHE_SIZE =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 20;
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * whether data updated by a database transaction is forced to disk.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_TXN_NO_SYNC =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 21;
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * whether data updated by a database transaction is written
-   * from the Java VM to the O/S.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_TXN_WRITE_NO_SYNC =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 22;
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * whether the database background cleaner thread runs.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_RUN_CLEANER =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 23;
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the backend entry limit for indexing.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_BACKEND_INDEX_ENTRY_LIMIT =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 24;
-
-
-  /**
-   * The message ID used to describe the attribute which configures
    * the substring length for an attribute index.
    */
   public static final int MSGID_CONFIG_DESCRIPTION_INDEX_SUBSTRING_LENGTH =
@@ -240,11 +176,6 @@ public class JebMessages
    */
   public static final int MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE =
        CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 26;
-
-/*
-  public static final int MSGID_JEB_CANNOT_ACQUIRE_LOCK =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 27;
-*/
 
   /**
    * The message ID of an error indicating that an unchecked exception was
@@ -295,21 +226,6 @@ public class JebMessages
    */
   public static final int MSGID_JEB_DELETED_ENTRY_COUNT =
        CATEGORY_MASK_JEB | SEVERITY_MASK_NOTICE | 33;
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the minimum percentage of log space that must be used in log files.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_CLEANER_MIN_UTILIZATION =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 34;
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the subtree delete size limit.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_SUBTREE_DELETE_SIZE_LIMIT =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 35;
-
 
   /**
    * The message ID of an error indicating that the JE backend configuration
@@ -493,70 +409,10 @@ public class JebMessages
        CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 54;
 
   /**
-   * The message ID used to describe the attribute which configures
-   * the pathname of the directory for import temporary files.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_IMPORT_TEMP_DIRECTORY =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 55;
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the amount of memory available for import buffering.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_IMPORT_BUFFER_SIZE =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 56;
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the import queue size.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_IMPORT_QUEUE_SIZE =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 57;
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the number of import worker threads.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_IMPORT_THREAD_COUNT =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 58;
-
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the database cache eviction algorithm.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_EVICTOR_LRU_ONLY =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 59;
-
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the number of nodes in one scan of the database cache evictor.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_EVICTOR_NODES_PER_SCAN =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 60;
-
-
-
-  /**
    * The message ID used to log the size of the database cache after preloading.
    */
   public static final int MSGID_JEB_CACHE_SIZE_AFTER_PRELOAD =
        CATEGORY_MASK_JEB | SEVERITY_MASK_NOTICE | 61;
-
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the maximum time to spend preloading the database cache.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_PRELOAD_TIME_LIMIT =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 62;
 
 
 
@@ -742,24 +598,6 @@ public class JebMessages
    */
   public static final int MSGID_JEB_BACKUP_MISSING_BACKUPID =
        CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 79;
-
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * whether entries should be compressed in the database.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_ENTRIES_COMPRESSED =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 80;
-
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the maximum size of each individual JE log file, in bytes.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_DATABASE_LOG_FILE_MAX =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 81;
 
 
 
@@ -1090,76 +928,12 @@ public class JebMessages
 
 
   /**
-   * The message ID used to describe the attribute which configures
-   * whether the logging file handler will be on or off.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_LOGGING_FILE_HANDLER_ON =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 113;
-
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the trace log message level.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_LOGGING_LEVEL =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 114;
-
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * how many bytes are written to the log before the checkpointer runs.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_CHECKPOINT_BYTES_INTERVAL =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 115;
-
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the amount of time between runs of the checkpointer.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_CHECKPOINT_WAKEUP_INTERVAL =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 116;
-
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the number of times a database transaction will be retried after it is
-   * aborted due to deadlock with another thread.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_DEADLOCK_RETRY_LIMIT =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 117;
-
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the number of database lock tables.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_NUM_LOCK_TABLES =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 118;
-
-
-
-  /**
    * The message ID used to log an informational message in the import process.
    * This message takes one argument, a string representation of the JE
    * environment configuration properties.
    */
   public static final int MSGID_JEB_IMPORT_ENVIRONMENT_CONFIG =
        CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 119;
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the import pass size.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_IMPORT_PASS_SIZE =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 120;
-
 
 
   /**
@@ -1200,15 +974,6 @@ public class JebMessages
    */
   public static final int MSGID_JEB_IMPORT_FINAL_MERGE_COMPLETED =
        CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 124;
-
-
-
-  /**
-   * The message ID used to describe the attribute which configures
-   * the number of threads allocated by the cleaner for log file processing.
-   */
-  public static final int MSGID_CONFIG_DESCRIPTION_NUM_CLEANER_THREADS =
-       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 125;
 
 
 
@@ -1308,7 +1073,7 @@ public class JebMessages
 
   /**
    * The message ID used to indicate that another rebuild process for an index
-   * is alreadly in progress. This message takes the name of the conflicting
+   * is already in progress. This message takes the name of the conflicting
    * index as the argument.
    */
   public static final int MSGID_JEB_REBUILD_INDEX_CONFLICT =
@@ -1339,68 +1104,32 @@ public class JebMessages
                     "The backend does not contain that part of the Directory " +
                     "Information Tree pertaining to the entry " +
                     "'%s'.");
-
     registerMessage(MSGID_JEB_OPEN_DATABASE_FAIL,
                     "The database could not be opened: %s.");
-
     registerMessage(MSGID_JEB_OPEN_ENV_FAIL,
                     "The database environment could not be opened: %s.");
-
-/*
-    registerMessage(MSGID_JEB_EMPTY_MESSAGE,
-                    "");
-*/
-
     registerMessage(MSGID_JEB_HIGHEST_ID_FAIL,
                     "The database highest entry identifier could not be " +
                     "determined.");
-
     registerMessage(MSGID_JEB_FUNCTION_NOT_SUPPORTED,
                     "The requested operation is not supported by this " +
                     "backend.");
-
     registerMessage(MSGID_JEB_CREATE_FAIL,
                     "The backend database directory could not be created: %s.");
-
     registerMessage(MSGID_JEB_REMOVE_FAIL,
                     "The backend database files could not be removed: %s.");
-
     registerMessage(MSGID_JEB_DIRECTORY_INVALID,
                     "The backend database directory '%s' is not a valid " +
                     "directory.");
-
     registerMessage(MSGID_JEB_MISSING_DN2ID_RECORD,
                     "The DN database does not contain a record for '%s'.");
-
     registerMessage(MSGID_JEB_MISSING_ID2ENTRY_RECORD,
                     "The entry database does not contain a record for ID %s.");
-
     registerMessage(MSGID_JEB_ENTRY_DATABASE_CORRUPT,
                     "The entry database does not contain a valid record " +
                     "for ID %s.");
-
-/*
-    registerMessage(MSGID_JEB_SUFFIXES_NOT_SPECIFIED,
-                    "No suffixes specified for the backend.");
-*/
-
     registerMessage(MSGID_JEB_DATABASE_EXCEPTION,
                     "Database exception: %s");
-
-/*
-    registerMessage(MSGID_JEB_JMX_CANNOT_REGISTER_MBEAN,
-                    "The backend could not register a JMX MBean for " +
-                    "the database in directory '%s':  " +
-                    "%s ");
-*/
-
-    registerMessage(MSGID_CONFIG_DESCRIPTION_BACKEND_INDEX_ENTRY_LIMIT,
-                    "A performance tuning parameter for attribute indexes. " +
-                    "The default entry limit for attribute indexes, where " +
-                    "a value of 0 means there is no limit. " +
-                    "When the number of entries " +
-                    "matching an index value reaches the limit, the " +
-                    "value is no longer maintained in the index.");
     registerMessage(MSGID_CONFIG_DESCRIPTION_INDEX_ATTRIBUTE,
                     "The attribute type name of the attribute index.");
     registerMessage(MSGID_CONFIG_DESCRIPTION_INDEX_TYPE,
@@ -1414,65 +1143,13 @@ public class JebMessages
                     "When the number of entries " +
                     "matching an index value reaches the limit, the " +
                     "value is no longer maintained in the index.");
-
-    registerMessage(MSGID_CONFIG_DESCRIPTION_DATABASE_CACHE_PERCENT,
-                    "The percentage of JVM memory to allocate to the database" +
-                    " cache.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_DATABASE_CACHE_SIZE,
-                    "The approximate amount of JVM memory to allocate to the " +
-                    "database cache. The default value of zero indicates " +
-                    "that the database cache is sized by the cachePercent " +
-                    "configuration attribute. A non-zero value overrides the " +
-                    "cachePercent configuration attribute.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_DATABASE_TXN_NO_SYNC,
-                    "If true, do not write or synchronously flush the " +
-                    "database log on transaction commit. This means that " +
-                    "transactions exhibit the ACI (Atomicity, Consistency, " +
-                    "and Isolation) properties, but not D (Durability); " +
-                    "that is, database integrity is maintained, but if the " +
-                    "JVM or operating system fails, it is possible some " +
-                    "number of the most recently committed transactions " +
-                    "may be undone during recovery. The number of " +
-                    "transactions at risk is governed by how many " +
-                    "updates fit into a log buffer, how often the " +
-                    "operating system flushes dirty buffers to disk, and " +
-                    "how often the database environment is checkpointed.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_DATABASE_TXN_WRITE_NO_SYNC,
-                    "If true, write but do not synchronously flush the " +
-                    "database log on transaction commit. This means that " +
-                    "transactions exhibit the ACI (Atomicity, Consistency, " +
-                    "and Isolation) properties, but not D (Durability); " +
-                    "that is, database integrity is maintained, but if the " +
-                    "JVM or operating system fails, it is possible some " +
-                    "number of the most recently committed transactions may " +
-                    "be undone during recovery. The number of transactions " +
-                    "at risk is governed by how often the operating system " +
-                    "flushes dirty buffers to disk, and how often the " +
-                    "database environment is checkpointed. " +
-                    "The motivation for this attribute is to provide a " +
-                    "transaction that has more durability than asynchronous " +
-                    "(nosync) transactions, but has higher performance than " +
-                    "synchronous transactions. ");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_DATABASE_RUN_CLEANER,
-                    "If false, do not run the background cleaner thread " +
-                    "responsible for freeing up disk space consumed by " +
-                    "data records no longer in use.");
-
     registerMessage(MSGID_CONFIG_DESCRIPTION_INDEX_SUBSTRING_LENGTH,
                     "The length of substrings in a substring index.");
-
     registerMessage(MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE,
                     "The attribute '%s' cannot have indexing of type '%s' " +
                     "because it does not have a corresponding matching rule.");
-
-/*
-    registerMessage(MSGID_JEB_CANNOT_ACQUIRE_LOCK,
-                    "Unable to acquire a lock on the entry '%s'.");
-*/
-
     registerMessage(MSGID_JEB_UNCHECKED_EXCEPTION,
                     "Unchecked exception during database transaction.");
-
     registerMessage(MSGID_JEB_CLEAN_DATABASE_START,
                     "Starting database cleaning on %d log file(s) in '%s'.");
     registerMessage(MSGID_JEB_CLEAN_DATABASE_MARKED,
@@ -1480,22 +1157,6 @@ public class JebMessages
     registerMessage(MSGID_JEB_CLEAN_DATABASE_FINISH,
                     "Finished database cleaning; " +
                     "now %d log file(s) remaining.");
-
-    registerMessage(MSGID_CONFIG_DESCRIPTION_CLEANER_MIN_UTILIZATION,
-                    "A minimum log utilization property to determine how " +
-                    "much database cleaning to perform.  Changes to this " +
-                    "property do not take effect until the backend is " +
-                    "restarted.  The log files " +
-                    "contain both obsolete and utilized records. Obsolete " +
-                    "records are records that are no longer in use, either " +
-                    "because they have been modified or because they have " +
-                    "been deleted.  Utilized records are those records that " +
-                    "are currently in use. This property identifies the " +
-                    "minimum percentage of log space that must be used by " +
-                    "utilized records.  If this minimum percentage is not " +
-                    "met, then log files are cleaned until the minimum " +
-                    "percentage is met.");
-
     registerMessage(MSGID_JEB_SUBTREE_DELETE_SIZE_LIMIT_EXCEEDED,
                     "Exceeded the administrative limit on the number of " +
                     "entries that may be deleted in a subtree delete " +
@@ -1504,14 +1165,6 @@ public class JebMessages
                     "in the subtree have been deleted.");
     registerMessage(MSGID_JEB_DELETED_ENTRY_COUNT,
                     "The number of entries deleted was %d.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_SUBTREE_DELETE_SIZE_LIMIT,
-                    "The maximum number of entries that can be deleted " +
-                    "by a delete entry operation with the subtree delete " +
-                    "control specified. To delete subtrees containing more " +
-                    "entries than this value, the operation must be repeated " +
-                    "as many times as necessary to complete the subtree " +
-                    "delete.");
-
     registerMessage(MSGID_JEB_DUPLICATE_CONFIG_ENTRY,
                     "The configuration entry '%s' will be ignored. " +
                     "Only one configuration entry with object class '%s' is " +
@@ -1527,27 +1180,17 @@ public class JebMessages
                     "because it specifies the attribute type '%s', " +
                     "which has already been defined in another " +
                     "index configuration entry.");
-
     registerMessage(MSGID_JEB_IO_ERROR,
                     "I/O error during backend operation: %s");
-
-/*
-    registerMessage(MSGID_JEB_INDEX_THREAD_EXCEPTION,
-                    "An index worker thread raised an exception: %s");
-*/
-
     registerMessage(MSGID_JEB_BACKEND_STARTED,
                     "A database backend containing %d entries has started.");
-
     registerMessage(MSGID_JEB_IMPORT_PARENT_NOT_FOUND,
                     "The parent entry '%s' does not exist.");
     registerMessage(MSGID_JEB_IMPORT_ENTRY_EXISTS,
                     "The entry exists and the import options do not " +
                     "allow it to be replaced.");
-
     registerMessage(MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED,
                     "There is no index configured for attribute type '%s'.");
-
     registerMessage(MSGID_JEB_SEARCH_NO_SUCH_OBJECT,
                     "The search base entry '%s' does not exist.");
     registerMessage(MSGID_JEB_ADD_NO_SUCH_OBJECT,
@@ -1574,64 +1217,8 @@ public class JebMessages
     registerMessage(MSGID_JEB_NEW_SUPERIOR_NO_SUCH_OBJECT,
                     "The entry cannot be moved because the new parent " +
                     "entry '%s' does not exist.");
-
-    registerMessage(MSGID_CONFIG_DESCRIPTION_IMPORT_TEMP_DIRECTORY,
-                    "The pathname of a directory to hold temporary working " +
-                    "files generated during an import process.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_IMPORT_BUFFER_SIZE,
-                    "The amount of memory that is available to an import " +
-                    "process for its buffers.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_IMPORT_QUEUE_SIZE,
-                    "The maximum number of entries that can be on the import " +
-                    "queue waiting to be processed.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_IMPORT_THREAD_COUNT,
-                    "The number of worker threads that will be created to " +
-                    "import entries from LDIF.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_IMPORT_PASS_SIZE,
-                    "The maximum number of entries that can be processed in " +
-                    "a single pass before index merging occurs.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_EVICTOR_LRU_ONLY,
-                    "Changes to this property do not take effect until the " +
-                    "backend is restarted.  " +
-                    "The default database cache eviction algorithm is LRU " +
-                    "(least recently used) and the default setting for the " +
-                    "lruOnly parameter is true. With the default algorithm, " +
-                    "only the LRU of a Btree node is taken into account " +
-                    "when choosing the next Btree node to be evicted.  " +
-                    "When lruOnly is set to false, the eviction algorithm is " +
-                    "instead primarily based on the level of the node in " +
-                    "the Btree. The lowest level nodes (the leaf nodes) are " +
-                    "always evicted first, even if higher level nodes are " +
-                    "less recently used. In addition, dirty nodes are " +
-                    "evicted after non-dirty nodes.  " +
-                    "Setting lruOnly to false benefits random access " +
-                    "applications because it keeps higher level Btree " +
-                    "nodes in the tree for as long as possible. For a " +
-                    "random key, this increases the likelihood that the " +
-                    "relevant Btree internal nodes will be in the cache.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_EVICTOR_NODES_PER_SCAN,
-                    "Changes to this property do not take effect until the " +
-                    "backend is restarted.  " +
-                    "It is recommended that you also change nodesPerScan " +
-                    "when you set lruOnly to false. This setting controls " +
-                    "the number of Btree nodes that are considered, or " +
-                    "sampled, each time a node is evicted. A setting of 100 " +
-                    "often produces good results, but this may vary from " +
-                    "application to application. The larger the " +
-                    "nodesPerScan, the more accurate the algorithm. However, " +
-                    "setting it too high is detrimental; the need to " +
-                    "consider larger numbers of nodes for each eviction may " +
-                    "delay the completion of a given database operation, " +
-                    "which will impact the response time of the application " +
-                    "thread.");
     registerMessage(MSGID_JEB_CACHE_SIZE_AFTER_PRELOAD,
                     "The database cache is %d MB after pre-loading.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_PRELOAD_TIME_LIMIT,
-                    "The maximum time to spend pre-loading the database " +
-                    "cache when the backend starts. The time units may be ms " +
-                    "(milliseconds), s (seconds) or m (minutes). A value of " +
-                    "zero means there will be no pre-load.");
-
     registerMessage(MSGID_JEB_BACKUP_CANNOT_GET_MAC,
                     "An error occurred while attempting to obtain the %s MAC " +
                     "provider to create the signed hash for the backup:  %s.");
@@ -1684,15 +1271,6 @@ public class JebMessages
     registerMessage(MSGID_JEB_BACKUP_MISSING_BACKUPID,
                     "The information for backup %s could not be found in " +
                     "the backup directory %s.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_ENTRIES_COMPRESSED,
-                    "Set to true to indicate that the backend should " +
-                    "attempt to compress entries when writing " +
-                    "to the database.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_DATABASE_LOG_FILE_MAX,
-                    "The maximum size of each individual database log file, " +
-                    "in bytes.  Changes to this property do not take effect " +
-                    "until the backend is restarted.");
-
     registerMessage(MSGID_JEB_BACKUP_FILE_UNCHANGED,
                     "Not changed: %s");
     registerMessage(MSGID_JEB_BACKUP_CLEANER_ACTIVITY,
@@ -1780,40 +1358,8 @@ public class JebMessages
     registerMessage(MSGID_JEB_REFERRAL_RESULT_MESSAGE,
                     "A referral entry %s indicates that the operation must " +
                     "be processed at a different server.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_LOGGING_FILE_HANDLER_ON,
-                    "Determines whether database trace logging is written to " +
-                    "a je.info file in the backend database directory.  " +
-                    "Changes to this property do not take effect until the " +
-                    "backend is restarted.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_LOGGING_LEVEL,
-                    "The database trace logging level chosen from: SEVERE, " +
-                    "WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL or " +
-                    "OFF.  Changes to this property do not take effect until " +
-                    "the backend is restarted.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_CHECKPOINT_BYTES_INTERVAL,
-                    "The checkpointer runs every time this number of bytes" +
-                    "have been written to the database log.  If this property" +
-                    "is set to a non-zero value, the checkpointer wakeup " +
-                    "interval is not used.  To use time based checkpointing, " +
-                    "set this property to zero.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_CHECKPOINT_WAKEUP_INTERVAL,
-                    "The checkpointer wakeup interval.  If the checkpointer " +
-                    "bytes interval is zero, the checkpointer runs at time " +
-                    "intervals determined by this property.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_DEADLOCK_RETRY_LIMIT,
-                    "The number of times a database transaction will be " +
-                    "retried after it has been aborted due to deadlock with " +
-                    "another thread.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_NUM_LOCK_TABLES,
-                    "The number of database lock tables.  It should be set " +
-                    "to a prime number, and in general not higher than the " +
-                    "number of server worker threads.");
     registerMessage(MSGID_JEB_IMPORT_ENVIRONMENT_CONFIG,
                     "Database environment properties: %s.");
-    registerMessage(MSGID_CONFIG_DESCRIPTION_NUM_CLEANER_THREADS,
-                    "The number of threads allocated by the cleaner for log " +
-                    "file processing. If the cleaner backlog becomes large, " +
-                    "increase this number.");
     registerMessage(MSGID_JEB_INCOMPATIBLE_ENTRY_VERSION,
                     "Entry record with ID %s is not compatible with this " +
                     "version of the backend database. " +
@@ -1844,7 +1390,7 @@ public class JebMessages
                     "An error occured while inserting entry into the %s " +
                     "database/index: %s");
     registerMessage(MSGID_JEB_REBUILD_INDEX_CONFLICT,
-                    "Another rebuild of index %s is alreadly in progress.");
+                    "Another rebuild of index %s is already in progress.");
     registerMessage(MSGID_JEB_REBUILD_BACKEND_ONLINE,
                     "Rebuilding system index(es) must be done with the " +
                     "backend containing the base DN disabled.");

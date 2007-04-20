@@ -178,7 +178,8 @@ public final class ServerManagedObject<S extends Configuration>
    *           If one or more of the managed object's properties could
    *           not be decoded.
    */
-  static <S extends Configuration> ServerManagedObject<? extends S> decode(
+  public static <S extends Configuration>
+  ServerManagedObject<? extends S> decode(
       ManagedObjectPath path,
       AbstractManagedObjectDefinition<?, S> definition,
       final ConfigEntry configEntry)

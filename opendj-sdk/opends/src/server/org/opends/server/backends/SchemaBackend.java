@@ -59,13 +59,9 @@ import javax.crypto.Mac;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -73,6 +69,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
@@ -125,7 +122,10 @@ import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.admin.std.server.SchemaBackendCfg;
+import org.opends.server.admin.std.meta.SchemaBackendCfgDefn;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import static org.opends.server.messages.ConfigMessages.*;
 
 
 /**
@@ -134,8 +134,8 @@ import static org.opends.server.util.StaticUtils.*;
  * rather dynamically generates the schema entry whenever it is requested.
  */
 public class SchemaBackend
-       extends Backend
-       implements ConfigurableComponent, AlertGenerator
+     extends Backend
+     implements ConfigurationChangeListener<SchemaBackendCfg>, AlertGenerator
 {
   /**
    * The fully-qualified name of this class.
@@ -213,6 +213,9 @@ public class SchemaBackend
   // The DN of the configuration entry for this backend.
   private DN configEntryDN;
 
+  // The current configuration state.
+  private SchemaBackendCfg currentConfig;
+
   // The set of base DNs for this backend.
   private DN[] baseDNs;
 
@@ -245,20 +248,7 @@ public class SchemaBackend
 
 
   /**
-   * Initializes this backend based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this backend.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
@@ -273,7 +263,7 @@ public class SchemaBackend
     }
 
     configEntryDN = configEntry.getDN();
-
+    SchemaBackendCfg cfg = getSchemaBackendCfg(configEntry);
 
     // Get all of the attribute types that we will use for schema elements.
     attributeTypesType =
@@ -347,32 +337,7 @@ public class SchemaBackend
 
 
     // Determine whether to show all attributes.
-    showAllAttributes = DEFAULT_SCHEMA_SHOW_ALL_ATTRIBUTES;
-    int msgID = MSGID_SCHEMA_DESCRIPTION_SHOW_ALL_ATTRIBUTES;
-    BooleanConfigAttribute showAllStub =
-         new BooleanConfigAttribute(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES,
-                                    getMessage(msgID), false);
-    try
-    {
-      BooleanConfigAttribute showAllAttr =
-           (BooleanConfigAttribute) configEntry.getConfigAttribute(showAllStub);
-      if (showAllAttr != null)
-      {
-        showAllAttributes = showAllAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
-    }
+    showAllAttributes = cfg.isShowAllAttributes();
 
 
     // Register each of the suffixes with the Directory Server.  Also, register
@@ -392,7 +357,7 @@ public class SchemaBackend
           debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
+        int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
         String message = getMessage(msgID, baseDNs[i].toString(),
                                     stackTraceToSingleLineString(e));
         throw new InitializationException(msgID, message, e);
@@ -469,7 +434,7 @@ public class SchemaBackend
           }
           else
           {
-            msgID = MSGID_SCHEMA_CANNOT_FIND_CONCAT_FILE;
+            int msgID = MSGID_SCHEMA_CANNOT_FIND_CONCAT_FILE;
             String message = getMessage(msgID,
                                         upgradeDirectory.getAbsolutePath(),
                                         SCHEMA_CONCAT_FILE_NAME,
@@ -521,7 +486,7 @@ public class SchemaBackend
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES;
+      int msgID = MSGID_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
@@ -529,7 +494,8 @@ public class SchemaBackend
 
 
     // Register with the Directory Server as a configurable component.
-    DirectoryServer.registerConfigurableComponent(this);
+    currentConfig = cfg;
+    cfg.addSchemaChangeListener(this);
   }
 
 
@@ -547,7 +513,7 @@ public class SchemaBackend
    */
   public void finalizeBackend()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig.removeSchemaChangeListener(this);
 
     for (DN baseDN : baseDNs)
     {
@@ -4169,17 +4135,7 @@ public class SchemaBackend
 
 
   /**
-   * Exports the contents of this backend to LDIF.  This method should only be
-   * called if <CODE>supportsLDIFExport</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  exportConfig  The configuration to use when performing the export.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              export.
+   * {@inheritDoc}
    */
   public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
                          LDIFExportConfig exportConfig)
@@ -4258,17 +4214,7 @@ public class SchemaBackend
 
 
   /**
-   * Imports information from an LDIF file into this backend.  This method
-   * should only be called if <CODE>supportsLDIFImport</CODE> returns
-   * <CODE>true</CODE>.  Note that the server will not explicitly initialize
-   * this backend before calling this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  importConfig  The configuration to use when performing the import.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              import.
+   * {@inheritDoc}
    */
   public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
                          LDIFImportConfig importConfig)
@@ -4330,17 +4276,7 @@ public class SchemaBackend
 
 
   /**
-   * Creates a backup of the contents of this backend in a form that may be
-   * restored at a later date if necessary.  This method should only be called
-   * if <CODE>supportsBackup</CODE> returns <CODE>true</CODE>.  Note that the
-   * server will not explicitly initialize this backend before calling this
-   * method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  backupConfig  The configuration to use when performing the backup.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              backup.
+   * {@inheritDoc}
    */
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
@@ -4737,17 +4673,7 @@ public class SchemaBackend
 
 
   /**
-   * Restores a backup of the contents of this backend.  This method should only
-   * be called if <CODE>supportsRestore</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry    The configuration entry for this backend.
-   * @param  restoreConfig  The configuration to use when performing the
-   *                        restore.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              restore.
+   * {@inheritDoc}
    */
   public void restoreBackup(ConfigEntry configEntry,
                             RestoreConfig restoreConfig)
@@ -5253,82 +5179,37 @@ public class SchemaBackend
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
+  public boolean isConfigurationChangeAcceptable(
+       SchemaBackendCfg configEntry,
+       List<String> unacceptableReasons)
   {
-    return configEntryDN;
+    return true;
   }
 
 
 
   /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
+   * {@inheritDoc}
    */
-  public List<ConfigAttribute> getConfigurationAttributes()
+  public ConfigChangeResult applyConfigurationChange(
+       SchemaBackendCfg backendCfg)
   {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-    String description = getMessage(MSGID_SCHEMA_DESCRIPTION_ENTRY_DN);
-
-    ArrayList<DN> values = new ArrayList<DN>(baseDNs.length);
-    for (DN baseDN : baseDNs)
-    {
-      values.add(baseDN);
-    }
-
-    attrList.add(new DNConfigAttribute(ATTR_SCHEMA_ENTRY_DN, description,
-                                       false, true, false, values));
+    ResultCode        resultCode          = ResultCode.SUCCESS;
+    boolean           adminActionRequired = false;
+    ArrayList<String> messages            = new ArrayList<String>();
 
 
-    description = getMessage(MSGID_SCHEMA_DESCRIPTION_SHOW_ALL_ATTRIBUTES);
-    attrList.add(new BooleanConfigAttribute(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES,
-                                            description, false,
-                                            showAllAttributes));
-
-
-    return attrList;
-  }
-
-
-
-  /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
-  {
-    boolean configIsAcceptable = true;
-
-
-    String description = getMessage(MSGID_SCHEMA_DESCRIPTION_ENTRY_DN);
-    DNConfigAttribute baseDNStub =
-         new DNConfigAttribute(ATTR_SCHEMA_ENTRY_DN, description, false, true,
-                               false);
+    // Check to see if we should apply a new set of base DNs.
+    Set<DN> newBaseDNs;
     try
     {
-      // We don't care what the DNs are as long as we can parse them.
-      DNConfigAttribute baseDNAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
+      newBaseDNs = backendCfg.getSchemaEntryDN();
+      if (newBaseDNs.isEmpty())
+      {
+        newBaseDNs.add(DN.decode(DN_DEFAULT_SCHEMA_ROOT));
+      }
     }
     catch (Exception e)
     {
@@ -5338,104 +5219,6 @@ public class SchemaBackend
       }
 
       int msgID = MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      unacceptableReasons.add(message);
-      configIsAcceptable = false;
-    }
-
-
-    description = getMessage(MSGID_SCHEMA_DESCRIPTION_SHOW_ALL_ATTRIBUTES);
-    BooleanConfigAttribute showAllStub =
-         new BooleanConfigAttribute(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES,
-                                    description, false);
-    try
-    {
-      // We don't care what the value is as long as we can parse it.
-      BooleanConfigAttribute showAllAttr =
-           (BooleanConfigAttribute) configEntry.getConfigAttribute(showAllStub);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
-      unacceptableReasons.add(message);
-      configIsAcceptable = false;
-    }
-
-
-    return configIsAcceptable;
-  }
-
-
-
-  /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
-   */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
-  {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-
-
-    // Check to see if we should apply a new set of base DNs.
-    HashSet<DN> newBaseDNs;
-    int msgID = MSGID_SCHEMA_DESCRIPTION_ENTRY_DN;
-    DNConfigAttribute baseDNStub =
-         new DNConfigAttribute(ATTR_SCHEMA_ENTRY_DN, getMessage(msgID), false,
-                               true, false);
-    try
-    {
-      DNConfigAttribute baseDNAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-      if (baseDNAttr == null)
-      {
-        newBaseDNs = new HashSet<DN>(1);
-        newBaseDNs.add(DN.decode(DN_DEFAULT_SCHEMA_ROOT));
-      }
-      else
-      {
-        List<DN> newDNList = baseDNAttr.activeValues();
-        if ((newDNList == null) || newDNList.isEmpty())
-        {
-          newBaseDNs = new HashSet<DN>(1);
-          newBaseDNs.add(DN.decode(DN_DEFAULT_SCHEMA_ROOT));
-        }
-        else
-        {
-          newBaseDNs = new HashSet<DN>(newDNList);
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
                               stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
@@ -5445,58 +5228,48 @@ public class SchemaBackend
 
     // Check to see if we should change the behavior regarding whether to show
     // all schema attributes.
-    boolean newShowAllAttributes = DEFAULT_SCHEMA_SHOW_ALL_ATTRIBUTES;
-    msgID = MSGID_SCHEMA_DESCRIPTION_SHOW_ALL_ATTRIBUTES;
-    BooleanConfigAttribute showAllStub =
-         new BooleanConfigAttribute(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES,
-                                    getMessage(msgID), false);
+    boolean newShowAllAttributes = backendCfg.isShowAllAttributes();
+
+
+    // Check to see if there is a new set of user-defined attributes.
+    ArrayList<Attribute> newUserAttrs = new ArrayList<Attribute>();
     try
     {
-      BooleanConfigAttribute showAllAttr =
-           (BooleanConfigAttribute) configEntry.getConfigAttribute(showAllStub);
-      if (showAllAttr != null)
+      ConfigEntry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
+      for (List<Attribute> attrs :
+           configEntry.getEntry().getUserAttributes().values())
       {
-        newShowAllAttributes = showAllAttr.activeValue();
+        for (Attribute a : attrs)
+        {
+          if (! isSchemaConfigAttribute(a))
+          {
+            newUserAttrs.add(a);
+          }
+        }
+      }
+      for (List<Attribute> attrs :
+           configEntry.getEntry().getOperationalAttributes().values())
+      {
+        for (Attribute a : attrs)
+        {
+          if (! isSchemaConfigAttribute(a))
+          {
+            newUserAttrs.add(a);
+          }
+        }
       }
     }
-    catch (Exception e)
+    catch (ConfigException e)
     {
       if (debugEnabled())
       {
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL;
+      int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
                               stackTraceToSingleLineString(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
-      newBaseDNs = null;
-    }
-
-
-    // Check to see if there is a new set of user-defined attributes.
-    ArrayList<Attribute> newUserAttrs = new ArrayList<Attribute>();
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getUserAttributes().values())
-    {
-      for (Attribute a : attrs)
-      {
-        if (! isSchemaConfigAttribute(a))
-        {
-          newUserAttrs.add(a);
-        }
-      }
-    }
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getOperationalAttributes().values())
-    {
-      for (Attribute a : attrs)
-      {
-        if (! isSchemaConfigAttribute(a))
-        {
-          newUserAttrs.add(a);
-        }
-      }
     }
 
 
@@ -5525,11 +5298,8 @@ public class SchemaBackend
         try
         {
           DirectoryServer.deregisterBaseDN(dn, false);
-          if (detailedResults)
-          {
-            msgID = MSGID_SCHEMA_DEREGISTERED_BASE_DN;
-            messages.add(getMessage(msgID, String.valueOf(dn)));
-          }
+          int msgID = MSGID_SCHEMA_DEREGISTERED_BASE_DN;
+          messages.add(getMessage(msgID, String.valueOf(dn)));
         }
         catch (Exception e)
         {
@@ -5538,7 +5308,7 @@ public class SchemaBackend
             debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          msgID = MSGID_SCHEMA_CANNOT_DEREGISTER_BASE_DN;
+          int msgID = MSGID_SCHEMA_CANNOT_DEREGISTER_BASE_DN;
           messages.add(getMessage(msgID, String.valueOf(dn),
                                   stackTraceToSingleLineString(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
@@ -5551,11 +5321,8 @@ public class SchemaBackend
         try
         {
           DirectoryServer.registerBaseDN(dn, this, true, false);
-          if (detailedResults)
-          {
-            msgID = MSGID_SCHEMA_REGISTERED_BASE_DN;
-            messages.add(getMessage(msgID, String.valueOf(dn)));
-          }
+          int msgID = MSGID_SCHEMA_REGISTERED_BASE_DN;
+          messages.add(getMessage(msgID, String.valueOf(dn)));
         }
         catch (Exception e)
         {
@@ -5564,7 +5331,7 @@ public class SchemaBackend
             debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          msgID = MSGID_SCHEMA_CANNOT_REGISTER_BASE_DN;
+          int msgID = MSGID_SCHEMA_CANNOT_REGISTER_BASE_DN;
           messages.add(getMessage(msgID, String.valueOf(dn),
                                   stackTraceToSingleLineString(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
@@ -5576,15 +5343,13 @@ public class SchemaBackend
 
 
       userDefinedAttributes = newUserAttrs;
-      if (detailedResults)
-      {
-        msgID = MSGID_SCHEMA_USING_NEW_USER_ATTRS;
-        String message = getMessage(msgID);
-        messages.add(message);
-      }
+      int msgID = MSGID_SCHEMA_USING_NEW_USER_ATTRS;
+      String message = getMessage(msgID);
+      messages.add(message);
     }
 
 
+    currentConfig = backendCfg;
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
@@ -5667,6 +5432,14 @@ public class SchemaBackend
                ALERT_DESCRIPTION_CANNOT_WRITE_NEW_SCHEMA_FILES);
 
     return alerts;
+  }
+
+
+
+  private static SchemaBackendCfg getSchemaBackendCfg(ConfigEntry configEntry)
+      throws ConfigException {
+    return BackendConfigManager.getConfiguration(
+         SchemaBackendCfgDefn.getInstance(), configEntry);
   }
 }
 

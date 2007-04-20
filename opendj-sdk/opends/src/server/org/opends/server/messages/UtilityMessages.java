@@ -1918,7 +1918,7 @@ public class UtilityMessages
     registerMessage(MSGID_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_NAME,
                     "There is already another global argument named \"%s\".");
     registerMessage(MSGID_SUBCMDPARSER_GLOBAL_ARG_NAME_SUBCMD_CONFLICT,
-                    "The argument name %s conflicts the the name of another " +
+                    "The argument name %s conflicts with the name of another " +
                     "argument associated with the %s subcommand.");
     registerMessage(MSGID_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_SHORT_ID,
                     "Short ID -%s for global argument %s conflicts with the " +

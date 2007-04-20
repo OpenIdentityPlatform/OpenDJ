@@ -33,20 +33,20 @@
   <!--
     Determines whether or not the provided word is a known abbreviation or
     acronym.
-    
+
     @param value The word.
-    
+
     @return Returns the string "true" if the word is an abbreviation.
   -->
   <xsl:template name="is-abbreviation">
     <xsl:param name="value" select="/.." />
     <xsl:value-of
-      select="$value = 'aci' or $value = 'ip' or $value = 'ssl' 
+      select="$value = 'aci' or $value = 'ip' or $value = 'ssl'
               or $value = 'dn' or $value = 'rdn' or $value = 'jmx'
-              or $value = 'smtp' or $value = 'http'  or $value = 'https'  
+              or $value = 'smtp' or $value = 'http'  or $value = 'https'
               or $value = 'ldap' or $value = 'ldaps' or $value = 'ldif'
               or $value = 'jdbc' or $value = 'tcp' or $value = 'tls'
               or $value = 'pkcs11' or $value = 'sasl' or $value = 'gssapi'
-              or $value = 'md5' " />
+              or $value = 'md5' or $value = 'je' or $value = 'dse' " />
   </xsl:template>
 </xsl:stylesheet>

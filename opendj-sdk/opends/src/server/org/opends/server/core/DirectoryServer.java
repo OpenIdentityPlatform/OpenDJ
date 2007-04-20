@@ -4196,8 +4196,11 @@ public class DirectoryServer
           baseName = "___NAME___";
         }
 
-        lines.add("  <adm:property name=\"" + baseName + "\" mandatory=\"" +
-                  String.valueOf(attr.isRequired()) + "\">");
+        lines.add("  <adm:property name=\"" + baseName + "\"");
+        lines.add("    mandatory=\""
+             + String.valueOf(attr.isRequired()) + "\"");
+        lines.add("    multi-valued=\""
+             + String.valueOf(attr.isMultiValued()) + "\">");
         lines.add("    <adm:synopsis>");
         lines.add("      ___SYNOPSIS___");
         lines.add("    </adm:synopsis>");
@@ -4238,6 +4241,18 @@ public class DirectoryServer
         }
 
         lines.add("    </adm:description>");
+        if (attr.requiresAdminAction())
+        {
+          lines.add("    <adm:requires-admin-action>");
+          lines.add("      <adm:server-restart/>");
+          lines.add("    </adm:requires-admin-action>");
+        }
+        if (!attr.isRequired())
+        {
+          lines.add("    <adm:default-behavior>");
+          lines.add("      <adm:undefined/>");
+          lines.add("    </adm:default-behavior>");
+        }
         lines.add("    <adm:syntax>");
 
         if (attr instanceof org.opends.server.config.BooleanConfigAttribute)

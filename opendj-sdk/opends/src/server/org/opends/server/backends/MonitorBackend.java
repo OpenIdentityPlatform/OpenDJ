@@ -33,13 +33,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.api.Backend;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -48,6 +45,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -77,9 +75,11 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.BackendCfg;
 
 
 /**
@@ -90,7 +90,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class MonitorBackend
        extends Backend
-       implements ConfigurableComponent
+       implements ConfigurationChangeListener<BackendCfg>
 {
   // The set of user-defined attributes that will be included in the base
   // monitor entry.
@@ -101,6 +101,9 @@ public class MonitorBackend
 
   // The DN of the configuration entry for this backend.
   private DN configEntryDN;
+
+  // The current configuration state.
+  private BackendCfg currentConfig;
 
   // The DN for the base monitor entry.
   private DN baseMonitorDN;
@@ -131,20 +134,7 @@ public class MonitorBackend
 
 
   /**
-   * Initializes this backend based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this backend.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
@@ -158,6 +148,7 @@ public class MonitorBackend
       throw new ConfigException(msgID, message);
     }
 
+    BackendCfg cfg = BackendConfigManager.getBackendCfg(configEntry);
     configEntryDN = configEntry.getDN();
 
 
@@ -227,7 +218,8 @@ public class MonitorBackend
 
 
     // Register with the Directory Server as a configurable component.
-    DirectoryServer.registerConfigurableComponent(this);
+    currentConfig = cfg;
+    cfg.addChangeListener(this);
 
 
     // Register the monitor base as a private suffix.
@@ -264,7 +256,7 @@ public class MonitorBackend
    */
   public void finalizeBackend()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig.removeChangeListener(this);
 
     try
     {
@@ -955,17 +947,7 @@ public class MonitorBackend
 
 
   /**
-   * Exports the contents of this backend to LDIF.  This method should only be
-   * called if <CODE>supportsLDIFExport</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  exportConfig  The configuration to use when performing the export.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              export.
+   * {@inheritDoc}
    */
   public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
                          LDIFExportConfig exportConfig)
@@ -1091,17 +1073,7 @@ public class MonitorBackend
 
 
   /**
-   * Imports information from an LDIF file into this backend.  This method
-   * should only be called if <CODE>supportsLDIFImport</CODE> returns
-   * <CODE>true</CODE>.  Note that the server will not explicitly initialize
-   * this backend before calling this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  importConfig  The configuration to use when performing the import.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              import.
+   * {@inheritDoc}
    */
   public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
                          LDIFImportConfig importConfig)
@@ -1160,17 +1132,7 @@ public class MonitorBackend
 
 
   /**
-   * Creates a backup of the contents of this backend in a form that may be
-   * restored at a later date if necessary.  This method should only be called
-   * if <CODE>supportsBackup</CODE> returns <CODE>true</CODE>.  Note that the
-   * server will not explicitly initialize this backend before calling this
-   * method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  backupConfig  The configuration to use when performing the backup.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              backup.
+   * {@inheritDoc}
    */
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
@@ -1224,17 +1186,7 @@ public class MonitorBackend
 
 
   /**
-   * Restores a backup of the contents of this backend.  This method should only
-   * be called if <CODE>supportsRestore</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry    The configuration entry for this backend.
-   * @param  restoreConfig  The configuration to use when performing the
-   *                        restore.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              restore.
+   * {@inheritDoc}
    */
   public void restoreBackup(ConfigEntry configEntry,
                             RestoreConfig restoreConfig)
@@ -1250,40 +1202,11 @@ public class MonitorBackend
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
-   */
-  public DN getConfigurableComponentEntryDN()
-  {
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    // There are no configurable attributes that will be explicitly advertised.
-    return new LinkedList<ConfigAttribute>();
-  }
-
-
-
-  /**
    * Indicates whether the provided configuration entry has an acceptable
    * configuration for this component.  If it does not, then detailed
    * information about the problem(s) should be added to the provided list.
    *
-   * @param  configEntry          The configuration entry for which to make the
+   * @param  backendCfg          The configuration entry for which to make the
    *                              determination.
    * @param  unacceptableReasons  A list that can be used to hold messages about
    *                              why the provided entry does not have an
@@ -1292,8 +1215,9 @@ public class MonitorBackend
    * @return  <CODE>true</CODE> if the provided entry has an acceptable
    *          configuration for this component, or <CODE>false</CODE> if not.
    */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(
+       BackendCfg backendCfg,
+       List<String> unacceptableReasons)
   {
     // We'll pretty much accept anything here as long as it isn't one of our
     // private attributes.
@@ -1303,23 +1227,9 @@ public class MonitorBackend
 
 
   /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange(BackendCfg backendCfg)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -1328,39 +1238,54 @@ public class MonitorBackend
 
     // Check to see if there is a new set of user-defined attributes.
     ArrayList<Attribute> userAttrs = new ArrayList<Attribute>();
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getUserAttributes().values())
+    try
     {
-      for (Attribute a : attrs)
+      ConfigEntry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
+      for (List<Attribute> attrs :
+           configEntry.getEntry().getUserAttributes().values())
       {
-        if (! isMonitorConfigAttribute(a))
+        for (Attribute a : attrs)
         {
-          userAttrs.add(a);
+          if (! isMonitorConfigAttribute(a))
+          {
+            userAttrs.add(a);
+          }
+        }
+      }
+      for (List<Attribute> attrs :
+           configEntry.getEntry().getOperationalAttributes().values())
+      {
+        for (Attribute a : attrs)
+        {
+          if (! isMonitorConfigAttribute(a))
+          {
+            userAttrs.add(a);
+          }
         }
       }
     }
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getOperationalAttributes().values())
+    catch (Exception e)
     {
-      for (Attribute a : attrs)
+      if (debugEnabled())
       {
-        if (! isMonitorConfigAttribute(a))
-        {
-          userAttrs.add(a);
-        }
+        debugCaught(DebugLogLevel.ERROR, e);
       }
+
+      int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                              stackTraceToSingleLineString(e)));
+      resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
 
     userDefinedAttributes = userAttrs;
-    if (detailedResults)
-    {
-      int    msgID   = MSGID_MONITOR_USING_NEW_USER_ATTRS;
-      String message = getMessage(msgID);
-      messages.add(message);
-    }
+
+    int    msgID   = MSGID_MONITOR_USING_NEW_USER_ATTRS;
+    String message = getMessage(msgID);
+    messages.add(message);
 
 
+    currentConfig = backendCfg;
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }

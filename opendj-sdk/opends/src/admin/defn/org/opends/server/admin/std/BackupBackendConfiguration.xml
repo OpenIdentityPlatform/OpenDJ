@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:managed-object name="backup-backend" plural-name="backup-backends"
+  package="org.opends.server.admin.std"
+  extends="backend"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The backup backend provides read-only access to the set of backups that
+    are available for the OpenDS Directory Server.
+  </adm:synopsis>
+  <adm:description>
+    The backup backend is provided as a convenience feature that makes it
+    easier to determine what backups are available to be restored if necessary.
+    The org.opends.server.backends.BackupBackend class provides the
+    implementation for this backend.
+  </adm:description>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.68</ldap:oid>
+      <ldap:name>ds-cfg-backup-backend</ldap:name>
+      <ldap:superior>ds-cfg-backend</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="backup-directory"
+    mandatory="true"
+    multi-valued="true">
+    <adm:synopsis>
+      Specifies the path to a backup directory containing one or more backups
+      for a particular backend. It may be either an absolute path or one that
+      is relative to the base of the OpenDS Directory Server installation.
+    </adm:synopsis>
+    <adm:description>
+      This is a multivalued attribute, and each value may specify a different
+      backup directory if desired (e.g., one for each backend for which backups
+      are taken).
+    </adm:description>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.228</ldap:oid>
+        <ldap:name>ds-cfg-backup-directory</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

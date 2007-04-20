@@ -35,74 +35,52 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.sleepycat.je.DatabaseException;
 
 import org.opends.server.api.Backend;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.DNConfigAttribute;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.CancelledOperationException;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.util.LDIFException;
+import org.opends.server.util.Validator;
 
 import static org.opends.server.messages.BackendMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.Error.logError;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_BASE_DN;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
 import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
 import static org.opends.server.util.ServerConstants.OID_MANAGE_DSAIT_CONTROL;
+import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.meta.JEBackendCfgDefn;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 
 /**
  * This is an implementation of a Directory Server Backend which stores entries
  * locally in a Sleepycat JE database.
  */
-public class BackendImpl extends Backend implements ConfigurableComponent
+public class BackendImpl
+     extends Backend
+     implements ConfigurationChangeListener<JEBackendCfg>
 {
-
-  /**
-   * The DN of the configuration entry for this backend.
-   */
-  private DN configDN;
 
   /**
    * The configuration of this JE backend.
    */
   private Config config;
+  private JEBackendCfg currentConfig;
 
   /**
    * The root JE container to use for this backend.
    */
   private RootContainer rootContainer;
-
-  /**
-   * A configurable component to handle changes to the configuration of
-   * the database environment.
-   */
-  private ConfigurableEnvironment configurableEnv = null;
 
   /**
    * A count of the total operation threads currently in the backend.
@@ -125,17 +103,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   private static HashSet<String> supportedControls;
 
-  /**
-   * The set of configuration attributes associated with the backend in its role
-   * as a configurable component.
-   */
-  private static ArrayList<ConfigAttribute> configAttrs;
-
-  /**
-   * The configuration attribute stub for the backendBaseDN attribute.
-   */
-  private static DNConfigAttribute baseDNStub;
-
 
 
   static
@@ -145,17 +112,6 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     supportedControls.add(OID_SUBTREE_DELETE_CONTROL);
     supportedControls.add(OID_PAGED_RESULTS_CONTROL);
     supportedControls.add(OID_MANAGE_DSAIT_CONTROL);
-
-    configAttrs = new ArrayList<ConfigAttribute>();
-
-    // ds-cfg-backendBaseDN configuration attribute.
-    int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
-    baseDNStub = new DNConfigAttribute(ATTR_BACKEND_BASE_DN,
-                                       getMessage(msgID),
-                                       true, true, true);
-
-    configAttrs.add(baseDNStub);
-
   }
 
 
@@ -256,29 +212,17 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
 
   /**
-   * Initializes this backend based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this backend.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
        throws ConfigException, InitializationException
   {
-    configDN = configEntry.getDN();
+    Validator.ensureNotNull(configEntry);
+    JEBackendCfg backendCfg = getJEBackendCfg(configEntry);
 
     // Initialize a config object
     config = new Config();
-    config.initializeConfig(configEntry, baseDNs);
+    config.initializeConfig(backendCfg, baseDNs);
 
     for (DN dn : baseDNs)
     {
@@ -370,16 +314,11 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                                         message, databaseException);
     }
 
-    // Register this backend as a configurable component.
-    DirectoryServer.registerConfigurableComponent(this);
-
-    // Register the database environment as a configurable component.
-    ConfigurableEnvironment configurableEnv =
-        rootContainer.getConfigurableEnvironment();
-    if (configurableEnv != null)
-    {
-      DirectoryServer.registerConfigurableComponent(configurableEnv);
-    }
+    // Register this backend as a change listener.
+    currentConfig = backendCfg;
+    backendCfg.addJEChangeListener(this);
+    backendCfg.addJEChangeListener(config);
+    backendCfg.addJEChangeListener(rootContainer);
   }
 
   /**
@@ -393,17 +332,12 @@ public class BackendImpl extends Backend implements ConfigurableComponent
    */
   public void finalizeBackend()
   {
-    // Deregister our configurable components.
-    // TODO: configurableEnv is always null and will not be deregistered.
-    if (configurableEnv != null)
-    {
-      DirectoryServer.deregisterConfigurableComponent(configurableEnv);
-      configurableEnv = null;
-    }
-    DirectoryServer.deregisterConfigurableComponent(this);
+    // Deregister as a change listener.
+    currentConfig.removeJEChangeListener(rootContainer);
+    currentConfig.removeJEChangeListener(config);
+    currentConfig.removeJEChangeListener(this);
 
-    // Deregister our suffixes.
-    // FIXME: Currently assuming every base DN is also a suffix.
+    // Deregister our base DNs.
     for (DN dn : rootContainer.getBaseDNs())
     {
       try
@@ -943,16 +877,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
 
   /**
-   * Exports the contents of this backend to LDIF.  This method should only be
-   * called if <CODE>supportsLDIFExport</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param configEntry  The configuration entry for this backend.
-   * @param baseDNs      The set of base DNs configured for this backend.
-   * @param exportConfig The configuration to use when performing the export.
-   * @throws org.opends.server.types.DirectoryException
-   *          If a problem occurs while performing the LDIF export.
+   * {@inheritDoc}
    */
   public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
                          LDIFExportConfig exportConfig)
@@ -1062,16 +987,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
 
   /**
-   * Imports information from an LDIF file into this backend.  This method
-   * should only be called if <CODE>supportsLDIFImport</CODE> returns
-   * <CODE>true</CODE>.  Note that the server will not explicitly initialize
-   * this backend before calling this method.
-   *
-   * @param configEntry  The configuration entry for this backend.
-   * @param baseDNs      The set of base DNs configured for this backend.
-   * @param importConfig The configuration to use when performing the import.
-   * @throws DirectoryException If a problem occurs while performing the LDIF
-   *                            import.
+   * {@inheritDoc}
    */
   public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
                          LDIFImportConfig importConfig)
@@ -1239,11 +1155,14 @@ public class BackendImpl extends Backend implements ConfigurableComponent
                              ConfigEntry configEntry, DN[] baseDNs)
        throws InitializationException, ConfigException, DirectoryException
   {
+    JEBackendCfg backendCfg = getJEBackendCfg(configEntry);
+
     // If the backend already has the root container open, we must use the same
     // underlying root container
     boolean openRootContainer = rootContainer == null;
 
-    // If the rootContainer is open, the backend is initizlied by something else
+    // If the rootContainer is open, the backend is initialized by something
+    // else.
     // We can't do any rebuild of system indexes while others are using this
     // backend. Throw error. TODO: Need to make baseDNs disablable.
     if(!openRootContainer && rebuildConfig.includesSystemIndex())
@@ -1259,7 +1178,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
       {
         // Initialize a config object.
         config = new Config();
-        config.initializeConfig(configEntry, baseDNs);
+        config.initializeConfig(backendCfg, baseDNs);
 
         // Open the database environment
         rootContainer = new RootContainer(config, this);
@@ -1316,16 +1235,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
 
   /**
-   * Creates a backup of the contents of this backend in a form that may be
-   * restored at a later date if necessary.  This method should only be called
-   * if <CODE>supportsBackup</CODE> returns <CODE>true</CODE>.  Note that the
-   * server will not explicitly initialize this backend before calling this
-   * method.
-   *
-   * @param configEntry  The configuration entry for this backend.
-   * @param backupConfig The configuration to use when performing the backup.
-   * @throws DirectoryException If a problem occurs while performing the
-   *                            backup.
+   * {@inheritDoc}
    */
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
        throws DirectoryException
@@ -1338,15 +1248,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
 
   /**
-   * Removes the specified backup if it is possible to do so.
-   *
-   * @param backupDirectory The backup directory structure with which the
-   *                        specified backup is associated.
-   * @param backupID        The backup ID for the backup to be removed.
-   * @throws DirectoryException If it is not possible to remove the specified
-   *                            backup for some reason (e.g., no such backup
-   *                            exists or there are other backups that are
-   *                            dependent upon it).
+   * {@inheritDoc}
    */
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
        throws DirectoryException
@@ -1359,15 +1261,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
 
   /**
-   * Restores a backup of the contents of this backend.  This method should only
-   * be called if <CODE>supportsRestore</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param configEntry   The configuration entry for this backend.
-   * @param restoreConfig The configuration to use when performing the restore.
-   * @throws DirectoryException If a problem occurs while performing the
-   *                            restore.
+   * {@inheritDoc}
    */
   public void restoreBackup(ConfigEntry configEntry,
                             RestoreConfig restoreConfig)
@@ -1381,107 +1275,23 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return The DN of the configuration entry with which this component is
-   *         associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
+  public boolean isConfigurationChangeAcceptable(
+       JEBackendCfg cfg,
+       List<String> unacceptableReasons)
   {
-    return configDN;
+    // This listener handles only the changes to the base DNs.
+    // The base DNs are checked by the backend config manager.
+    return true;
   }
 
 
 
   /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return The set of configuration attributes that are associated with this
-   *         configurable component.
+   * {@inheritDoc}
    */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    return configAttrs;
-  }
-
-
-
-  /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param configEntry         The configuration entry for which to make the
-   *                            determination.
-   * @param unacceptableReasons A list that can be used to hold messages about
-   *                            why the provided entry does not have an
-   *                            acceptable configuration.
-   * @return <CODE>true</CODE> if the provided entry has an acceptable
-   *         configuration for this component, or <CODE>false</CODE> if not.
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
-  {
-    DN[] baseDNs = null;
-    boolean acceptable = true;
-
-    try
-    {
-      DNConfigAttribute baseDNAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-      if (baseDNAttr == null)
-      {
-        int msgID = MSGID_CONFIG_BACKEND_NO_BASE_DNS;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()));
-        unacceptableReasons.add(message);
-      }
-      else
-      {
-        baseDNs = baseDNAttr.activeValues().toArray(new DN[0]);
-      }
-    }
-    catch (ConfigException e)
-    {
-      unacceptableReasons.add(e.getMessage());
-      acceptable = false;
-    }
-
-    Config newConfig = new Config();
-    try
-    {
-      newConfig.initializeConfig(configEntry, baseDNs);
-    }
-    catch (ConfigException e)
-    {
-      unacceptableReasons.add(e.getMessage());
-      acceptable = false;
-    }
-
-    return acceptable;
-  }
-
-
-
-  /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param configEntry     The entry containing the new configuration to apply
-   *                        for this component.
-   * @param detailedResults Indicates whether detailed information about the
-   *                        processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
-   */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange(JEBackendCfg cfg)
   {
     ConfigChangeResult ccr;
     ResultCode resultCode = ResultCode.SUCCESS;
@@ -1489,22 +1299,14 @@ public class BackendImpl extends Backend implements ConfigurableComponent
 
     try
     {
-      DN[] baseDNs = null;
-
-      DNConfigAttribute baseDNAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-
-      baseDNs = baseDNAttr.activeValues().toArray(new DN[0]);
-
-      // Create a new Config object.
-      Config newConfig = new Config();
-      newConfig.initializeConfig(configEntry, baseDNs);
+      DN[] baseDNs = new DN[cfg.getBackendBaseDN().size()];
+      baseDNs = cfg.getBackendBaseDN().toArray(baseDNs);
 
       // Check for changes to the base DNs.
       for (DN baseDN : config.getBaseDNs())
       {
         boolean found = false;
-        for (DN dn : newConfig.getBaseDNs())
+        for (DN dn : baseDNs)
         {
           if (dn.equals(baseDN))
           {
@@ -1523,7 +1325,7 @@ public class BackendImpl extends Backend implements ConfigurableComponent
         }
       }
 
-      for (DN baseDN : newConfig.getBaseDNs())
+      for (DN baseDN : baseDNs)
       {
         if (!rootContainer.getBaseDNs().contains(baseDN))
         {
@@ -1551,11 +1353,8 @@ public class BackendImpl extends Backend implements ConfigurableComponent
         }
       }
 
-      // Apply new JE configuration
-      rootContainer.applyNewConfig(config);
-
       // Put the new configuration in place.
-      config = newConfig;
+      currentConfig = cfg;
     }
     catch (Exception e)
     {
@@ -1601,4 +1400,20 @@ public class BackendImpl extends Backend implements ConfigurableComponent
     config.initializeConfig(configEntry, baseDNs);
     EnvManager.removeFiles(config.getBackendDirectory().getPath());
   }
+
+  /**
+   * Gets the JE backend configuration corresponding to a JE
+   * backend config entry.
+   *
+   * @param configEntry A JE backend config entry.
+   * @return Returns the JE backend configuration.
+   * @throws ConfigException If the config entry could not be decoded.
+   */
+  static JEBackendCfg getJEBackendCfg(ConfigEntry configEntry)
+      throws ConfigException {
+    return BackendConfigManager.getConfiguration(
+         JEBackendCfgDefn.getInstance(), configEntry);
+  }
+
+
 }

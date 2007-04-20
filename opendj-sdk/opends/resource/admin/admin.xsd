@@ -965,7 +965,7 @@
             Sizes can be specified using both decimal and binary units.
             For example, "1kb" represents 1000 bytes, and "1kib"
             represents 1024 bytes. Values must always specify the unit
-            and can included a fractionaly part (e.g. 1.5mb). Both short
+            and can include a fractional part (e.g. 1.5mb). Both short
             and long unit names are supported (e.g. "kb" and
             "kilobytes").
           </xsd:documentation>

@@ -190,7 +190,8 @@ public final class TestCaseUtils {
     //db_rebuild is the third jeb backend used by the jeb rebuild test cases
     String[] subDirectories = { "bak", "bin", "changelogDb", "classes",
                                 "config", "db", "db_verify", "ldif", "lib",
-                                "locks", "logs", "db_rebuild" };
+                                "locks", "logs", "db_rebuild",
+                                "db_index_test" };
     for (String s : subDirectories)
     {
       new File(testRoot, s).mkdir();

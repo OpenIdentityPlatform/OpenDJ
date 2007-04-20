@@ -120,6 +120,21 @@ ds-cfg-backend-import-pass-size: 0
 ds-cfg-backend-import-thread-count: 8
 ds-cfg-backend-entries-compressed: false
 ds-cfg-backend-deadlock-retry-limit: 10
+ds-cfg-database-cache-percent: 10
+ds-cfg-database-cache-size: 0 megabytes
+ds-cfg-database-txn-no-sync: false
+ds-cfg-database-txn-write-no-sync: true
+ds-cfg-database-run-cleaner: true
+ds-cfg-database-cleaner-num-threads: 1
+ds-cfg-database-cleaner-min-utilization: 75
+ds-cfg-database-evictor-lru-only: true
+ds-cfg-database-evictor-nodes-per-scan: 10
+ds-cfg-database-log-file-max: 50 megabytes
+ds-cfg-database-logging-file-handler-on: true
+ds-cfg-database-logging-level: CONFIG
+ds-cfg-database-checkpointer-bytes-interval: 20 megabytes
+ds-cfg-database-checkpointer-wakeup-interval: 30 seconds
+ds-cfg-database-lock-num-lock-tables: 19
 
 dn: cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
@@ -201,26 +216,6 @@ objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: entryuuid
 ds-cfg-index-type: equality
-
-dn: cn=JE Database,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-je-database
-cn: JE Database
-ds-cfg-database-cache-percent: 10
-ds-cfg-database-cache-size: 0 megabytes
-ds-cfg-database-txn-no-sync: false
-ds-cfg-database-txn-write-no-sync: true
-ds-cfg-database-run-cleaner: true
-ds-cfg-database-cleaner-num-threads: 1
-ds-cfg-database-cleaner-min-utilization: 75
-ds-cfg-database-evictor-lru-only: true
-ds-cfg-database-evictor-nodes-per-scan: 10
-ds-cfg-database-log-file-max: 50 megabytes
-ds-cfg-database-logging-file-handler-on: true
-ds-cfg-database-logging-level: CONFIG
-ds-cfg-database-checkpointer-bytes-interval: 20 megabytes
-ds-cfg-database-checkpointer-wakeup-interval: 30 seconds
-ds-cfg-database-lock-num-lock-tables: 19
 
 dn: ds-cfg-backend-id=backup,cn=Backends,cn=config
 objectClass: top

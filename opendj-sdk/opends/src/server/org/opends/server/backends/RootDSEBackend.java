@@ -32,27 +32,22 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.server.api.Backend;
-import org.opends.server.api.ConfigurableComponent;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -84,9 +79,13 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.ConfigMessages.
+     MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.admin.std.server.RootDSEBackendCfg;
+import org.opends.server.admin.std.meta.RootDSEBackendCfgDefn;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 
 
 /**
@@ -103,7 +102,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class RootDSEBackend
        extends Backend
-       implements ConfigurableComponent
+       implements ConfigurationChangeListener<RootDSEBackendCfg>
 {
   // The set of standard "static" attributes that we will always include in the
   // root DSE entry and won't change while the server is running.
@@ -123,6 +122,9 @@ public class RootDSEBackend
 
   // The set of objectclasses that will be used in the root DSE entry.
   private HashMap<ObjectClass,String> dseObjectClasses;
+
+  // The current configuration state.
+  private RootDSEBackendCfg currentConfig;
 
   // The DN of the configuration entry for this backend.
   private DN configEntryDN;
@@ -156,20 +158,7 @@ public class RootDSEBackend
 
 
   /**
-   * Initializes this backend based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this backend.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
@@ -184,6 +173,7 @@ public class RootDSEBackend
     }
 
     configEntryDN = configEntry.getDN();
+    RootDSEBackendCfg cfg = getRootDSEBackendCfg(configEntry);
 
 
     // Get the set of user-defined attributes for the configuration entry.  Any
@@ -223,15 +213,10 @@ public class RootDSEBackend
     // Create the set of subordinate base DNs.  If this is specified in the
     // configuration, then use that set.  Otherwise, use the set of non-private
     // backends defined in the server.
-    String description = getMessage(MSGID_ROOTDSE_SUBORDINATE_BASE_DESCRIPTION);
-    DNConfigAttribute subDNsStub =
-         new DNConfigAttribute(ATTR_ROOT_DSE_SUBORDINATE_BASE_DN, description,
-                               false, true, false);
     try
     {
-      DNConfigAttribute subDNsAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(subDNsStub);
-      if (subDNsAttr == null)
+      Set<DN> subDNs = cfg.getSubordinateBaseDN();
+      if (subDNs.isEmpty())
       {
         // This is fine -- we'll just use the set of user-defined suffixes.
         subordinateBaseDNs = null;
@@ -239,7 +224,7 @@ public class RootDSEBackend
       else
       {
         subordinateBaseDNs = new ConcurrentHashMap<DN,Backend>();
-        for (DN baseDN : subDNsAttr.activeValues())
+        for (DN baseDN : subDNs)
         {
           Backend backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
@@ -271,34 +256,7 @@ public class RootDSEBackend
 
     // Determine whether all root DSE attributes should be treated as user
     // attributes.
-    showAllAttributes = DEFAULT_ROOTDSE_SHOW_ALL_ATTRIBUTES;
-    int msgID = MSGID_ROOTDSE_DESCRIPTION_SHOW_ALL_ATTRIBUTES;
-    BooleanConfigAttribute showAllStub =
-         new BooleanConfigAttribute(ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
-                                    getMessage(msgID), false);
-    try
-    {
-      BooleanConfigAttribute showAllAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(showAllStub);
-      if (showAllAttr != null)
-      {
-        showAllAttributes = showAllAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_ROOTDSE_CANNOT_DETERMINE_ALL_USER_ATTRIBUTES;
-      String message = getMessage(msgID, ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
-                                  stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
-    }
+    showAllAttributes = cfg.isShowAllAttributes();
 
 
     // Construct the set of "static" attributes that will always be present in
@@ -344,8 +302,9 @@ public class RootDSEBackend
     setBackendID("rootdse");
 
 
-    // Register with the Directory Server as a configurable component.
-    DirectoryServer.registerConfigurableComponent(this);
+    // Register as a change listener.
+    currentConfig = cfg;
+    cfg.addChangeListener(this);
   }
 
 
@@ -363,7 +322,7 @@ public class RootDSEBackend
    */
   public void finalizeBackend()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig.removeChangeListener(this);
   }
 
 
@@ -1158,17 +1117,7 @@ public class RootDSEBackend
 
 
   /**
-   * Exports the contents of this backend to LDIF.  This method should only be
-   * called if <CODE>supportsLDIFExport</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  exportConfig  The configuration to use when performing the export.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              export.
+   * {@inheritDoc}
    */
   public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
                          LDIFExportConfig exportConfig)
@@ -1246,17 +1195,7 @@ public class RootDSEBackend
 
 
   /**
-   * Imports information from an LDIF file into this backend.  This method
-   * should only be called if <CODE>supportsLDIFImport</CODE> returns
-   * <CODE>true</CODE>.  Note that the server will not explicitly initialize
-   * this backend before calling this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  importConfig  The configuration to use when performing the import.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              import.
+   * {@inheritDoc}
    */
   public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
                          LDIFImportConfig importConfig)
@@ -1315,17 +1254,7 @@ public class RootDSEBackend
 
 
   /**
-   * Creates a backup of the contents of this backend in a form that may be
-   * restored at a later date if necessary.  This method should only be called
-   * if <CODE>supportsBackup</CODE> returns <CODE>true</CODE>.  Note that the
-   * server will not explicitly initialize this backend before calling this
-   * method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  backupConfig  The configuration to use when performing the backup.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              backup.
+   * {@inheritDoc}
    */
   public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
          throws DirectoryException
@@ -1379,17 +1308,7 @@ public class RootDSEBackend
 
 
   /**
-   * Restores a backup of the contents of this backend.  This method should only
-   * be called if <CODE>supportsRestore</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry    The configuration entry for this backend.
-   * @param  restoreConfig  The configuration to use when performing the
-   *                        restore.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              restore.
+   * {@inheritDoc}
    */
   public void restoreBackup(ConfigEntry configEntry,
                             RestoreConfig restoreConfig)
@@ -1405,88 +1324,25 @@ public class RootDSEBackend
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
-  {
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-    String description = getMessage(MSGID_ROOTDSE_SUBORDINATE_BASE_DESCRIPTION);
-
-    ArrayList<DN> values = new ArrayList<DN>();
-    if (subordinateBaseDNs != null)
-    {
-      values.addAll(subordinateBaseDNs.keySet());
-    }
-
-    attrList.add(new DNConfigAttribute(ATTR_ROOT_DSE_SUBORDINATE_BASE_DN,
-                                       description, false, true, false,
-                                       values));
-
-
-    description = getMessage(MSGID_ROOTDSE_DESCRIPTION_SHOW_ALL_ATTRIBUTES);
-    attrList.add(new BooleanConfigAttribute(ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
-                                            description, showAllAttributes));
-
-
-    return attrList;
-  }
-
-
-
-  /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(
+       RootDSEBackendCfg cfg,
+       List<String> unacceptableReasons)
   {
     boolean configIsAcceptable = true;
 
 
-    String description = getMessage(MSGID_ROOTDSE_SUBORDINATE_BASE_DESCRIPTION);
-    DNConfigAttribute subDNsStub =
-         new DNConfigAttribute(ATTR_ROOT_DSE_SUBORDINATE_BASE_DN, description,
-                               false, true, false);
     try
     {
-      DNConfigAttribute subDNsAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(subDNsStub);
-      if (subDNsAttr == null)
+      Set<DN> subDNs = cfg.getSubordinateBaseDN();
+      if (subDNs.isEmpty())
       {
         // This is fine -- we'll just use the set of user-defined suffixes.
       }
       else
       {
-        for (DN baseDN : subDNsAttr.activeValues())
+        for (DN baseDN : subDNs)
         {
           Backend backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
@@ -1513,54 +1369,15 @@ public class RootDSEBackend
     }
 
 
-    description = getMessage(MSGID_ROOTDSE_DESCRIPTION_SHOW_ALL_ATTRIBUTES);
-    BooleanConfigAttribute showAllStub =
-         new BooleanConfigAttribute(ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
-                                    description, false);
-    try
-    {
-      BooleanConfigAttribute showAllAttr =
-           (BooleanConfigAttribute) configEntry.getConfigAttribute(showAllStub);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_ROOTDSE_CANNOT_DETERMINE_ALL_USER_ATTRIBUTES;
-      String message = getMessage(msgID, ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
-                                  stackTraceToSingleLineString(e));
-      unacceptableReasons.add(message);
-
-      configIsAcceptable = false;
-    }
-
-
     return configIsAcceptable;
   }
 
 
 
   /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange(RootDSEBackendCfg cfg)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -1569,15 +1386,10 @@ public class RootDSEBackend
 
     // Check to see if we should apply a new set of base DNs.
     ConcurrentHashMap<DN,Backend> subBases;
-    String description = getMessage(MSGID_ROOTDSE_SUBORDINATE_BASE_DESCRIPTION);
-    DNConfigAttribute subDNsStub =
-         new DNConfigAttribute(ATTR_ROOT_DSE_SUBORDINATE_BASE_DN, description,
-                               false, true, false);
     try
     {
-      DNConfigAttribute subDNsAttr =
-           (DNConfigAttribute) configEntry.getConfigAttribute(subDNsStub);
-      if (subDNsAttr == null)
+      Set<DN> subDNs = cfg.getSubordinateBaseDN();
+      if (subDNs.isEmpty())
       {
         // This is fine -- we'll just use the set of user-defined suffixes.
         subBases = null;
@@ -1585,7 +1397,7 @@ public class RootDSEBackend
       else
       {
         subBases = new ConcurrentHashMap<DN,Backend>();
-        for (DN baseDN : subDNsAttr.activeValues())
+        for (DN baseDN : subDNs)
         {
           Backend backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
@@ -1627,62 +1439,49 @@ public class RootDSEBackend
     }
 
 
-    boolean newShowAll = DEFAULT_ROOTDSE_SHOW_ALL_ATTRIBUTES;
-    description = getMessage(MSGID_ROOTDSE_DESCRIPTION_SHOW_ALL_ATTRIBUTES);
-    BooleanConfigAttribute showAllStub =
-         new BooleanConfigAttribute(ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
-                                    description, false);
+    boolean newShowAll = cfg.isShowAllAttributes();
+
+
+    // Check to see if there is a new set of user-defined attributes.
+    ArrayList<Attribute> userAttrs = new ArrayList<Attribute>();
     try
     {
-      BooleanConfigAttribute showAllAttr =
-           (BooleanConfigAttribute) configEntry.getConfigAttribute(showAllStub);
-      if (showAllAttr != null)
+      ConfigEntry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
+
+      for (List<Attribute> attrs :
+           configEntry.getEntry().getUserAttributes().values())
       {
-        newShowAll = showAllAttr.pendingValue();
+        for (Attribute a : attrs)
+        {
+          if (! isDSEConfigAttribute(a))
+          {
+            userAttrs.add(a);
+          }
+        }
+      }
+      for (List<Attribute> attrs :
+           configEntry.getEntry().getOperationalAttributes().values())
+      {
+        for (Attribute a : attrs)
+        {
+          if (! isDSEConfigAttribute(a))
+          {
+            userAttrs.add(a);
+          }
+        }
       }
     }
-    catch (Exception e)
+    catch (ConfigException e)
     {
       if (debugEnabled())
       {
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      int msgID = MSGID_ROOTDSE_CANNOT_DETERMINE_ALL_USER_ATTRIBUTES;
-      String message = getMessage(msgID, ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
-                                  stackTraceToSingleLineString(e));
-      messages.add(message);
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-    }
-
-
-    // Check to see if there is a new set of user-defined attributes.
-    ArrayList<Attribute> userAttrs = new ArrayList<Attribute>();
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getUserAttributes().values())
-    {
-      for (Attribute a : attrs)
-      {
-        if (! isDSEConfigAttribute(a))
-        {
-          userAttrs.add(a);
-        }
-      }
-    }
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getOperationalAttributes().values())
-    {
-      for (Attribute a : attrs)
-      {
-        if (! isDSEConfigAttribute(a))
-        {
-          userAttrs.add(a);
-        }
-      }
+      int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
+      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
+                              stackTraceToSingleLineString(e)));
+      resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
 
@@ -1690,65 +1489,63 @@ public class RootDSEBackend
     {
       subordinateBaseDNs = subBases;
 
-      if (detailedResults)
+      if (subordinateBaseDNs == null)
       {
-        if (subordinateBaseDNs == null)
+        int msgID = MSGID_ROOTDSE_USING_SUFFIXES_AS_BASE_DNS;
+        String message = getMessage(msgID);
+        messages.add(message);
+      }
+      else
+      {
+        StringBuilder basesStr = new StringBuilder();
+        for (DN dn : subordinateBaseDNs.keySet())
         {
-          int msgID = MSGID_ROOTDSE_USING_SUFFIXES_AS_BASE_DNS;
-          String message = getMessage(msgID);
-          messages.add(message);
-        }
-        else
-        {
-          StringBuilder basesStr = new StringBuilder();
-          Iterator<DN> iterator = subordinateBaseDNs.keySet().iterator();
-          while (iterator.hasNext())
+          if (basesStr.length() > 0)
           {
-            if (basesStr.length() > 0)
-            {
-              basesStr.append(", ");
-            }
-            else
-            {
-              basesStr.append("{ ");
-            }
-
-            basesStr.append(iterator.next());
+            basesStr.append(", ");
+          }
+          else
+          {
+            basesStr.append("{ ");
           }
 
-          basesStr.append(" }");
-
-          int msgID = MSGID_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS;
-          String message = getMessage(msgID, basesStr.toString());
-          messages.add(message);
+          basesStr.append(dn);
         }
+
+        basesStr.append(" }");
+
+        int msgID = MSGID_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS;
+        String message = getMessage(msgID, basesStr.toString());
+        messages.add(message);
       }
 
 
       if (showAllAttributes != newShowAll)
       {
         showAllAttributes = newShowAll;
-        if (detailedResults)
-        {
-          int    msgID   = MSGID_ROOTDSE_UPDATED_SHOW_ALL_ATTRS;
-          String message = getMessage(msgID, ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
-                                      showAllAttributes);
-          messages.add(message);
-        }
+        int    msgID   = MSGID_ROOTDSE_UPDATED_SHOW_ALL_ATTRS;
+        String message = getMessage(msgID, ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES,
+                                    showAllAttributes);
+        messages.add(message);
       }
 
 
       userDefinedAttributes = userAttrs;
-      if (detailedResults)
-      {
-        int    msgID   = MSGID_ROOTDSE_USING_NEW_USER_ATTRS;
-        String message = getMessage(msgID);
-        messages.add(message);
-      }
+      int    msgID   = MSGID_ROOTDSE_USING_NEW_USER_ATTRS;
+      String message = getMessage(msgID);
+      messages.add(message);
     }
 
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+
+
+  private static RootDSEBackendCfg getRootDSEBackendCfg(ConfigEntry configEntry)
+      throws ConfigException {
+    return BackendConfigManager.getConfiguration(
+         RootDSEBackendCfgDefn.getInstance(), configEntry);
   }
 }
 

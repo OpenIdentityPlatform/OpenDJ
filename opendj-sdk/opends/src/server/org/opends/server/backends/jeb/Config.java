@@ -28,55 +28,42 @@ package org.opends.server.backends.jeb;
 
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ConfigMessages.
-     MSGID_CONFIG_DESCRIPTION_BACKEND_DIRECTORY;
-import static org.opends.server.messages.ConfigMessages.
-     MSGID_CONFIG_DESCRIPTION_BACKEND_MODE;
-import static org.opends.server.messages.ConfigMessages.
     MSGID_CONFIG_BACKEND_MODE_INVALID;
 import static org.opends.server.messages.ConfigMessages.
     MSGID_CONFIG_BACKEND_INSANE_MODE;
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_DIRECTORY;
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_MODE;
-import static org.opends.server.messages.ConfigMessages.
-     MSGID_CONFIG_BACKEND_NO_DIRECTORY;
 import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.Error.logError;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 
-import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.IntegerConfigAttribute;
-import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.config.MultiChoiceConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.RDN;
-import org.opends.server.types.FilePermission;
 import com.sleepycat.je.EnvironmentConfig;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.File;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
+import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 
 /**
  * This class represents the configuration of a JE backend.
  */
 public class Config
+     implements ConfigurationChangeListener<JEBackendCfg>
 {
 
   /**
@@ -85,13 +72,6 @@ public class Config
    */
   public static final String OBJECT_CLASS_CONFIG_ATTR_INDEX =
        ConfigConstants.NAME_PREFIX_CFG + "je-index";
-
-  /**
-   * The name of the object class which configures
-   * the database.
-   */
-  public static final String OBJECT_CLASS_CONFIG_DATABASE =
-       ConfigConstants.NAME_PREFIX_CFG + "je-database";
 
   /**
    * The name of the attribute which configures
@@ -120,14 +100,6 @@ public class Config
    */
   public static final String ATTR_INDEX_SUBSTRING_LENGTH =
        ConfigConstants.NAME_PREFIX_CFG + "index-substring-length";
-
-  /**
-   * The name of the attribute which configures
-   * the backend index entry limit.
-   */
-  public static final String ATTR_BACKEND_INDEX_ENTRY_LIMIT =
-       ConfigConstants.NAME_PREFIX_CFG + "backend-index-entry-limit";
-
 
   /**
    * The name of the attribute which configures
@@ -196,45 +168,6 @@ public class Config
 
 
   /**
-   * A set of units and their multipliers for configuration attributes
-   * representing a number of bytes.
-   */
-  private static HashMap<String, Double> memoryUnits;
-
-  /**
-   * A set of units and their multipliers for configuration attributes
-   * representing a period of time in milliseconds.
-   */
-  private static HashMap<String, Double> timeUnits;
-
-  static
-  {
-    memoryUnits = new HashMap<String, Double>();
-    memoryUnits.put(SIZE_UNIT_BYTES_ABBR, 1D);
-    memoryUnits.put(SIZE_UNIT_BYTES_FULL, 1D);
-    memoryUnits.put(SIZE_UNIT_KILOBYTES_ABBR, 1000D);
-    memoryUnits.put(SIZE_UNIT_KILOBYTES_FULL, 1000D);
-    memoryUnits.put(SIZE_UNIT_MEGABYTES_ABBR, 1000000D);
-    memoryUnits.put(SIZE_UNIT_MEGABYTES_FULL, 1000000D);
-    memoryUnits.put(SIZE_UNIT_GIGABYTES_ABBR, 1000000000D);
-    memoryUnits.put(SIZE_UNIT_GIGABYTES_FULL, 1000000000D);
-    memoryUnits.put(SIZE_UNIT_KIBIBYTES_ABBR, 1024D);
-    memoryUnits.put(SIZE_UNIT_KIBIBYTES_FULL, 1024D);
-    memoryUnits.put(SIZE_UNIT_MEBIBYTES_ABBR, (double) (1024 * 1024));
-    memoryUnits.put(SIZE_UNIT_MEBIBYTES_FULL, (double) (1024 * 1024));
-    memoryUnits.put(SIZE_UNIT_GIBIBYTES_ABBR, (double) (1024 * 1024 * 1024));
-    memoryUnits.put(SIZE_UNIT_GIBIBYTES_FULL, (double) (1024 * 1024 * 1024));
-
-    timeUnits = new HashMap<String, Double>();
-    timeUnits.put(TIME_UNIT_MILLISECONDS_ABBR, 1D);
-    timeUnits.put(TIME_UNIT_MILLISECONDS_FULL, 1D);
-    timeUnits.put(TIME_UNIT_SECONDS_ABBR, 1000D);
-    timeUnits.put(TIME_UNIT_SECONDS_FULL, 1000D);
-    timeUnits.put(TIME_UNIT_MINUTES_ABBR, (double) (60 * 1000));
-    timeUnits.put(TIME_UNIT_MINUTES_FULL, (double) (60 * 1000));
-  }
-
-  /**
    * The set of base DNs.
    */
   private DN[] baseDNs = null;
@@ -248,76 +181,23 @@ public class Config
    * The backend directory permission mode. By default, owner has read, write
    * and execute permissions on the database directory.
    */
-  private FilePermission backendPermission = new FilePermission(0700);
+  private FilePermission backendPermission;
 
   /**
-   * Number of times we should retry database transactions that get aborted
-   * due to deadlock.
+   * The current configuration.
    */
-  private int deadlockRetryLimit = 0;
-
-  /**
-   * The backend index entry limit, zero means unlimited.
-   */
-  private int backendIndexEntryLimit = 0;
-
-  /**
-   * The maximum number of entries to process in a single pass through the LDIF
-   * file.
-   */
-  private int importPassSize = Integer.MAX_VALUE;
-
-  /**
-   * The subtree delete size limit, zero means unlimited.
-   */
-  private int subtreeDeleteSizeLimit = 0;
-
-  /**
-   * The memory available for import buffering.
-   */
-  private long importBufferSize = 100*1024*1024;
-
-  /**
-   * The pathname of the directory for import temporary files.
-   */
-  private String importTempDirectory = "importTmp";
+  private JEBackendCfg currentConfig;
 
   /**
    * The set of configured attribute indexes.
    */
   private Map<AttributeType, IndexConfig> indexConfigMap = null;
 
-
-
-  /**
-   * The DN of the JE database environment configuration entry, if any.
-   */
-  private DN envConfigDN = null;
-
   /**
    * The JE environment config.
    */
   private EnvironmentConfig envConfig = null;
 
-  /**
-   * The import queue size.
-   */
-  private int importQueueSize = 100;
-
-  /**
-   * The number of import threads.
-   */
-  private int importThreadCount = 8;
-
-  /**
-   * The database cache preload time limit in milliseconds.
-   */
-  private long preloadTimeLimit = 0;
-
-  /**
-   * Whether entries should be compressed in the database.
-   */
-  private boolean entriesCompressed = false;
 
 
   /**
@@ -331,28 +211,46 @@ public class Config
   public void initializeConfig(ConfigEntry configEntry, DN[] baseDNs)
        throws ConfigException
   {
-    StringConfigAttribute stub;
-    IntegerConfigAttribute intStub;
-    IntegerWithUnitConfigAttribute intWithUnitStub;
+    initializeConfig(BackendImpl.getJEBackendCfg(configEntry), configEntry,
+                     baseDNs);
+  }
 
+
+  /**
+   * Initialize this JE backend configuration from a configuration entry.
+   *
+   * @param  cfg          The backend configuration entry.
+   * @param  baseDNs      The set of base DNs that have been configured for this
+   *                      backend.
+   * @throws ConfigException If there is an error in the configuration entry.
+   */
+  public void initializeConfig(JEBackendCfg cfg, DN[] baseDNs)
+       throws ConfigException
+  {
+    initializeConfig(cfg, DirectoryServer.getConfigEntry(cfg.dn()), baseDNs);
+  }
+
+
+  /**
+   * Initialize this JE backend configuration from a configuration object
+   * and its configuration entry.
+   *
+   * @param  cfg          The backend configuration object.
+   * @param  configEntry  The backend configuration entry.
+   * @param  baseDNs      The set of base DNs that have been configured for this
+   *                      backend.
+   * @throws ConfigException If there is an error in the configuration entry.
+   */
+  private void initializeConfig(JEBackendCfg cfg, ConfigEntry configEntry,
+                                DN[] baseDNs)
+       throws ConfigException
+  {
     // Set the base DNs.
     this.baseDNs = baseDNs;
 
     // Determine the backend database directory.
-    // Required, single-valued config attribute requiring admin action on change
-    String msg = getMessage(MSGID_CONFIG_DESCRIPTION_BACKEND_DIRECTORY);
-    stub =
-         new StringConfigAttribute(ATTR_BACKEND_DIRECTORY,
-                                   msg, true, false, true);
-    StringConfigAttribute backendDirectoryAttr = (StringConfigAttribute)
-         configEntry.getConfigAttribute(stub);
-    if (backendDirectoryAttr == null)
-    {
-      int msgID = MSGID_CONFIG_BACKEND_NO_DIRECTORY;
-      String message = getMessage(msgID, configEntry.getDN().toString());
-      throw new ConfigException(msgID, message);
-    }
-    backendDirectory = getFileForPath(backendDirectoryAttr.activeValue());
+    backendDirectory = getFileForPath(cfg.getBackendDirectory());
+
     //Make sure the directory is valid.
     if (!backendDirectory.isDirectory())
     {
@@ -361,176 +259,33 @@ public class Config
       throw new ConfigException(MSGID_JEB_DIRECTORY_INVALID, message);
     }
 
-    // ds-cfg-backend-mode
-    // Optional, single-valued config attribute requiring admin action on change
-    msg = getMessage(MSGID_CONFIG_DESCRIPTION_BACKEND_MODE);
-    stub =
-        new StringConfigAttribute(ATTR_BACKEND_MODE, msg, false,false, true);
-    StringConfigAttribute backendModeAttr = (StringConfigAttribute)
-         configEntry.getConfigAttribute(stub);
-    if (backendModeAttr != null)
+    FilePermission newBackendPermission;
+    try
     {
-      FilePermission newBackendPermission;
-      try
-      {
-        newBackendPermission = FilePermission.decodeUNIXMode(
-            backendModeAttr.activeValue());
-      }
-      catch(Exception e)
-      {
-        int msgID = MSGID_CONFIG_BACKEND_MODE_INVALID;
-        String message = getMessage(msgID, configEntry.getDN().toString());
-        throw new ConfigException(msgID, message);
-      }
-
-      //Make sure the mode will allow the server itself access to
-      //the database
-      if(!newBackendPermission.isOwnerWritable() ||
-           !newBackendPermission.isOwnerReadable() ||
-           !newBackendPermission.isOwnerExecutable())
-      {
-        int msgID = MSGID_CONFIG_BACKEND_INSANE_MODE;
-        String message = getMessage(msgID);
-        throw new ConfigException(msgID, message);
-      }
-      else
-      {
-        backendPermission = newBackendPermission;
-      }
+      newBackendPermission =
+           FilePermission.decodeUNIXMode(cfg.getBackendMode());
+    }
+    catch(Exception e)
+    {
+      int msgID = MSGID_CONFIG_BACKEND_MODE_INVALID;
+      String message = getMessage(msgID, cfg.dn().toString());
+      throw new ConfigException(msgID, message);
     }
 
-    // ds-cfg-backendIndexEntryLimit
-    // Optional, single-valued config attribute requiring admin action on change
-    msg = getMessage(MSGID_CONFIG_DESCRIPTION_BACKEND_INDEX_ENTRY_LIMIT);
-    intStub =
-         new IntegerConfigAttribute(ATTR_BACKEND_INDEX_ENTRY_LIMIT, msg, false,
-                                    false, true, true, 0, false, 0);
-    IntegerConfigAttribute entryLimitAttr = (IntegerConfigAttribute)
-         configEntry.getConfigAttribute(intStub);
-    if (entryLimitAttr != null)
+    //Make sure the mode will allow the server itself access to
+    //the database
+    if(!newBackendPermission.isOwnerWritable() ||
+         !newBackendPermission.isOwnerReadable() ||
+         !newBackendPermission.isOwnerExecutable())
     {
-      backendIndexEntryLimit = entryLimitAttr.activeIntValue();
+      int msgID = MSGID_CONFIG_BACKEND_INSANE_MODE;
+      String message = getMessage(msgID);
+      throw new ConfigException(msgID, message);
     }
-
-    // ds-cfg-backendSubtreeDeleteSizeLimit
-    // Optional, single-valued config attribute
-    msg = getMessage(MSGID_CONFIG_DESCRIPTION_SUBTREE_DELETE_SIZE_LIMIT);
-    intStub =
-         new IntegerConfigAttribute(ATTR_SUBTREE_DELETE_SIZE_LIMIT, msg, false,
-                                    false, false, true, 0, false, 0);
-    IntegerConfigAttribute sdslAttr = (IntegerConfigAttribute)
-         configEntry.getConfigAttribute(intStub);
-    if (sdslAttr != null)
+    else
     {
-      subtreeDeleteSizeLimit = sdslAttr.activeIntValue();
+      backendPermission = newBackendPermission;
     }
-
-    // Determine the directory for import temporary files.
-    msg = getMessage(MSGID_CONFIG_DESCRIPTION_IMPORT_TEMP_DIRECTORY);
-    stub =
-         new StringConfigAttribute(ATTR_IMPORT_TEMP_DIRECTORY,
-                                   msg, false, false, false);
-    StringConfigAttribute importTempDirAttr = (StringConfigAttribute)
-         configEntry.getConfigAttribute(stub);
-    if (importTempDirAttr != null)
-    {
-      this.importTempDirectory = importTempDirAttr.activeValue();
-    }
-
-    // Determine the memory available for import buffering.
-    msg = getMessage(MSGID_CONFIG_DESCRIPTION_IMPORT_BUFFER_SIZE);
-    intWithUnitStub =
-         new IntegerWithUnitConfigAttribute(ATTR_IMPORT_BUFFER_SIZE, msg,
-                                            false, memoryUnits,
-                                            true, 10*1024*1024, false,
-                                            0);
-    IntegerWithUnitConfigAttribute importBufferSizeAttr =
-         (IntegerWithUnitConfigAttribute)
-         configEntry.getConfigAttribute(intWithUnitStub);
-    if (importBufferSizeAttr != null)
-    {
-      importBufferSize = importBufferSizeAttr.activeCalculatedValue();
-    }
-
-    // Determine the import queue size.
-    msg = getMessage(MSGID_CONFIG_DESCRIPTION_IMPORT_QUEUE_SIZE);
-    intStub =
-         new IntegerConfigAttribute(ATTR_IMPORT_QUEUE_SIZE, msg, false,
-                                    false, false, true, 1, false, 0);
-    IntegerConfigAttribute a = (IntegerConfigAttribute)
-         configEntry.getConfigAttribute(intStub);
-    if (a != null)
-    {
-      importQueueSize = a.activeIntValue();
-    }
-
-
-    // Determine the number of import threads.
-    msg = getMessage(MSGID_CONFIG_DESCRIPTION_IMPORT_THREAD_COUNT);
-    intStub =
-         new IntegerConfigAttribute(ATTR_IMPORT_THREAD_COUNT, msg, false,
-                                    false, false, true, 1, false, 0);
-    a = (IntegerConfigAttribute)
-         configEntry.getConfigAttribute(intStub);
-    if (a != null)
-    {
-      importThreadCount = a.activeIntValue();
-    }
-
-
-    // Determine the import pass size.
-    msg = getMessage(MSGID_CONFIG_DESCRIPTION_IMPORT_PASS_SIZE);
-    intStub = new IntegerConfigAttribute(ATTR_IMPORT_PASS_SIZE, msg, true,
-                                         false, false, true, 0, true,
-                                         Integer.MAX_VALUE);
-    a = (IntegerConfigAttribute)
-         configEntry.getConfigAttribute(intStub);
-    if (a != null)
-    {
-      importPassSize = a.activeIntValue();
-    }
-
-
-    // Determine the database cache preload time limit.
-    msg = getMessage(MSGID_CONFIG_DESCRIPTION_PRELOAD_TIME_LIMIT);
-    intWithUnitStub =
-         new IntegerWithUnitConfigAttribute(ATTR_PRELOAD_TIME_LIMIT, msg,
-                                            false, timeUnits,
-                                            true, 0, false, 0);
-    IntegerWithUnitConfigAttribute preloadTimeLimitAttr =
-         (IntegerWithUnitConfigAttribute)
-         configEntry.getConfigAttribute(intWithUnitStub);
-    if (preloadTimeLimitAttr != null)
-    {
-      preloadTimeLimit = preloadTimeLimitAttr.activeCalculatedValue();
-    }
-
-
-    // Determine whether entries should be compressed in the database.
-    msg = getMessage(MSGID_CONFIG_DESCRIPTION_ENTRIES_COMPRESSED);
-    BooleanConfigAttribute booleanStub =
-         new BooleanConfigAttribute(ATTR_ENTRIES_COMPRESSED, msg, false);
-    BooleanConfigAttribute entriesCompressedAttr =
-         (BooleanConfigAttribute)
-         configEntry.getConfigAttribute(booleanStub);
-    if (entriesCompressedAttr != null)
-    {
-      entriesCompressed = entriesCompressedAttr.activeValue();
-    }
-
-
-    // Determine the deadlock retry limit.
-    msg = getMessage(MSGID_CONFIG_DESCRIPTION_DEADLOCK_RETRY_LIMIT);
-    intStub =
-         new IntegerConfigAttribute(ATTR_DEADLOCK_RETRY_LIMIT, msg, false,
-                                    false, false, true, 0, false, 0);
-    a = (IntegerConfigAttribute)
-         configEntry.getConfigAttribute(intStub);
-    if (a != null)
-    {
-      deadlockRetryLimit = a.activeIntValue();
-    }
-
 
     indexConfigMap = new HashMap<AttributeType, IndexConfig>();
 
@@ -551,31 +306,12 @@ public class Config
     ConcurrentHashMap<DN, ConfigEntry> children = configEntry.getChildren();
     for (ConfigEntry childConfigEntry : children.values())
     {
-      if (childConfigEntry.hasObjectClass(OBJECT_CLASS_CONFIG_DATABASE))
-      {
-        // This is a database config entry.
-        if (envConfig != null)
-        {
-          int    msgID   = MSGID_JEB_DUPLICATE_CONFIG_ENTRY;
-          String message = getMessage(msgID,
-                                      childConfigEntry.getDN().toString(),
-                                      OBJECT_CLASS_CONFIG_DATABASE);
-          logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-                   message, msgID);
-        }
-        else
-        {
-          envConfig =
-               ConfigurableEnvironment.parseConfigEntry(childConfigEntry);
-          envConfigDN = childConfigEntry.getDN();
-        }
-      }
-      else if (childConfigEntry.getDN().getRDN().equals(indexRDN))
+      if (childConfigEntry.getDN().getRDN().equals(indexRDN))
       {
         // This is the cn=Index branch entry.
 
         // Determine the index configuration.
-        configureIndexEntries(indexConfigMap, backendIndexEntryLimit,
+        configureIndexEntries(indexConfigMap, cfg.getBackendIndexEntryLimit(),
                               childConfigEntry.getChildren().values());
       }
       else
@@ -588,11 +324,9 @@ public class Config
       }
     }
 
-    // Create a database configuration with defaults if we don't have one.
-    if (envConfig == null)
-    {
-      envConfig = ConfigurableEnvironment.defaultConfig();
-    }
+    envConfig = ConfigurableEnvironment.parseConfigEntry(cfg);
+
+    currentConfig = cfg;
   }
 
   /**
@@ -828,7 +562,7 @@ public class Config
    */
   public int getDeadlockRetryLimit()
   {
-    return deadlockRetryLimit;
+    return currentConfig.getBackendDeadlockRetryLimit();
   }
 
   /**
@@ -838,7 +572,7 @@ public class Config
    */
   public int getBackendIndexEntryLimit()
   {
-    return backendIndexEntryLimit;
+    return currentConfig.getBackendIndexEntryLimit();
   }
 
   /**
@@ -848,7 +582,7 @@ public class Config
    */
   public int getSubtreeDeleteSizeLimit()
   {
-    return subtreeDeleteSizeLimit;
+    return currentConfig.getBackendSubtreeDeleteSizeLimit();
   }
 
   /**
@@ -868,7 +602,7 @@ public class Config
    */
   public String getImportTempDirectory()
   {
-    return importTempDirectory;
+    return currentConfig.getBackendImportTempDirectory();
   }
 
   /**
@@ -877,7 +611,7 @@ public class Config
    */
    public long getImportBufferSize()
   {
-    return importBufferSize;
+    return currentConfig.getBackendImportBufferSize();
   }
 
   /**
@@ -886,7 +620,7 @@ public class Config
    */
   public int getImportQueueSize()
   {
-    return importQueueSize;
+    return currentConfig.getBackendImportQueueSize();
   }
 
   /**
@@ -895,7 +629,7 @@ public class Config
    */
   public int getImportThreadCount()
   {
-    return importThreadCount;
+    return currentConfig.getBackendImportThreadCount();
   }
 
   /**
@@ -907,7 +641,7 @@ public class Config
    */
   public int getImportPassSize()
   {
-    return importPassSize;
+    return currentConfig.getBackendImportPassSize();
   }
 
 
@@ -919,7 +653,7 @@ public class Config
    */
   public boolean isEntriesCompressed()
   {
-    return entriesCompressed;
+    return currentConfig.isBackendEntriesCompressed();
   }
 
 
@@ -930,21 +664,122 @@ public class Config
    */
   public long getPreloadTimeLimit()
   {
-    return preloadTimeLimit;
+    return currentConfig.getBackendPreloadTimeLimit();
   }
 
 
 
   /**
-   * Get the DN of the configuration entry for the JE environment, if any.
-   *
-   * @return The configuration entry DN, or null if there is none.
+   * {@inheritDoc}
    */
-  public DN getEnvConfigDN()
+  public boolean isConfigurationChangeAcceptable(
+       JEBackendCfg cfg,
+       List<String> unacceptableReasons)
   {
-    return envConfigDN;
+    boolean acceptable = true;
+
+    // This listener does not handle the changes to JE properties.
+
+    //Make sure the directory is valid.
+    if (!backendDirectory.isDirectory())
+    {
+      int msgID = MSGID_JEB_DIRECTORY_INVALID;
+      String message = getMessage(msgID, backendDirectory.getPath());
+      unacceptableReasons.add(message);
+      acceptable = false;
+    }
+
+    try
+    {
+      FilePermission newBackendPermission =
+           FilePermission.decodeUNIXMode(cfg.getBackendMode());
+
+      //Make sure the mode will allow the server itself access to
+      //the database
+      if(!newBackendPermission.isOwnerWritable() ||
+           !newBackendPermission.isOwnerReadable() ||
+           !newBackendPermission.isOwnerExecutable())
+      {
+        int msgID = MSGID_CONFIG_BACKEND_INSANE_MODE;
+        String message = getMessage(msgID);
+        unacceptableReasons.add(message);
+        acceptable = false;
+      }
+    }
+    catch(Exception e)
+    {
+      int msgID = MSGID_CONFIG_BACKEND_MODE_INVALID;
+      String message = getMessage(msgID, cfg.dn().toString());
+      unacceptableReasons.add(message);
+      acceptable = false;
+    }
+
+    return acceptable;
   }
 
 
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(JEBackendCfg cfg)
+  {
+    ConfigChangeResult ccr;
+    ResultCode resultCode = ResultCode.SUCCESS;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    try
+    {
+      // Set the base DNs.
+      baseDNs = new DN[cfg.getBackendBaseDN().size()];
+      baseDNs = cfg.getBackendBaseDN().toArray(baseDNs);
+
+      // Determine the backend database directory.
+      backendDirectory = getFileForPath(cfg.getBackendDirectory());
+
+      FilePermission newPermission =
+           FilePermission.decodeUNIXMode(cfg.getBackendMode());
+
+      // Check for changes to the database directory permissions
+      FilePermission oldPermission = backendPermission;
+
+      if(FilePermission.canSetPermissions() &&
+          !FilePermission.toUNIXMode(oldPermission).equals(
+          FilePermission.toUNIXMode(newPermission)))
+      {
+        try
+        {
+          if(!FilePermission.setPermissions(backendDirectory,
+                                            newPermission))
+          {
+            throw new Exception();
+          }
+        }
+        catch(Exception e)
+        {
+          // Log a warning that the permissions were not set.
+          int msgID = MSGID_JEB_SET_PERMISSIONS_FAILED;
+          String message = getMessage(msgID,
+                                      backendDirectory.getPath());
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
+                   message, msgID);
+        }
+      }
+
+      backendPermission = newPermission;
+
+      currentConfig = cfg;
+    }
+    catch (Exception e)
+    {
+      messages.add(e.getMessage());
+      ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+                                   false, messages);
+      return ccr;
+    }
+
+    ccr = new ConfigChangeResult(resultCode, false, messages);
+    return ccr;
+  }
 
 }

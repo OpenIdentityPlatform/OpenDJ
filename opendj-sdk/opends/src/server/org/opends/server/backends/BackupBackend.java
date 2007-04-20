@@ -29,28 +29,18 @@ package org.opends.server.backends;
 
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.opends.server.api.Backend;
-import org.opends.server.api.ConfigurableComponent;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.StringConfigAttribute;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
@@ -82,7 +72,9 @@ import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.BackupBackendCfg;
+import org.opends.server.admin.std.meta.BackupBackendCfgDefn;
 
 
 /**
@@ -95,10 +87,10 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class BackupBackend
        extends Backend
-       implements ConfigurableComponent
+       implements ConfigurationChangeListener<BackupBackendCfg>
 {
-  // The DN of the configuration entry for this backend.
-  private DN configEntryDN;
+  // The current configuration state.
+  private BackupBackendCfg currentConfig;
 
   // The DN for the base backup entry.
   private DN backupBaseDN;
@@ -135,20 +127,7 @@ public class BackupBackend
 
 
   /**
-   * Initializes this backend based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this backend.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
   public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
          throws ConfigException, InitializationException
@@ -162,7 +141,7 @@ public class BackupBackend
       throw new ConfigException(msgID, message);
     }
 
-    configEntryDN = configEntry.getDN();
+    BackupBackendCfg cfg = getBackupBackendCfg(configEntry);
 
 
     // Create the set of base DNs that we will handle.  In this case, it's just
@@ -188,39 +167,11 @@ public class BackupBackend
 
 
     // Determine the set of backup directories that we will use by default.
-    int msgID = MSGID_BACKUP_DESCRIPTION_BACKUP_DIR_LIST;
-    StringConfigAttribute backupDirStub =
-         new StringConfigAttribute(ATTR_BACKUP_DIR_LIST, getMessage(msgID),
-                                   true, true, false);
-    try
+    Set<String> values = cfg.getBackupDirectory();
+    backupDirectories = new LinkedHashSet<File>(values.size());
+    for (String s : values)
     {
-      StringConfigAttribute backupDirAttr =
-           (StringConfigAttribute)
-           configEntry.getConfigAttribute(backupDirStub);
-      if (backupDirAttr == null)
-      {
-        backupDirectories = new LinkedHashSet<File>();
-      }
-      else
-      {
-        List<String> values = backupDirAttr.activeValues();
-        backupDirectories = new LinkedHashSet<File>(values.size());
-        for (String s : values)
-        {
-          backupDirectories.add(getFileForPath(s));
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_BACKUP_CANNOT_DETERMINE_BACKUP_DIR_LIST;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
+      backupDirectories.add(getFileForPath(s));
     }
 
 
@@ -263,8 +214,9 @@ public class BackupBackend
     supportedFeatures = new HashSet<String>(0);
 
 
-    // Register with the Directory Server as a configurable component.
-    DirectoryServer.registerConfigurableComponent(this);
+    // Register this as a change listener.
+    currentConfig = cfg;
+    cfg.addBackupChangeListener(this);
 
 
     // Register the backup base as a private suffix.
@@ -279,7 +231,7 @@ public class BackupBackend
         debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
+      int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
       String message = getMessage(msgID, backupBaseDN.toString(),
                                   stackTraceToSingleLineString(e));
       throw new InitializationException(msgID, message, e);
@@ -301,7 +253,7 @@ public class BackupBackend
    */
   public void finalizeBackend()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig.removeBackupChangeListener(this);
 
     try
     {
@@ -1310,63 +1262,11 @@ public class BackupBackend
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
-  {
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    LinkedList<ConfigAttribute> attrs = new LinkedList<ConfigAttribute>();
-
-
-    ArrayList<String> backupDirs =
-         new ArrayList<String>(backupDirectories.size());
-    for (File f : backupDirectories)
-    {
-      backupDirs.add(f.getAbsolutePath());
-    }
-
-    int msgID = MSGID_BACKUP_DESCRIPTION_BACKUP_DIR_LIST;
-    attrs.add(new StringConfigAttribute(ATTR_BACKUP_DIR_LIST, getMessage(msgID),
-                                        true, true, false, backupDirs));
-
-    return attrs;
-  }
-
-
-
-  /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(
+       BackupBackendCfg configEntry,
+       List<String> unacceptableReasons)
   {
     // We'll accept anything here.  The only configurable attribute is the
     // default set of backup directories, but that doesn't require any
@@ -1375,67 +1275,25 @@ public class BackupBackend
   }
 
 
-
   /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange(
+       BackupBackendCfg configEntry)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
 
 
-    int msgID = MSGID_BACKUP_DESCRIPTION_BACKUP_DIR_LIST;
-    StringConfigAttribute backupDirStub =
-         new StringConfigAttribute(ATTR_BACKUP_DIR_LIST, getMessage(msgID),
-                                   true, true, false);
-    try
+    Set<String> values = configEntry.getBackupDirectory();
+    backupDirectories = new LinkedHashSet<File>(values.size());
+    for (String s : values)
     {
-      StringConfigAttribute backupDirAttr =
-           (StringConfigAttribute)
-           configEntry.getConfigAttribute(backupDirStub);
-      if (backupDirAttr == null)
-      {
-        backupDirectories = new LinkedHashSet<File>();
-      }
-      else
-      {
-        List<String> values = backupDirAttr.activeValues();
-        backupDirectories = new LinkedHashSet<File>(values.size());
-        for (String s : values)
-        {
-          backupDirectories.add(getFileForPath(s));
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_BACKUP_CANNOT_DETERMINE_BACKUP_DIR_LIST;
-      messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      backupDirectories.add(getFileForPath(s));
     }
 
-
+    currentConfig = configEntry;
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
@@ -1453,6 +1311,21 @@ public class BackupBackend
     AttributeValue attrValue =
          new AttributeValue(rdnAttrType, rdnStringValue);
     return parentDN.concat(RDN.create(rdnAttrType, attrValue));
+  }
+
+
+  /**
+   * Gets the backup backend configuration corresponding to a backup
+   * backend config entry.
+   *
+   * @param configEntry A backup backend config entry.
+   * @return Returns the backup backend configuration.
+   * @throws ConfigException If the config entry could not be decoded.
+   */
+  static BackupBackendCfg getBackupBackendCfg(ConfigEntry configEntry)
+      throws ConfigException {
+    return BackendConfigManager.getConfiguration(
+         BackupBackendCfgDefn.getInstance(), configEntry);
   }
 }
 
