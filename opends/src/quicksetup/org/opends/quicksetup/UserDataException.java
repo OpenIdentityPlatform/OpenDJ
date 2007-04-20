@@ -30,7 +30,7 @@ package org.opends.quicksetup;
 /**
  * This exception is used when there is an error with the data provided by
  * the user.  It will be thrown by the class that is in charge of validating
- * the user data (QuickSetup).
+ * the user data (the Application class).
  *
  */
 public class UserDataException extends Exception

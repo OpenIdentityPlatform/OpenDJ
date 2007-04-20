@@ -278,7 +278,18 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
         if (throwable != null) {
           UserDataException ude = (UserDataException) throwable;
-          displayError(ude.getLocalizedMessage(), getMsg("error-title"));
+          if (ude instanceof UserDataConfirmationException)
+          {
+            if (displayConfirmation(ude.getLocalizedMessage(),
+                getMsg("confirmation-title")))
+            {
+              setCurrentStep(application.getNextWizardStep(cStep));
+            }
+          }
+          else
+          {
+            displayError(ude.getLocalizedMessage(), getMsg("error-title"));
+          }
         } else {
           setCurrentStep(application.getNextWizardStep(cStep));
         }
@@ -442,18 +453,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   private String getMsg(String key)
   {
     return getI18n().getMsg(key);
-  }
-
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   * @param key String key
-   * @param args String[] args
-   * @return String message
-   */
-  private String getMsg(String key, String[] args)
-  {
-    return getI18n().getMsg(key, args);
   }
 
   /**

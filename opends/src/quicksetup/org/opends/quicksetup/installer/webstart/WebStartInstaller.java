@@ -28,6 +28,7 @@
 package org.opends.quicksetup.installer.webstart;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -111,6 +112,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       notifyListeners(getTaskSeparator());
 
       status = InstallProgressStep.EXTRACTING;
+      createParentDirectoryIfRequired();
       extractZipFiles(in, getRatio(InstallProgressStep.EXTRACTING),
           getRatio(InstallProgressStep.CONFIGURING_SERVER));
       notifyListeners(getTaskSeparator());
@@ -356,6 +358,37 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
     if (loader.getException() != null)
     {
       throw loader.getException();
+    }
+  }
+
+  /**
+   * Creates the parent Directory for the server location if it does not exist.
+   * @throws QuickSetupException if something goes wrong.
+   */
+  private void createParentDirectoryIfRequired() throws QuickSetupException
+  {
+    String serverLocation = getUserData().getServerLocation();
+    if (!Utils.parentDirectoryExists(serverLocation))
+    {
+      File f = new File(serverLocation);
+      String parent = f.getParent();
+      try
+      {
+        if (!Utils.createDirectory(parent))
+        {
+          throw new QuickSetupException(
+              QuickSetupException.Type.FILE_SYSTEM_ERROR,
+              getMsg("error-could-not-create-parent-dir",
+                  new String[] {parent}), null);
+        }
+      }
+      catch (IOException ioe)
+      {
+        throw new QuickSetupException(
+            QuickSetupException.Type.FILE_SYSTEM_ERROR,
+            getMsg("error-could-not-create-parent-dir", new String[] {parent}),
+            ioe);
+      }
     }
   }
 

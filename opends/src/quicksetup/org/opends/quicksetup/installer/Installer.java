@@ -906,8 +906,10 @@ public abstract class Installer extends GuiApplication {
    *
    */
   private void updateUserDataForServerSettingsPanel(QuickSetup qs)
-      throws UserDataException {
+      throws UserDataException
+  {
     ArrayList<String> errorMsgs = new ArrayList<String>();
+    String confirmationMsg = null;
 
     if (Utils.isWebStart())
     {
@@ -918,12 +920,61 @@ public abstract class Installer extends GuiApplication {
       {
         errorMsgs.add(getMsg("empty-server-location"));
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      } else if (!Utils.parentDirectoryExists(serverLocation))
+      }
+      else if (!Utils.parentDirectoryExists(serverLocation))
       {
-        String[] arg =
-          { serverLocation };
-        errorMsgs.add(getMsg("parent-directory-does-not-exist", arg));
-        qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
+        String existingParentDirectory = null;
+        File f = new File(serverLocation);
+        while ((existingParentDirectory == null) && (f != null))
+        {
+          f = f.getParentFile();
+          if ((f != null) && f.exists())
+          {
+            if (f.isDirectory())
+            {
+              existingParentDirectory = f.getAbsolutePath();
+            }
+            else
+            {
+              // The parent path is a file!
+              f = null;
+            }
+          }
+        }
+        if (existingParentDirectory == null)
+        {
+          String[] arg =
+            { serverLocation };
+          errorMsgs.add(getMsg("parent-directory-could-not-be-found", arg));
+          qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
+        }
+        else
+        {
+          if (!Utils.canWrite(existingParentDirectory))
+          {
+            String[] arg =
+              { existingParentDirectory };
+            errorMsgs.add(getMsg("directory-not-writable", arg));
+            qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
+          }
+          else if (!Utils.hasEnoughSpace(existingParentDirectory,
+              getRequiredInstallSpace()))
+          {
+            long requiredInMb = getRequiredInstallSpace() / (1024 * 1024);
+            String[] args =
+              { existingParentDirectory, String.valueOf(requiredInMb) };
+            errorMsgs.add(getMsg("not-enough-disk-space", args));
+            qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
+          }
+          else
+          {
+            String[] arg =
+            { serverLocation };
+            confirmationMsg =
+              getMsg("parent-directory-does-not-exist-confirmation", arg);
+            getUserData().setServerLocation(serverLocation);
+          }
+        }
       } else if (Utils.fileExists(serverLocation))
       {
         String[] arg =
@@ -1112,6 +1163,11 @@ public abstract class Installer extends GuiApplication {
     {
       throw new UserDataException(Step.SERVER_SETTINGS,
           Utils.getStringFromCollection(errorMsgs, "\n"));
+    }
+    if (confirmationMsg != null)
+    {
+      throw new UserDataConfirmationException(Step.SERVER_SETTINGS,
+          confirmationMsg);
     }
   }
 
