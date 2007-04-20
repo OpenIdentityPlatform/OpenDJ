@@ -1508,6 +1508,76 @@
             </sequence>
           </testcase>
    
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Target Tests
+              #@TestName                  Target with ldap:all
+              #@TestIssue                 434
+              #@TestPurpose               Test if an aci is allowed that contains the keyword target with all
+              #@TestPreamble              none
+              #@TestStep                  Admin adds an aci to an existing entry
+                                          that has the keyword target misspelled
+              #@TestStep                  Admin checks if aci was added.
+              #@TestStep                  Client searches entry with the targeted dn.
+              #@TestStep                  Client searches entry with a non-targeted dn.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 21, 
+                                          and the aci has not been added.
+          -->
+          <testcase name="'ACI: Target: With ldap:all'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci_ldif_file = 'add_aci13.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_target/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Target: With ldap:all - add aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_target/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 21">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Target: With ldap:all - check aci'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'         : 'ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' ,
+                  'attributes'       : 'aci' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'aci:' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>          
+            </sequence>
+          </testcase>
+   
         <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.

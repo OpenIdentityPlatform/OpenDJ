@@ -3023,7 +3023,183 @@
             </sequence>
           </testcase>
   
-          <!---
+       <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Targetfilter Tests 
+              #@TestName                  Targetfilter with Improperly Formatted Filter with or
+              #@TestIssue                 436
+              #@TestPurpose               Test with a targetfilter with improperly formatted filter with or
+              #@TestPreamble              none
+              #@TestStep                  Admin adds an aci with the targetfilter with misplaced quotes.
+              #@TestStep                  Client searches entry which should not be allowed.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 21
+                                          and the aci was not addded.
+          -->
+        <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+        <!-- cross reference to DS6 docs -->
+          <testcase name="'ACI: Targetfilter: Targetfilter With Improperly Formatted Filter with or'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+                          
+              <script>
+                    curr_aci_ldif_file = 'add_aci14.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_targetfilter/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Targetfilter: Targetfilter With Improperly Formatted Filter with or, preamble adding aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 21">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter With Improperly Formatted Filter with or, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'      : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <!-- The following operation can be removed when Issue 1531 is fixed. -->
+              <message>
+                   'ACI: Targattrfilter: Targattrfilter with mispelled del with add, admin deleting aci'
+              </message>
+    
+              <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targetfilter/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+    
+              <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+              </call>
+                
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+       <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Targetfilter Tests 
+              #@TestName                  Targetfilter with Improperly Formatted Filter with and
+              #@TestIssue                 436
+              #@TestPurpose               Test with a targetfilter with improperly formatted filter with and
+              #@TestPreamble              none
+              #@TestStep                  Admin adds an aci with the targetfilter with misplaced quotes.
+              #@TestStep                  Client searches entry which should not be allowed.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 21
+                                          and the aci was not addded.
+          -->
+        <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+        <!-- cross reference to DS6 docs -->
+          <testcase name="'ACI: Targetfilter: Targetfilter With Improperly Formatted Filter with and'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+                          
+              <script>
+                    curr_aci_ldif_file = 'add_aci15.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_targetfilter/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Targetfilter: Targetfilter With Improperly Formatted Filter with and, preamble adding aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 21">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Targetfilter: Targetfilter With Improperly Formatted Filter with and, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'      : 'cn sn uid roomnumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <!-- The following operation can be removed when Issue 1531 is fixed. -->
+              <message>
+                   'ACI: Targattrfilter: Targattrfilter with mispelled del with add, admin deleting aci'
+              </message>
+    
+              <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targetfilter/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+    
+              <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+              </call>
+                
+              <call function="'testCase_Postamble'"/>
+  
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+           <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
               #@TestMarker                ACI Targetfilter Tests 

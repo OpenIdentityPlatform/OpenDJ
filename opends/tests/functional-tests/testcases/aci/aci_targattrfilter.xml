@@ -1606,7 +1606,109 @@
               </sequence>
             </testcase>
 
-         <!---
+       <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targattrfilter Tests
+                #@TestName                  Targattrfilter with very long comment portion 
+                #@TestIssue                 437
+                #@TestPurpose               Test with the targattrfilter with very long comment portion 
+                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
+                #@TestStep                  Client adds title to an entry with the targeted branch dn.
+                #@TestStep                  Client adds prohibited title to an entry with the targeted branch dn.
+                #@TestStep                  Client deletes telephonenumber from an entry with the targeted branch dn.
+                #@TestStep                  Client adds title to an entry that is not with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client adds carlicense to an entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldapmodify operations, 
+                                            0 for steps 1 and 3, and
+                                            50 for all other steps.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+           <testcase name="'ACI: Targattrfilter: Targattrfilter with very long comment portion'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci18.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_targattrfilter/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with very long comment portion, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with very long comment portion, user adding title to targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_title18.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with very long comment portion, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targattrfilter: Targattrfilter with very long comment portion, user adding carlicense to previously targeted entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_carlicense18.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+     
+              <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Targattrfilter Tests
