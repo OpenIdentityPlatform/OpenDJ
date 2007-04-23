@@ -300,7 +300,28 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public String getSummary(ProgressStep step) {
-    return getMsg(((UpgradeProgressStep) step).getSummaryMesssageKey());
+    String txt = null;
+    if (step == UpgradeProgressStep.FINISHED) {
+      String installPath = Utils.getPath(getInstallation().getRootDirectory());
+      String newVersion = null;
+      try {
+        newVersion = getInstallation().getBuildId();
+      } catch (QuickSetupException e) {
+        newVersion = getMsg("upgrade-build-id-unknown");
+      }
+      String[] args = {
+              formatter.getFormattedText(installPath),
+              newVersion };
+      txt = getFormattedSuccess(
+              getMsg("summary-upgrade-finished-successfully",
+              args));
+    } else if (step == UpgradeProgressStep.FINISHED_WITH_ERRORS) {
+      txt = getFormattedError(
+              getMsg("summary-upgrade-finished-with-errors"));
+    } else {
+      txt = getMsg(((UpgradeProgressStep) step).getSummaryMesssageKey());
+    }
+    return txt;
   }
 
   /**
@@ -458,6 +479,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public void finishClicked(final WizardStep cStep, final QuickSetup qs) {
+    qs.launch();
+    qs.setCurrentStep(UpgradeWizardStep.PROGRESS);
   }
 
   /**
@@ -470,6 +493,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public void closeClicked(WizardStep cStep, QuickSetup qs) {
+    // TODO: prompt
+    qs.quit();
   }
 
   /**
@@ -484,7 +509,22 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public boolean canFinish(WizardStep step) {
-    return UpgradeWizardStep.REVIEW.equals(step);
+    boolean cf = UpgradeWizardStep.REVIEW.equals(step);
+    return cf;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean canGoBack(WizardStep step) {
+    return super.canGoBack(step) && !step.equals(UpgradeWizardStep.PROGRESS);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean canClose(WizardStep step) {
+    return step.equals(UpgradeWizardStep.PROGRESS);
   }
 
   /**
@@ -704,8 +744,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       setCurrentProgressStep(UpgradeProgressStep.FINISHED);
     } else {
       setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_ERRORS);
-      notifyListeners(runException.getLocalizedMessage() +
-              formatter.getLineBreak());
+      notifyListeners(formatter.getFormattedError(runException, true));
     }
 
   }
@@ -720,7 +759,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private void abort(ProgressStep lastStep) throws ApplicationException {
     UpgradeProgressStep lastUpgradeStep = (UpgradeProgressStep) lastStep;
     EnumSet<UpgradeProgressStep> stepsStarted =
-            EnumSet.range(UpgradeProgressStep.INITIALIZING, lastUpgradeStep);
+            EnumSet.range(UpgradeProgressStep.NOT_STARTED, lastUpgradeStep);
 
     if (stepsStarted.contains(UpgradeProgressStep.BACKING_UP_FILESYSTEM)) {
 
@@ -1116,7 +1155,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
       // old delete.  Note that on Windows there are file
       // locking issues to we mark files for deletion after
       // this JVM exits
-      fm.deleteRecursively(stagingDir, null, /*onExit=*/true);
+      if (stagingDir.exists()) {
+        fm.deleteRecursively(stagingDir, null, /*onExit=*/true);
+      }
 
     } catch (IOException e) {
       // TODO i18n

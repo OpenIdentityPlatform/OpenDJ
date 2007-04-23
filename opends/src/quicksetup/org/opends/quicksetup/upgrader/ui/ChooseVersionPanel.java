@@ -28,7 +28,6 @@
 package org.opends.quicksetup.upgrader.ui;
 
 import org.opends.quicksetup.UserData;
-import org.opends.quicksetup.ui.CustomHTMLEditorKit;
 import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
@@ -42,14 +41,11 @@ import org.opends.quicksetup.util.BackgroundTask;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.SocketAddress;
-import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -221,7 +217,13 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     bld.startBackgroundTask();
   }
 
-  private void specifyProxy(final Component parent) {
+  /**
+   * Displays a dialog prompting the user for proxy information
+   * after which applys the new proxy information to the available
+   * RemoteBuildManager.
+   * @param parent Component that will server as parent to the dialog
+   */
+  void specifyProxy(final Component parent) {
     Runnable proxySpecifier = new Runnable() {
       public void run() {
         String host = null;
@@ -311,89 +313,6 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
   }
 
   /**
-   * This panel represents the big error message the pops up when the
-   * panel can't download the build information.
-   */
-  private class BuildListDownloadErrorPanel extends JPanel {
-
-    private RemoteBuildManager rbm = null;
-    private Throwable reason = null;
-
-    /**
-     * The serial version identifier required to satisfy the compiler because
-     * this * class extends a class that implements the
-     * {@code java.io.Serializable} interface.  This value was generated using
-     * the {@code serialver} command-line utility included with the Java SDK.
-     */
-    private static final long serialVersionUID = -5606673656068527646L;
-
-    /**
-     * Creates an instance.
-     * @param rbm RemoteBuildManager that is having trouble.
-     */
-    public BuildListDownloadErrorPanel(RemoteBuildManager rbm,
-                                       Throwable reason) {
-      this.rbm = rbm;
-      this.reason = reason;
-      layoutPanel();
-    }
-
-    private void layoutPanel() {
-      setLayout(new GridBagLayout());
-
-      String proxyString = "None";
-      Proxy proxy = rbm.getProxy();
-      if (proxy != null) {
-        SocketAddress addr = proxy.address();
-        proxyString = addr.toString();
-      }
-
-      String baseContext = "Unspecified";
-      URL url = rbm.getBaseContext();
-      if (url != null) {
-        baseContext = url.toString();
-      }
-
-      String html = getMsg("upgrade-choose-version-build-list-error",
-              new String[]{
-                      baseContext,
-                      reason.getLocalizedMessage(),
-                      proxyString});
-
-      /* This helps with debugger the HTML rendering
-      StringBuffer content = new StringBuffer();
-      try {
-        FileInputStream fis = new FileInputStream("/tmp/error-html");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
-        String line = null;
-        while (null != (line = reader.readLine())) {
-          content.append(line);
-        }
-        html = content.toString();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-      */
-
-      CustomHTMLEditorKit ek = new CustomHTMLEditorKit();
-      ek.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          specifyProxy(getParent());
-
-          // Since the proxy info may change we need
-          // to regenerate the text
-          removeAll();
-          layoutPanel();
-          repaint();
-          validate();
-        }
-      });
-      add(UIFactory.makeHtmlPane(html, ek, UIFactory.INSTRUCTIONS_FONT));
-    }
-
-  }
-
-  /**
    * Uses the remote build manager is a separate thread to create
    * and populate the combo box model with build information.  Contains
    * the loop and dialog prompting that happens if there is a problem
@@ -424,7 +343,8 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
         try {
         String[] options = { "Retry", "Close" };
         int i = JOptionPane.showOptionDialog(getMainWindow(),
-                new BuildListDownloadErrorPanel(rbm, throwable),
+                new BuildListDownloadErrorPanel(ChooseVersionPanel.this, rbm,
+                        throwable),
                 "Network Error",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.ERROR_MESSAGE,

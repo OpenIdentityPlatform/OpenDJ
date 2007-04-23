@@ -430,6 +430,21 @@ public class Utils
   }
 
   /**
+   * Creates the parent directory if it does not already exist.
+   * @param f File for which parentage will be insured
+   * @return boolean indicating whether or not the input <code>f</code>
+   * has a parent after this method is invoked.
+   */
+  static public boolean insureParentsExist(File f) {
+    File parent = f.getParentFile();
+    boolean b = parent.exists();
+    if (!b) {
+      b = parent.mkdirs();
+    }
+    return b;
+  }
+
+  /**
    * Returns <CODE>true</CODE> if we can write on the provided path and
    * <CODE>false</CODE> otherwise.
    * @param path the path.
@@ -464,10 +479,20 @@ public class Utils
    * was a directory) and <CODE>false</CODE> otherwise.
    * @throws IOException if something goes wrong.
    */
-  public static boolean createDirectory(String path) throws IOException
+  public static boolean createDirectory(String path) throws IOException {
+    return createDirectory(new File(path));
+  }
+
+  /**
+   * Creates the a directory in the provided path.
+   * @param f the path.
+   * @return <CODE>true</CODE> if the path was created or already existed (and
+   * was a directory) and <CODE>false</CODE> otherwise.
+   * @throws IOException if something goes wrong.
+   */
+  public static boolean createDirectory(File f) throws IOException
   {
     boolean directoryCreated;
-    File f = new File(path);
     if (!f.exists())
     {
       directoryCreated = f.mkdirs();
@@ -485,7 +510,20 @@ public class Utils
    * @param is the InputStream with the contents of the file.
    * @throws IOException if something goes wrong.
    */
-  public static void createFile(String path, InputStream is) throws IOException
+  public static void createFile(String path, InputStream is)
+          throws IOException
+  {
+    createFile(new File(path), is);
+  }
+
+  /**
+   * Creates a file on the specified path with the contents of the provided
+   * stream.
+   * @param path the path where the file will be created.
+   * @param is the InputStream with the contents of the file.
+   * @throws IOException if something goes wrong.
+   */
+  public static void createFile(File path, InputStream is) throws IOException
   {
     FileOutputStream out;
     BufferedOutputStream dest;
