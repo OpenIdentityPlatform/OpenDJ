@@ -31,12 +31,14 @@ package org.opends.quicksetup.util;
 /**
  * This class defines a thread that will be used to actually perform the
  * processing for a background task.
+ * @param <T> type of object returned by the background task fed to this
+ * object
  */
-class BackgroundTaskThread
+class BackgroundTaskThread<T>
       extends Thread
 {
   // The background task that is to be processed.
-  private final BackgroundTask backgroundTask;
+  private final BackgroundTask<T> backgroundTask;
 
 
 
@@ -46,7 +48,7 @@ class BackgroundTaskThread
    *
    * @param  backgroundTask  The task to be processed.
    */
-  public BackgroundTaskThread(BackgroundTask backgroundTask)
+  public BackgroundTaskThread(BackgroundTask<T> backgroundTask)
   {
     this.backgroundTask = backgroundTask;
   }
@@ -60,7 +62,7 @@ class BackgroundTaskThread
   {
     try
     {
-      Object returnValue = backgroundTask.processBackgroundTask();
+      T returnValue = backgroundTask.processBackgroundTask();
       backgroundTask.backgroundTaskCompleted(returnValue, null);
     }
     catch (Throwable t)

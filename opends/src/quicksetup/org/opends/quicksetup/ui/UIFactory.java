@@ -40,6 +40,7 @@ import java.util.HashMap;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableCellRenderer;
@@ -460,7 +461,7 @@ public class UIFactory
   /**
    * Specifies the font for the text in the WebBrowserErrorDialog.
    */
-  public static final Font BROWSER_ERROR_DIALOG_FONT =
+  public static final Font ERROR_DIALOG_FONT =
       Font.decode("Arial-PLAIN-12");
 
   private static final String SPAN_CLOSE = "</span>";
@@ -655,11 +656,24 @@ public class UIFactory
   }
 
   /**
+   * Creates a new JPanel.
+   * @return JPanel newly created
+   */
+  public static JPanel makeJPanel() {
+    JPanel pnl = new JPanel();
+    pnl.setOpaque(false);
+    return pnl;
+  }
+
+  /**
    * Creates a JComboBox.
    * @return JComboBox a new combo box
    */
   static public JComboBox makeJComboBox() {
-    return new JComboBox();
+    JComboBox cbo = new JComboBox();
+    cbo.setOpaque(true);
+    cbo.setBackground(Color.WHITE);
+    return cbo;
   }
 
   /**
@@ -1037,8 +1051,25 @@ public class UIFactory
    */
   public static JEditorPane makeHtmlPane(String text, Font font)
   {
-    JEditorPane pane =
-        new JEditorPane("text/html", applyFontToHtmlWithDiv(text, font));
+    return makeHtmlPane(text, null, font);
+  }
+
+  /**
+   * Returns a read only JEditorPane containing the provided text with the
+   * provided font.  The JEditorPane will assume that the text is HTML text.
+   * @param text the text to be used to initialize the JEditorPane contents.
+   * @param ek HTMLEditor kit used for the new HTML pane
+   * @param font the font to be used.
+   * @return a read only JEditorPane containing the provided text with the
+   * provided font.
+   */
+  public static JEditorPane makeHtmlPane(String text, HTMLEditorKit ek,
+                                         Font font)
+  {
+    JEditorPane pane = new JEditorPane();
+    if (ek != null) pane.setEditorKit(ek);
+    pane.setContentType("text/html");
+    pane.setText(applyFontToHtmlWithDiv(text, font));
     pane.setEditable(false);
     pane.setBorder(new EmptyBorder(0, 0, 0, 0));
     return pane;

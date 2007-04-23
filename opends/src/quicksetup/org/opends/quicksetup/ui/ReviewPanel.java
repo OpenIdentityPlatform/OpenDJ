@@ -36,8 +36,6 @@ import java.awt.*;
  */
 public abstract class ReviewPanel extends QuickSetupStepPanel {
 
-  private JCheckBox checkBox;
-
   /**
    * Creates an instance.
    * @param application GuiApplication this panel represents
@@ -57,8 +55,8 @@ public abstract class ReviewPanel extends QuickSetupStepPanel {
    */
   final protected Component createInputPanel()
   {
-    JPanel panel = new JPanel(new GridBagLayout());
-    panel.setOpaque(false);
+    JPanel panel = UIFactory.makeJPanel();
+    panel.setLayout(new GridBagLayout());
 
     GridBagConstraints gbc = new GridBagConstraints();
 
@@ -70,10 +68,13 @@ public abstract class ReviewPanel extends QuickSetupStepPanel {
 
     addVerticalGlue(panel);
 
-    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
-    gbc.weighty = 0.0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    panel.add(getCheckBox(), gbc);
+    JCheckBox chk = getCheckBox();
+    if (chk != null) {
+      gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+      gbc.weighty = 0.0;
+      gbc.fill = GridBagConstraints.HORIZONTAL;
+      panel.add(chk, gbc);
+    }
 
     return panel;
   }
@@ -83,16 +84,5 @@ public abstract class ReviewPanel extends QuickSetupStepPanel {
    * If it does not exist creates the start server check box.
    * @return the start server check box.
    */
-  protected JCheckBox getCheckBox()
-  {
-    if (checkBox == null)
-    {
-      checkBox =
-          UIFactory.makeJCheckBox(getMsg("start-server-label"),
-              getMsg("start-server-tooltip"), UIFactory.TextStyle.CHECKBOX);
-      checkBox.setOpaque(false);
-      checkBox.setSelected(getApplication().getUserData().getStartServer());
-    }
-    return checkBox;
-  }
+  protected abstract JCheckBox getCheckBox();
 }

@@ -134,7 +134,7 @@ public class WebBrowserErrorDialog extends JDialog
       { url });
     JTextComponent tf =
         UIFactory.makeHtmlPane(msg,
-            UIFactory.BROWSER_ERROR_DIALOG_FONT);
+            UIFactory.ERROR_DIALOG_FONT);
     tf.setOpaque(false);
     tf.setEditable(false);
     p1.add(tf, gbc);

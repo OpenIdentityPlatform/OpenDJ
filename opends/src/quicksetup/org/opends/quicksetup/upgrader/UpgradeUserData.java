@@ -38,6 +38,8 @@ public class UpgradeUserData extends UserData {
 
   File installPackage;
 
+  Build buildToDownload;
+
   /**
    * Gets the OpenDS package (.zip) file whose contents will
    * be used in the upgrade/reversion.
@@ -54,6 +56,24 @@ public class UpgradeUserData extends UserData {
    */
   public void setInstallPackage(File installPackage) {
     this.installPackage = installPackage;
+  }
+
+  /**
+   * Gets the Build that will need to be downloaded before
+   * the upgrade can begin.
+   * @return Build representing the build to download
+   */
+  public Build getInstallPackageToDownload() {
+    return buildToDownload;
+  }
+
+  /**
+   * Sets the Build that will need to be downloaded before
+   * the upgrade can begin.
+   * @param build Build to download
+   */
+  public void setBuildToDownload(Build build) {
+    this.buildToDownload = build;
   }
 
 }

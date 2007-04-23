@@ -36,12 +36,16 @@ then
     then
       . "${INSTANCE_ROOT}/bin/set-java-home"
       JAVA_BIN="${JAVA_HOME}/bin/java"
+      JAVAWS_BIN="${JAVA_HOME}/bin/javaws"
       export JAVA_BIN
+      export JAVAWS_BIN
     else
       JAVA_BIN=`which java 2> /dev/null`
+      JAVAWS_BIN=`which javaws 2> /dev/null`
       if test ${?} -eq 0
       then
         export JAVA_BIN
+        export JAVAWS_BIN
       else
         echo "Please set JAVA_HOME to the root of a Java 5.0 installation."
         exit 1
@@ -49,7 +53,9 @@ then
     fi
   else
     JAVA_BIN="${JAVA_HOME}/bin/java"
+    JAVAWS_BIN="${JAVA_HOME}/bin/javaws"
     export JAVA_BIN
+    export JAVA_WS
   fi
 fi
 
@@ -138,19 +144,29 @@ export CLASSPATH
 
 if test ${?} -eq 0
 then
-  # Configure the appropriate CLASSPATH.
-  # Unlike BuildExtractor, the Upgrader uses
-  # the newly extracted build's jars.
-  for JAR in ${INSTANCE_ROOT}/tmp/upgrade/lib/*.jar
-  do
-    CLASSPATH=${JAR}:${CLASSPATH}
-  done
-  # Launch the upgrade process.
-  "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
-
-  # Clean up if necessary
   if [ -r "./tmp/upgrade" ]
   then
-    rm -fr "./tmp/upgrade"
+
+    # Configure the appropriate CLASSPATH.
+    # Unlike BuildExtractor, the Upgrader uses
+    # the newly extracted build's jars.
+    for JAR in ${INSTANCE_ROOT}/tmp/upgrade/lib/*.jar
+    do
+      CLASSPATH=${JAR}:${CLASSPATH}
+    done
+    # Launch the upgrade process.
+    "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
+
+    # Clean up if necessary
+    if [ -r "./tmp/upgrade" ]
+    then
+      rm -fr "./tmp/upgrade"
+    fi
+  else
+    # URL FOR TESTING ONLY
+    # JAVAWS_VM_ARGS="-Dorg.opends.quicksetup.upgrader.Root=$INSTANCE_ROOT -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
+    JAVAWS_VM_ARGS="-Xclearcache -Dorg.opends.quicksetup.upgrader.Root=$INSTANCE_ROOT"
+    export JAVAWS_VM_ARGS
+    "${JAVAWS_BIN}" "http://localhost:8080/install/QuickUpgrade.jnlp"    
   fi
 fi

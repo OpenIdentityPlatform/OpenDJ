@@ -51,6 +51,7 @@ public class InstallReviewPanel extends ReviewPanel {
 
   private HashMap<FieldName, JTextComponent> hmFields =
       new HashMap<FieldName, JTextComponent>();
+  private JCheckBox checkBox;
 
   /**
    * Constructor of the panel.
@@ -161,7 +162,7 @@ public class InstallReviewPanel extends ReviewPanel {
 
       JTextComponent field = UIFactory.makeJTextComponent(desc, null);
       field.setOpaque(false);
-      JLabel label = makeJLabel(desc);
+      JLabel label = UIFactory.makeJLabel(desc);
 
       hmFields.put(fieldName, field);
       label.setLabelFor(field);
@@ -312,5 +313,21 @@ public class InstallReviewPanel extends ReviewPanel {
     }
 
     return panel;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected JCheckBox getCheckBox()
+  {
+    if (checkBox == null)
+    {
+      checkBox =
+          UIFactory.makeJCheckBox(getMsg("start-server-label"),
+              getMsg("start-server-tooltip"), UIFactory.TextStyle.CHECKBOX);
+      checkBox.setOpaque(false);
+      checkBox.setSelected(getApplication().getUserData().getStartServer());
+    }
+    return checkBox;
   }
 }

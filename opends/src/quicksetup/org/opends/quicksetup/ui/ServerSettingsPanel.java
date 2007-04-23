@@ -450,7 +450,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       LabelFieldDescriptor desc = hm.get(fieldName);
       String defaultValue = getDefaultValue(fieldName);
 
-      JLabel label = makeJLabel(desc);
+      JLabel label = UIFactory.makeJLabel(desc);
 
       if (fieldName != FieldName.SECURITY_OPTIONS)
       {
@@ -473,7 +473,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
             getMsg("server-location-parent-tooltip"),
             LabelFieldDescriptor.FieldType.TEXTFIELD,
             LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.PATH_FIELD_SIZE);
-    lServerLocation = makeJLabel(desc);
+    lServerLocation = UIFactory.makeJLabel(desc);
     tfServerLocationParent = UIFactory.makeJTextComponent(desc, "");
     lServerLocation.setLabelFor(tfServerLocationParent);
 

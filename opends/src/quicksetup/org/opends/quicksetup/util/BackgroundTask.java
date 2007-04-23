@@ -32,8 +32,9 @@ package org.opends.quicksetup.util;
  * This class provides a mechanism for running a task in the background using a
  * separate thread and providing the caller with notification when it has
  * completed.
+ * @param <T> type of object returned by this process
  */
-public abstract class BackgroundTask
+public abstract class BackgroundTask<T>
 {
   /**
    * Creates a new thread and begins running the task in the background.  When
@@ -42,7 +43,7 @@ public abstract class BackgroundTask
    */
   public final void startBackgroundTask()
   {
-    BackgroundTaskThread taskThread = new BackgroundTaskThread(this);
+    BackgroundTaskThread taskThread = new BackgroundTaskThread<T>(this);
     taskThread.start();
   }
 
@@ -57,7 +58,7 @@ public abstract class BackgroundTask
    * @throws Exception exception that will be passed through the method
    *          backgroundTaskCompleted.
    */
-  public abstract Object processBackgroundTask() throws Exception;
+  public abstract T processBackgroundTask() throws Exception;
 
 
 
@@ -77,6 +78,6 @@ public abstract class BackgroundTask
    *                      was raised during processing, or {@code null} if all
    *                      processing completed successfully.
    */
-  public abstract void backgroundTaskCompleted(Object returnValue,
+  public abstract void backgroundTaskCompleted(T returnValue,
                                                Throwable throwable);
 }

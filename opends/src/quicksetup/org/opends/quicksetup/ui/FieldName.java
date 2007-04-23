@@ -41,6 +41,8 @@ public enum FieldName
 {
   /**
    * The value associated with this is a String.
+   * The upgrader uses this field to indicate the
+   * location of the server to upgrade.
    */
   SERVER_LOCATION,
   /**
@@ -114,6 +116,29 @@ public enum FieldName
   /**
    * The value associated with this is a Set of String.
    */
-  EXTERNAL_LOG_FILES
+  EXTERNAL_LOG_FILES,
+
+  /**
+   * Indicates whether the upgrade will need to first download
+   * an OpenDS install package (.zip) to download or the
+   * upgrader will use a file that has already been
+   * downloaded.  The value of this field is boolean and if
+   * true must be accompanied by a value for UPGRADE_BUILD_TO_DOWNLOAD.
+   * If false UPGRADE_FILE must be specified.
+   */
+  UPGRADE_DOWNLOAD,
+
+  /**
+   * Display name of the build to which the upgrader
+   * will upgrade the build indicated by SERVER_LOCATION.
+   */
+  UPGRADE_BUILD_TO_DOWNLOAD,
+
+  /**
+   * Local OpenDS install package (.zip) file containing
+   * a build to which the build indicated by SERVER_LOCATION
+   * will be upgraded.
+   */
+  UPGRADE_FILE
 
 }
