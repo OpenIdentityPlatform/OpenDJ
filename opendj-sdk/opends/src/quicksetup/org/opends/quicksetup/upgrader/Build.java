@@ -32,7 +32,7 @@ import java.net.URL;
 /**
    * Representation of an OpenDS build package.
  */
-public class Build implements Comparable {
+public class Build implements Comparable<Build> {
 
   private URL url;
   private String id;
@@ -82,8 +82,8 @@ public class Build implements Comparable {
   /**
    * {@inheritDoc}
    */
-  public int compareTo(Object o) {
-    return getDisplayName().compareTo(((Build)o).getDisplayName());
+  public int compareTo(Build o) {
+    return getDisplayName().compareTo(o.getDisplayName());
   }
 
 }
