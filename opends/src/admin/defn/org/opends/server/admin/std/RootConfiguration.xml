@@ -21,7 +21,15 @@
       </ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
-    <adm:relation name="access-control-handler">
+  <adm:relation name="synchronization-provider">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Synchronization Providers, cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="access-control-handler">
     <adm:one-to-one />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>
@@ -72,9 +80,7 @@
   <adm:relation name="plugin">
     <adm:one-to-many />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Plugins,cn=config
-      </ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=Plugins,cn=config</ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
   <adm:relation name="virtual-attribute">

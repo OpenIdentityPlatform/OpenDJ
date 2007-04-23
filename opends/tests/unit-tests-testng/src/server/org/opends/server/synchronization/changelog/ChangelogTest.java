@@ -34,9 +34,10 @@ import static org.opends.server.synchronization.protocol.OperationContext.*;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.synchronization.SynchronizationTestCase;
 import org.opends.server.synchronization.common.ChangeNumber;
@@ -98,17 +99,9 @@ public class ChangelogTest extends SynchronizationTestCase
     changelogPort = socket.getLocalPort();
     socket.close();
 
-    String changelogLdif =
-      "dn: cn=Changelog Server\n"
-        + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-        + "cn: Changelog Server\n"
-        + "ds-cfg-changelog-port: "+ changelogPort + "\n"
-        + "ds-cfg-changelog-server-id: 1\n"
-        + "ds-cfg-window-size: 100";
-    Entry tmp = TestCaseUtils.entryFromLdifString(changelogLdif);
-    ConfigEntry changelogConfig = new ConfigEntry(tmp, null);
-    changelog = new Changelog(changelogConfig);
+    ChangelogFakeConfiguration conf =
+      new ChangelogFakeConfiguration(changelogPort, null, 0, 1, 0, 0, null); 
+    changelog = new Changelog(conf);
   }
 
   /**
@@ -602,19 +595,13 @@ public class ChangelogTest extends SynchronizationTestCase
         // for itest=0, create the 2 connected changelog servers
         // for itest=1, create the 1rst changelog server, the second
         // one will be created later
-
-        String changelogLdif = "dn: cn=Changelog Server\n"
-          + "objectClass: top\n"
-          + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-          + "cn: Changelog Server\n"
-          + "ds-cfg-changelog-port: " + changelogPorts[i] + "\n"
-          + "ds-cfg-changelog-server: localhost:" + ((i == 0) ? changelogPorts[1] : changelogPorts[0]) + "\n"
-          + "ds-cfg-changelog-server-id: " + changelogIds[0] + "\n"
-          + "ds-cfg-window-size: 100" + "\n"
-          + "ds-cfg-changelog-db-directory: changelogDb"+i;
-        Entry tmp = TestCaseUtils.entryFromLdifString(changelogLdif);
-        ConfigEntry changelogConfig = new ConfigEntry(tmp, null);
-        changelogs[i] = new Changelog(changelogConfig);
+        SortedSet<String> servers = new TreeSet<String>();
+        servers.add(
+          "localhost:" + ((i == 0) ? changelogPorts[1] : changelogPorts[0]));
+        ChangelogFakeConfiguration conf =
+          new ChangelogFakeConfiguration(changelogPorts[i], "changelogDb"+i, 0,
+                                         changelogIds[i], 0, 100, servers); 
+        changelog = new Changelog(conf);
       }
 
       ChangelogBroker broker1 = null;
@@ -681,16 +668,13 @@ public class ChangelogTest extends SynchronizationTestCase
         if (itest > 0)
         {
           socket.close();
-          String changelogLdif = "dn: cn=Changelog Server\n"
-            + "objectClass: top\n"
-            + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-            + "cn: Changelog Server\n"
-            + "ds-cfg-changelog-port: " + changelogPorts[1] + "\n"
-            + "ds-cfg-changelog-server: localhost:" + changelogPorts[0] + "\n"
-            + "ds-cfg-changelog-server-id: " + changelogIds[1] + "\n";
-          Entry tmp = TestCaseUtils.entryFromLdifString(changelogLdif);
-          ConfigEntry changelogConfig = new ConfigEntry(tmp, null);
-          changelogs[1] = new Changelog(changelogConfig);
+          
+          SortedSet<String> servers = new TreeSet<String>();
+          servers.add("localhost:"+changelogPorts[0]);
+          ChangelogFakeConfiguration conf =
+            new ChangelogFakeConfiguration(changelogPorts[1], null, 0,
+                                           changelogIds[1], 0, 0, null); 
+          changelogs[1] = new Changelog(conf);
 
           // Connect broker 2 to changelog2
           broker2 = openChangelogSession(DN.decode("dc=example,dc=com"),

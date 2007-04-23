@@ -67,22 +67,6 @@ public class HistoricalTest
     // Create an internal connection.
     connection = InternalClientConnection.getRootConnection();
 
-    // Top level synchronization provider.
-    String synchroStringDN = "cn=Synchronization Providers,cn=config";
-
-    // Multimaster synchronization plugin.
-    synchroPluginStringDN = "cn=Multimaster Synchronization, "
-         + synchroStringDN;
-    String synchroPluginLdif = "dn: "
-         + synchroPluginStringDN
-         + "\n"
-         + "objectClass: top\n"
-         + "objectClass: ds-cfg-synchronization-provider\n"
-         + "ds-cfg-synchronization-provider-enabled: true\n"
-         + "ds-cfg-synchronization-provider-class: " +
-         "org.opends.server.synchronization.MultimasterSynchronization\n";
-    synchroPluginEntry = TestCaseUtils.entryFromLdifString(synchroPluginLdif);
-
     // The synchronization server.
     String changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
     String changeLogLdif = "dn: " + changeLogStringDN + "\n"
@@ -93,7 +77,7 @@ public class HistoricalTest
     changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
 
     // The suffix to be synchronized.
-    String synchroServerStringDN = "o=test, " + synchroPluginStringDN;
+    String synchroServerStringDN = "o=test, cn=domains, " + synchroPluginStringDN;
     String synchroServerLdif = "dn: " + synchroServerStringDN + "\n"
          + "objectClass: top\n"
          + "objectClass: ds-cfg-synchronization-provider-config\n"

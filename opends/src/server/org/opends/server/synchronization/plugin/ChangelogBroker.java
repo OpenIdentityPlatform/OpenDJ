@@ -33,8 +33,8 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.synchronization.common.LogMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
 import java.io.IOException;
@@ -75,7 +75,7 @@ import org.opends.server.types.SearchScope;
 public class ChangelogBroker implements InternalSearchListener
 {
   private boolean shutdown = false;
-  private List<String> servers;
+  private Collection<String> servers;
   private boolean connected = false;
   private final Object lock = new Object();
   private String changelogServer = "Not connected";
@@ -158,7 +158,7 @@ public class ChangelogBroker implements InternalSearchListener
    * @param servers list of servers used
    * @throws Exception : in case of errors
    */
-  public void start(List<String> servers)
+  public void start(Collection<String> servers)
                     throws Exception
   {
     /*
@@ -504,7 +504,6 @@ public class ChangelogBroker implements InternalSearchListener
       try
       {
         SynchronizationMessage msg = session.receive();
-
         if (msg instanceof WindowMessage)
         {
           WindowMessage windowMsg = (WindowMessage) msg;
@@ -556,7 +555,8 @@ public class ChangelogBroker implements InternalSearchListener
         debugInfo("ChangelogBroker Stop Closing session");
       }
 
-      session.close();
+      if (session != null)
+        session.close();
     } catch (IOException e)
     {}
   }
@@ -695,11 +695,31 @@ public class ChangelogBroker implements InternalSearchListener
     return numLostConnections;
   }
 
-  private void log(String message)
+
+  /**
+   * Change some config parameters.
+   *
+   * @param changelogServers    The new list of changelog servers.
+   * @param maxReceiveQueue     The max size of receive queue.
+   * @param maxReceiveDelay     The max receive delay.
+   * @param maxSendQueue        The max send queue.
+   * @param maxSendDelay        The max Send Delay.
+   * @param window              The max window size.
+   * @param heartbeatInterval   The heartbeat interval.
+   */
+  public void changeConfig(Collection<String> changelogServers,
+      int maxReceiveQueue, int maxReceiveDelay, int maxSendQueue,
+      int maxSendDelay, int window, long heartbeatInterval)
   {
-    int    msgID   = MSGID_UNKNOWN_TYPE;
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-           ErrorLogSeverity.SEVERE_ERROR,
-           message, msgID);
+    this.servers = changelogServers;
+    this.maxRcvWindow = window;
+    this.heartbeatInterval = heartbeatInterval;
+    this.maxReceiveDelay = maxReceiveDelay;
+    this.maxReceiveQueue = maxReceiveQueue;
+    this.maxSendDelay = maxSendDelay;
+    this.maxSendQueue = maxSendQueue;
+    // TODO : Changing those parameters requires to either restart a new
+    // session with the changelog server or renegociate the parameters that
+    // were sent in the ServerStart message
   }
 }

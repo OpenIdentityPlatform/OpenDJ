@@ -30,7 +30,7 @@ package org.opends.server.api;
 
 import java.util.List;
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -51,8 +51,11 @@ import org.opends.server.types.SynchronizationProviderResult;
  * the Directory Server are properly communicated to other instances,
  * and potentially to other kinds of applications, so that they can be
  * updated accordingly.
+ *
+ * @param <T> the configuration for the synchronization provider.
  */
-public abstract class SynchronizationProvider
+public abstract class
+  SynchronizationProvider<T extends SynchronizationProviderCfg>
 {
 
 
@@ -61,9 +64,8 @@ public abstract class SynchronizationProvider
    * Performs any initialization that might be necessary for this
    * synchronization provider.
    *
-   * @param  configEntry  The entry containing the configuration
-   *                      information for this synchronization
-   *                      provider.
+   * @param  config  The configuration information for this
+   *                 synchronization provider.
    *
    * @throws  ConfigException  If the provided entry does not contain
    *                           a valid configuration for this
@@ -75,8 +77,7 @@ public abstract class SynchronizationProvider
    *                                   is not related to the server
    *                                   configuration.
    */
-  public abstract void initializeSynchronizationProvider(
-                            ConfigEntry configEntry)
+  public abstract void initializeSynchronizationProvider(T config)
          throws ConfigException, InitializationException;
 
 

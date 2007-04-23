@@ -28,7 +28,6 @@ package org.opends.server.synchronization;
 
 import static org.opends.server.loggers.Error.logError;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.net.SocketException;
@@ -41,8 +40,6 @@ import java.util.concurrent.locks.Lock;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.schema.IntegerSyntax;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -50,7 +47,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.synchronization.common.ServerState;
 import org.opends.server.synchronization.plugin.ChangelogBroker;
-import org.opends.server.synchronization.plugin.MultimasterSynchronization;
 import org.opends.server.synchronization.plugin.PersistentServerState;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -84,8 +80,7 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
    * Created entries that need to be deleted for cleanup
    */
   protected LinkedList<DN> entryList = new LinkedList<DN>();
-
-  protected Entry synchroPluginEntry;
+  protected LinkedList<DN> configEntryList = new LinkedList<DN>();
 
   protected Entry synchroServerEntry;
 
@@ -97,14 +92,10 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
   protected boolean schemaCheck;
 
   /**
-   *
-   */
-  MultimasterSynchronization mms = null;
-
-  /**
    * The synchronization plugin entry
    */
-  protected String synchroPluginStringDN;
+  protected String synchroPluginStringDN =
+    "cn=Multimaster Synchronization, cn=Synchronization Providers,cn=config";
 
   /**
    * Set up the environment for performing the tests in this suite.
@@ -228,21 +219,52 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
         }
       }
       catch (Exception e)
-      { 
-      }
+      { }
     }
     return broker;
   }
 
   /**
-   * suppress all the entries created by the tests in this class
+   * suppress all the config entries created by the tests in this class
    */
-  protected void cleanEntries()
+  protected void cleanConfigEntries()
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
-        "SynchronizationTestCase/Cleaning entries" , 1);
+        "SynchronizationTestCase/Cleaning config entries" , 1);
 
+    DeleteOperation op;
+    // Delete entries
+    try
+    {
+      while (true)
+      {
+        DN dn = configEntryList.removeLast();
+             logError(ErrorLogCategory.SYNCHRONIZATION,
+            ErrorLogSeverity.NOTICE,
+            "cleaning config entry " + dn, 1);
+        
+        op = new DeleteOperation(connection, InternalClientConnection
+            .nextOperationID(), InternalClientConnection.nextMessageID(), null,
+            dn);
+
+        op.run();
+      }
+    }
+    catch (NoSuchElementException e) {
+      // done
+    }
+  }
+  
+  /**
+   * suppress all the real entries created by the tests in this class
+   */
+  protected void cleanRealEntries()
+  {
+  	logError(ErrorLogCategory.SYNCHRONIZATION,
+        ErrorLogSeverity.NOTICE,
+        "SynchronizationTestCase/Cleaning entries" , 1);
+  
     DeleteOperation op;
     // Delete entries
     try
@@ -277,20 +299,8 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
   {
     DirectoryServer.setCheckSchema(schemaCheck);
 
-    // WORKAROUND FOR BUG #639 - BEGIN -
-    if (mms != null)
-    {
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-          ErrorLogSeverity.NOTICE,
-          "SynchronizationTestCase/FinalizeSynchronization Provider" , 1);
-
-      DirectoryServer.deregisterSynchronizationProvider(mms);
-      mms.finalizeSynchronizationProvider();
-      mms = null;
-    }
-    // WORKAROUND FOR BUG #639 - END -
-
-    cleanEntries();
+    cleanConfigEntries();
+    cleanRealEntries();
   }
 
   /**
@@ -298,48 +308,45 @@ public abstract class SynchronizationTestCase extends DirectoryServerTestCase
    */
   protected void configureSynchronization() throws Exception
   {
-    //
     // Add the Multimaster synchronization plugin
+    String synchroPluginLdif = "dn: " + synchroPluginStringDN + "\n"
+         + "objectClass: top\n"
+         + "objectClass: ds-cfg-synchronization-provider\n"
+         + "objectClass: ds-cfg-multimaster-synchronization-provider\n"
+         + "ds-cfg-synchronization-provider-enabled: true\n"
+         + "ds-cfg-synchronization-provider-class: " +
+         "org.opends.server.synchronization.plugin.MultimasterSynchronization\n";
+    Entry synchroPluginEntry = TestCaseUtils.entryFromLdifString(synchroPluginLdif);
     DirectoryServer.getConfigHandler().addEntry(synchroPluginEntry, null);
-    entryList.add(synchroPluginEntry.getDN());
+    configEntryList.add(synchroPluginEntry.getDN());
     assertNotNull(DirectoryServer.getConfigEntry(DN
         .decode(synchroPluginStringDN)),
         "Unable to add the Multimaster synchronization plugin");
-
-    // WORKAROUND FOR BUG #639 - BEGIN -
-    DN dn = DN.decode(synchroPluginStringDN);
-    ConfigEntry mmsConfigEntry = DirectoryServer.getConfigEntry(dn);
-    mms = new MultimasterSynchronization();
-    try
-    {
-      mms.initializeSynchronizationProvider(mmsConfigEntry);
-    }
-    catch (ConfigException e)
-    {
-      assertTrue(false,
-          "Unable to initialize the Multimaster synchronization plugin");
-    }
-    DirectoryServer.registerSynchronizationProvider(mms);
-    // WORKAROUND FOR BUG #639 - END -
-
-    //
-    // Add the changelog server
-    if (changeLogEntry!=null)
-    {
-      DirectoryServer.getConfigHandler().addEntry(changeLogEntry, null);
-      assertNotNull(DirectoryServer.getConfigEntry(changeLogEntry.getDN()),
-        "Unable to add the changeLog server");
-      entryList.add(changeLogEntry.getDN());
-    }
     
-    if (synchroServerEntry!=null)
-    {
-      // We also have a replicated suffix (synchronization domain)
-      DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
-      assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
-      "Unable to add the synchronized suffix");
-      entryList.add(synchroServerEntry.getDN());
-    }
+    // domains container entry.
+    String domainsLdif = "dn: "
+      + "cn=domains," + synchroPluginStringDN + "\n"
+      + "objectClass: top\n"
+      + "objectClass: ds-cfg-branch\n";
+    Entry domainsEntry = TestCaseUtils.entryFromLdifString(domainsLdif);
+    DirectoryServer.getConfigHandler().addEntry(domainsEntry, null);
+    configEntryList.add(domainsEntry.getDN());
+    assertNotNull(DirectoryServer.getConfigEntry(
+      DN.decode(synchroPluginStringDN)),
+      "Unable to add the Multimaster synchronization plugin");
+      
+
+    // Add the changelog server
+    DirectoryServer.getConfigHandler().addEntry(changeLogEntry, null);
+    assertNotNull(DirectoryServer.getConfigEntry(changeLogEntry.getDN()),
+       "Unable to add the changeLog server");
+    configEntryList.add(changeLogEntry.getDN());
+
+    // We also have a replicated suffix (synchronization domain)
+    DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
+    assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
+        "Unable to add the synchronized server");
+    configEntryList.add(synchroServerEntry.getDN());
   }
 
   /**

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="changelog-server"
+  plural-name="changelog-servers" package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is the server to which Multimaster Domain connects to publish and
+    receive changes to or from other Multimaster Domains.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.65</ldap:oid>
+      <ldap:name>
+        ds-cfg-synchronization-changelog-server-config
+      </ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="changelog-server" multi-valued="true"
+    mandatory="false">
+    <adm:synopsis>
+      Specifies the addresses of the changelog server to which this
+      <adm:user-friendly-name />
+      should try to connect at startup time.
+    </adm:synopsis>
+    <adm:description>
+      Adresses must be specified using the syntax: hostname:port
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string></adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.160</ldap:oid>
+        <ldap:name>ds-cfg-changelog-server</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="changelog-server-id" multi-valued="false"
+    mandatory="true" read-only="true">
+    <adm:synopsis>
+      Specifies the server ID of this Changelog Server
+    </adm:synopsis>
+    <adm:description>
+      Each Changelog Server must have a different server ID.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none />
+    </adm:requires-admin-action>
+    <adm:syntax>
+      <adm:integer></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.278</ldap:oid>
+        <ldap:name>ds-cfg-changelog-server-id</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="window-size" mandatory="false"
+    multi-valued="false">
+    <adm:synopsis>
+      Specifies the window size that will this Domain must use when
+      communicating with changelog servers.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>100</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.288</ldap:oid>
+        <ldap:name>ds-cfg-window-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="queue-size" mandatory="false"
+    multi-valued="false">
+    <adm:synopsis>
+      Specifies the number of changes that will be kept in memory for
+      each LDAP server in the topology.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>10000</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.290</ldap:oid>
+        <ldap:name>ds-cfg-changelog-max-queue-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="changelog-db-directory" mandatory="false"
+    hidden="false" multi-valued="false" read-only="true">
+    <adm:synopsis>
+      The path where the
+      <adm:user-friendly-name />
+      will store all persistent information.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string></adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.306</ldap:oid>
+        <ldap:name>ds-cfg-changelog-db-directory</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="changelog-purge-delay" multi-valued="false">
+    <adm:synopsis>
+      The time (in seconds) after which the
+      <adm:user-friendly-name />
+      will erase all persistent information.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>86400s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="s" allow-unlimited="false" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.319</ldap:oid>
+        <ldap:name>ds-cfg-changelog-purge-delay</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="changelog-port" mandatory="true"
+    multi-valued="false">
+    <adm:synopsis>
+      The port on which this
+      <adm:user-friendly-name></adm:user-friendly-name>
+      will wait for connections from other Changelog Servers or LDAP
+      Servers or from LDAP servers.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none />
+    </adm:requires-admin-action>
+    <adm:syntax>
+      <adm:integer></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.158</ldap:oid>
+        <ldap:name>ds-cfg-changelog-port</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

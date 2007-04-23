@@ -49,6 +49,7 @@ import javax.management.MBeanServerFactory;
 
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
+import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.StartupPluginResult;
@@ -334,7 +335,8 @@ public class DirectoryServer
 
   // The set of synchronization providers that have been registered with the
   // Directory Server.
-  private CopyOnWriteArrayList<SynchronizationProvider>
+  private
+    CopyOnWriteArrayList<SynchronizationProvider<SynchronizationProviderCfg>>
                synchronizationProviders;
 
   // The set of virtual attributes defined in the server.
@@ -630,7 +632,8 @@ public class DirectoryServer
     directoryServer.shutdownListeners =
          new CopyOnWriteArrayList<ServerShutdownListener>();
     directoryServer.synchronizationProviders =
-         new CopyOnWriteArrayList<SynchronizationProvider>();
+         new CopyOnWriteArrayList<SynchronizationProvider
+                                 <SynchronizationProviderCfg>>();
     directoryServer.supportedControls = new TreeSet<String>();
     directoryServer.supportedFeatures = new TreeSet<String>();
     directoryServer.virtualAttributes =
@@ -7187,8 +7190,9 @@ public class DirectoryServer
    * @return  The set of synchronization providers that have been registered
    *          with the Directory Server.
    */
-  public static CopyOnWriteArrayList<SynchronizationProvider>
-              getSynchronizationProviders()
+  public static
+    CopyOnWriteArrayList<SynchronizationProvider<SynchronizationProviderCfg>>
+      getSynchronizationProviders()
   {
     return directoryServer.synchronizationProviders;
   }
@@ -7200,8 +7204,8 @@ public class DirectoryServer
    *
    * @param  provider  The synchronization provider to register.
    */
-  public static void registerSynchronizationProvider(SynchronizationProvider
-                                                          provider)
+  public static void registerSynchronizationProvider(
+      SynchronizationProvider<SynchronizationProviderCfg> provider)
   {
     directoryServer.synchronizationProviders.add(provider);
   }
