@@ -279,10 +279,10 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
           implements ListCellRenderer {
 
     /**
-     * The serial version identifier required to satisfy the compiler because this
-     * class extends a class that implements the {@code java.io.Serializable}
-     * interface.  This value was generated using the {@code serialver}
-     * command-line utility included with the Java SDK.
+     * The serial version identifier required to satisfy the compiler because
+     * this * class extends a class that implements the
+     * {@code java.io.Serializable} interface.  This value was generated using
+     * the {@code serialver} command-line utility included with the Java SDK.
      */
     private static final long serialVersionUID = -7075573664472711599L;
 
@@ -320,10 +320,10 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     private Throwable reason = null;
 
     /**
-     * The serial version identifier required to satisfy the compiler because this
-     * class extends a class that implements the {@code java.io.Serializable}
-     * interface.  This value was generated using the {@code serialver}
-     * command-line utility included with the Java SDK.
+     * The serial version identifier required to satisfy the compiler because
+     * this * class extends a class that implements the
+     * {@code java.io.Serializable} interface.  This value was generated using
+     * the {@code serialver} command-line utility included with the Java SDK.
      */
     private static final long serialVersionUID = -5606673656068527646L;
 
