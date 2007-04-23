@@ -34,13 +34,14 @@ import static org.opends.server.util.Validator.ensureNotNull;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 
 
 /**
  * String property definition.
- * <p>
- * TODO: pattern matching.
  */
 public final class StringPropertyDefinition extends
     AbstractPropertyDefinition<String> {
@@ -54,10 +55,14 @@ public final class StringPropertyDefinition extends
   // case-insensitive.
   private final boolean isCaseInsensitive;
 
+  // Optional pattern which values of this property must match.
+  private final Pattern pattern;
+
 
 
   /**
-   * An interface for incrementally constructing string property definitions.
+   * An interface for incrementally constructing string property
+   * definitions.
    */
   public static class Builder extends
       AbstractBuilder<String, StringPropertyDefinition> {
@@ -66,11 +71,14 @@ public final class StringPropertyDefinition extends
     // case-insensitive.
     private boolean isCaseInsensitive = true;
 
+    // Optional pattern which values of this property must match.
+    private Pattern pattern = null;
+
 
 
     // Private constructor
-    private Builder(
-        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+    private Builder(AbstractManagedObjectDefinition<?, ?> d,
+        String propertyName) {
       super(d, propertyName);
     }
 
@@ -91,6 +99,28 @@ public final class StringPropertyDefinition extends
 
 
     /**
+     * Set the regular expression pattern which values of this
+     * property must match. By default there is no pattern defined.
+     *
+     * @param pattern
+     *          The regular expression pattern string, or
+     *          <code>null</code> if there is no pattern.
+     * @throws PatternSyntaxException
+     *           If the provided regular expression pattern has an
+     *           invalid syntax.
+     */
+    public final void setPattern(String pattern)
+        throws PatternSyntaxException {
+      if (pattern == null) {
+        this.pattern = null;
+      } else {
+        this.pattern = Pattern.compile(pattern);
+      }
+    }
+
+
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -99,7 +129,7 @@ public final class StringPropertyDefinition extends
         EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<String> defaultBehavior) {
       return new StringPropertyDefinition(d, propertyName, options,
-          defaultBehavior, isCaseInsensitive);
+          defaultBehavior, isCaseInsensitive, pattern);
     }
 
   }
@@ -128,9 +158,24 @@ public final class StringPropertyDefinition extends
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<String> defaultBehavior,
-      boolean isCaseInsensitive) {
+      boolean isCaseInsensitive, Pattern pattern) {
     super(d, String.class, propertyName, options, defaultBehavior);
     this.isCaseInsensitive = isCaseInsensitive;
+    this.pattern = pattern;
+  }
+
+
+
+  /**
+   * Gets the optional regular expression pattern which values of this
+   * property must match.
+   *
+   * @return Returns the optional regular expression pattern which
+   *         values of this property must match, or <code>null</code>
+   *         if there is no pattern.
+   */
+  public Pattern getPattern() {
+    return pattern;
   }
 
 
@@ -181,8 +226,8 @@ public final class StringPropertyDefinition extends
   /**
    * Query whether values of this property are case-insensitive.
    *
-   * @return Returns <code>true</code> if values are case-insensitive, or
-   *         <code>false</code> otherwise.
+   * @return Returns <code>true</code> if values are
+   *         case-insensitive, or <code>false</code> otherwise.
    */
   public boolean isCaseInsensitive() {
     return isCaseInsensitive;
@@ -211,11 +256,16 @@ public final class StringPropertyDefinition extends
    * {@inheritDoc}
    */
   @Override
-  public void validateValue(String value) throws IllegalPropertyValueException {
+  public void validateValue(String value)
+      throws IllegalPropertyValueException {
     ensureNotNull(value);
 
-    // No additional validation required for now (might do pattern
-    // matching in future).
+    if (pattern != null) {
+      Matcher matcher = pattern.matcher(value);
+      if (!matcher.matches()) {
+        throw new IllegalPropertyValueException(this, value);
+      }
+    }
   }
 
 
@@ -227,6 +277,12 @@ public final class StringPropertyDefinition extends
   public String decodeValue(String value)
       throws IllegalPropertyValueStringException {
     ensureNotNull(value);
+
+    try {
+      validateValue(value);
+    } catch (IllegalPropertyValueException e) {
+      throw new IllegalPropertyValueStringException(this, value);
+    }
 
     return value;
   }
