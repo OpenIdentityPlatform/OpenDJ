@@ -41,5 +41,10 @@
         select="concat('      builder.setCaseInsensitive(',
                        @case-insensitive, ');&#xa;')" />
     </xsl:if>
+    <xsl:if test="adm:pattern/adm:regex">
+      <xsl:value-of
+        select="concat('      builder.setPattern(&quot;',
+                       normalize-space(adm:pattern/adm:regex), '&quot;);&#xa;')" />
+    </xsl:if>
   </xsl:template>
 </xsl:stylesheet>
