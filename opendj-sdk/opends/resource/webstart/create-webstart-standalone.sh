@@ -31,11 +31,17 @@ then
 fi
 echo "BASE_PATH:      ${BASE_PATH}"
 
-if test -z "${JNLP_FILENAME}"
+if test -z "${INSTALL_JNLP_FILENAME}"
 then
-  JNLP_FILENAME="QuickSetup.jnlp"
+  INSTALL_JNLP_FILENAME="QuickSetup.jnlp"
 fi
-echo "JNLP_FILENAME:  ${JNLP_FILENAME}"
+echo "INSTALL_JNLP_FILENAME:  ${INSTALL_JNLP_FILENAME}"
+
+if test -z "${UPGRADE_JNLP_FILENAME}"
+then
+  UPGRADE_JNLP_FILENAME="QuickUpgrade.jnlp"
+fi
+echo "UPGRADE_JNLP_FILENAME:  ${UPGRADE_JNLP_FILENAME}"
 
 if test -z "${PORT}"
 then
@@ -146,14 +152,14 @@ echo "Signing zipped.jar ..."
                -storepass "${CERT_KEYSTORE_PIN}" zipped.jar "${CERT_ALIAS}"
 
 
-# Create the JNLP file with the appropriate contents.
-echo "Creating JNLP file ${JNLP_FILENAME} ..."
+# Create the Setup JNLP file with the appropriate contents.
+echo "Creating Setup JNLP file ${INSTALL_JNLP_FILENAME} ..."
 cd ..
-cat > "${JNLP_FILENAME}" <<ENDOFJNLP
+cat > "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
 <?xml version="1.0" encoding="utf-8"?>
 <!-- JNLP File for OpenDS Quick Setup Application -->
 <jnlp spec="1.5+"
-  codebase="${INSTALLER_URI}" href="${JNLP_FILENAME}">
+  codebase="${INSTALLER_URI}" href="${INSTALL_JNLP_FILENAME}">
   <information>
     <title>OpenDS Quick Setup Application</title>
     <vendor>http://www.opends.org/</vendor>
@@ -187,8 +193,49 @@ cat > "${JNLP_FILENAME}" <<ENDOFJNLP
   
   <application-desc main-class="org.opends.quicksetup.SplashScreen"/>
 </jnlp>
-ENDOFJNLP
+ENDOFINSTALLJNLP
 
+# Create the Upgrade JNLP file with the appropriate contents.
+echo "Creating Upgrade JNLP file ${UPGRADE_JNLP_FILENAME} ..."
+cat > "${UPGRADE_JNLP_FILENAME}" <<ENDOFUPGRADEJNLP
+<?xml version="1.0" encoding="utf-8"?>
+<!-- JNLP File for OpenDS Quick Upgrade Application -->
+<jnlp spec="1.5+"
+  codebase="${INSTALLER_URI}" href="${UPGRADE_JNLP_FILENAME}">
+  <information>
+    <title>OpenDS Quick Setup Application</title>
+    <vendor>http://www.opends.org/</vendor>
+    <homepage href="http://www.opends.org"/>
+    <description>OpenDS Quick Upgrade Application</description>
+    <description kind="short">OpenDS Web Start Upgrader</description>
+    <icon href="images/opendshref.png" height="128" width="128"/>
+    <icon kind="splash" href="images/opendssplash.png" height="114" width="479"/>
+  </information>
+
+  <security>
+    <all-permissions/>
+  </security>
+
+  <resources>
+    <j2se version="1.5+" java-vm-args="-client"/>
+    <jar href="lib/quicksetup.jar" download="eager" main="true"/>
+    <jar href="lib/OpenDS.jar" download="lazy"/>
+    <jar href="lib/je.jar" download="lazy"/>
+    <jar href="lib/aspectjrt.jar" download="lazy"/>
+    <jar href="lib/zipped.jar" download="lazy"/>
+    <property name="org.opends.quicksetup.iswebstart" value="true" />
+    <property name="org.opends.quicksetup.Application.class" value="org.opends.quicksetup.upgrader.Upgrader"/>
+    <property name="org.opends.quicksetup.lazyjarurls" value="${INSTALLER_URI}/lib/OpenDS.jar ${INSTALLER_URI}/lib/zipped.jar ${INSTALLER_URI}/lib/je.jar ${INSTALLER_URI}/lib/aspectjrt.jar" />
+    <property name="org.opends.quicksetup.zipfilename" value="${ZIP_FILENAME_BASE}.zip"/>
+  </resources>
+
+  <resources os="AIX">
+    <j2se version="1.5+"/>
+  </resources>
+
+  <application-desc main-class="org.opends.quicksetup.SplashScreen"/>
+</jnlp>
+ENDOFUPGRADEJNLP
 
 # Tell the user where the files are.
 echo "The deployable content may be found in ${ROOT_DIR}/build/webstart"

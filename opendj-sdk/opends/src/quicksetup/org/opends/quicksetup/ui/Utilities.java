@@ -49,8 +49,9 @@ public class Utilities {
   {
     GridBagConstraints gbc = new GridBagConstraints();
 
-    JPanel panel = new JPanel(new GridBagLayout());
-    panel.setOpaque(false);
+    JPanel panel = UIFactory.makeJPanel();
+    panel.setLayout(new GridBagLayout());
+
     gbc.insets = UIFactory.getEmptyInsets();
     gbc.gridwidth = 4;
     gbc.weightx = 0.0;

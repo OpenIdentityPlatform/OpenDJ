@@ -304,25 +304,6 @@ implements HyperlinkListener
   }
 
   /**
-   * Commodity method that returns a JLabel based on a LabelFieldDescriptor.
-   * @param desc the LabelFieldDescriptor describing the JLabel.
-   * @return a JLabel based on a LabelFieldDescriptor.
-   */
-  protected JLabel makeJLabel(LabelFieldDescriptor desc)
-  {
-    UIFactory.TextStyle style;
-    if (desc.getLabelType() == LabelFieldDescriptor.LabelType.PRIMARY)
-    {
-      style = UIFactory.TextStyle.PRIMARY_FIELD_VALID;
-    } else
-    {
-      style = UIFactory.TextStyle.SECONDARY_FIELD_VALID;
-    }
-    return UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, desc.getLabel(),
-        style);
-  }
-
-  /**
    * Creates and returns the panel that contains the layout specific to the
    * panel.
    * @return the panel that contains the layout specific to the

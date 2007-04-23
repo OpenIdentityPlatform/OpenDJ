@@ -34,6 +34,7 @@ import org.opends.quicksetup.upgrader.ui.UpgraderReviewPanel;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.ServerController;
+import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.quicksetup.ui.*;
 import org.opends.server.tools.BackUpDB;
 import org.opends.server.tools.LDIFDiff;
@@ -49,6 +50,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.*;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 import static org.opends.quicksetup.Installation.*;
 
@@ -91,6 +94,10 @@ public class Upgrader extends GuiApplication implements CliApplication {
   enum UpgradeProgressStep implements ProgressStep {
 
     NOT_STARTED("summary-upgrade-not-started"),
+
+    DOWNLOADING("summary-upgrade-downloading"),
+
+    EXTRACTING("summary-upgrade-extracting"),
 
     INITIALIZING("summary-upgrade-initializing"),
 
@@ -203,6 +210,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
   /** SVN rev number of the build in the stage directory. */
   private Integer stagedVersion = null;
 
+  private RemoteBuildManager remoteBuildManager = null;
+
   /**
    * {@inheritDoc}
    */
@@ -227,6 +236,26 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   /**
+   * Gets a remote build manager that this class can use to find
+   * out about and download builds for upgrading.
+   * @return RemoteBuildManager to use for builds
+   */
+  public RemoteBuildManager getRemoteBuildManager() {
+    if (remoteBuildManager == null) {
+      try {
+        // TODO: make this configurable.
+        // The slash at the end of the URL was/is important in getting the
+        // correct redirection from the web server
+        URL buildRepo = new URL("http://builds.opends.org/");
+        remoteBuildManager = new RemoteBuildManager(this, buildRepo);
+      } catch (MalformedURLException e) {
+        LOG.log(Level.INFO, "error", e);
+      }
+    }
+    return remoteBuildManager;
+  }
+
+  /**
    * {@inheritDoc}
    */
   protected String getInstallationPath() {
@@ -236,9 +265,20 @@ public class Upgrader extends GuiApplication implements CliApplication {
     // we still want the Installation to point at the build being
     // upgraded so the install path reported in [installroot].
 
-    String stagePath = Utils.getInstallPathFromClasspath();
-    File f = new File(stagePath);
-    return Utils.getPath(f.getParentFile().getParentFile());
+    String installationPath = null;
+    String path = Utils.getInstallPathFromClasspath();
+    if (path != null) {
+      File f = new File(path);
+      if (f.getParentFile() != null &&
+              f.getParentFile().getParentFile() != null &&
+              new File(f.getParentFile().getParentFile(),
+                      Installation.LOCKS_PATH_RELATIVE).exists()) {
+        installationPath = Utils.getPath(f.getParentFile().getParentFile());
+      } else {
+        installationPath = path;
+      }
+    }
+    return installationPath;
   }
 
   /**
@@ -352,6 +392,60 @@ public class Upgrader extends GuiApplication implements CliApplication {
    */
   public void updateUserData(WizardStep cStep, QuickSetup qs)
           throws UserDataException {
+    List<String> errorMsgs = new ArrayList<String>();
+    UpgradeUserData uud = getUpgradeUserData();
+    if (cStep == UpgradeWizardStep.WELCOME) {
+
+      // User can only select the installation to upgrade
+      // in the webstart version of this tool.  Otherwise
+      // the fields are readonly.
+      if (Utils.isWebStart()) {
+        String serverLocationString =
+                qs.getFieldStringValue(FieldName.SERVER_LOCATION);
+        if ((serverLocationString == null) ||
+                ("".equals(serverLocationString.trim()))) {
+          errorMsgs.add(getMsg("empty-server-location"));
+          qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
+        } else {
+          try {
+            File serverLocation = new File(serverLocationString);
+            Installation.validateRootDirectory(serverLocation);
+
+            // If we get here the value is acceptable
+            Installation installation = new Installation(serverLocation);
+            setInstallation(installation);
+            uud.setServerLocation(serverLocationString);
+
+          } catch (IllegalArgumentException iae) {
+            errorMsgs.add(getMsg("error-invalid-server-location",
+                    iae.getLocalizedMessage()));
+            qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
+          }
+        }
+      } else {
+        // do nothing; all fields are read-only
+      }
+
+    } else if (cStep == UpgradeWizardStep.CHOOSE_VERSION) {
+      Build buildToDownload = null;
+      File buildFile = null;
+      Boolean downloadFirst =
+              (Boolean)qs.getFieldValue(FieldName.UPGRADE_DOWNLOAD);
+      if (downloadFirst) {
+        buildToDownload =
+                (Build)qs.getFieldValue(FieldName.UPGRADE_BUILD_TO_DOWNLOAD);
+      } else {
+        buildFile = (File)qs.getFieldValue(FieldName.UPGRADE_FILE);
+      }
+      uud.setBuildToDownload(buildToDownload);
+      uud.setInstallPackage(buildFile);
+    }
+
+    if (errorMsgs.size() > 0) {
+      throw new UserDataException(Step.SERVER_SETTINGS,
+          Utils.getStringFromCollection(errorMsgs, "\n"));
+    }
+
   }
 
   /**
@@ -402,6 +496,51 @@ public class Upgrader extends GuiApplication implements CliApplication {
     runException = null;
 
     try {
+
+      File buildZip;
+      Build buildToDownload =
+              getUpgradeUserData().getInstallPackageToDownload();
+      if (buildToDownload != null) {
+        try {
+          setCurrentProgressStep(UpgradeProgressStep.DOWNLOADING);
+          buildZip = new File(getStageDirectory(), "OpenDS.zip");
+          if (buildZip.exists()) {
+            if (!buildZip.delete()) {
+              throw ApplicationException.createFileSystemException(
+                      "Could not delete existing build file " +
+                              Utils.getPath(buildZip), null);
+            }
+          }
+          getRemoteBuildManager().download(buildToDownload, buildZip);
+        } catch (ApplicationException e) {
+          LOG.log(Level.INFO, "Error downloading build file", e);
+          throw e;
+        }
+      } else {
+        buildZip = getUpgradeUserData().getInstallPackage();
+      }
+
+      if (buildZip != null) {
+        try {
+          setCurrentProgressStep(UpgradeProgressStep.EXTRACTING);
+          ZipExtractor extractor = new ZipExtractor(buildZip,
+                  1, 10, // TODO figure out these values
+                  Utils.getNumberZipEntries(), this);
+          extractor.extract(getStageDirectory());
+        } catch (ApplicationException e) {
+          LOG.log(Level.INFO, "Error extracting build file", e);
+          throw e;
+        }
+      }
+
+      try {
+        setCurrentProgressStep(UpgradeProgressStep.INITIALIZING);
+        initialize();
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO, "Error initializing upgrader", e);
+        throw e;
+      }
+
       try {
         setCurrentProgressStep(UpgradeProgressStep.INITIALIZING);
         initialize();
@@ -1057,6 +1196,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
       }
     }
     return stagedInstallation;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public UserData createUserData() {
+    UpgradeUserData uud = new UpgradeUserData();
+    String instanceRootFromSystem =
+            System.getProperty("org.opends.quicksetup.upgrader.Root");
+    if (instanceRootFromSystem != null) {
+      uud.setServerLocation(instanceRootFromSystem);
+    }
+    return uud;
   }
 
   /**

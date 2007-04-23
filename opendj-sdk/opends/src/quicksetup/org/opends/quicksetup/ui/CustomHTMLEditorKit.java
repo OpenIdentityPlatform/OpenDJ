@@ -40,7 +40,7 @@ import javax.swing.text.html.HTMLEditorKit;
 /**
  * Class used to be able to detect events in the button inside an HTML pane.
  */
-class CustomHTMLEditorKit extends HTMLEditorKit
+public class CustomHTMLEditorKit extends HTMLEditorKit
 {
   private HashSet<ActionListener> listeners = new HashSet<ActionListener>();
   private static final long serialVersionUID = 298103926252426388L;
@@ -48,7 +48,7 @@ class CustomHTMLEditorKit extends HTMLEditorKit
   /**
    * Default constructor.
    */
-  CustomHTMLEditorKit()
+  public CustomHTMLEditorKit()
   {
     super();
   }
@@ -116,10 +116,16 @@ class CustomHTMLEditorKit extends HTMLEditorKit
      */
     public void actionPerformed(ActionEvent ev)
     {
-      for (ActionListener l: listeners)
-      {
-        l.actionPerformed(ev);
+      if (ev != null && ev.getWhen() != lastActionWhen) {
+        lastActionWhen = ev.getWhen();
+        for (ActionListener l: listeners)
+        {
+          l.actionPerformed(ev);
+        }
       }
     }
   }
+
+  private static long lastActionWhen = 0;
+
 }

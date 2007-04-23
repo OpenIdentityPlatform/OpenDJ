@@ -31,9 +31,16 @@ import org.opends.quicksetup.ui.ReviewPanel;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.LabelFieldDescriptor;
 import org.opends.quicksetup.upgrader.Upgrader;
+import org.opends.quicksetup.upgrader.UpgradeUserData;
+import org.opends.quicksetup.upgrader.Build;
+import org.opends.quicksetup.QuickSetupException;
+import org.opends.quicksetup.UserData;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Presents upgrade information to the user to confirm before starting the
@@ -41,7 +48,15 @@ import java.awt.*;
  */
 public class UpgraderReviewPanel extends ReviewPanel {
 
+  static private final Logger LOG =
+          Logger.getLogger(UpgraderReviewPanel.class.getName());
+
   private static final long serialVersionUID = 5942916658585976799L;
+
+  JTextComponent tcServerLocation = null;
+  JTextComponent tcOldBuild = null;
+  JTextComponent tcNewBuild = null;
+  private JCheckBox checkBox;
 
   /**
    * Creates an instance.
@@ -49,6 +64,15 @@ public class UpgraderReviewPanel extends ReviewPanel {
    */
   public UpgraderReviewPanel(Upgrader application) {
     super(application);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void beginDisplay(UserData data) {
+    tcServerLocation.setText(getServerToUpgrade());
+    tcOldBuild.setText(getOldBuildId());
+    tcNewBuild.setText(getNewBuildId());
   }
 
   /**
@@ -69,7 +93,9 @@ public class UpgraderReviewPanel extends ReviewPanel {
    * {@inheritDoc}
    */
   protected JPanel createFieldsPanel() {
-    JPanel p = new JPanel();
+    UpgradeUserData uud = (UpgradeUserData)getUserData();
+
+    JPanel p = UIFactory.makeJPanel();
 
     LabelFieldDescriptor serverDescriptor = new LabelFieldDescriptor(
       getMsg("upgrade-review-panel-server-label"),
@@ -110,7 +136,8 @@ public class UpgraderReviewPanel extends ReviewPanel {
     gbc.gridy = 0;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    p.add(UIFactory.makeJTextComponent(serverDescriptor, "/xx/xx/xx"), gbc);
+    p.add(tcServerLocation = UIFactory.makeJTextComponent(serverDescriptor,
+            null), gbc);
 
     gbc.gridx = 0;
     gbc.gridy = 1;
@@ -120,7 +147,8 @@ public class UpgraderReviewPanel extends ReviewPanel {
     gbc.gridx = 1;
     gbc.gridy = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    p.add(UIFactory.makeJTextComponent(oldVersionDescriptor, "abcdefg"), gbc);
+    p.add(tcOldBuild = UIFactory.makeJTextComponent(oldVersionDescriptor,
+            null), gbc);
 
     gbc.gridx = 0;
     gbc.gridy = 2;
@@ -131,8 +159,54 @@ public class UpgraderReviewPanel extends ReviewPanel {
     gbc.gridy = 2;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    p.add(UIFactory.makeJTextComponent(newVersionDescriptor, "1234567"), gbc);
+    p.add(tcNewBuild = UIFactory.makeJTextComponent(newVersionDescriptor,
+            null), gbc);
 
     return p;
+  }
+
+  private String getServerToUpgrade() {
+    return getUserData().getServerLocation();
+  }
+
+  private String getOldBuildId() {
+    String oldVersion;
+    try {
+      oldVersion = getApplication().getInstallation().getBuildId();
+    } catch (QuickSetupException e) {
+      LOG.log(Level.INFO, "error", e);
+      oldVersion = getMsg("upgrade-build-id-unknown");
+    }
+    return oldVersion;
+  }
+
+  private String getNewBuildId() {
+    String newVersion;
+    UpgradeUserData uud = (UpgradeUserData)getUserData();
+    Build build = uud.getInstallPackageToDownload();
+    if (build != null) {
+      newVersion = build.getId();
+    } else {
+      // TODO: figure out the build from the zip somehow
+      newVersion = getMsg("upgrade-build-id-unknown");
+    }
+    return newVersion;
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected JCheckBox getCheckBox()
+  {
+    if (checkBox == null)
+    {
+      checkBox =
+          UIFactory.makeJCheckBox(getMsg("upgrade-review-panel-start-server"),
+              getMsg("start-server-tooltip"), UIFactory.TextStyle.CHECKBOX);
+      checkBox.setOpaque(false);
+      checkBox.setSelected(getApplication().getUserData().getStartServer());
+    }
+    return checkBox;
   }
 }

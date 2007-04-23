@@ -27,11 +27,10 @@
 
 package org.opends.quicksetup;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Set;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.io.*;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.opends.quicksetup.util.Utils;
 
@@ -245,6 +244,8 @@ public class Installation {
 
   private Configuration baseConfiguration;
 
+  private String buildId;
+
   /**
    * Creates a new instance from a root directory specified as a string.
    *
@@ -451,6 +452,46 @@ public class Installation {
               "Could not determine SVN rev", null);
     }
     return rev;
+  }
+
+  /**
+   * Gets the build ID which is the 14 digit number code like 20070420110336.
+   * @return String representing the build ID
+   * @throws QuickSetupException if something goes wrong
+   */
+  public String getBuildId() throws QuickSetupException {
+    if (buildId == null) {
+      List<String> args = new ArrayList<String>();
+      args.add(Utils.getPath(getServerStartCommandFile()));
+      args.add("-V"); // verbose
+      ProcessBuilder pb = new ProcessBuilder(args);
+      InputStream is = null;
+      try {
+        Process process = pb.start();
+        is = process.getInputStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        String line = null;
+        Pattern p = Pattern.compile("(Build )(\\d{14})");
+        while (null != (line = reader.readLine())) {
+          Matcher m = p.matcher(line);
+          if (m.matches()) {
+            buildId = line.substring(m.start(2), m.end(2));
+          }
+        }
+      } catch (IOException e) {
+        throw new QuickSetupException(QuickSetupException.Type.START_ERROR,
+                "Error attempting to determine build ID", e);
+      } finally {
+        if (is != null) {
+          try {
+            is.close();
+          } catch (IOException e) {
+            // ignore;
+          }
+        }
+      }
+    }
+    return buildId;
   }
 
   /**

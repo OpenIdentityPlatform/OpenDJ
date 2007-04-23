@@ -898,7 +898,7 @@ public class Utils
    */
   public static String getInstallPathFromClasspath()
   {
-    String installPath;
+    String installPath = null;
 
     /* Get the install path from the Class Path */
     String sep = System.getProperty("path.separator");
@@ -916,21 +916,23 @@ public class Utils
         }
       }
     }
-    File f = new File(path).getAbsoluteFile();
-    File librariesDir = f.getParentFile();
+    if (path != null) {
+      File f = new File(path).getAbsoluteFile();
+      File librariesDir = f.getParentFile();
 
-    /*
-     * Do a best effort to avoid having a relative representation (for
-     * instance to avoid having ../../../).
-     */
-    try
-    {
-      installPath = librariesDir.getParentFile().getCanonicalPath();
-    }
-    catch (IOException ioe)
-    {
-      // Best effort
-      installPath = librariesDir.getParent();
+      /*
+       * Do a best effort to avoid having a relative representation (for
+       * instance to avoid having ../../../).
+       */
+      try
+      {
+        installPath = librariesDir.getParentFile().getCanonicalPath();
+      }
+      catch (IOException ioe)
+      {
+        // Best effort
+        installPath = librariesDir.getParent();
+      }
     }
     return installPath;
   }

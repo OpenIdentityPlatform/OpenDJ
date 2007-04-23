@@ -27,12 +27,10 @@
 
 package org.opends.quicksetup.upgrader.ui;
 
-import org.opends.quicksetup.ui.QuickSetupStepPanel;
-import org.opends.quicksetup.ui.UIFactory;
-import org.opends.quicksetup.ui.Utilities;
-import org.opends.quicksetup.ui.LabelFieldDescriptor;
+import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.upgrader.Upgrader;
 
@@ -42,11 +40,17 @@ import java.awt.*;
 import java.util.ArrayList;
 
 /**
- * This panel is used to show a welcome message.
+ * This panel is used to show a welcome message.  If this is the WebStart,
+ * allows the user to select a build to upgrade.  Otherwise shows the user
+ * some readonly information about the current build.
  */
 public class WelcomePanel extends QuickSetupStepPanel {
 
   private static final long serialVersionUID = 8695606871542491768L;
+
+  private JTextComponent tcServerLocation;
+
+  private JTextComponent tcCurrentServerBuildNumber;
 
   /**
    * Default constructor.
@@ -54,6 +58,25 @@ public class WelcomePanel extends QuickSetupStepPanel {
    */
   public WelcomePanel(Upgrader application) {
     super(application);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void beginDisplay(UserData data) {
+    super.beginDisplay(data);
+    tcServerLocation.setText(data.getServerLocation());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Object getFieldValue(FieldName fieldName) {
+    Object v = null;
+    if (FieldName.SERVER_LOCATION.equals(fieldName)) {
+      v = tcServerLocation.getText();
+    }
+    return v;
   }
 
   /**
@@ -91,43 +114,65 @@ public class WelcomePanel extends QuickSetupStepPanel {
   protected Component createInputPanel() {
     Component c;
 
-    JPanel pnlBuildInfo = new JPanel();
+    LabelFieldDescriptor serverLocationDescriptor =
+            new LabelFieldDescriptor(getMsg("upgrade-location-label"),
+                    getMsg("upgrade-location-tooltip"),
+                    LabelFieldDescriptor.FieldType.TEXTFIELD,
+                    LabelFieldDescriptor.LabelType.PRIMARY,
+                    UIFactory.PATH_FIELD_SIZE);
+
+    LabelFieldDescriptor serverLocationDescriptorRO =
+            new LabelFieldDescriptor(getMsg("upgrade-location-label"),
+                    getMsg("upgrade-location-tooltip"),
+                    LabelFieldDescriptor.FieldType.READ_ONLY,
+                    LabelFieldDescriptor.LabelType.PRIMARY,
+                    UIFactory.PATH_FIELD_SIZE);
+
+    LabelFieldDescriptor serverBuildDescriptorRO =
+            new LabelFieldDescriptor(getMsg("upgrade-build-id-label"),
+                    getMsg("upgrade-build-id-tooltip"),
+                    LabelFieldDescriptor.FieldType.READ_ONLY,
+                    LabelFieldDescriptor.LabelType.PRIMARY,
+                    UIFactory.PATH_FIELD_SIZE);
+
+    JPanel pnlBuildInfo = UIFactory.makeJPanel();
     pnlBuildInfo.setLayout(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
+
+    UserData userData = getApplication().getUserData();
 
     // The WebStart version of this tool allows the user to
     // select a build to upgrade.  Running the tool from the
     // command line implies a build.
-    if (!Utils.isWebStart()) {
+    if (Utils.isWebStart()) {
 
-      LabelFieldDescriptor serverLocationDescriptor =
-              new LabelFieldDescriptor(getMsg("upgrade-location-label"),
-                      getMsg("upgrade-location-tooltip"),
-                      LabelFieldDescriptor.FieldType.TEXTFIELD,
-                      LabelFieldDescriptor.LabelType.PRIMARY,
-                      UIFactory.PATH_FIELD_SIZE);
-
-      JTextComponent tfBuild =
-              UIFactory.makeJTextComponent(serverLocationDescriptor, null);
+      tcServerLocation =
+              UIFactory.makeJTextComponent(serverLocationDescriptor,
+                      userData.getServerLocation());
 
       JButton butBrowse =
               UIFactory.makeJButton(getMsg("browse-button-label"),
                       getMsg("browse-button-tooltip"));
 
       BrowseActionListener l =
-              new BrowseActionListener(tfBuild,
+              new BrowseActionListener(tcServerLocation,
                       BrowseActionListener.BrowseType.LOCATION_DIRECTORY,
                       getMainWindow());
       butBrowse.addActionListener(l);
 
       JPanel pnlBrowser = Utilities.createBrowseButtonPanel(
               UIFactory.makeJLabel(serverLocationDescriptor),
-              tfBuild,
+              tcServerLocation,
               butBrowse);
-      // pnlBrowser.setBorder(BorderFactory.createLineBorder(Color.GREEN));
+      pnlBrowser.setOpaque(false);
+
+      //pnlBrowser.setBorder(BorderFactory.createLineBorder(Color.GREEN));
       gbc.insets.top = 15; // non-standard but looks better
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
       gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+      gbc.gridwidth = GridBagConstraints.REMAINDER;
+      gbc.weightx = 1.0;
+      gbc.fill = GridBagConstraints.BOTH;
       pnlBuildInfo.add(pnlBrowser, gbc);
 
       gbc.gridy = 1;
@@ -135,25 +180,26 @@ public class WelcomePanel extends QuickSetupStepPanel {
       gbc.weightx = 1.0;
       gbc.fill = GridBagConstraints.BOTH;
       gbc.anchor = GridBagConstraints.LINE_START;
-      JPanel fill = new JPanel();
+      JPanel fill = UIFactory.makeJPanel();
       // fill.setBorder(BorderFactory.createLineBorder(Color.BLUE));
       pnlBuildInfo.add(fill, gbc);
 
     } else {
 
-      LabelFieldDescriptor serverLocationDescriptorRO =
-              new LabelFieldDescriptor(getMsg("upgrade-location-label"),
-                      getMsg("upgrade-location-tooltip"),
-                      LabelFieldDescriptor.FieldType.READ_ONLY,
-                      LabelFieldDescriptor.LabelType.PRIMARY,
-                      UIFactory.PATH_FIELD_SIZE);
+      tcServerLocation = UIFactory.makeJTextComponent(
+                       serverLocationDescriptorRO, null);
 
-      LabelFieldDescriptor serverBuildDescriptorRO =
-              new LabelFieldDescriptor(getMsg("upgrade-build-id-label"),
-                      getMsg("upgrade-build-id-tooltip"),
-                      LabelFieldDescriptor.FieldType.READ_ONLY,
-                      LabelFieldDescriptor.LabelType.PRIMARY,
-                      UIFactory.PATH_FIELD_SIZE);
+      String buildId = null;
+      Installation installation = getApplication().getInstallation();
+      try {
+        buildId = installation.getBuildId();
+      } catch (Exception e) {
+        buildId = getMsg("upgrade-build-id-unknown");
+      }
+
+      tcCurrentServerBuildNumber = UIFactory.makeJTextComponent(
+                        serverBuildDescriptorRO,
+                        buildId);
 
       gbc.gridx = 0;
       gbc.gridy = 0;
@@ -162,17 +208,14 @@ public class WelcomePanel extends QuickSetupStepPanel {
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
       pnlBuildInfo.add(UIFactory.makeJLabel(serverLocationDescriptorRO), gbc);
 
+
       gbc.gridx = 1;
       gbc.gridy = 0;
       gbc.weightx = 1.0;
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
       gbc.fill = GridBagConstraints.HORIZONTAL;
       gbc.anchor = GridBagConstraints.PAGE_START;
-      String installLocation = Utils.getPath(
-              getApplication().getInstallation().getRootDirectory());
-      pnlBuildInfo.add(
-              UIFactory.makeJTextComponent(
-                      serverLocationDescriptorRO, installLocation), gbc);
+      pnlBuildInfo.add(tcServerLocation, gbc);
 
       gbc.gridx = 0;
       gbc.gridy = 1;
@@ -185,16 +228,14 @@ public class WelcomePanel extends QuickSetupStepPanel {
       gbc.gridy = 1;
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
       gbc.fill = GridBagConstraints.HORIZONTAL;
-      pnlBuildInfo.add(UIFactory.makeJTextComponent(
-              serverBuildDescriptorRO,
-              org.opends.server.util.DynamicConstants.BUILD_ID), gbc);
+      pnlBuildInfo.add(tcCurrentServerBuildNumber, gbc);
 
       gbc.gridy = 2;
       gbc.weighty = 1.0;
       gbc.weightx = 1.0;
       gbc.fill = GridBagConstraints.BOTH;
       gbc.anchor = GridBagConstraints.LINE_START;
-      JPanel fill = new JPanel();
+      JPanel fill = UIFactory.makeJPanel();
       //fill.setBorder(BorderFactory.createLineBorder(Color.BLUE));
       pnlBuildInfo.add(fill, gbc);
     }
