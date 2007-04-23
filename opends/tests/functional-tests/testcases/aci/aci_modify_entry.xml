@@ -3537,6 +3537,46 @@
               </sequence>
             </testcase>
 
+            <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Modify Entry Tests
+              #@TestName                  Postamble
+              #@TestIssue                 444
+              #@TestPurpose               Remove entries
+              #@TestPreamble              none
+              #@TestStep                  Directory Manager removes entries that were used for testing.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Modify: Postamble'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+                <message>
+                   'ACI: Modify: Postamble - delete branch, o=Modify Tests'
+                </message>
+    
+                <call function="'DeleteEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'o=Modify Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'extraParams'      : '-x'}
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+
           <call function="'testSuite_Postamble'"/>
             
         </sequence>
