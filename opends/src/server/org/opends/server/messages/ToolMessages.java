@@ -6929,6 +6929,13 @@ public class ToolMessages
     CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 873;
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * filename argument.  It does not take any arguments.
+   */
+  public static final int MSGID_LDAPMODIFY_DESCRIPTION_FILENAME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 874;
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7655,6 +7662,8 @@ public class ToolMessages
                     "control:  %s.");
     registerMessage(MSGID_LDAPMODIFY_POSTREAD_ENTRY,
                     "Target entry after the operation:");
+    registerMessage(MSGID_LDAPMODIFY_DESCRIPTION_FILENAME,
+                    "Specifies the LDIF file containing the changes to apply.");
 
 
 

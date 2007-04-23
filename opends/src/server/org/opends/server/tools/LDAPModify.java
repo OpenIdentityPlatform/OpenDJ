@@ -683,7 +683,7 @@ public class LDAPModify
       filename = new StringArgument("filename", OPTION_SHORT_FILENAME,
                                     OPTION_LONG_FILENAME, false, false,
                                     true, OPTION_VALUE_FILENAME, null, null,
-                                    MSGID_DELETE_DESCRIPTION_FILENAME);
+                                    MSGID_LDAPMODIFY_DESCRIPTION_FILENAME);
       argParser.addArgument(filename);
 
       saslExternal = new BooleanArgument("useSASLExternal", 'r',
