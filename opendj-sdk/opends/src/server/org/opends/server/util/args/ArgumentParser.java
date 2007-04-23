@@ -1025,6 +1025,11 @@ public class ArgumentParser
       {
         int currentLength = buffer.length();
 
+        if (usageArgument.getName().equals(a.getName()))
+        {
+          buffer.append("-?, ");
+        }
+
         buffer.append("-");
         buffer.append(shortID.charValue());
 
@@ -1065,6 +1070,10 @@ public class ArgumentParser
       {
         if (longID != null)
         {
+          if (usageArgument.getName().equals(a.getName()))
+          {
+            buffer.append("-?, ");
+          }
           buffer.append("--");
           buffer.append(longID);
 
@@ -1132,6 +1141,12 @@ public class ArgumentParser
           buffer.append(EOL);
         }
       }
+    }
+    if (usageArgument == null)
+    {
+      buffer.append(EOL);
+      buffer.append("-?");
+      buffer.append(EOL);
     }
   }
 

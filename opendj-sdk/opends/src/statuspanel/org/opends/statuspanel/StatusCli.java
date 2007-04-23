@@ -30,6 +30,7 @@ package org.opends.statuspanel;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -132,7 +133,8 @@ class StatusCli
     for (int i=0; i<args.length; i++)
     {
       if (args[i].equalsIgnoreCase("-H") ||
-          args[i].equalsIgnoreCase("--help"))
+          args[i].equalsIgnoreCase("--help") ||
+          args[i].equalsIgnoreCase("-?"))
       {
         printUsage = true;
       }
@@ -224,14 +226,14 @@ class StatusCli
 
     if (printUsage)
     {
-      printUsage();
+      printUsage(System.out);
     }
     else if (errors.size() > 0)
     {
       System.err.println(Utils.getStringFromCollection(errors,
           LINE_SEPARATOR+LINE_SEPARATOR));
-      System.out.println();
-      printUsage();
+      System.err.println();
+      printUsage(System.err);
       returnValue = USER_DATA_ERROR;
     }
     else
@@ -334,7 +336,7 @@ class StatusCli
     return ResourceProvider.getInstance();
   }
 
-  private void printUsage()
+  private void printUsage(PrintStream stream)
   {
     String arg;
     if (Utils.isWindows())
@@ -350,7 +352,7 @@ class StatusCli
      */
     String msg = getMsg("status-cli-usage", true);
     msg = msg.replace("{0}", arg);
-    System.err.println(msg);
+    stream.println(msg);
   }
 
   private ServerStatusDescriptor createServerStatusDescriptor(String dn,
