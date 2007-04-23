@@ -231,14 +231,6 @@ public class StressTest extends SynchronizationTestCase
     // Multimaster Synchro plugin
     synchroPluginStringDN = "cn=Multimaster Synchronization, "
         + synchroStringDN;
-    String synchroPluginLdif = "dn: "
-        + synchroPluginStringDN
-        + "\n"
-        + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-provider\n"
-        + "ds-cfg-synchronization-provider-enabled: true\n"
-        + "ds-cfg-synchronization-provider-class: org.opends.server.synchronization.MultimasterSynchronization\n";
-    synchroPluginEntry = TestCaseUtils.entryFromLdifString(synchroPluginLdif);
 
     // Change log
     changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
@@ -250,7 +242,7 @@ public class StressTest extends SynchronizationTestCase
     changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
 
     // suffix synchronized
-    synchroServerStringDN = "cn=example, " + synchroPluginStringDN;
+    synchroServerStringDN = "cn=example, cn=domains, " + synchroPluginStringDN;
     String synchroServerLdif = "dn: " + synchroServerStringDN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-synchronization-provider-config\n"

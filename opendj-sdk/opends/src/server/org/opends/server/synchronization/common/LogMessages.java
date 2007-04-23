@@ -48,18 +48,6 @@ public class LogMessages {
        CATEGORY_MASK_SYNC | SEVERITY_MASK_MILD_ERROR | 1;
 
   /**
-   * Need at least one Changelog Server.
-   */
-  public static final int MSGID_NEED_CHANGELOG_SERVER =
-    CATEGORY_MASK_SYNC | SEVERITY_MASK_MILD_ERROR | 2;
-
-  /**
-   * Need to have a server ID.
-   */
-  public static final int MSGID_NEED_SERVER_ID =
-    CATEGORY_MASK_SYNC | SEVERITY_MASK_MILD_ERROR | 3;
-
-  /**
    * Invalid Changelog Server.
    */
   public static final int MSGID_INVALID_CHANGELOG_SERVER =
@@ -380,11 +368,7 @@ public class LogMessages {
   public static void registerMessages()
   {
     MessageHandler.registerMessage(MSGID_SYNC_INVALID_DN,
-       "The Synchronization configuration DN is invalid");
-    MessageHandler.registerMessage(MSGID_NEED_CHANGELOG_SERVER,
-        "At least one changelog server must be declared");
-    MessageHandler.registerMessage(MSGID_NEED_SERVER_ID,
-        "The Server Id must be defined");
+       "The configured DN is already used by another domain.");
     MessageHandler.registerMessage(MSGID_INVALID_CHANGELOG_SERVER,
         "Invalid changelog server configuration");
     MessageHandler.registerMessage(MSGID_UNKNOWN_HOSTNAME,

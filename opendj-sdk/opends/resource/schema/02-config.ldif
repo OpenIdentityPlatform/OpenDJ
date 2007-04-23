@@ -1634,6 +1634,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.93
   MUST ( ds-task-initialize-domain-dn $ ds-task-initialize-replica-server-id )
   MAY ( ds-task-processed-entry-count $ ds-task-unprocessed-entry-count )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.94
+  NAME 'ds-cfg-multimaster-synchronization-provider'
+  SUP ds-cfg-synchronization-provider STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.95
   NAME 'ds-cfg-dictionary-password-validator' SUP ds-cfg-password-validator
   STRUCTURAL MUST ( ds-cfg-dictionary-file $ ds-cfg-case-sensitive-validation $

@@ -26,11 +26,7 @@
  */
 package org.opends.server.synchronization;
 
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_COMPLETION_TIME;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_INITIALIZE_DONE;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_INITIALIZE_LEFT;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_LOG_MESSAGES;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
@@ -40,49 +36,35 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.messages.TaskMessages;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.synchronization.changelog.Changelog;
+import org.opends.server.synchronization.changelog.ChangelogFakeConfiguration;
 import org.opends.server.synchronization.common.LogMessages;
-import org.opends.server.synchronization.common.ServerState;
 import org.opends.server.synchronization.plugin.ChangelogBroker;
 import org.opends.server.synchronization.plugin.SynchronizationDomain;
-import org.opends.server.synchronization.protocol.ChangelogStartMessage;
 import org.opends.server.synchronization.protocol.DoneMessage;
 import org.opends.server.synchronization.protocol.EntryMessage;
 import org.opends.server.synchronization.protocol.ErrorMessage;
 import org.opends.server.synchronization.protocol.InitializeRequestMessage;
 import org.opends.server.synchronization.protocol.InitializeTargetMessage;
 import org.opends.server.synchronization.protocol.RoutableMessage;
-import org.opends.server.synchronization.protocol.ServerStartMessage;
 import org.opends.server.synchronization.protocol.SocketSession;
 import org.opends.server.synchronization.protocol.SynchronizationMessage;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
@@ -193,14 +175,6 @@ public class InitOnLineTest extends SynchronizationTestCase
     // Synchro multi-master
     synchroPluginStringDN = "cn=Multimaster Synchronization, "
       + synchroStringDN;
-    String synchroPluginLdif = "dn: "
-      + synchroPluginStringDN
-      + "\n"
-      + "objectClass: top\n"
-      + "objectClass: ds-cfg-synchronization-provider\n"
-      + "ds-cfg-synchronization-provider-enabled: true\n"
-      + "ds-cfg-synchronization-provider-class: org.opends.server.synchronization.MultimasterSynchronization\n";
-    synchroPluginEntry = TestCaseUtils.entryFromLdifString(synchroPluginLdif);
 
     // Synchro suffix
     synchroServerEntry = null;
@@ -762,26 +736,10 @@ public class InitOnLineTest extends SynchronizationTestCase
       {
         int chPort = getChangelogPort(changelogId);
         
-        // Create a changelog server
-        String changelogLdif = "dn: cn=Changelog Server\n"
-          + "objectClass: top\n"
-          + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-          + "cn: Changelog Server\n"
-          + "ds-cfg-changelog-port: " + chPort + "\n"
-          + "ds-cfg-changelog-server-id: " + changelogId + "\n"
-//        + "ds-cfg-heartbeat-interval: 0 ms\n"
-          + "ds-cfg-window-size: 100" + "\n";
-        
-        if (changelogId==changelog2ID)
-        {
-          changelogLdif += new String(
-              "ds-cfg-changelog-server: localhost:"
-              + getChangelogPort(changelog1ID)+"\n");
-        }
-        Entry tmp = TestCaseUtils.entryFromLdifString(changelogLdif);
-        ConfigEntry changelogConfig = new ConfigEntry(tmp, null);
-        Changelog changelog = new Changelog(changelogConfig);
-        
+        ChangelogFakeConfiguration conf =
+          new ChangelogFakeConfiguration(chPort, null, 0, changelogId, 0, 100,
+                                         null); 
+        Changelog changelog = new Changelog(conf);
         Thread.sleep(1000);
 
         return changelog;
@@ -806,7 +764,8 @@ public class InitOnLineTest extends SynchronizationTestCase
     {
       // suffix synchronized
       String synchroServerStringDN = synchroPluginStringDN;
-      String synchroServerLdif = "dn: cn=example," + synchroServerStringDN + "\n"
+      String synchroServerLdif =
+        "dn: cn=example, cn=domains" + synchroServerStringDN + "\n"
       + "objectClass: top\n"
       + "objectClass: ds-cfg-synchronization-provider-config\n"
       + "cn: example\n"
@@ -1483,6 +1442,6 @@ public class InitOnLineTest extends SynchronizationTestCase
       // fromthe changelog server.
       server2 = null;
     }
-    super.cleanEntries();
+    super.cleanRealEntries();
   }
 }

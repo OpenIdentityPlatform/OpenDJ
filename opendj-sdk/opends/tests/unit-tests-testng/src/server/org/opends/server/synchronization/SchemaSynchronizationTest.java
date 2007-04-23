@@ -38,6 +38,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -98,14 +99,6 @@ public class SchemaSynchronizationTest extends SynchronizationTestCase
     // Multimaster Synchro plugin
     synchroPluginStringDN = "cn=Multimaster Synchronization, "
         + synchroStringDN;
-    String synchroPluginLdif = "dn: "
-        + synchroPluginStringDN
-        + "\n"
-        + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-provider\n"
-        + "ds-cfg-synchronization-provider-enabled: true\n"
-        + "ds-cfg-synchronization-provider-class: org.opends.server.synchronization.MultimasterSynchronization\n";
-    synchroPluginEntry = TestCaseUtils.entryFromLdifString(synchroPluginLdif);
 
     // Change log
     String changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
@@ -118,7 +111,8 @@ public class SchemaSynchronizationTest extends SynchronizationTestCase
     changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
 
     // suffix synchronized
-    String synchroServerLdif = "dn: cn=example, " + synchroPluginStringDN + "\n"
+    String synchroServerLdif =
+      "dn: cn=example, cn=domains, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-synchronization-provider-config\n"
         + "cn: example\n"
@@ -276,7 +270,7 @@ public class SchemaSynchronizationTest extends SynchronizationTestCase
     Modification mod = new Modification(ModificationType.ADD, attr);
     mods.add(mod);
 
-    for (SynchronizationProvider provider :
+    for (SynchronizationProvider<SynchronizationProviderCfg> provider :
          DirectoryServer.getSynchronizationProviders())
     {
       provider.processSchemaChange(mods);

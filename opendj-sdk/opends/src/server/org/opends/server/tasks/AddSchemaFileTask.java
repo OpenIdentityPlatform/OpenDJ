@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;
@@ -298,7 +299,7 @@ public class AddSchemaFileTask
 
       if (! mods.isEmpty())
       {
-        for (SynchronizationProvider provider :
+        for (SynchronizationProvider<SynchronizationProviderCfg> provider :
              DirectoryServer.getSynchronizationProviders())
         {
           try

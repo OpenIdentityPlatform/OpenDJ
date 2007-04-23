@@ -30,13 +30,11 @@ import java.io.File;
 import java.net.ServerSocket;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.synchronization.SynchronizationTestCase;
 import org.opends.server.synchronization.common.ChangeNumber;
 import org.opends.server.synchronization.common.ChangeNumberGenerator;
 import org.opends.server.synchronization.protocol.DeleteMsg;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
@@ -56,17 +54,10 @@ public class dbHandlerTest extends SynchronizationTestCase
     socket.close();
 
     // configure a Changelog server.
-    String changelogLdif =
-      "dn: cn=Changelog Server\n"
-        + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-        + "cn: Changelog Server\n"
-        + "ds-cfg-changelog-port: "+ changelogPort + "\n"
-        + "ds-cfg-changelog-server-id: 2\n"
-        + "ds-cfg-changelog-purge-delay: 0 d";
-    Entry tmp = TestCaseUtils.entryFromLdifString(changelogLdif);
-    ConfigEntry changelogConfig = new ConfigEntry(tmp, null);
-    Changelog changelog = new Changelog(changelogConfig);
+    ChangelogFakeConfiguration conf =
+      new ChangelogFakeConfiguration(changelogPort, null, 0,
+                                     2, 0, 100, null); 
+    Changelog changelog = new Changelog(conf);
 
     // create or clean a directory for the dbHandler
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);

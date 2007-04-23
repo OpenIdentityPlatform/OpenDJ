@@ -26,42 +26,41 @@
  */
 package org.opends.server.synchronization.plugin;
 
+import static org.opends.server.synchronization.common.LogMessages.HISTORICAL;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.std.server.MultimasterDomainCfg;
+import org.opends.server.admin.std.server.MultimasterSynchronizationProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackupTaskListener;
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
-import org.opends.server.synchronization.changelog.Changelog;
-import org.opends.server.synchronization.common.LogMessages;
-import org.opends.server.types.DN;
 import org.opends.server.core.DeleteOperation;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Entry;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.Operation;
+import org.opends.server.synchronization.common.LogMessages;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SynchronizationProviderResult;
-
-import static org.opends.server.synchronization.common.LogMessages.*;
 
 /**
  * This class is used to load the Synchronization code inside the JVM
@@ -71,19 +70,19 @@ import static org.opends.server.synchronization.common.LogMessages.*;
  * synchronization code running during the operation process
  * as pre-op, conflictRsolution, and post-op.
  */
-public class MultimasterSynchronization extends SynchronizationProvider
-       implements ConfigAddListener, ConfigDeleteListener, ConfigChangeListener,
-       BackupTaskListener, RestoreTaskListener, ImportTaskListener,
-       ExportTaskListener
-
+public class MultimasterSynchronization
+       extends SynchronizationProvider<MultimasterSynchronizationProviderCfg>
+       implements ConfigurationAddListener<MultimasterDomainCfg>,
+                  ConfigurationDeleteListener<MultimasterDomainCfg>,
+                  BackupTaskListener, RestoreTaskListener, ImportTaskListener,
+                  ExportTaskListener
 {
   static String CHANGELOG_DN = "cn=Changelog Server," +
     "cn=Multimaster Synchronization, cn=Synchronization Providers, cn=config";
   static String SYNCHRONIZATION_CLASS =
     "ds-cfg-synchronization-provider-config";
 
-  private DN changelogConfigEntryDn = null;
-  private Changelog changelog = null;
+  private ChangelogListener changelog = null;
   private static Map<DN, SynchronizationDomain> domains =
     new HashMap<DN, SynchronizationDomain>() ;
 
@@ -91,46 +90,25 @@ public class MultimasterSynchronization extends SynchronizationProvider
   /**
    * {@inheritDoc}
    */
-  public void initializeSynchronizationProvider(ConfigEntry configEntry)
+  @Override
+  public void initializeSynchronizationProvider(
+      MultimasterSynchronizationProviderCfg configuration)
   throws ConfigException
   {
     LogMessages.registerMessages();
 
-    configEntry.registerAddListener(this);
-    configEntry.registerDeleteListener(this);
+    changelog = new ChangelogListener(configuration);
 
-    /*
-     * Read changelog server the changelog configuration entry
-     */
-    try
-    {
-      changelogConfigEntryDn = DN.decode(CHANGELOG_DN);
-      ConfigEntry config =
-        DirectoryServer.getConfigEntry(changelogConfigEntryDn);
-      /*
-       * If there is no such entry, this process must not be a changelog server
-       */
-      if (config != null)
-      {
-        changelog = new Changelog(config);
-      }
-    } catch (DirectoryException e)
-    {
-      /* never happens */
-      throw new ConfigException(MSGID_SYNC_INVALID_DN,
-      "Invalid Changelog configuration DN");
-    }
+    // Register as an add and delete listener with the root configuration so we
+    // can be notified if Multimaster domain entries are added or removed.
+    configuration.addMultimasterDomainAddListener(this);
+    configuration.addMultimasterDomainDeleteListener(this);
 
-    /*
-     * Parse the list of entries below configEntry,
-     * create one synchronization domain for each child
-     */
-    for (ConfigEntry domainEntry : configEntry.getChildren().values())
+    //  Create the list of domains that are already defined.
+    for (String name : configuration.listMultimasterDomains())
     {
-      if (domainEntry.hasObjectClass(SYNCHRONIZATION_CLASS))
-      {
-        createNewSynchronizationDomain(domainEntry);
-      }
+      MultimasterDomainCfg domain = configuration.getMultimasterDomain(name);
+      createNewSynchronizationDomain(domain);
     }
 
     /*
@@ -151,124 +129,46 @@ public class MultimasterSynchronization extends SynchronizationProvider
   }
 
   /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * modification is acceptable to this change listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested update.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed change is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
-  public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
+  public boolean isConfigurationAddAcceptable(
+      MultimasterDomainCfg configuration, List<String> unacceptableReasons)
   {
-    return false; // TODO :NYI
-  }
-
-  /**
-   * Attempts to apply a new configuration to this Directory Server component
-   * based on the provided changed entry.
-   *
-   * @param  configEntry  The configuration entry that containing the updated
-   *                      configuration for this component.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
-  {
-    // TODO implement this method
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return SynchronizationDomain.isConfigurationAcceptable(
+      configuration, unacceptableReasons);
   }
 
   /**
    * {@inheritDoc}
    */
-  public boolean configAddIsAcceptable(ConfigEntry configEntry,
-      StringBuilder unacceptableReason)
+  public ConfigChangeResult applyConfigurationAdd(
+     MultimasterDomainCfg configuration)
   {
-    // Check if the added entry is the changelog config entry
     try
     {
-      if (configEntry.getDN().equals(DN.decode(CHANGELOG_DN)))
-      {
-        return Changelog.checkConfigEntry(configEntry, unacceptableReason);
-      }
-    } catch (DirectoryException e)
+      createNewSynchronizationDomain(configuration);
+      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    } catch (ConfigException e)
     {
-      /* never happens */
-       unacceptableReason.append("Invalid Changelog configuration DN");
-       return false;
+      // we should never get to this point because the configEntry has
+      // already been validated in configAddisAcceptable
+      return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false);
     }
-
-    // otherwise it must be a Synchronization domain, check for
-    // presence of the Synchronization configuration object class
-    if (configEntry.hasObjectClass(SYNCHRONIZATION_CLASS))
-    {
-      return SynchronizationDomain.checkConfigEntry(configEntry,
-          unacceptableReason);
-    }
-
-    return false;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
-  {
-    // check if the entry is the changelog configuration entry
-    if (configEntry.getDN().equals(changelogConfigEntryDn))
-    {
-      try
-      {
-        changelog = new Changelog(configEntry);
-        return new ConfigChangeResult(ResultCode.SUCCESS, false);
-      } catch (ConfigException e)
-      {
-        // we should never get to this point because the configEntry has
-        // already been validated in configAddisAcceptable
-        return new ConfigChangeResult(ResultCode.SUCCESS, false);
-      }
-    }
-
-    // otherwise it must be a synchronization domain, check for
-    // presence of the Synchronization configuration object class
-    if (configEntry.hasObjectClass(SYNCHRONIZATION_CLASS))
-    {
-      try
-      {
-        createNewSynchronizationDomain(configEntry);
-        return new ConfigChangeResult(ResultCode.SUCCESS, false);
-      } catch (ConfigException e)
-      {
-        // we should never get to this point because the configEntry has
-        // already been validated in configAddisAcceptable
-        return new ConfigChangeResult(ResultCode.SUCCESS, false);
-      }
-    }
-
-    // we should never get to this point because the configEntry has
-    // already been validated in configAddisAcceptable
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
   /**
    * Creates a New Synchronization domain from its configEntry, do the
    * necessary initialization and starts it so that it is
    * fully operational when this method returns.
-   * @param configEntry The entry whith the configuration of this domain.
+   * @param configuration The entry whith the configuration of this domain.
    * @throws ConfigException When the configuration is not valid.
    */
-  private void createNewSynchronizationDomain(ConfigEntry configEntry)
-          throws ConfigException
+  private void createNewSynchronizationDomain(
+      MultimasterDomainCfg configuration)
+      throws ConfigException
   {
     SynchronizationDomain domain;
-    domain = new SynchronizationDomain(configEntry);
+    domain = new SynchronizationDomain(configuration);
     domains.put(domain.getBaseDN(), domain);
     domain.start();
   }
@@ -276,25 +176,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
   /**
    * {@inheritDoc}
    */
-  public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-      StringBuilder unacceptableReason)
-  {
-    // TODO Auto-generated method stub
-    return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
-  {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  @Override
   public void doPostOperation(AddOperation addOperation)
   {
     DN dn = addOperation.getEntryDN();
@@ -305,6 +187,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public void doPostOperation(DeleteOperation deleteOperation)
   {
     DN dn = deleteOperation.getEntryDN();
@@ -314,6 +197,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public void doPostOperation(ModifyDNOperation modifyDNOperation)
   {
     DN dn = modifyDNOperation.getEntryDN();
@@ -536,6 +420,7 @@ public class MultimasterSynchronization extends SynchronizationProvider
    *                                      applied to the schema.
    *
    */
+  @Override
   public void processSchemaChange(List<Modification> modifications)
   {
     SynchronizationDomain domain =
@@ -650,6 +535,29 @@ public class MultimasterSynchronization extends SynchronizationProvider
       if (domain != null)
         domain.backupEnd();
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationDelete(
+      MultimasterDomainCfg configuration)
+  {
+    DN dn = configuration.getSynchronizationDN();
+    SynchronizationDomain domain = domains.remove(dn);
+    if (domain != null)
+      domain.shutdown();
+
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationDeleteAcceptable(
+      MultimasterDomainCfg configuration, List<String> unacceptableReasons)
+  {
+    return true;
   }
 }
 

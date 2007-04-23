@@ -38,7 +38,6 @@ import static org.testng.Assert.*;
 
 import static org.opends.server.synchronization.protocol.OperationContext.*;
 
-import org.opends.server.TestAccessLogger;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;

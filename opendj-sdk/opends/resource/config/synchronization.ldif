@@ -13,16 +13,22 @@
 dn: cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-synchronization-provider
+objectClass: ds-cfg-multimaster-synchronization-provider
 ds-cfg-synchronization-provider-enabled: true
 ds-cfg-synchronization-provider-class: org.opends.server.synchronization.plugin.MultimasterSynchronization
 
-dn: cn=example, cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
+dn: cn=domains, cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: domains
+
+dn: cn=example, cn=domains, cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-synchronization-provider-config
 cn: example
 ds-cfg-synchronization-dn: dc=example,dc=com
-ds-cfg-changelog-server: host1:8989
-ds-cfg-changelog-server: host2:8989
+ds-cfg-changelog-server: localhost:8989
+ds-cfg-changelog-server: localhost:8990
 ds-cfg-directory-server-id: 1
 ds-cfg-receive-status: true
 
@@ -31,7 +37,7 @@ objectClass: top
 objectClass: ds-cfg-synchronization-changelog-server-config
 cn: Changelog Server
 ds-cfg-changelog-port: 8989
-ds-cfg-changelog-server: host1:8989
-ds-cfg-changelog-server: host2:8989
+ds-cfg-changelog-server: localhost:8989
+ds-cfg-changelog-server: localhost:8990
 ds-cfg-changelog-server-id: 1
 

@@ -28,33 +28,31 @@ package org.opends.server.core;
 
 
 
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
-import org.opends.server.config.StringConfigAttribute;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.SynchronizationProviderCfgDefn;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.server.SynchronizationProviderCfg;
+import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.config.ConfigException;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ResultCode;
 
 
 
@@ -66,17 +64,20 @@ import static org.opends.server.util.StaticUtils.*;
  * to them while the server is running.
  */
 public class SynchronizationProviderConfigManager
-       implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
+       implements ConfigurationChangeListener<SynchronizationProviderCfg>,
+       ConfigurationAddListener<SynchronizationProviderCfg>,
+       ConfigurationDeleteListener<SynchronizationProviderCfg>
 {
 
 
 
   // The mapping between configuration entry DNs and their corresponding
   // synchronization provider implementations.
-  private ConcurrentHashMap<DN,SynchronizationProvider> registeredProviders;
+  private ConcurrentHashMap<DN,
+    SynchronizationProvider<SynchronizationProviderCfg>> registeredProviders =
+      new ConcurrentHashMap<DN,
+        SynchronizationProvider<SynchronizationProviderCfg>>();
 
-  // The DN of the associated configuration entry.
-  private DN configEntryDN;
 
 
 
@@ -107,609 +108,201 @@ public class SynchronizationProviderConfigManager
   public void initializeSynchronizationProviders()
          throws ConfigException, InitializationException
   {
-    registeredProviders = new ConcurrentHashMap<DN,SynchronizationProvider>();
+    // Create an internal server management context and retrieve
+    // the root configuration which has the synchronization provider relation.
+    ServerManagementContext context = ServerManagementContext.getInstance();
+    RootCfg root = context.getRootConfiguration();
 
+    // Register as an add and delete listener so that we can
+    // be notified when new synchronization providers are added or existing
+    // sycnhronization providers are removed.
+    root.addSynchronizationProviderAddListener(this);
+    root.addSynchronizationProviderDeleteListener(this);
 
-    // Get the configuration entry that is the parent for all synchronization
-    // providers in the server.
-    ConfigEntry providerRoot;
-    try
+    // Initialize existing synchronization providers.
+    for (String name : root.listSynchronizationProviders())
     {
-      configEntryDN = DN.decode(DN_SYNCHRONIZATION_PROVIDER_BASE);
-      providerRoot  = DirectoryServer.getConfigEntry(configEntryDN);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      // Get the synchronization provider's configuration.
+      // This will automatically decode and validate its properties.
+      SynchronizationProviderCfg config = root.getSynchronizationProvider(name);
+
+      // Register as a change listener for this synchronization provider
+      // entry so that we can be notified when it is disabled or enabled.
+      config.addChangeListener(this);
+
+      // Ignore this synchronization provider if it is disabled.
+      if (config.isEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        // Perform initialization, load the synchronization provider's
+        // implementation class and initialize it.
+        SynchronizationProvider<SynchronizationProviderCfg> provider =
+          getSynchronizationProvider(config);
+
+        // Register the synchronization provider with the Directory Server.
+        DirectoryServer.registerSynchronizationProvider(provider);
+
+        // Put this synchronization provider in the hash map so that we will be
+        // able to find it if it is deleted or disabled.
+        registeredProviders.put(config.dn(), provider);
       }
-
-      int    msgID   = MSGID_CONFIG_SYNCH_CANNOT_GET_CONFIG_BASE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
-    }
-
-
-    // If the configuration root entry is null, then assume it doesn't exist.
-    // In that case, then fail.  At least that entry must exist in the
-    // configuration, even if there are no synchronization providers defined
-    // below it.
-    if (providerRoot == null)
-    {
-      int    msgID   = MSGID_CONFIG_SYNCH_BASE_DOES_NOT_EXIST;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
-    }
-
-
-    // Register as an add and delete listener for the base entry so that we can
-    // be notified if new providers are added or existing providers are removed.
-    providerRoot.registerAddListener(this);
-    providerRoot.registerDeleteListener(this);
-
-
-    // Iterate through the set of immediate children below the provider root
-    // entry and register those providers.
-    for (ConfigEntry providerEntry : providerRoot.getChildren().values())
-    {
-      DN providerDN = providerEntry.getDN();
-
-
-      // Register as a change listener for this provider entry so that we will
-      // be notified of any changes that may be made to it.
-      providerEntry.registerChangeListener(this);
-
-
-      // Check to see if this entry appears to contain a synchronization
-      // provider configuration.  If not, then fail.
-      try
-      {
-        SearchFilter providerFilter =
-          SearchFilter.createFilterFromString("(objectClass=" +
-                                              OC_SYNCHRONIZATION_PROVIDER +
-                                              ")");
-
-        if (! providerFilter.matchesEntry(providerEntry.getEntry()))
-        {
-          int msgID = MSGID_CONFIG_SYNCH_ENTRY_DOES_NOT_HAVE_PROVIDER_CONFIG;
-          String message = getMessage(msgID, String.valueOf(providerDN));
-          throw new ConfigException(msgID, message);
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int    msgID   = MSGID_CONFIG_SYNCH_CANNOT_CHECK_FOR_PROVIDER_CONFIG_OC;
-        String message = getMessage(msgID, String.valueOf(providerDN),
-                                    stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message, e);
-      }
-
-
-      // See if the entry contains an attribute that indicates whether the
-      // synchronization provider should be enabled.  If it does not, then fail.
-      // If it is present but set to false, then log a warning and skip it.
-      int msgID = MSGID_CONFIG_SYNCH_DESCRIPTION_PROVIDER_ENABLED;
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_SYNCHRONIZATION_PROVIDER_ENABLED,
-                                      getMessage(msgID), true);
-      try
-      {
-        BooleanConfigAttribute enabledAttr =
-             (BooleanConfigAttribute)
-             providerEntry.getConfigAttribute(enabledStub);
-        if (enabledAttr == null)
-        {
-          msgID = MSGID_CONFIG_SYNCH_PROVIDER_NO_ENABLED_ATTR;
-          String message = getMessage(msgID, String.valueOf(providerDN));
-          throw new ConfigException(msgID, message);
-        }
-        else if (! enabledAttr.activeValue())
-        {
-          msgID = MSGID_CONFIG_SYNCH_PROVIDER_DISABLED;
-          String message = getMessage(msgID, String.valueOf(providerDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          continue;
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_ENABLED_STATE;
-        String message = getMessage(msgID, String.valueOf(providerDN),
-                                    stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message, e);
-      }
-
-
-      // See if the entry contains an attribute that specifies the class name
-      // for the synchronization provider implementation.  If there  is no such
-      // attribute, then fail.
-      String providerClassName;
-      msgID = MSGID_CONFIG_SYNCH_DESCRIPTION_PROVIDER_CLASS;
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_SYNCHRONIZATION_PROVIDER_CLASS,
-                                     getMessage(msgID), true, false, true);
-      try
-      {
-        StringConfigAttribute classAttr =
-             (StringConfigAttribute)
-             providerEntry.getConfigAttribute(classStub);
-        if (classAttr == null)
-        {
-          msgID = MSGID_CONFIG_SYNCH_NO_CLASS_ATTR;
-          String message = getMessage(msgID, String.valueOf(providerDN));
-          throw new ConfigException(msgID, message);
-        }
-        else
-        {
-          providerClassName = classAttr.activeValue();
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_CLASS;
-        String message = getMessage(msgID, String.valueOf(providerDN),
-                                    stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message, e);
-      }
-
-
-      // Load the specified provider class.  If an error occurs, then fail.
-      Class providerClass;
-      try
-      {
-        providerClass = DirectoryServer.loadClass(providerClassName);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS;
-        String message = getMessage(msgID, String.valueOf(providerClassName),
-                                    String.valueOf(providerDN),
-                                    stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message, e);
-      }
-
-
-      // Make sure that the specified class is a valid synchronization provider.
-      // If not, then fail.
-      SynchronizationProvider provider;
-      try
-      {
-        provider = (SynchronizationProvider) providerClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER;
-        String message = getMessage(msgID, String.valueOf(providerClassName),
-                                    String.valueOf(providerDN),
-                                    stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message, e);
-      }
-
-
-      // Perform the necessary initialization for the synchronization provider.
-      // If a problem occurs, then fail.
-      try
-      {
-        provider.initializeSynchronizationProvider(providerEntry);
-      }
-      catch (ConfigException ce)
-      {
-        msgID = MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER;
-        String message = getMessage(msgID, String.valueOf(providerDN),
-                                    ce.getMessage());
-        throw new ConfigException(msgID, message, ce);
-      }
-      catch (InitializationException ie)
-      {
-        msgID = MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER;
-        String message = getMessage(msgID, String.valueOf(providerDN),
-                                    ie.getMessage());
-        throw new InitializationException(msgID, message, ie);
-      }
-      catch (Exception e)
-      {
-        msgID = MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER;
-        String message = getMessage(msgID, String.valueOf(providerDN),
-                                    stackTraceToSingleLineString(e));
-        throw new ConfigException(msgID, message, e);
-      }
-
-
-      // Register the synchronization provider with the Directory Server.
-      DirectoryServer.registerSynchronizationProvider(provider);
-
-
-      // Put this provider in the hash so that we will be able to find it if it
-      // is altered.
-      registeredProviders.put(providerDN, provider);
     }
   }
 
 
 
   /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * modification is acceptable to this change listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested update.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed change is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
-  public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
+  public ConfigChangeResult applyConfigurationChange(
+      SynchronizationProviderCfg configuration)
   {
-    DN providerDN = configEntry.getDN();
-    SynchronizationProvider provider = registeredProviders.get(providerDN);
-
-
-    // Check to see if this entry appears to contain a backend configuration.
-    // If not, then reject it.
-    try
-    {
-      SearchFilter providerFilter =
-           SearchFilter.createFilterFromString("(objectClass=" +
-                                               OC_SYNCHRONIZATION_PROVIDER +
-                                               ")");
-      if (! providerFilter.matchesEntry(configEntry.getEntry()))
-      {
-        int msgID = MSGID_CONFIG_SYNCH_ENTRY_DOES_NOT_HAVE_PROVIDER_CONFIG;
-        unacceptableReason.append(getMessage(msgID,
-                                             String.valueOf(providerDN)));
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_SYNCH_CANNOT_CHECK_FOR_PROVIDER_CONFIG_OC;
-      unacceptableReason.append(getMessage(msgID, String.valueOf(providerDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // See if the entry contains an attribute that indicates whether the
-    // provider should be enabled.  If it does not, then reject it.
-    int msgID = MSGID_CONFIG_SYNCH_DESCRIPTION_PROVIDER_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_SYNCHRONIZATION_PROVIDER_ENABLED,
-                                    getMessage(msgID), true);
-    try
-    {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute) configEntry.getConfigAttribute(enabledStub);
-      if (enabledAttr == null)
-      {
-        msgID = MSGID_CONFIG_SYNCH_PROVIDER_NO_ENABLED_ATTR;
-        unacceptableReason.append(getMessage(msgID,
-                                             String.valueOf(providerDN)));
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      unacceptableReason.append(getMessage(msgID,
-                                           String.valueOf(providerDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // See if the entry contains an attribute that specifies the provider class.
-    // If it does not, then fail.
-    String className;
-    msgID = MSGID_CONFIG_SYNCH_DESCRIPTION_PROVIDER_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_SYNCHRONIZATION_PROVIDER_CLASS,
-                                   getMessage(msgID), true, false, true);
-    try
-    {
-      StringConfigAttribute classAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        msgID = MSGID_CONFIG_SYNCH_NO_CLASS_ATTR;
-        unacceptableReason.append(getMessage(msgID,
-                                             String.valueOf(providerDN)));
-        return false;
-      }
-      else
-      {
-        className = classAttr.pendingValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_CLASS;
-      unacceptableReason.append(getMessage(msgID,
-                                           String.valueOf(providerDN),
-                                           stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-
-    // If the provider is currently disabled, or if the class is different from
-    // the one used by the running provider, then make sure that it is
-    // acceptable.
-    if ((provider == null) ||
-        (! className.equals(provider.getClass().getName())))
-    {
-      Class providerClass;
-      try
-      {
-        providerClass = DirectoryServer.loadClass(className);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(className),
-                                             String.valueOf(providerDN),
-                                             stackTraceToSingleLineString(e)));
-        return false;
-      }
-
-      try
-      {
-        SynchronizationProvider newProvider =
-             (SynchronizationProvider) providerClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER;
-        unacceptableReason.append(getMessage(msgID, String.valueOf(className),
-                                             String.valueOf(providerDN),
-                                             stackTraceToSingleLineString(e)));
-        return false;
-      }
-    }
-
-
-    // If we've gotten to this point, then it is acceptable as far as we are
-    // concerned.  If it is unacceptable according to the configuration for that
-    // synchronization provider, then the provider itself will need to make that
-    // determination.
-    return true;
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration to this Directory Server component
-   * based on the provided changed entry.
-   *
-   * @param  configEntry  The configuration entry that containing the updated
-   *                      configuration for this component.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
-  {
-    DN providerDN = configEntry.getDN();
-    SynchronizationProvider provider = registeredProviders.get(providerDN);
+    // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
     ArrayList<String> messages = new ArrayList<String>();
 
+    // Attempt to get the existing synchronization provider. This will only
+    // succeed if it is currently enabled.
+    DN dn = configuration.dn();
+    SynchronizationProvider<SynchronizationProviderCfg> provider =
+      registeredProviders.get(dn);
 
-    // Check to see if this entry appears to contain a synchronization provider
-    // configuration.  If not, then fail.
-    try
+    // See whether the synchronization provider should be enabled.
+    if (provider == null)
     {
-      SearchFilter providerFilter =
-           SearchFilter.createFilterFromString("(objectClass=" +
-                                               OC_SYNCHRONIZATION_PROVIDER +
-                                               ")");
-      if (! providerFilter.matchesEntry(configEntry.getEntry()))
+      if (configuration.isEnabled())
       {
-        int msgID = MSGID_CONFIG_SYNCH_ENTRY_DOES_NOT_HAVE_PROVIDER_CONFIG;
-        messages.add(getMessage(msgID, String.valueOf(providerDN)));
-
-        if (resultCode == ResultCode.SUCCESS)
+        // The synchronization provider needs to be enabled. Load, initialize,
+        // and register the synchronization provider as per the add listener
+        // method.
+        try
         {
-          resultCode = ResultCode.CONSTRAINT_VIOLATION;
+          // Perform initialization, load the synchronization provider's
+          // implementation class and initialize it.
+          provider = getSynchronizationProvider(configuration);
+
+          // Register the synchronization provider with the Directory Server.
+          DirectoryServer.registerSynchronizationProvider(provider);
+
+          // Put this synchronization provider in the hash map so that we will
+          // be able to find it if it is deleted or disabled.
+          registeredProviders.put(configuration.dn(), provider);
+        }
+        catch (ConfigException e)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, e);
+            messages.add(e.getMessage());
+            resultCode = DirectoryServer.getServerErrorResultCode();
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            debugCaught(DebugLogLevel.ERROR, e);
+          }
+          int msgID = MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER;
+          messages.add(getMessage(msgID, String.valueOf(
+                             configuration.getJavaImplementationClass()),
+                             String.valueOf(configuration.dn()),
+                             stackTraceToSingleLineString(e)));
+          resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
     }
-    catch (Exception e)
+    else
     {
-      if (debugEnabled())
+      if (configuration.isEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_SYNCH_CANNOT_CHECK_FOR_PROVIDER_CONFIG_OC;
-      messages.add(getMessage(msgID, String.valueOf(providerDN),
-                              stackTraceToSingleLineString(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-    }
-
-
-    // See if the entry contains an attribute that indicates whether the
-    // provider should be enabled.  If it does not, then reject it.
-    boolean shouldEnable = false;
-    int msgID = MSGID_CONFIG_SYNCH_DESCRIPTION_PROVIDER_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_SYNCHRONIZATION_PROVIDER_ENABLED,
-                                    getMessage(msgID), true);
-    try
-    {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute) configEntry.getConfigAttribute(enabledStub);
-      if (enabledAttr == null)
-      {
-        msgID = MSGID_CONFIG_SYNCH_PROVIDER_NO_ENABLED_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(providerDN)));
-
-        if (resultCode == ResultCode.SUCCESS)
+        // The synchronization provider is currently active, so we don't
+        // need to do anything. Changes to the class name cannot be
+        // applied dynamically, so if the class name did change then
+        // indicate that administrative action is required for that
+        // change to take effect.
+        String className = configuration.getJavaImplementationClass();
+        if (!className.equals(provider.getClass().getName()))
         {
-          resultCode = ResultCode.CONSTRAINT_VIOLATION;
-        }
-      }
-      else
-      {
-        shouldEnable = enabledAttr.pendingValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_ENABLED_STATE;
-      messages.add(getMessage(msgID, String.valueOf(providerDN),
-                              stackTraceToSingleLineString(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-    }
-
-
-    // See if the entry contains an attribute that specifies the provider class.
-    // If it does not, then reject it.
-    String className = null;
-    msgID = MSGID_CONFIG_SYNCH_DESCRIPTION_PROVIDER_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_SYNCHRONIZATION_PROVIDER_CLASS,
-                                   getMessage(msgID), true, false, true);
-    try
-    {
-      StringConfigAttribute classAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        msgID = MSGID_CONFIG_SYNCH_NO_CLASS_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(providerDN)));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.CONSTRAINT_VIOLATION;
+          adminActionRequired = true;
         }
       }
       else
       {
-        className = classAttr.pendingValue();
+        // The connection handler is being disabled so remove it from
+        // the DirectorySerevr list, shut it down and  remove it from the
+        // hash map.
+        DirectoryServer.deregisterSynchronizationProvider(provider);
+        provider.finalizeSynchronizationProvider();
+        registeredProviders.remove(dn);
       }
     }
-    catch (Exception e)
+    // Return the configuration result.
+    return new ConfigChangeResult(resultCode, adminActionRequired,
+        messages);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      SynchronizationProviderCfg configuration,
+      List<String> unacceptableReasons)
+  {
+    if (configuration.isEnabled())
     {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_CLASS;
-      messages.add(getMessage(msgID, String.valueOf(providerDN),
-                              stackTraceToSingleLineString(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
+      // It's enabled so always validate the class.
+      return isJavaClassAcceptable(configuration, unacceptableReasons);
+    } else
+    {
+      // It's disabled so ignore it.
+      return true;
     }
+  }
 
 
-    // If the provider is currently disabled, or if the class is different from
-    // the one used by the running provider, then make sure that it is
-    // acceptable.
-    SynchronizationProvider newProvider = null;
-    if ((resultCode == ResultCode.SUCCESS) &&
-        ((provider == null) ||
-         (! provider.getClass().getName().equals(className))))
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationAdd(
+    SynchronizationProviderCfg configuration)
+  {
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    // Register as a change listener for this synchronization provider entry
+    // so that we will be notified if when it is disabled or enabled.
+    configuration.addChangeListener(this);
+
+    // Ignore this synchronization provider if it is disabled.
+    if (configuration.isEnabled())
     {
-      Class providerClass = null;
       try
       {
-        providerClass = DirectoryServer.loadClass(className);
+        // Perform initialization, load the synchronization provider's
+        // implementation class and initialize it.
+        SynchronizationProvider<SynchronizationProviderCfg> provider =
+          getSynchronizationProvider(configuration);
+
+        // Register the synchronization provider with the Directory Server.
+        DirectoryServer.registerSynchronizationProvider(provider);
+
+        // Put this synchronization provider in the hash map so that we will be
+        // able to find it if it is deleted or disabled.
+        registeredProviders.put(configuration.dn(), provider);
       }
-      catch (Exception e)
+      catch (ConfigException e)
       {
         if (debugEnabled())
         {
           debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS;
-        messages.add(getMessage(msgID, String.valueOf(className),
-                                String.valueOf(providerDN),
-                                stackTraceToSingleLineString(e)));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
+          messages.add(e.getMessage());
           resultCode = DirectoryServer.getServerErrorResultCode();
-        }
-      }
-
-      try
-      {
-        if (providerClass != null)
-        {
-          newProvider = (SynchronizationProvider) providerClass.newInstance();
         }
       }
       catch (Exception e)
@@ -718,154 +311,204 @@ public class SynchronizationProviderConfigManager
         {
           debugCaught(DebugLogLevel.ERROR, e);
         }
-
-        msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER;
-        messages.add(getMessage(msgID, String.valueOf(className),
-                                String.valueOf(providerDN),
-                                stackTraceToSingleLineString(e)));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-        }
+        int msgID = MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER;
+        messages.add(getMessage(msgID, String.valueOf(
+                           configuration.getJavaImplementationClass()),
+                           String.valueOf(configuration.dn()),
+                           stackTraceToSingleLineString(e)));
+        resultCode = DirectoryServer.getServerErrorResultCode();
       }
     }
 
+    // Return the configuration result.
+    return new ConfigChangeResult(resultCode, adminActionRequired,
+        messages);
+  }
 
-    // If everything looks OK, then process the configuration change.
-    if (resultCode == ResultCode.SUCCESS)
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationAddAcceptable(
+      SynchronizationProviderCfg configuration,
+      List<String> unacceptableReasons)
+  {
+    if (configuration.isEnabled())
     {
-      // If the provider is currently disabled but should be enabled, then do
-      // so now.
-      if (provider == null)
-      {
-        if (shouldEnable && (newProvider != null))
-        {
-          try
-          {
-            newProvider.initializeSynchronizationProvider(configEntry);
-            registeredProviders.put(configEntryDN, newProvider);
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            msgID = MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER;
-            messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                    stackTraceToSingleLineString(e)));
-
-            if (resultCode == ResultCode.SUCCESS)
-            {
-              resultCode = DirectoryServer.getServerErrorResultCode();
-            }
-          }
-        }
-      }
+      // It's enabled so always validate the class.
+      return isJavaClassAcceptable(configuration, unacceptableReasons);
+    } else
+    {
+      // It's disabled so ignore it.
+      return true;
+    }
+  }
 
 
-      // Otherwise, see if the enabled flag or class name changed and indicate
-      // that it will require a restart to take effect.
-      else
-      {
-        if (! shouldEnable)
-        {
-          msgID = MSGID_CONFIG_SYNCH_PROVIDER_HAS_BEEN_DISABLED;
-          messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-          adminActionRequired = true;
-        }
 
-        if (! provider.getClass().getName().equals(className))
-        {
-          msgID = MSGID_CONFIG_SYNCH_PROVIDER_CLASS_CHANGED;
-          messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                  String.valueOf(provider.getClass().getName()),
-                                  String.valueOf(className)));
-          adminActionRequired = true;
-        }
-      }
+  /**
+   * Check if the class provided in the configuration is an acceptable
+   * java class for a synchronization provider.
+   *
+   * @param configuration       The configuration for which the class must be
+   *                            checked.
+   * @param unacceptableReasons A list containing the reasons why the class is
+   *                            not acceptable.
+   *
+   * @return                    true if the class is acceptable or false if not.
+   */
+  @SuppressWarnings("unchecked")
+  private SynchronizationProvider<SynchronizationProviderCfg>
+    getSynchronizationProvider(SynchronizationProviderCfg configuration)
+    throws ConfigException
+  {
+    String className = configuration.getJavaImplementationClass();
+    SynchronizationProviderCfgDefn d =
+      SynchronizationProviderCfgDefn.getInstance();
+    ClassPropertyDefinition pd =
+      d.getJavaImplementationClassPropertyDefinition();
+
+    // Load the class
+    Class<? extends SynchronizationProvider> theClass;
+    SynchronizationProvider<SynchronizationProviderCfg> provider;
+    try
+    {
+       theClass = pd.loadClass(className, SynchronizationProvider.class);
+    } catch (Exception e)
+    {
+       // Handle the exception: put a message in the unacceptable reasons.
+       int msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS;
+       String message = getMessage(msgID, String.valueOf(className),
+                                   String.valueOf(configuration.dn()),
+                                   stackTraceToSingleLineString(e));
+       throw new ConfigException(msgID, message, e);
+    }
+    try
+    {
+      // Instantiate the class.
+      provider = theClass.newInstance();
+    } catch (Exception e)
+    {
+      // Handle the exception: put a message in the unacceptable reasons.
+      int msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER;
+      String message = getMessage(msgID, String.valueOf(className),
+                                  String.valueOf(configuration.dn()),
+                                  stackTraceToSingleLineString(e));
+      throw new ConfigException(msgID, message, e);
+    }
+    try
+    {
+      // Initialize the Synchronization Provider.
+      provider.initializeSynchronizationProvider(configuration);
+    } catch (Exception e)
+    {
+      // Handle the exception: put a message in the unacceptable reasons.
+      int msgID = MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER;
+      String message = getMessage(msgID, String.valueOf(className),
+                                  String.valueOf(configuration.dn()),
+                                  stackTraceToSingleLineString(e));
+      throw new ConfigException(msgID, message, e);
+    }
+    return provider;
+  }
+
+  /**
+   * Check if the class provided in the configuration is an acceptable
+   * java class for a synchronization provider.
+   *
+   * @param configuration       The configuration for which the class must be
+   *                            checked.
+   * @param unacceptableReasons A list containing the reasons why the class is
+   *                            not acceptable.
+   *
+   * @return                    true if the class is acceptable or false if not.
+   */
+  private boolean isJavaClassAcceptable(
+      SynchronizationProviderCfg configuration,
+      List<String> unacceptableReasons)
+  {
+    String className = configuration.getJavaImplementationClass();
+    SynchronizationProviderCfgDefn d =
+      SynchronizationProviderCfgDefn.getInstance();
+    ClassPropertyDefinition pd =
+      d.getJavaImplementationClassPropertyDefinition();
+
+    // Load the class and cast it to a synchronizationProvider.
+    Class<? extends SynchronizationProvider> theClass;
+    try
+    {
+       theClass = pd.loadClass(className, SynchronizationProvider.class);
+       theClass.newInstance();
+    } catch (Exception e)
+    {
+       // Handle the exception: put a message in the unacceptable reasons.
+       int msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS;
+       String message = getMessage(msgID, String.valueOf(className),
+                                   String.valueOf(configuration.dn()),
+                                   stackTraceToSingleLineString(e));
+       unacceptableReasons.add(message);
+       return false;
+    }
+    // Check that the implementation class implements the correct interface.
+    try
+    {
+      // Determine the initialization method to use: it must take a
+      // single parameter which is the exact type of the configuration
+      // object.
+      theClass.getMethod("initializeSynchronizationProvider",
+                     configuration.definition().getServerConfigurationClass());
+    } catch (Exception e)
+    {
+      // Handle the exception: put a message in the unacceptable reasons.
+      int msgID = MSGID_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER;
+      String message = getMessage(msgID, String.valueOf(className),
+                                  String.valueOf(configuration.dn()),
+                                  stackTraceToSingleLineString(e));
+      unacceptableReasons.add(message);
+      return false;
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-
-
-  /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * add is acceptable to this add listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested add.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed entry is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
-   */
-  public boolean configAddIsAcceptable(ConfigEntry configEntry,
-                                       StringBuilder unacceptableReason)
-  {
-    // NYI
+    // The class is valid as far as we can tell.
     return true;
   }
 
-
-
   /**
-   * Attempts to apply a new configuration based on the provided added entry.
-   *
-   * @param  configEntry  The new configuration entry that contains the
-   *                      configuration to apply.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
+  public ConfigChangeResult applyConfigurationDelete(
+      SynchronizationProviderCfg configuration)
   {
-    // NYI
-    return null;
+    //  Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+
+    // See if the entry is registered as a synchronization provider. If so,
+    // deregister and stop it.
+    DN dn = configuration.dn();
+    SynchronizationProvider provider = registeredProviders.get(dn);
+    if (provider != null)
+    {
+      DirectoryServer.deregisterSynchronizationProvider(provider);
+      provider.finalizeSynchronizationProvider();
+    }
+    return new ConfigChangeResult(resultCode, adminActionRequired);
   }
 
 
 
   /**
-   * Indicates whether it is acceptable to remove the provided configuration
-   * entry.
-   *
-   * @param  configEntry         The configuration entry that will be removed
-   *                             from the configuration.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed delete is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry may be removed from the
-   *          configuration, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
-  public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
+  public boolean isConfigurationDeleteAcceptable(
+      SynchronizationProviderCfg configuration,
+      List<String> unacceptableReasons)
   {
-    // NYI
+    // A delete should always be acceptable, so just return true.
     return true;
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration based on the provided deleted entry.
-   *
-   * @param  configEntry  The new configuration entry that has been deleted.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
-  {
-    // NYI
-    return null;
   }
 }
+
+
+
 

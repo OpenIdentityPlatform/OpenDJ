@@ -133,14 +133,6 @@ public class UpdateOperationTest extends SynchronizationTestCase
     // Multimaster Synchro plugin
     synchroPluginStringDN = "cn=Multimaster Synchronization, "
         + synchroStringDN;
-    String synchroPluginLdif = "dn: "
-        + synchroPluginStringDN
-        + "\n"
-        + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-provider\n"
-        + "ds-cfg-synchronization-provider-enabled: true\n"
-        + "ds-cfg-synchronization-provider-class: org.opends.server.synchronization.MultimasterSynchronization\n";
-    synchroPluginEntry = TestCaseUtils.entryFromLdifString(synchroPluginLdif);
 
     // Change log
     String changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
@@ -152,7 +144,8 @@ public class UpdateOperationTest extends SynchronizationTestCase
     changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
 
     // suffix synchronized
-    String synchroServerStringDN = "cn=example, " + synchroPluginStringDN;
+    String synchroServerStringDN =
+      "cn=example, cn=domains, " + synchroPluginStringDN;
     String synchroServerLdif = "dn: " + synchroServerStringDN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-synchronization-provider-config\n"
@@ -318,7 +311,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
         ErrorLogSeverity.NOTICE,
         "Starting synchronization test : lostHeartbeatFailover" , 1);
 
-    cleanEntries();
+    cleanRealEntries();
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
@@ -831,7 +824,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
-    cleanEntries();
+    cleanRealEntries();
 
     ChangelogBroker broker =
       openChangelogSession(baseDn, (short) 27, 100, 8989, 1000, true);
@@ -886,7 +879,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
       "The received synchronization message is not a MODIFY msg");
       ModifyMsg modMsg = (ModifyMsg) msg;
 
-      Operation receivedOp = modMsg.createOperation(connection);
+      modMsg.createOperation(connection);
       assertTrue(DN.decode(modMsg.getDn()).compareTo(personEntry.getDN()) == 0,
       "The received MODIFY synchronization message is not for the excepted DN");
 
@@ -908,7 +901,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
       assertTrue(msg instanceof ModifyDNMsg,
       "The received synchronization message is not a MODIFY DN msg");
       ModifyDNMsg moddnMsg = (ModifyDNMsg) msg;
-      receivedOp = moddnMsg.createOperation(connection);
+      moddnMsg.createOperation(connection);
 
       assertTrue(DN.decode(moddnMsg.getDn()).compareTo(personEntry.getDN()) == 0,
       "The received MODIFY_DN message is not for the excepted DN");
@@ -927,7 +920,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
       assertTrue(msg instanceof DeleteMsg,
       "The received synchronization message is not a MODIFY DN msg");
       DeleteMsg delMsg = (DeleteMsg) msg;
-      receivedOp = delMsg.createOperation(connection);
+      delMsg.createOperation(connection);
       assertTrue(DN.decode(delMsg.getDn()).compareTo(DN
           .decode("uid= new person,ou=People,dc=example,dc=com")) == 0,
       "The received DELETE message is not for the excepted DN");
