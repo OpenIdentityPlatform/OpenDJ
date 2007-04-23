@@ -51,9 +51,18 @@ public class StatusPanelLauncher
     {
       printUsage = true;
     }
+    for (int i=0; i<args.length; i++)
+    {
+      if (args[i].equalsIgnoreCase("-H") ||
+          args[i].equalsIgnoreCase("--help") ||
+          args[i].equalsIgnoreCase("-?"))
+      {
+        printUsage = true;
+      }
+    }
     if (printUsage)
     {
-      printUsage();
+      printUsage(System.out);
       System.exit(1);
 
     } else
@@ -116,7 +125,7 @@ public class StatusPanelLauncher
     return returnValue[0];
   }
 
-  private static void printUsage()
+  private static void printUsage(PrintStream stream)
   {
     String arg;
     if (Utils.isWindows())
@@ -132,7 +141,7 @@ public class StatusPanelLauncher
      */
     String msg = getMsg("status-panel-launcher-usage");
     msg = msg.replace("{0}", arg);
-    System.err.println(msg);
+    stream.println(msg);
   }
 
   /**
