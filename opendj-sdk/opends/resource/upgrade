@@ -165,8 +165,9 @@ then
   else
     # URL FOR TESTING ONLY
     # JAVAWS_VM_ARGS="-Dorg.opends.quicksetup.upgrader.Root=$INSTANCE_ROOT -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
-    JAVAWS_VM_ARGS="-Xclearcache -Dorg.opends.quicksetup.upgrader.Root=$INSTANCE_ROOT"
+    JAVAWS_VM_ARGS="-Dorg.opends.quicksetup.upgrader.Root=$INSTANCE_ROOT"
     export JAVAWS_VM_ARGS
-    "${JAVAWS_BIN}" "http://localhost:8080/install/QuickUpgrade.jnlp"    
+    "${JAVAWS_BIN}" "http://localhost:8080/install/QuickUpgrade.jnlp"
+    echo "Started Java Web Start upgrade"
   fi
 fi

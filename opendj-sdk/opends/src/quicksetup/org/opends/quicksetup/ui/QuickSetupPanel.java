@@ -110,7 +110,7 @@ abstract class QuickSetupPanel extends JPanel
    * @return the value associated to the key in the properties file.
    * properties file.
    */
-  protected String getMsg(String key)
+  public String getMsg(String key)
   {
     return getI18n().getMsg(key);
   }
@@ -130,7 +130,7 @@ abstract class QuickSetupPanel extends JPanel
    * @param args the arguments to be passed to generate the resulting value.
    * @return the value associated to the key in the properties file.
    */
-  protected String getMsg(String key, String[] args)
+  public String getMsg(String key, String[] args)
   {
     return getI18n().getMsg(key, args);
   }
@@ -139,7 +139,7 @@ abstract class QuickSetupPanel extends JPanel
    * Returns a ResourceProvider instance.
    * @return a ResourceProvider instance.
    */
-  private ResourceProvider getI18n()
+  public ResourceProvider getI18n()
   {
     return ResourceProvider.getInstance();
   }

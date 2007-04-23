@@ -234,13 +234,12 @@ public class ZipExtractor {
     {
       entryName = entryName.substring(zipFirstPath.length());
     }
-    String path = Utils.getPath(new File(basePath, entryName));
-
+    File path = new File(basePath, entryName);
     String progressSummary =
             ResourceProvider.getInstance().getMsg("progress-extracting",
-                    new String[]{ path });
+                    new String[]{ Utils.getPath(path) });
     app.notifyListeners(ratioBeforeCompleted, progressSummary);
-    if (Utils.createParentPath(path))
+    if (Utils.insureParentsExist(path))
     {
       if (entry.isDirectory())
       {
@@ -250,7 +249,7 @@ public class ZipExtractor {
         {
           list = new ArrayList<String>();
         }
-        list.add(path);
+        list.add(Utils.getPath(path));
         permissions.put(perm, list);
 
         if (!Utils.createDirectory(path))
@@ -265,7 +264,8 @@ public class ZipExtractor {
         {
           list = new ArrayList<String>();
         }
-        list.add(path);
+        list.add(Utils.getPath(path));
+        permissions.put(perm, list);
         Utils.createFile(path, is);
       }
     } else
@@ -280,7 +280,7 @@ public class ZipExtractor {
    * @param path the directory for which we want the file permissions.
    * @return the file system permissions for the directory.
    */
-  private String getDirectoryFileSystemPermissions(String path)
+  private String getDirectoryFileSystemPermissions(File path)
   {
     // TODO We should get this dynamically during build?
     return "755";

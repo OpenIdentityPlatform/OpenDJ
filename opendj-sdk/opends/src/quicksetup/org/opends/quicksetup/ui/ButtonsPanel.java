@@ -29,6 +29,7 @@ package org.opends.quicksetup.ui;
 
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.WizardStep;
+import org.opends.quicksetup.upgrader.Upgrader;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.installer.Installer;
@@ -106,8 +107,13 @@ class ButtonsPanel extends QuickSetupPanel
   {
     GuiApplication application = getApplication();
     previousButton.setVisible(application.canGoBack(step));
-    nextButton.setVisible(application.canGoForward(step));
-    finishButton.setVisible(application.canFinish(step));
+    if (application.canFinish(step)) {
+      finishButton.setVisible(true);
+      nextButton.setVisible(false);
+    } else {
+      finishButton.setVisible(false);
+      nextButton.setVisible(application.canGoForward(step));
+    }
     quitButton.setVisible(application.canQuit(step));
     closeButton.setVisible(application.canClose(step));
     cancelButton.setVisible(application.canCancel(step));
@@ -224,7 +230,8 @@ class ButtonsPanel extends QuickSetupPanel
     nextFinishPanel.add(nextButton, gbcAux);
 
     // TODO: remove this hack
-    if (getApplication() instanceof Installer) {
+    if (getApplication() instanceof Installer ||
+            getApplication() instanceof Upgrader) {
       nextFinishPanel.add(finishButton, gbcAux);
     }
     width =

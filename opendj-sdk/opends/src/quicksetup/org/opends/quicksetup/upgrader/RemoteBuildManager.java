@@ -28,6 +28,8 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.Application;
+import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.DynamicConstants;
 
 import javax.swing.*;
 import java.net.URL;
@@ -123,9 +125,29 @@ public class RemoteBuildManager {
     while (m.find()) {
       buildIds.add(dailyBuildsPage.substring(m.start(), m.end()));
     }
-    for (String buildId : buildIds) {
-      buildList.add(new Build(url, buildId));
-    }
+
+//    for (String buildId : buildIds) {
+//      // TODO:  this needs to be changed
+//      URL buildUrl =
+//              new URL(url, "daily-builds/" +
+//                      buildId +
+//                      "/OpenDS/build/package/OpenDS-0.1.zip");
+//      buildList.add(new Build(url, buildId));
+//    }
+
+    // This is encoded in build.xml.  We might need a more dynamic
+    // way of getting this information.
+    StringBuilder latestContextSb = new StringBuilder()
+            .append("daily-builds/latest/OpenDS/build/package/OpenDS-")
+            .append(DynamicConstants.MAJOR_VERSION)
+            .append(".")
+            .append(DynamicConstants.MINOR_VERSION)
+            .append(DynamicConstants.VERSION_QUALIFIER)
+            .append(".zip");
+    Build latest = new Build(new URL(url, latestContextSb.toString()),
+                            "Latest");
+    buildList.add(latest);
+    Collections.sort(buildList);
     return buildList;
   }
 
@@ -188,6 +210,17 @@ public class RemoteBuildManager {
     }
     InputStream is = null;
     FileOutputStream fos = null;
+
+    // If the destination already exists blow it away, then
+    // create the new file.
+    if (destination.exists()) {
+      if (!destination.delete()) {
+        throw new IOException("Could not overwrite existing file " +
+                Utils.getPath(destination));
+      }
+    }
+    Utils.createFile(destination);
+
     try {
       is = conn.getInputStream();
       fos = new FileOutputStream(destination);

@@ -298,7 +298,7 @@ public class FileManager {
         }
 
         if (!destination.exists()) {
-          if (insureParentsExist(destination)) {
+          if (Utils.insureParentsExist(destination)) {
             application.notifyListeners(application.getFormattedWithPoints(
                     getMsg("progress-copying-file", args)));
 
@@ -466,15 +466,6 @@ public class FileManager {
                 "failed to move " + objectFile + " to " + destination, null);
       }
     }
-  }
-
-  private boolean insureParentsExist(File f) {
-    File parent = f.getParentFile();
-    boolean b = parent.exists();
-    if (!b) {
-      b = parent.mkdirs();
-    }
-    return b;
   }
 
   private String getMsg(String key) {
