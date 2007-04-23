@@ -357,14 +357,6 @@ public class SynchronizationDomain extends DirectoryThread
     configuration.addChangeListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    return configAttributes;
-  }
-
 
   /**
    * Returns the base DN of this SynchronizationDomain.
