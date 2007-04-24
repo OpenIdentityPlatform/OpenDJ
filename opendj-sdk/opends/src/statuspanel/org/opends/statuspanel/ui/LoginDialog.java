@@ -327,10 +327,9 @@ public class LoginDialog extends JDialog
       public Object processBackgroundTask() throws NamingException
       {
         Boolean isServerRunning = Boolean.TRUE;
+        InitialLdapContext ctx = null;
         try
         {
-          InitialLdapContext ctx = null;
-
           String ldapUrl = getLDAPURL();
 
           if (ldapUrl != null)
@@ -368,6 +367,16 @@ public class LoginDialog extends JDialog
         } catch (Throwable t)
         {
           throw new IllegalStateException("Unexpected throwable.", t);
+        }
+        if (ctx != null)
+        {
+          try
+          {
+            ctx.close();
+          }
+          catch (Throwable t)
+          {
+          }
         }
         return isServerRunning;
       }
