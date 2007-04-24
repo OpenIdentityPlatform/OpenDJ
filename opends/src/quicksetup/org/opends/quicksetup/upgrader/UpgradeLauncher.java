@@ -46,7 +46,7 @@ public class UpgradeLauncher extends Launcher {
    * will pass to the org.opends.server.tools.InstallDS class.
    */
   public static void main(String[] args) {
-    new UpgradeLauncher(args).launch();
+    System.exit(new UpgradeLauncher(args).launch());
   }
 
   /**
