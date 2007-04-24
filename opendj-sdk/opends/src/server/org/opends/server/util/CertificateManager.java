@@ -33,6 +33,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
+import java.io.OutputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
@@ -448,11 +449,9 @@ public class CertificateManager
       "-dname", subjectDN.toString(),
       "-keyalg", "rsa",
       "-keystore", keyStorePath,
-      "-keypass", keyStorePIN,
       "-storetype", keyStoreType,
-      "-storepass", keyStorePIN
     };
-    runKeyTool(commandElements, false);
+    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
 
     // Next, we need to run with the "-selfcert" command to self-sign the
     // certificate.
@@ -463,11 +462,9 @@ public class CertificateManager
       "-alias", alias,
       "-validity", String.valueOf(validity),
       "-keystore", keyStorePath,
-      "-keypass", keyStorePIN,
-      "-storetype", keyStoreType,
-      "-storepass", keyStorePIN
+      "-storetype", keyStoreType
     };
-    runKeyTool(commandElements, false);
+    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
   }
 
 
@@ -544,11 +541,9 @@ public class CertificateManager
       "-dname", subjectDN.toString(),
       "-keyalg", "rsa",
       "-keystore", keyStorePath,
-      "-keypass", keyStorePIN,
-      "-storetype", keyStoreType,
-      "-storepass", keyStorePIN
+      "-storetype", keyStoreType
     };
-    runKeyTool(commandElements, false);
+    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
 
     // Next, we need to run with the "-certreq" command to generate the
     // certificate signing request.
@@ -560,11 +555,9 @@ public class CertificateManager
       "-alias", alias,
       "-file", csrFile.getAbsolutePath(),
       "-keystore", keyStorePath,
-      "-keypass", keyStorePIN,
-      "-storetype", keyStoreType,
-      "-storepass", keyStorePIN
+      "-storetype", keyStoreType
     };
-    runKeyTool(commandElements, false);
+    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
 
     return csrFile;
   }
@@ -639,11 +632,9 @@ public class CertificateManager
       "-alias", alias,
       "-file", certificateFile.getAbsolutePath(),
       "-keystore", keyStorePath,
-      "-keypass", keyStorePIN,
-      "-storetype", keyStoreType,
-      "-storepass", keyStorePIN
+      "-storetype", keyStoreType
     };
-    runKeyTool(commandElements, true);
+    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
   }
 
 
@@ -704,11 +695,9 @@ public class CertificateManager
       "-delete",
       "-alias", alias,
       "-keystore", keyStorePath,
-      "-keypass", keyStorePIN,
-      "-storetype", keyStoreType,
-      "-storepass", keyStorePIN
+      "-storetype", keyStoreType
     };
-    runKeyTool(commandElements, false);
+    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
   }
 
 
@@ -719,6 +708,8 @@ public class CertificateManager
    * @param  commandElements   The command and arguments to execute.  The first
    *                           element of the array must be the command, and the
    *                           remaining elements must be the arguments.
+   * @param  keyStorePassword  The password of the key store.
+   * @param  storePassword     The password of the certificate.
    * @param  outputAcceptable  Indicates whether it is acceptable for the
    *                           command to generate output, as long as the exit
    *                           code is zero.  Some commands (like "keytool
@@ -732,9 +723,30 @@ public class CertificateManager
    *                             the expected exit code, or if any unexpected
    *                             output is generated while running the tool.
    */
-  private void runKeyTool(String[] commandElements, boolean outputAcceptable)
+  private void runKeyTool(String[] commandElements, String keyStorePassword,
+      String storePassword, boolean outputAcceptable)
           throws KeyStoreException
   {
+    String lineSeparator = System.getProperty("line.separator");
+    if (lineSeparator == null)
+    {
+      lineSeparator = "\n";
+    }
+    boolean keyStoreDefined;
+    File keyStoreFile = new File(keyStorePath);
+    keyStoreDefined = (keyStoreFile.exists() && (keyStoreFile.length() > 0)) ||
+      KEY_STORE_TYPE_PKCS11.equals(keyStoreType);
+
+    boolean isNewKeyStorePassword = !keyStoreDefined &&
+      ("-genkey".equalsIgnoreCase(commandElements[1]) ||
+      "-import".equalsIgnoreCase(commandElements[1]));
+
+    boolean isNewStorePassword =
+      "-genkey".equalsIgnoreCase(commandElements[1]);
+
+    boolean askForStorePassword =
+      !"-import".equalsIgnoreCase(commandElements[1]);
+
     try
     {
       ProcessBuilder processBuilder = new ProcessBuilder(commandElements);
@@ -744,6 +756,33 @@ public class CertificateManager
       byte[] buffer = new byte[1024];
       Process process = processBuilder.start();
       InputStream inputStream = process.getInputStream();
+      OutputStream out = process.getOutputStream();
+      out.write(keyStorePassword.getBytes()) ;
+      out.write(lineSeparator.getBytes()) ;
+      out.flush() ;
+      // With Java6 and above, keytool asks for the password twice.
+      if (!isJDK15() && isNewKeyStorePassword)
+      {
+         out.write(keyStorePassword.getBytes()) ;
+         out.write(lineSeparator.getBytes()) ;
+         out.flush() ;
+      }
+
+      if (askForStorePassword)
+      {
+        out.write(storePassword.getBytes()) ;
+        out.write(lineSeparator.getBytes()) ;
+        out.flush() ;
+
+        // With Java6 and above, keytool asks for the password twice!
+        if (!isJDK15() && isNewStorePassword)
+        {
+          out.write(storePassword.getBytes()) ;
+          out.write(lineSeparator.getBytes()) ;
+          out.flush() ;
+        }
+      }
+
       while (true)
       {
         int bytesRead = inputStream.read(buffer);
@@ -756,7 +795,6 @@ public class CertificateManager
           output.write(buffer, 0, bytesRead);
         }
       }
-
       process.waitFor();
       int exitValue = process.exitValue();
       byte[] outputBytes = output.toByteArray();
@@ -869,5 +907,26 @@ public class CertificateManager
       }
     }
   }
+
+  /**
+   * Returns whether we are running JDK 1.5 or not.
+   * @return <CODE>true</CODE> if we are running JDK 1.5 and <CODE>false</CODE>
+   * otherwise.
+   */
+  private boolean isJDK15()
+  {
+    boolean isJDK15 = false;
+    try
+    {
+      String javaRelease = System.getProperty ("java.version");
+      isJDK15 = javaRelease.startsWith("1.5");
+    }
+    catch (Throwable t)
+    {
+      System.err.println("Cannot get the java version: " + t);
+    }
+    return isJDK15;
+  }
 }
+
 
