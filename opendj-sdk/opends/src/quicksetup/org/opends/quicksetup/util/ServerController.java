@@ -242,12 +242,19 @@ public class ServerController {
     String[] args = new String[argList.size()];
     argList.toArray(args);
     ProcessBuilder pb = new ProcessBuilder(args);
+    pb.directory(installation.getBinariesDirectory());
     Map<String, String> env = pb.environment();
     env.put("JAVA_HOME", System.getProperty("java.home"));
     /* Remove JAVA_BIN to be sure that we use the JVM running the installer
      * JVM to start the server.
      */
     env.remove("JAVA_BIN");
+
+    // Upgrader's classpath contains jars located in the temporary
+    // directory that we don't want locked by the directory server
+    // when it starts.  Since we're just calling the start-ds script
+    // it will figure out the correct classpath for the server.
+    env.remove("CLASSPATH");
 
     try
     {

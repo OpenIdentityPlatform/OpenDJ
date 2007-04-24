@@ -49,7 +49,7 @@ public class InstallLauncher extends Launcher {
    * will pass to the org.opends.server.tools.InstallDS class.
    */
   public static void main(String[] args) {
-    new InstallLauncher(args).launch();
+    System.exit(new InstallLauncher(args).launch());
   }
 
   /**
