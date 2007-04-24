@@ -121,17 +121,39 @@ public enum SizeUnit {
 
 
   /**
-   * Parse the provided size string and return its equivalent size in bytes.
+   * Parse the provided size string and return its equivalent size in
+   * bytes. The size string must specify the unit e.g. "10kb".
    *
    * @param s
    *          The size string to be parsed.
-   * @return Returns the parsed size in bytes.
+   * @return Returns the parsed duration in bytes.
    * @throws NumberFormatException
    *           If the provided size string could not be parsed.
    */
   public static long parseValue(String s) throws NumberFormatException {
+    return parseValue(s, null);
+  }
+
+
+
+  /**
+   * Parse the provided size string and return its equivalent size in
+   * bytes.
+   *
+   * @param s
+   *          The size string to be parsed.
+   * @param defaultUnit
+   *          The default unit to use if there is no unit specified in
+   *          the size string, or <code>null</code> if the string
+   *          must always contain a unit.
+   * @return Returns the parsed size in bytes.
+   * @throws NumberFormatException
+   *           If the provided size string could not be parsed.
+   */
+  public static long parseValue(String s, SizeUnit defaultUnit)
+      throws NumberFormatException {
     // Value must be a floating point number followed by a unit.
-    Pattern p = Pattern.compile("^\\s*(\\d+(\\.\\d+)?)\\s*(\\w+)\\s*$");
+    Pattern p = Pattern.compile("^\\s*(\\d+(\\.\\d+)?)\\s*(\\w+)?\\s*$");
     Matcher m = p.matcher(s);
 
     if (!m.matches()) {
@@ -147,12 +169,23 @@ public enum SizeUnit {
     }
 
     // Group 3 is the unit.
-    try {
-      SizeUnit u = getUnit(m.group(3));
-      return u.toBytes(d);
-    } catch (IllegalArgumentException e) {
-      throw new NumberFormatException("Invalid size value \"" + s + "\"");
+    String unitString = m.group(3);
+    SizeUnit unit;
+    if (unitString == null) {
+      if (defaultUnit == null) {
+        throw new NumberFormatException("Invalid size value \"" + s + "\"");
+      } else {
+        unit = defaultUnit;
+      }
+    } else {
+      try {
+        unit = getUnit(unitString);
+      } catch (IllegalArgumentException e) {
+        throw new NumberFormatException("Invalid size value \"" + s + "\"");
+      }
     }
+
+    return unit.toBytes(d);
   }
 
   // The size of the unit in bytes.

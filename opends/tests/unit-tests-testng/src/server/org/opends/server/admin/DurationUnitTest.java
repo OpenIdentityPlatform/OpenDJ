@@ -82,12 +82,13 @@ public class DurationUnitTest {
     @DataProvider(name = "testGetBestFitUnit")
     public Object[][] createGetBestFitData() {
       return new Object[][]{
+              { SECONDS, 0, SECONDS },
               { MINUTES, 0, MINUTES },
+              { HOURS, 0, HOURS },
               { MINUTES, .5D, SECONDS },
               { MINUTES, 119D, MINUTES },
               { MINUTES, 120D, HOURS },
               { MINUTES, 121D, MINUTES },
-              { MINUTES, Double.MAX_VALUE, MINUTES },
               { MINUTES, Double.MIN_VALUE, MINUTES }
       };
     }

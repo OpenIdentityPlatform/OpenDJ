@@ -72,7 +72,7 @@ public class SizeUnitTest {
    * @return The array of illegal test DN strings.
    */
   @DataProvider(name = "parseValue1Data")
-  public Object[][] createParseValueData() {
+  public Object[][] createParseValue1Data() {
     return new Object[][]{
             {"1.0 b", 1L},
             {"1.0 kb", 1000L},
@@ -95,17 +95,17 @@ public class SizeUnitTest {
    * @param expectedValue for comparison
    */
   @Test(dataProvider = "parseValue1Data")
-  public void testParseValue1(String value, Long expectedValue) {
-    assert SizeUnit.parseValue(value) == expectedValue;
+  public void testParseValue1(String value, long expectedValue) {
+    assertEquals(SizeUnit.parseValue(value), expectedValue);
   }
 
   /**
    * Creates illegal data for testing String to SizeUnit conversions
    *
-   * @return The array of illegal test DN strings.
+   * @return The array of illegal test strings.
    */
   @DataProvider(name = "parseValue2Data")
-  public Object[][] createIllegalParseValueData() {
+  public Object[][] createParseValue2Data() {
     return new Object[][]{
             {"a.0 b"},
             {"1.a kb"},
@@ -130,6 +130,62 @@ public class SizeUnitTest {
   }
 
   /**
+   * Creates data for testing String to SizeUnit conversions
+   *
+   * @return The array of test strings.
+   */
+  @DataProvider(name = "parseValue3Data")
+  public Object[][] createParseValue3Data() {
+    return new Object[][]{
+            {"1.0 b", 1L},
+            {"1.0 kb", 1000L},
+            {"1.0 kib", 1024L},
+            {"1.0", 1000L},
+            {"1000", 1000000L},
+            {"1MB", 1000000L}
+    };
+  }
+
+  /**
+   * Tests parsing of SizeUnits specified as String values
+   * @param value to parse
+   * @param expectedValue for comparison
+   */
+  @Test(dataProvider = "parseValue3Data")
+  public void testParseValue3(String value, long expectedValue) {
+    assertEquals(SizeUnit.parseValue(value, SizeUnit.KILO_BYTES), expectedValue);
+  }
+
+  /**
+   * Creates illegal data for testing String to SizeUnit conversions
+   *
+   * @return The array of illegal test DN strings.
+   */
+  @DataProvider(name = "parseValue4Data")
+  public Object[][] createParseValue4Data() {
+    return new Object[][]{
+            {"a.0 b"},
+            {"1.a kb"},
+            {"1.0 xx"},
+            { "" },
+            { "hello" },
+            { "-1" },
+            { "-1b" },
+            { "1x" },
+            { "1.1y" }
+    };
+  }
+
+  /**
+   * Tests that illegal String specified SizeUnits throw exceptions
+   * @param value to parse
+   */
+  @Test(dataProvider = "parseValue4Data", expectedExceptions = NumberFormatException.class)
+  public void testParseValue4(String value) {
+    SizeUnit.parseValue(value, SizeUnit.KILO_BYTES);
+  }
+  
+  /**
    * Creates data for testing fromBytes
    *
    * @return data
@@ -150,7 +206,7 @@ public class SizeUnitTest {
    */
   @Test(dataProvider = "fromBytesTestData")
   public void testFromBytes(SizeUnit unit, long value, double expected) {
-    assert unit.fromBytes(value) == expected;
+    assertEquals(unit.fromBytes(value), expected);
   }
 
   /**
@@ -265,7 +321,7 @@ public class SizeUnitTest {
    */
   @Test(dataProvider = "sizeData")
   public void testGetSize(SizeUnit unit, long expectedSize) {
-    assert unit.getSize() == expectedSize;
+    assertEquals(unit.getSize(), expectedSize);
   }
 
   /**
@@ -287,7 +343,7 @@ public class SizeUnitTest {
    */
   @Test(dataProvider = "toBytesData")
   public void testToBytes(SizeUnit unit, double amt, long expected) {
-    assert unit.toBytes(amt) == expected;
+    assertEquals(unit.toBytes(amt), expected);
   }
 
   /**
