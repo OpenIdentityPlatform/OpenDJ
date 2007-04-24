@@ -41,10 +41,11 @@ import java.util.zip.DataFormatException;
 
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.synchronization.common.ChangeNumber;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawAttribute;
 
 import static org.opends.server.synchronization.protocol.OperationContext.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
@@ -188,7 +189,7 @@ public class AddMsg extends UpdateMessage
                                       String newDn)
                       throws LDAPException, ASN1Exception
   {
-    ArrayList<LDAPAttribute> attr = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attr = new ArrayList<RawAttribute>();
     ArrayList<ASN1Element> elems;
 
     elems = ASN1Element.decodeElements(encodedAttributes);

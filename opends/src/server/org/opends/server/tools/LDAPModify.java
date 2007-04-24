@@ -48,10 +48,8 @@ import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
@@ -59,10 +57,13 @@ import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.LDIFException;
@@ -278,8 +279,8 @@ public class LDAPModify
           operationType = "ADD";
           AddChangeRecordEntry addEntry = (AddChangeRecordEntry) entry;
           List<Attribute> attrs = addEntry.getAttributes();
-          ArrayList<LDAPAttribute> attributes =
-              new ArrayList<LDAPAttribute>(attrs.size());
+          ArrayList<RawAttribute> attributes =
+              new ArrayList<RawAttribute>(attrs.size());
           for(Attribute a : attrs)
           {
             attributes.add(new LDAPAttribute(a));
@@ -297,8 +298,8 @@ public class LDAPModify
         case MODIFY:
           operationType = "MODIFY";
           ModifyChangeRecordEntry modEntry = (ModifyChangeRecordEntry) entry;
-          ArrayList<LDAPModification> mods =
-            new ArrayList<LDAPModification>(modEntry.getModifications());
+          ArrayList<RawModification> mods =
+            new ArrayList<RawModification>(modEntry.getModifications());
           protocolOp = new ModifyRequestProtocolOp(asn1OctetStr, mods);
           msgID = MSGID_PROCESSING_OPERATION;
           out.println(getMessage(msgID, operationType, asn1OctetStr));

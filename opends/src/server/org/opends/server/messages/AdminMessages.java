@@ -212,81 +212,81 @@ public final class AdminMessages {
   public static void registerMessages() {
     registerMessage(MSGID_ADMIN_CANNOT_GET_LISTENER_BASE,
         "An error occurred while trying to "
-            + "retrieve relation configuration entry %s: %s.");
+            + "retrieve relation configuration entry %s: %s");
 
     registerMessage(MSGID_ADMIN_LISTENER_BASE_DOES_NOT_EXIST,
         "The relation entry %s does not appear to exist in the "
-            + "Directory Server configuration. This is a required entry.");
+            + "Directory Server configuration. This is a required entry");
 
     registerMessage(MSGID_ADMIN_CANNOT_GET_MANAGED_OBJECT,
         "An error occurred while trying to "
-            + "retrieve the managed object configuration entry %s: %s.");
+            + "retrieve the managed object configuration entry %s: %s");
 
     registerMessage(MSGID_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST,
         "The managed object configuration entry %s does not "
             + "appear to exist in the Directory Server "
-            + "configuration. This is a required entry.");
+            + "configuration. This is a required entry");
 
     registerMessage(MSGID_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM,
         "An error occurred while trying to "
-            + "decode the managed object configuration entry %s: %s.");
+            + "decode the managed object configuration entry %s: %s");
 
     registerMessage(MSGID_ADMIN_CANNOT_INSTANTIATE_CLASS,
         "The Directory Server was unable to load class %s and "
             + "use it to create a component instance as "
             + "defined in configuration entry %s.  The error that "
-            + "occurred was:  %s.  This component will be " + "disabled.");
+            + "occurred was:  %s.  This component will be " + "disabled");
 
     registerMessage(MSGID_ADMIN_CANNOT_INITIALIZE_COMPONENT,
         "An error occurred while trying to initialize a " +
         "component instance loaded from class %s with the " +
         "information in configuration entry %s:  %s.  This " +
-        "component will be disabled.");
+        "component will be disabled");
 
     registerMessage(MSGID_ADMIN_COMPONENT_DISABLED,
         "The Directory Server component configured in " +
-        "entry %s has been disabled.");
+        "entry %s has been disabled");
 
     registerMessage(MSGID_ADMIN_CANNOT_OPEN_JAR_FILE,
         "The Directory Server jar file %s in directory %s cannot be " +
         "loaded because an unexpected error occurred while " +
-        "trying to open the file for reading:  %s.");
+        "trying to open the file for reading:  %s");
 
     registerMessage(MSGID_ADMIN_NO_EXTENSIONS_DIR,
         "The extensions directory %s does not exist, therefore no " +
-        "extensions will be loaded.");
+        "extensions will be loaded");
 
     registerMessage(MSGID_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY,
         "Unable to read the Directory Server extensions " +
         "because the extensions directory %s exists but is not a " +
-        "directory.");
+        "directory");
 
     registerMessage(MSGID_ADMIN_EXTENSIONS_CANNOT_LIST_FILES,
         "Unable to read the Directory Server extensions " +
         "from directory %s because an unexpected error occurred " +
-        "while trying to list the files in that directory:  %s.");
+        "while trying to list the files in that directory:  %s");
 
     registerMessage(MSGID_ADMIN_CANNOT_LOAD_CLASS_FROM_CORE_MANIFEST,
         "A core configuration definition class could not be loaded " +
         "from the core manifest file %s because an unexpected error " +
-        "occurred while trying to initialize it:  %s.");
+        "occurred while trying to initialize it:  %s");
 
     registerMessage(MSGID_ADMIN_CANNOT_LOAD_CLASS_FROM_EXTENSION_MANIFEST,
         "A configuration definition class could not be loaded " +
         "from the extension manifest file %s in extensions %s because an " +
-        "unexpected error occurred while trying to initialize it:  %s.");
+        "unexpected error occurred while trying to initialize it:  %s");
 
     registerMessage(MSGID_ADMIN_CANNOT_FIND_CORE_MANIFEST,
-        "The core administration manifest file %s cannot be located.");
+        "The core administration manifest file %s cannot be located");
 
     registerMessage(MSGID_ADMIN_CANNOT_READ_CORE_MANIFEST,
         "The core administration manifest file %s cannot be " +
         "loaded because an unexpected error occurred while " +
-        "trying to read it:  %s.");
+        "trying to read it:  %s");
 
     registerMessage(MSGID_ADMIN_CANNOT_READ_EXTENSION_MANIFEST,
         "The administration manifest file %s associated with the " +
         "extension %s cannot be loaded because an unexpected error " +
-        "occurred while trying to read it:  %s.");
+        "occurred while trying to read it:  %s");
   }
 }

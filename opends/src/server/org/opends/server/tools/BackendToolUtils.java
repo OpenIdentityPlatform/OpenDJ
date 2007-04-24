@@ -37,35 +37,12 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.config.ConfigConstants.DN_BACKEND_BASE;
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_ID;
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_CLASS;
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_BASE_DN;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_CANNOT_DETERMINE_BACKEND_ID;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_CANNOT_DETERMINE_BACKEND_CLASS;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_CANNOT_LOAD_BACKEND_CLASS;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_CANNOT_INSTANTIATE_BACKEND_CLASS;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_NO_BASES_FOR_BACKEND;
-import static org.opends.server.messages.ToolMessages.
-    MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.ConfigMessages.
-    MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
-import static org.opends.server.messages.ConfigMessages.
-    MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS;
-import static org.opends.server.messages.ConfigMessages.
-    MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
-import static org.opends.server.loggers.Error.logError;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.ConfigMessages.*;
+import static org.opends.server.loggers.Error.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -111,7 +88,7 @@ public class BackendToolUtils
     {
       int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
       String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
       return 1;
@@ -134,7 +111,7 @@ public class BackendToolUtils
     {
       int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
       String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
       return 1;
@@ -178,7 +155,7 @@ public class BackendToolUtils
       {
         int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return 1;
@@ -218,7 +195,7 @@ public class BackendToolUtils
       {
         int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_CLASS;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return 1;
@@ -234,7 +211,7 @@ public class BackendToolUtils
         int    msgID   = MSGID_CANNOT_LOAD_BACKEND_CLASS;
         String message = getMessage(msgID, backendClassName,
                                     String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return 1;
@@ -251,7 +228,7 @@ public class BackendToolUtils
         int    msgID   = MSGID_CANNOT_INSTANTIATE_BACKEND_CLASS;
         String message = getMessage(msgID, backendClassName,
                                     String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return 1;
@@ -286,7 +263,7 @@ public class BackendToolUtils
       {
         int    msgID   = MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return 1;

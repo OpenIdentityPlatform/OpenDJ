@@ -26,8 +26,8 @@
  */
 package org.opends.server.synchronization.protocol;
 
-import org.opends.server.core.Operation;
 import org.opends.server.synchronization.common.ChangeNumber;
+import org.opends.server.types.Operation;
 
 /**
  * This class describe the Synchronization context that is attached

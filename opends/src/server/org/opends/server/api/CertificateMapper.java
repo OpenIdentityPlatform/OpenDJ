@@ -30,13 +30,11 @@ package org.opends.server.api;
 
 import java.security.cert.Certificate;
 
-import org.opends.server.admin.std.server.
-            CertificateMapperCfg;
+import org.opends.server.admin.std.server.CertificateMapperCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-
 
 
 

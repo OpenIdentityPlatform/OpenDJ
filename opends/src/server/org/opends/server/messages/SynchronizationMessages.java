@@ -24,16 +24,15 @@
  *
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
-package org.opends.server.synchronization.common;
+package org.opends.server.messages;
 
-import org.opends.server.messages.MessageHandler;
 import static org.opends.server.messages.MessageHandler.*;
 
 /**
  * This class defines the set of message IDs and default format strings for
  * messages associated with the Synchronization.
  */
-public class LogMessages {
+public class SynchronizationMessages {
 
   /**
    * Name used to store attachment of historical information in the
@@ -267,49 +266,49 @@ public class LogMessages {
    * Configuration.
    */
   public static final int MSGID_CHANGELOG_SERVER_ATTR =
-    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 37;
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_INFORMATIONAL | 37;
 
   /**
    * The message ID for the description of the attribute used to specify
    * the identifier of the Changelog Server.
    */
   public static final int MSGID_SERVER_ID_ATTR =
-    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 38;
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_INFORMATIONAL | 38;
 
   /**
    * The message id for the description of the attribute used to specify
    * the port number of the Changelog Server.
    */
   public static final int MSGID_CHANGELOG_PORT_ATTR =
-    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 39;
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_INFORMATIONAL | 39;
 
   /**
    * The message id for the description of the attribute used to specify
    * the receive Window Size used by a Changelog Server.
    */
   public static final int MSGID_WINDOW_SIZE_ATTR =
-    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 40;
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_INFORMATIONAL | 40;
 
   /**
    * The message id for thedescription of the  attribute used to specify
    * the maximum queue size used by a Changelog Server.
    */
   public static final int MSGID_QUEUE_SIZE_ATTR =
-    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 41;
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_INFORMATIONAL | 41;
 
   /**
    * The message id for the Attribute used to specify the directory where the
    * persistent storage of the Changelog server will be saved.
    */
   public static final int MSGID_CHANGELOG_DIR_PATH_ATTR =
-    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 42;
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_INFORMATIONAL | 42;
 
   /**
    * The message id for the description of the attribute used to configure
    * the purge delay of the Changelog Servers.
    */
   public static final int MSGID_PURGE_DELAY_ATTR =
-    CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 43;
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_INFORMATIONAL | 43;
 
   /**
    * The message id for the error raised when export/import
@@ -367,134 +366,134 @@ public class LogMessages {
    */
   public static void registerMessages()
   {
-    MessageHandler.registerMessage(MSGID_SYNC_INVALID_DN,
-       "The configured DN is already used by another domain.");
-    MessageHandler.registerMessage(MSGID_INVALID_CHANGELOG_SERVER,
+    registerMessage(MSGID_SYNC_INVALID_DN,
+       "The configured DN is already used by another domain");
+    registerMessage(MSGID_INVALID_CHANGELOG_SERVER,
         "Invalid changelog server configuration");
-    MessageHandler.registerMessage(MSGID_UNKNOWN_HOSTNAME,
-        "Changelog failed to start because the hostname is unknown.");
-    MessageHandler.registerMessage(MSGID_COULD_NOT_BIND_CHANGELOG,
+    registerMessage(MSGID_UNKNOWN_HOSTNAME,
+        "Changelog failed to start because the hostname is unknown");
+    registerMessage(MSGID_COULD_NOT_BIND_CHANGELOG,
         "Changelog failed to start :" +
         " could not bind to the changelog listen port : %d. Error : %s");
-    MessageHandler.registerMessage(MSGID_UNKNOWN_TYPE,
+    registerMessage(MSGID_UNKNOWN_TYPE,
         "Unknown operation type : %s");
-    MessageHandler.registerMessage(MSGID_ERROR_REPLAYING_OPERATION,
+    registerMessage(MSGID_ERROR_REPLAYING_OPERATION,
         "Error %s when replaying operation with changenumber %s %s : %s");
-    MessageHandler.registerMessage(MSGID_OPERATION_NOT_FOUND_IN_PENDING,
+    registerMessage(MSGID_OPERATION_NOT_FOUND_IN_PENDING,
         "Internal Error : Operation %s change number %s" +
         " was not found in pending list");
-    MessageHandler.registerMessage(MSGID_COULD_NOT_INITIALIZE_DB,
+    registerMessage(MSGID_COULD_NOT_INITIALIZE_DB,
         "Changelog failed to start " +
         "because the database %s could not be opened");
-    MessageHandler.registerMessage(MSGID_COULD_NOT_READ_DB,
+    registerMessage(MSGID_COULD_NOT_READ_DB,
         "Changelog failed to start " +
         "because the database %s could not be read");
-    MessageHandler.registerMessage(MSGID_EXCEPTION_REPLAYING_OPERATION,
+    registerMessage(MSGID_EXCEPTION_REPLAYING_OPERATION,
          "An Exception was caught while replaying operation %s : %s");
-    MessageHandler.registerMessage(MSGID_NEED_CHANGELOG_PORT,
+    registerMessage(MSGID_NEED_CHANGELOG_PORT,
          "The Changelog server port must be defined");
-    MessageHandler.registerMessage(MSGID_ERROR_UPDATING_RUV,
+    registerMessage(MSGID_ERROR_UPDATING_RUV,
          "Error %s when updating server state %s : %s base dn : %s");
-    MessageHandler.registerMessage(MSGID_ERROR_SEARCHING_RUV,
+    registerMessage(MSGID_ERROR_SEARCHING_RUV,
          "Error %s when searching for server state %s : %s base dn : %s");
-    MessageHandler.registerMessage(MSGID_SERVER_DISCONNECT,
-         "%s has disconnected from this changelog server.");
-    MessageHandler.registerMessage(MSGID_NO_CHANGELOG_SERVER_LISTENING,
-         "There is no changelog server listening on %s.");
-    MessageHandler.registerMessage(MSGID_CHANGELOG_MISSING_CHANGES,
+    registerMessage(MSGID_SERVER_DISCONNECT,
+         "%s has disconnected from this changelog server");
+    registerMessage(MSGID_NO_CHANGELOG_SERVER_LISTENING,
+         "There is no changelog server listening on %s");
+    registerMessage(MSGID_CHANGELOG_MISSING_CHANGES,
         "The changelog server %s is missing some changes that this server" +
-        " has already processed.");
-    MessageHandler.registerMessage(MSGID_NEED_MORE_THAN_ONE_CHANGELOG_SERVER,
-        "More than one changelog server should be configured.");
-    MessageHandler.registerMessage(MSGID_EXCEPTION_STARTING_SESSION,
+        " has already processed");
+    registerMessage(MSGID_NEED_MORE_THAN_ONE_CHANGELOG_SERVER,
+        "More than one changelog server should be configured");
+    registerMessage(MSGID_EXCEPTION_STARTING_SESSION,
         "Caught Exception during initial communication with " +
         "changelog server : ");
-    MessageHandler.registerMessage(MSGID_CANNOT_RECOVER_CHANGES,
+    registerMessage(MSGID_CANNOT_RECOVER_CHANGES,
         "Error when searching old changes from the database. ");
-    MessageHandler.registerMessage(
+    registerMessage(
         MSGID_COULD_NOT_FIND_CHANGELOG_WITH_MY_CHANGES,
         "Could not find a changelog server that has seen all the local" +
-        " changes. Going to replay changes.");
-    MessageHandler.registerMessage(MSGID_COULD_NOT_FIND_CHANGELOG,
+        " changes. Going to replay changes");
+    registerMessage(MSGID_COULD_NOT_FIND_CHANGELOG,
         "Could not connect to any changelog server, retrying...");
-    MessageHandler.registerMessage(MSGID_EXCEPTION_CLOSING_DATABASE,
+    registerMessage(MSGID_EXCEPTION_CLOSING_DATABASE,
         "Error closing changelog database %s : ");
-    MessageHandler.registerMessage(MSGID_EXCEPTION_DECODING_OPERATION,
+    registerMessage(MSGID_EXCEPTION_DECODING_OPERATION,
         "Error trying to replay %s, operation could not be decoded : ");
-    MessageHandler.registerMessage(MSGID_CHANGELOG_SHUTDOWN_DATABASE_ERROR,
+    registerMessage(MSGID_CHANGELOG_SHUTDOWN_DATABASE_ERROR,
         "Error Trying to use the underlying database. " +
         "The Changelog Service is going to shut down. ");
-    MessageHandler.registerMessage(MSGID_IGNORE_BAD_DN_IN_DATABASE_IDENTIFIER,
+    registerMessage(MSGID_IGNORE_BAD_DN_IN_DATABASE_IDENTIFIER,
         "A badly formatted DN was found in the list of database known " +
         "By this changelog service :%s. This Identifier will be ignored. ");
-    MessageHandler.registerMessage(MSGID_ERROR_CLOSING_CHANGELOG_ENV,
+    registerMessage(MSGID_ERROR_CLOSING_CHANGELOG_ENV,
         "Error closing the changelog database : ");
-    MessageHandler.registerMessage(MSGID_EXCEPTION_CHANGELOG_TRIM_FLUSH,
+    registerMessage(MSGID_EXCEPTION_CHANGELOG_TRIM_FLUSH,
         "Error during the changelog database trimming or flush process." +
         " The Changelog service is going to shutdown. ");
-    MessageHandler.registerMessage(MSGID_CHANGELOG_CONNECTION_ERROR,
+    registerMessage(MSGID_CHANGELOG_CONNECTION_ERROR,
         "Error during Changelog service message processing ." +
         " Connection from %s is rejected. ");
-    MessageHandler.registerMessage(MSGID_UNKNOWN_MESSAGE,
+    registerMessage(MSGID_UNKNOWN_MESSAGE,
         "%s has sent an unknown message. Closing the connection. ");
-    MessageHandler.registerMessage(MSGID_WRITER_UNEXPECTED_EXCEPTION,
+    registerMessage(MSGID_WRITER_UNEXPECTED_EXCEPTION,
         "An unexpected error happened handling connection with %s." +
         "This connection is going to be closed. ");
-    MessageHandler.registerMessage(MSGID_CHANGELOG_ERROR_SENDING_ACK,
+    registerMessage(MSGID_CHANGELOG_ERROR_SENDING_ACK,
         "An unexpected error happened sending an ack to %s." +
         "This connection is going to be closed. ");
-    MessageHandler.registerMessage(
+    registerMessage(
         MSGID_EXCEPTION_RECEIVING_SYNCHRONIZATION_MESSAGE,
         "An Exception was caught while receiving synchronization message : %s");
-    MessageHandler.registerMessage(MSGID_LOOP_REPLAYING_OPERATION,
+    registerMessage(MSGID_LOOP_REPLAYING_OPERATION,
         "A loop was detected while replaying operation: %s");
-    MessageHandler.registerMessage(MSGID_FILE_CHECK_CREATE_FAILED,
+    registerMessage(MSGID_FILE_CHECK_CREATE_FAILED,
         "An Exception was caught while testing existence or trying " +
         " to create the directory for the changelog database : %s");
-    MessageHandler.registerMessage(MSGID_CHANGELOG_SERVER_ATTR,
+    registerMessage(MSGID_CHANGELOG_SERVER_ATTR,
         "Specifies the list of Changelog Servers to which this" +
         " Changelog Server should connect. Each value of this attribute" +
         " should contain a values build with the hostname and the port" +
         " number of the remote server separated with a \":\"");
-    MessageHandler.registerMessage(MSGID_SERVER_ID_ATTR,
+    registerMessage(MSGID_SERVER_ID_ATTR,
         "Specifies the server ID. Each Changelog Server in the topology" +
-        " Must be assigned a unique server ID in the topology.");
-    MessageHandler.registerMessage(MSGID_CHANGELOG_PORT_ATTR,
+        " Must be assigned a unique server ID in the topology");
+    registerMessage(MSGID_CHANGELOG_PORT_ATTR,
         "Specifies the port number that the changelog server will use to" +
-        " listen for connections from LDAP servers.");
-    MessageHandler.registerMessage(MSGID_WINDOW_SIZE_ATTR,
-        "Specifies the receive window size of the changelog server.");
-    MessageHandler.registerMessage(MSGID_QUEUE_SIZE_ATTR,
+        " listen for connections from LDAP servers");
+    registerMessage(MSGID_WINDOW_SIZE_ATTR,
+        "Specifies the receive window size of the changelog server");
+    registerMessage(MSGID_QUEUE_SIZE_ATTR,
         "Specifies the receive queue size of the changelog server." +
         " The Changelog servers will queue up to this number of messages" +
         " in its memory queue and save the older messages to persistent" +
         " storage. Using a larger size may improve performances when" +
         " The synchronization delay is larger than this size but at the cost" +
-        " of using more memory.");
-    MessageHandler.registerMessage(MSGID_CHANGELOG_DIR_PATH_ATTR,
+        " of using more memory");
+    registerMessage(MSGID_CHANGELOG_DIR_PATH_ATTR,
         "Specifies the Changelog Server directory. The Changelog server" +
-        " will create all persistent storage below this path.");
-    MessageHandler.registerMessage(MSGID_PURGE_DELAY_ATTR,
+        " will create all persistent storage below this path");
+    registerMessage(MSGID_PURGE_DELAY_ATTR,
         "Specifies the Changelog Purge Delay, The Changelog servers will" +
         " keep all changes up to this amount of time before deleting them." +
         " This values defines the maximum age of a backup that can be" +
         " restored because changelog servers would not be able to refresh" +
         " LDAP servers with older versions of the data. A zero value" +
-        " can be used to specify an infinite delay (or never purge).");
-    MessageHandler.registerMessage(MSGID_SIMULTANEOUS_IMPORT_EXPORT_REJECTED,
+        " can be used to specify an infinite delay (or never purge)");
+    registerMessage(MSGID_SIMULTANEOUS_IMPORT_EXPORT_REJECTED,
         "The current request is rejected due to an import or an export" +
-        " already in progress for the same data.");
-    MessageHandler.registerMessage(MSGID_INVALID_IMPORT_SOURCE,
-        "Invalid source for the import.");
-    MessageHandler.registerMessage(MSGID_INVALID_EXPORT_TARGET,
-        "Invalid target for the export.");
-    MessageHandler.registerMessage(MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN,
-        "No reachable peer in the domain.");
-    MessageHandler.registerMessage(MSGID_NO_MATCHING_DOMAIN,
-        "No domain matches the base DN provided.");
-    MessageHandler.registerMessage(MSGID_MULTIPLE_MATCHING_DOMAIN,
-        "Multiple domains match the base DN provided.");
-    MessageHandler.registerMessage(MSGID_INVALID_PROVIDER,
-        "The provider class does not allow the operation requested.");
+        " already in progress for the same data");
+    registerMessage(MSGID_INVALID_IMPORT_SOURCE,
+        "Invalid source for the import");
+    registerMessage(MSGID_INVALID_EXPORT_TARGET,
+        "Invalid target for the export");
+    registerMessage(MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN,
+        "No reachable peer in the domain");
+    registerMessage(MSGID_NO_MATCHING_DOMAIN,
+        "No domain matches the base DN provided");
+    registerMessage(MSGID_MULTIPLE_MATCHING_DOMAIN,
+        "Multiple domains match the base DN provided");
+    registerMessage(MSGID_INVALID_PROVIDER,
+        "The provider class does not allow the operation requested");
   }
 }

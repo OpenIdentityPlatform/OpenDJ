@@ -50,13 +50,13 @@ import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 public abstract class
      ExtendedOperationHandler<T extends ExtendedOperationHandlerCfg>
 {
-
-
   /**
    * The default set of supported control OIDs for this extended
    * operation.
    */
   protected Set<String> supportedControlOIDs = new HashSet<String>(0);
+
+
 
   /**
    * The default set of supported feature OIDs for this extended
@@ -85,8 +85,7 @@ public abstract class
    *                                   not related to the server
    *                                   configuration.
    */
-  public abstract void
-       initializeExtendedOperationHandler(T config)
+  public abstract void initializeExtendedOperationHandler(T config)
          throws ConfigException, InitializationException;
 
 

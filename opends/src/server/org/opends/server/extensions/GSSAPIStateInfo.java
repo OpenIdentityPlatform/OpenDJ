@@ -140,7 +140,7 @@ public class GSSAPIStateInfo
       }
 
       int    msgID   = MSGID_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -156,7 +156,7 @@ public class GSSAPIStateInfo
       }
 
       int    msgID   = MSGID_SASLGSSAPI_CANNOT_AUTHENTICATE_SERVER;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -277,7 +277,7 @@ public class GSSAPIStateInfo
         }
 
         int    msgID   = MSGID_SASLGSSAPI_CANNOT_CREATE_SASL_SERVER;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
 
         clientConnection.setSASLAuthStateInfo(null);
         bindOperation.setAuthFailureReason(msgID, message);
@@ -336,7 +336,7 @@ public class GSSAPIStateInfo
       }
 
       int    msgID   = MSGID_SASLGSSAPI_CANNOT_EVALUATE_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
 
       clientConnection.setSASLAuthStateInfo(null);
       bindOperation.setAuthFailureReason(msgID, message);

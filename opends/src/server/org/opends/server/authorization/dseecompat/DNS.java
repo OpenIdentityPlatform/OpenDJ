@@ -164,7 +164,7 @@ public class DNS implements KeywordBindRule {
 
                 int msgID = MSGID_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME;
                 String message = getMessage(msgID, hn, expr,
-                                            stackTraceToSingleLineString(e));
+                                            getExceptionMessage(e));
                 logError(ErrorLogCategory.ACCESS_CONTROL,
                          ErrorLogSeverity.INFORMATIONAL, message, msgID);
               }

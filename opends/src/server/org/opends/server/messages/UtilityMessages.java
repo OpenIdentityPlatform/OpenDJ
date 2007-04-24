@@ -1600,132 +1600,132 @@ public class UtilityMessages
   {
     registerMessage(MSGID_BASE64_DECODE_INVALID_LENGTH,
                     "The value %s cannot be base64-decoded because it does " +
-                    "not have a length that is a multiple of four bytes.");
+                    "not have a length that is a multiple of four bytes");
     registerMessage(MSGID_BASE64_DECODE_INVALID_CHARACTER,
                     "The value %s cannot be base64-decoded because it " +
                     "contains an illegal character %s that is not allowed in "+
-                    "base64-encoded values.");
+                    "base64-encoded values");
 
 
     registerMessage(MSGID_HEX_DECODE_INVALID_LENGTH,
                     "The value %s cannot be decoded as a hexadecimal string " +
                     "because it does not have a length that is a multiple of " +
-                    "two bytes.");
+                    "two bytes");
     registerMessage(MSGID_HEX_DECODE_INVALID_CHARACTER,
                     "The value %s cannot be decoded as a hexadecimal string " +
                     "because it contains an illegal character %s that is not " +
-                    "a valid hexadecimal digit.");
+                    "a valid hexadecimal digit");
 
 
     registerMessage(MSGID_EXEC_DISABLED,
                     "The %s command will not be allowed because the " +
                     "Directory Server has been configured to refuse the use " +
-                    "of the exec method.");
+                    "of the exec method");
 
 
     registerMessage(MSGID_LDIF_INVALID_LEADING_SPACE,
                     "Unable to parse line %d (\"%s\") from the LDIF source " +
                     "because the line started with a space but there were no " +
                     "previous lines in the entry to which this line could be " +
-                    "appended.");
+                    "appended");
     registerMessage(MSGID_LDIF_NO_ATTR_NAME,
                     "Unable to parse LDIF entry starting at line %d because " +
-                    "the line \"%s\" does not include an attribute name.");
+                    "the line \"%s\" does not include an attribute name");
     registerMessage(MSGID_LDIF_NO_DN,
                     "Unable to parse LDIF entry starting at line %d because " +
                     "the first line does not contain a DN (the first line " +
-                    "was \"%s\".");
+                    "was \"%s\"");
     registerMessage(MSGID_LDIF_INVALID_DN_SEPARATOR,
                     "Unable to parse LDIF entry starting at line %d because " +
                     "line \"%s\" contained an invalid separator between the " +
-                    "\"dn\" prefix and the actual distinguished name.");
+                    "\"dn\" prefix and the actual distinguished name");
     registerMessage(MSGID_LDIF_INVALID_DN,
                     "Unable to parse LDIF entry starting at line %d because " +
                     "an error occurred while trying to parse the value of " +
-                    "line \"%s\" as a distinguished name:  %s.");
+                    "line \"%s\" as a distinguished name:  %s");
     registerMessage(MSGID_LDIF_INVALID_ATTR_SEPARATOR,
                     "Unable to parse LDIF entry %s starting at line %d " +
                     "because line \"%s\" contained an invalid separator " +
-                    "between the attribute name and value.");
+                    "between the attribute name and value");
     registerMessage(MSGID_LDIF_COULD_NOT_BASE64_DECODE_DN,
                     "Unable to parse LDIF entry starting at line %d " +
                     "because it was not possible to base64-decode the DN " +
-                    "on line \"%s\":  %s.");
+                    "on line \"%s\":  %s");
     registerMessage(MSGID_LDIF_COULD_NOT_BASE64_DECODE_ATTR,
                     "Unable to parse LDIF entry %s starting at line %d " +
                     "because it was not possible to base64-decode the " +
-                    "attribute on line \"%s\":  %s.");
+                    "attribute on line \"%s\":  %s");
     registerMessage(MSGID_LDIF_DUPLICATE_OBJECTCLASS,
                     "Entry %s read from LDIF starting at line %d includes a " +
                     "duplicate objectclass value %s.  The second occurrence " +
-                    "of that objectclass has been skipped.");
+                    "of that objectclass has been skipped");
     registerMessage(MSGID_LDIF_DUPLICATE_ATTR,
                     "Entry %s read from LDIF starting at line %d includes a " +
                     "duplicate attribute %s with value %s.  The second " +
-                    "occurrence of that attribute value has been skipped.");
+                    "occurrence of that attribute value has been skipped");
     registerMessage(MSGID_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR,
                     "Entry %s starting at line %d includes multiple values " +
-                    "for single-valued attribute %s.");
+                    "for single-valued attribute %s");
     registerMessage(MSGID_LDIF_INVALID_ATTR_SYNTAX,
                     "Unable to parse LDIF entry %s starting at line %d " +
                     "because it has an invalid value \"%s\" for attribute " +
-                    "%s:  %s.");
+                    "%s:  %s");
     registerMessage(MSGID_LDIF_SCHEMA_VIOLATION,
                     "Entry %s read from LDIF starting at line %d is not " +
                     "valid because it violates the server's schema " +
-                    "configuration:  %s.");
+                    "configuration:  %s");
     registerMessage(MSGID_LDIF_FILE_EXISTS,
                     "The specified LDIF file %s already exists and the " +
                     "export configuration indicates that no attempt should " +
-                    "be made to append to or replace the file.");
+                    "be made to append to or replace the file");
     registerMessage(MSGID_LDIF_INVALID_URL,
                     "Unable to parse LDIF entry %s starting at line %d " +
                     "because the value of attribute %s was to be read from a " +
-                    "URL but the URL was invalid:  %s.");
+                    "URL but the URL was invalid:  %s");
     registerMessage(MSGID_LDIF_URL_IO_ERROR,
                     "Unable to parse LDIF entry %s starting at line %d " +
                     "because the value of attribute %s was to be read from " +
                     "URL %s but an error occurred while trying to read that " +
-                    "content:  %s.");
+                    "content:  %s");
     registerMessage(MSGID_REJECT_FILE_EXISTS,
                     "The specified reject file %s already exists and the " +
                     "import configuration indicates that no attempt should " +
-                    "be made to append to or replace the file.");
+                    "be made to append to or replace the file");
     registerMessage(MSGID_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT,
                     "An error occurred while attempting to determine whether " +
                     "LDIF entry \"%s\" starting at line %d should be " +
                     "imported as a result of the include and exclude filter " +
-                    "configuration:  %s.");
+                    "configuration:  %s");
     registerMessage(MSGID_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_EXPORT,
                     "An error occurred while attempting to determine whether " +
                     "LDIF entry \"%s\" should be exported as a result of the " +
-                    "include and exclude filter configuration:  %s.");
+                    "include and exclude filter configuration:  %s");
     registerMessage(MSGID_LDIF_INVALID_DELETE_ATTRIBUTES,
                     "Error in the LDIF change record entry. " +
-                    "Invalid attributes specified for the delete operation.");
+                    "Invalid attributes specified for the delete operation");
     registerMessage(MSGID_LDIF_NO_MOD_DN_ATTRIBUTES,
                     "Error in the LDIF change record entry. " +
-                    "No attributes specified for the mod DN operation.");
+                    "No attributes specified for the mod DN operation");
     registerMessage(MSGID_LDIF_NO_DELETE_OLDRDN_ATTRIBUTE,
                     "Error in the LDIF change record entry. " +
                     "No delete old RDN attribute specified for the mod " +
-                    "DN operation.");
+                    "DN operation");
     registerMessage(MSGID_LDIF_INVALID_DELETE_OLDRDN_ATTRIBUTE,
                     "Error in the LDIF change record entry. " +
                     "Invalid value \"%s\" for the delete old RDN attribute " +
-                    "specified for the mod DN operation.");
+                    "specified for the mod DN operation");
     registerMessage(MSGID_LDIF_INVALID_CHANGERECORD_ATTRIBUTE,
                     "Error in the LDIF change record entry. " +
                     "Invalid attribute \"%s\" specified. " +
-                    "Expecting attribute \"%s\".");
+                    "Expecting attribute \"%s\"");
     registerMessage(MSGID_LDIF_INVALID_MODIFY_ATTRIBUTE,
                     "Error in the LDIF change record entry. " +
                     "Invalid attribute \"%s\" specified. " +
-                    "Expecting one of the following attributes \"%s\".");
+                    "Expecting one of the following attributes \"%s\"");
     registerMessage(MSGID_LDIF_INVALID_CHANGETYPE_ATTRIBUTE,
                     "Error in the LDIF change record entry. " +
                     "Invalid value \"%s\" for the changetype specified. " +
-                    "Expecting one of the following values \"%s\".");
+                    "Expecting one of the following values \"%s\"");
     registerMessage(MSGID_LDIF_INVALID_MODIFY_ATTRIBUTE_VAL,
                     "Error in the LDIF change record entry. " +
                     "Invalid value for the \"%s\" attribute specified. ");
@@ -1734,327 +1734,327 @@ public class UtilityMessages
     registerMessage(MSGID_SCHEMANAME_EMPTY_VALUE,
                     "The provided value could not be parsed to determine " +
                     "whether it contained a valid schema element name or OID " +
-                    "because it was null or empty.");
+                    "because it was null or empty");
     registerMessage(MSGID_SCHEMANAME_ILLEGAL_CHAR,
                     "The provided value \"%s\" does not contain a valid " +
                     "schema element name or OID because it contains an " +
-                    "illegal character %s at position %d.");
+                    "illegal character %s at position %d");
     registerMessage(MSGID_SCHEMANAME_CONSECUTIVE_PERIODS,
                     "The provided value \"%s\" does not contain a valid " +
                     "schema element name or OID because the numeric OID " +
-                    "contains two consecutive periods at position %d.");
+                    "contains two consecutive periods at position %d");
 
 
     registerMessage(MSGID_ARG_NO_IDENTIFIER,
                     "The %s argument does not have either a single-character " +
                     "or a long identifier that may be used to specify it.  " +
                     "At least one of these must be specified for each " +
-                    "argument.");
+                    "argument");
     registerMessage(MSGID_ARG_NO_VALUE_PLACEHOLDER,
                     "The %s argument is configured to take a value but no " +
-                    "value placeholder has been defined for it.");
+                    "value placeholder has been defined for it");
     registerMessage(MSGID_ARG_NO_INT_VALUE,
                     "The %s argument does not have any value that may be " +
-                    "retrieved as an integer.");
+                    "retrieved as an integer");
     registerMessage(MSGID_ARG_CANNOT_DECODE_AS_INT,
                     "The provided value \"%s\" for the %s argument cannot be " +
-                    "decoded as an integer.");
+                    "decoded as an integer");
     registerMessage(MSGID_ARG_INT_MULTIPLE_VALUES,
                     "The %s argument has multiple values and therefore " +
-                    "cannot be decoded as a single integer value.");
+                    "cannot be decoded as a single integer value");
     registerMessage(MSGID_ARG_NO_BOOLEAN_VALUE,
                     "The %s argument does not have any value that may be " +
-                    "retrieved as a Boolean.");
+                    "retrieved as a Boolean");
     registerMessage(MSGID_ARG_CANNOT_DECODE_AS_BOOLEAN,
                     "The provided value \"%s\" for the %s argument cannot be " +
-                    "decoded as a Boolean.");
+                    "decoded as a Boolean");
     registerMessage(MSGID_ARG_BOOLEAN_MULTIPLE_VALUES,
                     "The %s argument has multiple values and therefore " +
-                    "cannot be decoded as a single Boolean value.");
+                    "cannot be decoded as a single Boolean value");
 
 
     registerMessage(MSGID_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND,
                     "The %s argument configuration is invalid because the " +
-                    "lower bound of %d is greater than the upper bound of %d.");
+                    "lower bound of %d is greater than the upper bound of %d");
     registerMessage(MSGID_INTARG_VALUE_BELOW_LOWER_BOUND,
                     "The provided %s value %d is unacceptable because it is " +
-                    "below the lower bound of %d.");
+                    "below the lower bound of %d");
     registerMessage(MSGID_INTARG_VALUE_ABOVE_UPPER_BOUND,
                     "The provided %s value %d is unacceptable because it is " +
-                    "above the upper bound of %d.");
+                    "above the upper bound of %d");
 
 
     registerMessage(MSGID_BOOLEANARG_NO_VALUE_ALLOWED,
                     "The provided %s value is unacceptable because Boolean " +
-                    "arguments are never allowed to have values.");
+                    "arguments are never allowed to have values");
 
 
     registerMessage(MSGID_MCARG_VALUE_NOT_ALLOWED,
                     "The provided %s value %s is unacceptable because it is " +
                     "not included in the set of allowed values for that " +
-                    "argument.");
+                    "argument");
 
 
     registerMessage(MSGID_FILEARG_NO_SUCH_FILE,
-                    "The file %s specified for argument %s does not exist.");
+                    "The file %s specified for argument %s does not exist");
     registerMessage(MSGID_FILEARG_CANNOT_VERIFY_FILE_EXISTENCE,
                     "An error occurred while trying to verify the existence " +
-                    "of file %s specified for argument %s:  %s.");
+                    "of file %s specified for argument %s:  %s");
     registerMessage(MSGID_FILEARG_CANNOT_OPEN_FILE,
                     "An error occurred while trying to open file %s " +
-                    "specified for argument %s for reading:  %s.");
+                    "specified for argument %s for reading:  %s");
     registerMessage(MSGID_FILEARG_CANNOT_READ_FILE,
                     "An error occurred while trying to read from file %s " +
-                    "specified for argument %s:  %s.");
+                    "specified for argument %s:  %s");
     registerMessage(MSGID_FILEARG_EMPTY_FILE,
                     "The file %s specified for argument %s exists but is " +
-                    "empty.");
+                    "empty");
 
 
     registerMessage(MSGID_ARGPARSER_DUPLICATE_SHORT_ID,
                     "Cannot add argument %s to the argument list because " +
                     "its short identifier -%s conflicts with the %s argument " +
-                    "that has already been defined.");
+                    "that has already been defined");
     registerMessage(MSGID_ARGPARSER_DUPLICATE_LONG_ID,
                     "Cannot add argument %s to the argument list because " +
                     "its long identifier --%s conflicts with the %s argument " +
-                    "that has already been defined.");
+                    "that has already been defined");
     registerMessage(MSGID_ARGPARSER_CANNOT_READ_PROPERTIES_FILE,
                     "An error occurred while attempting to read the contents " +
-                    "of the argument properties file %s:  %s.");
+                    "of the argument properties file %s:  %s");
     registerMessage(MSGID_ARGPARSER_TOO_MANY_TRAILING_ARGS,
                     "The provided set of command-line arguments contained " +
                     "too many unnamed trailing arguments.  The maximum " +
-                    "number of allowed trailing arguments is %d.");
+                    "number of allowed trailing arguments is %d");
     registerMessage(MSGID_ARGPARSER_LONG_ARG_WITHOUT_NAME,
                     "The provided argument \"%s\" is invalid because it does " +
-                    "not include the argument name.");
+                    "not include the argument name");
     registerMessage(MSGID_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID,
-                    "Argument --%s is not allowed for use with this program.");
+                    "Argument --%s is not allowed for use with this program");
     registerMessage(MSGID_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID,
-                    "Argument --%s requires a value but none was provided.");
+                    "Argument --%s requires a value but none was provided");
     registerMessage(MSGID_ARGPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID,
                     "The provided value \"%s\" for argument --%s is not " +
-                    "acceptable:  %s.");
+                    "acceptable:  %s");
     registerMessage(MSGID_ARGPARSER_NOT_MULTIVALUED_FOR_LONG_ID,
                     "The argument --%s was included multiple times in the " +
                     "provided set of arguments but it does not allow " +
-                    "multiple values.");
+                    "multiple values");
     registerMessage(MSGID_ARGPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE,
                     "A value was provided for argument --%s but that " +
-                    "argument does not take a value.");
+                    "argument does not take a value");
     registerMessage(MSGID_ARGPARSER_INVALID_DASH_AS_ARGUMENT,
                     "The dash character by itself is invalid for use as an " +
-                    "argument name.");
+                    "argument name");
     registerMessage(MSGID_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID,
-                    "Argument -%s is not allowed for use with this program.");
+                    "Argument -%s is not allowed for use with this program");
     registerMessage(MSGID_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID,
-                    "Argument -%s requires a value but none was provided.");
+                    "Argument -%s requires a value but none was provided");
     registerMessage(MSGID_ARGPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID,
                     "The provided value \"%s\" for argument -%s is not " +
-                    "acceptable:  %s.");
+                    "acceptable:  %s");
     registerMessage(MSGID_ARGPARSER_NOT_MULTIVALUED_FOR_SHORT_ID,
                     "The argument -%s was included multiple times in the " +
                     "provided set of arguments but it does not allow " +
-                    "multiple values.");
+                    "multiple values");
     registerMessage(MSGID_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES,
                     "The provided argument block '-%s%s' is illegal because " +
                     "the '%s' argument requires a value but is in the same " +
                     "block as at least one other argument that doesn't " +
-                    "require a value.");
+                    "require a value");
     registerMessage(MSGID_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT,
                     "Argument \"%s\" does not start with one or two dashes " +
-                    "and unnamed trailing arguments are not allowed.");
+                    "and unnamed trailing arguments are not allowed");
     registerMessage(MSGID_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS,
                     "At least %d unnamed trailing arguments are required " +
-                    "in the argument list, but too few were provided.");
+                    "in the argument list, but too few were provided");
     registerMessage(MSGID_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG,
                     "The argument %s is required to have a value but none " +
                     "was provided in the argument list and no default " +
-                    "value is available.");
+                    "value is available");
 
 
     registerMessage(MSGID_MOVEFILE_NO_SUCH_FILE,
-                    "The file to move %s does not exist.");
+                    "The file to move %s does not exist");
     registerMessage(MSGID_MOVEFILE_NOT_FILE,
-                    "The file to move %s exists but is not a file.");
+                    "The file to move %s exists but is not a file");
     registerMessage(MSGID_MOVEFILE_NO_SUCH_DIRECTORY,
-                    "The target directory %s does not exist.");
+                    "The target directory %s does not exist");
     registerMessage(MSGID_MOVEFILE_NOT_DIRECTORY,
-                    "The target directory %s exists but is not a directory.");
+                    "The target directory %s exists but is not a directory");
 
 
     registerMessage(MSGID_EMAILMSG_INVALID_SENDER_ADDRESS,
-                    "The provided sender address %s is invalid:  %s.");
+                    "The provided sender address %s is invalid:  %s");
     registerMessage(MSGID_EMAILMSG_INVALID_RECIPIENT_ADDRESS,
-                    "The provided recipient address %s is invalid:  %s.");
+                    "The provided recipient address %s is invalid:  %s");
     registerMessage(MSGID_EMAILMSG_CANNOT_SEND,
                     "The specified e-mail message could not be sent using " +
-                    "any of the configured mail servers.");
+                    "any of the configured mail servers");
 
 
     registerMessage(MSGID_ARG_SUBCOMMAND_DUPLICATE_SUBCOMMAND,
-                    "The argument parser already has a %s subcommand.");
+                    "The argument parser already has a %s subcommand");
     registerMessage(MSGID_ARG_SUBCOMMAND_DUPLICATE_ARGUMENT_NAME,
                     "There are multiple arguments for subcommand %s with " +
-                    "name %s.");
+                    "name %s");
     registerMessage(MSGID_ARG_SUBCOMMAND_ARGUMENT_GLOBAL_CONFLICT,
                     "Argument %s for subcommand %s conflicts with a global " +
-                    "argument with the same name.");
+                    "argument with the same name");
     registerMessage(MSGID_ARG_SUBCOMMAND_DUPLICATE_SHORT_ID,
                     "Argument %s for subcommand %s has a short identifier " +
-                    "-%s that conflicts with that of argument %s.");
+                    "-%s that conflicts with that of argument %s");
     registerMessage(MSGID_ARG_SUBCOMMAND_ARGUMENT_SHORT_ID_GLOBAL_CONFLICT,
                     "Argument %s for subcommand %s has a short ID -%s that " +
-                    "conflicts with that of global argument %s.");
+                    "conflicts with that of global argument %s");
     registerMessage(MSGID_ARG_SUBCOMMAND_DUPLICATE_LONG_ID,
                     "Argument %s for subcommand %s has a long identifier " +
-                    "--%s that conflicts with that of argument %s.");
+                    "--%s that conflicts with that of argument %s");
     registerMessage(MSGID_ARG_SUBCOMMAND_ARGUMENT_LONG_ID_GLOBAL_CONFLICT,
                     "Argument %s for subcommand %s has a long ID --%s that " +
-                    "conflicts with that of global argument %s.");
+                    "conflicts with that of global argument %s");
 
 
     registerMessage(MSGID_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_NAME,
-                    "There is already another global argument named \"%s\".");
+                    "There is already another global argument named \"%s\"");
     registerMessage(MSGID_SUBCMDPARSER_GLOBAL_ARG_NAME_SUBCMD_CONFLICT,
                     "The argument name %s conflicts with the name of another " +
-                    "argument associated with the %s subcommand.");
+                    "argument associated with the %s subcommand");
     registerMessage(MSGID_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_SHORT_ID,
                     "Short ID -%s for global argument %s conflicts with the " +
-                    "short ID of another global argument %s.");
+                    "short ID of another global argument %s");
     registerMessage(MSGID_SUBCMDPARSER_GLOBAL_ARG_SHORT_ID_CONFLICT,
                     "Short ID -%s for global argument %s conflicts with the " +
                     "short ID for the %s argument associated with subcommand " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_LONG_ID,
                     "Long ID --%s for global argument %s conflicts with the " +
-                    "long ID of another global argument %s.");
+                    "long ID of another global argument %s");
     registerMessage(MSGID_SUBCMDPARSER_GLOBAL_ARG_LONG_ID_CONFLICT,
                     "Long ID --%s for global argument %s conflicts with the " +
                     "long ID for the %s argument associated with subcommand " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_SUBCMDPARSER_CANNOT_READ_PROPERTIES_FILE,
                     "An error occurred while attempting to read the contents " +
-                    "of the argument properties file %s:  %s.");
+                    "of the argument properties file %s:  %s");
     registerMessage(MSGID_SUBCMDPARSER_LONG_ARG_WITHOUT_NAME,
                     "The provided command-line argument %s does not contain " +
-                    "an argument name.");
+                    "an argument name");
     registerMessage(MSGID_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_LONG_ID,
                     "The provided argument --%s is not a valid global " +
-                    "argument identifier.");
+                    "argument identifier");
     registerMessage(MSGID_SUBCMDPARSER_NO_ARGUMENT_FOR_LONG_ID,
                     "The provided argument --%s is not a valid global or " +
-                    "subcommand argument identifier.");
+                    "subcommand argument identifier");
     registerMessage(MSGID_SUBCMDPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID,
                     "Command-line argument --%s requires a value but none " +
-                    "was given.");
+                    "was given");
     registerMessage(MSGID_SUBCMDPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID,
                     "The provided value \"%s\" for argument --%s is not " +
-                    "acceptable:  %s.");
+                    "acceptable:  %s");
     registerMessage(MSGID_SUBCMDPARSER_NOT_MULTIVALUED_FOR_LONG_ID,
                     "The argument --%s was included multiple times in the " +
                     "provided set of arguments but it does not allow " +
-                    "multiple values.");
+                    "multiple values");
     registerMessage(MSGID_SUBCMDPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE,
                     "A value was provided for argument --%s but that " +
-                    "argument does not take a value.");
+                    "argument does not take a value");
     registerMessage(MSGID_SUBCMDPARSER_INVALID_DASH_AS_ARGUMENT,
                     "The dash character by itself is invalid for use as an " +
-                    "argument name.");
+                    "argument name");
     registerMessage(MSGID_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID,
                     "The provided argument -%s is not a valid global " +
-                    "argument identifier.");
+                    "argument identifier");
     registerMessage(MSGID_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID,
                     "The provided argument -%s is not a valid global or " +
-                    "subcommand argument identifier.");
+                    "subcommand argument identifier");
     registerMessage(MSGID_SUBCMDPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID,
-                    "Argument -%s requires a value but none was provided.");
+                    "Argument -%s requires a value but none was provided");
     registerMessage(MSGID_SUBCMDPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID,
                     "The provided value \"%s\" for argument -%s is not " +
-                    "acceptable:  %s.");
+                    "acceptable:  %s");
     registerMessage(MSGID_SUBCMDPARSER_NOT_MULTIVALUED_FOR_SHORT_ID,
                     "The argument -%s was included multiple times in the " +
                     "provided set of arguments but it does not allow " +
-                    "multiple values.");
+                    "multiple values");
     registerMessage(MSGID_SUBCMDPARSER_CANT_MIX_ARGS_WITH_VALUES,
                     "The provided argument block '-%s%s' is illegal because " +
                     "the '%s' argument requires a value but is in the same " +
                     "block as at least one other argument that doesn't " +
-                    "require a value.");
+                    "require a value");
     registerMessage(MSGID_SUBCMDPARSER_INVALID_ARGUMENT,
-                    "The provided argument %s is not recognized.");
+                    "The provided argument %s is not recognized");
     registerMessage(MSGID_SUBCMDPARSER_MULTIPLE_SUBCOMMANDS,
                     "The provided argument %s specifies a valid subcommand, " +
                     "but another subcommand %s was also given.  Only a " +
-                    "single subcommand may be provided.");
+                    "single subcommand may be provided");
     registerMessage(MSGID_SUBCMDPARSER_NO_VALUE_FOR_REQUIRED_ARG,
                     "The argument %s is required to have a value but none " +
                     "was provided in the argument list and no default " +
-                    "value is available.");
+                    "value is available");
 
 
     registerMessage(MSGID_LDAPURL_NO_COLON_SLASH_SLASH,
                     "The provided string \"%s\" cannot be decoded as an LDAP " +
                     "URL because it does not contain the necessary :// " +
                     "component to separate the scheme from the rest of the " +
-                    "URL.");
+                    "URL");
     registerMessage(MSGID_LDAPURL_NO_SCHEME,
                     "The provided string \"%s\" cannot be decoded as an LDAP " +
-                    "URL because it does not contain a protocol scheme.");
+                    "URL because it does not contain a protocol scheme");
     registerMessage(MSGID_LDAPURL_NO_HOST,
                     "The provided string \"%s\" cannot be decoded as an LDAP " +
                     "URL because it does not contain a host before the colon " +
-                    "to specify the port number.");
+                    "to specify the port number");
     registerMessage(MSGID_LDAPURL_NO_PORT,
                     "The provided string \"%s\" cannot be decoded as an LDAP " +
                     "URL because it does not contain a port number after the " +
-                    "colon following the host.");
+                    "colon following the host");
     registerMessage(MSGID_LDAPURL_CANNOT_DECODE_PORT,
                     "The provided string \"%s\" cannot be decoded as an LDAP " +
                     "URL because the port number portion %s cannot be " +
-                    "decoded as an integer.");
+                    "decoded as an integer");
     registerMessage(MSGID_LDAPURL_INVALID_PORT,
                     "The provided string \"%s\" cannot be decoded as an LDAP " +
                     "URL because the provided port number %d is not within " +
-                    "the valid range between 1 and 65535.");
+                    "the valid range between 1 and 65535");
     registerMessage(MSGID_LDAPURL_INVALID_SCOPE_STRING,
                     "The provided string \"%s\" cannot be decoded as an LDAP " +
                     "URL because the scope string %s was not one of the " +
-                    "allowed values of base, one, sub, or subordinate.");
+                    "allowed values of base, one, sub, or subordinate");
     registerMessage(MSGID_LDAPURL_PERCENT_TOO_CLOSE_TO_END,
                     "The provided URL component \"%s\" could not be decoded " +
                     "because the percent character at byte %d was not " +
-                    "followed by two hexadecimal digits.");
+                    "followed by two hexadecimal digits");
     registerMessage(MSGID_LDAPURL_INVALID_HEX_BYTE,
                     "The provided URL component \"%s\" could not be " +
                     "decoded because the character at byte %d was not a " +
-                    "valid hexadecimal digit.");
+                    "valid hexadecimal digit");
     registerMessage(MSGID_LDAPURL_CANNOT_CREATE_UTF8_STRING,
                     "An error occurred while attempting to represent a byte " +
                     "array as a UTF-8 string during the course of decoding a " +
-                    "portion of an LDAP URL:  %s.");
+                    "portion of an LDAP URL:  %s");
 
 
     registerMessage(MSGID_CHARSET_CONSTRUCTOR_NO_NAME,
                     "The named character set is invalid because it does not " +
-                    "contain a name.");
+                    "contain a name");
     registerMessage(MSGID_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR,
                     "The named character set is invalid because the provide " +
                     "name \"%s\" has an invalid character at position %d.  " +
                     "Only ASCII alphabetic characters are allowed in the " +
-                    "name.");
+                    "name");
     registerMessage(MSGID_CHARSET_NO_COLON,
                     "Cannot decode value \"%s\" as a named character set " +
                     "because it does not contain a colon to separate the " +
-                    "name from the set of characters.");
+                    "name from the set of characters");
     registerMessage(MSGID_CHARSET_NO_NAME,
                     "Cannot decode value \"%s\" as a named character set " +
                     "because it does not contain a name to use for the " +
-                    "character set.");
+                    "character set");
     registerMessage(MSGID_CHARSET_NO_CHARS,
                     "Cannot decode value \"%s\" as a named character set " +
-                    "because there are no characters to include in the set.");
+                    "because there are no characters to include in the set");
 
 
     registerMessage(MSGID_TIME_IN_SECONDS,
@@ -2095,27 +2095,27 @@ public class UtilityMessages
 
     registerMessage(MSGID_FILEPERM_SET_NO_SUCH_FILE,
                     "Unable to set permissions for file %s because it does " +
-                    "not exist.");
+                    "not exist");
     registerMessage(MSGID_FILEPERM_CANNOT_EXEC_CHMOD,
                     "Unable to execute the chmod command to set file " +
-                    "permissions on %s:  %s.");
+                    "permissions on %s:  %s");
     registerMessage(MSGID_FILEPERM_SET_JAVA_EXCEPTION,
                     "One or more exceptions were thrown in the process of " +
                     "updating the file permissions for %s.  Some of the " +
-                    "permissions for the file may have been altered.");
+                    "permissions for the file may have been altered");
     registerMessage(MSGID_FILEPERM_SET_JAVA_FAILED_ALTERED,
                     "One or more updates to the file permissions for %s " +
                     "failed, but at least one update was successful.  Some " +
-                    "of the permissions for the file may have been altered.");
+                    "of the permissions for the file may have been altered");
     registerMessage(MSGID_FILEPERM_SET_JAVA_FAILED_UNALTERED,
                     "All of the attempts to update the file permissions for " +
                     "%s failed.  The file should be left with its original " +
-                    "permissions.");
+                    "permissions");
     registerMessage(MSGID_FILEPERM_INVALID_UNIX_MODE_STRING,
                     "The provided string %s does not represent a valid UNIX " +
                     "file mode.  UNIX file modes must be a three-character " +
                     "string in which each character is a numeric digit " +
-                    "between zero and seven.");
+                    "between zero and seven");
 
     registerMessage(MSGID_VALIDATOR_PRECONDITION_NOT_MET,
                     "A precondition of the invoked method was not met.  This " +

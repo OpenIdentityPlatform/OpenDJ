@@ -159,7 +159,7 @@ public class DigestMD5SASLMechanismHandler
       }
 
       int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_GET_MESSAGE_DIGEST;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -369,7 +369,7 @@ public class DigestMD5SASLMechanismHandler
       // but we want to log it anyway.
       logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.SEVERE_WARNING,
                MSGID_SASLDIGESTMD5_CANNOT_PARSE_ISO_CREDENTIALS,
-               responseCharset, stackTraceToSingleLineString(e));
+               responseCharset, getExceptionMessage(e));
     }
 
     if ((credString == null) ||
@@ -392,7 +392,7 @@ public class DigestMD5SASLMechanismHandler
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
         int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_PARSE_UTF8_CREDENTIALS;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         bindOperation.setAuthFailureReason(msgID, message);
         return;
       }
@@ -528,7 +528,7 @@ public class DigestMD5SASLMechanismHandler
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
           int msgID = MSGID_SASLDIGESTMD5_CANNOT_DECODE_STORED_NONCE_COUNT;
-          String message = getMessage(msgID, stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, getExceptionMessage(e));
           bindOperation.setAuthFailureReason(msgID, message);
           return;
         }
@@ -605,7 +605,7 @@ public class DigestMD5SASLMechanismHandler
           }
 
           int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_PARSE_RESPONSE_DIGEST;
-          String message = getMessage(msgID, stackTraceToSingleLineString(pe));
+          String message = getMessage(msgID, getExceptionMessage(pe));
           bindOperation.setAuthFailureReason(msgID, message);
           return;
         }
@@ -1075,7 +1075,7 @@ public class DigestMD5SASLMechanismHandler
         logError(ErrorLogCategory.EXTENSIONS,
                  ErrorLogSeverity.SEVERE_WARNING,
                  MSGID_SASLDIGESTMD5_CANNOT_GENERATE_RESPONSE_DIGEST,
-                 stackTraceToSingleLineString(e));
+                 getExceptionMessage(e));
         continue;
       }
 
@@ -1120,7 +1120,7 @@ public class DigestMD5SASLMechanismHandler
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
       int    msgID   = MSGID_SASLDIGESTMD5_CANNOT_GENERATE_RESPONSE_AUTH_DIGEST;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       bindOperation.setAuthFailureReason(msgID, message);
       return;
     }

@@ -56,13 +56,13 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -233,8 +233,8 @@ public class DirectoryAuditLogger extends AccessLogger
       buffer.append(EOL);
       buffer.append("changetype: add");
       buffer.append(EOL);
-      List<LDAPAttribute> rawAttributes = addOperation.getRawAttributes();
-      for(LDAPAttribute attr : rawAttributes)
+      List<RawAttribute> rawAttributes = addOperation.getRawAttributes();
+      for(RawAttribute attr : rawAttributes)
       {
         buffer.append(attr.getAttributeType());
         buffer.append(":");
@@ -420,12 +420,12 @@ public class DirectoryAuditLogger extends AccessLogger
       buffer.append(EOL);
       buffer.append("changetype: modify");
       buffer.append(EOL);
-      List<LDAPModification> modifications =
+      List<RawModification> modifications =
            modifyOperation.getRawModifications();
-      for(LDAPModification modification : modifications)
+      for(RawModification modification : modifications)
       {
         ModificationType modType = modification.getModificationType();
-        LDAPAttribute attr = modification.getAttribute();
+        RawAttribute attr = modification.getAttribute();
         switch(modType)
         {
           case ADD:

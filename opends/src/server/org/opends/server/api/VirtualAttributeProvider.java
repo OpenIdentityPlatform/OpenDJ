@@ -236,10 +236,10 @@ public abstract class VirtualAttributeProvider
    * @param  subFinal    The subFinal component to use in the
    *                     determination.
    *
-   * @return  <CODE>UNDEFINED</CODE> if this attribute does not have a
-   *          substring matching rule, <CODE>TRUE</CODE> if at least
-   *          one value matches the provided substring, or
-   *          <CODE>FALSE</CODE> otherwise.
+   * @return  {@code UNDEFINED} if this attribute does not have a
+   *          substring matching rule, {@code TRUE} if at least one
+   *          value matches the provided substring, or {@code FALSE}
+   *          otherwise.
    */
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -609,8 +609,8 @@ public abstract class VirtualAttributeProvider
    * @param  searchOperation  The search operation for which to make
    *                          the determination.
    *
-   * @return  <CODE>true</CODE> if this attribute may be included in
-   *          search filters, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this attribute may be included in search
+   *          filters, or {@code false} if not.
    */
   public abstract boolean isSearchable(VirtualAttributeRule rule,
                                        SearchOperation
@@ -622,7 +622,7 @@ public abstract class VirtualAttributeProvider
    * Processes the provided search operation in which the search
    * criteria includes an operation targeted at this virtual
    * attribute.  This method should only be called if
-   * <CODE>isSearchable</CODE> returns true and it is not possible to
+   * {@code isSearchable} returns true and it is not possible to
    * construct a manageable candidate list by processing other
    * elements of the search criteria.
    *

@@ -73,6 +73,9 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
 
@@ -318,7 +321,7 @@ public class AbandonOperationTestCase
     // Create an add request and send it to the server.  Make sure to include
     // the delay request control so it won't complete before we can send the
     // abandon request.
-    ArrayList<LDAPAttribute> attributes = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>(2);
     values.add(new ASN1OctetString("top"));
@@ -626,7 +629,7 @@ public class AbandonOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>(1);
     values.add(new ASN1OctetString("foo"));
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>(1);
+    ArrayList<RawModification> mods = new ArrayList<RawModification>(1);
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("description", values)));
 

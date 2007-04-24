@@ -31,6 +31,8 @@ package org.opends.server.protocols.ldap;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Integer;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.LDAPException;
+
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.*;
@@ -49,9 +51,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class AbandonRequestProtocolOp
        extends ProtocolOp
 {
-
-
-
   // The message ID of the operation to abandon.
   private int idToAbandon;
 

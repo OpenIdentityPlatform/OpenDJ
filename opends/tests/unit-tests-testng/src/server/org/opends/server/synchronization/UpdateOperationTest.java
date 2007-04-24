@@ -51,7 +51,6 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -1215,7 +1214,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
 
-    ArrayList<LDAPModification> modList = new ArrayList<LDAPModification>(1);
+    ArrayList<RawModification> modList = new ArrayList<RawModification>(1);
     modList.add(m);
 
     InternalClientConnection conn =

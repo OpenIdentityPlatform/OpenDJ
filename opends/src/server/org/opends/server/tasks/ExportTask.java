@@ -31,13 +31,12 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.loggers.Error.logError;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.core.Operation;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigEntry;
@@ -50,6 +49,7 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -266,7 +266,7 @@ public class ExportTask extends Task
         {
           int    msgID   = MSGID_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER;
           String message = getMessage(msgID, filterString,
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
           return TaskState.STOPPED_BY_ERROR;
@@ -301,7 +301,7 @@ public class ExportTask extends Task
         {
           int    msgID   = MSGID_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER;
           String message = getMessage(msgID, filterString,
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
           return TaskState.STOPPED_BY_ERROR;
@@ -363,8 +363,7 @@ public class ExportTask extends Task
         catch (Exception e)
         {
           int    msgID   = MSGID_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE;
-          String message = getMessage(msgID, s,
-                                      stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, s, getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
           return TaskState.STOPPED_BY_ERROR;
@@ -400,8 +399,7 @@ public class ExportTask extends Task
         catch (Exception e)
         {
           int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-          String message = getMessage(msgID, s,
-                                      stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, s, getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
           return TaskState.STOPPED_BY_ERROR;
@@ -481,7 +479,7 @@ public class ExportTask extends Task
       {
         int    msgID   = MSGID_LDIFEXPORT_CANNOT_LOCK_BACKEND;
         String message = getMessage(msgID, backend.getBackendID(),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return TaskState.STOPPED_BY_ERROR;
@@ -511,7 +509,7 @@ public class ExportTask extends Task
         {
           DirectoryServer.notifyExportEnded(backend, exportConfig, false);
           int    msgID   = MSGID_LDIFEXPORT_ERROR_DURING_EXPORT;
-          String message = getMessage(msgID, stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
           return TaskState.STOPPED_BY_ERROR;
@@ -538,7 +536,7 @@ public class ExportTask extends Task
         {
           int    msgID   = MSGID_LDIFEXPORT_CANNOT_UNLOCK_BACKEND;
           String message = getMessage(msgID, backend.getBackendID(),
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
                    message, msgID);
           return TaskState.COMPLETED_WITH_ERRORS;

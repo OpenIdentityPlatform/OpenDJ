@@ -1103,179 +1103,179 @@ public class JebMessages
     registerMessage(MSGID_JEB_INCORRECT_ROUTING,
                     "The backend does not contain that part of the Directory " +
                     "Information Tree pertaining to the entry " +
-                    "'%s'.");
+                    "'%s'");
     registerMessage(MSGID_JEB_OPEN_DATABASE_FAIL,
-                    "The database could not be opened: %s.");
+                    "The database could not be opened: %s");
     registerMessage(MSGID_JEB_OPEN_ENV_FAIL,
-                    "The database environment could not be opened: %s.");
+                    "The database environment could not be opened: %s");
     registerMessage(MSGID_JEB_HIGHEST_ID_FAIL,
                     "The database highest entry identifier could not be " +
-                    "determined.");
+                    "determined");
     registerMessage(MSGID_JEB_FUNCTION_NOT_SUPPORTED,
                     "The requested operation is not supported by this " +
-                    "backend.");
+                    "backend");
     registerMessage(MSGID_JEB_CREATE_FAIL,
-                    "The backend database directory could not be created: %s.");
+                    "The backend database directory could not be created: %s");
     registerMessage(MSGID_JEB_REMOVE_FAIL,
-                    "The backend database files could not be removed: %s.");
+                    "The backend database files could not be removed: %s");
     registerMessage(MSGID_JEB_DIRECTORY_INVALID,
                     "The backend database directory '%s' is not a valid " +
-                    "directory.");
+                    "directory");
     registerMessage(MSGID_JEB_MISSING_DN2ID_RECORD,
-                    "The DN database does not contain a record for '%s'.");
+                    "The DN database does not contain a record for '%s'");
     registerMessage(MSGID_JEB_MISSING_ID2ENTRY_RECORD,
-                    "The entry database does not contain a record for ID %s.");
+                    "The entry database does not contain a record for ID %s");
     registerMessage(MSGID_JEB_ENTRY_DATABASE_CORRUPT,
                     "The entry database does not contain a valid record " +
-                    "for ID %s.");
+                    "for ID %s");
     registerMessage(MSGID_JEB_DATABASE_EXCEPTION,
                     "Database exception: %s");
     registerMessage(MSGID_CONFIG_DESCRIPTION_INDEX_ATTRIBUTE,
-                    "The attribute type name of the attribute index.");
+                    "The attribute type name of the attribute index");
     registerMessage(MSGID_CONFIG_DESCRIPTION_INDEX_TYPE,
                     "The kind of indexing to be enabled on an attribute " +
                     "index. Permitted values include \"equality\", " +
-                    "\"presence\", \"substring\" and \"ordering\").");
+                    "\"presence\", \"substring\" and \"ordering\")");
     registerMessage(MSGID_CONFIG_DESCRIPTION_INDEX_ENTRY_LIMIT,
                     "A performance tuning parameter for attribute indexes. " +
                     "The entry limit of an attribute index, where " +
                     "a value of 0 means there is no threshold. " +
                     "When the number of entries " +
                     "matching an index value reaches the limit, the " +
-                    "value is no longer maintained in the index.");
+                    "value is no longer maintained in the index");
     registerMessage(MSGID_CONFIG_DESCRIPTION_INDEX_SUBSTRING_LENGTH,
-                    "The length of substrings in a substring index.");
+                    "The length of substrings in a substring index");
     registerMessage(MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE,
                     "The attribute '%s' cannot have indexing of type '%s' " +
-                    "because it does not have a corresponding matching rule.");
+                    "because it does not have a corresponding matching rule");
     registerMessage(MSGID_JEB_UNCHECKED_EXCEPTION,
-                    "Unchecked exception during database transaction.");
+                    "Unchecked exception during database transaction");
     registerMessage(MSGID_JEB_CLEAN_DATABASE_START,
-                    "Starting database cleaning on %d log file(s) in '%s'.");
+                    "Starting database cleaning on %d log file(s) in '%s'");
     registerMessage(MSGID_JEB_CLEAN_DATABASE_MARKED,
-                    "Marked %d log file(s) for cleaning.");
+                    "Marked %d log file(s) for cleaning");
     registerMessage(MSGID_JEB_CLEAN_DATABASE_FINISH,
                     "Finished database cleaning; " +
-                    "now %d log file(s) remaining.");
+                    "now %d log file(s) remaining");
     registerMessage(MSGID_JEB_SUBTREE_DELETE_SIZE_LIMIT_EXCEEDED,
                     "Exceeded the administrative limit on the number of " +
                     "entries that may be deleted in a subtree delete " +
                     "operation. The number of entries actually deleted was " +
                     "%d. The operation may be retried until all entries " +
-                    "in the subtree have been deleted.");
+                    "in the subtree have been deleted");
     registerMessage(MSGID_JEB_DELETED_ENTRY_COUNT,
-                    "The number of entries deleted was %d.");
+                    "The number of entries deleted was %d");
     registerMessage(MSGID_JEB_DUPLICATE_CONFIG_ENTRY,
                     "The configuration entry '%s' will be ignored. " +
                     "Only one configuration entry with object class '%s' is " +
-                    "allowed.");
+                    "allowed");
     registerMessage(MSGID_JEB_CONFIG_ENTRY_NOT_RECOGNIZED,
                     "The configuration entry '%s' will be ignored " +
-                    "because it is not recognized.");
+                    "because it is not recognized");
     registerMessage(MSGID_JEB_INDEX_ATTRIBUTE_TYPE_NOT_FOUND,
                     "The index configuration entry '%s' will be ignored " +
-                    "because it specifies an unknown attribute type '%s'.");
+                    "because it specifies an unknown attribute type '%s'");
     registerMessage(MSGID_JEB_DUPLICATE_INDEX_CONFIG,
                     "The index configuration entry '%s' will be ignored " +
                     "because it specifies the attribute type '%s', " +
                     "which has already been defined in another " +
-                    "index configuration entry.");
+                    "index configuration entry");
     registerMessage(MSGID_JEB_IO_ERROR,
                     "I/O error during backend operation: %s");
     registerMessage(MSGID_JEB_BACKEND_STARTED,
-                    "A database backend containing %d entries has started.");
+                    "A database backend containing %d entries has started");
     registerMessage(MSGID_JEB_IMPORT_PARENT_NOT_FOUND,
-                    "The parent entry '%s' does not exist.");
+                    "The parent entry '%s' does not exist");
     registerMessage(MSGID_JEB_IMPORT_ENTRY_EXISTS,
                     "The entry exists and the import options do not " +
-                    "allow it to be replaced.");
+                    "allow it to be replaced");
     registerMessage(MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED,
-                    "There is no index configured for attribute type '%s'.");
+                    "There is no index configured for attribute type '%s'");
     registerMessage(MSGID_JEB_SEARCH_NO_SUCH_OBJECT,
-                    "The search base entry '%s' does not exist.");
+                    "The search base entry '%s' does not exist");
     registerMessage(MSGID_JEB_ADD_NO_SUCH_OBJECT,
                     "The entry '%s' cannot be added because its parent " +
-                    "entry does not exist.");
+                    "entry does not exist");
     registerMessage(MSGID_JEB_DELETE_NO_SUCH_OBJECT,
                     "The entry '%s' cannot be removed because it does " +
-                    "not exist.");
+                    "not exist");
     registerMessage(MSGID_JEB_MODIFY_NO_SUCH_OBJECT,
                     "The entry '%s' cannot be modified because it does " +
-                    "not exist.");
+                    "not exist");
     registerMessage(MSGID_JEB_MODIFYDN_NO_SUCH_OBJECT,
                     "The entry '%s' cannot be renamed because it does " +
-                    "not exist.");
+                    "not exist");
     registerMessage(MSGID_JEB_ADD_ENTRY_ALREADY_EXISTS,
                     "The entry '%s' cannot be added because an entry with " +
-                    "that name already exists.");
+                    "that name already exists");
     registerMessage(MSGID_JEB_DELETE_NOT_ALLOWED_ON_NONLEAF,
                     "The entry '%s' cannot be removed because it has " +
-                    "subordinate entries.");
+                    "subordinate entries");
     registerMessage(MSGID_JEB_MODIFYDN_ALREADY_EXISTS,
                     "The entry cannot be renamed to '%s' because an entry " +
-                    "with that name already exists.");
+                    "with that name already exists");
     registerMessage(MSGID_JEB_NEW_SUPERIOR_NO_SUCH_OBJECT,
                     "The entry cannot be moved because the new parent " +
-                    "entry '%s' does not exist.");
+                    "entry '%s' does not exist");
     registerMessage(MSGID_JEB_CACHE_SIZE_AFTER_PRELOAD,
-                    "The database cache is %d MB after pre-loading.");
+                    "The database cache is %d MB after pre-loading");
     registerMessage(MSGID_JEB_BACKUP_CANNOT_GET_MAC,
                     "An error occurred while attempting to obtain the %s MAC " +
-                    "provider to create the signed hash for the backup:  %s.");
+                    "provider to create the signed hash for the backup:  %s");
     registerMessage(MSGID_JEB_BACKUP_CANNOT_GET_DIGEST,
                     "An error occurred while attempting to obtain the %s " +
-                    "message digest to create the hash for the backup:  %s.");
+                    "message digest to create the hash for the backup:  %s");
     registerMessage(MSGID_JEB_BACKUP_CANNOT_CREATE_ARCHIVE_FILE,
                     "An error occurred while trying to create the database " +
-                    "archive file %s in directory %s:  %s.");
+                    "archive file %s in directory %s:  %s");
     registerMessage(MSGID_JEB_BACKUP_CANNOT_GET_CIPHER,
                     "An error occurred while attempting to obtain the %s " +
-                    "cipher to use to encrypt the backup:  %s.");
+                    "cipher to use to encrypt the backup:  %s");
     registerMessage(MSGID_JEB_BACKUP_ZIP_COMMENT,
                     "%s backup %s of backend %s");
     registerMessage(MSGID_JEB_BACKUP_CANNOT_LIST_LOG_FILES,
                     "An error occurred while attempting to obtain a list " +
                     "of the files in directory %s to include in the database " +
-                    "backup:  %s.");
+                    "backup:  %s");
     registerMessage(MSGID_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE,
                     "An error occurred while attempting to back up database " +
-                    "file %s:  %s.");
+                    "file %s:  %s");
     registerMessage(MSGID_JEB_BACKUP_CANNOT_CLOSE_ZIP_STREAM,
                     "An error occurred while trying to close the database " +
-                    "archive file %s in directory %s:  %s.");
+                    "archive file %s in directory %s:  %s");
     registerMessage(MSGID_JEB_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR,
                     "An error occurred while attempting to update the backup " +
                     "descriptor file %s with information about the database " +
-                    "backup:  %s.");
+                    "backup:  %s");
     registerMessage(MSGID_JEB_BACKUP_UNSIGNED_HASH_ERROR,
                     "The computed hash of backup %s is different to the " +
-                    "value computed at time of backup.");
+                    "value computed at time of backup");
     registerMessage(MSGID_JEB_BACKUP_SIGNED_HASH_ERROR,
                     "The computed signed hash of backup %s is different to " +
-                    "the value computed at time of backup.");
+                    "the value computed at time of backup");
     registerMessage(MSGID_JEB_INCR_BACKUP_REQUIRES_FULL,
                     "A full backup must be taken before an incremental " +
-                    "backup can be taken.");
+                    "backup can be taken");
     registerMessage(MSGID_JEB_CANNOT_RENAME_RESTORE_DIRECTORY,
                     "The directory %s, containing the files restored from " +
                     "backup, could not be renamed to the backend directory " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_JEB_INCR_BACKUP_FROM_WRONG_BASE,
                     "One of the following base backup IDs must be specified " +
-                    "for the incremental backup: %s.");
+                    "for the incremental backup: %s");
     registerMessage(MSGID_JEB_CANNOT_CREATE_BACKUP_TAG_FILE,
-                    "The backup tag file %s could not be created in %s.");
+                    "The backup tag file %s could not be created in %s");
     registerMessage(MSGID_JEB_BACKUP_CANNOT_RESTORE,
                     "An error occurred while attempting to restore the files " +
-                    "from backup %s: %s.");
+                    "from backup %s: %s");
     registerMessage(MSGID_JEB_BACKUP_MISSING_BACKUPID,
                     "The information for backup %s could not be found in " +
-                    "the backup directory %s.");
+                    "the backup directory %s");
     registerMessage(MSGID_JEB_BACKUP_FILE_UNCHANGED,
                     "Not changed: %s");
     registerMessage(MSGID_JEB_BACKUP_CLEANER_ACTIVITY,
                     "Including %s additional log file(s) due to cleaner " +
-                    "activity.");
+                    "activity");
     registerMessage(MSGID_JEB_BACKUP_VERIFY_FILE,
                     "Verifying: %s");
     registerMessage(MSGID_JEB_BACKUP_RESTORED_FILE,
@@ -1284,115 +1284,115 @@ public class JebMessages
                     "Archived: %s");
     registerMessage(MSGID_JEB_EXPORT_FINAL_STATUS,
                     "Exported %d entries and skipped %d in %d seconds " +
-                    "(average rate %.1f/sec).");
+                    "(average rate %.1f/sec)");
     registerMessage(MSGID_JEB_EXPORT_PROGRESS_REPORT,
                     "Exported %d records and skipped %d " +
-                    "(recent rate %.1f/sec).");
+                    "(recent rate %.1f/sec)");
     registerMessage(MSGID_JEB_IMPORT_THREAD_COUNT,
                     "Import thread count = %d");
     registerMessage(MSGID_JEB_IMPORT_BUFFER_SIZE,
                     "Buffer size per thread = %,d");
     registerMessage(MSGID_JEB_IMPORT_LDIF_PROCESSING_TIME,
-                    "LDIF processing took %d seconds.");
+                    "LDIF processing took %d seconds");
     registerMessage(MSGID_JEB_IMPORT_INDEX_PROCESSING_TIME,
-                    "Index processing took %d seconds.");
+                    "Index processing took %d seconds");
     registerMessage(MSGID_JEB_IMPORT_BEGINNING_INTERMEDIATE_MERGE,
                     "Ending LDIF import pass %d because the pass size has " +
-                    "been reached.  Beginning the intermediate index merge.");
+                    "been reached.  Beginning the intermediate index merge");
     registerMessage(MSGID_JEB_IMPORT_BEGINNING_FINAL_MERGE,
-                    "End of LDIF reached.  Beginning final index merge.");
+                    "End of LDIF reached.  Beginning final index merge");
     registerMessage(MSGID_JEB_IMPORT_RESUMING_LDIF_PROCESSING,
                     "Intermediate index merge processing complete (index " +
-                    "processing time %d seconds).  Resuming LDIF processing.");
+                    "processing time %d seconds).  Resuming LDIF processing");
     registerMessage(MSGID_JEB_IMPORT_FINAL_MERGE_COMPLETED,
-                    "Final index merge complete (processing time %d seconds).");
+                    "Final index merge complete (processing time %d seconds)");
     registerMessage(MSGID_JEB_IMPORT_CLOSING_DATABASE,
-                    "Flushing data to disk.");
+                    "Flushing data to disk");
     registerMessage(MSGID_JEB_IMPORT_FINAL_STATUS,
                     "Processed %d entries, imported %d, skipped %d, and " +
-                    "rejected %d in %d seconds (average rate %.1f/sec).");
+                    "rejected %d in %d seconds (average rate %.1f/sec)");
     registerMessage(MSGID_JEB_IMPORT_ENTRY_LIMIT_EXCEEDED_COUNT,
                     "Number of index values that exceeded the entry limit: %d");
     registerMessage(MSGID_JEB_IMPORT_PROGRESS_REPORT,
                     "Processed %d entries, skipped %d, and rejected %d " +
-                    "(recent rate %.1f/sec).");
+                    "(recent rate %.1f/sec)");
     registerMessage(MSGID_JEB_IMPORT_CACHE_AND_MEMORY_REPORT,
-                    "Free memory = %d MB, Cache miss rate = %.1f/entry.");
+                    "Free memory = %d MB, Cache miss rate = %.1f/entry");
     registerMessage(MSGID_JEB_INDEX_MERGE_NO_DATA,
-                    "There is no data to be loaded into the %s index.");
+                    "There is no data to be loaded into the %s index");
     registerMessage(MSGID_JEB_INDEX_MERGE_START,
-                    "Starting %d-way merge to load the %s index.");
+                    "Starting %d-way merge to load the %s index");
     registerMessage(MSGID_JEB_INDEX_MERGE_COMPLETE,
-                    "The %s index has been loaded.");
+                    "The %s index has been loaded");
     registerMessage(MSGID_JEB_VERIFY_CLEAN_FINAL_STATUS,
                     "Checked %d records and found %d error(s) in %d seconds " +
-                    "(average rate %.1f/sec).");
+                    "(average rate %.1f/sec)");
     registerMessage(MSGID_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT,
-                    "Number of records referencing more than one entry: %d.");
+                    "Number of records referencing more than one entry: %d");
     registerMessage(MSGID_JEB_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT,
-                    "Number of records that exceed the entry limit: %d.");
+                    "Number of records that exceed the entry limit: %d");
     registerMessage(MSGID_JEB_VERIFY_AVERAGE_REFERENCE_COUNT,
-                    "Average number of entries referenced is %.2f/record.");
+                    "Average number of entries referenced is %.2f/record");
     registerMessage(MSGID_JEB_VERIFY_MAX_REFERENCE_COUNT,
                     "Maximum number of entries referenced " +
-                    "by any record is %d.");
+                    "by any record is %d");
     registerMessage(MSGID_JEB_VERIFY_FINAL_STATUS,
                     "Checked %d entries and found %d error(s) in %d seconds " +
-                    "(average rate %.1f/sec).");
+                    "(average rate %.1f/sec)");
     registerMessage(MSGID_JEB_VERIFY_ENTRY_LIMIT_STATS_HEADER,
                     "Statistics for records that have exceeded the " +
                     "entry limit:");
     registerMessage(MSGID_JEB_VERIFY_ENTRY_LIMIT_STATS_ROW,
-                    "  File %s has %d such record(s) min=%d max=%d median=%d.");
+                    "  File %s has %d such record(s) min=%d max=%d median=%d");
     registerMessage(MSGID_JEB_VERIFY_PROGRESS_REPORT,
                     "Processed %d records and found %d error(s) " +
-                    "(recent rate %.1f/sec).");
+                    "(recent rate %.1f/sec)");
     registerMessage(MSGID_JEB_VERIFY_CACHE_AND_MEMORY_REPORT,
-                    "Free memory = %d MB, Cache miss rate = %.1f/record.");
+                    "Free memory = %d MB, Cache miss rate = %.1f/record");
     registerMessage(MSGID_JEB_CONFIG_ATTR_REQUIRES_RESTART,
                     "The change to the %s attribute will not take effect " +
-                    "until the backend is restarted.");
+                    "until the backend is restarted");
     registerMessage(MSGID_JEB_INVALID_PAGED_RESULTS_COOKIE,
                     "The following paged results control cookie value was " +
-                    "not recognized: %s.");
+                    "not recognized: %s");
     registerMessage(MSGID_JEB_REFERRAL_RESULT_MESSAGE,
                     "A referral entry %s indicates that the operation must " +
-                    "be processed at a different server.");
+                    "be processed at a different server");
     registerMessage(MSGID_JEB_IMPORT_ENVIRONMENT_CONFIG,
-                    "Database environment properties: %s.");
+                    "Database environment properties: %s");
     registerMessage(MSGID_JEB_INCOMPATIBLE_ENTRY_VERSION,
                     "Entry record with ID %s is not compatible with this " +
                     "version of the backend database. " +
                     "Entry version: %x");
     registerMessage(MSGID_JEB_LOOKTHROUGH_LIMIT_EXCEEDED,
                     "This search operation has checked the maximum of %d " +
-                    "entries for matches.");
+                    "entries for matches");
     registerMessage(MSGID_JEB_SET_PERMISSIONS_FAILED,
                     "Unable to set file permissions for the backend database " +
-                    "directory %s.");
+                    "directory %s");
     registerMessage(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
                     "Unable to determine the total number of entries in the " +
                     "container: %s");
     registerMessage(MSGID_JEB_REBUILD_START,
                     "Rebuild of index(es) %s started with %d total records " +
-                    "to process.");
+                    "to process");
     registerMessage(MSGID_JEB_REBUILD_PROGRESS_REPORT,
                     "%.1f%% Completed. Processed %d/%d records. " +
-                    "(recent rate %.1f/sec).");
+                    "(recent rate %.1f/sec)");
     registerMessage(MSGID_JEB_REBUILD_CACHE_AND_MEMORY_REPORT,
-                    "Free memory = %d MB, Cache miss rate = %.1f/record.");
+                    "Free memory = %d MB, Cache miss rate = %.1f/record");
     registerMessage(MSGID_JEB_REBUILD_FINAL_STATUS,
                     "Rebuild complete. Processed %d records in %d seconds " +
-                    "(average rate %.1f/sec).");
+                    "(average rate %.1f/sec)");
     registerMessage(MSGID_JEB_REBUILD_INDEX_FAILED,
                     "An error occured while rebuilding index %s: %s");
     registerMessage(MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED,
                     "An error occured while inserting entry into the %s " +
                     "database/index: %s");
     registerMessage(MSGID_JEB_REBUILD_INDEX_CONFLICT,
-                    "Another rebuild of index %s is already in progress.");
+                    "Another rebuild of index %s is already in progress");
     registerMessage(MSGID_JEB_REBUILD_BACKEND_ONLINE,
                     "Rebuilding system index(es) must be done with the " +
-                    "backend containing the base DN disabled.");
+                    "backend containing the base DN disabled");
   }
 }

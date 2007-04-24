@@ -58,6 +58,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 
 import static org.testng.Assert.*;
@@ -914,7 +915,7 @@ public class ExactMatchIdentityMapperTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("cn"));
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-attribute",
                                                     values)));
@@ -999,7 +1000,7 @@ public class ExactMatchIdentityMapperTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("dc=example,dc=com"));
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-base-dn",
                                                     values)));
@@ -1052,7 +1053,7 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     // Create a modification to remove the match attribute.
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-attribute")));
     InternalClientConnection conn =
@@ -1079,7 +1080,7 @@ public class ExactMatchIdentityMapperTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("undefinedAttribute"));
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-attribute",
                                                     values)));
@@ -1107,7 +1108,7 @@ public class ExactMatchIdentityMapperTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("invalidDN"));
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-base-dn",
                                                     values)));

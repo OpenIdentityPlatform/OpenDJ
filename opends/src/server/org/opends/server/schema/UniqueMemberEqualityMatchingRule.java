@@ -202,8 +202,7 @@ public class UniqueMemberEqualityMatchingRule
       // strict syntax enforcement, then throw an exception.  Otherwise, log a
       // message and just try our best.
       int msgID = MSGID_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
-      String message = getMessage(msgID, valueString,
-                                  stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, valueString, getExceptionMessage(e));
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {

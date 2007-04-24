@@ -47,6 +47,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.RDN;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -463,7 +464,7 @@ public final class TestLDIFReader extends UtilTestCase {
       ModifyDNChangeRecordEntry modifyDN;
       DN dn;
       RDN rdn;
-      Iterator<LDAPModification> i;
+      Iterator<RawModification> i;
       Modification mod;
       Attribute attr;
       LinkedHashSet<AttributeValue> values;

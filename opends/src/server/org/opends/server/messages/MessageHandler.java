@@ -62,8 +62,9 @@ import java.util.IllegalFormatException;
  *   <LI>009 -- Generic backend processing</LI>
  *   <LI>00A -- Directory Server tools</LI>
  *   <LI>00B -- Task processing</LI>
-     <LI>00C -- Access Control</LI>
-     <LI>00D -- Administration framework</LI>
+ *   <LI>00C -- Access Control</LI>
+ *   <LI>00D -- Administration framework</LI>
+ *   <LI>00E -- Synchronization</LI>
  *   <LI>800 through FFE -- Reserved for third-party modules</LI>
  *   <LI>FFF -- User-defined processing</LI>
  * </UL>
@@ -153,12 +154,6 @@ public class MessageHandler
   public static final int CATEGORY_MASK_JEB = 0x00800000;
 
 
-  /**
-   * The category bitmask used for messages associated with the Synchronization.
-   */
-  public static final int CATEGORY_MASK_SYNC = 0x01000000;
-
-
 
   /**
    * The category bitmask used for messages associated with generic backends.
@@ -191,6 +186,12 @@ public class MessageHandler
    * administration framework.
    */
   public static final int CATEGORY_MASK_ADMIN = 0x00D00000;
+
+
+  /**
+   * The category bitmask used for messages associated with the Synchronization.
+   */
+  public static final int CATEGORY_MASK_SYNC = 0x0E000000;
 
 
 
@@ -292,6 +293,7 @@ public class MessageHandler
     TaskMessages.registerMessages();
     AdminMessages.registerMessages();
     AciMessages.registerMessages();
+    SynchronizationMessages.registerMessages();
   }
 
 
@@ -387,7 +389,7 @@ public class MessageHandler
    * @param  messageID     The unique identifier assigned to this message.
    * @param  formatString  The format string to use for this message.
    */
-  public static void registerMessage(int messageID, String formatString)
+  static void registerMessage(int messageID, String formatString)
   {
     messageMap.put(messageID, formatString);
   }

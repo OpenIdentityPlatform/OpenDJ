@@ -182,7 +182,7 @@ public class TaskBackend
         int    msgID   = MSGID_TASKBE_CANNOT_DECODE_RECURRING_TASK_BASE_DN;
         String message = getMessage(msgID,
                                     String.valueOf(recurringTaskBaseString),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new InitializationException(msgID, message, e);
       }
 
@@ -203,7 +203,7 @@ public class TaskBackend
         int    msgID   = MSGID_TASKBE_CANNOT_DECODE_SCHEDULED_TASK_BASE_DN;
         String message = getMessage(msgID,
                                     String.valueOf(scheduledTaskBaseString),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new InitializationException(msgID, message, e);
       }
     }
@@ -247,7 +247,7 @@ public class TaskBackend
 
       int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
       String message = getMessage(msgID, taskRootDN.toString(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
   }
@@ -1127,7 +1127,7 @@ public class TaskBackend
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_BACKING_FILE;
       unacceptableReasons.add(getMessage(msgID, ATTR_TASK_BACKING_FILE,
-                                         stackTraceToSingleLineString(e)));
+                                         getExceptionMessage(e)));
 
       configIsAcceptable = false;
     }
@@ -1198,7 +1198,7 @@ public class TaskBackend
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_BACKING_FILE;
       messages.add(getMessage(msgID, ATTR_TASK_BACKING_FILE,
-                              stackTraceToSingleLineString(e)));
+                              getExceptionMessage(e)));
 
       resultCode = DirectoryServer.getServerErrorResultCode();
     }

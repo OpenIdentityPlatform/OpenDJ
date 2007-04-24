@@ -45,8 +45,7 @@
   <property name="build.debuglevel"    value="lines,vars,source"       />
 
   <!-- Properties for build tools                                   -->
-  <property name="buildtools.dir" location="build-tools"              />
-  <property name="buildtools.src.dir" location="${buildtools.dir}/src" />
+  <property name="buildtools.src.dir" location="src/build-tools" />
   <property name="buildtools.classes.dir" location="${build.dir}/build-tools/classes" />
 
   <!-- Properties for use in unit testing.                           -->
@@ -134,6 +133,8 @@
   <property name="admin.src.dir"   location="src/admin/generated" />
   <property name="admin.rules.dir" location="resource/admin" />
 
+
+
   <!-- Create a package bundle containing the DSML library. -->
   <target name="dsml" depends="predsml,package"
        description="Build a Directory Server package bundle with DSML.">
@@ -144,7 +145,8 @@
 
   <!-- The build target that should be used before committing code. -->
   <target name="precommit" depends="checkstyle,clean,copyrightdates,eolstyle,dsml,javadoc,testwithcoverage"
-       description="Perform all processing needed before committing code." />
+       description="Perform all processing needed before committing code.">
+  </target>
 
 
 
@@ -152,14 +154,16 @@
   <!-- The build target that should be used for nightly builds. -->
   <target name="nightly"
        depends="enableweave,checkstyle,dsml,javadoc,coverage,testall"
-       description="Perform all processing needed for nightly builds." />
+       description="Perform all processing needed for nightly builds.">
+  </target>
 
 
 
 
   <!-- The build target that should be used for weekly builds. -->
   <target name="weekly" depends="nightly"
-       description="Perform all processing needed for weekly builds." />
+       description="Perform all processing needed for weekly builds.">
+  </target>
 
 
 
@@ -167,7 +171,8 @@
   <!-- The build target that should be used to build everything. -->
   <target name="all"
        depends="enableweave,checkstyle,clean,copyrightdates,eolstyle,dsml,javadoc,testallwithcoverage"
-       description="Build using all defined targets." />
+       description="Build using all defined targets.">
+  </target>
 
 
 
@@ -184,12 +189,20 @@
   </target>
 
 
+
   <!-- Perform common initialization common to several targets after cleaning out the previous build environment. -->
-  <target name="cleaninit" depends="clean,init"/>
+  <target name="cleaninit" depends="clean,init">
+  </target>
+
 
 
   <!-- Perform common initialization common to several targets. -->
   <target name="init">
+
+    <path id="run.classpath">
+      <pathelement location="${classes.dir}" />
+    </path>
+
     <tstamp>
       <format property="timestamp" pattern="yyyyMMddHHmmss" />
     </tstamp>
@@ -400,11 +413,12 @@
        description="Recompile the Directory Server source files.">
   </target>
 
+
+
   <!-- Compile the Directory Server source files. -->
   <target name="compile"
        depends="init,dynamicconstants,compileadmin"
        description="Compile the Directory Server source files.">
-
     <mkdir dir="${classes.dir}" />
 
     <javac srcdir="${src.dir}:${admin.src.dir}" destdir="${classes.dir}"
@@ -422,11 +436,15 @@
     </javac>
   </target>
 
+
+
   <target name="prepweave">
     <condition property="weave.enabled" value="true">
         <equals arg1="${WEAVE_ENABLED}" arg2="true" />
     </condition>
   </target>
+
+
 
   <target name="weave" if="weave.enabled" depends="compile, prepweave">
     <echo message="  Weaving the source code with automatic AspectJ debug logging."/>
@@ -449,10 +467,10 @@
   </target>
 
 
+
   <!-- Compile the Quick Setup source files. -->
   <target name="compilequicksetup" depends="buildtools,weave"
           description="Compile the Quick Setup source files.">
-
     <mkdir dir="${quicksetup.classes.dir}" />
     <javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
                debug="on" debuglevel="${build.debuglevel}" source="1.5"
@@ -483,10 +501,11 @@
     </copy>
   </target>
 
+
+
   <!-- Compile the Status Panel source files. -->
   <target name="compilestatuspanel" depends="compilequicksetup"
            description="Compile the Status Panel source files.">
-
     <mkdir dir="${statuspanel.classes.dir}" />
     <javac srcdir="${statuspanel.src.dir}" destdir="${statuspanel.classes.dir}"
            debug="on" debuglevel="${build.debuglevel}" source="1.5"
@@ -505,6 +524,8 @@
     </copy>
   </target>
 
+
+
   <!--
    ! Rebuild the Directory Server without destroying any existing configuration
    ! or data.  It will only overwrite the libraries, classes, and scripts, and
@@ -513,7 +534,6 @@
    ! -->
   <target name="rebuild"
        description="Rebuild the server without destroying config or data.">
-
     <!-- Set the amount of memory to use for the build -->
     <condition property="MEM" value="128M">
       <not>
@@ -626,7 +646,6 @@
   <!-- Populate the Directory Server package, but don't zip it up. -->
   <target name="prepackage" depends="cleancompile"
        description="Prepare the Directory Server package structure.">
-
     <property name="pkgversion"
          value="${MAJOR_VERSION}.${MINOR_VERSION}${VERSION_QUALIFIER}" />
     <property name="pdir"
@@ -734,7 +753,6 @@
   <!-- Package the Directory Server for distribution. -->
   <target name="package" depends="prepackage"
        description="Package the Directory Server for distribution.">
-
     <zip destfile="${package.dir}/OpenDS-${pkgversion}.zip">
       <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/**/*"
            excludes="OpenDS-${pkgversion}/bin/*,OpenDS-${pkgversion}/setup,OpenDS-${pkgversion}/uninstall"
@@ -750,10 +768,11 @@
     </zip>
   </target>
 
+
+
   <!-- Prepare the Directory Server DSML library. -->
   <target name="predsml" depends="prepackage"
        description="Prepare the Directory Server DSML library.">
-
     <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
       <classpath>
         <fileset dir="${dsml.lib.dir}">
@@ -829,7 +848,6 @@
   <!-- Generate JavaDoc documentation from the source files -->
   <target name="javadoc" depends="dsml,compileadmin"
        description="Generate JavaDoc documentation.">
-
     <mkdir dir="${javadoc.dir}" />
 
     <javadoc destdir="${javadoc.dir}" source="1.5" additionalparam="-quiet"
@@ -858,7 +876,6 @@
 
   <!-- Internal target to prepare to generate a code coverage report. -->
   <target name="coverage">
-
     <property name="coverage.enabled" value="true" />
 
     <mkdir dir="${coverage.dir}"        />
@@ -876,7 +893,6 @@
   <!-- Prepare to execute the Directory Server TestNG unit tests. -->
   <target name="testinit" depends="buildtools, weave"
          description="Prepare to execute the Directory Server TestNG unit tests.">
-
     <!-- If we are to perform coverage tests, then set that up. -->
     <path id="emma.lib">
       <pathelement location="${emma.dir}/emma.jar"     />
@@ -966,6 +982,8 @@
     <antcall target="testinit.checkFailedTestsOnly"/>
   </target>
 
+
+
   <!-- If we were asked to run only the tests that failed,
       then we overwrite the testng.xml that we just generated
       with testng-failed.xml, which TestNG generated. -->
@@ -991,6 +1009,8 @@
 
     <echo message="Will run the failed unit tests only"/>
   </target>
+
+
 
   <!-- Generate coverage diff report -->
   <target name="coveragediff">
@@ -1039,15 +1059,21 @@
 
   </target>
 
+
+
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="enableTestNGAssertions">
     <property name="TESTASSERT" value="true"/>
   </target>
 
+
+
   <!-- Execute Directory Server TestNG unit tests specified from CLI -->
   <target name="testcustom">
     <echo message="This target is deprecated. Please use the test target as it now supports the test.* properties." />
   </target>
+
+
 
   <!-- Execute all of the Directory Server TestNG unit tests in text mode. -->
   <target name="testall"
@@ -1056,11 +1082,14 @@
   </target>
 
 
+
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="test"
           depends="enableweave,testinit,runtests"
           description="Execute the Directory Server TestNG unit tests in text mode.  Set '-Dorg.opends.test.suppressOutput=false' to see the output from the unit tests.  Set '-Dtest.failures=true' to run only the tests that failed previously.">
   </target>
+
+
 
   <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report. -->
   <target name="testwithcoverage"
@@ -1068,16 +1097,22 @@
           description="Execute the Directory Server TestNG unit tests in text mode with a coverage report.  Use -Dtest.packages, -Dtest.classes, or -Dtest.methods to control which unit tests are run.  Use -Dtest.diff.srcpath to control which src files show up in the coverage diff.  See the 'test' package for other properties you can set.">
   </target>
 
+
+
   <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report and slow tests. -->
   <target name="testallwithcoverage"
           depends="coverage,testall,coveragediff"
           description="The same as 'testwithcoverage' except 'testall' is run instead of 'test'.">
   </target>
 
+
+
   <!-- Execute the Directory Server TestNG unit tests specified from CLI in text mode with a coverage report. -->
   <target name="testcustomwithcoverage">
     <echo message="This target is deprecated. Please use the testwithcoverage target as it now supports the test.* properties." />
   </target>
+
+
 
   <target name="testhelp" unless="disable.test.help">
     <echo message="About to run the unit tests.  Ant options to control the tests:"/>
@@ -1128,6 +1163,8 @@
     <echo message="      the whole value."/>
     <echo message=""/>
   </target>
+
+
 
   <!-- Internal target to execute the Directory Server TestNG unit tests in text mode after everything has been initialized. -->
   <target name="runtests">
@@ -1249,6 +1286,8 @@
 
   </target>
 
+
+
   <target name="prepdefaultalltest">
     <condition property="test.groups" value="">
       <not>
@@ -1261,6 +1300,8 @@
       </not>
     </condition>
   </target>
+
+
 
   <target name="enableweave">
     <condition property="WEAVE_ENABLED" value="true">
@@ -1276,6 +1317,8 @@
     </condition>
   </target>
 
+
+
   <target name="testreport"
         depends="test"
         description="Takes testng results and convert them into JUnit compatible xml">
@@ -1290,15 +1333,14 @@
 
 
   <target name="integration-tests"
-            description="Builds the integration tests"
-            >
+            description="Builds the integration tests">
     <ant dir="${functest.testng.dir}" inheritall="false"/>
   </target>
 
 
-  <target name="buildtools"
-        description="Builds the build tools">
 
+  <target name="buildtools" depends="init"
+        description="Builds the build tools">
     <!-- Set the amount of memory to use for the build -->
     <condition property="MEM" value="128M">
       <not>
@@ -1335,8 +1377,34 @@
          basedir="${buildtools.classes.dir}" compress="true" index="true" />
   </target>
 
+
+
   <!-- Code generation for core administration components. -->
   <target name="compileadmin" depends="validateadmin" description="Code generation for configuration Object.">
+    <!-- The XSLT task creates a lot of noise.
+         I can't find any other way to shut it up. -->
+
+    <condition property="antcmd" value="ant.bat">
+      <os family="windows" />
+    </condition>
+    
+    <condition property="antcmd" value="ant">
+      <not>
+        <isset property="antcmd" />
+      </not>
+    </condition>
+    
+    <exec executable="${ant.home}/bin/${antcmd}">
+      <arg value="-buildfile" />
+      <arg value="${ant.file}" />
+      <arg value="-quiet" />
+      <arg value="compileadminsubtask" />
+    </exec>
+  </target>
+
+
+
+  <target name="compileadminsubtask">
     <!-- Generate introspection API for core administration components. -->
     <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml" style="${admin.rules.dir}/metaMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.java" />
@@ -1393,12 +1461,16 @@
     <delete dir="${admin.temp.dir}" />
   </target>
 
+
+
   <!-- Remove all dynamically-generated build files. -->
   <target name="cleanadmin" description="Clean up any generated source files for admin">
     <delete includeemptydirs="true">
       <fileset dir="${admin.src.dir}" includes="**/*" />
     </delete>
   </target>
+
+
 
   <!-- Validate core administration component XML definition files. -->
   <target name="validateadmin" description="Validate core administration component XML definition files.">
@@ -1408,6 +1480,8 @@
       <schema namespace="http://www.opends.org/admin-ldap" file="${admin.rules.dir}/admin-ldap.xsd"/>
     </schemavalidate>
   </target>
+
+
 
   <!-- Generate example plugin package. -->
   <target name="example-plugin" if="pdir">

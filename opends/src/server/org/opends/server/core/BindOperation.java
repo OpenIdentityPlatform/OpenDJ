@@ -63,6 +63,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LockManager;
+import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PostOperationBindOperation;
@@ -1655,7 +1656,7 @@ bindProcessing:
             }
 
             int    msgID   = MSGID_BIND_OPERATION_PASSWORD_VALIDATION_EXCEPTION;
-            String message = getMessage(msgID, stackTraceToSingleLineString(e));
+            String message = getMessage(msgID, getExceptionMessage(e));
 
             setResultCode(DirectoryServer.getServerErrorResultCode());
             setAuthFailureReason(msgID, message);
@@ -2313,7 +2314,7 @@ bindProcessing:
    * {@inheritDoc}
    */
   @Override()
-  boolean setCancelRequest(CancelRequest cancelRequest)
+  protected boolean setCancelRequest(CancelRequest cancelRequest)
   {
     // Bind operations cannot be canceled.
     return false;

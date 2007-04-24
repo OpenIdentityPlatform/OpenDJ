@@ -43,8 +43,6 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.protocols.internal.InternalSearchListener;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
@@ -55,9 +53,14 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.IntermediateResponse;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 
 
@@ -69,8 +72,6 @@ import static org.opends.server.messages.ProtocolMessages.*;
 public class JmxClientConnection
        extends ClientConnection implements NotificationListener
 {
-
-
   // The message ID counter to use for jmx connections.
   private AtomicInteger nextMessageID;
 
@@ -462,7 +463,7 @@ public class JmxClientConnection
    *          information about the result of the processing.
    */
   public AddOperation processAdd(ASN1OctetString rawEntryDN,
-                                 ArrayList<LDAPAttribute> rawAttributes)
+                                 ArrayList<RawAttribute> rawAttributes)
   {
     AddOperation addOperation =
          new AddOperation(this, nextOperationID(), nextMessageID(),
@@ -554,7 +555,7 @@ public class JmxClientConnection
    *          contains information about the result of the processing
    */
   public ModifyOperation processModify(ASN1OctetString rawEntryDN,
-                              ArrayList<LDAPModification> rawModifications)
+                              ArrayList<RawModification> rawModifications)
   {
     ModifyOperation modifyOperation =
          new ModifyOperation(this, nextOperationID(), nextMessageID(),

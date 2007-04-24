@@ -33,12 +33,13 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.schema.BooleanEqualityMatchingRule;
 import org.opends.server.schema.DistinguishedNameEqualityMatchingRule;
 import org.opends.server.schema.IntegerEqualityMatchingRule;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.LDAPException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -50,7 +51,7 @@ import static org.testng.Assert.*;
 public class MatchedValuesControlTest
     extends ControlsTestCase
 {
-  
+
   /**
    * Check "enum" values
    */
@@ -63,9 +64,9 @@ public class MatchedValuesControlTest
     assertEquals(MatchedValuesFilter.LESS_OR_EQUAL_TYPE,(byte)0xA6);
     assertEquals(MatchedValuesFilter.PRESENT_TYPE ,(byte)0x87);
     assertEquals(MatchedValuesFilter.APPROXIMATE_MATCH_TYPE,(byte)0xA8);
-    assertEquals(MatchedValuesFilter.EXTENSIBLE_MATCH_TYPE,(byte)0xA9);                
+    assertEquals(MatchedValuesFilter.EXTENSIBLE_MATCH_TYPE,(byte)0xA9);
   }
-  
+
   @DataProvider(name = "equalityFilterData")
   public Object[][] createEqualityFilterData()
   {
@@ -84,7 +85,7 @@ public class MatchedValuesControlTest
       throws Exception
   {
     MatchedValuesFilter mvf;
-    // 
+    //
     // ( String rawAttributeType, ASN1OctetStringrawAssertionValue)
     //
     // Check null, null
@@ -143,7 +144,7 @@ public class MatchedValuesControlTest
       // excepted behavior
     }
 
-    // 
+    //
     // ( AttributeType attributeType, AttributeValue assertionValue
     //
     AttributeType attType = DirectoryServer.getAttributeType(type);
@@ -215,7 +216,7 @@ public class MatchedValuesControlTest
       // excepted behavior
     }
   }
-  
+
   @DataProvider(name = "substringsFilterData")
   public Object[][] createSubstringsFilterData()
   {
@@ -223,7 +224,7 @@ public class MatchedValuesControlTest
     l.add("subAny") ;
     l.add("o") ;
     l.add("fakesubAny");
-    
+
     return new Object[][]
     {
     { "description", "subInitial" ,l, "subFinal" },
@@ -231,7 +232,7 @@ public class MatchedValuesControlTest
     { "fakeobjecttype", "fakesubInitial" , l,"fakesubFinal"}, };
   }
 
-  
+
   /**
    * Test createEqualityFilter
    */
@@ -244,20 +245,20 @@ public class MatchedValuesControlTest
     String             rawAttTypeTest = type;
     AttributeType         attTypeTest = DirectoryServer.getAttributeType(type);
     ASN1OctetString       subInitialTest = new ASN1OctetString(subInitial);
-    List<ASN1OctetString> subAnyTest = 
-      new ArrayList<ASN1OctetString>(subAny.size());
+    List<ByteString> subAnyTest =
+      new ArrayList<ByteString>(subAny.size());
     for (String s : subAny)
     {
       subAnyTest.add(new ASN1OctetString(s));
     }
-    ASN1OctetString       subFinalTest = new ASN1OctetString(subFinal);
+    ByteString subFinalTest = new ASN1OctetString(subFinal);
 
     // test parameter
-    AttributeType         attTypeCurrent;
-    String             rawAttTypeTestCurrent;
-    ASN1OctetString       subInitialTestCurrent;
-    List<ASN1OctetString> subAnyTestCurrent;
-    ASN1OctetString       subFinalTestCurrent;
+    AttributeType    attTypeCurrent;
+    String           rawAttTypeTestCurrent;
+    ByteString       subInitialTestCurrent;
+    List<ByteString> subAnyTestCurrent;
+    ByteString       subFinalTestCurrent;
 
     for (int i = 0; i <= 15; i++)
     {
@@ -306,10 +307,10 @@ public class MatchedValuesControlTest
         }
         else
         {
-          List<ASN1OctetString> ret = mvf.getSubAnyElements();
+          List<ByteString> ret = mvf.getSubAnyElements();
           assertNotNull(ret);
           assertEquals(subAnyTestCurrent.size(), ret.size());
-          for (ASN1OctetString r : ret)
+          for (ByteString r : ret)
           {
             assertTrue(subAnyTestCurrent.contains(r));
           }
@@ -346,7 +347,7 @@ public class MatchedValuesControlTest
             ret = mvf.getSubAnyElements();
             assertNotNull(ret);
             assertEquals(subAnyTestCurrent.size(), ret.size());
-            for (ASN1OctetString r : ret)
+            for (ByteString r : ret)
             {
               assertTrue(subAnyTestCurrent.contains(r));
             }
@@ -370,7 +371,7 @@ public class MatchedValuesControlTest
       }
     }
   }
-  
+
   /**
    * Test GreaterOrEqualFilter
    */
@@ -379,7 +380,7 @@ public class MatchedValuesControlTest
       throws Exception
   {
     MatchedValuesFilter mvf;
-    // 
+    //
     // ( String rawAttributeType, ASN1OctetStringrawAssertionValue)
     //
     // Check null, null
@@ -446,7 +447,7 @@ public class MatchedValuesControlTest
       // excepted behavior
     }
 
-    // 
+    //
     // ( AttributeType attributeType, AttributeValue assertionValue
     //
     AttributeType attType = DirectoryServer.getAttributeType(type);
@@ -515,7 +516,7 @@ public class MatchedValuesControlTest
       // excepted behavior
     }
   }
-  
+
   /**
    * Test LessOrEqualFilter
    */
@@ -523,7 +524,7 @@ public class MatchedValuesControlTest
   public void checkLessOrEqualFilter(String type, String value)
       throws Exception
   {
-    // 
+    //
     // ( String rawAttributeType, ASN1OctetStringrawAssertionValue)
     //
     // Check null, null
@@ -581,7 +582,7 @@ public class MatchedValuesControlTest
     }
     ;
 
-    // 
+    //
     // ( AttributeType attributeType, AttributeValue assertionValue
     //
     AttributeType attType = DirectoryServer.getAttributeType(type);
@@ -649,7 +650,7 @@ public class MatchedValuesControlTest
       // excepted behavior
     }
   }
-  
+
   /**
    * Test PresentFilter
    */
@@ -657,7 +658,7 @@ public class MatchedValuesControlTest
   public void checkPresentFilter(
       String type, String value) throws Exception
   {
-    // 
+    //
     // ( String rawAttributeType)
     //
     // Check null
@@ -675,18 +676,18 @@ public class MatchedValuesControlTest
     {
       // excepted behavior
     }
-    
+
     // Check type
     mvf = MatchedValuesFilter.createPresentFilter(type);
     assertNotNull(mvf);
     assertEquals(mvf.getRawAttributeType(), type);
     assertEquals(mvf.getMatchType(), MatchedValuesFilter.PRESENT_TYPE);
-    
-    // 
+
+    //
     // ( AttributeType attributeType
     //
     AttributeType attType = DirectoryServer.getAttributeType(type);
-    
+
     // Check null
     try
     {
@@ -711,7 +712,7 @@ public class MatchedValuesControlTest
       assertEquals(mvf.getMatchType(), MatchedValuesFilter.PRESENT_TYPE);
     }
   }
-  
+
   /**
    * Test ApproximateFilter
    */
@@ -720,12 +721,12 @@ public class MatchedValuesControlTest
       throws Exception
   {
     MatchedValuesFilter mvf;
-    // 
+    //
     // ( String rawAttributeType, ASN1OctetStringrawAssertionValue)
     //
     // Check null, null
     try
-    { 
+    {
       mvf = MatchedValuesFilter.createApproximateFilter((String) null,
           (ASN1OctetString) null);
       assertTrue(false, "Expected NullPointerException");
@@ -779,7 +780,7 @@ public class MatchedValuesControlTest
       // excepted behavior
     }
 
-    // 
+    //
     // ( AttributeType attributeType, AttributeValue assertionValue
     //
     AttributeType attType = DirectoryServer.getAttributeType(type);
@@ -850,18 +851,18 @@ public class MatchedValuesControlTest
       // excepted behavior
     }
   }
-  
+
   @DataProvider(name = "extensibleMatchFilterData")
   public Object[][] createExtensibleMatchFilterData()
   {
-    
+
     return new Object[][]
     {
     { "description", new BooleanEqualityMatchingRule(), "description" },
     { "objectclass", new IntegerEqualityMatchingRule() ,"top" },
     { "fakeobjecttype", new DistinguishedNameEqualityMatchingRule(), "fakevalue" }, };
   }
-  
+
   /**
    * Test ExtensibleMatchFilter
    */
@@ -870,10 +871,10 @@ public class MatchedValuesControlTest
       String type, MatchingRule matchingRule, String value)
       throws Exception
   {
-    
+
     // input value
     String          rawAttTypeTest = type ;
-    AttributeType      attTypeTest = DirectoryServer.getAttributeType(type) ;   
+    AttributeType      attTypeTest = DirectoryServer.getAttributeType(type) ;
     String             matchingRuleIdTest = matchingRule.getOID() ;
     ASN1OctetString rawAttValueTest = (attTypeTest == null) ? null : new ASN1OctetString(value);
     AttributeValue     attValueTest = (attTypeTest == null) ? null : new AttributeValue(attTypeTest, value);
@@ -881,12 +882,12 @@ public class MatchedValuesControlTest
     // parameter used for the test.
     String          rawAttTypeTestCurrent;
     AttributeType      attTypeTestCurrent ;
-    String          rawMatchingRuleidTestCurrent ; 
+    String          rawMatchingRuleidTestCurrent ;
     MatchingRule        matchingRuleidTestCurrent ;
     ASN1OctetString rawAttValueTestCurrent;
     AttributeValue     attValueTestCurrent;
 
-    
+
     for (int i= 0 ; i <= 7 ; i++)
     {
       rawAttTypeTestCurrent = null;
@@ -895,14 +896,14 @@ public class MatchedValuesControlTest
       rawAttValueTestCurrent = null;
       attTypeTestCurrent = null;
       attValueTestCurrent = null ;
-      
+
       if ((i & 0x4) != 0) attTypeTestCurrent = attTypeTest;
       if ((i & 0x4) != 0) rawAttTypeTestCurrent = rawAttTypeTest;
       if ((i & 0x2) != 0) rawMatchingRuleidTestCurrent = matchingRuleIdTest;
       if ((i & 0x2) != 0) matchingRuleidTestCurrent = matchingRule ;
       if ((i & 0x1) != 0) rawAttValueTestCurrent = rawAttValueTest;
       if ((i & 0x1) != 0) attValueTestCurrent = attValueTest;
-      
+
       boolean exceptionExpected = (attTypeTestCurrent == null)
           || (attValueTestCurrent == null) || (matchingRuleidTestCurrent == null);
 
@@ -942,14 +943,14 @@ public class MatchedValuesControlTest
       }
     }
   }
-  
+
   /**
    * Check encode/decode method
    */
   private void checkEncodeDecode(MatchedValuesFilter mvf)
   {
     ASN1Element asn1Elt = mvf.encode() ;
-    try 
+    try
     {
       MatchedValuesFilter newMvf = MatchedValuesFilter.decode(asn1Elt) ;
       assertEquals(newMvf.toString(), mvf.toString());
@@ -958,6 +959,6 @@ public class MatchedValuesControlTest
     {
       assertTrue(false, "Unexpected LDAPException ; msg=" + e.getMessage());
     }
-    
+
   }
 }

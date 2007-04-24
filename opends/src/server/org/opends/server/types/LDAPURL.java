@@ -857,8 +857,7 @@ public class LDAPURL
 
       // This should never happen.
       int    msgID   = MSGID_LDAPURL_CANNOT_CREATE_UTF8_STRING;
-      String message = getMessage(msgID,
-                                  stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new DirectoryException(
                      ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                      msgID);

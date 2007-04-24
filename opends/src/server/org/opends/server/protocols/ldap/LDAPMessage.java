@@ -35,10 +35,10 @@ import org.opends.server.api.ProtocolElement;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Integer;
 import org.opends.server.protocols.asn1.ASN1Sequence;
-
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.LDAPException;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -53,9 +53,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class LDAPMessage
        implements ProtocolElement
 {
-
-
-
   // The set of controls for this LDAP message.
   private ArrayList<LDAPControl> controls;
 

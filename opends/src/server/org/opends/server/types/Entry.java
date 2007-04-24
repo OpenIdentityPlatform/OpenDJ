@@ -2798,7 +2798,7 @@ public class Entry
               String message =
                    getMessage(msgID, String.valueOf(dn),
                               ditStructureRule.getNameOrRuleID(),
-                              stackTraceToSingleLineString(e));
+                              getExceptionMessage(e));
 
               if (structuralPolicy == AcceptRejectWarn.REJECT)
               {
@@ -2909,7 +2909,7 @@ public class Entry
                    MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR;
               String message =
                    getMessage(msgID, String.valueOf(dn),
-                              stackTraceToSingleLineString(e));
+                              getExceptionMessage(e));
 
               if (structuralPolicy == AcceptRejectWarn.REJECT)
               {
@@ -4420,8 +4420,7 @@ public class Entry
       }
 
       int    msgID   = MSGID_ENTRY_DECODE_EXCEPTION;
-      String message = getMessage(msgID,
-                                  stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new DirectoryException(
                      DirectoryServer.getServerErrorResultCode(),
                      message, msgID, e);

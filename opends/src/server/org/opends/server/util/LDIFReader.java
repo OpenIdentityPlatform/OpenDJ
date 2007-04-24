@@ -69,6 +69,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.RDN;
 
 
@@ -1384,7 +1385,7 @@ public final class LDIFReader
   private ChangeRecordEntry parseModifyChangeRecordEntry(DN entryDN,
       LinkedList<StringBuilder> lines) throws LDIFException {
 
-    List<LDAPModification> modifications = new ArrayList<LDAPModification>();
+    List<RawModification> modifications = new ArrayList<RawModification>();
     while(!lines.isEmpty())
     {
       ModificationType modType = null;

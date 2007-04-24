@@ -50,8 +50,8 @@ import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.ResultCode;
 
 import static org.testng.Assert.*;

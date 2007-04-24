@@ -28,9 +28,6 @@ package org.opends.server.api.plugin;
 
 
 
-
-
-
 /**
  * This class defines a data structure that holds information about
  * the result of processing by a plugin invoked during the Directory
@@ -38,9 +35,6 @@ package org.opends.server.api.plugin;
  */
 public class StartupPluginResult
 {
-
-
-
   /**
    * A startup plugin result instance that indicates all processing
    * was successful.

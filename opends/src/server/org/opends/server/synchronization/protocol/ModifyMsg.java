@@ -29,11 +29,9 @@ package org.opends.server.synchronization.protocol;
 import static org.opends.server.synchronization.protocol.OperationContext.*;
 
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -43,7 +41,10 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.DN;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawModification;
 
 
 import java.io.UnsupportedEncodingException;
@@ -141,13 +142,13 @@ public class ModifyMsg extends UpdateMessage
     if (newDn == null)
       newDn = getDn();
 
-    ArrayList<LDAPModification> ldapmods;
+    ArrayList<RawModification> ldapmods;
 
     ArrayList<ASN1Element> mods = null;
 
     mods = ASN1Element.decodeElements(encodedMods);
 
-    ldapmods = new ArrayList<LDAPModification>(mods.size());
+    ldapmods = new ArrayList<RawModification>(mods.size());
     for (ASN1Element elem : mods)
       ldapmods.add(LDAPModification.decode(elem));
 

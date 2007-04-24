@@ -29,6 +29,7 @@ package org.opends.server.protocols.ldap;
 
 
 import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.server.types.LDAPException;
 
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -43,9 +44,6 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
  */
 public abstract class ProtocolOp
 {
-
-
-
   /**
    * Retrieves the BER type for this protocol op.
    *

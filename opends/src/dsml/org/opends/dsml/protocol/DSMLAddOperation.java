@@ -37,10 +37,11 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawAttribute;
 
 
 
@@ -99,7 +100,7 @@ public class DSMLAddOperation
     addResponse.setRequestID(requestID);
 
     ASN1OctetString dnStr = new ASN1OctetString(addRequest.getDn());
-    ArrayList<LDAPAttribute> attributes = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
 
     List<DsmlAttr> addList = addRequest.getAttr();
     for(DsmlAttr attr : addList)

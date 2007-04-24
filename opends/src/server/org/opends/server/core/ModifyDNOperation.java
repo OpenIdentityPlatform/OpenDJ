@@ -50,7 +50,6 @@ import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -65,9 +64,11 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
@@ -970,7 +971,7 @@ modifyDNProcessing:
         appendErrorMessage(getMessage(MSGID_MODDN_EXCEPTION_LOCKING_NEW_DN,
                                       String.valueOf(entryDN),
                                       String.valueOf(newDN),
-                                      stackTraceToSingleLineString(e)));
+                                      getExceptionMessage(e)));
 
         skipPostOperation = true;
         break modifyDNProcessing;
@@ -1082,7 +1083,7 @@ modifyDNProcessing:
                      ErrorLogSeverity.SEVERE_ERROR,
                      MSGID_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED,
                      getConnectionID(), getOperationID(),
-                     stackTraceToSingleLineString(de));
+                     getExceptionMessage(de));
 
             setResponseData(de);
             break modifyDNProcessing;
@@ -1827,7 +1828,7 @@ modifyDNProcessing:
                 logError(ErrorLogCategory.SYNCHRONIZATION,
                          ErrorLogSeverity.SEVERE_ERROR,
                          MSGID_MODDN_SYNCH_PREOP_FAILED, getConnectionID(),
-                         getOperationID(), stackTraceToSingleLineString(de));
+                         getOperationID(), getExceptionMessage(de));
 
                 setResponseData(de);
                 break modifyDNProcessing;
@@ -1998,7 +1999,7 @@ modifyDNProcessing:
             logError(ErrorLogCategory.SYNCHRONIZATION,
                      ErrorLogSeverity.SEVERE_ERROR,
                      MSGID_MODDN_SYNCH_POSTOP_FAILED, getConnectionID(),
-                     getOperationID(), stackTraceToSingleLineString(de));
+                     getOperationID(), getExceptionMessage(de));
 
             setResponseData(de);
             break;
@@ -2050,7 +2051,7 @@ modifyDNProcessing:
           }
 
           int    msgID   = MSGID_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER;
-          String message = getMessage(msgID, stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, getExceptionMessage(e));
           logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
         }
@@ -2089,7 +2090,7 @@ modifyDNProcessing:
 
           int    msgID   = MSGID_MODDN_ERROR_NOTIFYING_PERSISTENT_SEARCH;
           String message = getMessage(msgID, String.valueOf(persistentSearch),
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
 
@@ -2162,7 +2163,7 @@ modifyDNProcessing:
    * {@inheritDoc}
    */
   @Override()
-  boolean setCancelRequest(CancelRequest cancelRequest)
+  protected boolean setCancelRequest(CancelRequest cancelRequest)
   {
     this.cancelRequest = cancelRequest;
     return true;

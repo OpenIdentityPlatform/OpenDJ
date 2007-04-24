@@ -29,6 +29,8 @@ package org.opends.server.protocols.ldap;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawAttribute;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.server.util.Base64;
 
@@ -85,11 +87,11 @@ public class TestAddRequestProtocolOp extends LdapTestCase
    * @return              The generate attributes.
    *
    */
-  private ArrayList<LDAPAttribute> generateAttributes(int numAttributes,
+  private ArrayList<RawAttribute> generateAttributes(int numAttributes,
                                                       int numValues,
                                                       String prefix)
   {
-    ArrayList<LDAPAttribute> attributes = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
     LDAPAttribute attribute;
     ASN1OctetString value;
     int i, j;
@@ -109,8 +111,8 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     return attributes;
   }
 
-  private Boolean attributesEquals(List<LDAPAttribute> attributes1,
-                                   List<LDAPAttribute> attributes2)
+  private Boolean attributesEquals(List<RawAttribute> attributes1,
+                                   List<RawAttribute> attributes2)
   {
     if(attributes1.size() != attributes2.size())
     {
@@ -118,8 +120,8 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     }
 
     int i, j;
-    LDAPAttribute attribute1;
-    LDAPAttribute attribute2;
+    RawAttribute attribute1;
+    RawAttribute attribute2;
     ArrayList<ASN1OctetString> values1;
     ArrayList<ASN1OctetString> values2;
 
@@ -182,7 +184,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   public void testConstructors() throws Exception
   {
     AddRequestProtocolOp addRequest;
-    ArrayList<LDAPAttribute> attributes;
+    ArrayList<RawAttribute> attributes;
 
     //Test to make sure the constructor with dn param works.
     addRequest = new AddRequestProtocolOp(dn);
@@ -306,7 +308,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     AddRequestProtocolOp addEncoded;
     AddRequestProtocolOp addDecoded;
     ASN1Element element;
-    ArrayList<LDAPAttribute> attributes;
+    ArrayList<RawAttribute> attributes;
 
 
     //Test case for a full encode decode operation with normal params.
@@ -349,7 +351,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   public void testToLDIF() throws Exception
   {
     AddRequestProtocolOp addRequest;
-    ArrayList<LDAPAttribute> attributes;
+    ArrayList<RawAttribute> attributes;
     StringBuilder buffer = new StringBuilder();
     BufferedReader reader;
     String line;
@@ -384,7 +386,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   public void testToLDIFBase64() throws Exception
   {
     AddRequestProtocolOp addRequest;
-    ArrayList<LDAPAttribute> attributes;
+    ArrayList<RawAttribute> attributes;
     StringBuilder buffer = new StringBuilder();
     BufferedReader reader;
     String line;
@@ -425,7 +427,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   public void TestToStringSingleLine() throws Exception
   {
     AddRequestProtocolOp addRequest;
-    ArrayList<LDAPAttribute> attributes;
+    ArrayList<RawAttribute> attributes;
     StringBuilder buffer = new StringBuilder();
     StringBuilder key = new StringBuilder();
     int i;
@@ -460,7 +462,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   public void TestToStringMultiLine() throws Exception
   {
     AddRequestProtocolOp addRequest;
-    ArrayList<LDAPAttribute> attributes;
+    ArrayList<RawAttribute> attributes;
     StringBuilder buffer = new StringBuilder();
     StringBuilder key = new StringBuilder();
     int i;
@@ -491,7 +493,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     key.append("  Attributes:");
     key.append(EOL);
 
-    for (LDAPAttribute attribute : attributes)
+    for (RawAttribute attribute : attributes)
     {
       attribute.toString(key, indent+4);
     }

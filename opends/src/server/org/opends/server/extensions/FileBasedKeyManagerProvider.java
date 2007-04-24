@@ -187,7 +187,7 @@ public class FileBasedKeyManagerProvider
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -222,7 +222,7 @@ public class FileBasedKeyManagerProvider
           msgID = MSGID_FILE_KEYMANAGER_INVALID_TYPE;
           String message = getMessage(msgID, String.valueOf(typeStr),
                                       String.valueOf(configEntryDN),
-                                      stackTraceToSingleLineString(kse));
+                                      getExceptionMessage(kse));
           throw new InitializationException(msgID, message);
         }
       }
@@ -245,7 +245,7 @@ public class FileBasedKeyManagerProvider
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_TYPE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -310,7 +310,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new InitializationException(msgID, message, e);
       }
 
@@ -360,7 +360,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new InitializationException(msgID, message, e);
       }
 
@@ -400,7 +400,7 @@ pinSelection:
               msgID = MSGID_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ;
               String message = getMessage(msgID, String.valueOf(fileName),
                                           String.valueOf(configEntryDN),
-                                          stackTraceToSingleLineString(ioe));
+                                          getExceptionMessage(ioe));
               throw new InitializationException(msgID, message, ioe);
             }
 
@@ -438,7 +438,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FILE;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new InitializationException(msgID, message, e);
       }
 
@@ -466,7 +466,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new InitializationException(msgID, message, e);
       }
     }
@@ -514,7 +514,7 @@ pinSelection:
 
       int msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE;
       String message = getMessage(msgID, String
-          .valueOf(configEntryDN), stackTraceToSingleLineString(e));
+          .valueOf(configEntryDN), getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -531,10 +531,9 @@ pinSelection:
         }
 
         int msgID = MSGID_FILE_KEYMANAGER_INVALID_TYPE;
-        String message = getMessage(msgID, String
-            .valueOf(configuration.getKeyStoreType()), String
-            .valueOf(configEntryDN),
-            stackTraceToSingleLineString(kse));
+        String message = getMessage(msgID,
+            String.valueOf(configuration.getKeyStoreType()),
+            String.valueOf(configEntryDN), getExceptionMessage(kse));
         throw new InitializationException(msgID, message);
       }
     } else {
@@ -604,8 +603,7 @@ pinSelection:
       } catch (IOException ioe) {
         int msgID = MSGID_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ;
         String message = getMessage(msgID, String.valueOf(fileName),
-            String.valueOf(configEntryDN),
-            stackTraceToSingleLineString(ioe));
+            String.valueOf(configEntryDN), getExceptionMessage(ioe));
         throw new InitializationException(msgID, message, ioe);
       }
 
@@ -675,8 +673,7 @@ pinSelection:
       }
 
       int msgID = MSGID_FILE_KEYMANAGER_CANNOT_LOAD;
-      String message = getMessage(msgID, keyStoreFile,
-                                  stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, keyStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
     }
@@ -698,8 +695,7 @@ pinSelection:
       }
 
       int msgID = MSGID_FILE_KEYMANAGER_CANNOT_CREATE_FACTORY;
-      String message = getMessage(msgID, keyStoreFile,
-                                  stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, keyStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
     }
@@ -861,7 +857,7 @@ pinSelection:
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -896,7 +892,7 @@ pinSelection:
           msgID = MSGID_FILE_KEYMANAGER_INVALID_TYPE;
           String message = getMessage(msgID, String.valueOf(typeStr),
                                       String.valueOf(configEntryDN),
-                                      stackTraceToSingleLineString(kse));
+                                      getExceptionMessage(kse));
           unacceptableReasons.add(message);
           return false;
         }
@@ -911,7 +907,7 @@ pinSelection:
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_TYPE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -960,7 +956,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         unacceptableReasons.add(message);
         return false;
       }
@@ -1002,7 +998,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         unacceptableReasons.add(message);
         return false;
       }
@@ -1044,7 +1040,7 @@ pinSelection:
               msgID = MSGID_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ;
               String message = getMessage(msgID, String.valueOf(fileName),
                                           String.valueOf(configEntryDN),
-                                          stackTraceToSingleLineString(ioe));
+                                          getExceptionMessage(ioe));
               unacceptableReasons.add(message);
               return false;
             }
@@ -1074,7 +1070,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FILE;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         unacceptableReasons.add(message);
         return false;
       }
@@ -1103,7 +1099,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         unacceptableReasons.add(message);
         return false;
       }
@@ -1200,7 +1196,7 @@ pinSelection:
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+                              getExceptionMessage(e)));
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -1239,7 +1235,7 @@ pinSelection:
           msgID = MSGID_FILE_KEYMANAGER_INVALID_TYPE;
           messages.add(getMessage(msgID, String.valueOf(newKeyStoreType),
                                   String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(kse)));
+                                  getExceptionMessage(kse)));
 
           if (resultCode == ResultCode.SUCCESS)
           {
@@ -1257,7 +1253,7 @@ pinSelection:
 
       msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_TYPE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+                              getExceptionMessage(e)));
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -1318,7 +1314,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
         messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                stackTraceToSingleLineString(e)));
+                                getExceptionMessage(e)));
 
         if (resultCode == ResultCode.SUCCESS)
         {
@@ -1371,7 +1367,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
         messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                stackTraceToSingleLineString(e)));
+                                getExceptionMessage(e)));
 
         if (resultCode == ResultCode.SUCCESS)
         {
@@ -1423,7 +1419,7 @@ pinSelection:
               msgID = MSGID_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ;
               messages.add(getMessage(msgID, String.valueOf(fileName),
                                       String.valueOf(configEntryDN),
-                                      stackTraceToSingleLineString(ioe)));
+                                      getExceptionMessage(ioe)));
 
               if (resultCode == ResultCode.SUCCESS)
               {
@@ -1464,7 +1460,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FILE;
         messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                stackTraceToSingleLineString(e)));
+                                getExceptionMessage(e)));
 
         if (resultCode == ResultCode.SUCCESS)
         {
@@ -1498,7 +1494,7 @@ pinSelection:
 
         msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
         messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                stackTraceToSingleLineString(e)));
+                                getExceptionMessage(e)));
 
         if (resultCode == ResultCode.SUCCESS)
         {

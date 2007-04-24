@@ -35,6 +35,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import org.opends.server.types.DN;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -46,17 +47,17 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
     private static String message2 = "This is a second message";
     ResultCode        okCode          = ResultCode.SUCCESS;
     ResultCode  busyCode = ResultCode.BUSY;
-    ResultCode invalidSyntaxCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX; 
+    ResultCode invalidSyntaxCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
     private static String dn = "cn=dn, dc=example,dc=com";
     private static String dn2 = "cn=dn2, dc=example,dc=com";
     private static String saslCreds = "sasl credentials";
     private static String saslCreds2 = "sasl2 credentials";
     private static String url = "ldap://somewhere.example.com";
     private static String url2 = "ldap://somewhere2.example.com";
-    
+
     /**
      * Once-only initialization.
-     * 
+     *
      * @throws Exception
      *           If an unexpected error occurred.
      */
@@ -66,8 +67,8 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
       // start the server.
       TestCaseUtils.startServer();
     }
-    
-    
+
+
     @Test ()
     public void testBindRequestToString() throws Exception
     {
@@ -76,30 +77,30 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
         DN responseDn = DN.decode(dn);
         ASN1OctetString serverSASLCredentials =
             new ASN1OctetString(saslCreds);
-        BindResponseProtocolOp r = 
+        BindResponseProtocolOp r =
             new BindResponseProtocolOp(okCode.getIntValue(),
-                    message, responseDn, referralURLs, 
+                    message, responseDn, referralURLs,
                     serverSASLCredentials);
         toString(r);
     }
 
     @Test (expectedExceptions = LDAPException.class)
     public void testBindResponseTooFew() throws Exception {
-        BindResponseProtocolOp busyResp = 
+        BindResponseProtocolOp busyResp =
             new BindResponseProtocolOp(busyCode.getIntValue());
         tooFewElements(busyResp, OP_TYPE_BIND_RESPONSE);
     }
 
     @Test (expectedExceptions = LDAPException.class)
     public void testBindResponseTooMany() throws Exception {
-        BindResponseProtocolOp busyResp = 
+        BindResponseProtocolOp busyResp =
             new BindResponseProtocolOp(busyCode.getIntValue());
         tooManyElements(busyResp, OP_TYPE_BIND_RESPONSE);
     }
 
     @Test (expectedExceptions = LDAPException.class)
     public void testBindResponseBadResult() throws Exception {
-        BindResponseProtocolOp busyResp = 
+        BindResponseProtocolOp busyResp =
             new BindResponseProtocolOp(busyCode.getIntValue());
         badIntegerElement(busyResp, OP_TYPE_BIND_RESPONSE,0);
     }
@@ -111,13 +112,13 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
         DN responseDn = DN.decode(dn);
         ASN1OctetString serverSASLCredentials =
             new ASN1OctetString(saslCreds);
-        BindResponseProtocolOp r = 
+        BindResponseProtocolOp r =
             new BindResponseProtocolOp(okCode.getIntValue(),
-                    message, responseDn, referralURLs, 
+                    message, responseDn, referralURLs,
                     serverSASLCredentials);
         badIntegerElement(r,OP_TYPE_BIND_RESPONSE,3);
     }
-    
+
     @Test
     public void testBindResponseEncodeDecode() throws Exception {
         List<String> referralURLs=new ArrayList<String>();
@@ -125,59 +126,59 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
         DN responseDn = DN.decode(dn);
         ASN1OctetString serverSASLCredentials =
             new ASN1OctetString(saslCreds);
-        
-        BindResponseProtocolOp saslOkResp = 
+
+        BindResponseProtocolOp saslOkResp =
             new BindResponseProtocolOp(okCode.getIntValue(),
-                    message, responseDn, referralURLs, 
+                    message, responseDn, referralURLs,
                     serverSASLCredentials);
-        BindResponseProtocolOp busyResp = 
+        BindResponseProtocolOp busyResp =
             new BindResponseProtocolOp(busyCode.getIntValue());
-        BindResponseProtocolOp invalidSyntaxResp = 
+        BindResponseProtocolOp invalidSyntaxResp =
             new BindResponseProtocolOp(invalidSyntaxCode.getIntValue(),
                                                               message);
         ASN1Element saslOkElem=saslOkResp.encode();
         ASN1Element busyElem=busyResp.encode();
         ASN1Element invalidSyntaxElem=invalidSyntaxResp.encode();
-        
+
         ProtocolOp saslOkDec= ProtocolOp.decode(saslOkElem);
         ProtocolOp busyDec = ProtocolOp.decode(busyElem);
         ProtocolOp invalidSyntaxDec = ProtocolOp.decode(invalidSyntaxElem);
-        
+
         assertTrue(saslOkDec instanceof BindResponseProtocolOp);
         assertTrue(busyDec instanceof BindResponseProtocolOp);
         assertTrue(invalidSyntaxDec instanceof BindResponseProtocolOp);
-        
+
         BindResponseProtocolOp saslOkOp =
              (BindResponseProtocolOp)saslOkDec;
         BindResponseProtocolOp busyOp =
              (BindResponseProtocolOp)busyDec;
         BindResponseProtocolOp invalidSyntaxOp =
              (BindResponseProtocolOp)invalidSyntaxDec;
-        
+
         assertTrue(saslOkOp.getProtocolOpName() == saslOkResp.getProtocolOpName());
         assertTrue(busyOp.getProtocolOpName() == busyResp.getProtocolOpName());
         assertTrue(invalidSyntaxOp.getProtocolOpName() == invalidSyntaxResp.getProtocolOpName());
-        
+
         assertTrue(saslOkOp.getType() == saslOkResp.getType());
         assertTrue(busyOp.getType() == busyResp.getType());
         assertTrue(invalidSyntaxOp.getType() == invalidSyntaxResp.getType());
-        
+
         assertTrue(saslOkOp.getResultCode() == saslOkResp.getResultCode());
         assertTrue(busyOp.getResultCode() == busyResp.getResultCode());
         assertTrue(invalidSyntaxOp.getResultCode() == invalidSyntaxResp.getResultCode());
-        
+
         assertTrue(saslOkOp.getErrorMessage().equals(saslOkResp.getErrorMessage()));
         assertTrue(invalidSyntaxOp.getErrorMessage().equals(invalidSyntaxResp.getErrorMessage()));
-        
+
         String str1=saslOkOp.getServerSASLCredentials().toString();
         String str2=saslOkResp.getServerSASLCredentials().toString();
-        assertTrue(str1.equals(str2));     
+        assertTrue(str1.equals(str2));
         List<String> list1 = saslOkOp.getReferralURLs();
         List<String> list2 = saslOkResp.getReferralURLs();
         assertTrue(list1.equals(list2));
         DN dn1=saslOkOp.getMatchedDN();
         DN dn2=saslOkResp.getMatchedDN();
-        assertTrue(dn1.equals(dn2));    
+        assertTrue(dn1.equals(dn2));
     }
     @Test()
     public void testSetters() throws Exception {
@@ -187,7 +188,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
         referralURL2s.add(url2);
         DN responseDn = DN.decode(dn);
         DN responseDn2 = DN.decode(dn2);
-        BindResponseProtocolOp resp = 
+        BindResponseProtocolOp resp =
             new BindResponseProtocolOp(okCode.getIntValue(),
                     message, responseDn, referralURLs);
         resp.encode();
@@ -211,9 +212,9 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
             new ASN1OctetString(saslCreds);
         ASN1OctetString creds2 =
             new ASN1OctetString(saslCreds2);
-        BindResponseProtocolOp sasl = 
+        BindResponseProtocolOp sasl =
             new BindResponseProtocolOp(okCode.getIntValue(),
-                    message, responseDn, referralURLs, 
+                    message, responseDn, referralURLs,
                     creds);
         sasl.encode();
         sasl.setServerSASLCredentials(creds2);
@@ -223,6 +224,6 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
             (BindResponseProtocolOp)saslDec;
         String str1=sasl.getServerSASLCredentials().toString();
         String str2=saslOp.getServerSASLCredentials().toString();
-        assertTrue(str1.equals(str2));     
+        assertTrue(str1.equals(str2));
     }
 }

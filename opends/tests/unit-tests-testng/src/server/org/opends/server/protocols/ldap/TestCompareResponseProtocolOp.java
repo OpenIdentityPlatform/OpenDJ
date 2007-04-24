@@ -32,6 +32,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.RDN;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.*;
+import org.opends.server.types.LDAPException;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

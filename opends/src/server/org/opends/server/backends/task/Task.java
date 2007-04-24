@@ -40,7 +40,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -51,6 +50,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.Operation;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;

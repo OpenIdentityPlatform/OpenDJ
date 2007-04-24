@@ -51,14 +51,10 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.Operation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.extensions.
             InternalConnectionSecurityProvider;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AuthenticationInfo;
@@ -75,7 +71,13 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Modification;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawFilter;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
@@ -228,7 +230,7 @@ public class InternalClientConnection
       logError(ErrorLogCategory.CONNECTION_HANDLING,
                ErrorLogSeverity.SEVERE_ERROR,
                MSGID_INTERNAL_CANNOT_DECODE_DN, fullDNString,
-               stackTraceToSingleLineString(de));
+               getExceptionMessage(de));
     }
 
     connectionID  = nextConnectionID.getAndDecrement();
@@ -666,13 +668,32 @@ public class InternalClientConnection
    * @return  A reference to the add operation that was processed and
    *          contains information about the result of the processing.
    */
+  public AddOperation processAdd(String rawEntryDN,
+                                 List<RawAttribute> rawAttributes)
+  {
+    return processAdd(new ASN1OctetString(rawEntryDN), rawAttributes);
+  }
+
+
+
+  /**
+   * Processes an internal add operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN     The DN to use for the entry to add.
+   * @param  rawAttributes  The set of attributes to include in the
+   *                        entry to add.
+   *
+   * @return  A reference to the add operation that was processed and
+   *          contains information about the result of the processing.
+   */
   public AddOperation processAdd(ByteString rawEntryDN,
-                                 List<LDAPAttribute> rawAttributes)
+                                 List<RawAttribute> rawAttributes)
   {
     AddOperation addOperation =
          new AddOperation(this, nextOperationID(), nextMessageID(),
                           new ArrayList<Control>(0), rawEntryDN,
-                       rawAttributes);
+                          rawAttributes);
     addOperation.setInternalOperation(true);
 
     addOperation.run();
@@ -713,6 +734,45 @@ public class InternalClientConnection
 
     addOperation.run();
     return addOperation;
+  }
+
+
+
+  /**
+   * Processes an internal add operation with the provided
+   * information.
+   *
+   * @param  entry  The entry to be added.
+   *
+   * @return  A reference to the add operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public AddOperation processAdd(Entry entry)
+  {
+    return processAdd(entry.getDN(), entry.getObjectClasses(),
+                      entry.getUserAttributes(),
+                      entry.getOperationalAttributes());
+  }
+
+
+
+  /**
+   * Processes an internal bind operation with the provided
+   * information.  Note that regardless of whether the bind is
+   * successful, the authentication state for this internal connection
+   * will not be altered in any way.
+   *
+   * @param  rawBindDN  The bind DN for the operation.
+   * @param  password   The bind password for the operation.
+   *
+   * @return  A reference to the bind operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public BindOperation processSimpleBind(String rawBindDN,
+                                         String password)
+  {
+    return processSimpleBind(new ASN1OctetString(rawBindDN),
+                             new ASN1OctetString(password));
   }
 
 
@@ -845,6 +905,31 @@ public class InternalClientConnection
    *          and contains information about the result of the
    *          processing.
    */
+  public CompareOperation processCompare(String rawEntryDN,
+                                         String attributeType,
+                                         String assertionValue)
+  {
+    return processCompare(new ASN1OctetString(rawEntryDN),
+                          attributeType,
+                          new ASN1OctetString(assertionValue));
+  }
+
+
+
+  /**
+   * Processes an internal compare operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN      The entry DN for the compare operation.
+   * @param  attributeType   The attribute type for the compare
+   *                         operation.
+   * @param  assertionValue  The assertion value for the compare
+   *                         operation.
+   *
+   * @return  A reference to the compare operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
   public CompareOperation processCompare(ByteString rawEntryDN,
                                          String attributeType,
                                          ByteString assertionValue)
@@ -889,6 +974,23 @@ public class InternalClientConnection
 
     compareOperation.run();
     return compareOperation;
+  }
+
+
+
+  /**
+   * Processes an internal delete operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN  The entry DN for the delete operation.
+   *
+   * @return  A reference to the delete operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public DeleteOperation processDelete(String rawEntryDN)
+  {
+    return processDelete(new ASN1OctetString(rawEntryDN));
   }
 
 
@@ -981,8 +1083,30 @@ public class InternalClientConnection
    *          and contains information about the result of the
    *          processing.
    */
+  public ModifyOperation processModify(String rawEntryDN,
+                              List<RawModification> rawModifications)
+  {
+    return processModify(new ASN1OctetString(rawEntryDN),
+                         rawModifications);
+  }
+
+
+
+  /**
+   * Processes an internal modify operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN        The raw entry DN for this modify
+   *                           operation.
+   * @param  rawModifications  The set of modifications for this
+   *                           modify operation.
+   *
+   * @return  A reference to the modify operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
   public ModifyOperation processModify(ByteString rawEntryDN,
-                              List<LDAPModification> rawModifications)
+                              List<RawModification> rawModifications)
   {
     ModifyOperation modifyOperation =
          new ModifyOperation(this, nextOperationID(), nextMessageID(),
@@ -1036,11 +1160,64 @@ public class InternalClientConnection
    *          processed and contains information about the result of
    *          the processing.
    */
+  public ModifyDNOperation processModifyDN(String rawEntryDN,
+                                           String rawNewRDN,
+                                           boolean deleteOldRDN)
+  {
+    return processModifyDN(new ASN1OctetString(rawEntryDN),
+                           new ASN1OctetString(rawNewRDN),
+                           deleteOldRDN, null);
+  }
+
+
+
+  /**
+   * Processes an internal modify DN operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN    The current DN of the entry to rename.
+   * @param  rawNewRDN     The new RDN to use for the entry.
+   * @param  deleteOldRDN  The flag indicating whether the old RDN
+   *                       value is to be removed from the entry.
+   *
+   * @return  A reference to the modify DN operation that was
+   *          processed and contains information about the result of
+   *          the processing.
+   */
   public ModifyDNOperation processModifyDN(ByteString rawEntryDN,
                                            ByteString rawNewRDN,
                                            boolean deleteOldRDN)
   {
     return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN, null);
+  }
+
+
+
+  /**
+   * Processes an internal modify DN operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN      The current DN of the entry to rename.
+   * @param  rawNewRDN       The new RDN to use for the entry.
+   * @param  deleteOldRDN    The flag indicating whether the old RDN
+   *                         value is to be removed from the entry.
+   * @param  rawNewSuperior  The new superior for the modify DN
+   *                         operation, or <CODE>null</CODE> if the
+   *                         entry will remain below the same parent.
+   *
+   * @return  A reference to the modify DN operation that was
+   *          processed and contains information about the result of
+   *          the processing.
+   */
+  public ModifyDNOperation processModifyDN(String rawEntryDN,
+                                           String rawNewRDN,
+                                           boolean deleteOldRDN,
+                                           String rawNewSuperior)
+  {
+    return processModifyDN(new ASN1OctetString(rawEntryDN),
+                           new ASN1OctetString(rawNewRDN),
+                           deleteOldRDN,
+                           new ASN1OctetString(rawNewSuperior));
   }
 
 
@@ -1140,6 +1317,154 @@ public class InternalClientConnection
    * request a size or time limit, and will retrieve all user
    * attributes.
    *
+   * @param  rawBaseDN     The base DN for the search.
+   * @param  scope         The scope for the search.
+   * @param  filterString  The string representation of the filter for
+   *                       the search.
+   *
+   * @return  A reference to the internal search operation that was
+   *          processed and contains information about the result of
+   *          the processing as well as lists of the matching entries
+   *          and search references.
+   *
+   * @throws  DirectoryException  If the provided filter string cannot
+   *                              be decoded as a search filter.
+   */
+  public InternalSearchOperation processSearch(String rawBaseDN,
+                                      SearchScope scope,
+                                      String filterString)
+         throws DirectoryException
+  {
+    RawFilter rawFilter;
+    try
+    {
+      rawFilter = RawFilter.create(filterString);
+    }
+    catch (LDAPException le)
+    {
+      throw new DirectoryException(
+                     ResultCode.valueOf(le.getResultCode()),
+                     le.getErrorMessage(), le.getMessageID(), le);
+    }
+
+    return processSearch(new ASN1OctetString(rawBaseDN), scope,
+                         rawFilter);
+  }
+
+
+
+  /**
+   * Processes an internal search operation with the provided
+   * information.
+   *
+   * @param  rawBaseDN     The base DN for the search.
+   * @param  scope         The scope for the search.
+   * @param  derefPolicy   The alias dereferencing policy for the
+   *                       search.
+   * @param  sizeLimit     The size limit for the search.
+   * @param  timeLimit     The time limit for the search.
+   * @param  typesOnly     The typesOnly flag for the search.
+   * @param  filterString  The string representation of the filter for
+   *                       the search.
+   * @param  attributes    The set of requested attributes for the
+   *                       search.
+   *
+   * @return  A reference to the internal search operation that was
+   *          processed and contains information about the result of
+   *          the processing as well as lists of the matching entries
+   *          and search references.
+   *
+   * @throws  DirectoryException  If the provided filter string cannot
+   *                              be decoded as a search filter.
+   */
+  public InternalSearchOperation
+              processSearch(String rawBaseDN, SearchScope scope,
+                            DereferencePolicy derefPolicy,
+                            int sizeLimit, int timeLimit,
+                            boolean typesOnly, String filterString,
+                            LinkedHashSet<String> attributes)
+         throws DirectoryException
+  {
+    RawFilter rawFilter;
+    try
+    {
+      rawFilter = RawFilter.create(filterString);
+    }
+    catch (LDAPException le)
+    {
+      throw new DirectoryException(
+                     ResultCode.valueOf(le.getResultCode()),
+                     le.getErrorMessage(), le.getMessageID(), le);
+    }
+
+    return processSearch(new ASN1OctetString(rawBaseDN), scope,
+                         derefPolicy, sizeLimit, timeLimit, typesOnly,
+                         rawFilter, attributes);
+  }
+
+
+
+  /**
+   * Processes an internal search operation with the provided
+   * information.
+   *
+   * @param  rawBaseDN       The base DN for the search.
+   * @param  scope           The scope for the search.
+   * @param  derefPolicy     The alias dereferencing policy for the
+   *                         search.
+   * @param  sizeLimit       The size limit for the search.
+   * @param  timeLimit       The time limit for the search.
+   * @param  typesOnly       The typesOnly flag for the search.
+   * @param  filterString    The string representation of the filter
+   *                         for the search.
+   * @param  attributes      The set of requested attributes for the
+   *                         search.
+   * @param  searchListener  The internal search listener that should
+   *                         be used to handle the matching entries
+   *                         and references.
+   *
+   * @return  A reference to the internal search operation that was
+   *          processed and contains information about the result of
+   *          the processing as well as lists of the matching entries
+   *          and search references.
+   *
+   * @throws  DirectoryException  If the provided filter string cannot
+   *                              be decoded as a search filter.
+   */
+  public InternalSearchOperation
+              processSearch(String rawBaseDN, SearchScope scope,
+                            DereferencePolicy derefPolicy,
+                            int sizeLimit, int timeLimit,
+                            boolean typesOnly, String filterString,
+                            LinkedHashSet<String> attributes,
+                            InternalSearchListener searchListener)
+         throws DirectoryException
+  {
+    RawFilter rawFilter;
+    try
+    {
+      rawFilter = RawFilter.create(filterString);
+    }
+    catch (LDAPException le)
+    {
+      throw new DirectoryException(
+                     ResultCode.valueOf(le.getResultCode()),
+                     le.getErrorMessage(), le.getMessageID(), le);
+    }
+
+    return processSearch(new ASN1OctetString(rawBaseDN), scope,
+                         derefPolicy, sizeLimit, timeLimit, typesOnly,
+                         rawFilter, attributes, searchListener);
+  }
+
+
+
+  /**
+   * Processes an internal search operation with the provided
+   * information.  It will not dereference any aliases, will not
+   * request a size or time limit, and will retrieve all user
+   * attributes.
+   *
    * @param  rawBaseDN  The base DN for the search.
    * @param  scope      The scope for the search.
    * @param  filter     The filter for the search.
@@ -1151,7 +1476,7 @@ public class InternalClientConnection
    */
   public InternalSearchOperation processSearch(ByteString rawBaseDN,
                                       SearchScope scope,
-                                      LDAPFilter filter)
+                                      RawFilter filter)
   {
     return processSearch(rawBaseDN, scope,
                          DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
@@ -1185,7 +1510,7 @@ public class InternalClientConnection
                             SearchScope scope,
                             DereferencePolicy derefPolicy,
                             int sizeLimit, int timeLimit,
-                            boolean typesOnly, LDAPFilter filter,
+                            boolean typesOnly, RawFilter filter,
                             LinkedHashSet<String> attributes)
   {
     InternalSearchOperation searchOperation =
@@ -1230,7 +1555,7 @@ public class InternalClientConnection
                             SearchScope scope,
                             DereferencePolicy derefPolicy,
                             int sizeLimit, int timeLimit,
-                            boolean typesOnly, LDAPFilter filter,
+                            boolean typesOnly, RawFilter filter,
                             LinkedHashSet<String> attributes,
                             InternalSearchListener searchListener)
   {

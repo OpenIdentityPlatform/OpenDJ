@@ -49,7 +49,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.synchronization.changelog.Changelog;
 import org.opends.server.synchronization.changelog.ChangelogFakeConfiguration;
-import org.opends.server.synchronization.common.LogMessages;
 import org.opends.server.synchronization.plugin.ChangelogBroker;
 import org.opends.server.synchronization.plugin.SynchronizationDomain;
 import org.opends.server.synchronization.protocol.DoneMessage;
@@ -70,26 +69,27 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import static org.opends.server.messages.SynchronizationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 /**
  * Tests contained here:
- * 
+ *
  * Initialize Test Cases <=> Pull entries
  * ---------------------
  * InitializeImport : Tests the import in the target DS.
- * Creates a task on current DS and makes a broker simulates DS2 sending entries. 
+ * Creates a task on current DS and makes a broker simulates DS2 sending entries.
  * InitializeExport : Tests the export from the source DS
- * A broker simulates DS2 pulling entries from current DS. 
- * 
+ * A broker simulates DS2 pulling entries from current DS.
+ *
  * Initialize Target Test Cases <=> Push entries
  * ----------------------------
  * InitializeTargetExport : Tests the export from the source DS
  * Creates a task on current DS and makes broker simulates DS2 receiving entries
  * InitializeTargetImport : Test the import in the target DS
- * A broker simulates DS2 receiving entries from current DS. 
- * 
- * InitializeTargetConfigErrors : Tests configuration errors of the 
+ * A broker simulates DS2 receiving entries from current DS.
+ *
+ * InitializeTargetConfigErrors : Tests configuration errors of the
  * InitializeTarget task
  */
 
@@ -108,7 +108,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   protected Entry taskInitFromS2;
   protected Entry taskInitTargetS2;
   protected Entry taskInitTargetAll;
-  
+
   SocketSession ssSession = null;
   boolean ssShutdownRequested = false;
   protected String[] updatedEntries;
@@ -119,7 +119,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   short changelog1ID = 12;
   short changelog2ID = 13;
   int changelogPort = 8989;
-  
+
   private DN baseDn;
   ChangelogBroker server2 = null;
   Changelog changelog1 = null;
@@ -139,9 +139,9 @@ public class InitOnLineTest extends SynchronizationTestCase
   }
   protected void log(String message, Exception e)
   {
-    log(message + stackTraceToSingleLineString(e));  
+    log(message + stackTraceToSingleLineString(e));
   }
-  
+
   /**
    * Set up the environment for performing the tests in this Class.
    * synchronization
@@ -153,7 +153,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   public void setUp() throws Exception
   {
     log("Setup: debugEnabled:" + debugEnabled());
-    
+
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
 
@@ -166,7 +166,7 @@ public class InitOnLineTest extends SynchronizationTestCase
     updatedEntries = newLDIFEntries();
 
     // Create an internal connection in order to provide operations
-    // to DS to populate the db - 
+    // to DS to populate the db -
     connection = InternalClientConnection.getRootConnection();
 
     // Synchro provider
@@ -179,7 +179,7 @@ public class InitOnLineTest extends SynchronizationTestCase
     // Synchro suffix
     synchroServerEntry = null;
 
-    // Add config entries to the current DS server based on : 
+    // Add config entries to the current DS server based on :
     // Add the synchronization plugin: synchroPluginEntry & synchroPluginStringDN
     // Add synchroServerEntry
     // Add changeLogEntry
@@ -231,17 +231,17 @@ public class InitOnLineTest extends SynchronizationTestCase
 
   // Tests that entries have been written in the db
   private void testEntriesInDb()
-  { 
+  {
     log("TestEntriesInDb");
     short found = 0;
-    
+
     for (String entry : updatedEntries)
-    { 
+    {
 
       int dns = entry.indexOf("dn: ");
       int dne = entry.indexOf("dc=com");
-      String dn = entry.substring(dns+4,dne+6);   
-      
+      String dn = entry.substring(dns+4,dne+6);
+
       log("Search Entry: " + dn);
 
       DN entryDN = null;
@@ -273,18 +273,18 @@ public class InitOnLineTest extends SynchronizationTestCase
       }
     }
 
-    assertEquals(found, updatedEntries.length, 
+    assertEquals(found, updatedEntries.length,
         " Entries present in DB :" + found +
         " Expected entries :" + updatedEntries.length);
   }
-  
-  private void addTask(Entry taskEntry, ResultCode expectedResult, 
+
+  private void addTask(Entry taskEntry, ResultCode expectedResult,
       int errorMessageID)
   {
     try
     {
       log("AddTask/" + taskEntry);
-      
+
       // Change config of DS to launch the total update task
       InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
@@ -296,7 +296,7 @@ public class InitOnLineTest extends SynchronizationTestCase
             taskEntry.getObjectClasses(),
             taskEntry.getUserAttributes(),
             taskEntry.getOperationalAttributes());
-      
+
       assertEquals(addOperation.getResultCode(), expectedResult,
           "Result of ADD operation of the task is: "
           + addOperation.getResultCode()
@@ -319,7 +319,7 @@ public class InitOnLineTest extends SynchronizationTestCase
       {
         waitTaskState(taskEntry, TaskState.RUNNING, -1);
       }
-            
+
       // Entry will be removed at the end of the test
       entryList.addLast(taskEntry.getDN());
 
@@ -339,13 +339,13 @@ public class InitOnLineTest extends SynchronizationTestCase
    * @param expectedLeft The expected number of entries still to be processed.
    * @param expectedDone The expected numner of entries to be processed.
    */
-  private void waitTaskCompleted(Entry taskEntry, TaskState expectedState, 
+  private void waitTaskCompleted(Entry taskEntry, TaskState expectedState,
       long expectedLeft, long expectedDone)
   {
     try
     {
       // FIXME - Factorize with TasksTestCase
-      // Wait until the task completes.      
+      // Wait until the task completes.
       int timeout = 2000;
 
       AttributeType completionTimeType = DirectoryServer.getAttributeType(
@@ -420,8 +420,8 @@ public class InitOnLineTest extends SynchronizationTestCase
         stateString =
           resultEntry.getAttributeValue(taskStateType,
               DirectoryStringSyntax.DECODER);
-        
-        assertEquals(Long.decode(stateString).longValue(),expectedLeft, 
+
+        assertEquals(Long.decode(stateString).longValue(),expectedLeft,
             "The number of entries to process is not correct.");
 
         // Check that the task state is as expected.
@@ -430,10 +430,10 @@ public class InitOnLineTest extends SynchronizationTestCase
         stateString =
           resultEntry.getAttributeValue(taskStateType,
               DirectoryStringSyntax.DECODER);
-        
-        assertEquals(Long.decode(stateString).longValue(),expectedDone, 
+
+        assertEquals(Long.decode(stateString).longValue(),expectedDone,
             "The number of entries processed is not correct.");
-        
+
       }
       catch(Exception e)
       {
@@ -446,10 +446,10 @@ public class InitOnLineTest extends SynchronizationTestCase
       fail("Exception"+ e.getMessage()+e.getStackTrace());
     }
   }
-  
+
   private void waitTaskState(Entry taskEntry, TaskState expectedTaskState,
       int expectedMessage)
-  {    
+  {
     TaskState taskState = null;
     try
     {
@@ -487,7 +487,7 @@ public class InitOnLineTest extends SynchronizationTestCase
         {
           fail("Exception"+ e.getMessage()+e.getStackTrace());
         }
-        
+
         try
         {
           // Check that the left counter.
@@ -496,7 +496,7 @@ public class InitOnLineTest extends SynchronizationTestCase
           String leftString =
             resultEntry.getAttributeValue(taskStateType,
                 DirectoryStringSyntax.DECODER);
-          
+
           // Check that the total counter.
           taskStateType =
            DirectoryServer.getAttributeType(ATTR_TASK_INITIALIZE_DONE, true);
@@ -508,9 +508,9 @@ public class InitOnLineTest extends SynchronizationTestCase
         {
           fail("Exception"+ e.getMessage()+e.getStackTrace());
         }
-        
+
         Thread.sleep(2000);
-      } 
+      }
       while ((taskState != expectedTaskState) &&
           (taskState != TaskState.STOPPED_BY_ERROR));
 
@@ -521,8 +521,8 @@ public class InitOnLineTest extends SynchronizationTestCase
       resultEntry.getAttributeValues(logMessagesType,
           DirectoryStringSyntax.DECODER,
           logMessages);
-      
-      if ((taskState != TaskState.COMPLETED_SUCCESSFULLY) 
+
+      if ((taskState != TaskState.COMPLETED_SUCCESSFULLY)
           && (taskState != TaskState.RUNNING))
       {
         if (logMessages.size() == 0)
@@ -541,7 +541,7 @@ public class InitOnLineTest extends SynchronizationTestCase
         }
       }
 
-      assertEquals(taskState, expectedTaskState, "Task State:" + taskState + 
+      assertEquals(taskState, expectedTaskState, "Task State:" + taskState +
           " Expected task state:" + expectedTaskState);
     }
     catch(Exception e)
@@ -556,7 +556,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   private void addTestEntriesToDB()
   {
     try
-    {      
+    {
       for (String ldifEntry : updatedEntries)
       {
         Entry entry = TestCaseUtils.entryFromLdifString(ldifEntry);
@@ -570,7 +570,7 @@ public class InitOnLineTest extends SynchronizationTestCase
         {
           log("addEntry: Failed" + addOp.getResultCode());
         }
-        
+
         // They will be removed at the end of the test
         entryList.addLast(entry.getDN());
       }
@@ -588,12 +588,12 @@ public class InitOnLineTest extends SynchronizationTestCase
   {
     String[] entries =
     {
-        "dn: dc=example,dc=com\n" 
+        "dn: dc=example,dc=com\n"
         + "objectClass: top\n"
         + "objectClass: domain\n"
         + "entryUUID: 21111111-1111-1111-1111-111111111111\n"
-        + "\n",     
-          "dn: ou=People,dc=example,dc=com\n" 
+        + "\n",
+          "dn: ou=People,dc=example,dc=com\n"
         + "objectClass: top\n"
         + "objectClass: organizationalUnit\n"
         + "entryUUID: 21111111-1111-1111-1111-111111111112\n"
@@ -620,9 +620,9 @@ public class InitOnLineTest extends SynchronizationTestCase
         + "\n"
         };
 
-    return entries;    
+    return entries;
   }
-  
+
   /**
    * Broker will send the entries to a server.
    * @param broker The broker that will send the entries.
@@ -630,7 +630,7 @@ public class InitOnLineTest extends SynchronizationTestCase
    * @param destinationServerID The target server.
    * @param requestorID The initiator server.
    */
-  private void makeBrokerPublishEntries(ChangelogBroker broker, 
+  private void makeBrokerPublishEntries(ChangelogBroker broker,
       short senderID, short destinationServerID, short requestorID)
   {
     // Send entries
@@ -644,24 +644,24 @@ public class InitOnLineTest extends SynchronizationTestCase
       {
         log("Broker will pusblish 1 entry: bytes:"+ entry.length());
 
-        EntryMessage entryMsg = new EntryMessage(senderID, destinationServerID, 
+        EntryMessage entryMsg = new EntryMessage(senderID, destinationServerID,
             entry.getBytes());
         broker.publish(entryMsg);
       }
 
       DoneMessage doneMsg = new DoneMessage(senderID, destinationServerID);
       broker.publish(doneMsg);
-      
+
       log("Broker " + senderID + " published entries");
 
     }
     catch(Exception e)
     {
-      fail("makeBrokerPublishEntries Exception:"+ e.getMessage() + " " 
+      fail("makeBrokerPublishEntries Exception:"+ e.getMessage() + " "
           + stackTraceToSingleLineString(e));
     }
   }
-  
+
   void receiveUpdatedEntries(ChangelogBroker broker, short serverID,
       String[] updatedEntries)
   {
@@ -697,7 +697,7 @@ public class InitOnLineTest extends SynchronizationTestCase
         else if (msg instanceof ErrorMessage)
         {
           ErrorMessage em = (ErrorMessage)msg;
-          log("Broker " + serverID + "  receives ERROR " 
+          log("Broker " + serverID + "  receives ERROR "
               + getMessage(em.getMsgID())
               + " " + em.getDetails());
           break;
@@ -709,11 +709,11 @@ public class InitOnLineTest extends SynchronizationTestCase
       }
       catch(Exception e)
       {
-        log("receiveUpdatedEntries" + stackTraceToSingleLineString(e));        
+        log("receiveUpdatedEntries" + stackTraceToSingleLineString(e));
       }
     }
 
-    assertTrue(entriesReceived == updatedEntries.length, 
+    assertTrue(entriesReceived == updatedEntries.length,
         " Received entries("+entriesReceived +
         ") == Expected entries("+updatedEntries.length+")");
   }
@@ -729,16 +729,16 @@ public class InitOnLineTest extends SynchronizationTestCase
     {
       if ((changelogId==changelog1ID)&&(changelog1!=null))
         return changelog1;
-      
+
       if ((changelogId==changelog2ID)&&(changelog2!=null))
         return changelog2;
-      
+
       {
         int chPort = getChangelogPort(changelogId);
-        
+
         ChangelogFakeConfiguration conf =
           new ChangelogFakeConfiguration(chPort, null, 0, changelogId, 0, 100,
-                                         null); 
+                                         null);
         Changelog changelog = new Changelog(conf);
         Thread.sleep(1000);
 
@@ -751,7 +751,7 @@ public class InitOnLineTest extends SynchronizationTestCase
     }
     return null;
   }
-  
+
   /**
    * Create a synchronized suffix in the current server providing the
    * changelog serverID.
@@ -776,7 +776,7 @@ public class InitOnLineTest extends SynchronizationTestCase
       + "ds-cfg-receive-status: true\n"
 //    + "ds-cfg-heartbeat-interval: 0 ms\n"
       + "ds-cfg-window-size: " + WINDOW_SIZE;
-      
+
       if (synchroServerEntry == null)
       {
         synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
@@ -788,7 +788,7 @@ public class InitOnLineTest extends SynchronizationTestCase
         sd = SynchronizationDomain.retrievesSynchronizationDomain(baseDn);
 
         // Clear the backend
-        SynchronizationDomain.clearJEBackend(false, 
+        SynchronizationDomain.clearJEBackend(false,
             sd.getBackend().getBackendID(),
             baseDn.toNormalizedString());
 
@@ -809,7 +809,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   {
     return (changelogPort+changelogID);
   }
-  
+
   /**
    * Tests the import side of the Initialize task
    */
@@ -832,11 +832,11 @@ public class InitOnLineTest extends SynchronizationTestCase
           server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
       Thread.sleep(2000);
-      
+
       // In S1 launch the total update
       addTask(taskInitFromS2, ResultCode.SUCCESS, 0);
 
-      // S2 should receive init msg 
+      // S2 should receive init msg
       SynchronizationMessage msg;
       msg = server2.receive();
       if (!(msg instanceof InitializeRequestMessage))
@@ -846,7 +846,7 @@ public class InitOnLineTest extends SynchronizationTestCase
       InitializeRequestMessage initMsg = (InitializeRequestMessage)msg;
 
       // S2 publishes entries to S1
-      makeBrokerPublishEntries(server2, server2ID, initMsg.getsenderID(), 
+      makeBrokerPublishEntries(server2, server2ID, initMsg.getsenderID(),
           initMsg.getsenderID());
 
       // Wait for task (import) completion in S1
@@ -855,17 +855,17 @@ public class InitOnLineTest extends SynchronizationTestCase
 
       // Test import result in S1
       testEntriesInDb();
-      
+
       cleanEntries();
 
-      log("Successfully ending " + testCase);    
+      log("Successfully ending " + testCase);
     }
     catch(Exception e)
     {
       fail(testCase + " Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
     }
   }
-  
+
   /**
    * Tests the export side of the Initialize task
    */
@@ -873,14 +873,14 @@ public class InitOnLineTest extends SynchronizationTestCase
   public void InitializeExport() throws Exception
   {
     String testCase = "Synchronization/InitializeExport";
-    
+
     log("Starting "+testCase);
 
     changelog1 = createChangelogServer(changelog1ID);
 
     // Connect DS to the changelog
     connectServer1ToChangelog(changelog1ID);
-      
+
     addTestEntriesToDB();
 
     if (server2 == null)
@@ -907,7 +907,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   public void InitializeTargetExport() throws Exception
   {
     String testCase = "Synchronization/InitializeTargetExport";
-    
+
     log("Starting " + testCase);
 
     changelog1 = createChangelogServer(changelog1ID);
@@ -924,7 +924,7 @@ public class InitOnLineTest extends SynchronizationTestCase
         server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
     Thread.sleep(1000);
-    
+
     // Launch in S1 the task that will initialize S2
     addTask(taskInitTargetS2, ResultCode.SUCCESS, 0);
 
@@ -933,13 +933,13 @@ public class InitOnLineTest extends SynchronizationTestCase
 
     // Tests that entries have been received by S2
     receiveUpdatedEntries(server2, server2ID, updatedEntries);
-    
+
     cleanEntries();
 
-    log("Successfully ending " + testCase);    
-   
+    log("Successfully ending " + testCase);
+
   }
-  
+
   /**
    * Tests the import side of the InitializeTarget task
    */
@@ -947,7 +947,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   public void InitializeTargetExportAll() throws Exception
   {
     String testCase = "Synchronization/InitializeTargetExportAll";
-    
+
     log("Starting " + testCase);
 
     changelog1 = createChangelogServer(changelog1ID);
@@ -962,12 +962,12 @@ public class InitOnLineTest extends SynchronizationTestCase
     if (server2==null)
       server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
         server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
-    
+
     ChangelogBroker server3 = openChangelogSession(DN.decode("dc=example,dc=com"),
         server3ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
     Thread.sleep(1000);
-    
+
     // Launch in S1 the task that will initialize S2
     addTask(taskInitTargetAll, ResultCode.SUCCESS, 0);
 
@@ -977,13 +977,13 @@ public class InitOnLineTest extends SynchronizationTestCase
     // Tests that entries have been received by S2
     receiveUpdatedEntries(server2, server2ID, updatedEntries);
     receiveUpdatedEntries(server3, server3ID, updatedEntries);
-    
+
     cleanEntries();
 
-    log("Successfully ending " + testCase);    
-   
+    log("Successfully ending " + testCase);
+
   }
-  
+
  /**
    * Tests the import side of the InitializeTarget task
    */
@@ -1006,7 +1006,7 @@ public class InitOnLineTest extends SynchronizationTestCase
 
       // Creates config to synchronize suffix
       connectServer1ToChangelog(changelog1ID);
-      
+
       // S2 publishes entries to S1
       makeBrokerPublishEntries(server2, server2ID, server1ID, server2ID);
 
@@ -1017,14 +1017,14 @@ public class InitOnLineTest extends SynchronizationTestCase
 
       cleanEntries();
 
-      log("Successfully ending " + testCase);    
+      log("Successfully ending " + testCase);
     }
     catch(Exception e)
     {
       fail(testCase + " Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
     }
   }
-  
+
   /**
    * Tests the import side of the InitializeTarget task
    */
@@ -1037,7 +1037,7 @@ public class InitOnLineTest extends SynchronizationTestCase
     {
       log("Starting " + testCase);
 
-      // Invalid domain base dn      
+      // Invalid domain base dn
       Entry taskInitTarget = TestCaseUtils.makeEntry(
           "dn: ds-task-id=" + UUID.randomUUID() +
           ",cn=Scheduled Tasks,cn=Tasks",
@@ -1047,7 +1047,7 @@ public class InitOnLineTest extends SynchronizationTestCase
           "ds-task-class-name: org.opends.server.tasks.InitializeTargetTask",
           "ds-task-initialize-domain-dn: foo",
           "ds-task-initialize-remote-replica-server-id: " + server2ID);
-      addTask(taskInitTarget, ResultCode.INVALID_DN_SYNTAX, 
+      addTask(taskInitTarget, ResultCode.INVALID_DN_SYNTAX,
           TaskMessages.MSGID_TASK_INITIALIZE_INVALID_DN);
 
       // Domain base dn not related to any domain
@@ -1060,25 +1060,25 @@ public class InitOnLineTest extends SynchronizationTestCase
           "ds-task-class-name: org.opends.server.tasks.InitializeTargetTask",
           "ds-task-initialize-domain-dn: dc=foo",
           "ds-task-initialize-remote-replica-server-id: " + server2ID);
-      addTask(taskInitTarget, ResultCode.OTHER, 
-          LogMessages.MSGID_NO_MATCHING_DOMAIN);
+      addTask(taskInitTarget, ResultCode.OTHER,
+          MSGID_NO_MATCHING_DOMAIN);
 
       // Invalid scope
       // createTask(taskInitTargetS2);
-      
+
       // Scope containing a serverID absent from the domain
       // createTask(taskInitTargetS2);
 
       cleanEntries();
 
-      log("Successfully ending " + testCase);    
+      log("Successfully ending " + testCase);
     }
     catch(Exception e)
     {
       fail(testCase + " Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
     }
   }
-  
+
   /**
    * Tests the import side of the InitializeTarget task
    */
@@ -1097,7 +1097,7 @@ public class InitOnLineTest extends SynchronizationTestCase
       // Creates config to synchronize suffix
       connectServer1ToChangelog(changelog1ID);
 
-      // Invalid domain base dn      
+      // Invalid domain base dn
       Entry taskInit = TestCaseUtils.makeEntry(
           "dn: ds-task-id=" + UUID.randomUUID() +
           ",cn=Scheduled Tasks,cn=Tasks",
@@ -1107,7 +1107,7 @@ public class InitOnLineTest extends SynchronizationTestCase
           "ds-task-class-name: org.opends.server.tasks.InitializeTask",
           "ds-task-initialize-domain-dn: foo",
           "ds-task-initialize-source: " + server2ID);
-      addTask(taskInit, ResultCode.INVALID_DN_SYNTAX, 
+      addTask(taskInit, ResultCode.INVALID_DN_SYNTAX,
           TaskMessages.MSGID_TASK_INITIALIZE_INVALID_DN);
 
       // Domain base dn not related to any domain
@@ -1120,7 +1120,7 @@ public class InitOnLineTest extends SynchronizationTestCase
           "ds-task-class-name: org.opends.server.tasks.InitializeTask",
           "ds-task-initialize-domain-dn: dc=foo",
           "ds-task-initialize-source: " + server2ID);
-      addTask(taskInit, ResultCode.OTHER, LogMessages.MSGID_NO_MATCHING_DOMAIN);
+      addTask(taskInit, ResultCode.OTHER, MSGID_NO_MATCHING_DOMAIN);
 
       // Invalid Source
       taskInit = TestCaseUtils.makeEntry(
@@ -1132,29 +1132,29 @@ public class InitOnLineTest extends SynchronizationTestCase
           "ds-task-class-name: org.opends.server.tasks.InitializeTask",
           "ds-task-initialize-domain-dn: " + baseDn,
           "ds-task-initialize-source: -3");
-      addTask(taskInit, ResultCode.OTHER, 
-          LogMessages.MSGID_INVALID_IMPORT_SOURCE);
-      
+      addTask(taskInit, ResultCode.OTHER,
+          MSGID_INVALID_IMPORT_SOURCE);
+
       // Scope containing a serverID absent from the domain
       // createTask(taskInitTargetS2);
 
       cleanEntries();
 
-      log("Successfully ending " + testCase);    
+      log("Successfully ending " + testCase);
     }
     catch(Exception e)
     {
       fail(testCase + " Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
     }
   }
- 
+
   @Test(enabled=false)
   public void InitializeTargetBroken() throws Exception
   {
     String testCase = "InitializeTargetBroken";
     fail(testCase + " NYI");
   }
-  
+
   @Test(enabled=false)
   public void InitializeBroken() throws Exception
   {
@@ -1166,12 +1166,12 @@ public class InitOnLineTest extends SynchronizationTestCase
   public void InitializeTargetExportMultiSS() throws Exception
   {
     String testCase = "Synchronization/InitializeTargetExportMultiSS";
-    
+
     log("Starting " + testCase);
 
     // Create 2 changelogs
     changelog1 = createChangelogServer(changelog1ID);
-    
+
     changelog2 = createChangelogServer(changelog2ID);
 
     // Creates config to synchronize suffix
@@ -1189,7 +1189,7 @@ public class InitOnLineTest extends SynchronizationTestCase
     }
 
     Thread.sleep(1000);
-    
+
     // Launch in S1 the task that will initialize S2
     addTask(taskInitTargetS2, ResultCode.SUCCESS, 0);
 
@@ -1198,40 +1198,40 @@ public class InitOnLineTest extends SynchronizationTestCase
 
     // Tests that entries have been received by S2
     receiveUpdatedEntries(server2, server2ID, updatedEntries);
-    
+
     cleanEntries();
 
     changelog2.shutdown();
     changelog2 = null;
-    
-    log("Successfully ending " + testCase);    
-   
+
+    log("Successfully ending " + testCase);
+
   }
-  
+
   @Test(enabled=false)
   public void InitializeExportMultiSS() throws Exception
   {
-    String testCase = "Synchronization/InitializeExportMultiSS";    
+    String testCase = "Synchronization/InitializeExportMultiSS";
     log("Starting "+testCase);
 
     // Create 2 changelogs
     changelog1 = createChangelogServer(changelog1ID);
     Thread.sleep(3000);
-    
+
     changelog2 = createChangelogServer(changelog2ID);
     Thread.sleep(3000);
 
     // Connect DS to the changelog 1
     connectServer1ToChangelog(changelog1ID);
 
-    // Put entries in DB       
+    // Put entries in DB
     addTestEntriesToDB();
-    
+
     // Connect a broker acting as server 2 to changelog2
     if (server2 == null)
     {
       server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
-        server2ID, 100, getChangelogPort(changelog2ID), 
+        server2ID, 100, getChangelogPort(changelog2ID),
         1000, emptyOldChanges);
     }
 
@@ -1252,13 +1252,13 @@ public class InitOnLineTest extends SynchronizationTestCase
 
     log("Successfully ending "+testCase);
   }
-  
+
   @Test(enabled=false)
   public void InitializeNoSource() throws Exception
   {
     String testCase = "InitializeNoSource";
     log("Starting "+testCase);
-    
+
     // Start SS
     changelog1 = createChangelogServer(changelog1ID);
 
@@ -1274,34 +1274,34 @@ public class InitOnLineTest extends SynchronizationTestCase
         "ds-task-class-name: org.opends.server.tasks.InitializeTask",
         "ds-task-initialize-domain-dn: "+baseDn,
         "ds-task-initialize-replica-server-id: " + 20);
-    
+
     addTask(taskInit, ResultCode.SUCCESS, 0);
-    
+
     waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
-        LogMessages.MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN);
+        MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN);
 
     if (sd != null)
     {
        log("SynchronizationDomain: Import/Export is running ? " + sd.ieRunning());
     }
-    
+
     log("Successfully ending "+testCase);
 
   }
-  
+
   @Test(enabled=false)
   public void InitializeTargetNoTarget() throws Exception
   {
     String testCase = "InitializeTargetNoTarget"  + baseDn;
     log("Starting "+testCase);
-    
+
     // Start SS
     changelog1 = createChangelogServer(changelog1ID);
 
     // Creates config to synchronize suffix
     connectServer1ToChangelog(changelog1ID);
 
-    // Put entries in DB       
+    // Put entries in DB
     addTestEntriesToDB();
 
     Entry taskInit = TestCaseUtils.makeEntry(
@@ -1313,20 +1313,20 @@ public class InitOnLineTest extends SynchronizationTestCase
         "ds-task-class-name: org.opends.server.tasks.InitializeTargetTask",
         "ds-task-initialize-target-domain-dn: "+baseDn,
         "ds-task-initialize-target-scope: " + 10);
-    
+
     addTask(taskInit, ResultCode.SUCCESS, 0);
-    
-    waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR, 
-        LogMessages.MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN);
+
+    waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
+        MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN);
 
     if (sd != null)
     {
        log("SynchronizationDomain: Import/Export is running ? " + sd.ieRunning());
     }
-    
+
     log("Successfully ending "+testCase);
   }
-  
+
   @Test(enabled=false)
   public void InitializeStopped() throws Exception
   {
@@ -1351,12 +1351,12 @@ public class InitOnLineTest extends SynchronizationTestCase
     String testCase = "InitializeTargetCompressed";
     fail(testCase + " NYI");
   }
-  
+
   @Test(enabled=false)
   public void InitializeSimultaneous() throws Exception
   {
     String testCase = "InitializeSimultaneous";
-    
+
     // Start SS
     changelog1 = createChangelogServer(changelog1ID);
 
@@ -1364,7 +1364,7 @@ public class InitOnLineTest extends SynchronizationTestCase
     if (server2 == null)
     {
       server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
-        server2ID, 100, getChangelogPort(changelog1ID), 
+        server2ID, 100, getChangelogPort(changelog1ID),
         1000, emptyOldChanges);
     }
 
@@ -1380,11 +1380,11 @@ public class InitOnLineTest extends SynchronizationTestCase
         "ds-task-class-name: org.opends.server.tasks.InitializeTask",
         "ds-task-initialize-domain-dn: "+baseDn,
         "ds-task-initialize-replica-server-id: " + server2ID);
-    
+
     addTask(taskInit, ResultCode.SUCCESS, 0);
 
     Thread.sleep(3000);
-    
+
     Entry taskInit2 = TestCaseUtils.makeEntry(
         "dn: ds-task-id=" + UUID.randomUUID() +
         ",cn=Scheduled Tasks,cn=Tasks",
@@ -1394,16 +1394,16 @@ public class InitOnLineTest extends SynchronizationTestCase
         "ds-task-class-name: org.opends.server.tasks.InitializeTask",
         "ds-task-initialize-domain-dn: "+baseDn,
         "ds-task-initialize-replica-server-id: " + server2ID);
-    
+
     // Second task is expected to be rejected
     addTask(taskInit2, ResultCode.SUCCESS, 0);
-    
-    waitTaskState(taskInit2, TaskState.STOPPED_BY_ERROR, 
-        LogMessages.MSGID_SIMULTANEOUS_IMPORT_EXPORT_REJECTED);
-    
+
+    waitTaskState(taskInit2, TaskState.STOPPED_BY_ERROR,
+        MSGID_SIMULTANEOUS_IMPORT_EXPORT_REJECTED);
+
     // First task is stilll running
     waitTaskState(taskInit, TaskState.RUNNING, -1);
-    
+
     // External request is supposed to be rejected
 
     // Now tests error in the middle of an import
@@ -1416,11 +1416,11 @@ public class InitOnLineTest extends SynchronizationTestCase
         1);
 
     cleanEntries();
-    
+
     log("Successfully ending "+testCase);
- 
+
   }
-  
+
   /**
    * Disconnect broker and remove entries from the local DB
    * @throws Exception
@@ -1432,12 +1432,12 @@ public class InitOnLineTest extends SynchronizationTestCase
     {
        log("SynchronizationDomain: Import/Export is running ? " + sd.ieRunning());
     }
-    
+
     // Clean brokers
     if (server2 != null)
     {
       server2.stop();
-      
+
       TestCaseUtils.sleep(100); // give some time to the broker to disconnect
       // fromthe changelog server.
       server2 = null;

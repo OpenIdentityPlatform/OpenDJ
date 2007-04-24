@@ -58,7 +58,6 @@ import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -73,10 +72,13 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -112,9 +114,6 @@ public class AddOperation
        implements PreParseAddOperation, PreOperationAddOperation,
                   PostOperationAddOperation, PostResponseAddOperation
 {
-
-
-
   // The set of response controls to send to the client.
   private ArrayList<Control> responseControls;
 
@@ -134,7 +133,7 @@ public class AddOperation
   // The set of attributes (including the objectclass attribute) in a raw,
   // unprocessed form as provided in the request.  One or more of these
   // attributes may be invalid.
-  private List<LDAPAttribute> rawAttributes;
+  private List<RawAttribute> rawAttributes;
 
   // The set of operational attributes for the entry to add.
   private Map<AttributeType,List<Attribute>> operationalAttributes;
@@ -173,7 +172,7 @@ public class AddOperation
    */
   public AddOperation(ClientConnection clientConnection, long operationID,
                       int messageID, List<Control> requestControls,
-                      ByteString rawEntryDN, List<LDAPAttribute> rawAttributes)
+                      ByteString rawEntryDN, List<RawAttribute> rawAttributes)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
@@ -226,7 +225,7 @@ public class AddOperation
 
     rawEntryDN = new ASN1OctetString(entryDN.toString());
 
-    rawAttributes = new ArrayList<LDAPAttribute>();
+    rawAttributes = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> ocValues = new ArrayList<ASN1OctetString>();
     for (String s : objectClasses.values())
@@ -316,7 +315,7 @@ public class AddOperation
    * @return  The set of attributes in their raw, unparsed form as read from the
    *          client request.
    */
-  public final List<LDAPAttribute> getRawAttributes()
+  public final List<RawAttribute> getRawAttributes()
   {
     return rawAttributes;
   }
@@ -330,7 +329,7 @@ public class AddOperation
    * @param  rawAttribute  The attribute to add to the set of raw attributes for
    *                       this add operation.
    */
-  public final void addRawAttribute(LDAPAttribute rawAttribute)
+  public final void addRawAttribute(RawAttribute rawAttribute)
   {
     rawAttributes.add(rawAttribute);
 
@@ -347,7 +346,7 @@ public class AddOperation
    *
    * @param  rawAttributes  The set of raw attributes for this add operation.
    */
-  public final void setRawAttributes(List<LDAPAttribute> rawAttributes)
+  public final void setRawAttributes(List<RawAttribute> rawAttributes)
   {
     this.rawAttributes = rawAttributes;
 
@@ -832,7 +831,7 @@ addProcessing:
         objectClasses         = new HashMap<ObjectClass,String>();
         userAttributes        = new HashMap<AttributeType,List<Attribute>>();
         operationalAttributes = new HashMap<AttributeType,List<Attribute>>();
-        for (LDAPAttribute a : rawAttributes)
+        for (RawAttribute a : rawAttributes)
         {
           try
           {
@@ -1057,7 +1056,7 @@ addProcessing:
                      ErrorLogSeverity.SEVERE_ERROR,
                      MSGID_ADD_SYNCH_CONFLICT_RESOLUTION_FAILED,
                      getConnectionID(), getOperationID(),
-                     stackTraceToSingleLineString(de));
+                     getExceptionMessage(de));
 
             setResponseData(de);
             break addProcessing;
@@ -2022,7 +2021,7 @@ addProcessing:
                   logError(ErrorLogCategory.SYNCHRONIZATION,
                            ErrorLogSeverity.SEVERE_ERROR,
                            MSGID_ADD_SYNCH_PREOP_FAILED, getConnectionID(),
-                           getOperationID(), stackTraceToSingleLineString(de));
+                           getOperationID(), getExceptionMessage(de));
 
                   setResponseData(de);
                   break addProcessing;
@@ -2151,7 +2150,7 @@ addProcessing:
             logError(ErrorLogCategory.SYNCHRONIZATION,
                      ErrorLogSeverity.SEVERE_ERROR,
                      MSGID_ADD_SYNCH_POSTOP_FAILED, getConnectionID(),
-                     getOperationID(), stackTraceToSingleLineString(de));
+                     getOperationID(), getExceptionMessage(de));
 
             setResponseData(de);
             break;
@@ -2207,7 +2206,7 @@ addProcessing:
           }
 
           int    msgID   = MSGID_ADD_ERROR_NOTIFYING_CHANGE_LISTENER;
-          String message = getMessage(msgID, stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, getExceptionMessage(e));
           logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
         }
@@ -2246,7 +2245,7 @@ addProcessing:
 
           int    msgID   = MSGID_ADD_ERROR_NOTIFYING_PERSISTENT_SEARCH;
           String message = getMessage(msgID, String.valueOf(persistentSearch),
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
 
@@ -2543,7 +2542,7 @@ addProcessing:
    * {@inheritDoc}
    */
   @Override()
-  boolean setCancelRequest(CancelRequest cancelRequest)
+  protected boolean setCancelRequest(CancelRequest cancelRequest)
   {
     this.cancelRequest = cancelRequest;
     return true;

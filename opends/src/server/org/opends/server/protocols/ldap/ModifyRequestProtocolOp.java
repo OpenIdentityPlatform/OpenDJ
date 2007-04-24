@@ -34,10 +34,11 @@ import java.util.Iterator;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
-
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawModification;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -53,11 +54,8 @@ import static org.opends.server.util.ServerConstants.*;
 public class ModifyRequestProtocolOp
        extends ProtocolOp
 {
-
-
-
   // The set of modifications for this modify request.
-  private ArrayList<LDAPModification> modifications;
+  private ArrayList<RawModification> modifications;
 
   // The DN for this modify request.
   private ASN1OctetString dn;
@@ -73,7 +71,7 @@ public class ModifyRequestProtocolOp
   public ModifyRequestProtocolOp(ASN1OctetString dn)
   {
     this.dn            = dn;
-    this.modifications = new ArrayList<LDAPModification>();
+    this.modifications = new ArrayList<RawModification>();
   }
 
 
@@ -86,13 +84,13 @@ public class ModifyRequestProtocolOp
    * @param  modifications  The set of modifications for this modify request.
    */
   public ModifyRequestProtocolOp(ASN1OctetString dn,
-                                 ArrayList<LDAPModification> modifications)
+                                 ArrayList<RawModification> modifications)
   {
     this.dn = dn;
 
     if (modifications == null)
     {
-      this.modifications = new ArrayList<LDAPModification>();
+      this.modifications = new ArrayList<RawModification>();
     }
     else
     {
@@ -132,7 +130,7 @@ public class ModifyRequestProtocolOp
    *
    * @return  The set of modifications for this modify request.
    */
-  public ArrayList<LDAPModification> getModifications()
+  public ArrayList<RawModification> getModifications()
   {
     return modifications;
   }
@@ -177,7 +175,7 @@ public class ModifyRequestProtocolOp
 
     ArrayList<ASN1Element> modElements =
          new ArrayList<ASN1Element>(modifications.size());
-    for (LDAPModification mod : modifications)
+    for (RawModification mod : modifications)
     {
       modElements.add(mod.encode());
     }
@@ -249,12 +247,12 @@ public class ModifyRequestProtocolOp
 
 
 
-    ArrayList<LDAPModification> modifications;
+    ArrayList<RawModification> modifications;
     try
     {
       ArrayList<ASN1Element> modElements =
            elements.get(1).decodeAsSequence().elements();
-      modifications = new ArrayList<LDAPModification>(modElements.size());
+      modifications = new ArrayList<RawModification>(modElements.size());
       for (ASN1Element e : modElements)
       {
         modifications.add(LDAPModification.decode(e));
@@ -292,7 +290,7 @@ public class ModifyRequestProtocolOp
 
     if (! modifications.isEmpty())
     {
-      Iterator<LDAPModification> iterator = modifications.iterator();
+      Iterator<RawModification> iterator = modifications.iterator();
       iterator.next().toString(buffer);
 
       while (iterator.hasNext())
@@ -335,7 +333,7 @@ public class ModifyRequestProtocolOp
     buffer.append("  Modifications:");
     buffer.append(EOL);
 
-    for (LDAPModification mod : modifications)
+    for (RawModification mod : modifications)
     {
       mod.toString(buffer, indent+4);
     }

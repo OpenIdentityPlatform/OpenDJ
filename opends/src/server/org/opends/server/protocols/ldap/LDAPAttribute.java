@@ -31,19 +31,17 @@ package org.opends.server.protocols.ldap;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Set;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawAttribute;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -59,6 +57,7 @@ import static org.opends.server.util.StaticUtils.*;
  * entry.
  */
 public class LDAPAttribute
+       extends RawAttribute
 {
   // The set of values for this attribute.
   private ArrayList<ASN1OctetString> values;
@@ -78,6 +77,64 @@ public class LDAPAttribute
     this.attributeType = attributeType;
 
     values = new ArrayList<ASN1OctetString>(0);
+  }
+
+
+
+  /**
+   * Creates a new LDAP attribute with the provided type and no values.
+   *
+   * @param  attributeType  The attribute type for this attribute.
+   * @param  value          The value to use for this attribute.
+   */
+  public LDAPAttribute(String attributeType, String value)
+  {
+    this.attributeType = attributeType;
+
+    values = new ArrayList<ASN1OctetString>(1);
+    values.add(new ASN1OctetString(value));
+  }
+
+
+
+  /**
+   * Creates a new LDAP attribute with the provided type and no values.
+   *
+   * @param  attributeType  The attribute type for this attribute.
+   * @param  value          The value to use for this attribute.
+   */
+  public LDAPAttribute(String attributeType, ASN1OctetString value)
+  {
+    this.attributeType = attributeType;
+
+    values = new ArrayList<ASN1OctetString>(1);
+    values.add(value);
+  }
+
+
+
+  /**
+   * Creates a new LDAP attribute with the provided type and values.
+   *
+   * @param  attributeType  The attribute type for this attribute.
+   * @param  values         The set of values for this attribute.
+   */
+  public LDAPAttribute(String attributeType, List<String> values)
+  {
+    this.attributeType = attributeType;
+
+    if (values == null)
+    {
+      this.values = new ArrayList<ASN1OctetString>(0);
+    }
+    else
+    {
+      this.values = new ArrayList<ASN1OctetString>(values.size());
+      for (String value : values)
+      {
+        this.values.add(new ASN1OctetString(value));
+      }
+    }
   }
 
 
@@ -176,116 +233,6 @@ public class LDAPAttribute
   public ArrayList<ASN1OctetString> getValues()
   {
     return values;
-  }
-
-
-
-  /**
-   * Encodes this attribute to an ASN.1 element.
-   *
-   * @return  The ASN.1 element containing the encoded attribute.
-   */
-  public ASN1Element encode()
-  {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1OctetString(attributeType));
-
-    if ((values == null) || values.isEmpty())
-    {
-      elements.add(new ASN1Set());
-    }
-    else
-    {
-      elements.add(new ASN1Set(new ArrayList<ASN1Element>(values)));
-    }
-
-    return new ASN1Sequence(elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP attribute.
-   *
-   * @param  element  The ASN.1 element to decode.
-   *
-   * @return  The decoded LDAP attribute.
-   *
-   * @throws  LDAPException  If a problem occurs while trying to decode the
-   *                         provided ASN.1 element as an LDAP attribute.
-   */
-  public static LDAPAttribute decode(ASN1Element element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_LDAP_ATTRIBUTE_DECODE_SEQUENCE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if (numElements != 2)
-    {
-      int msgID = MSGID_LDAP_ATTRIBUTE_DECODE_INVALID_ELEMENT_COUNT;
-      String message = getMessage(msgID, numElements);
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
-    }
-
-
-    String attributeType;
-    try
-    {
-      attributeType = elements.get(0).decodeAsOctetString().stringValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_LDAP_ATTRIBUTE_DECODE_TYPE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
-    }
-
-
-    ArrayList<ASN1OctetString> values;
-    try
-    {
-      ArrayList<ASN1Element> valueElements =
-           elements.get(1).decodeAsSet().elements();
-      values = new ArrayList<ASN1OctetString>(valueElements.size());
-      for (ASN1Element e : valueElements)
-      {
-        values.add(e.decodeAsOctetString());
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_LDAP_ATTRIBUTE_DECODE_VALUES;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
-    }
-
-    return new LDAPAttribute(attributeType, values);
   }
 
 

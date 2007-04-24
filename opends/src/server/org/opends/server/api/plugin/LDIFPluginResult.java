@@ -28,18 +28,12 @@ package org.opends.server.api.plugin;
 
 
 
-
-
-
 /**
  * This class defines a data structure that holds information about
  * the result of processing an LDIF import or export plugin.
  */
 public class LDIFPluginResult
 {
-
-
-
   /**
    * An LDIF plugin result instance that indicates all processing was
    * successful.

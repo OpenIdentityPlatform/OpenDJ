@@ -26,9 +26,13 @@
  */
 package org.opends.server.api;
 
+
+
 import org.opends.server.admin.std.server.AccessControlHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+
+
 
 /**
  * This class defines an interface for managing the life-cycle of an
@@ -40,8 +44,8 @@ import org.opends.server.types.InitializationException;
  *          this connection handler implementation.
  */
 public interface AccessControlProvider
-  <T extends AccessControlHandlerCfg> {
-
+       <T extends AccessControlHandlerCfg>
+{
   /**
    * Initializes the access control handler implementation based on
    * the information in the provided configuration entry.
@@ -56,8 +60,10 @@ public interface AccessControlProvider
    *           If a problem occurs during initialization that is not
    *           related to the server configuration.
    */
-  void initializeAccessControlHandler(T configuration)
-      throws ConfigException, InitializationException;
+  public void initializeAccessControlHandler(T configuration)
+         throws ConfigException, InitializationException;
+
+
 
   /**
    * Performs any necessary finalization for the access control
@@ -65,7 +71,9 @@ public interface AccessControlProvider
    * handler has been deregistered with the server but before it has
    * been unloaded.
    */
-  void finalizeAccessControlHandler();
+  public void finalizeAccessControlHandler();
+
+
 
   /**
    * Get the access control handler responsible for making access
@@ -75,6 +83,5 @@ public interface AccessControlProvider
    * @return Returns the access control handler.
    */
   AccessControlHandler getInstance();
-
 }
 

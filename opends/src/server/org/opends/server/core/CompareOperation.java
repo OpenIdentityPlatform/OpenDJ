@@ -43,7 +43,6 @@ import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -55,7 +54,9 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.LockManager;
+import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
@@ -1177,7 +1178,7 @@ compareProcessing:
    * {@inheritDoc}
    */
   @Override()
-  boolean setCancelRequest(CancelRequest cancelRequest)
+  protected boolean setCancelRequest(CancelRequest cancelRequest)
   {
     this.cancelRequest = cancelRequest;
     return true;

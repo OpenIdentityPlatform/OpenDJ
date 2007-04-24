@@ -26,17 +26,20 @@
  */
 package org.opends.server.api;
 
+
+
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
+
+
 
 /**
  * A factory interface for decoding attribute values into objects.
  *
- * @param <T>
- *          Decode the attribute value to an object of this type.
+ * @param  <T>  Decode the attribute value to an object of this type.
  */
-public interface AttributeValueDecoder<T> {
-
+public interface AttributeValueDecoder<T>
+{
   /**
    * Decode the specified attribute value to an object of type T.
    *
@@ -48,3 +51,4 @@ public interface AttributeValueDecoder<T> {
    */
   T decode(AttributeValue value) throws DirectoryException;
 }
+

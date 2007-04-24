@@ -279,7 +279,7 @@ public class LDAPRequestHandler
             // thread to die.  Log a severe error.
             int    msgID   = MSGID_LDAP_REQHANDLER_UNEXPECTED_SELECT_EXCEPTION;
             String message = getMessage(msgID, getName(),
-                                        stackTraceToSingleLineString(e));
+                                        getExceptionMessage(e));
             logError(ErrorLogCategory.REQUEST_HANDLING,
                      ErrorLogSeverity.SEVERE_ERROR, message, msgID);
           }

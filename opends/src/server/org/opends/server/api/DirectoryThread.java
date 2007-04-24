@@ -28,14 +28,15 @@ package org.opends.server.api;
 
 
 
+import java.util.Map;
+import java.util.LinkedHashMap;
+
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.Map;
-import java.util.LinkedHashMap;
 
 
 /**
@@ -59,9 +60,6 @@ import java.util.LinkedHashMap;
 public class DirectoryThread
        extends Thread
 {
-
-
-
   // The stack trace taken at the time that this thread was created.
   private StackTraceElement[] creationStackTrace;
 

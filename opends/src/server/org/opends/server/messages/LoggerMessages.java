@@ -137,39 +137,39 @@ public class LoggerMessages
   {
     registerMessage(MSGID_LOG_ACCESS_CANNOT_ADD_FILE_HANDLER,
                     "Unable to add a file handler for the Directory Server " +
-                    "access logger:  %s.");
+                    "access logger:  %s");
     registerMessage(MSGID_LOG_ERROR_CANNOT_ADD_FILE_HANDLER,
                     "Unable to add a file handler for the Directory Server " +
-                    "error logger:  %s.");
+                    "error logger:  %s");
     registerMessage(MSGID_LOG_DEBUG_CANNOT_ADD_FILE_HANDLER,
                     "Unable to add a file handler for the Directory Server " +
-                    "debug logger:  %s.");
+                    "debug logger:  %s");
     registerMessage(MSGID_LOG_DESCRIPTION_SSL_CERT_NICKNAME,
                     "Specifies the nickname of the certificate that the " +
                     "connection handler should use when accepting SSL-based " +
                     "connections or performing StartTLS negotiation.  " +
                     "Changes to this configuration attribute will not take " +
                     "effect until the connection handler is disabled and " +
-                    "re-enabled, or until the Directory Server is restarted.");
+                    "re-enabled, or until the Directory Server is restarted");
     registerMessage(MSGID_LOGGER_ROTATION_SIZE_LIMIT,
                     "Specifies the size limit for the file before rotation " +
-                    "takes place.");
+                    "takes place");
     registerMessage(MSGID_LOGGER_ROTATION_FIXED_TIME_LIMIT,
                     "Specifies the time interval before the log file rotation" +
-                    " takes place.");
+                    " takes place");
     registerMessage(MSGID_LOGGER_RETENTION_NUMBER_OF_FILES,
                     "Specifies the number of log files that need to " +
-                    " be retained.");
+                    " be retained");
     registerMessage(MSGID_LOGGER_RETENTION_DISK_SPACE_USED,
                     "Specifies the amount of disk space that log files " +
-                    " can use.");
+                    " can use");
     registerMessage(MSGID_LOGGER_THREAD_INTERVAL,
                     "Specifies the time interval that the logger thread " +
-                    " wakes up after.");
+                    " wakes up after");
     registerMessage(MSGID_LOGGER_BUFFER_SIZE,
-                    "Specifies the log file buffer size.");
+                    "Specifies the log file buffer size");
     registerMessage(MSGID_LOGGER_RETENTION_FREE_DISK_SPACE,
-                    "Specifies the free disk space allowed.");
+                    "Specifies the free disk space allowed");
 
   }
 }

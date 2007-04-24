@@ -37,9 +37,9 @@ import org.testng.annotations.Test;
 import static org.opends.server.util.ServerConstants.OID_NS_PASSWORD_EXPIRED;
 import static org.testng.Assert.*;
 
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
+import org.opends.server.types.LDAPException;
 
 /**
  * Test ChangeNumber and ChangeNumberGenerator
@@ -352,7 +352,7 @@ public class PersistentSearchControlTest
     }
   }
 
-  
+
   /**
    * Create values for EntryChangeNotificationControl
    */
@@ -389,7 +389,7 @@ public class PersistentSearchControlTest
       assertNull(ecnc.getPreviousDN()) ;
       assertEquals(false, ecnc.isCritical()) ;
       checkEntryChangeNotificationControlToString(ecnc);
-      
+
       // also check encode
       try
       {
@@ -430,7 +430,7 @@ public class PersistentSearchControlTest
       assertEquals(dn, ecnc.getPreviousDN());
       assertEquals(false, ecnc.isCritical()) ;
       checkEntryChangeNotificationControlToString(ecnc);
-      
+
       // also check encode
       try
       {
@@ -456,7 +456,7 @@ public class PersistentSearchControlTest
         }
       }
     }
-    
+
 
     // Test contructor EntryChangeNotificationControl(String oid, boolean
     // isCritical, PersistentSearchChangeType changeType,
@@ -469,10 +469,10 @@ public class PersistentSearchControlTest
       assertEquals(oid, ecnc.getOID());
       assertEquals(changeNumber, ecnc.getChangeNumber());
       assertEquals(type, ecnc.getChangeType());
-      assertEquals(dn, ecnc.getPreviousDN());   
+      assertEquals(dn, ecnc.getPreviousDN());
       assertEquals(isCritical, ecnc.isCritical()) ;
       checkEntryChangeNotificationControlToString(ecnc);
-      
+
       // also check encode
       try
       {
@@ -498,24 +498,24 @@ public class PersistentSearchControlTest
         }
       }
     }
-    
+
     // check setPreviousDN
     ecnc.setPreviousDN(null) ;
     assertNull(ecnc.getPreviousDN()) ;
     ecnc.setPreviousDN(dn) ;
     assertEquals(dn, ecnc.getPreviousDN());
-    
+
     // Check setChangeNumber
     ecnc.setChangeNumber(changeNumber +1) ;
     assertEquals(changeNumber +1, ecnc.getChangeNumber());
-    
+
     // Check setChangeType
     for (PersistentSearchChangeType type : types)
     {
       ecnc.setChangeType(type) ;
       assertEquals(type, ecnc.getChangeType());
     }
-    
+
     // Check error on decode
     try
     {
@@ -528,7 +528,7 @@ public class PersistentSearchControlTest
       assertTrue(true,"couldn't decode a control with null");
     }
   }
-  
+
   private void checkEntryChangeNotificationControlToString(EntryChangeNotificationControl ecnc)
   {
     String toString ="EntryChangeNotificationControl(changeType=";

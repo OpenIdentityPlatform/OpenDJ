@@ -38,11 +38,11 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CharacterSetPasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.Operation;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
+import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.messages.ExtensionsMessages.*;
@@ -300,7 +300,7 @@ public class CharacterSetPasswordValidator
     catch (Exception e)
     {
       resultCode = DirectoryConfig.getServerErrorResultCode();
-      messages.add(stackTraceToSingleLineString(e));
+      messages.add(getExceptionMessage(e));
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);

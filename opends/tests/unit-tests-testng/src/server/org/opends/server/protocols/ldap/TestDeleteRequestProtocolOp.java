@@ -31,6 +31,7 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.server.types.LDAPException;
 import static org.opends.server.util.ServerConstants.EOL;
 
 /**

@@ -37,7 +37,6 @@ import org.opends.server.types.InitializationException;
 
 
 
-
 /**
  * This class defines the set of methods that must be implemented for
  * an account status notification handler.  This handler will be
@@ -48,9 +47,6 @@ import org.opends.server.types.InitializationException;
  */
 public abstract class AccountStatusNotificationHandler
 {
-
-
-
   /**
    * Initializes this account status notification handler based on the
    * information in the provided configuration entry.
@@ -70,7 +66,7 @@ public abstract class AccountStatusNotificationHandler
    */
   public abstract void initializeStatusNotificationHandler(
                             ConfigEntry configEntry)
-       throws ConfigException, InitializationException;
+         throws ConfigException, InitializationException;
 
 
 

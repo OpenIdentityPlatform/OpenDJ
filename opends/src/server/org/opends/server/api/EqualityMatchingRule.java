@@ -31,12 +31,9 @@ package org.opends.server.api;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
-
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
 
@@ -48,9 +45,6 @@ import org.opends.server.types.DebugLogLevel;
 public abstract class EqualityMatchingRule
        extends MatchingRule
 {
-
-
-
   /**
    * Indicates whether the two provided normalized values are equal to
    * each other.

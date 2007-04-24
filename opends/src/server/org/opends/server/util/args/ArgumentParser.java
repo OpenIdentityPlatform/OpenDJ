@@ -555,7 +555,7 @@ public class ArgumentParser
       {
         int    msgID   = MSGID_ARGPARSER_CANNOT_READ_PROPERTIES_FILE;
         String message = getMessage(msgID, String.valueOf(propertiesFile),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new ArgumentException(msgID, message, e);
       }
     }

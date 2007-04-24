@@ -39,8 +39,8 @@ import org.opends.server.types.InitializationException;
 
 /**
  * This class defines an API that may be used to obtain a set of
- * <CODE>javax.net.ssl.TrustManager</CODE> objects for use when
- * performing SSL communication.
+ * {@code javax.net.ssl.TrustManager} objects for use when performing
+ * SSL/StartTLS negotiation.
  */
 public abstract class TrustManagerProvider
 {
@@ -77,12 +77,11 @@ public abstract class TrustManagerProvider
 
 
   /**
-   * Retrieves a set of <CODE>TrustManager</CODE> objects that may be
-   * used for interactions requiring access to a trust manager.
+   * Retrieves a set of {@code TrustManager} objects that may be used
+   * for interactions requiring access to a trust manager.
    *
-   * @return  A set of <CODE>TrustManager</CODE> objects that may be
-   *          used for interactions requiring access to a trust
-   *          manager.
+   * @return  A set of {@code TrustManager} objects that may be used
+   *          for interactions requiring access to a trust manager.
    *
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to obtain the set of trust managers.

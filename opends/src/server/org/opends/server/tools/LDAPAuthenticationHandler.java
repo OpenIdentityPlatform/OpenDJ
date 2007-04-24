@@ -66,9 +66,9 @@ import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.types.LDAPException;
 import org.opends.server.util.Base64;
 import org.opends.server.util.PasswordReader;
 
@@ -329,14 +329,14 @@ public class LDAPAuthenticationHandler
     catch (IOException ioe)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ioe));
+      String message = getMessage(msgID, getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
                                 msgID, message, e);
     }
@@ -360,28 +360,28 @@ public class LDAPAuthenticationHandler
     catch (IOException ioe)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ioe));
+      String message = getMessage(msgID, getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
     catch (ASN1Exception ae)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ae));
+      String message = getMessage(msgID, getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, ae);
     }
     catch (LDAPException le)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(le));
+      String message = getMessage(msgID, getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, le);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -653,7 +653,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_ANONYMOUS,
-                                  stackTraceToSingleLineString(ioe));
+                                  getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
@@ -661,7 +661,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_ANONYMOUS,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
                                 msgID, message, e);
     }
@@ -685,28 +685,28 @@ public class LDAPAuthenticationHandler
     catch (IOException ioe)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ioe));
+      String message = getMessage(msgID, getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
     catch (ASN1Exception ae)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ae));
+      String message = getMessage(msgID, getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, ae);
     }
     catch (LDAPException le)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(le));
+      String message = getMessage(msgID, getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, le);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -926,7 +926,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(ioe));
+                                  getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
@@ -934,7 +934,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
                                 msgID, message, e);
     }
@@ -960,7 +960,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(ioe));
+                                  getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
@@ -968,7 +968,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(ae));
+                                  getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, ae);
     }
@@ -976,7 +976,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(le));
+                                  getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, le);
     }
@@ -984,7 +984,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -1086,7 +1086,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(ioe));
+                                  getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
@@ -1094,7 +1094,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -1119,7 +1119,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(ioe));
+                                  getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
@@ -1127,7 +1127,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(ae));
+                                  getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, ae);
     }
@@ -1135,7 +1135,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(le));
+                                  getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, le);
     }
@@ -1143,7 +1143,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_CRAM_MD5,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -1245,7 +1245,7 @@ public class LDAPAuthenticationHandler
       catch (Exception e)
       {
         int    msgID   = MSGID_LDAPAUTH_CANNOT_INITIALIZE_MD5_DIGEST;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                   message, e);
       }
@@ -1553,7 +1553,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(ioe));
+                                  getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
@@ -1561,7 +1561,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
                                 msgID, message, e);
     }
@@ -1587,7 +1587,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(ioe));
+                                  getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
@@ -1595,7 +1595,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(ae));
+                                  getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, ae);
     }
@@ -1603,7 +1603,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(le));
+                                  getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, le);
     }
@@ -1611,7 +1611,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -1821,7 +1821,7 @@ public class LDAPAuthenticationHandler
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_CANNOT_CREATE_RESPONSE_DIGEST;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -1882,7 +1882,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(ioe));
+                                  getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
@@ -1890,7 +1890,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
                                 msgID, message, e);
     }
@@ -1915,7 +1915,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(ioe));
+                                  getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
@@ -1923,7 +1923,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(ae));
+                                  getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, ae);
     }
@@ -1931,7 +1931,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(le));
+                                  getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, le);
     }
@@ -1939,7 +1939,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE;
       String message = getMessage(msgID, SASL_MECHANISM_DIGEST_MD5,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -2035,7 +2035,7 @@ public class LDAPAuthenticationHandler
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_COULD_NOT_DECODE_RSPAUTH;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
     }
 
@@ -2050,7 +2050,7 @@ public class LDAPAuthenticationHandler
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_DIGESTMD5_COULD_NOT_CALCULATE_RSPAUTH;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message);
     }
@@ -2283,7 +2283,7 @@ public class LDAPAuthenticationHandler
       catch (Exception e)
       {
         int    msgID   = MSGID_LDAPAUTH_CANNOT_INITIALIZE_MD5_DIGEST;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                   message, e);
       }
@@ -2563,7 +2563,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_EXTERNAL,
-                                  stackTraceToSingleLineString(ioe));
+                                  getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
@@ -2571,7 +2571,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_EXTERNAL,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
                                 msgID, message, e);
     }
@@ -2595,28 +2595,28 @@ public class LDAPAuthenticationHandler
     catch (IOException ioe)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ioe));
+      String message = getMessage(msgID, getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
     catch (ASN1Exception ae)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ae));
+      String message = getMessage(msgID, getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, ae);
     }
     catch (LDAPException le)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(le));
+      String message = getMessage(msgID, getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, le);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -2951,7 +2951,7 @@ public class LDAPAuthenticationHandler
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_GSSAPI_CANNOT_CREATE_JAAS_CONFIG;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -2971,7 +2971,7 @@ public class LDAPAuthenticationHandler
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -2992,7 +2992,7 @@ public class LDAPAuthenticationHandler
       }
 
       int    msgID   = MSGID_LDAPAUTH_GSSAPI_REMOTE_AUTHENTICATION_FAILED;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -3186,7 +3186,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_PLAIN,
-                                  stackTraceToSingleLineString(ioe));
+                                  getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
@@ -3194,7 +3194,7 @@ public class LDAPAuthenticationHandler
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
       String message = getMessage(msgID, SASL_MECHANISM_PLAIN,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
                                 msgID, message, e);
     }
@@ -3218,28 +3218,28 @@ public class LDAPAuthenticationHandler
     catch (IOException ioe)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ioe));
+      String message = getMessage(msgID, getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
     catch (ASN1Exception ae)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ae));
+      String message = getMessage(msgID, getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, ae);
     }
     catch (LDAPException le)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(le));
+      String message = getMessage(msgID, getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, le);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }
@@ -3381,7 +3381,7 @@ public class LDAPAuthenticationHandler
       catch (Exception e)
       {
         int    msgID   = MSGID_LDAPAUTH_GSSAPI_CANNOT_CREATE_SASL_CLIENT;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                   message, e);
       }
@@ -3399,7 +3399,7 @@ public class LDAPAuthenticationHandler
         catch (Exception e)
         {
           int msgID = MSGID_LDAPAUTH_GSSAPI_CANNOT_CREATE_INITIAL_CHALLENGE;
-          String message = getMessage(msgID, stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, getExceptionMessage(e));
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
                                     msgID, message, e);
         }
@@ -3425,7 +3425,7 @@ public class LDAPAuthenticationHandler
       {
         int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
         String message = getMessage(msgID, SASL_MECHANISM_GSSAPI,
-                                    stackTraceToSingleLineString(ioe));
+                                    getExceptionMessage(ioe));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                   message, ioe);
       }
@@ -3433,7 +3433,7 @@ public class LDAPAuthenticationHandler
       {
         int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
         String message = getMessage(msgID, SASL_MECHANISM_GSSAPI,
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
                                   msgID, message, e);
       }
@@ -3458,28 +3458,28 @@ public class LDAPAuthenticationHandler
       catch (IOException ioe)
       {
         int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-        String message = getMessage(msgID, stackTraceToSingleLineString(ioe));
+        String message = getMessage(msgID, getExceptionMessage(ioe));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                   message, ioe);
       }
       catch (ASN1Exception ae)
       {
         int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-        String message = getMessage(msgID, stackTraceToSingleLineString(ae));
+        String message = getMessage(msgID, getExceptionMessage(ae));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                   msgID, message, ae);
       }
       catch (LDAPException le)
       {
         int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-        String message = getMessage(msgID, stackTraceToSingleLineString(le));
+        String message = getMessage(msgID, getExceptionMessage(le));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                   msgID, message, le);
       }
       catch (Exception e)
       {
         int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                   message, e);
       }
@@ -3549,8 +3549,7 @@ public class LDAPAuthenticationHandler
             catch (Exception e)
             {
               int msgID = MSGID_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS;
-              String message = getMessage(msgID,
-                                          stackTraceToSingleLineString(e));
+              String message = getMessage(msgID, getExceptionMessage(e));
               throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
                                         msgID, message, e);
             }
@@ -3589,7 +3588,7 @@ public class LDAPAuthenticationHandler
           catch (Exception e)
           {
             int msgID = MSGID_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS;
-            String message = getMessage(msgID, stackTraceToSingleLineString(e));
+            String message = getMessage(msgID, getExceptionMessage(e));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
                                       msgID, message, e);
           }
@@ -3612,7 +3611,7 @@ public class LDAPAuthenticationHandler
           {
             int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
             String message = getMessage(msgID, SASL_MECHANISM_GSSAPI,
-                                        stackTraceToSingleLineString(ioe));
+                                        getExceptionMessage(ioe));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                       msgID, message, ioe);
           }
@@ -3620,7 +3619,7 @@ public class LDAPAuthenticationHandler
           {
             int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND;
             String message = getMessage(msgID, SASL_MECHANISM_GSSAPI,
-                                        stackTraceToSingleLineString(e));
+                                        getExceptionMessage(e));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
                                       msgID, message, e);
           }
@@ -3645,31 +3644,28 @@ public class LDAPAuthenticationHandler
           catch (IOException ioe)
           {
             int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-            String message = getMessage(msgID,
-                                        stackTraceToSingleLineString(ioe));
+            String message = getMessage(msgID, getExceptionMessage(ioe));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                       msgID, message, ioe);
           }
           catch (ASN1Exception ae)
           {
             int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-            String message = getMessage(msgID,
-                                        stackTraceToSingleLineString(ae));
+            String message = getMessage(msgID, getExceptionMessage(ae));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                       msgID, message, ae);
           }
           catch (LDAPException le)
           {
             int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-            String message = getMessage(msgID,
-                                        stackTraceToSingleLineString(le));
+            String message = getMessage(msgID, getExceptionMessage(le));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                       msgID, message, le);
           }
           catch (Exception e)
           {
             int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE;
-            String message = getMessage(msgID, stackTraceToSingleLineString(e));
+            String message = getMessage(msgID, getExceptionMessage(e));
             throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
                                       msgID, message, e);
           }
@@ -3834,14 +3830,14 @@ public class LDAPAuthenticationHandler
     catch (IOException ioe)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_WHOAMI_REQUEST;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ioe));
+      String message = getMessage(msgID, getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_SEND_WHOAMI_REQUEST;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
                                 msgID, message, e);
     }
@@ -3865,28 +3861,28 @@ public class LDAPAuthenticationHandler
     catch (IOException ioe)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ioe));
+      String message = getMessage(msgID, getExceptionMessage(ioe));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
                                 message, ioe);
     }
     catch (ASN1Exception ae)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(ae));
+      String message = getMessage(msgID, getExceptionMessage(ae));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, ae);
     }
     catch (LDAPException le)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(le));
+      String message = getMessage(msgID, getExceptionMessage(le));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
                                 msgID, message, le);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msgID,
                                 message, e);
     }

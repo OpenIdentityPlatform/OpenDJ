@@ -102,7 +102,7 @@ public class ModifyOperationTestCase
     ArrayList<Control> noControls = new ArrayList<Control>();
 
 
-    ArrayList<LDAPModification> ldapMods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> ldapMods = new ArrayList<RawModification>();
     ArrayList<ASN1OctetString> ldapValues = new ArrayList<ASN1OctetString>();
     ldapValues.add(new ASN1OctetString("foo"));
     LDAPAttribute ldapAttr = new LDAPAttribute("description", ldapValues);
@@ -121,7 +121,7 @@ public class ModifyOperationTestCase
                                    conn.nextMessageID(), noControls,
                                    new ASN1OctetString("o=test"), ldapMods));
 
-    ldapMods = new ArrayList<LDAPModification>();
+    ldapMods = new ArrayList<RawModification>();
     ldapMods.add(new LDAPModification(ModificationType.DELETE, ldapAttr));
 
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
@@ -137,7 +137,7 @@ public class ModifyOperationTestCase
                                    conn.nextMessageID(), noControls,
                                    new ASN1OctetString("o=test"), ldapMods));
 
-    ldapMods = new ArrayList<LDAPModification>();
+    ldapMods = new ArrayList<RawModification>();
     ldapMods.add(new LDAPModification(ModificationType.REPLACE, ldapAttr));
 
     opList.add(new ModifyOperation(conn, conn.nextOperationID(),
@@ -153,7 +153,7 @@ public class ModifyOperationTestCase
                                    conn.nextMessageID(), noControls,
                                    new ASN1OctetString("o=test"), ldapMods));
 
-    ldapMods = new ArrayList<LDAPModification>();
+    ldapMods = new ArrayList<RawModification>();
     ArrayList<ASN1OctetString> values2 = new ArrayList<ASN1OctetString>();
     values2.add(new ASN1OctetString("bar"));
     LDAPAttribute ldapAttr2 = new LDAPAttribute("description", values2);
@@ -173,7 +173,7 @@ public class ModifyOperationTestCase
                                    conn.nextMessageID(), noControls,
                                    new ASN1OctetString("o=test"), ldapMods));
 
-    ldapMods = new ArrayList<LDAPModification>();
+    ldapMods = new ArrayList<RawModification>();
     ldapAttr2 = new LDAPAttribute("cn", values2);
     ldapMods.add(new LDAPModification(ModificationType.REPLACE, ldapAttr));
     ldapMods.add(new LDAPModification(ModificationType.REPLACE, ldapAttr2));
@@ -361,7 +361,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -435,10 +435,10 @@ public class ModifyOperationTestCase
   public void testGetAndSetRawModifications(ModifyOperation modifyOperation)
          throws Exception
   {
-    List<LDAPModification> rawMods = modifyOperation.getRawModifications();
+    List<RawModification> rawMods = modifyOperation.getRawModifications();
 
-    List<LDAPModification> clonedMods =
-         new ArrayList<LDAPModification>(rawMods);
+    List<RawModification> clonedMods =
+         new ArrayList<RawModification>(rawMods);
     modifyOperation.setRawModifications(clonedMods);
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
@@ -567,7 +567,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -592,7 +592,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -622,7 +622,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -653,7 +653,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -680,7 +680,7 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
 
     ModifyOperation modifyOperation =
          conn.processModify(new ASN1OctetString(baseDN), mods);
@@ -713,7 +713,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -758,7 +758,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("test2"));
     LDAPAttribute attr = new LDAPAttribute("o", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -808,7 +808,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("test"));
     LDAPAttribute attr = new LDAPAttribute("dc;lang-en-us", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -867,7 +867,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -919,7 +919,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("false"));
     LDAPAttribute attr = new LDAPAttribute("ds-pwp-account-disabled", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -971,7 +971,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("bar"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1024,7 +1024,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("false"));
     LDAPAttribute attr = new LDAPAttribute("ds-pwp-account-disabled", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1075,7 +1075,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("Test"));
     LDAPAttribute attr = new LDAPAttribute("givenName", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -1127,7 +1127,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("Foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1179,7 +1179,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("invaliddn"));
     LDAPAttribute attr = new LDAPAttribute("manager", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1230,7 +1230,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("invaliddn"));
     LDAPAttribute attr = new LDAPAttribute("manager", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -1281,7 +1281,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("dc", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -1334,7 +1334,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("dc", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     values = new ArrayList<ASN1OctetString>();
@@ -1390,7 +1390,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("uid", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1438,7 +1438,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("uid");
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1489,7 +1489,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("test.user"));
     LDAPAttribute attr = new LDAPAttribute("uid", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1540,7 +1540,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("Foo"));
     LDAPAttribute attr = new LDAPAttribute("givenName", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1588,7 +1588,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("givenName");
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1636,7 +1636,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("displayName");
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1689,7 +1689,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1741,7 +1741,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1795,7 +1795,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("bar"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1843,7 +1843,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("sn");
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1894,7 +1894,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("User"));
     LDAPAttribute attr = new LDAPAttribute("sn", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1946,7 +1946,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("bar"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1998,7 +1998,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("test.user"));
     LDAPAttribute attr = new LDAPAttribute("uid", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -2070,7 +2070,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("Test User"));
     LDAPAttribute attr = new LDAPAttribute("cn", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
@@ -2146,7 +2146,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("X"));
     LDAPAttribute attr = new LDAPAttribute("givenName;lang-fr", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -2215,7 +2215,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("mail");
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -2263,7 +2263,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("mail");
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -2314,7 +2314,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -2365,7 +2365,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     values = new ArrayList<ASN1OctetString>();
@@ -2422,7 +2422,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     values = new ArrayList<ASN1OctetString>();
@@ -2478,7 +2478,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     values = new ArrayList<ASN1OctetString>();
@@ -2531,7 +2531,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("displayName");
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -2582,7 +2582,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("Foo"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -2630,7 +2630,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("objectClass");
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -2678,7 +2678,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("objectClass");
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -2723,7 +2723,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("organizationalUnit"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -2767,7 +2767,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("organization"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -2818,7 +2818,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("1"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -2887,7 +2887,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("10"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -2956,7 +2956,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("-1"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3023,7 +3023,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("1"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3074,7 +3074,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("notnumeric"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3126,7 +3126,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("1"));
     LDAPAttribute attr = new LDAPAttribute("roomNumber", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3175,7 +3175,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("roomNumber");
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3227,7 +3227,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("1"));
     values.add(new ASN1OctetString("2"));
     LDAPAttribute attr = new LDAPAttribute("roomNumber", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3277,7 +3277,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("1"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3330,7 +3330,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -3386,7 +3386,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3441,7 +3441,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("inetOrgPerson"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3493,7 +3493,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("organizationalUnit"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -3559,7 +3559,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("12345678-1234-1234-1234-1234567890ab"));
     LDAPAttribute attr = new LDAPAttribute("entryUUID", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     long modifyRequests  = ldapStatistics.getModifyRequests();
@@ -3624,7 +3624,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3680,7 +3680,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3753,7 +3753,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     long modifyRequests  = ldapStatistics.getModifyRequests();
@@ -3821,7 +3821,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3878,7 +3878,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3952,7 +3952,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     long modifyRequests  = ldapStatistics.getModifyRequests();
@@ -4001,7 +4001,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -4039,7 +4039,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("dc", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -4071,7 +4071,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -4110,7 +4110,7 @@ public class ModifyOperationTestCase
       values.add(new ASN1OctetString("foo"));
       LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-      ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+      ArrayList<RawModification> mods = new ArrayList<RawModification>();
       mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
       ModifyOperation modifyOperation =
@@ -4157,7 +4157,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
@@ -4216,7 +4216,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
@@ -4276,7 +4276,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
@@ -4336,7 +4336,7 @@ public class ModifyOperationTestCase
     values.add(new ASN1OctetString("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =

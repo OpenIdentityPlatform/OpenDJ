@@ -32,7 +32,7 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 
@@ -40,7 +40,6 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.core.Operation;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigEntry;
@@ -53,6 +52,7 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -361,7 +361,7 @@ public class ImportTask extends Task
       catch (Exception e)
       {
         int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE;
-        String message = getMessage(msgID, s, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, s, getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return TaskState.STOPPED_BY_ERROR;
@@ -400,8 +400,7 @@ public class ImportTask extends Task
         catch (Exception e)
         {
           int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-          String message = getMessage(msgID, s,
-                                      stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, s, getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
           return TaskState.STOPPED_BY_ERROR;
@@ -459,8 +458,7 @@ public class ImportTask extends Task
       catch (Exception e)
       {
         int    msgID   = MSGID_LDIFIMPORT_CANNOT_OPEN_REJECTS_FILE;
-        String message = getMessage(msgID, rejectFile,
-                                    stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, rejectFile, getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return TaskState.STOPPED_BY_ERROR;
@@ -522,7 +520,7 @@ public class ImportTask extends Task
 
         int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOCK_BACKEND;
         String message = getMessage(msgID, backend.getBackendID(),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return TaskState.STOPPED_BY_ERROR;
@@ -557,7 +555,7 @@ public class ImportTask extends Task
 
         DirectoryServer.notifyImportEnded(backend, importConfig, false);
         int    msgID   = MSGID_LDIFIMPORT_ERROR_DURING_IMPORT;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return TaskState.STOPPED_BY_ERROR;
@@ -588,7 +586,7 @@ public class ImportTask extends Task
 
           int    msgID   = MSGID_LDIFIMPORT_CANNOT_UNLOCK_BACKEND;
           String message = getMessage(msgID, backend.getBackendID(),
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
                    message, msgID);
           return TaskState.COMPLETED_WITH_ERRORS;

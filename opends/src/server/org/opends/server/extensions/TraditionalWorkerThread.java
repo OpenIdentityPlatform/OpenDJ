@@ -28,26 +28,23 @@ package org.opends.server.extensions;
 
 
 
+import java.util.Map;
+
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.Operation;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.Operation;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static org.opends.server.loggers.debug.DebugLogger.debugWarning;
-import org.opends.server.types.DebugLogLevel;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
-
-import java.util.Map;
 
 
 /**
@@ -57,9 +54,6 @@ import java.util.Map;
 public class TraditionalWorkerThread
        extends DirectoryThread
 {
-
-
-
   // Indicates whether the Directory Server is shutting down and this thread
   // should stop running.
   private boolean shutdownRequested;

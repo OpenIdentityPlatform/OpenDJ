@@ -367,7 +367,7 @@ public class ExternalSASLMechanismHandler
             int    msgID   = MSGID_SASLEXTERNAL_CANNOT_VALIDATE_CERT;
             String message = getMessage(msgID,
                                         String.valueOf(userEntry.getDN()),
-                                        stackTraceToSingleLineString(e));
+                                        getExceptionMessage(e));
             bindOperation.setAuthFailureReason(msgID, message);
             return;
           }
@@ -417,7 +417,7 @@ public class ExternalSASLMechanismHandler
             int    msgID   = MSGID_SASLEXTERNAL_CANNOT_VALIDATE_CERT;
             String message = getMessage(msgID,
                                         String.valueOf(userEntry.getDN()),
-                                        stackTraceToSingleLineString(e));
+                                        getExceptionMessage(e));
             bindOperation.setAuthFailureReason(msgID, message);
             return;
           }

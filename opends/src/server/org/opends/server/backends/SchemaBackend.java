@@ -359,7 +359,7 @@ public class SchemaBackend
 
         int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
         String message = getMessage(msgID, baseDNs[i].toString(),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new InitializationException(msgID, message, e);
       }
     }
@@ -487,7 +487,7 @@ public class SchemaBackend
       }
 
       int msgID = MSGID_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
     }
@@ -1503,7 +1503,7 @@ public class SchemaBackend
       }
 
       int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
     }
@@ -3770,14 +3770,14 @@ public class SchemaBackend
       if (allCleaned)
       {
         int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, msgID, e);
       }
       else
       {
         int msgID = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
 
         DirectoryServer.sendAlertNotification(this,
                              ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES, msgID,
@@ -3855,14 +3855,14 @@ public class SchemaBackend
       if (allRestored)
       {
         int    msgID   = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, msgID, e);
       }
       else
       {
         int msgID = MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
 
         DirectoryServer.sendAlertNotification(this,
                              ALERT_TYPE_CANNOT_WRITE_NEW_SCHEMA_FILES, msgID,
@@ -4402,7 +4402,7 @@ public class SchemaBackend
       int    msgID   = MSGID_SCHEMA_BACKUP_CANNOT_CREATE_ARCHIVE_FILE;
       String message = getMessage(msgID, String.valueOf(filename),
                                   backupDirectory.getPath(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
     }
@@ -4473,8 +4473,7 @@ public class SchemaBackend
       }
 
       msgID   = MSGID_SCHEMA_BACKUP_CANNOT_LIST_SCHEMA_FILES;
-      message = getMessage(msgID, schemaDirPath,
-                           stackTraceToSingleLineString(e));
+      message = getMessage(msgID, schemaDirPath, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
     }
@@ -5220,7 +5219,7 @@ public class SchemaBackend
 
       int msgID = MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+                              getExceptionMessage(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
       newBaseDNs = null;
     }
@@ -5310,7 +5309,7 @@ public class SchemaBackend
 
           int msgID = MSGID_SCHEMA_CANNOT_DEREGISTER_BASE_DN;
           messages.add(getMessage(msgID, String.valueOf(dn),
-                                  stackTraceToSingleLineString(e)));
+                                  getExceptionMessage(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }
@@ -5333,7 +5332,7 @@ public class SchemaBackend
 
           int msgID = MSGID_SCHEMA_CANNOT_REGISTER_BASE_DN;
           messages.add(getMessage(msgID, String.valueOf(dn),
-                                  stackTraceToSingleLineString(e)));
+                                  getExceptionMessage(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
       }

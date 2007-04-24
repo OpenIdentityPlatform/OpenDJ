@@ -30,6 +30,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.asn1.ASN1Null;
+import org.opends.server.types.LDAPException;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;

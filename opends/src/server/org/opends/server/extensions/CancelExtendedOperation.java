@@ -156,7 +156,7 @@ public class CancelExtendedOperation
         operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
         int    msgID   = MSGID_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         operation.appendErrorMessage(message);
 
         return;

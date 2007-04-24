@@ -797,7 +797,7 @@ public class PluginMessages
     registerMessage(MSGID_PLUGIN_NULL_CONFIG_ENTRY,
                     "Unable to initialize an instance of the plugin defined " +
                     "in class %s because the provided configuration entry " +
-                    "was null.");
+                    "was null");
 
 
     registerMessage(MSGID_PLUGIN_DESCRIPTION_SHUTDOWN_PASSWORD,
@@ -807,72 +807,72 @@ public class PluginMessages
                     "be required (although it will still be necessary to " +
                     "authenticate to the server in order to be able to add " +
                     "necessary task entry).  Changes to this password will " +
-                    "take effect immediately.");
+                    "take effect immediately");
 
 
     registerMessage(MSGID_PLUGIN_ADLIST_NO_PLUGIN_TYPES,
                     "The LDAP attribute description list plugin instance " +
                     "defined in configuration entry %s does not list any " +
                     "plugin types.  This plugin must be configured to " +
-                    "operate as a pre-parse search plugin.");
+                    "operate as a pre-parse search plugin");
     registerMessage(MSGID_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE,
                     "The LDAP attribute description list plugin instance " +
                     "defined in configuration entry %s lists an invalid " +
                     "plugin type %s.  This plugin may only be used as a " +
-                    "pre-parse search plugin.");
+                    "pre-parse search plugin");
 
 
     registerMessage(MSGID_PLUGIN_PROFILER_NO_PLUGIN_TYPES,
                     "The Directory Server profiler plugin instance defined " +
                     "in configuration entry %s does not list any plugin " +
                     "types.  This plugin must be configured to operate as a " +
-                    "startup plugin.");
+                    "startup plugin");
     registerMessage(MSGID_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE,
                     "The Directory Server profiler plugin instance defined " +
                     "in configuration entry %s lists an invalid plugin type " +
-                    "%s.  This plugin may only be used as a startup plugin.");
+                    "%s.  This plugin may only be used as a startup plugin");
     registerMessage(MSGID_PLUGIN_PROFILER_DESCRIPTION_PROFILE_DIR,
                     "Specifies the path to the directory into which profile " +
                     "information will be written.  The directory must exist " +
                     "and the Directory Server must have permission to create " +
                     "new files in it.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_PROFILE_DIR,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " +  ATTR_PROFILE_DIR +
                     " attribute in the %s entry:  %s.  The default profile " +
-                    "directory of %s will be used.");
+                    "directory of %s will be used");
     registerMessage(MSGID_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA,
                     "An unexpected error occurred when the profiler plugin " +
                     "defined in configuration entry %s attempted to write " +
-                    "the information captured to output file %s:  %s.");
+                    "the information captured to output file %s:  %s");
     registerMessage(MSGID_PLUGIN_PROFILER_DESCRIPTION_AUTOSTART,
                     "Indicates whether the profiler plugin should start " +
                     "collecting data automatically when the Directory Server " +
                     "is started.  This will only be read when the server is " +
                     "started, and any changes will take effect on the next " +
-                    "restart.");
+                    "restart");
     registerMessage(MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_AUTOSTART,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " +  ATTR_PROFILE_AUTOSTART +
                     " attribute in the %s entry:  %s.  Profiling information " +
                     "will not automatically be captured on startup and must " +
-                    "be manually enabled.");
+                    "be manually enabled");
     registerMessage(MSGID_PLUGIN_PROFILER_DESCRIPTION_INTERVAL,
                     "Specifies the sample interval that should be used when " +
                     "capturing profiling information in the server.  Changes " +
                     "to this configuration attribute will take effect the " +
-                    "next time the profiler is started.");
+                    "next time the profiler is started");
     registerMessage(MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_INTERVAL,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_PROFILE_INTERVAL +
                     "attribute in the %s entry:  %s.  The default sample " +
-                    "interval of %d milliseconds will be used.");
+                    "interval of %d milliseconds will be used");
     registerMessage(MSGID_PLUGIN_PROFILER_DESCRIPTION_STATE,
                     "Specifies the current state for the profiler.  It will " +
                     "be either \"enabled\" (which indicates that the " +
                     "profiler thread is actively collecting data) or " +
-                    "\"disabled\".  This is a read-only attribute.");
+                    "\"disabled\".  This is a read-only attribute");
     registerMessage(MSGID_PLUGIN_PROFILER_DESCRIPTION_ACTION,
                     "Specifies the action that should be taken by the " +
                     "profiler.  A value of \"start\" will cause the profiler " +
@@ -882,194 +882,194 @@ public class PluginMessages
                     "and a value of \"cancel\" will cause the profiler " +
                     "thread to stop collecting data and discard anything " +
                     "that has been captured.  These operations will occur " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PLUGIN_PROFILER_INVALID_PROFILE_DIR,
                     "The profile directory %s specified in attribute " +
                     ATTR_PROFILE_DIR + " of configuration entry %s is " +
                     "invalid because the specified path does not exist or " +
-                    "is not a directory.");
+                    "is not a directory");
     registerMessage(MSGID_PLUGIN_PROFILER_CANNOT_DETERMINE_ACTION,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_PROFILE_ACTION +
                     " attribute in the %s entry:  %s.  No action will be " +
-                    "taken.");
+                    "taken");
     registerMessage(MSGID_PLUGIN_PROFILER_UPDATED_INTERVAL,
                     "The sample interval for the profiler plugin defined in " +
                     "configuration entry %s has been updated to %d " +
-                    "milliseconds.");
+                    "milliseconds");
     registerMessage(MSGID_PLUGIN_PROFILER_CANNOT_UPDATE_INTERVAL,
                     "An unexpected error occurred while attempting to update " +
                     "the sample interval for the profiler plugin defined in " +
-                    "configuration entry %s:  %s.");
+                    "configuration entry %s:  %s");
     registerMessage(MSGID_PLUGIN_PROFILER_UPDATED_DIRECTORY,
                     "The profile directory for the profiler plugin defined " +
-                    "in configuration entry %s has been changed to %s.");
+                    "in configuration entry %s has been changed to %s");
     registerMessage(MSGID_PLUGIN_PROFILER_CANNOT_UPDATE_DIRECTORY,
                     "An unexpected error occurred while attempting to update " +
                     "the profile directory for the profiler plugin defined " +
-                    "in configuration entry %s:  %s.");
+                    "in configuration entry %s:  %s");
     registerMessage(MSGID_PLUGIN_PROFILER_STARTED_PROFILING,
                     "The profiler plugin defined in configuration entry %s " +
-                    "has been activated and has started capturing data.");
+                    "has been activated and has started capturing data");
     registerMessage(MSGID_PLUGIN_PROFILER_ALREADY_PROFILING,
                     "The profiler plugin defined in configuration entry %s " +
                     "is already active, and therefore the request to start " +
-                    "profiling has been ignored.");
+                    "profiling has been ignored");
     registerMessage(MSGID_PLUGIN_PROFILER_NOT_RUNNING,
                     "The profiler plugin defined in configuration entry %s " +
                     "received a request to stop capturing data but it was " +
-                    "not active so no action has been taken.");
+                    "not active so no action has been taken");
     registerMessage(MSGID_PLUGIN_PROFILER_STOPPED_PROFILING,
                     "The profiler plugin defined in configuration entry %s " +
-                    "has been stopped and is no longer capturing data.");
+                    "has been stopped and is no longer capturing data");
     registerMessage(MSGID_PLUGIN_PROFILER_WROTE_PROFILE_DATA,
                     "The data collected by the profiler plugin defined in " +
-                    "configuration entry %s has been written to %s.");
+                    "configuration entry %s has been written to %s");
     registerMessage(MSGID_PLUGIN_PROFILER_UNKNOWN_ACTION,
                     "The profiler plugin defined in configuration entry %s " +
                     "has been requested to perform an action %s that is " +
-                    "not recognized by the server.  No action will be taken.");
+                    "not recognized by the server.  No action will be taken");
     registerMessage(MSGID_PLUGIN_PROFILER_SKIPPING_ACTION,
                     "A profiler action %s was requested for the profiler " +
                     "plugin defined in configuration entry %s, but one or " +
                     "more problems were encountered with the plugin " +
                     "configuration and therefore the requested action will " +
-                    "be skipped.");
+                    "be skipped");
     registerMessage(MSGID_PLUGIN_PROFILER_CANNOT_PERFORM_ACTION,
                     "An unexpected error occurred while attempting to " +
                     "process the requested action for the profiler plugin " +
-                    "defined in configuration entry %s:  %s.");
+                    "defined in configuration entry %s:  %s");
 
 
     registerMessage(MSGID_PLUGIN_STARTUP_PLUGIN_EXCEPTION,
                     "The startup plugin defined in configuration entry %s " +
                     "threw an exception when it was invoked during the " +
                     "Directory Server startup process:  %s.  The server " +
-                    "startup process has been aborted.");
+                    "startup process has been aborted");
     registerMessage(MSGID_PLUGIN_STARTUP_PLUGIN_RETURNED_NULL,
                     "The startup plugin defined in configuration entry %s " +
                     "returned a null value when it was invoked during the " +
                     "Directory Server startup process.  This is an illegal " +
                     "return value, and the server startup process has been " +
-                    "aborted.");
+                    "aborted");
     registerMessage(MSGID_PLUGIN_STARTUP_PLUGIN_FAIL_CONTINUE,
                     "The startup plugin defined in configuration entry %s " +
                     "encountered an error when it was invoked during the " +
                     "Directory Server startup process:  %s (error ID %d).  " +
                     "The startup process will continue, but this failure " +
-                    "may impact the operation of the server.");
+                    "may impact the operation of the server");
     registerMessage(MSGID_PLUGIN_STARTUP_PLUGIN_FAIL_ABORT,
                     "The startup plugin defined in configuration entry %s " +
                     "encountered an error when it was invoked during the " +
                     "Directory Server startup process:  %s (error ID %d).  " +
-                    "The server startup process has been aborted.");
+                    "The server startup process has been aborted");
 
 
     registerMessage(MSGID_PLUGIN_SHUTDOWN_PLUGIN_EXCEPTION,
                     "The shutdown plugin defined in configuration entry %s " +
                     "threw an exception when it was invoked during the " +
-                    "Directory Server shutdown process:  %s.");
+                    "Directory Server shutdown process:  %s");
 
 
     registerMessage(MSGID_PLUGIN_POST_CONNECT_PLUGIN_EXCEPTION,
                     "The post-connect plugin defined in configuration entry " +
                     "%s threw an exception when it was invoked for " +
                     "connection %d from %s:  %s.  The connection will be " +
-                    "terminated.");
+                    "terminated");
     registerMessage(MSGID_PLUGIN_POST_CONNECT_PLUGIN_RETURNED_NULL,
                     "The post-connect plugin defined in configuration entry " +
                     "%s returned null when invoked for connection %d from " +
                     "%s.  This is an illegal response, and the connection " +
-                    "will be terminated.");
+                    "will be terminated");
 
 
     registerMessage(MSGID_PLUGIN_POST_DISCONNECT_PLUGIN_EXCEPTION,
                     "The post-disconnect plugin defined in configuration " +
                     "entry %s threw an exception when it was invoked for " +
-                    "connection %d from %s:  %s.");
+                    "connection %d from %s:  %s");
     registerMessage(MSGID_PLUGIN_POST_DISCONNECT_PLUGIN_RETURNED_NULL,
                     "The post-disconnect plugin defined in configuration " +
                     "entry %s returned null when invoked for connection %d " +
-                    "from %s.  This is an illegal response.");
+                    "from %s.  This is an illegal response");
 
 
     registerMessage(MSGID_PLUGIN_LDIF_IMPORT_PLUGIN_EXCEPTION,
                     "The LDIF import plugin defined in configuration entry " +
                     "%s threw an exception when it was invoked on entry " +
-                    "%s:  %s.");
+                    "%s:  %s");
     registerMessage(MSGID_PLUGIN_LDIF_IMPORT_PLUGIN_RETURNED_NULL,
                     "The LDIF import plugin defined in configuration entry " +
                     "%s returned null when invoked on entry %s.  This is an " +
-                    "illegal response.");
+                    "illegal response");
     registerMessage(MSGID_PLUGIN_LDIF_EXPORT_PLUGIN_EXCEPTION,
                     "The LDIF export plugin defined in configuration entry " +
                     "%s threw an exception when it was invoked on entry " +
-                    "%s:  %s.");
+                    "%s:  %s");
     registerMessage(MSGID_PLUGIN_LDIF_EXPORT_PLUGIN_RETURNED_NULL,
                     "The LDIF export plugin defined in configuration entry " +
                     "%s returned null when invoked on entry %s.  This is an " +
-                    "illegal response.");
+                    "illegal response");
 
 
     registerMessage(MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION,
                     "The pre-parse %s plugin defined in configuration " +
                     "entry %s threw an exception when it was invoked for " +
                     "connection %d operation %d:  %s.  Processing on this " +
-                    "operation will be terminated.");
+                    "operation will be terminated");
     registerMessage(MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL,
                     "The pre-parse %s plugin defined in configuration " +
                     "entry %s returned null when invoked for connection %d " +
                     "operation %s.  This is an illegal response, and " +
-                    "processing on this operation will be terminated.");
+                    "processing on this operation will be terminated");
 
 
     registerMessage(MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION,
                     "The pre-operation %s plugin defined in configuration " +
                     "entry %s threw an exception when it was invoked for " +
                     "connection %d operation %d:  %s.  Processing on this " +
-                    "operation will be terminated.");
+                    "operation will be terminated");
     registerMessage(MSGID_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL,
                     "The pre-operation %s plugin defined in configuration " +
                     "entry %s returned null when invoked for connection %d " +
                     "operation %s.  This is an illegal response, and " +
-                    "processing on this operation will be terminated.");
+                    "processing on this operation will be terminated");
 
 
     registerMessage(MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
                     "The post-operation %s plugin defined in configuration " +
                     "entry %s threw an exception when it was invoked for " +
                     "connection %d operation %d:  %s.  Processing on this " +
-                    "operation will be terminated.");
+                    "operation will be terminated");
     registerMessage(MSGID_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
                     "The post-operation %s plugin defined in configuration " +
                     "entry %s returned null when invoked for connection %d " +
                     "operation %s.  This is an illegal response, and " +
-                    "processing on this operation will be terminated.");
+                    "processing on this operation will be terminated");
 
 
     registerMessage(MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
                     "The post-response %s plugin defined in configuration " +
                     "entry %s threw an exception when it was invoked for " +
                     "connection %d operation %d:  %s.  Processing on this " +
-                    "operation will be terminated.");
+                    "operation will be terminated");
     registerMessage(MSGID_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
                     "The post-response %s plugin defined in configuration " +
                     "entry %s returned null when invoked for connection %d " +
                     "operation %s.  This is an illegal response, and " +
-                    "processing on this operation will be terminated.");
+                    "processing on this operation will be terminated");
 
 
     registerMessage(MSGID_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION,
                     "The search result entry plugin defined in configuration " +
                     "entry %s threw an exception when it was invoked for " +
                     "connection %d operation %d with entry %s:  %s.  " +
-                    "Processing on this search operation will be terminated.");
+                    "Processing on this search operation will be terminated");
     registerMessage(MSGID_PLUGIN_SEARCH_ENTRY_PLUGIN_RETURNED_NULL,
                     "The search result entry plugin defined in configuration " +
                     "entry %s returned null when invoked for connection %d " +
                     "operation %s with entry %s.  This is an illegal " +
                     "response, and processing on this search operation will " +
-                    "be terminated.");
+                    "be terminated");
 
 
     registerMessage(MSGID_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION,
@@ -1077,77 +1077,77 @@ public class PluginMessages
                     "configuration entry %s threw an exception when it was " +
                     "invoked for connection %d operation %d with referral " +
                     "URL(s) %s:  %s.  Processing on this search operation " +
-                    "will be terminated.");
+                    "will be terminated");
     registerMessage(MSGID_PLUGIN_SEARCH_REFERENCE_PLUGIN_RETURNED_NULL,
                     "The search result reference plugin defined in " +
                     "configuration entry %s returned null when invoked for " +
                     "connection %d operation %s with referral URL(s) %s.  " +
                     "This is an illegal response, and processing on this " +
-                    "search operation will be terminated.");
+                    "search operation will be terminated");
 
 
     registerMessage(MSGID_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_EXCEPTION,
                     "The intermediate response plugin defined in " +
                     "configuration entry %s threw an exception when it was " +
                     "invoked for connection %d operation %d:  %s.  " +
-                    "Processing on this operation will be terminated.");
+                    "Processing on this operation will be terminated");
     registerMessage(MSGID_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_RETURNED_NULL,
                     "The intermediate response plugin defined in " +
                     "configuration entry %s returned null when invoked for " +
                     "connection %d operation %s.  This is an illegal " +
                     "response, and processing on this operation will be " +
-                    "terminated.");
+                    "terminated");
 
 
     registerMessage(MSGID_PLUGIN_LASTMOD_INVALID_PLUGIN_TYPE,
                     "An attempt was made to register the LastMod plugin to " +
                     "be invoked as a %s plugin.  This plugin type is not " +
-                    "allowed for this plugin.");
+                    "allowed for this plugin");
 
 
     registerMessage(MSGID_PROFILEVIEWER_TOOL_DESCRIPTION,
                     "This utility may be used to view information in data " +
-                    "files captured by the Directory Server profiler.");
+                    "files captured by the Directory Server profiler");
     registerMessage(MSGID_PROFILEVIEWER_DESCRIPTION_FILENAMES,
                     "Specifies the path to a profile data file.  This  " +
                     "argument may be provided more than once to analyze data " +
-                    "from multiple data files.");
+                    "from multiple data files");
     registerMessage(MSGID_PROFILEVIEWER_DESCRIPTION_USE_GUI,
                     "Indicates whether to view the profile information in " +
                     "GUI mode or to write the resulting data to standard " +
-                    "output.");
+                    "output");
     registerMessage(MSGID_PROFILEVIEWER_DESCRIPTION_USAGE,
-                    "Displays this usage information.");
+                    "Displays this usage information");
     registerMessage(MSGID_PROFILEVIEWER_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
+                    "initialize the command-line arguments:  %s");
     registerMessage(MSGID_PROFILEVIEWER_ERROR_PARSING_ARGS,
                     "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
+                    "arguments:  %s");
     registerMessage(MSGID_PROFILEVIEWER_CANNOT_PROCESS_DATA_FILE,
                     "An error occurred while trying to process the profile " +
-                    "data in file %s:  %s.");
+                    "data in file %s:  %s");
 
 
     registerMessage(MSGID_PLUGIN_ENTRYUUID_INVALID_PLUGIN_TYPE,
                     "An attempt was made to register the EntryUUID plugin to " +
                     "be invoked as a %s plugin.  This plugin type is not " +
-                    "allowed for this plugin.");
+                    "allowed for this plugin");
 
 
     registerMessage(MSGID_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE,
                     "An attempt was made to register the password policy " +
                     "import plugin to be invoked as a %s plugin.  This " +
-                    "plugin type is not allowed for this plugin.");
+                    "plugin type is not allowed for this plugin");
     registerMessage(MSGID_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD,
                     "An error occurred while attempting to encode a password " +
                     "value stored in attribute %s of user entry %s:  %s.  " +
-                    "Password values for this user will not be encoded.");
+                    "Password values for this user will not be encoded");
 
 
     registerMessage(MSGID_PLUGIN_TYPE_NOT_SUPPORTED,
                     "The plugin defined in configuration entry %s does not " +
-                    "support the %s plugin type.");
+                    "support the %s plugin type");
   }
 }
 

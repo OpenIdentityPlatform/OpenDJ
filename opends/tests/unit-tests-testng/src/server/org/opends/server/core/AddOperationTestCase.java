@@ -65,6 +65,8 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.types.DirectoryException;
@@ -106,7 +108,7 @@ public class AddOperationTestCase
 
     ArrayList<Control> noControls = new ArrayList<Control>();
 
-    ArrayList<LDAPAttribute> ldapAttrList = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> ldapAttrList = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -206,7 +208,7 @@ public class AddOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<LDAPAttribute> ldapAttrList = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> ldapAttrList = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -297,12 +299,12 @@ public class AddOperationTestCase
   @Test(dataProvider = "addOperations")
   public void testGetAndSetRawAttributes(AddOperation addOperation)
   {
-    List<LDAPAttribute> rawAttrs = addOperation.getRawAttributes();
+    List<RawAttribute> rawAttrs = addOperation.getRawAttributes();
     assertNotNull(rawAttrs);
     assertFalse(rawAttrs.isEmpty());
 
-    ArrayList<LDAPAttribute> copiedAttrs =
-      new ArrayList<LDAPAttribute>(rawAttrs);
+    ArrayList<RawAttribute> copiedAttrs =
+      new ArrayList<RawAttribute>(rawAttrs);
     addOperation.setRawAttributes(copiedAttrs);
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
@@ -310,7 +312,7 @@ public class AddOperationTestCase
     addOperation.addRawAttribute(new LDAPAttribute("description", values));
 
     boolean found = false;
-    for (LDAPAttribute a : addOperation.getRawAttributes())
+    for (RawAttribute a : addOperation.getRawAttributes())
     {
       if (a.getAttributeType().equalsIgnoreCase("description"))
       {
@@ -323,7 +325,7 @@ public class AddOperationTestCase
     addOperation.setRawAttributes(rawAttrs);
 
     found = false;
-    for (LDAPAttribute a : addOperation.getRawAttributes())
+    for (RawAttribute a : addOperation.getRawAttributes())
     {
       if (a.getAttributeType().equalsIgnoreCase("description"))
       {
@@ -601,7 +603,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -666,7 +668,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -699,7 +701,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -732,7 +734,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -765,7 +767,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -798,7 +800,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -849,7 +851,7 @@ public class AddOperationTestCase
     assertEquals(bindResponse.getResultCode(), 0);
 
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
     values.add(new ASN1OctetString("organizationalUnit"));
@@ -904,7 +906,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -977,7 +979,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -1019,7 +1021,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -1061,7 +1063,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -1140,7 +1142,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -1693,7 +1695,7 @@ public class AddOperationTestCase
     assertEquals(bindResponse.getResultCode(), 0);
 
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
     values.add(new ASN1OctetString("organizationalUnit"));
@@ -1844,7 +1846,7 @@ public class AddOperationTestCase
     assertEquals(bindResponse.getResultCode(), 0);
 
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
     values.add(new ASN1OctetString("organizationalUnit"));
@@ -2063,7 +2065,7 @@ public class AddOperationTestCase
     assertEquals(bindResponse.getResultCode(), 0);
 
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
     values.add(new ASN1OctetString("organizationalUnit"));
@@ -2126,7 +2128,7 @@ public class AddOperationTestCase
     assertEquals(bindResponse.getResultCode(), 0);
 
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
     values.add(new ASN1OctetString("organizationalUnit"));
@@ -2190,7 +2192,7 @@ public class AddOperationTestCase
     assertEquals(bindResponse.getResultCode(), 0);
 
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
     values.add(new ASN1OctetString("organizationalUnit"));
@@ -2254,7 +2256,7 @@ public class AddOperationTestCase
     assertEquals(bindResponse.getResultCode(), 0);
 
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
     values.add(new ASN1OctetString("organizationalUnit"));

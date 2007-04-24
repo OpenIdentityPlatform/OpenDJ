@@ -53,12 +53,13 @@ import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPConstants;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tasks.ShutdownTask;
 import org.opends.server.types.Control;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -644,7 +645,7 @@ public class StopDS
          new ASN1OctetString(ATTR_TASK_ID + "=" + taskID + "," +
                              SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT);
 
-    ArrayList<LDAPAttribute> attributes = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> ocValues = new ArrayList<ASN1OctetString>(3);
     ocValues.add(new ASN1OctetString("top"));

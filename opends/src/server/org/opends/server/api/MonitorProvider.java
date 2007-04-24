@@ -33,15 +33,12 @@ import java.util.List;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
 
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -55,9 +52,6 @@ import static org.opends.server.util.ServerConstants.*;
 public abstract class MonitorProvider
        extends DirectoryThread
 {
-
-
-
   // Indicates whether a request has been received to stop running.
   private boolean stopRequested;
 

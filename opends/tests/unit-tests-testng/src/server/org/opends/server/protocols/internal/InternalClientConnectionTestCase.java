@@ -47,7 +47,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -62,6 +61,9 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -341,7 +343,7 @@ public class InternalClientConnectionTestCase
 
     ASN1OctetString dn = new ASN1OctetString("cn=test,o=test");
 
-    ArrayList<LDAPAttribute> attrs = new ArrayList<LDAPAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("top"));
@@ -648,7 +650,7 @@ public class InternalClientConnectionTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("This is a test"));
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("description", values)));
 

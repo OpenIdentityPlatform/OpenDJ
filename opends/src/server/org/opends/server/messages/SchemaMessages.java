@@ -3125,129 +3125,129 @@ public class SchemaMessages
                     "Unable to retrieve approximate matching rule %s used as " +
                     "the default for the %s attribute syntax.  Approximate " +
                     "matching will not be allowed by default for attributes " +
-                    "with this syntax.");
+                    "with this syntax");
     registerMessage(MSGID_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
                     "Unable to retrieve equality matching rule %s used as " +
                     "the default for the %s attribute syntax.  Equality " +
                     "matching will not be allowed by default for attributes " +
-                    "with this syntax.");
+                    "with this syntax");
     registerMessage(MSGID_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
                     "Unable to retrieve ordering matching rule %s used as " +
                     "the default for the %s attribute syntax.  Ordering " +
                     "matches will not be allowed by default for attributes " +
-                    "with this syntax.");
+                    "with this syntax");
     registerMessage(MSGID_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
                     "Unable to retrieve substring matching rule %s used as " +
                     "the default for the %s attribute syntax.  Substring " +
                     "matching will not be allowed by default for attributes " +
-                    "with this syntax.");
+                    "with this syntax");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_ILLEGAL_BOOLEAN,
                     "The provided value %s is not allowed for attributes " +
                     "with a Boolean syntax.  The only allowed values are " +
-                    "'TRUE' and 'FALSE'.");
+                    "'TRUE' and 'FALSE'");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_BIT_STRING_TOO_SHORT,
                     "The provided value %s is too short to be a valid bit " +
                     "string.  A bit string must be a series of binary digits " +
                     "surrounded by single quotes and followed by a capital " +
-                    "letter B.");
+                    "letter B");
     registerMessage(MSGID_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED,
                     "The provided value %s is not a valid bit string because " +
                     "it is not surrounded by single quotes and followed by a " +
-                    "capital letter B.");
+                    "capital letter B");
     registerMessage(MSGID_ATTR_SYNTAX_BIT_STRING_INVALID_BIT,
                     "The provided value %s is not a valid bit string because " +
-                    "%s is not a valid binary digit.");
+                    "%s is not a valid binary digit");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH,
                     "The provided value %s is not a valid country string " +
-                    "because the length is not exactly two characters.");
+                    "because the length is not exactly two characters");
     registerMessage(MSGID_ATTR_SYNTAX_COUNTRY_STRING_NOT_PRINTABLE,
                     "The provided value %s is not a valid country string " +
                     "because it contains one or more non-printable " +
-                    "characters.");
+                    "characters");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS,
                     "The provided value %s is not a valid delivery method " +
-                    "value because it does not contain any elements.");
+                    "value because it does not contain any elements");
     registerMessage(MSGID_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT,
                     "The provided value %s is not a valid delivery method " +
-                    "value because %s is not a valid method.");
+                    "value because %s is not a valid method");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT,
                     "The provided value %s is too short to be a valid " +
-                    "generalized time value.");
+                    "generalized time value");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR,
                     "The provided value %s is not a valid generalized time " +
                     "value because the %s character is not allowed in the " +
-                    "century or year specification.");
+                    "century or year specification");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH,
                     "The provided value %s is not a valid generalized time " +
-                    "value because %s is not a valid month specification.");
+                    "value because %s is not a valid month specification");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY,
                     "The provided value %s is not a valid generalized time " +
-                    "value because %s is not a valid day specification.");
+                    "value because %s is not a valid day specification");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR,
                     "The provided value %s is not a valid generalized time " +
-                    "value because %s is not a valid hour specification.");
+                    "value because %s is not a valid hour specification");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE,
                     "The provided value %s is not a valid generalized time " +
-                    "value because %s is not a valid minute specification.");
+                    "value because %s is not a valid minute specification");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND,
                     "The provided value %s is not a valid generalized time " +
-                    "value because %s is not a valid second specification.");
+                    "value because %s is not a valid second specification");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SUBSECOND,
                     "The provided value %s is not a valid generalized time " +
                     "value because the sub-second component is not valid " +
-                    "(between 1 and 3 numeric digits).");
+                    "(between 1 and 3 numeric digits)");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_LONG_SUBSECOND,
                     "The provided value %s is not a valid generalized time " +
                     "value because the sub-second value may not contain more " +
-                    "than three digits.");
+                    "than three digits");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET,
                     "The provided value %s is not a valid generalized time " +
-                    "value because %s is not a valid GMT offset.");
+                    "value because %s is not a valid GMT offset");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR,
                     "The provided value %s is not a valid generalized time " +
                     "value because it contains an invalid character %s at " +
-                    "position %d.");
+                    "position %d");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_CANNOT_PARSE,
                     "The provided value %s could not be parsed as a valid " +
-                    "generalized time:  %s.");
+                    "generalized time:  %s");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NORMALIZE_FAILURE,
                     "An unexpected error occurred while trying to normalize " +
-                    "value %s as a generalized time value:  %s.");
+                    "value %s as a generalized time value:  %s");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR,
                     "The provided value %s is not a valid generalized time " +
                     "value because it contains illegal character %s in the " +
-                    "fraction component.");
+                    "fraction component");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION,
                     "The provided value %s is not a valid generalized time " +
                     "value because it does not contain at least one digit " +
-                    "after the period to use as the fractional component.");
+                    "after the period to use as the fractional component");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO,
                     "The provided value %s is not a valid generalized time " +
                     "value because it does not end with 'Z' or a time zone " +
-                    "offset.");
+                    "offset");
     registerMessage(MSGID_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME,
                     "The provided value %s is not a valid generalized time " +
                     "value because it represents an invalid time (e.g., a " +
-                    "date that does not exist):  %s.");
+                    "date that does not exist):  %s");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_DN_INVALID,
                     "The provided value %s could not be parsed as a valid " +
-                    "distinguished name:  %s.");
+                    "distinguished name:  %s");
     registerMessage(MSGID_ATTR_SYNTAX_DN_END_WITH_COMMA,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because the last non-space character " +
-                    "was a comma or semicolon.");
+                    "was a comma or semicolon");
     registerMessage(MSGID_ATTR_SYNTAX_DN_ATTR_START_WITH_DIGIT,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because numeric digit %s is not " +
@@ -3255,296 +3255,296 @@ public class SchemaMessages
     registerMessage(MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because character %s at position %d " +
-                    "is not allowed in an attribute name.");
+                    "is not allowed in an attribute name");
     registerMessage(MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_UNDERSCORE_CHAR,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because the underscore character is " +
                     "not allowed in an attribute name unless the %s " +
-                    " configuration option is enabled.");
+                    " configuration option is enabled");
     registerMessage(MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DASH,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because the hyphen character is not " +
-                    "allowed as the first character of an attribute name.");
+                    "allowed as the first character of an attribute name");
     registerMessage(MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_UNDERSCORE,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because the underscore character is " +
                     "not allowed as the first character of an attribute name " +
-                    "even if the %s configuration option is enabled.");
+                    "even if the %s configuration option is enabled");
     registerMessage(MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DIGIT,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because the digit %s is not allowed " +
                     "allowed as the first character of an attribute name " +
                     "unless the name is specified as an OID or the %s " +
-                    " configuration option is enabled.");
+                    " configuration option is enabled");
     registerMessage(MSGID_ATTR_SYNTAX_DN_ATTR_NO_NAME,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because it contained an RDN " +
-                    "containing an empty attribute name.");
+                    "containing an empty attribute name");
     registerMessage(MSGID_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because the parsed attribute name %s " +
                     "included a period but that name did not appear to be a " +
-                    "valid OID.");
+                    "valid OID");
     registerMessage(MSGID_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because the last non-space character " +
-                    "was part of the attribute name %s.");
+                    "was part of the attribute name %s");
     registerMessage(MSGID_ATTR_SYNTAX_DN_NO_EQUAL,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because the next non-space character " +
                     "after attribute name %s should have been an equal sign " +
-                    "but instead was %s.");
+                    "but instead was %s");
     registerMessage(MSGID_ATTR_SYNTAX_DN_INVALID_CHAR,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because character %s at position %d " +
-                    "is not valid.");
+                    "is not valid");
     registerMessage(MSGID_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because an attribute value started " +
                     "with an octothorpe (#) but was not followed by a " +
-                    "positive multiple of two hexadecimal digits.");
+                    "positive multiple of two hexadecimal digits");
     registerMessage(MSGID_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because an attribute value started " +
                     "with an octothorpe (#) but contained a character %s " +
-                    "that was not a valid hexadecimal digit.");
+                    "that was not a valid hexadecimal digit");
     registerMessage(MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because an unexpected failure " +
                     "occurred while attempting to parse an attribute value " +
-                    "from one of the RDN components:  %s.");
+                    "from one of the RDN components:  %s");
     registerMessage(MSGID_ATTR_SYNTAX_DN_UNMATCHED_QUOTE,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because one of the RDN components " +
                     "included a quoted value that did not have a " +
-                    "corresponding closing quotation mark.");
+                    "corresponding closing quotation mark");
     registerMessage(MSGID_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID,
                     "The provided value %s could not be parsed as a valid " +
                     "distinguished name because one of the RDN components " +
                     "included a value with an escaped hexadecimal digit that " +
-                    "was not followed by a second hexadecimal digit.");
+                    "was not followed by a second hexadecimal digit");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_INTEGER_INITIAL_ZERO,
                     "The provided value %s could not be parsed as a valid " +
                     "integer because the first digit may not be zero unless " +
-                    "it is the only digit.");
+                    "it is the only digit");
     registerMessage(MSGID_ATTR_SYNTAX_INTEGER_MISPLACED_DASH,
                     "The provided value %s could not be parsed as a valid " +
                     "integer because the dash may only appear if it is the " +
                     "first character of the value followed by one or more " +
-                    "digits.");
+                    "digits");
     registerMessage(MSGID_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER,
                     "The provided value %s could not be parsed as a valid " +
                     "integer because character %s at position %d is not " +
-                    "allowed in an integer value.");
+                    "allowed in an integer value");
     registerMessage(MSGID_ATTR_SYNTAX_INTEGER_EMPTY_VALUE,
                     "The provided value %s could not be parsed as a valid " +
-                    "integer because it did not contain any digits.");
+                    "integer because it did not contain any digits");
     registerMessage(MSGID_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE,
                     "The provided value %s could not be parsed as a valid " +
                     "integer because it contained only a dash not followed " +
-                    "by an integer value.");
+                    "by an integer value");
     registerMessage(MSGID_ATTR_SYNTAX_ILLEGAL_INTEGER,
                     "The provided value %s is not allowed for attributes " +
-                    "with a Integer syntax.");
+                    "with a Integer syntax");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_OID_NO_VALUE,
                     "The provided value could not be parsed as a valid OID " +
-                    "because it did not contain any characters.");
+                    "because it did not contain any characters");
     registerMessage(MSGID_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER,
                     "The provided value %s could not be parsed as a valid " +
-                    "OID because it had an illegal character at position %d.");
+                    "OID because it had an illegal character at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS,
                     "The provided value %s could not be parsed as a valid " +
                     "OID because it had two consecutive periods at or near " +
-                    "position %d.");
+                    "position %d");
     registerMessage(MSGID_ATTR_SYNTAX_OID_ENDS_WITH_PERIOD,
                     "The provided value %s could not be parsed as a valid " +
-                    "OID because it ends with a period.");
+                    "OID because it ends with a period");
     registerMessage(MSGID_ATTR_SYNTAX_OID_INVALID_VALUE,
                     "The provided value %s could not be parsed as a valid " +
-                    "OID:  %s.");
+                    "OID:  %s");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE,
                     "The provided value could not be parsed as a valid " +
                     "attribute type description because it was empty or " +
-                    "contained only whitespace.");
+                    "contained only whitespace");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute type description because an open parenthesis " +
                     "was expected at position %d but instead a '%s' " +
-                    "character was found.");
+                    "character was found");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_TRUNCATED_VALUE,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute type description because the end of the " +
                     "value was encountered while the Directory Server " +
-                    "expected more data to be provided.");
+                    "expected more data to be provided");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute type description because the numeric OID " +
-                    "contained two consecutive periods at position %d.");
+                    "contained two consecutive periods at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute type description because the numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute type description because the non-numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute type description because it contained an " +
-                    "illegal character %s at position %d.");
+                    "illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNEXPECTED_CLOSE_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute type description because it contained an " +
-                    "unexpected closing parenthesis at position %d.");
+                    "unexpected closing parenthesis at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute type description because a single quote was " +
                     "expected as the first non-blank character following " +
-                    "token %s.  However, the character %s was found instead.");
+                    "token %s.  However, the character %s was found instead");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE,
                     "The definition for the attribute type with OID %s " +
                     "declared a superior type with an OID of %s.  No " +
                     "attribute type with this OID exists in the server " +
-                    "schema.");
+                    "schema");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR,
                     "The definition for the attribute type with OID %s " +
                     "declared that approximate matching should be performed " +
                     "using the matching rule \"%s\".  No such approximate " +
                     "matching rule is configured for use in the Directory " +
-                    "Server.");
+                    "Server");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR,
                     "The definition for the attribute type with OID %s " +
                     "declared that equality matching should be performed " +
                     "using the matching rule \"%s\".  No such equality " +
                     "matching rule is configured for use in the Directory " +
-                    "Server.");
+                    "Server");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR,
                     "The definition for the attribute type with OID %s " +
                     "declared that ordering matching should be performed " +
                     "using the matching rule \"%s\".  No such ordering " +
                     "matching rule is configured for use in the Directory " +
-                    "Server.");
+                    "Server");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR,
                     "The definition for the attribute type with OID %s " +
                     "declared that substring matching should be performed " +
                     "using the matching rule \"%s\".  No such substring " +
                     "matching rule is configured for use in the Directory " +
-                    "Server.");
+                    "Server");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX,
                     "The definition for the attribute type with OID %s " +
                     "declared that it should have a syntax with OID %s.  No " +
                     "such syntax is configured for use in the Directory " +
-                    "Server.");
+                    "Server");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE,
                     "The definition for the attribute type with OID %s " +
                     "declared that it should have an attribute usage of " +
-                    "%s.  This is an invalid usage.");
+                    "%s.  This is an invalid usage");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE,
                     "The definition for attribute type %s is invalid because " +
                     "its attribute usage %s is not the same as the usage for " +
-                    "its superior type %s.");
+                    "its superior type %s");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE,
                     "The definition for attribute type %s is invalid because " +
                     "it is defined as a collective type but the superior " +
-                    "type %s is not collective.");
+                    "type %s is not collective");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE,
                     "The definition for attribute type %s is invalid because " +
                     "it is not defined as a collective type but the superior " +
-                    "type %s is collective.");
+                    "type %s is collective");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL,
                     "The definition for attribute type %s is invalid because " +
                     "it is declared COLLECTIVE but does not have a usage " +
-                    "of userApplications.");
+                    "of userApplications");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL,
                     "The definition for attribute type %s is invalid because " +
                     "it is declared NO-USER-MODIFICATION but does not have " +
-                    "an operational usage.");
+                    "an operational usage");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRTYPE_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute type description because a single quote was " +
                     "expected at position %d but the character %s was found " +
-                    "instead.");
+                    "instead");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE,
                     "The provided value could not be parsed as a valid " +
                     "objectclass description because it was empty or " +
-                    "contained only whitespace.");
+                    "contained only whitespace");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "objectclass description because an open parenthesis was " +
                     "expected at position %d but instead a '%s' character " +
-                    "was found.");
+                    "was found");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_TRUNCATED_VALUE,
                     "The provided value \"%s\" could not be parsed as an " +
                     "objectclass description because the end of the value " +
                     "was encountered while the Directory Server expected " +
-                    "more data to be provided.");
+                    "more data to be provided");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_DOUBLE_PERIOD_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as an " +
                     "objectclass description because the numeric OID " +
-                    "contained two consecutive periods at position %d.");
+                    "contained two consecutive periods at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as an " +
                     "objectclass description because the numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_STRING_OID,
                     "The provided value \"%s\" could not be parsed as an " +
                     "objectclass description because the non-numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR,
                     "The provided value \"%s\" could not be parsed as an " +
                     "objectclass description because it contained an illegal " +
-                    "character %s at position %d.");
+                    "character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_UNEXPECTED_CLOSE_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "objectclass description because it contained an " +
-                    "unexpected closing parenthesis at position %d.");
+                    "unexpected closing parenthesis at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_QUOTE,
                     "The provided value \"%s\" could not be parsed as an " +
                     "objectclass description because a single quote was " +
                     "expected as the first non-blank character following " +
-                    "token %s.  However, the character %s was found instead.");
+                    "token %s.  However, the character %s was found instead");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS,
                     "The definition for the objectclass with OID %s declared " +
                     "a superior objectclass with an OID of %s.  No " +
-                    "objectclass with this OID exists in the server schema.");
+                    "objectclass with this OID exists in the server schema");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "objectclass description because a single quote was " +
                     "expected at position %d but the character %s was found " +
-                    "instead.");
+                    "instead");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR,
                     "The definition for the objectclass with OID %s declared " +
                     "that it should include required attribute \"%s\".  No " +
                     "attribute type matching this name or OID exists in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR,
                     "The definition for the objectclass with OID %s declared " +
                     "that it should include optional attribute \"%s\".  No " +
                     "attribute type matching this name or OID exists in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE,
                     "The definition for objectclass %s is invalid because it " +
                     "has an objectclass type of %s but this is incompatible " +
-                    "with the objectclass type %s for the superior class %s.");
+                    "with the objectclass type %s for the superior class %s");
     registerMessage(MSGID_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP,
                     "The definition for objectclass %s is invalid because " +
                     "it is defined as a structural class but its superior " +
-                    "chain does not include the \"top\" objectclass.");
+                    "chain does not include the \"top\" objectclass");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER,
                     "The provided value \"%s\" cannot be parsed as a valid " +
                     "IA5 string because it contains an illegal character " +
                     "\"%s\" that is not allowed in the IA5 (ASCII) character " +
-                    "set.");
+                    "set");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_TELEPHONE_DESCRIPTION_STRICT_MODE,
@@ -3554,652 +3554,652 @@ public class SchemaMessages
                     "enabled, then any value not in this format will be " +
                     "rejected.  If this is disabled, then any value will " +
                     "be accepted, but only the digits will be considered " +
-                    "when performing matching.");
+                    "when performing matching");
     registerMessage(MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE,
                     "An error occurred while trying to retrieve attribute " +
                     ATTR_TELEPHONE_STRICT_MODE + " from configuration entry " +
                     "%s:  %s.  The Directory Server will not enforce strict " +
                     "compliance to the ITU-T E.123 format for telephone " +
-                    "number values.");
+                    "number values");
     registerMessage(MSGID_ATTR_SYNTAX_TELEPHONE_EMPTY,
                     "The provided value is not a valid telephone number " +
-                    "because it is empty or null.");
+                    "because it is empty or null");
     registerMessage(MSGID_ATTR_SYNTAX_TELEPHONE_NO_PLUS,
                     "The provided value \"%s\" is not a valid telephone " +
                     "number because strict telephone number checking is " +
                     "enabled and the value does not start with a plus sign " +
-                    "in compliance with the ITU-T E.123 specification.");
+                    "in compliance with the ITU-T E.123 specification");
     registerMessage(MSGID_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR,
                     "The provided value \"%s\" is not a valid telephone " +
                     "number because strict telephone number checking is " +
                     "enabled and the character %s at position %d is not " +
-                    "allowed by the ITU-T E.123 specification.");
+                    "allowed by the ITU-T E.123 specification");
     registerMessage(MSGID_ATTR_SYNTAX_TELEPHONE_NO_DIGITS,
                     "The provided value \"%s\" is not a valid telephone " +
-                    "number because it does not contain any numeric digits.");
+                    "number because it does not contain any numeric digits");
     registerMessage(MSGID_ATTR_SYNTAX_TELEPHONE_UPDATED_STRICT_MODE,
                     "The value of configuration attribute " +
                     ATTR_TELEPHONE_STRICT_MODE + ", which indicates whether " +
                     "to use strict telephone number syntax checking, has " +
-                    "been updated to %s in configuration entry %s.");
+                    "been updated to %s in configuration entry %s");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR,
                     "The provided value \"%s\" is not a valid numeric string " +
                     "because it contained character %s at position %d that " +
-                    "was neither a digit nor a space.");
+                    "was neither a digit nor a space");
     registerMessage(MSGID_ATTR_SYNTAX_NUMERIC_STRING_EMPTY_VALUE,
                     "The provided value is not a valid numeric string " +
                     "because it did not contain any characters.  A numeric " +
                     "string value must contain at least one numeric digit " +
-                    "or space.");
+                    "or space");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE,
                     "The provided value could not be parsed as a valid " +
                     "attribute syntax description because it was empty or " +
-                    "contained only whitespace.");
+                    "contained only whitespace");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because an open " +
                     "parenthesis was expected at position %d but instead a " +
-                    "'%s' character was found.");
+                    "'%s' character was found");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because the end of the " +
                     "value was encountered while the Directory Server " +
-                    "expected more data to be provided.");
+                    "expected more data to be provided");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because the numeric OID " +
-                    "contained two consecutive periods at position %d.");
+                    "contained two consecutive periods at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because the numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_IN_STRING_OID,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because the non-numeric " +
-                    "OID contained an illegal character %s at position %d.");
+                    "OID contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_UNEXPECTED_CLOSE_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because it contained an " +
-                    "unexpected closing parenthesis at position %d.");
+                    "unexpected closing parenthesis at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_TOKEN,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because an unexpected " +
                     "error occurred while trying to read the \"DESC\" token " +
-                    "from the string at or near position %d:  %s.");
+                    "from the string at or near position %d:  %s");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_TOKEN_NOT_DESC,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because the \"DESC\" token " +
-                    "was expected but the string \"%s\" was found instead.");
+                    "was expected but the string \"%s\" was found instead");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_VALUE,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because an unexpected " +
                     "error occurred while trying to read the value of the " +
                     "\"DESC\" token from the string at or near position %d:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_CLOSE_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because a close " +
                     "parenthesis was expected at position %d but instead a " +
-                    "'%s' character was found.");
+                    "'%s' character was found");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_AFTER_CLOSE,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because an illegal " +
                     "character %s was found at position %d after the close " +
-                    "parenthesis.");
+                    "parenthesis");
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as an " +
                     "attribute syntax description because a single quote was " +
                     "expected at position %d but the character %s was found " +
-                    "instead.");
+                    "instead");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE,
                     "The provided value could not be parsed as a printable " +
                     "string because it was null or empty.  A printable " +
-                    "string must contain at least one character.");
+                    "string must contain at least one character");
     registerMessage(MSGID_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER,
                     "The provided value \"%s\" could not be parsed as a " +
                     "printable string because it contained an invalid " +
-                    "character %s at position %d.");
+                    "character %s at position %d");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_SUBSTRING_ONLY_WILDCARD,
                     "The provided value \"*\" could not be parsed as a " +
                     "substring assertion because it consists only of a " +
                     "wildcard character and zero-length substrings are not " +
-                    "allowed.");
+                    "allowed");
     registerMessage(MSGID_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS,
                     "The provided value \"%s\" could not be parsed as a " +
                     "substring assertion because it contains consecutive " +
                     "wildcard characters at position %d and zero-length " +
-                    "substrings are not allowed.");
+                    "substrings are not allowed");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_UTC_TIME_TOO_SHORT,
                     "The provided value %s is too short to be a valid UTC " +
-                    "time value.");
+                    "time value");
     registerMessage(MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_YEAR,
                     "The provided value %s is not a valid UTC time value " +
                     "because the %s character is not allowed in the century " +
-                    "or year specification.");
+                    "or year specification");
     registerMessage(MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH,
                     "The provided value %s is not a valid UTC time value " +
-                    "because %s is not a valid month specification.");
+                    "because %s is not a valid month specification");
     registerMessage(MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_DAY,
                     "The provided value %s is not a valid UTC time value " +
-                    "because %s is not a valid day specification.");
+                    "because %s is not a valid day specification");
     registerMessage(MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR,
                     "The provided value %s is not a valid UTC time value " +
-                    "because %s is not a valid hour specification.");
+                    "because %s is not a valid hour specification");
     registerMessage(MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_MINUTE,
                     "The provided value %s is not a valid UTC time value " +
-                    "because %s is not a valid minute specification.");
+                    "because %s is not a valid minute specification");
     registerMessage(MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR,
                     "The provided value %s is not a valid UTC time value " +
                     "because it contains an invalid character %s at position " +
-                    "%d.");
+                    "%d");
     registerMessage(MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND,
                     "The provided value %s is not a valid UTC time value " +
-                    "because %s is not a valid second specification.");
+                    "because %s is not a valid second specification");
     registerMessage(MSGID_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET,
                     "The provided value %s is not a valid UTC time value " +
-                    "because %s is not a valid GMT offset.");
+                    "because %s is not a valid GMT offset");
     registerMessage(MSGID_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE,
                     "The provided value %s could not be parsed as a valid " +
-                    "UTC time:  %s.");
+                    "UTC time:  %s");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_DCR_EMPTY_VALUE,
                     "The provided value could not be parsed as a valid DIT " +
                     "content rule description because it was empty or " +
-                    "contained only whitespace.");
+                    "contained only whitespace");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "content rule description because an open parenthesis " +
                     "was expected at position %d but instead a '%s' " +
-                    "character was found.");
+                    "character was found");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_TRUNCATED_VALUE,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "content rule description because the end of the value " +
                     "was encountered while the Directory Server expected " +
-                    "more data to be provided.");
+                    "more data to be provided");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_DOUBLE_PERIOD_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "content rule description because the numeric OID " +
-                    "contained two consecutive periods at position %d.");
+                    "contained two consecutive periods at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "content rule description because the numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_ILLEGAL_CHAR_IN_STRING_OID,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "content rule description because the non-numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS,
                     "The DIT content rule \"%s\" is associated with a " +
                     "structural objectclass %s that is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL,
                     "The DIT content rule \"%s\" is associated with the " +
                     "objectclass with OID %s (%s).  This objectclass exists " +
                     "in the server schema but is defined as %s rather than " +
-                    "structural.");
+                    "structural");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_UNEXPECTED_CLOSE_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "content rule description because it contained an " +
-                    "unexpected closing parenthesis at position %d.");
+                    "unexpected closing parenthesis at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_ILLEGAL_CHAR,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "content rule description because it contained an " +
-                    "illegal character %s at position %d.");
+                    "illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS,
                     "The DIT content rule \"%s\" is associated with an " +
                     "auxiliary objectclass %s that is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY,
                     "The DIT content rule \"%s\" is associated with an " +
                     "auxiliary objectclass %s.  This objectclass exists " +
                     "in the server schema but is defined as %s rather than " +
-                    "auxiliary.");
+                    "auxiliary");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR,
                     "The DIT content rule \"%s\" is associated with a " +
                     "required attribute type %s that is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR,
                     "The DIT content rule \"%s\" is associated with an " +
                     "optional attribute type %s that is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR,
                     "The DIT content rule \"%s\" is associated with a " +
                     "prohibited attribute type %s that is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL,
                     "The DIT content rule \"%s\" is not valid because it " +
                     "prohibits the use of attribute type %s which is " +
-                    "required by the associated structural object class %s.");
+                    "required by the associated structural object class %s");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY,
                     "The DIT content rule \"%s\" is not valid because it " +
                     "prohibits the use of attribute type %s which is " +
-                    "required by the associated auxiliary object class %s.");
+                    "required by the associated auxiliary object class %s");
     registerMessage(MSGID_ATTR_SYNTAX_DCR_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "content rule description because a single quote was " +
                     "expected at position %d but the %s character was found " +
-                    "instead.");
+                    "instead");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE,
                     "The provided value could not be parsed as a valid name " +
                     "form description because it was empty or contained only " +
-                    "whitespace.");
+                    "whitespace");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as a name " +
                     "form description because an open parenthesis was " +
                     "expected at position %d but instead a '%s' character " +
-                    "was found.");
+                    "was found");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_TRUNCATED_VALUE,
                     "The provided value \"%s\" could not be parsed as a name " +
                     "form description because the end of the value was " +
                     "encountered while the Directory Server expected more " +
-                    "data to be provided.");
+                    "data to be provided");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_DOUBLE_PERIOD_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as a name " +
                     "form description because the numeric OID contained two " +
-                    "consecutive periods at position %d.");
+                    "consecutive periods at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as a name " +
                     "form description because the numeric OID contained an " +
-                    "illegal character %s at position %d.");
+                    "illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_STRING_OID,
                     "The provided value \"%s\" could not be parsed as a name " +
                     "form description because the non-numeric OID contained " +
-                    "an illegal character %s at position %d.");
+                    "an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_UNEXPECTED_CLOSE_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as a name " +
                     "form description because it contained an unexpected " +
-                    "closing parenthesis at position %d.");
+                    "closing parenthesis at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR,
                     "The provided value \"%s\" could not be parsed as a name " +
                     "form description because it contained an illegal " +
-                    "character %s at position %d.");
+                    "character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS,
                     "The name form description \"%s\" is associated with a " +
                     "structural objectclass %s that is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL,
                     "The name form description \"%s\" is associated with the " +
                     "objectclass with OID %s (%s).  This objectclass exists " +
                     "in the server schema but is defined as %s rather than " +
-                    "structural.");
+                    "structural");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR,
                     "The definition for the name form with OID %s declared " +
                     "that it should include required attribute \"%s\".  No " +
                     "attribute type matching this name or OID exists in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR,
                     "The definition for the name form with OID %s declared " +
                     "that it should include optional attribute \"%s\".  No " +
                     "attribute type matching this name or OID exists in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS,
                     "The provided value \"%s\" could not be parsed as a name " +
                     "form description because it does not specify the " +
-                    "structural objectclass with which it is associated.");
+                    "structural objectclass with which it is associated");
     registerMessage(MSGID_ATTR_SYNTAX_NAME_FORM_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as a name " +
                     "form description because a single quote was expected at " +
-                    "position %d but the %s character was found instead.");
+                    "position %d but the %s character was found instead");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_MR_EMPTY_VALUE,
                     "The provided value could not be parsed as a valid " +
                     "matching rule description because it was empty or " +
-                    "contained only whitespace.");
+                    "contained only whitespace");
     registerMessage(MSGID_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule description because an open parenthesis " +
                     "was expected at position %d but instead a '%s' " +
-                    "character was found.");
+                    "character was found");
     registerMessage(MSGID_ATTR_SYNTAX_MR_TRUNCATED_VALUE,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule description because the end of the value " +
                     "was encountered while the Directory Server expected " +
-                    "more data to be provided.");
+                    "more data to be provided");
     registerMessage(MSGID_ATTR_SYNTAX_MR_DOUBLE_PERIOD_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule description because the numeric OID " +
-                    "contained two consecutive periods at position %d.");
+                    "contained two consecutive periods at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_MR_ILLEGAL_CHAR_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule description because the numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_MR_ILLEGAL_CHAR_IN_STRING_OID,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule description because the non-numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_MR_UNEXPECTED_CLOSE_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule description because it contained an " +
-                    "unexpected closing parenthesis at position %d.");
+                    "unexpected closing parenthesis at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_MR_ILLEGAL_CHAR,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule description because it contained an " +
-                    "illegal character %s at position %d.");
+                    "illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX,
                     "The matching rule description \"%s\" is associated with " +
                     "attribute syntax %s that is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_MR_NO_SYNTAX,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule description because it does not specify " +
-                    "the attribute syntax with which it is associated.");
+                    "the attribute syntax with which it is associated");
     registerMessage(MSGID_ATTR_SYNTAX_MR_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule description because a single quote was " +
                     "expected at position %d but the %s character was found " +
-                    "instead.");
+                    "instead");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_EMPTY_VALUE,
                     "The provided value could not be parsed as a valid " +
                     "matching rule use description because it was empty or " +
-                    "contained only whitespace.");
+                    "contained only whitespace");
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule use description because an open " +
                     "parenthesis was expected at position %d but instead a " +
-                    "'%s' character was found.");
+                    "'%s' character was found");
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule use description because the end of the " +
                     "value was encountered while the Directory Server " +
-                    "expected more data to be provided.");
+                    "expected more data to be provided");
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_DOUBLE_PERIOD_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule use description because the numeric OID " +
-                    "contained two consecutive periods at position %d.");
+                    "contained two consecutive periods at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule use description because the numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_STRING_OID,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule use description because the non-numeric " +
-                    "OID contained an illegal character %s at position %d.");
+                    "OID contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule use description because the specified " +
-                    "matching rule %s is unknown.");
+                    "matching rule %s is unknown");
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_UNEXPECTED_CLOSE_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule use description because it contained an " +
-                    "unexpected closing parenthesis at position %d.");
+                    "unexpected closing parenthesis at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule use description because it contained an " +
-                    "illegal character %s at position %d.");
+                    "illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR,
                     "The matching rule use description \"%s\" is associated " +
                     "with attribute type %s that is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_NO_ATTR,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule description because it does not specify " +
                     "the set of attribute types that may be used with the " +
-                    "associated OID.");
+                    "associated OID");
     registerMessage(MSGID_ATTR_SYNTAX_MRUSE_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as a " +
                     "matching rule use description because a single quote " +
                     "was expected at position %d but the %s character was " +
-                    "found instead.");
+                    "found instead");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_DSR_EMPTY_VALUE,
                     "The provided value could not be parsed as a valid DIT " +
                     "structure rule description because it was empty or " +
-                    "contained only whitespace.");
+                    "contained only whitespace");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because an open parenthesis " +
                     "was expected at position %d but instead a '%s' " +
-                    "character was found.");
+                    "character was found");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_TRUNCATED_VALUE,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because the end of the value " +
                     "was encountered while the Directory Server expected " +
-                    "more data to be provided.");
+                    "more data to be provided");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because the rule ID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_UNEXPECTED_CLOSE_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because it contained an " +
-                    "unexpected closing parenthesis at position %d.");
+                    "unexpected closing parenthesis at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because it contained an " +
-                    "illegal character %s at position %d.");
+                    "illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because it referenced an " +
-                    "unknown name form %s.");
+                    "unknown name form %s");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because it referenced an " +
-                    "unknown rule ID %d for a superior DIT structure rule.");
+                    "unknown rule ID %d for a superior DIT structure rule");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_NO_NAME_FORM,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because it did not specify " +
-                    "the name form for the rule.");
+                    "the name form for the rule");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_EXPECTED_QUOTE_AT_POS,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because a single quote was " +
                     "expected at position %d but the %s character was found " +
-                    "instead.");
+                    "instead");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_DOUBLE_PERIOD_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because the numeric OID " +
-                    "contained two consecutive periods at position %d.");
+                    "contained two consecutive periods at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_NUMERIC_OID,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because the numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_STRING_OID,
                     "The provided value \"%s\" could not be parsed as a DIT " +
                     "structure rule description because the non-numeric OID " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_TELEX_TOO_SHORT,
                     "The provided value \"%s\" is too short to be a valid " +
-                    "telex number value.");
+                    "telex number value");
     registerMessage(MSGID_ATTR_SYNTAX_TELEX_NOT_PRINTABLE,
                     "The provided value \"%s\" does not hold a valid telex " +
                     "number because a character %s at position %d was not " +
-                    "a valid printable string character.");
+                    "a valid printable string character");
     registerMessage(MSGID_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR,
                     "The provided value \"%s\" does not hold a valid telex " +
                     "number because character %s at position %d was neither " +
                     "a valid printable string character nor a dollar sign to " +
-                    "separate the telex number components.");
+                    "separate the telex number components");
     registerMessage(MSGID_ATTR_SYNTAX_TELEX_TRUNCATED,
                     "The provided value \"%s\" does not hold a valid telex " +
                     "number because the end of the value was found before " +
-                    "three dollar-delimited printable strings could be read.");
+                    "three dollar-delimited printable strings could be read");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_FAXNUMBER_EMPTY,
                     "The provided value could not be parsed as a valid " +
-                    "facsimile telephone number because it was empty.");
+                    "facsimile telephone number because it was empty");
     registerMessage(MSGID_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE,
                     "The provided value \"%s\" could not be parsed as a " +
                     "valid facsimile telephone number because character %s " +
                     "at position %d was not a valid printable string " +
-                    "character.");
+                    "character");
     registerMessage(MSGID_ATTR_SYNTAX_FAXNUMBER_END_WITH_DOLLAR,
                     "The provided value \"%s\" could not be parsed as a " +
                     "valid facsimile telephone number because it ends with " +
                     "a dollar sign, but that dollar sign should have been " +
-                    "followed by a fax parameter.");
+                    "followed by a fax parameter");
     registerMessage(MSGID_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER,
                     "The provided value \"%s\" could not be parsed as a " +
                     "valid facsimile telephone number because the string " +
                     "\"%s\" between positions %d and %d was not a valid fax " +
-                    "parameter.");
+                    "parameter");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_NAMEANDUID_INVALID_DN,
                     "The provided value \"%s\" could not be parsed as a " +
                     "valid name and optional UID value because an error " +
-                    "occurred while trying to parse the DN portion:  %s.");
+                    "occurred while trying to parse the DN portion:  %s");
     registerMessage(MSGID_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT,
                     "The provided value \"%s\" could not be parsed as a " +
                     "valid name and optional UID value because the UID " +
                     "portion contained an illegal binary digit %s at " +
-                    "position %d.");
+                    "position %d");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_TELETEXID_EMPTY,
                     "The provided value could not be parsed as a valid " +
-                    "teletex terminal identifier because it was empty.");
+                    "teletex terminal identifier because it was empty");
     registerMessage(MSGID_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE,
                     "The provided value \"%s\" could not be parsed as a " +
                     "valid teletex terminal identifier because character %s " +
                     "at position %d was not a valid printable string " +
-                    "character.");
+                    "character");
     registerMessage(MSGID_ATTR_SYNTAX_TELETEXID_END_WITH_DOLLAR,
                     "The provided value \"%s\" could not be parsed as a " +
                     "valid teletex terminal identifier because it ends with " +
                     "a dollar sign, but that dollar sign should have been " +
-                    "followed by a TTX parameter.");
+                    "followed by a TTX parameter");
     registerMessage(MSGID_ATTR_SYNTAX_TELETEXID_PARAM_NO_COLON,
                     "The provided value \"%s\" could not be parsed as a " +
                     "valid teletex terminal identifier because the parameter " +
                     "string does not contain a colon to separate the name " +
-                    "from the value.");
+                    "from the value");
     registerMessage(MSGID_ATTR_SYNTAX_TELETEXID_ILLEGAL_PARAMETER,
                     "The provided value \"%s\" could not be parsed as a " +
                     "valid teletex terminal identifier because the string " +
-                    "\"%s\" is not a valid TTX parameter name.");
+                    "\"%s\" is not a valid TTX parameter name");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_OTHER_MAILBOX_EMPTY_VALUE,
                     "The provided value could not be parsed as an other " +
-                    "mailbox value because it was empty.");
+                    "mailbox value because it was empty");
     registerMessage(MSGID_ATTR_SYNTAX_OTHER_MAILBOX_NO_MBTYPE,
                     "The provided value \"%s\" could not be parsed as an " +
                     "other mailbox value because there was no mailbox type " +
-                    "before the dollar sign.");
+                    "before the dollar sign");
     registerMessage(MSGID_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MBTYPE_CHAR,
                     "The provided value \"%s\" could not be parsed as an " +
                     "other mailbox value because the mailbox type contained " +
-                    "an illegal character %s at position %d.");
+                    "an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_OTHER_MAILBOX_NO_MAILBOX,
                     "The provided value \"%s\" could not be parsed as an " +
                     "other mailbox value because there was no mailbox after " +
-                    "the dollar sign.");
+                    "the dollar sign");
     registerMessage(MSGID_ATTR_SYNTAX_OTHER_MAILBOX_ILLEGAL_MB_CHAR,
                     "The provided value \"%s\" could not be parsed as an " +
                     "other mailbox value because the mailbox contained an " +
-                    "illegal character %s at position %d.");
+                    "illegal character %s at position %d");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_GUIDE_NO_OC,
                     "The provided value \"%s\" could not be parsed as a " +
                     "guide value because it did not contain an objectclass " +
-                    "name or OID before the octothorpe (#) character.");
+                    "name or OID before the octothorpe (#) character");
     registerMessage(MSGID_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR,
                     "The provided value \"%s\" could not be parsed as a " +
                     "guide value because the criteria portion %s contained " +
-                    "an illegal character %s at position %d.");
+                    "an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_GUIDE_MISSING_CLOSE_PAREN,
                     "The provided value \"%s\" could not be parsed as a " +
                     "guide value because the criteria portion %s did not " +
                     "contain a close parenthesis that corresponded to the " +
-                    "initial open parenthesis.");
+                    "initial open parenthesis");
     registerMessage(MSGID_ATTR_SYNTAX_GUIDE_INVALID_QUESTION_MARK,
                     "The provided value \"%s\" could not be parsed as a " +
                     "guide value because the criteria portion %s started " +
                     "with a question mark but was not followed by the string " +
-                    "\"true\" or \"false\".");
+                    "\"true\" or \"false\"");
     registerMessage(MSGID_ATTR_SYNTAX_GUIDE_NO_DOLLAR,
                     "The provided value \"%s\" could not be parsed as a " +
                     "guide value because the criteria portion %s did not " +
                     "contain a dollar sign to separate the attribute type " +
-                    "from the match type.");
+                    "from the match type");
     registerMessage(MSGID_ATTR_SYNTAX_GUIDE_NO_ATTR,
                     "The provided value \"%s\" could not be parsed as a " +
                     "guide value because the criteria portion %s did not " +
-                    "specify an attribute type before the dollar sign.");
+                    "specify an attribute type before the dollar sign");
     registerMessage(MSGID_ATTR_SYNTAX_GUIDE_NO_MATCH_TYPE,
                     "The provided value \"%s\" could not be parsed as a " +
                     "guide value because the criteria portion %s did not " +
-                    "specify a match type after the dollar sign.");
+                    "specify a match type after the dollar sign");
     registerMessage(MSGID_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE,
                     "The provided value \"%s\" could not be parsed as a " +
                     "guide value because the criteria portion %s had an " +
-                    "invalid match type starting at position %d.");
+                    "invalid match type starting at position %d");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SHARP,
                     "The provided value \"%s\" could not be parsed as an " +
                     "enhanced guide value because it did not contain an " +
                     "octothorpe (#) character to separate the objectclass " +
-                    "from the criteria.");
+                    "from the criteria");
     registerMessage(MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_NO_OC,
                     "The provided value \"%s\" could not be parsed as an " +
                     "enhanced guide value because it did not contain an " +
                     "objectclass name or OID before the octothorpe (#) " +
-                    "character.");
+                    "character");
     registerMessage(MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_DOUBLE_PERIOD_IN_OC_OID,
                     "The provided value \"%s\" could not be parsed as an " +
                     "enhanced guide value because the numeric OID %s " +
                     "specifying the objectclass contained two consecutive " +
-                    "periods at position %d.");
+                    "periods at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_ILLEGAL_CHAR_IN_OC_OID,
                     "The provided value \"%s\" could not be parsed as an " +
                     "enhanced guide value because the numeric OID %s " +
                     "specifying the objectclass contained an illegal " +
-                    "character %s at position %d.");
+                    "character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_ILLEGAL_CHAR_IN_OC_NAME,
                     "The provided value \"%s\" could not be parsed as an " +
                     "enhanced guide value because the objectclass name %s " +
-                    "contained an illegal character %s at position %d.");
+                    "contained an illegal character %s at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_NO_FINAL_SHARP,
                     "The provided value \"%s\" could not be parsed as an " +
                     "enhanced guide value because it did not have an " +
                     "octothorpe (#) character to separate the criteria from " +
-                    "the scope.");
+                    "the scope");
     registerMessage(MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SCOPE,
                     "The provided value \"%s\" could not be parsed as an " +
                     "enhanced guide value because no scope was provided " +
-                    "after the final octothorpe (#) character.");
+                    "after the final octothorpe (#) character");
     registerMessage(MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE,
                     "The provided value \"%s\" could not be parsed as an " +
                     "enhanced guide value because the specified scope %s " +
-                    "was invalid.");
+                    "was invalid");
     registerMessage(MSGID_ATTR_SYNTAX_ENHANCEDGUIDE_NO_CRITERIA,
                     "The provided value \"%s\" could not be parsed as an " +
                     "enhanced guide value because it did not specify any " +
-                    "criteria between the octothorpe (#) characters.");
+                    "criteria between the octothorpe (#) characters");
 
 
     registerMessage(MSGID_OMR_CASE_EXACT_COMPARE_CANNOT_NORMALIZE,
                     "An error occurred while attempting to compare two " +
                     "AttributeValue objects using the caseExactOrderingMatch " +
                     "matching rule because the normalized form of one of " +
-                    "those values could not be retrieved:  %s.");
+                    "those values could not be retrieved:  %s");
     registerMessage(MSGID_OMR_CASE_EXACT_COMPARE_INVALID_TYPE,
                     "An error occurred while attempting to compare two " +
                     "objects using the caseExactOrderingMatch matching rule " +
                     "because the objects were of an unsupported type %s.  " +
                     "Only byte arrays, ASN.1 octet strings, and attribute " +
-                    "value objects may be compared.");
+                    "value objects may be compared");
 
 
     registerMessage(MSGID_OMR_CASE_IGNORE_COMPARE_CANNOT_NORMALIZE,
@@ -4207,13 +4207,13 @@ public class SchemaMessages
                     "AttributeValue objects using the " +
                     "caseIgnoreOrderingMatch matching rule because the " +
                     "normalized form of one of those values could not be " +
-                    "retrieved:  %s.");
+                    "retrieved:  %s");
     registerMessage(MSGID_OMR_CASE_IGNORE_COMPARE_INVALID_TYPE,
                     "An error occurred while attempting to compare two " +
                     "objects using the caseIgnoreOrderingMatch matching rule " +
                     "because the objects were of an unsupported type %s.  " +
                     "Only byte arrays, ASN.1 octet strings, and attribute " +
-                    "value objects may be compared.");
+                    "value objects may be compared");
 
 
     registerMessage(MSGID_OMR_GENERALIZED_TIME_COMPARE_CANNOT_NORMALIZE,
@@ -4221,26 +4221,26 @@ public class SchemaMessages
                     "AttributeValue objects using the " +
                     "generalizedTimeOrderingMatch matching rule because the " +
                     "normalized form of one of those values could not be " +
-                    "retrieved:  %s.");
+                    "retrieved:  %s");
     registerMessage(MSGID_OMR_GENERALIZED_TIME_COMPARE_INVALID_TYPE,
                     "An error occurred while attempting to compare two " +
                     "objects using the generalizedTimeOrderingMatch matching " +
                     "rule because the objects were of an unsupported type " +
                     "%s.  Only byte arrays, ASN.1 octet strings, and " +
-                    "attribute value objects may be compared.");
+                    "attribute value objects may be compared");
 
 
     registerMessage(MSGID_OMR_INTEGER_COMPARE_CANNOT_NORMALIZE,
                     "An error occurred while attempting to compare two " +
                     "AttributeValue objects using the integerOrderingMatch " +
                     "matching rule because the normalized form of one of " +
-                    "those values could not be retrieved:  %s.");
+                    "those values could not be retrieved:  %s");
     registerMessage(MSGID_OMR_INTEGER_COMPARE_INVALID_TYPE,
                     "An error occurred while attempting to compare two " +
                     "objects using the integerOrderingMatch matching rule " +
                     "because the objects were of an unsupported type %s.  " +
                     "Only byte arrays, ASN.1 octet strings, and attribute " +
-                    "value objects may be compared.");
+                    "value objects may be compared");
 
 
     registerMessage(MSGID_OMR_NUMERIC_STRING_COMPARE_CANNOT_NORMALIZE,
@@ -4248,13 +4248,13 @@ public class SchemaMessages
                     "AttributeValue objects using the " +
                     "numericStringOrderingMatch matching rule because the " +
                     "normalized form of one of those values could not be " +
-                    "retrieved:  %s.");
+                    "retrieved:  %s");
     registerMessage(MSGID_OMR_NUMERIC_STRING_COMPARE_INVALID_TYPE,
                     "An error occurred while attempting to compare two " +
                     "objects using the numericStringOrderingMatch matching " +
                     "rule because the objects were of an unsupported type " +
                     "%s.  Only byte arrays, ASN.1 octet strings, and " +
-                    "attribute value objects may be compared.");
+                    "attribute value objects may be compared");
 
 
     registerMessage(MSGID_OMR_OCTET_STRING_COMPARE_CANNOT_NORMALIZE,
@@ -4262,26 +4262,26 @@ public class SchemaMessages
                     "AttributeValue objects using the " +
                     "octetStringOrderingMatch matching rule because the " +
                     "normalized form of one of those values could not be " +
-                    "retrieved:  %s.");
+                    "retrieved:  %s");
     registerMessage(MSGID_OMR_OCTET_STRING_COMPARE_INVALID_TYPE,
                     "An error occurred while attempting to compare two " +
                     "objects using the octetStringOrderingMatch matching " +
                     "rule because the objects were of an unsupported type " +
                     "%s.  Only byte arrays, ASN.1 octet strings, and " +
-                    "attribute value objects may be compared.");
+                    "attribute value objects may be compared");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_UUID_INVALID_LENGTH,
                     "The provided value \"%s\" has an invalid length for a " +
                     "UUID.  All UUID values must have a length of exactly 36 " +
-                    "bytes, but the provided value had a length of %d bytes.");
+                    "bytes, but the provided value had a length of %d bytes");
     registerMessage(MSGID_ATTR_SYNTAX_UUID_EXPECTED_DASH,
                     "The provided value \"%s\" should have had a dash at " +
-                    "position %d, but the character '%s' was found instead.");
+                    "position %d, but the character '%s' was found instead");
     registerMessage(MSGID_ATTR_SYNTAX_UUID_EXPECTED_HEX,
                     "The provided value \"%s\" should have had a hexadecimal " +
                     "digit at position %d, but the character '%s' was found " +
-                    "instead.");
+                    "instead");
 
 
     registerMessage(
@@ -4289,106 +4289,106 @@ public class SchemaMessages
          "Indicates whether attributes with the directory string syntax will " +
          "be allowed to have zero-length values.  This is technically not " +
          "allowed by the LDAP specifications, but it may be useful for " +
-         "backward compatibility with previous Directory Server releases.");
+         "backward compatibility with previous Directory Server releases");
     registerMessage(
          MSGID_ATTR_SYNTAX_DIRECTORYSTRING_CANNOT_DETERMINE_ZEROLENGTH,
          "An error occurred while trying to determine the value of the %s " +
          "configuration attribute, which indicates whether directory string " +
-         "attributes should be allowed to have zero-length values:  %s.");
+         "attributes should be allowed to have zero-length values:  %s");
     registerMessage(MSGID_ATTR_SYNTAX_DIRECTORYSTRING_INVALID_ZEROLENGTH_VALUE,
                     "The operation attempted to assign a zero-length value " +
-                    "to an attribute with the directory string syntax.");
+                    "to an attribute with the directory string syntax");
     registerMessage(MSGID_ATTR_SYNTAX_DIRECTORYSTRING_UPDATED_ALLOW_ZEROLENGTH,
                     "The %s attribute in configuration entry %s has been " +
-                    "updated with a new value of %s.");
+                    "updated with a new value of %s");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_AUTHPW_INVALID_SCHEME_CHAR,
                     "The provided authPassword value had an invalid scheme " +
-                    "character at position %d.");
+                    "character at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_AUTHPW_NO_SCHEME,
                     "The provided authPassword value had a zero-length " +
-                    "scheme element.");
+                    "scheme element");
     registerMessage(MSGID_ATTR_SYNTAX_AUTHPW_NO_SCHEME_SEPARATOR,
                     "The provided authPassword value was missing the " +
                     "separator character or had an illegal character between " +
-                    "the scheme and authInfo elements.");
+                    "the scheme and authInfo elements");
     registerMessage(MSGID_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_INFO_CHAR,
                     "The provided authPassword value had an invalid authInfo " +
-                    "character at position %d.");
+                    "character at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO,
                     "The provided authPassword value had a zero-length " +
-                    "authInfo element.");
+                    "authInfo element");
     registerMessage(MSGID_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO_SEPARATOR,
                     "The provided authPassword value was missing the " +
                     "separator character or had an illegal character between " +
-                    "the authInfo and authValue elements.");
+                    "the authInfo and authValue elements");
     registerMessage(MSGID_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR,
                     "The provided authPassword value had an invalid " +
-                    "authValue character at position %d.");
+                    "authValue character at position %d");
     registerMessage(MSGID_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE,
                     "The provided authPassword value had a zero-length " +
-                    "authValue element.");
+                    "authValue element");
     registerMessage(MSGID_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR,
                     "The provided authPassword value had an invalid trailing " +
-                    "character at position %d.");
+                    "character at position %d");
 
 
     registerMessage(MSGID_EMR_INTFIRSTCOMP_NO_INITIAL_PARENTHESIS,
                     "The provided value \"%s\" could not be parsed by the " +
                     "integer first component matching rule because it did " +
-                    "not start with a parenthesis.");
+                    "not start with a parenthesis");
     registerMessage(MSGID_EMR_INTFIRSTCOMP_NO_NONSPACE,
                     "The provided value \"%s\" could not be parsed by the " +
                     "integer first component matching rule because it did " +
                     "not have any non-space characters after the opening " +
-                    "parenthesis.");
+                    "parenthesis");
     registerMessage(MSGID_EMR_INTFIRSTCOMP_NO_SPACE_AFTER_INT,
                     "The provided value \"%s\" could not be parsed by the " +
                     "integer first component matching rule because it did " +
-                    "not have any space characters after the first component.");
+                    "not have any space characters after the first component");
     registerMessage(MSGID_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT,
                     "The provided value \"%s\" could not be parsed by the " +
                     "integer first component matching rule because the first " +
-                    "component does not appear to be an integer value.");
+                    "component does not appear to be an integer value");
 
 
     registerMessage(MSGID_ATTR_SYNTAX_USERPW_NO_VALUE,
                     "No value was given to decode by the user password " +
-                    "attribute syntax.");
+                    "attribute syntax");
     registerMessage(MSGID_ATTR_SYNTAX_USERPW_NO_OPENING_BRACE,
                     "Unable to decode the provided value according to the " +
                     "user password syntax because the value does not start " +
-                    "with the opening curly brace (\"{\") character.");
+                    "with the opening curly brace (\"{\") character");
     registerMessage(MSGID_ATTR_SYNTAX_USERPW_NO_CLOSING_BRACE,
                     "Unable to decode the provided value according to the " +
                     "user password syntax because the value does not contain " +
-                    "a closing curly brace (\"}\") character.");
+                    "a closing curly brace (\"}\") character");
     registerMessage(MSGID_ATTR_SYNTAX_USERPW_NO_SCHEME,
                     "Unable to decode the provided value according to the " +
                     "user password syntax because the value does not contain " +
-                    "a storage scheme name.");
+                    "a storage scheme name");
 
     registerMessage(MSGID_ATTR_SYNTAX_RFC3672_SUBTREE_SPECIFICATION_INVALID,
                     "The provided value \"%s\" could not be parsed as a" +
-                    " valid RFC 3672 subtree specification.");
+                    " valid RFC 3672 subtree specification");
 
     registerMessage(MSGID_ATTR_SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_INVALID,
                     "The provided value \"%s\" could not be parsed as a" +
-                    " valid absolute subtree specification.");
+                    " valid absolute subtree specification");
 
     registerMessage(MSGID_ATTR_SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_INVALID,
                     "The provided value \"%s\" could not be parsed as a" +
-                    " valid relative subtree specification.");
+                    " valid relative subtree specification");
 
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER,
             "The provided value \"%s\" could not be parsed as an " +
             "attribute syntax extension because an invalid character"+
-            "was found at position %d.");
+            "was found at position %d");
 
     registerMessage(MSGID_ATTR_SYNTAX_ATTRSYNTAX_INVALID_EXTENSION,
            "The attribute syntax could not be parsed because of an"+
-           "invalid extension."+ "%s.");
+           "invalid extension."+ "%s");
   }
 }
 

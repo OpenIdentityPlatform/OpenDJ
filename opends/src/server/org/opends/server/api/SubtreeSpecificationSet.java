@@ -26,6 +26,8 @@
  */
 package org.opends.server.api;
 
+
+
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.HashSet;
@@ -33,56 +35,65 @@ import java.util.Iterator;
 
 import org.opends.server.types.Entry;
 
+
+
 /**
- * This class implements the <code>Set</code> interface for
+ * This class implements the {@code Set} interface for
  * {@link org.opends.server.api.SubtreeSpecification}s.
  * <p>
- * It is backed by a <code>HashSet</code> but provides additional
- * functionality, {@link #isWithinScope(Entry)}, for
- * determining whether or not an entry is within the scope of one or
- * more contained <code>SubtreeSpecification</code>s.
+ * It is backed by a {@code HashSet} but provides additional
+ * functionality, {@link #isWithinScope(Entry)}, for determining
+ * whether or not an entry is within the scope of one or more
+ * contained {@code SubtreeSpecification}s.
  */
-public final class SubtreeSpecificationSet extends
-    AbstractSet<SubtreeSpecification> {
-
+public final class SubtreeSpecificationSet
+       extends AbstractSet<SubtreeSpecification>
+{
   // Underlying implementation is simply a set.
   private HashSet<SubtreeSpecification> pimpl;
+
+
 
   /**
    * Constructs a new empty subtree specification set.
    */
-  public SubtreeSpecificationSet() {
-
+  public SubtreeSpecificationSet()
+  {
     this.pimpl = new HashSet<SubtreeSpecification>();
   }
+
+
 
   /**
    * Constructs a new subtree specification set containing the
    * elements in the specified collection.
    *
-   * @param c
-   *          The subtree specification collection whose elements are
-   *          to be placed into this set.
+   * @param  c  The subtree specification collection whose elements
+   *            are to be placed into this set.
    */
   public SubtreeSpecificationSet(
-      Collection<? extends SubtreeSpecification> c) {
-
+              Collection<? extends SubtreeSpecification> c)
+  {
     this.pimpl = new HashSet<SubtreeSpecification>(c);
   }
 
-  /**
-   * Returns <code>true</code> if the specified entry is within the
-   * scope of a subtree specifications contained in the set.
-   *
-   * @param entry
-   *          The entry to be checked for containment.
-   * @return Returns <code>true</code> if the set contains the
-   *         specified entry.
-   */
-  public boolean isWithinScope(Entry entry) {
 
-    for (SubtreeSpecification subtreeSpecification : pimpl) {
-      if (subtreeSpecification.isWithinScope(entry)) {
+
+  /**
+   * Returns {@code true} if the specified entry is within the scope
+   * of a subtree specifications contained in the set.
+   *
+   * @param  entry  The entry to be checked for containment.
+   *
+   * @return  Returns {@code true} if the set contains the specified
+   *          entry.
+   */
+  public boolean isWithinScope(Entry entry)
+  {
+    for (SubtreeSpecification subtreeSpecification : pimpl)
+    {
+      if (subtreeSpecification.isWithinScope(entry))
+      {
         return true;
       }
     }
@@ -90,39 +101,65 @@ public final class SubtreeSpecificationSet extends
     return false;
   }
 
+
+
   /**
-   * {@inheritDoc}
+   * Adds the provided subtree specification object to this set.
+   *
+   * @param  e  The subtree specification object to be added.
+   *
+   * @return  {@code true} if the element was added to the set, or
+   *          {@code false} if the element was already contained in
+   *          the set.
    */
   @Override
-  public boolean add(SubtreeSpecification e) {
-
+  public boolean add(SubtreeSpecification e)
+  {
     return pimpl.add(e);
   }
 
+
+
   /**
-   * {@inheritDoc}
+   * Retrieves an iterator that may be used to step through the values
+   * in this set.
+   *
+   * @return  An iterator that may be used to step through the values
+   *          in this set.
    */
   @Override
-  public Iterator<SubtreeSpecification> iterator() {
-
+  public Iterator<SubtreeSpecification> iterator()
+  {
     return pimpl.iterator();
   }
 
+
+
   /**
-   * {@inheritDoc}
+   * Indicates whether this set contains the provided object.
+   *
+   * @param  o  The object for which to make the determination.
+   *
+   * @return  {@code true} if this set contains the provided object,
+   *          or {@code false} if not.
    */
   @Override
-  public boolean contains(Object o) {
-
+  public boolean contains(Object o)
+  {
     return pimpl.contains(o);
   }
 
+
+
   /**
-   * {@inheritDoc}
+   * Retrieves the number of elements contained in this set.
+   *
+   * @return  The number of elements contained in this set.
    */
   @Override
-  public int size() {
-
+  public int size()
+  {
     return pimpl.size();
   }
 }
+

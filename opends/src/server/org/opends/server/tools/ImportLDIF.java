@@ -373,7 +373,7 @@ public class ImportLDIF
       catch (Exception e)
       {
         int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -393,7 +393,7 @@ public class ImportLDIF
       catch (Exception e)
       {
         int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -422,7 +422,7 @@ public class ImportLDIF
       catch (Exception e)
       {
         int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -451,7 +451,7 @@ public class ImportLDIF
       catch (Exception e)
       {
         int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -479,7 +479,7 @@ public class ImportLDIF
       catch (Exception e)
       {
         int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -517,7 +517,7 @@ public class ImportLDIF
       catch (Exception e)
       {
         int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -547,7 +547,7 @@ public class ImportLDIF
       catch (Exception e)
       {
         int    msgID   = MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -651,7 +651,7 @@ public class ImportLDIF
         {
           int    msgID   = MSGID_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER;
           String message = getMessage(msgID, filterString,
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
           return 1;
@@ -686,7 +686,7 @@ public class ImportLDIF
         {
           int    msgID   = MSGID_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER;
           String message = getMessage(msgID, filterString,
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
           return 1;
@@ -793,7 +793,7 @@ public class ImportLDIF
       catch (Exception e)
       {
         int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE;
-        String message = getMessage(msgID, s, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, s, getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return 1;
@@ -832,8 +832,7 @@ public class ImportLDIF
         catch (Exception e)
         {
           int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-          String message = getMessage(msgID, s,
-                                      stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, s, getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
           return 1;
@@ -949,7 +948,7 @@ public class ImportLDIF
       {
         int    msgID   = MSGID_LDIFIMPORT_CANNOT_OPEN_REJECTS_FILE;
         String message = getMessage(msgID, rejectFile.getValue(),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return 1;
@@ -981,7 +980,7 @@ public class ImportLDIF
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_LOCK_BACKEND;
       String message = getMessage(msgID, backend.getBackendID(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
       return 1;
@@ -1005,7 +1004,7 @@ public class ImportLDIF
     catch (Exception e)
     {
       int    msgID   = MSGID_LDIFIMPORT_ERROR_DURING_IMPORT;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
       retCode = 1;
@@ -1031,7 +1030,7 @@ public class ImportLDIF
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_UNLOCK_BACKEND;
       String message = getMessage(msgID, backend.getBackendID(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
                message, msgID);
       retCode = 1;

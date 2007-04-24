@@ -44,12 +44,10 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.Operation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
@@ -57,6 +55,9 @@ import org.opends.server.types.Control;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.TimeThread;
@@ -263,11 +264,11 @@ public class TestAccessLogger
     buffer.append(addOperation.getRawEntryDN());
     buffer.append("\" attributes={");
 
-    Iterator<LDAPAttribute> attrIterator =
+    Iterator<RawAttribute> attrIterator =
          addOperation.getRawAttributes().iterator();
     if (attrIterator.hasNext())
     {
-      LDAPAttribute attr = attrIterator.next();
+      RawAttribute attr = attrIterator.next();
       buffer.append(attr.getAttributeType());
       buffer.append("={\"");
 
@@ -537,11 +538,11 @@ public class TestAccessLogger
     buffer.append(modifyOperation.getRawEntryDN().stringValue());
     buffer.append("\" mods={");
 
-    Iterator<LDAPModification> modIterator =
+    Iterator<RawModification> modIterator =
          modifyOperation.getRawModifications().iterator();
     if (modIterator.hasNext())
     {
-      LDAPModification mod = modIterator.next();
+      RawModification mod = modIterator.next();
       buffer.append(mod.getModificationType().toString());
       buffer.append(" attribute=");
       buffer.append(mod.getAttribute().getAttributeType());

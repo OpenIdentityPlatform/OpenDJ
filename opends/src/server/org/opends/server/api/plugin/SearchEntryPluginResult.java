@@ -28,18 +28,12 @@ package org.opends.server.api.plugin;
 
 
 
-
-
-
 /**
  * This class defines a data structure that holds information about
  * the result of processing by a search result entry plugin.
  */
 public class SearchEntryPluginResult
 {
-
-
-
   /**
    * A search entry plugin result instance that indicates all
    * processing was successful.

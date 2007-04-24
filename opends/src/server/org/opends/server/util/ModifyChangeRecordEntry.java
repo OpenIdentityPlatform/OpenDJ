@@ -33,8 +33,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.DN;
+import org.opends.server.types.RawModification;
 
 
 
@@ -50,7 +50,7 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
   /**
    * The modifications for this change record.
    */
-  private final List<LDAPModification> modifications;
+  private final List<RawModification> modifications;
 
 
 
@@ -63,14 +63,14 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
    *                        not be <CODE>null</CODE>.
    */
   public ModifyChangeRecordEntry(DN dn,
-      Collection<LDAPModification> modifications)
+      Collection<RawModification> modifications)
   {
     super(dn);
 
 
     ensureNotNull(modifications);
 
-    this.modifications = new ArrayList<LDAPModification>(modifications);
+    this.modifications = new ArrayList<RawModification>(modifications);
   }
 
 
@@ -81,7 +81,7 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
    *
    * @return Returns the unmodifiable list of modifications.
    */
-  public List<LDAPModification> getModifications()
+  public List<RawModification> getModifications()
   {
     return Collections.unmodifiableList(modifications);
   }

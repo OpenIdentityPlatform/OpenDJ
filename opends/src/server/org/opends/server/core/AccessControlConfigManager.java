@@ -467,7 +467,7 @@ public final class AccessControlConfigManager
           int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_LOAD_CLASS;
           String message = getMessage(msgID, className, String
               .valueOf(configuration.dn().toString()),
-              stackTraceToSingleLineString(e));
+              getExceptionMessage(e));
           throw new ConfigException(msgID, message, e);
         } catch (ClassCastException e) {
           if (debugEnabled())
@@ -479,13 +479,13 @@ public final class AccessControlConfigManager
           String message = getMessage(msgID, className, String
               .valueOf(configuration.dn().toString()),
               AccessControlProvider.class.getName(),
-              stackTraceToSingleLineString(e));
+              getExceptionMessage(e));
           throw new ConfigException(msgID, message, e);
         }
       } catch (ConfigException e) {
         int msgID = MSGID_CONFIG_AUTHZ_UNABLE_TO_DETERMINE_CLASS;
         String message = getMessage(msgID, configuration.dn()
-            .toString(), stackTraceToSingleLineString(e));
+            .toString(), getExceptionMessage(e));
         throw new ConfigException(msgID, message, e);
       }
     }

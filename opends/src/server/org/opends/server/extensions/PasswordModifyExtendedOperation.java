@@ -163,7 +163,7 @@ public class PasswordModifyExtendedOperation
       }
       int msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
       String message = getMessage(msgID, String.valueOf(config.dn()),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -282,7 +282,7 @@ public class PasswordModifyExtendedOperation
         operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
         int    msgID   = MSGID_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST;
-        String message = getMessage(msgID, stackTraceToSingleLineString(ae));
+        String message = getMessage(msgID, getExceptionMessage(ae));
         operation.appendErrorMessage(message);
 
         return;
@@ -1303,7 +1303,7 @@ public class PasswordModifyExtendedOperation
 
       int msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
       String message = getMessage(msgID, String.valueOf(config.dn()),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -1364,7 +1364,7 @@ public class PasswordModifyExtendedOperation
 
       int msgID = MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER;
       messages.add(getMessage(msgID, String.valueOf(config.dn()),
-                              stackTraceToSingleLineString(e)));
+                              getExceptionMessage(e)));
     }
 
 

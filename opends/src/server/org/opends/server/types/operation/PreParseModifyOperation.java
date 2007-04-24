@@ -30,8 +30,8 @@ package org.opends.server.types.operation;
 
 import java.util.List;
 
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.RawModification;
 
 
 
@@ -77,7 +77,7 @@ public interface PreParseModifyOperation
    * @return  The set of raw, unprocessed modifications as included
    *          in the client request.
    */
-  public List<LDAPModification> getRawModifications();
+  public List<RawModification> getRawModifications();
 
 
 
@@ -89,7 +89,7 @@ public interface PreParseModifyOperation
    *                          raw modifications for this modify
    *                          operation.
    */
-  public void addRawModification(LDAPModification rawModification);
+  public void addRawModification(RawModification rawModification);
 
 
 
@@ -100,6 +100,6 @@ public interface PreParseModifyOperation
    *                           operation.
    */
   public void setRawModifications(
-                   List<LDAPModification> rawModifications);
+                   List<RawModification> rawModifications);
 }
 

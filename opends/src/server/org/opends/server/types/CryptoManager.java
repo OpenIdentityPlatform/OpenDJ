@@ -129,7 +129,7 @@ public class CryptoManager
       // FIXME -- Number this.
       throw new InitializationException(-1,
                      "Can't get preferred digest:  " +
-                     stackTraceToSingleLineString(e), e);
+                     getExceptionMessage(e), e);
     }
 
     try
@@ -147,7 +147,7 @@ public class CryptoManager
       // FIXME -- Number this.
       throw new InitializationException(-1,
                      "Can't get preferred MAC provider:  " +
-                     stackTraceToSingleLineString(e), e);
+                     getExceptionMessage(e), e);
     }
 
     try
@@ -165,7 +165,7 @@ public class CryptoManager
       // FIXME -- Number this.
       throw new InitializationException(-1,
                      "Can't get preferred cipher:  " +
-                     stackTraceToSingleLineString(e), e);
+                     getExceptionMessage(e), e);
     }
   }
 

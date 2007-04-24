@@ -45,6 +45,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
+import org.opends.server.types.RawModification;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -58,10 +59,10 @@ public final class TestLDIFWriter extends UtilTestCase {
 
   // Data used in writeModifyEntry tests.
   private Object[][] MODIFY_ENTRY_DATA_LDIF;
-  
+
   // Data used in writeModifyDNEntry tests.
   private Object[][] MODIFY_DN_ENTRY_DATA_LDIF;
-  
+
   /**
    * Tests will be performed against a byte array output stream.
    */
@@ -91,7 +92,7 @@ public final class TestLDIFWriter extends UtilTestCase {
 
     /**
      * Get the LDIF writer.
-     * 
+     *
      * @return Returns the LDIF writer.
      */
     public LDIFWriter getLDIFWriter() {
@@ -100,7 +101,7 @@ public final class TestLDIFWriter extends UtilTestCase {
 
     /**
      * Close the writer and get a string reader for the LDIF content.
-     * 
+     *
      * @return Returns the string contents of the writer.
      * @throws Exception
      *           If an error occurred closing the writer.
@@ -114,14 +115,14 @@ public final class TestLDIFWriter extends UtilTestCase {
 
     /**
      * Close the writer and get an LDIF reader for the LDIF content.
-     * 
+     *
      * @return Returns an LDIF Reader.
      * @throws Exception
      *           If an error occurred closing the writer.
      */
     public LDIFReader getLDIFReader() throws Exception {
       writer.close();
-      
+
       ByteArrayInputStream istream = new ByteArrayInputStream(stream.toByteArray());
       LDIFImportConfig config = new LDIFImportConfig(istream);
       return new LDIFReader(config);
@@ -130,7 +131,7 @@ public final class TestLDIFWriter extends UtilTestCase {
 
   /**
    * Once-only initialization.
-   * 
+   *
    * @throws Exception
    *           If an unexpected error occurred.
    */
@@ -139,7 +140,7 @@ public final class TestLDIFWriter extends UtilTestCase {
     // This test suite depends on having the schema available, so we'll
     // start the server.
     TestCaseUtils.startServer();
-    
+
     String[] modifyEntryDataLDIF = {
         "dn: cn=Paula Jensen,ou=Product Development,dc=airius,dc=com\n" +
         "changetype: modify\n" +
@@ -174,7 +175,7 @@ public final class TestLDIFWriter extends UtilTestCase {
     List<Object[]> changes = createChangeRecords(
         ModifyChangeRecordEntry.class, modifyEntryDataLDIF);
     MODIFY_ENTRY_DATA_LDIF = changes.toArray(new Object[0][]);
-    
+
     String[] modifyDNEntryDataLDIF = {
         "dn: cn=Paula Jensen,ou=Product Development,dc=airius,dc=com\n" +
         "changetype: modrdn\n" +
@@ -194,7 +195,7 @@ public final class TestLDIFWriter extends UtilTestCase {
   /**
    * Check that creating a writer and closing it immediately does not
    * write anything.
-   * 
+   *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
@@ -207,7 +208,7 @@ public final class TestLDIFWriter extends UtilTestCase {
 
   /**
    * LDIF writer - example comment strings.
-   * 
+   *
    * @return Returns an array of comment strings and their expected LDIF
    *         form.
    */
@@ -257,7 +258,7 @@ public final class TestLDIFWriter extends UtilTestCase {
 
   /**
    * Test the {@link LDIFWriter#writeComment(String, int)} method.
-   * 
+   *
    * @param comment
    *          The input comment string.
    * @param wrapColumn
@@ -280,7 +281,7 @@ public final class TestLDIFWriter extends UtilTestCase {
 
   /**
    * LDIF writer - sample entry provider.
-   * 
+   *
    * @return Returns an array of LDAP entry objects.
    * @throws Exception If an error occurred whilst constructing the test entries.
    */
@@ -301,36 +302,36 @@ public final class TestLDIFWriter extends UtilTestCase {
           "description", "root DSE"
         },
     };
-    
+
     List<Entry[]> entries = new LinkedList<Entry[]>();
-    
+
     for (String[] s : input) {
       DN dn = DN.decode(s[0]);
       Entry entry = new Entry(dn, null, null, null);
-      
+
       for (int i = 1; i < s.length; i+=2) {
         String atype = toLowerCase(s[i]);
         String avalue = toLowerCase(s[i+1]);
-        
+
         if (atype.equals("objectclass")) {
           entry.addObjectClass(DirectoryServer.getObjectClass(avalue));
         } else {
           Attribute attr = new Attribute(atype, avalue);
-          
+
           // Assume that there will be no duplicates.
           entry.addAttribute(attr, null);
         }
       }
-      
+
       entries.add(new Entry[]{ entry });
     }
-    
+
     return entries.toArray(new Object[0][]);
   }
 
   /**
    * Test the {@link LDIFWriter#writeEntry(Entry)} method.
-   * 
+   *
    * @param entry
    *          The entry to ouput.
    * @throws Exception
@@ -350,13 +351,13 @@ public final class TestLDIFWriter extends UtilTestCase {
     LDIFReader reader = writer.getLDIFReader();
     Entry readEntry = reader.readEntry();
     reader.close();
-    
+
     Assert.assertEquals(readEntry.getDN(), entry.getDN());
   }
 
   /**
    * Test the {@link LDIFWriter#writeAddChangeRecord(Entry)} method.
-   * 
+   *
    * @param entry
    *          The entry to ouput.
    * @throws Exception
@@ -376,14 +377,14 @@ public final class TestLDIFWriter extends UtilTestCase {
     LDIFReader reader = writer.getLDIFReader();
     ChangeRecordEntry add = reader.readChangeRecord(false);
     reader.close();
-    
+
     Assert.assertTrue(add instanceof AddChangeRecordEntry);
     Assert.assertEquals(add.getDN(), entry.getDN());
   }
 
   /**
    * LDIF writer - sample modification provider.
-   * 
+   *
    * @return Returns an array of LDAP modification objects.
    * @throws Exception If an error occurred whilst constructing the test entries.
    */
@@ -395,7 +396,7 @@ public final class TestLDIFWriter extends UtilTestCase {
   /**
    * Test the {@link LDIFWriter#writeModifyChangeRecord(DN, List)}
    * method.
-   * 
+   *
    * @param change
    *          The modification change record.
    * @param expectedLDIF
@@ -411,7 +412,7 @@ public final class TestLDIFWriter extends UtilTestCase {
     LDIFWriter ldifWriter = writer.getLDIFWriter();
 
     List<Modification> mods = new LinkedList<Modification>();
-    for (LDAPModification lmod : change.getModifications()) {
+    for (RawModification lmod : change.getModifications()) {
       mods.add(lmod.toModification());
     }
     ldifWriter.writeModifyChangeRecord(change.getDN(), mods);
@@ -421,7 +422,7 @@ public final class TestLDIFWriter extends UtilTestCase {
 
   /**
    * Test the {@link LDIFWriter#writeDeleteChangeRecord(Entry, boolean)} method.
-   * 
+   *
    * @param entry
    *          The entry to ouput.
    * @throws Exception
@@ -439,13 +440,13 @@ public final class TestLDIFWriter extends UtilTestCase {
       "dn: " + entry.getDN(),
       "changetype: delete"
     };
-    
+
     checkLDIFOutput(writer, expectedLDIF);
   }
 
   /**
    * LDIF writer - sample modification DN provider.
-   * 
+   *
    * @return Returns an array of LDAP modification DN objects.
    * @throws Exception If an error occurred whilst constructing the test entries.
    */
@@ -457,7 +458,7 @@ public final class TestLDIFWriter extends UtilTestCase {
   /**
    * Test the {@link LDIFWriter#writeModifyChangeRecord(DN, List)}
    * method.
-   * 
+   *
    * @param change
    *          The modification change record.
    * @param expectedLDIF
@@ -482,7 +483,7 @@ public final class TestLDIFWriter extends UtilTestCase {
   /**
    * Close the LDIF writer and read its content and check it against the
    * expected output.
-   * 
+   *
    * @param writer
    *          The LDIF writer.
    * @param expectedLDIF
@@ -536,7 +537,7 @@ public final class TestLDIFWriter extends UtilTestCase {
   /**
    * Generate change records of the requested type from the input LDIF
    * strings.
-   * 
+   *
    * @param inputLDIF
    *          The input LDIF change records.
    * @return The data provider object array.

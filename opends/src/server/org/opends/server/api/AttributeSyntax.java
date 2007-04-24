@@ -35,7 +35,6 @@ import org.opends.server.types.InitializationException;
 
 
 
-
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that implements an
@@ -43,9 +42,6 @@ import org.opends.server.types.InitializationException;
  */
 public abstract class AttributeSyntax
 {
-
-
-
   /**
    * Initializes this attribute syntax based on the information in the
    * provided configuration entry.

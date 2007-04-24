@@ -186,7 +186,7 @@ public class MemoryBackend
 
         int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
         String message = getMessage(msgID, dn.toString(),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new InitializationException(msgID, message, e);
       }
     }

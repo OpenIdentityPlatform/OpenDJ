@@ -37,7 +37,6 @@ import org.opends.server.types.InitializationException;
 
 
 
-
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that implements a matching
@@ -45,9 +44,6 @@ import org.opends.server.types.InitializationException;
  */
 public abstract class MatchingRule
 {
-
-
-
   /**
    * Initializes this matching rule based on the information in the
    * provided configuration entry.

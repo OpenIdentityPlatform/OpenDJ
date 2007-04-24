@@ -600,7 +600,7 @@ public class BackupInfo
 
       int msgID = MSGID_BACKUPINFO_CANNOT_DECODE;
       String message = getMessage(msgID, backupPath,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ConfigException(msgID, message, e);
     }
 

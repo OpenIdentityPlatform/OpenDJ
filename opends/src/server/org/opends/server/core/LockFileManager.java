@@ -132,7 +132,7 @@ public class LockFileManager
 
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_CREATE;
         failureReason.append(getMessage(msgID, lockFile,
-                                        stackTraceToSingleLineString(e)));
+                                        getExceptionMessage(e)));
         return false;
       }
 
@@ -154,7 +154,7 @@ public class LockFileManager
 
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_OPEN;
         failureReason.append(getMessage(msgID, lockFile,
-                                        stackTraceToSingleLineString(e)));
+                                        getExceptionMessage(e)));
 
         if (raf != null)
         {
@@ -184,8 +184,7 @@ public class LockFileManager
         }
 
         int msgID = MSGID_FILELOCKER_LOCK_SHARED_FAILED_LOCK;
-        failureReason.append(getMessage(msgID,
-                                        stackTraceToSingleLineString(e)));
+        failureReason.append(getMessage(msgID, getExceptionMessage(e)));
         if (channel != null)
         {
           try
@@ -309,7 +308,7 @@ public class LockFileManager
 
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_CREATE;
         failureReason.append(getMessage(msgID, lockFile,
-                                        stackTraceToSingleLineString(e)));
+                                        getExceptionMessage(e)));
         return false;
       }
 
@@ -331,7 +330,7 @@ public class LockFileManager
 
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_OPEN;
         failureReason.append(getMessage(msgID, lockFile,
-                                        stackTraceToSingleLineString(e)));
+                                        getExceptionMessage(e)));
         if (raf != null)
         {
           try
@@ -361,7 +360,7 @@ public class LockFileManager
 
         int msgID = MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_LOCK;
         failureReason.append(getMessage(msgID, lockFile,
-                                        stackTraceToSingleLineString(e)));
+                                        getExceptionMessage(e)));
         if (channel != null)
         {
           try
@@ -470,7 +469,7 @@ public class LockFileManager
 
           int msgID = MSGID_FILELOCKER_UNLOCK_EXCLUSIVE_FAILED_RELEASE;
           failureReason.append(getMessage(msgID, lockFile,
-                                          stackTraceToSingleLineString(e)));
+                                          getExceptionMessage(e)));
           return false;
         }
 
@@ -518,7 +517,7 @@ public class LockFileManager
 
             int msgID = MSGID_FILELOCKER_UNLOCK_SHARED_FAILED_RELEASE;
             failureReason.append(getMessage(msgID, lockFile,
-                                            stackTraceToSingleLineString(e)));
+                                            getExceptionMessage(e)));
             return false;
           }
 

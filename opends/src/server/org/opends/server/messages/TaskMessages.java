@@ -249,67 +249,67 @@ public class TaskMessages
 
     registerMessage(MSGID_TASK_SHUTDOWN_DEFAULT_MESSAGE,
                     "The Directory Server shutdown process has been " +
-                    "initiated by task %s.");
+                    "initiated by task %s");
     registerMessage(MSGID_TASK_SHUTDOWN_CUSTOM_MESSAGE,
                     "The Directory Server shutdown process has been " +
                     "initiated by task %s:  %s");
     registerMessage(MSGID_TASK_SHUTDOWN_INSUFFICIENT_RESTART_PRIVILEGES,
                     "You do not have sufficient privileges to initiate a " +
-                    "Directory Server restart.");
+                    "Directory Server restart");
     registerMessage(MSGID_TASK_SHUTDOWN_INSUFFICIENT_SHUTDOWN_PRIVILEGES,
                     "You do not have sufficient privileges to initiate a " +
-                    "Directory Server shutdown.");
+                    "Directory Server shutdown");
 
 
     registerMessage(MSGID_TASK_ADDSCHEMAFILE_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to modify the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_TASK_ADDSCHEMAFILE_NO_FILENAME,
                     "Unable to add one or more files to the server schema " +
                     "because no schema file names were provided in " +
-                    "attribute %s of task entry %s.");
+                    "attribute %s of task entry %s");
     registerMessage(MSGID_TASK_ADDSCHEMAFILE_NO_SUCH_FILE,
                     "Unable to add one or more files to the server schema " +
                     "because the specified schema file %s does not exist in " +
-                    "schema directory %s.");
+                    "schema directory %s");
     registerMessage(MSGID_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE,
                     "Unable to add one or more files to the server schema " +
                     "because an error occurred while attempting to determine " +
-                    "whether file %s exists in schema directory %s:  %s.");
+                    "whether file %s exists in schema directory %s:  %s");
     registerMessage(MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE,
                     "An error occurred while attempting to load the contents " +
-                    "of schema file %s into the server schema:  %s.");
+                    "of schema file %s into the server schema:  %s");
     registerMessage(MSGID_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER,
                     "An error occurred while attempting to notify a " +
                     "synchronization provider of type %s about the schema " +
-                    "changes made by the add schema file task:  %s.");
+                    "changes made by the add schema file task:  %s");
     registerMessage(MSGID_TASK_ADDSCHEMAFILE_CANNOT_LOCK_SCHEMA,
                     "Unable to add one or more files to the server schema " +
                     "because the server was unable to obtain a write lock on " +
-                    "the schema entry %s after multiple attempts.");
+                    "the schema entry %s after multiple attempts");
 
 
     registerMessage(MSGID_TASK_BACKUP_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to initiate a " +
-                    "Directory Server backup.");
+                    "Directory Server backup");
     registerMessage(MSGID_TASK_RESTORE_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to initiate a " +
-                    "Directory Server restore.");
+                    "Directory Server restore");
     registerMessage(MSGID_TASK_LDIFIMPORT_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to initiate an " +
-                    "LDIF import.");
+                    "LDIF import");
     registerMessage(MSGID_TASK_LDIFEXPORT_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to initiate an " +
-                    "LDIF export.");
+                    "LDIF export");
     registerMessage(MSGID_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to initiate an " +
-                    "index rebuild.");
+                    "index rebuild");
 
     registerMessage(MSGID_TASK_INITIALIZE_TARGET_INVALID_DN,
-                    "Invalid DN provided with the Initialize Target task.");
+                    "Invalid DN provided with the Initialize Target task");
 
     registerMessage(MSGID_TASK_INITIALIZE_INVALID_DN,
-                    "Invalid DN provided with the Initialize task.");
+                    "Invalid DN provided with the Initialize task");
   }
 }
 

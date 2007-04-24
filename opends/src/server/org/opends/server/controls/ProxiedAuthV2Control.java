@@ -35,12 +35,12 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
@@ -167,7 +167,7 @@ public class ProxiedAuthV2Control
         }
 
         int    msgID   = MSGID_PROXYAUTH2_CANNOT_DECODE_VALUE;
-        String message = getMessage(msgID, stackTraceToSingleLineString(ae));
+        String message = getMessage(msgID, getExceptionMessage(ae));
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message,
                                 ae);
       }
@@ -180,7 +180,7 @@ public class ProxiedAuthV2Control
       }
 
       int    msgID   = MSGID_PROXYAUTH2_CANNOT_DECODE_VALUE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message, e);
     }
 

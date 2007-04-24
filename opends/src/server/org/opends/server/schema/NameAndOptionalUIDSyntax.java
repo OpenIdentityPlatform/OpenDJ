@@ -266,7 +266,7 @@ public class NameAndOptionalUIDSyntax
       // acceptable.
       int msgID = MSGID_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
       invalidReason.append(getMessage(msgID, valueString,
-                                      stackTraceToSingleLineString(e)));
+                                      getExceptionMessage(e)));
       return false;
     }
 

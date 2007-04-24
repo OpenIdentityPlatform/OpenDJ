@@ -35,7 +35,6 @@ import org.opends.server.types.InvokableMethod;
 
 
 
-
 /**
  * This class defines an interface that may be implemented by
  * Directory Server components that have methods that may be invoked

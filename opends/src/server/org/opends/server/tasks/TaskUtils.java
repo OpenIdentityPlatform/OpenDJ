@@ -55,6 +55,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 
 import java.util.ArrayList;
@@ -104,7 +105,7 @@ public class TaskUtils
     {
       int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
       String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
       return null;
@@ -140,7 +141,7 @@ public class TaskUtils
     {
       int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
       String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                      message, msgID);
       return configEntries;
@@ -163,7 +164,7 @@ public class TaskUtils
     {
       int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
       String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                      message, msgID);
       return configEntries;
@@ -207,7 +208,7 @@ public class TaskUtils
       {
         int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         continue;
@@ -259,7 +260,7 @@ public class TaskUtils
 
     LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
 
-    ArrayList<LDAPModification> modList = new ArrayList<LDAPModification>(1);
+    ArrayList<RawModification> modList = new ArrayList<RawModification>(1);
     modList.add(m);
 
     InternalClientConnection conn =

@@ -56,6 +56,7 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 
 import static org.testng.Assert.*;
@@ -511,7 +512,7 @@ public class PasswordValidatorTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("newPassword"));
     LDAPAttribute attr = new LDAPAttribute("userPassword", values);
@@ -589,7 +590,7 @@ public class PasswordValidatorTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("newPassword"));
     LDAPAttribute attr = new LDAPAttribute("userPassword", values);
@@ -671,7 +672,7 @@ public class PasswordValidatorTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("password"));
     LDAPAttribute attr = new LDAPAttribute("userPassword", values);
@@ -760,7 +761,7 @@ public class PasswordValidatorTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("newPassword"));
     LDAPAttribute attr = new LDAPAttribute("userPassword", values);
@@ -844,7 +845,7 @@ public class PasswordValidatorTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("password"));
     LDAPAttribute attr = new LDAPAttribute("userPassword", values);

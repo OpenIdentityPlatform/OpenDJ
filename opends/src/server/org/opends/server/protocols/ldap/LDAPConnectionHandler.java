@@ -35,7 +35,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -1037,7 +1037,7 @@ public final class LDAPConnectionHandler extends
                     String message = getMessage(msgID,
                         clientConnection.getClientHostPort(),
                         clientConnection.getServerHostPort(),
-                        stackTraceToSingleLineString(e));
+                        getExceptionMessage(e));
 
                     logError(ErrorLogCategory.CONNECTION_HANDLING,
                         ErrorLogSeverity.SEVERE_ERROR, message, msgID);
@@ -1072,7 +1072,7 @@ public final class LDAPConnectionHandler extends
             logError(ErrorLogCategory.CONNECTION_HANDLING,
                 ErrorLogSeverity.SEVERE_WARNING,
                 MSGID_LDAP_CONNHANDLER_CANNOT_ACCEPT_CONNECTION,
-                currentConfig.dn(), stackTraceToSingleLineString(e));
+                currentConfig.dn(), getExceptionMessage(e));
 
             if (lastIterationFailed) {
               // The last time through the accept loop we also
