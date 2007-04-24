@@ -30,9 +30,8 @@ package org.opends.server.types.operation;
 
 import java.util.List;
 
-import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.types.ByteString;
-
+import org.opends.server.types.RawAttribute;
 
 
 
@@ -75,7 +74,7 @@ public interface PreParseAddOperation
    * @return  The set of attributes in their raw, unparsed form as
    *          read from the client request.
    */
-  public List<LDAPAttribute> getRawAttributes();
+  public List<RawAttribute> getRawAttributes();
 
 
 
@@ -86,7 +85,7 @@ public interface PreParseAddOperation
    * @param  rawAttribute  The attribute to add to the set of raw
    *                       attributes for this add operation.
    */
-  public void addRawAttribute(LDAPAttribute rawAttribute);
+  public void addRawAttribute(RawAttribute rawAttribute);
 
 
 
@@ -96,6 +95,6 @@ public interface PreParseAddOperation
    * @param  rawAttributes  The set of raw attributes for this add
    *                        operation.
    */
-  public void setRawAttributes(List<LDAPAttribute> rawAttributes);
+  public void setRawAttributes(List<RawAttribute> rawAttributes);
 }
 

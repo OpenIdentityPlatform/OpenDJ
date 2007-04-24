@@ -618,7 +618,7 @@ public class SubCommandArgumentParser
       {
         int    msgID   = MSGID_SUBCMDPARSER_CANNOT_READ_PROPERTIES_FILE;
         String message = getMessage(msgID, String.valueOf(propertiesFile),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new ArgumentException(msgID, message, e);
       }
     }

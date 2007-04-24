@@ -30,6 +30,7 @@ package org.opends.server.protocols.ldap;
 
 import org.testng.annotations.Test;
 import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.SearchScope;
 import org.opends.server.protocols.asn1.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;

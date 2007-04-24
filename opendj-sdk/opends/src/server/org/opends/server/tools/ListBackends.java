@@ -255,7 +255,7 @@ public class ListBackends
       catch (Exception e)
       {
         int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -275,7 +275,7 @@ public class ListBackends
       catch (Exception e)
       {
         int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -304,7 +304,7 @@ public class ListBackends
       catch (Exception e)
       {
         int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -327,7 +327,7 @@ public class ListBackends
     catch (Exception e)
     {
       int    msgID   = MSGID_LISTBACKENDS_CANNOT_GET_BACKENDS;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -371,8 +371,7 @@ public class ListBackends
         catch (Exception e)
         {
           int    msgID   = MSGID_LISTBACKENDS_INVALID_DN;
-          String message = getMessage(msgID, dnStr,
-                                      stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, dnStr, getExceptionMessage(e));
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
@@ -547,7 +546,7 @@ public class ListBackends
     {
       int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
       String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ConfigException(msgID, message, e);
     }
 
@@ -566,7 +565,7 @@ public class ListBackends
     {
       int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
       String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ConfigException(msgID, message, e);
     }
 
@@ -607,7 +606,7 @@ public class ListBackends
       {
         int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new ConfigException(msgID, message, e);
       }
 
@@ -632,7 +631,7 @@ public class ListBackends
       {
         int    msgID   = MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new ConfigException(msgID, message, e);
       }
 

@@ -36,7 +36,6 @@ import org.opends.server.types.ConditionResult;
 
 
 
-
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that implements a matching
@@ -47,9 +46,6 @@ public abstract class OrderingMatchingRule
        extends MatchingRule
        implements Comparator<byte[]>, Serializable
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler
    * because this class implements the

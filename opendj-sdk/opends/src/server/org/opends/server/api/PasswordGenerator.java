@@ -37,7 +37,6 @@ import org.opends.server.types.InitializationException;
 
 
 
-
 /**
  * This class defines a set of methods and structures that must be
  * implemented by a Directory Server module that may be used to
@@ -52,9 +51,6 @@ import org.opends.server.types.InitializationException;
 public abstract class PasswordGenerator
        <T extends PasswordGeneratorCfg>
 {
-
-
-
   /**
    * Initializes this password generator based on the information in
    * the provided configuration entry.

@@ -56,12 +56,13 @@ public class dbHandlerTest extends SynchronizationTestCase
     // configure a Changelog server.
     ChangelogFakeConfiguration conf =
       new ChangelogFakeConfiguration(changelogPort, null, 0,
-                                     2, 0, 100, null); 
+                                     2, 0, 100, null);
     Changelog changelog = new Changelog(conf);
 
     // create or clean a directory for the dbHandler
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = buildRoot + File.separator + "dbHandler";
+    String path = buildRoot + File.separator + "build" + File.separator +
+                  "unit-tests" + File.separator + "dbHandler";
     File testRoot = new File(path);
     if (testRoot.exists())
     {
@@ -73,26 +74,26 @@ public class dbHandlerTest extends SynchronizationTestCase
 
     DbHandler handler =
       new DbHandler((short) 1, DN.decode("o=test"), changelog, dbEnv);
-    
+
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short)1, 0);
     ChangeNumber changeNumber1 = gen.NewChangeNumber();
     ChangeNumber changeNumber2 = gen.NewChangeNumber();
     ChangeNumber changeNumber3 = gen.NewChangeNumber();
-    
-    DeleteMsg update1 = new DeleteMsg("o=test", changeNumber1, "uid"); 
-    DeleteMsg update2 = new DeleteMsg("o=test", changeNumber2, "uid"); 
-    DeleteMsg update3 = new DeleteMsg("o=test", changeNumber3, "uid"); 
-    
+
+    DeleteMsg update1 = new DeleteMsg("o=test", changeNumber1, "uid");
+    DeleteMsg update2 = new DeleteMsg("o=test", changeNumber2, "uid");
+    DeleteMsg update3 = new DeleteMsg("o=test", changeNumber3, "uid");
+
     handler.add(update1);
     handler.add(update2);
     handler.add(update3);
-    
+
     // The ChangeNumber should not get purged
     assertEquals(changeNumber1, handler.getFirstChange());
     assertEquals(changeNumber3, handler.getLastChange());
-    
+
     handler.setPurgeDelay(1);
-    
+
     boolean purged = false;
     int count = 300;  // wait at most 60 seconds
     while (!purged && (count>0))
@@ -109,11 +110,11 @@ public class dbHandlerTest extends SynchronizationTestCase
         purged = true;
       }
     }
-    
+
     handler.shutdown();
     dbEnv.shutdown();
     changelog.shutdown();
-    
+
     TestCaseUtils.deleteDirectory(testRoot);
   }
 

@@ -42,7 +42,6 @@ import org.opends.server.types.SearchScope;
 
 
 
-
 /**
  * This class defines the set of methods that must be implemented by a
  * Directory Server group.  It is expected that there will be a number

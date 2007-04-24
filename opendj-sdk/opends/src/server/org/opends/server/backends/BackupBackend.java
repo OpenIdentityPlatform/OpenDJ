@@ -158,7 +158,7 @@ public class BackupBackend
       }
 
       int msgID = MSGID_BACKUP_CANNOT_DECODE_BACKUP_ROOT_DN;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -233,7 +233,7 @@ public class BackupBackend
 
       int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
       String message = getMessage(msgID, backupBaseDN.toString(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
   }
@@ -452,7 +452,7 @@ public class BackupBackend
       }
 
       int msgID = MSGID_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID);
     }
@@ -574,7 +574,7 @@ public class BackupBackend
       }
 
       int msgID = MSGID_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID);
     }

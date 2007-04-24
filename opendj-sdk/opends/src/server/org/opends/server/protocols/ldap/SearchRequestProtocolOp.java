@@ -38,12 +38,12 @@ import org.opends.server.protocols.asn1.ASN1Enumerated;
 import org.opends.server.protocols.asn1.ASN1Integer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.SearchScope;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -59,9 +59,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class SearchRequestProtocolOp
        extends ProtocolOp
 {
-
-
-
   // The typesOnly flag for this search request.
   private boolean typesOnly;
 

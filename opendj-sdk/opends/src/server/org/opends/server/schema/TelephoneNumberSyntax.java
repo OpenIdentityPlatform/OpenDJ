@@ -170,7 +170,7 @@ public class TelephoneNumberSyntax
 
         msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
       }
@@ -482,7 +482,7 @@ public class TelephoneNumberSyntax
 
       msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       unacceptableReasons.add(message);
       configIsAcceptable = false;
     }
@@ -550,7 +550,7 @@ public class TelephoneNumberSyntax
 
       msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+                              getExceptionMessage(e)));
       resultCode = DirectoryServer.getServerErrorResultCode();
 
       newStrictMode = false;

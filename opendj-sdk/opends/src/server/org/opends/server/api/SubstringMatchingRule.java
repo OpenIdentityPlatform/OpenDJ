@@ -36,7 +36,6 @@ import org.opends.server.types.DirectoryException;
 
 
 
-
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that implements a matching
@@ -45,9 +44,6 @@ import org.opends.server.types.DirectoryException;
 public abstract class SubstringMatchingRule
        extends MatchingRule
 {
-
-
-
   /**
    * Normalizes the provided value fragment into a form that can be
    * used to efficiently compare values.

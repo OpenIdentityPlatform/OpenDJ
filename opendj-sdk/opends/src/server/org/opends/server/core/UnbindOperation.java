@@ -36,6 +36,7 @@ import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.operation.PostOperationUnbindOperation;
 import org.opends.server.types.operation.PreParseUnbindOperation;
@@ -281,7 +282,7 @@ public class UnbindOperation
    * {@inheritDoc}
    */
   @Override()
-  boolean setCancelRequest(CancelRequest cancelRequest)
+  protected boolean setCancelRequest(CancelRequest cancelRequest)
   {
     // Unbind operations cannot be canceled.
     return false;

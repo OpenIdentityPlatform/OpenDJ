@@ -740,71 +740,71 @@ public class AciMessages {
         registerMessage(MSGID_ACI_SYNTAX_GENERAL_PARSE_FAILED,
                 "The provided string  \"%s\" could not be parsed as a valid " +
                 "Access Control Instruction (ACI) because it failed "+
-                "general ACI syntax evaluation.");
+                "general ACI syntax evaluation");
 
         registerMessage(MSGID_ACI_SYNTAX_INVAILD_VERSION,
                 "The provided Access Control Instruction (ACI) version " +
                 "value  \"%s\" is invalid, only the version 3.0 is " +
-                "supported.");
+                "supported");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_ACCESS_TYPE_VERSION,
                 "The provided Access Control Instruction access " +
                 "type value  \"%s\" is invalid. A valid access type " +
-                "value is either allow or deny.");
+                "value is either allow or deny");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_RIGHTS_SYNTAX,
                 "The provided Access Control Instruction (ACI) rights " +
                 "values \"%s\" are invalid. The rights must be a " +
                 "list of 1 to 6 comma-separated keywords enclosed in " +
-                "parentheses.");
+                "parentheses");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_RIGHTS_KEYWORD,
                 "The provided Access Control Instruction (ACI) rights " +
                 "keyword values \"%s\" are invalid. The valid rights " +
                 "keyword values are one or more of the following: read, " +
                 "write, add, delete, search, compare or the single value " +
-                "all.");
+                "all");
 
         registerMessage(MSGID_ACI_SYNTAX_BIND_RULE_MISSING_CLOSE_PAREN,
                 "The provided Access Control Instruction (ACI) bind " +
                 "rule value \"%s\" is invalid because it is missing a " +
                 "close parenthesis that corresponded to the initial open " +
-                "parenthesis.");
+                "parenthesis");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "value \"%s\" is invalid. A valid bind rule value must " +
                 "be in the following form: " +
-                "keyword operator \"expression\".");
+                "keyword operator \"expression\"");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "keyword value \"%s\" is invalid. A valid keyword value is" +
                 " one of the following: userdn, groupdn, roledn, userattr," +
-                "ip, dns, dayofweek, timeofday or authmethod.");
+                "ip, dns, dayofweek, timeofday or authmethod");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_BIND_RULE_OPERATOR ,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "operator value  \"%s\" is invalid. A valid bind rule " +
-                "operator value is either '=' or \"!=\".");
+                "operator value is either '=' or \"!=\"");
 
         registerMessage(MSGID_ACI_SYNTAX_MISSING_BIND_RULE_EXPRESSION ,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "expression value corresponding to the keyword value " +
                 "\"%s\" is missing an expression. A valid bind rule value " +
                 "must be in the following form:" +
-                " keyword operator \"expression\".");
+                " keyword operator \"expression\"");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_BIND_RULE_BOOLEAN_OPERATOR ,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "boolean operator value \"%s\" is invalid. A valid bind" +
-                "rule boolean operator value is either \"OR\" or \"AND\".");
+                "rule boolean operator value is either \"OR\" or \"AND\"");
 
         registerMessage(
                 MSGID_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD_OPERATOR_COMBO,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "keyword string  \"%s\" is invalid for the bind rule " +
-                "operator string \"%s\".");
+                "operator string \"%s\"");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_USERDN_URL,
                 "The provided Access Control Instruction (ACI) bind rule " +
@@ -816,7 +816,7 @@ public class AciMessages {
                 "roledn expression value \"%s\" is invalid. A valid roledn " +
                 "keyword expression value requires one or more LDAP URLs " +
                 "in the following format: " +
-                "ldap:///dn [|| ldap:///dn] ... [|| ldap:///dn].");
+                "ldap:///dn [|| ldap:///dn] ... [|| ldap:///dn]");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_ROLEDN_URL,
                 "The provided Access Control Instruction (ACI) bind rule " +
@@ -828,7 +828,7 @@ public class AciMessages {
           "groupdn expression value \"%s\" is invalid. A valid groupdn " +
          "keyword expression  value requires one or more LDAP URLs in the" +
          " following format: " +
-         "ldap:///groupdn [|| ldap:///groupdn] ... [|| ldap:///groupdn].");
+         "ldap:///groupdn [|| ldap:///groupdn] ... [|| ldap:///groupdn]");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_GROUPDN_URL,
                 "The provided Access Control Instruction (ACI) bind rule " +
@@ -837,11 +837,11 @@ public class AciMessages {
 
         registerMessage(MSGID_ACI_SYNTAX_ADDRESS_FAMILY_MISMATCH,
                 "The network mask value \"%s\" is not valid for " +
-                "the ip expression network address \"%s\".");
+                "the ip expression network address \"%s\"");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_NETWORK_BIT_MATCH,
                 "The bit mask for address type value \"%s\" is not valid." +
-                "%s.");
+                "%s");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_IP_CRITERIA_DECODE,
                 "The provided Access Control Instruction (ACI) bind rule " +
@@ -852,13 +852,13 @@ public class AciMessages {
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "ip expression value \"%s\" is invalid. A valid ip " +
                 "keyword expression value requires one or more" +
-                "comma-separated elements of an IP address list expression.");
+                "comma-separated elements of an IP address list expression");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_DNS_EXPRESSION,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "dns expression value \"%s\" is invalid. A valid dns " +
                 "keyword expression value requires a valid fully qualified"+
-                " DNS domain name.");
+                " DNS domain name");
 
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_DNS_WILDCARD,
@@ -867,25 +867,25 @@ public class AciMessages {
                 " pattern was found in the wrong position. A valid dns " +
                 "keyword wild-card expression value requires the '*' " +
                 "character only be in the leftmost position of the " +
-                "domain name.");
+                "domain name");
         registerMessage(MSGID_ACI_LOCALHOST_DOESNT_MATCH_CANONICAL_VALUE,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "dns expression value \"%s\" references hostname %s, but " +
                 "the canonical representation for that hostname is " +
                 "configured to be %s.  The server will attempt to " +
-                "automatically interpret the correct localhost value.");
+                "automatically interpret the correct localhost value");
         registerMessage(MSGID_ACI_HOSTNAME_DOESNT_MATCH_CANONICAL_VALUE,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "dns expression value \"%s\" references hostname %s, which " +
                 "resolves to IP address %s, but the canonical hostname for " +
                 "that IP address is %s.  This likely means that the " +
-                "provided hostname will never match any clients.");
+                "provided hostname will never match any clients");
         registerMessage(MSGID_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME,
                 "An error occurred while attempting to determine whether " +
                 "hostname %s referenced in dns expression bind rule \"%s\" " +
                 "used the correct canonical representation:  %s.  This " +
                 "likely means that the provided hostname will never match " +
-                "any clients.");
+                "any clients");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_DAYOFWEEK,
                 "The provided Access Control Instruction (ACI) bind rule " +
@@ -893,20 +893,20 @@ public class AciMessages {
                 "an invalid day of week value. A valid dayofweek value " +
                 "is one of the following English three-letter abbreviations" +
                 "for the days of the week: sun, mon, tue, wed, thu, " +
-                "fri, or sat.");
+                "fri, or sat");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TIMEOFDAY,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "timeofday expression value \"%s\" is invalid. A valid " +
                 "timeofday value is expressed as four digits representing " +
-                "hours and minutes in the 24-hour clock (0 to 2359).");
+                "hours and minutes in the 24-hour clock (0 to 2359)");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TIMEOFDAY_RANGE,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "timeofday expression value \"%s\" is not in the valid" +
                  " range. A valid timeofday value is expressed as four" +
                  " digits representing hours and minutes in the 24-hour" +
-                 " clock (0 to 2359).");
+                 " clock (0 to 2359)");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_AUTHMETHOD_EXPRESSION,
                 "The provided Access Control Instruction (ACI) bind rule " +
@@ -914,7 +914,7 @@ public class AciMessages {
                 "authmethod value is one of the following: none, simple," +
                 "SSL, or \"sasl mechanism\", where mechanism is one of the" +
                 "supported SASL mechanisms including CRAM-MD5, DIGEST-MD5, " +
-                "and GSSAPI.");
+                "and GSSAPI");
 
         registerMessage(MSGID_ACI_SYNTAX_DUBIOUS_AUTHMETHOD_SASL_MECHANISM,
                 "The SASL mechanism \"%s\" provided in the Access Control " +
@@ -923,104 +923,104 @@ public class AciMessages {
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_USERATTR_EXPRESSION,
                 "The provided Access Control Instruction (ACI) bind rule " +
-                "userattr expression value \"%s\" is invalid.");
+                "userattr expression value \"%s\" is invalid");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_USERATTR_KEYWORD,
                 "The provided Access Control Instruction (ACI) bind rule " +
-                "userattr expression value \"%s\" is not supported.");
+                "userattr expression value \"%s\" is not supported");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_USERATTR_INHERITANCE_PATTERN,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "userattr expression inheritance pattern value \"%s\" is " +
                 "invalid. A valid inheritance pattern value must have" +
                 "the following format:" +
-                " parent[inheritance_level].attribute#bindType.");
+                " parent[inheritance_level].attribute#bindType");
 
         registerMessage(
                 MSGID_ACI_SYNTAX_MAX_USERATTR_INHERITANCE_LEVEL_EXCEEDED,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "userattr expression inheritance pattern value \"%s\" is " +
                 "invalid. The inheritance level value cannot exceed the" +
-                "max level limit of %s.");
+                "max level limit of %s");
 
         registerMessage(
                 MSGID_ACI_SYNTAX_INVALID_INHERITANCE_VALUE,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "userattr expression inheritance pattern value \"%s\" is" +
-                " invalid because it is non-numeric.");
+                " invalid because it is non-numeric");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGET_SYNTAX,
                 "The provided Access Control Instruction (ACI) target rule" +
                 "value \"%s\" is invalid. A valid target rule value must" +
                 "be in the following form: " +
-                "keyword operator \"expression\".");
+                "keyword operator \"expression\"");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGET_KEYWORD,
                 "The provided Access Control Instruction (ACI) target " +
                 "keyword value \"%s\" is invalid. A valid target keyword" +
                 " value is one of the following: target, targetscope, " +
-                "targetfilter, targetattr or targetattrfilters.");
+                "targetfilter, targetattr or targetattrfilters");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGETS_OPERATOR,
                 "The provided Access Control Instruction (ACI) target " +
                 "keyword operator value  \"%s\" is invalid. A valid target" +
-                "keyword operator value is either '=' or \"!=\".");
+                "keyword operator value is either '=' or \"!=\"");
 
         registerMessage(MSGID_ACI_SYNTAX_TARGET_KEYWORD_NOT_SUPPORTED,
                 "The provided Access Control Instruction (ACI) " +
-                "target keyword value \"%s\" is not supported at this time.");
+                "target keyword value \"%s\" is not supported at this time");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS,
                 "The provided Access Control Instruction (ACI) " +
                 "target keyword value \"%s\" was seen multiple times in" +
-                " the ACI \"%s\".");
+                " the ACI \"%s\"");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGET_NOT_OPERATOR,
                 "The provided Access Control Instruction (ACI) target" +
                 " operator value \"%s\" is invalid. The only valid" +
-                "target operator value for the \"%s\" keyword is '='.");
+                "target operator value for the \"%s\" keyword is '='");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGETSCOPE_EXPRESSION,
                 "The provided Access Control Instruction (ACI) targetscope" +
                 " expression operator value  \"%s\" is invalid. A valid" +
                 " targetscope expression value is one of the following: one," +
-                " onelevel or subtree.");
+                " onelevel or subtree");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION,
                 "The provided Access Control Instruction (ACI)" +
                 " target expression value \"%s\" is invalid. A valid target" +
                 " keyword expression  value requires a LDAP URL in the" +
-                " following format: ldap:///distinguished_name_pattern.");
+                " following format: ldap:///distinguished_name_pattern");
 
         registerMessage(MSGID_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF,
                 "The provided Access Control Instruction (ACI) " +
                 "target expression DN value \"%s\" is invalid. The target " +
                 "expression DN value must be a descendant of the ACI entry" +
                 " DN \"%s\", if no wild-card is specified in the target" +
-                "expression DN.");
+                "expression DN");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGETATTRKEYWORD_EXPRESSION,
                 "The provided Access Control Instruction (ACI) " +
                 "targetattr expression value \"%s\" is invalid. A valid " +
                 "targetattr keyword expression value requires one or more " +
                 "valid attribute type names in the following format: " +
-                "attribute1 [|| attribute1] ... [|| attributen].");
+                "attribute1 [|| attribute1] ... [|| attributen]");
 
         registerMessage(
                 MSGID_ACI_SYNTAX_INVALID_TARGETFILTERKEYWORD_EXPRESSION,
                 "The provided Access Control Instruction (ACI)" +
                 " targetfilter expression value \"%s\" is invalid because it" +
-                " is not a valid LDAP filter.");
+                " is not a valid LDAP filter");
 
         registerMessage(MSGID_ACI_ADD_FAILED_PRIVILEGE,
                 "An attempt to add the entry \"%s\" containing" +
                 " an aci attribute type failed, because the authorization DN" +
-                " \"%s\" lacked modify-acl privileges.");
+                " \"%s\" lacked modify-acl privileges");
 
         registerMessage(MSGID_ACI_MODIFY_FAILED_PRIVILEGE,
                 "An attempt to modify an aci "+
                 "attribute type in the entry \"%s\" failed, because the" +
-                "authorization DN \"%s\" lacked modify-acl privileges.");
+                "authorization DN \"%s\" lacked modify-acl privileges");
 
         registerMessage(MSGID_ACI_ADD_FAILED_DECODE,
                 "An attempt to add the entry \"%s\" containing" +
@@ -1038,24 +1038,24 @@ public class AciMessages {
 
         registerMessage(MSGID_ACI_ADD_LIST_NO_ACIS,
                 "No Access Control Instruction (ACI) attribute types were" +
-                " found in context \"%s\".");
+                " found in context \"%s\"");
 
         registerMessage(MSGID_ACI_ADD_LIST_ACIS,
                 "Added %s Access Control Instruction (ACI) attribute types" +
                 " found in context \"%s\" to the access" +
-                "control evaluation engine.");
+                "control evaluation engine");
 
         registerMessage(
                 MSGID_ACI_SYNTAX_INVALID_USERATTR_ROLEDN_INHERITANCE_PATTERN,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "userattr expression inheritance pattern value " +
                 "\"%s\" is invalid for the roledn keyword because it starts " +
-                        "with the string \"parent[\".");
+                        "with the string \"parent[\"");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_OPERATION,
                 "The provided Access Control Instruction (ACI) " +
                 "targattrfilter expression value " +
-                "%s is invalid because %s.");
+                "%s is invalid because %s");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION,
                 "The provided Access Control Instruction (ACI) " +
@@ -1070,14 +1070,14 @@ public class AciMessages {
                 "The provided Access Control Instruction (ACI) " +
                    "targattrfilter expression value " +
                    "%s is invalid because the both operation tokens " +
-                   "match in the two filter lists.");
+                   "match in the two filter lists");
 
         registerMessage(
                 MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_MAX_FILTER_LISTS,
                 "The provided Access Control Instruction (ACI) " +
                      "targattrfilters expression value " +
                      "%s is invalid because there are more than two" +
-                      "filter list statements.");
+                      "filter list statements");
 
         registerMessage(
                 MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LIST_FORMAT,
@@ -1086,7 +1086,7 @@ public class AciMessages {
                 "%s is invalid because the provided filter list string " +
                 "is in the wrong format. A valid targattrfilters filter " +
                 "list must be in the following format: " +
-                "add=attr1: F1 && attr2: F2 ... && attrn: Fn .");
+                "add=attr1: F1 && attr2: F2 ... && attrn: Fn ");
 
         registerMessage(
              MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_FILTER,
@@ -1094,7 +1094,7 @@ public class AciMessages {
              "targattrfilters expression value " +
              "%s is invalid because the one or more of the specified" +
              "filters are invalid for the following reason: " +
-             "%s.");
+             "%s");
 
         registerMessage(
              MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_ATTR_FILTER,
@@ -1102,7 +1102,7 @@ public class AciMessages {
              "targattrfilters expression value " +
              "%s is invalid because the one or more of the specified" +
              "filters are invalid because of non-matching attribute" +
-             "type names in the filter.");
+             "type names in the filter");
 
         registerMessage(
              MSGID_ACI_SYNTAX_INVALID_ATTRIBUTE_TYPE_NAME,
@@ -1110,43 +1110,43 @@ public class AciMessages {
              "attribute name value " +
              "%s is invalid. A valid attribute type name must begin " +
              "with an ASCII letter and must contain only ASCII letters," +
-              "digits or the \"-\" character.");
+              "digits or the \"-\" character");
 
         registerMessage(MSGID_ACI_DESCRIPTION_GLOBAL_ACI,
              "Specifies a global Access Control Instruction (ACI) "  +
              "attribute type that can be used to defined ACIs that have " +
-             "global scope accross naming contexts.");
+             "global scope accross naming contexts");
 
         registerMessage(MSGID_ACI_ADD_LIST_NO_GLOBAL_ACIS,
             "No Global Access Control Instruction (ACI) attribute types were" +
-           " found.");
+           " found");
 
         registerMessage(MSGID_ACI_ADD_LIST_GLOBAL_ACIS,
                 "Added %s Global Access Control Instruction (ACI) attribute " +
-                "types to the access control evaluation engine.");
+                "types to the access control evaluation engine");
 
         registerMessage(MSGID_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI,
          "An unexpected error occurred while processing the " +
-         ATTR_AUTHZ_GLOBAL_ACI + " attribute in configuration entry %s.");
+         ATTR_AUTHZ_GLOBAL_ACI + " attribute in configuration entry %s");
 
         registerMessage(MSGID_ACI_HANDLER_FAIL_PROCESS_ACI,
          "An unexpected error occurred while processing the " +
-          " aci attributes in the configuration system.");
+          " aci attributes in the configuration system");
 
         registerMessage(MSGID_PATTERN_DN_CONSECUTIVE_WILDCARDS_IN_VALUE,
           "The pattern DN %s is not valid because it contains two " +
-               "consecutive wildcards in an attribute value.");
+               "consecutive wildcards in an attribute value");
 
         registerMessage(MSGID_PATTERN_DN_TYPE_CONTAINS_SUBSTRINGS,
           "The pattern DN %s is not valid because it uses wildcards for " +
                "substring matching on an attribute type.  A single wildcard " +
-               "is allowed in place of an attribute type.");
+               "is allowed in place of an attribute type");
 
         registerMessage(MSGID_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN,
           "The pattern DN %s is not valid because it contains a wildcard in " +
                "an attribute type in a multi-valued RDN");
 
       registerMessage(MSGID_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER,
-          "Unable to obtain a lock on the ModifyDN new superior entry %s.");
+          "Unable to obtain a lock on the ModifyDN new superior entry %s");
     }
 }

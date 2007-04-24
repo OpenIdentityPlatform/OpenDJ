@@ -160,7 +160,7 @@ public class ErrorLogAccountStatusNotificationHandler
 
       msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_CANNOT_GET_NOTIFICATION_TYPES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -299,7 +299,7 @@ public class ErrorLogAccountStatusNotificationHandler
 
       msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_CANNOT_GET_NOTIFICATION_TYPES;
       String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -381,7 +381,7 @@ public class ErrorLogAccountStatusNotificationHandler
 
       msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_CANNOT_GET_NOTIFICATION_TYPES;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+                              getExceptionMessage(e)));
     }
 
 

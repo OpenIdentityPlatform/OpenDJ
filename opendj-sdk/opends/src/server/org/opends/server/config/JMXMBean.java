@@ -57,14 +57,15 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.jmx.Credential;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InvokableMethod;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
-import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -76,12 +77,12 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.config.ConfigConstants.OPTION_PENDING_VALUES;
 import org.opends.server.protocols.jmx.JmxClientConnection;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPAttribute ;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.core.ModifyOperation ;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.ModificationType;
 
 
@@ -624,7 +625,7 @@ public class JMXMBean
       int    msgID   = MSGID_CONFIG_JMX_CANNOT_GET_ATTRIBUTE;
       String message = getMessage(msgID, String.valueOf(attributeName),
                                   String.valueOf(configEntryDN),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new AttributeNotFoundException(message);
     }
 
@@ -810,7 +811,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
         ModificationType.REPLACE, getLdapAttributeFromJmx(
             attribute,
             newConfigEntry));
-    ArrayList<LDAPModification> ldapModList = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> ldapModList = new ArrayList<RawModification>();
     ldapModList.add(ldapModification);
 
     //
@@ -1001,7 +1002,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
 
     //
     // prepare the ldap modify
-    ArrayList<LDAPModification> ldapModList = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> ldapModList = new ArrayList<RawModification>();
     for (Object o : attributes)
     {
       Attribute attribute = (Attribute) o;

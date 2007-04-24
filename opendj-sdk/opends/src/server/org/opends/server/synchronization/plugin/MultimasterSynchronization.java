@@ -26,8 +26,6 @@
  */
 package org.opends.server.synchronization.plugin;
 
-import static org.opends.server.synchronization.common.LogMessages.HISTORICAL;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +46,6 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.Operation;
-import org.opends.server.synchronization.common.LogMessages;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -58,9 +54,12 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SynchronizationProviderResult;
+
+import static org.opends.server.messages.SynchronizationMessages.*;
 
 /**
  * This class is used to load the Synchronization code inside the JVM
@@ -95,8 +94,6 @@ public class MultimasterSynchronization
       MultimasterSynchronizationProviderCfg configuration)
   throws ConfigException
   {
-    LogMessages.registerMessages();
-
     changelog = new ChangelogListener(configuration);
 
     // Register as an add and delete listener with the root configuration so we

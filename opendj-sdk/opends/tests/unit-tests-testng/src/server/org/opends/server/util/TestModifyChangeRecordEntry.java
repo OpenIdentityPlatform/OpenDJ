@@ -36,6 +36,7 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawModification;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -50,7 +51,7 @@ import org.testng.annotations.Test;
  */
 public final class TestModifyChangeRecordEntry extends UtilTestCase {
   // Set of changes.
-  private List<LDAPModification> modifications;
+  private List<RawModification> modifications;
 
   // The attribute being added in the modifications.
   private Attribute attribute;
@@ -68,7 +69,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
     TestCaseUtils.startServer();
 
     // Create a simple set of modifications.
-    modifications = new ArrayList<LDAPModification>();
+    modifications = new ArrayList<RawModification>();
     attribute = new Attribute("cn", "hello world");
     LDAPAttribute lattribute = new LDAPAttribute(attribute);
     LDAPModification modification = new LDAPModification(
@@ -142,11 +143,11 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
    */
   @Test
   public void testGetModificationsEmpty() throws Exception {
-    List<LDAPModification> empty = Collections.emptyList();
+    List<RawModification> empty = Collections.emptyList();
     ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.nullDN(),
                                                                 empty);
 
-    List<LDAPModification> mods = entry.getModifications();
+    List<RawModification> mods = entry.getModifications();
     Assert.assertEquals(mods.size(), 0);
   }
 
@@ -161,10 +162,10 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
     ModifyChangeRecordEntry entry = new ModifyChangeRecordEntry(DN.nullDN(),
         modifications);
 
-    List<LDAPModification> mods = entry.getModifications();
+    List<RawModification> mods = entry.getModifications();
     Assert.assertEquals(mods.size(), 1);
 
-    LDAPModification first = mods.get(0);
+    RawModification first = mods.get(0);
     Assert.assertEquals(first.getModificationType(), ModificationType.ADD);
     Assert.assertEquals(first.getAttribute().toAttribute(), attribute);
   }

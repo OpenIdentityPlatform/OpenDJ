@@ -33,8 +33,8 @@ import java.util.Set;
 
 import org.opends.server.protocols.asn1.ASN1Boolean;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.types.Control;
+import org.opends.server.types.LDAPException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -83,8 +83,8 @@ public class PasswordControlTest
       assertEquals(val.toString(), expected);
     }
   }
-  
-  
+
+
   /**
    * Test If we have only the required values
    */
@@ -104,7 +104,7 @@ public class PasswordControlTest
       assertTrue(exceptedValues.containsKey(val.intValue()));
     }
   }
-  
+
   /**
    * Test invalid int values
    */
@@ -146,13 +146,13 @@ public class PasswordControlTest
     {
       PasswordPolicyWarningType val = PasswordPolicyWarningType.valueOf(i);
       String expected = expectedValues.get(i);
-      
+
       assertEquals(val.toString(), expected);
       assertEquals(i, val.getType());
     }
   }
-  
-  
+
+
   /**
    * Test If we have only the required values
    */
@@ -172,7 +172,7 @@ public class PasswordControlTest
       assertTrue(exceptedValues.containsValue(val.toString()));
     }
   }
-  
+
   /**
    * Test invalid int values
    */
@@ -194,10 +194,10 @@ public class PasswordControlTest
         PasswordPolicyWarningType val = PasswordPolicyWarningType.valueOf(b);
         assertNull(val);
       }
-      
+
     }
   }
-  
+
   /**
    * Create values for PasswordControl
    */
@@ -212,7 +212,7 @@ public class PasswordControlTest
      { OID_NS_PASSWORD_EXPIRING, false, 2},
     };
   }
-  
+
   /**
    * Test OID
    */
@@ -221,9 +221,9 @@ public class PasswordControlTest
   {
     assertEquals(OID_NS_PASSWORD_EXPIRED,     "2.16.840.1.113730.3.4.4");
     assertEquals(OID_NS_PASSWORD_EXPIRING,    "2.16.840.1.113730.3.4.5");
-    //assertEquals(OID_PASSWORD_POLICY_CONTROL, ""); 
+    //assertEquals(OID_PASSWORD_POLICY_CONTROL, "");
   }
-  
+
   /**
    * Test "Netscape password expired control" implementation
    */
@@ -249,7 +249,7 @@ public class PasswordControlTest
     assertNotNull(pec);
     assertEquals(pec.isCritical(),isCritical);
     assertEquals(pec.getOID(),oid);
-    
+
     control.setValue(new ASN1Boolean(true).decodeAsOctetString());
     try
     {
@@ -265,9 +265,9 @@ public class PasswordControlTest
     }
 
     // Check toString
-    assertEquals("PasswordExpiredControl()", pec.toString());  
+    assertEquals("PasswordExpiredControl()", pec.toString());
   }
-  
+
   /**
    * Test "Netscape password expired control" implementation
    */
@@ -304,7 +304,7 @@ public class PasswordControlTest
       assertTrue(true,
           "shouldn't be allow to create PasswordExpiringControl without value");
     }
-    
+
     control.setValue(new ASN1OctetString("invalid value"));
     try
     {
@@ -327,7 +327,7 @@ public class PasswordControlTest
     assertEquals(newPec.getOID(), oid);
     assertEquals(newPec.getSecondsUntilExpiration(), sec);
   }
-  
+
   /**
    * Test PasswordPolicyRequestControl
    */
@@ -353,7 +353,7 @@ public class PasswordControlTest
     assertNotNull(pec);
     assertEquals(pec.isCritical(),isCritical);
     assertEquals(pec.getOID(),oid);
-    
+
     control.setValue(new ASN1Boolean(true).decodeAsOctetString());
     try
     {
@@ -369,10 +369,10 @@ public class PasswordControlTest
     }
 
     // Check toString
-    assertEquals("PasswordPolicyRequestControl()", pec.toString());  
+    assertEquals("PasswordPolicyRequestControl()", pec.toString());
   }
-  
-  
+
+
   /**
    * Create values for PasswordControl
    */
@@ -389,7 +389,7 @@ public class PasswordControlTest
      { OID_NS_PASSWORD_EXPIRING, false,     2}
     };
   }
-  
+
   /**
    * Test PasswordPolicyResponseControl
    */
@@ -405,8 +405,8 @@ public class PasswordControlTest
     assertEquals(pprc.getOID(), OID_PASSWORD_POLICY_CONTROL);
     assertNull(pprc.getWarningType());
     assertNull(pprc.getErrorType());
-    
-    
+
+
     // check constructor PasswordPolicyResponseControl
     // (PasswordPolicyWarningType warningType,
     //    int warningValue,
@@ -422,7 +422,7 @@ public class PasswordControlTest
         assertEquals(pprc.getWarningValue(),warningValue);
       }
     }
-    
+
     // check constructor PasswordPolicyResponseControl
     // (PString oid, boolean isCritical,
     //     PasswordPolicyWarningType warningType,
@@ -441,8 +441,8 @@ public class PasswordControlTest
         assertEquals(pprc.getWarningValue(), warningValue);
       }
     }
-    
-    
+
+
     // check decode
     Control control ;
     for (PasswordPolicyErrorType errorType : PasswordPolicyErrorType.values())
@@ -457,9 +457,9 @@ public class PasswordControlTest
         assertEquals(warningType, pprc.getWarningType());
         assertEquals(errorType, pprc.getErrorType());
         assertEquals(pprc.getWarningValue(), warningValue);
-        
+
         // check to String
-        String toString = 
+        String toString =
           "PasswordPolicyResponseControl(" +
           warningType.toString() +
           "=" +
@@ -468,8 +468,8 @@ public class PasswordControlTest
           errorType.toString() +
           ")" ;
         assertEquals(toString, pprc.toString()) ;
-        
-        
+
+
         // check null value for the control
         try
         {
@@ -482,8 +482,8 @@ public class PasswordControlTest
           // normal case
           assertTrue(true,"the control should have a value");
         }
-        
-        
+
+
         // check null warning type
         control = new PasswordPolicyResponseControl(oid, isCritical,
             null, warningValue, errorType);
@@ -496,7 +496,7 @@ public class PasswordControlTest
         {
           assertTrue(false,"We should be able to decode the control");
         }
-        
+
         // check null error type
         control = new PasswordPolicyResponseControl(oid, isCritical,
             warningType, warningValue, null);

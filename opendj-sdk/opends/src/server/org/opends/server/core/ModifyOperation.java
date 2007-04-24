@@ -55,7 +55,6 @@ import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.BooleanSyntax;
@@ -71,17 +70,21 @@ import org.opends.server.types.CancelledOperationException;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -95,9 +98,7 @@ import org.opends.server.types.operation.PostResponseModifyOperation;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -116,9 +117,6 @@ public class ModifyOperation
        implements PreParseModifyOperation, PreOperationModifyOperation,
                   PostOperationModifyOperation, PostResponseModifyOperation
 {
-
-
-
   // The raw, unprocessed entry DN as included by the client request.
   private ByteString rawEntryDN;
 
@@ -145,7 +143,7 @@ public class ModifyOperation
 
   // The raw, unprocessed set of modifications as included in the client
   // request.
-  private List<LDAPModification> rawModifications;
+  private List<RawModification> rawModifications;
 
   // The set of modifications for this modify operation.
   private List<Modification> modifications;
@@ -179,7 +177,7 @@ public class ModifyOperation
   public ModifyOperation(ClientConnection clientConnection, long operationID,
                          int messageID, List<Control> requestControls,
                          ByteString rawEntryDN,
-                         List<LDAPModification> rawModifications)
+                         List<RawModification> rawModifications)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
@@ -226,7 +224,7 @@ public class ModifyOperation
 
     rawEntryDN = new ASN1OctetString(entryDN.toString());
 
-    rawModifications = new ArrayList<LDAPModification>(modifications.size());
+    rawModifications = new ArrayList<RawModification>(modifications.size());
     for (Modification m : modifications)
     {
       rawModifications.add(new LDAPModification(m.getModificationType(),
@@ -299,7 +297,7 @@ public class ModifyOperation
    * @return  The set of raw, unprocessed modifications as included in the
    *          client request.
    */
-  public final List<LDAPModification> getRawModifications()
+  public final List<RawModification> getRawModifications()
   {
     return rawModifications;
   }
@@ -313,7 +311,7 @@ public class ModifyOperation
    * @param  rawModification  The modification to add to the set of raw
    *                          modifications for this modify operation.
    */
-  public final void addRawModification(LDAPModification rawModification)
+  public final void addRawModification(RawModification rawModification)
   {
     rawModifications.add(rawModification);
 
@@ -327,7 +325,7 @@ public class ModifyOperation
    *
    * @param  rawModifications  The raw modifications for this modify operation.
    */
-  public final void setRawModifications(List<LDAPModification> rawModifications)
+  public final void setRawModifications(List<RawModification> rawModifications)
   {
     this.rawModifications = rawModifications;
 
@@ -749,7 +747,7 @@ modifyProcessing:
       if (modifications == null)
       {
         modifications = new ArrayList<Modification>(rawModifications.size());
-        for (LDAPModification m : rawModifications)
+        for (RawModification m : rawModifications)
         {
           try
           {
@@ -1239,7 +1237,7 @@ modifyProcessing:
                        ErrorLogSeverity.SEVERE_ERROR,
                        MSGID_MODIFY_SYNCH_CONFLICT_RESOLUTION_FAILED,
                        getConnectionID(), getOperationID(),
-                       stackTraceToSingleLineString(de));
+                       getExceptionMessage(de));
 
               setResponseData(de);
               break modifyProcessing;
@@ -2554,7 +2552,7 @@ modifyProcessing:
                 logError(ErrorLogCategory.SYNCHRONIZATION,
                          ErrorLogSeverity.SEVERE_ERROR,
                          MSGID_MODIFY_SYNCH_PREOP_FAILED, getConnectionID(),
-                         getOperationID(), stackTraceToSingleLineString(de));
+                         getOperationID(), getExceptionMessage(de));
 
                 setResponseData(de);
                 break modifyProcessing;
@@ -2784,7 +2782,7 @@ modifyProcessing:
             logError(ErrorLogCategory.SYNCHRONIZATION,
                      ErrorLogSeverity.SEVERE_ERROR,
                      MSGID_MODIFY_SYNCH_POSTOP_FAILED, getConnectionID(),
-                     getOperationID(), stackTraceToSingleLineString(de));
+                     getOperationID(), getExceptionMessage(de));
 
             setResponseData(de);
             break;
@@ -2841,7 +2839,7 @@ modifyProcessing:
           }
 
           int    msgID   = MSGID_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER;
-          String message = getMessage(msgID, stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, getExceptionMessage(e));
           logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
         }
@@ -2880,7 +2878,7 @@ modifyProcessing:
 
           int    msgID   = MSGID_MODIFY_ERROR_NOTIFYING_PERSISTENT_SEARCH;
           String message = getMessage(msgID, String.valueOf(persistentSearch),
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
 
@@ -2953,7 +2951,7 @@ modifyProcessing:
    * {@inheritDoc}
    */
   @Override()
-  boolean setCancelRequest(CancelRequest cancelRequest)
+  protected boolean setCancelRequest(CancelRequest cancelRequest)
   {
     this.cancelRequest = cancelRequest;
     return true;

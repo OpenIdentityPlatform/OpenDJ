@@ -37,14 +37,15 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawModification;
 
 
 
@@ -100,8 +101,8 @@ public class DSMLModifyOperation
 
     modResponse.setRequestID(requestID);
 
-    ArrayList<LDAPModification> modifications =
-         new ArrayList<LDAPModification> ();
+    ArrayList<RawModification> modifications =
+         new ArrayList<RawModification> ();
 
     // Read the modification type from the DSML request.
     List<DsmlModification> mods = modifyRequest.getModification();

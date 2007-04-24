@@ -29,6 +29,7 @@
 package org.opends.server.protocols.ldap;
 
 import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.asn1.*;

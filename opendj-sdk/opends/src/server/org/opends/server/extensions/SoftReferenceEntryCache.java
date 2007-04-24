@@ -212,7 +212,7 @@ public class SoftReferenceEntryCache
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_SOFTREFCACHE_CANNOT_DETERMINE_LOCK_TIMEOUT,
-               String.valueOf(configEntryDN), stackTraceToSingleLineString(e),
+               String.valueOf(configEntryDN), getExceptionMessage(e),
                lockTimeout);
     }
 
@@ -260,7 +260,7 @@ public class SoftReferenceEntryCache
                        ErrorLogSeverity.SEVERE_WARNING,
                        MSGID_SOFTREFCACHE_CANNOT_DECODE_INCLUDE_FILTER,
                        String.valueOf(configEntryDN), filterString,
-                       stackTraceToSingleLineString(e));
+                       getExceptionMessage(e));
             }
           }
 
@@ -284,7 +284,7 @@ public class SoftReferenceEntryCache
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_SOFTREFCACHE_CANNOT_DETERMINE_INCLUDE_FILTERS,
-               String.valueOf(configEntryDN), stackTraceToSingleLineString(e));
+               String.valueOf(configEntryDN), getExceptionMessage(e));
     }
 
 
@@ -331,7 +331,7 @@ public class SoftReferenceEntryCache
                        ErrorLogSeverity.SEVERE_WARNING,
                        MSGID_SOFTREFCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
                        String.valueOf(configEntryDN), filterString,
-                       stackTraceToSingleLineString(e));
+                       getExceptionMessage(e));
             }
           }
 
@@ -355,7 +355,7 @@ public class SoftReferenceEntryCache
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                MSGID_SOFTREFCACHE_CANNOT_DETERMINE_EXCLUDE_FILTERS,
-               String.valueOf(configEntryDN), stackTraceToSingleLineString(e));
+               String.valueOf(configEntryDN), getExceptionMessage(e));
     }
   }
 
@@ -1162,7 +1162,7 @@ public class SoftReferenceEntryCache
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_LOCK_TIMEOUT;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         stackTraceToSingleLineString(e)));
+                                         getExceptionMessage(e)));
       configIsAcceptable = false;
     }
 
@@ -1208,7 +1208,7 @@ public class SoftReferenceEntryCache
               unacceptableReasons.add(getMessage(msgID,
                                            String.valueOf(configEntryDN),
                                             filterString,
-                                            stackTraceToSingleLineString(e)));
+                                            getExceptionMessage(e)));
               configIsAcceptable = false;
             }
           }
@@ -1225,7 +1225,7 @@ public class SoftReferenceEntryCache
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTERS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         stackTraceToSingleLineString(e)));
+                                         getExceptionMessage(e)));
       configIsAcceptable = false;
     }
 
@@ -1270,8 +1270,8 @@ public class SoftReferenceEntryCache
               msgID = MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTER;
               unacceptableReasons.add(getMessage(msgID,
                                            String.valueOf(configEntryDN),
-                                            filterString,
-                                            stackTraceToSingleLineString(e)));
+                                           filterString,
+                                           getExceptionMessage(e)));
               configIsAcceptable = false;
             }
           }
@@ -1288,7 +1288,7 @@ public class SoftReferenceEntryCache
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTERS;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         stackTraceToSingleLineString(e)));
+                                         getExceptionMessage(e)));
       configIsAcceptable = false;
     }
 
@@ -1351,7 +1351,7 @@ public class SoftReferenceEntryCache
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_LOCK_TIMEOUT;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+                              getExceptionMessage(e)));
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -1399,8 +1399,7 @@ public class SoftReferenceEntryCache
               // We couldn't decode this filter, so it isn't valid.
               msgID = MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTER;
               messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                      filterString,
-                                      stackTraceToSingleLineString(e)));
+                                      filterString, getExceptionMessage(e)));
 
               if (resultCode == ResultCode.SUCCESS)
               {
@@ -1423,7 +1422,7 @@ public class SoftReferenceEntryCache
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTERS;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+                              getExceptionMessage(e)));
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -1471,8 +1470,7 @@ public class SoftReferenceEntryCache
               // We couldn't decode this filter, so it isn't valid.
               msgID = MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTER;
               messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                      filterString,
-                                      stackTraceToSingleLineString(e)));
+                                      filterString, getExceptionMessage(e)));
 
               if (resultCode == ResultCode.SUCCESS)
               {
@@ -1495,7 +1493,7 @@ public class SoftReferenceEntryCache
       // An error occurred, so the provided value must not be valid.
       msgID = MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTERS;
       messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              stackTraceToSingleLineString(e)));
+                              getExceptionMessage(e)));
 
       if (resultCode == ResultCode.SUCCESS)
       {

@@ -44,14 +44,13 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.LDAPException;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.CoreMessages.
                    MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
@@ -68,7 +67,6 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
  */
 public class LDAPConnection
 {
-
   // The hostname to connect to.
   private String hostName = null;
 

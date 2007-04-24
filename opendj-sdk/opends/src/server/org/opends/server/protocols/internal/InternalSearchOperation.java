@@ -34,12 +34,12 @@ import java.util.List;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.RawFilter;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -108,7 +108,7 @@ public class InternalSearchOperation
               List<Control> requestControls, ByteString rawBaseDN,
               SearchScope scope, DereferencePolicy derefPolicy,
               int sizeLimit, int timeLimit, boolean typesOnly,
-              LDAPFilter rawFilter, LinkedHashSet<String> attributes,
+              RawFilter rawFilter, LinkedHashSet<String> attributes,
               InternalSearchListener searchListener)
   {
     super(internalConnection, operationID, messageID, requestControls,

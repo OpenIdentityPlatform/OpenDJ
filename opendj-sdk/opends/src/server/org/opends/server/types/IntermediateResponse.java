@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
 

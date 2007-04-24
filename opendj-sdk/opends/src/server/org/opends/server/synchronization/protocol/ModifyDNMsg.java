@@ -32,10 +32,10 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.synchronization.common.ChangeNumber;
+import org.opends.server.types.Operation;
 
 /**
  * Message used to send Modify DN information.

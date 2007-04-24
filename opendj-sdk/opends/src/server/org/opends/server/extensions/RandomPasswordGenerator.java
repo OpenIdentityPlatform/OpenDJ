@@ -156,7 +156,7 @@ public class RandomPasswordGenerator
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -236,7 +236,7 @@ public class RandomPasswordGenerator
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -399,7 +399,7 @@ public class RandomPasswordGenerator
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -454,7 +454,7 @@ public class RandomPasswordGenerator
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -536,7 +536,7 @@ public class RandomPasswordGenerator
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS;
-      messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
+      messages.add(getMessage(msgID, getExceptionMessage(e)));
 
       if (resultCode == ResultCode.SUCCESS)
       {
@@ -610,7 +610,7 @@ public class RandomPasswordGenerator
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT;
-      messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
+      messages.add(getMessage(msgID, getExceptionMessage(e)));
 
       if (resultCode == ResultCode.SUCCESS)
       {

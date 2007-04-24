@@ -38,9 +38,9 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
-import org.opends.server.core.Operation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.api.ClientConnection;
@@ -48,7 +48,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
 
 import static org.opends.server.core.DirectoryServer.getAttributeType;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.messages.TaskMessages.
@@ -228,7 +228,7 @@ public class RebuildTask extends Task
       {
         int    msgID   = MSGID_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND;
         String message = getMessage(msgID, backend.getBackendID(),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return TaskState.STOPPED_BY_ERROR;
@@ -252,7 +252,7 @@ public class RebuildTask extends Task
       {
         int    msgID   = MSGID_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND;
         String message = getMessage(msgID, backend.getBackendID(),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return TaskState.STOPPED_BY_ERROR;
@@ -300,7 +300,7 @@ public class RebuildTask extends Task
     {
       int    msgID   = MSGID_REBUILDINDEX_CANNOT_UNLOCK_BACKEND;
       String message = getMessage(msgID, backend.getBackendID(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
                message, msgID);
       return TaskState.COMPLETED_WITH_ERRORS;

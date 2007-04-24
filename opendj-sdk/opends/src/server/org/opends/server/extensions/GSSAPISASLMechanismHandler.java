@@ -141,7 +141,7 @@ public class GSSAPISASLMechanismHandler
 
         int    msgID   = MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN;
         String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new InitializationException(msgID, message, e);
       }
     }
@@ -199,7 +199,7 @@ public class GSSAPISASLMechanismHandler
       }
 
       int    msgID   = MSGID_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -447,7 +447,7 @@ public class GSSAPISASLMechanismHandler
 
         int msgID = MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN;
         messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                stackTraceToSingleLineString(e)));
+                                getExceptionMessage(e)));
       }
     }
 
@@ -504,7 +504,7 @@ public class GSSAPISASLMechanismHandler
         resultCode = DirectoryServer.getServerErrorResultCode();
 
         int msgID = MSGID_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG;
-        messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
+        messages.add(getMessage(msgID, getExceptionMessage(e)));
 
        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
       }

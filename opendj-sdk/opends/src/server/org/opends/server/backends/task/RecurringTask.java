@@ -218,7 +218,7 @@ public class RecurringTask
       int    msgID   = MSGID_RECURRINGTASK_CANNOT_LOAD_CLASS;
       String message = getMessage(msgID, String.valueOf(taskClassName),
                                   ATTR_RECURRING_TASK_CLASS_NAME,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                    msgID, e);
     }

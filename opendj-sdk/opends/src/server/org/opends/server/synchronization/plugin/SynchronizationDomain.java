@@ -36,7 +36,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.synchronization.common.LogMessages.*;
+import static org.opends.server.messages.SynchronizationMessages.*;
 import static org.opends.server.synchronization.plugin.Historical.ENTRYUIDNAME;
 import static org.opends.server.synchronization.protocol.OperationContext.*;
 import static org.opends.server.util.StaticUtils.createEntry;
@@ -73,14 +73,11 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.synchronization.common.ChangeNumber;
 import org.opends.server.synchronization.common.ChangeNumberGenerator;
-import org.opends.server.synchronization.common.LogMessages;
 import org.opends.server.synchronization.common.ServerState;
 import org.opends.server.synchronization.protocol.AckMessage;
 import org.opends.server.synchronization.protocol.AddContext;
@@ -107,9 +104,11 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -2698,7 +2697,7 @@ public class SynchronizationDomain extends DirectoryThread
     {
       if (!( provider instanceof MultimasterSynchronization))
       {
-        int msgID = LogMessages.MSGID_INVALID_PROVIDER;
+        int msgID = MSGID_INVALID_PROVIDER;
         String message = getMessage(msgID);
         throw new DirectoryException(ResultCode.OTHER,
             message, msgID);
@@ -2709,7 +2708,7 @@ public class SynchronizationDomain extends DirectoryThread
         MultimasterSynchronization.findDomain(baseDN, null);
       if (sdomain == null)
       {
-        int msgID = LogMessages.MSGID_NO_MATCHING_DOMAIN;
+        int msgID = MSGID_NO_MATCHING_DOMAIN;
         String message = getMessage(msgID) + " " + baseDN;
         throw new DirectoryException(ResultCode.OTHER,
             message, msgID);
@@ -2718,7 +2717,7 @@ public class SynchronizationDomain extends DirectoryThread
       if (synchronizationDomain != null)
       {
         // Should never happen
-        int msgID = LogMessages.MSGID_MULTIPLE_MATCHING_DOMAIN;
+        int msgID = MSGID_MULTIPLE_MATCHING_DOMAIN;
         String message = getMessage(msgID);
         throw new DirectoryException(ResultCode.OTHER,
             message, msgID);

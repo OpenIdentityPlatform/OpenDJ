@@ -28,18 +28,12 @@ package org.opends.server.api.plugin;
 
 
 
-
-
-
 /**
  * This class defines a data structure that holds information about
  * the result of processing by a pre-parse plugin.
  */
 public class PreParsePluginResult
 {
-
-
-
   /**
    * A pre-parse plugin result instance that indicates all processing
    * was successful.

@@ -26,8 +26,12 @@
  */
 package org.opends.server.api;
 
+
+
 import org.opends.server.loggers.LogRecord;
 import org.opends.server.loggers.LoggerErrorHandler;
+
+
 
 /**
  * LogPublishers are reponsible for distributing logged messages from
@@ -46,6 +50,8 @@ public interface LogPublisher
    * @param handler the error handler to use when an error occurs.
    */
   public void publish(LogRecord record, LoggerErrorHandler handler);
+
+
 
   /**
    * Releases any resources and prepare for close.

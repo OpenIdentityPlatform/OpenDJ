@@ -28,8 +28,7 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.admin.std.server.
-            SASLMechanismHandlerCfg;
+import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.types.InitializationException;

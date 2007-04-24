@@ -70,6 +70,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;

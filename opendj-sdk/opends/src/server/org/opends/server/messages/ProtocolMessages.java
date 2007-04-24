@@ -4395,198 +4395,198 @@ public class ProtocolMessages
   {
     registerMessage(MSGID_ASN1_NULL_ELEMENT,
                     "Cannot decode the provided byte array as an ASN.1 " +
-                    "element because the array was null.");
+                    "element because the array was null");
     registerMessage(MSGID_ASN1_SHORT_ELEMENT,
                     "Cannot decode the provided byte array as an ASN.1 " +
                     "element because the length of the array (%d bytes) is " +
                     "less than the minimum required for an ASN.1 element (2 " +
-                    "bytes).");
+                    "bytes)");
     registerMessage(MSGID_ASN1_INVALID_NUM_LENGTH_BYTES,
                     "Cannot decode the provided byte array as an ASN.1 " +
                     "element because it contained a multi-byte length with " +
-                    "an invalid number of bytes (%d).");
+                    "an invalid number of bytes (%d)");
     registerMessage(MSGID_ASN1_TRUNCATED_LENGTH,
                     "Cannot decode the provided byte array as an ASN.1 " +
                     "element because it contained a multi-byte length of %d " +
                     "bytes but the array was too short to contain the " +
-                    "entire length.");
+                    "entire length");
     registerMessage(MSGID_ASN1_LENGTH_MISMATCH,
                     "Cannot decode the provided byte array as an ASN.1 " +
                     "element because the decoded value length (%d bytes) " +
                     "does not equal the number of bytes remaining in the " +
-                    "provided array (%d).");
+                    "provided array (%d)");
     registerMessage(MSGID_ASN1_ELEMENT_SET_NULL,
                     "Cannot decode the provided byte array as a set of ASN.1 " +
-                    "elements because the array was null.");
+                    "elements because the array was null");
     registerMessage(MSGID_ASN1_ELEMENT_SET_NO_LENGTH,
                     "Cannot decode the provided byte array as a set of ASN.1 " +
                     "elements because the end of the array was reached after " +
                     "having read the BER type but none of the value for an " +
-                    "element.");
+                    "element");
     registerMessage(MSGID_ASN1_ELEMENT_SET_INVALID_NUM_LENGTH_BYTES,
                     "Cannot decode the provided byte array as a set of ASN.1 " +
                     "elements because it contained a multi-byte length with " +
-                    "an invalid number of bytes (%d).");
+                    "an invalid number of bytes (%d)");
     registerMessage(MSGID_ASN1_ELEMENT_SET_TRUNCATED_LENGTH,
                     "Cannot decode the provided byte array as a set of ASN.1 " +
                     "elements because it contained a multi-byte length of %d " +
                     "bytes but the array was too short to contain the " +
-                    "entire length.");
+                    "entire length");
     registerMessage(MSGID_ASN1_ELEMENT_SET_TRUNCATED_VALUE,
                     "Cannot decode the provided byte array as a set of ASN.1 " +
                     "elements because the decoded length of an element (%d) " +
-                    "is more than the number of bytes remaining (%d).");
+                    "is more than the number of bytes remaining (%d)");
 
 
     registerMessage(MSGID_ASN1_BOOLEAN_SET_VALUE_NULL,
                     "Cannot decode the provided byte array as the value of " +
-                    "an ASN.1 Boolean element because the array was null.");
+                    "an ASN.1 Boolean element because the array was null");
     registerMessage(MSGID_ASN1_BOOLEAN_SET_VALUE_INVALID_LENGTH,
                     "Cannot decode the provided byte array as the value of " +
                     "an ASN.1 Boolean element because the array did not have " +
-                    "a length of exactly one byte (provided length was %d).");
+                    "a length of exactly one byte (provided length was %d)");
     registerMessage(MSGID_ASN1_BOOLEAN_DECODE_ELEMENT_NULL,
                     "Cannot decode the provided ASN.1 element as a Boolean " +
-                    "element because the provided element was null.");
+                    "element because the provided element was null");
     registerMessage(MSGID_ASN1_BOOLEAN_DECODE_ELEMENT_INVALID_LENGTH,
                     "Cannot decode the provided ASN.1 element as a Boolean " +
                     "element because the length of the element value was not " +
-                    "exactly one byte (actual length was %d).");
+                    "exactly one byte (actual length was %d)");
     registerMessage(MSGID_ASN1_BOOLEAN_DECODE_ARRAY_NULL,
                     "Cannot decode the provided byte array as an ASN.1 " +
-                    "Boolean element because the array was null.");
+                    "Boolean element because the array was null");
     registerMessage(MSGID_ASN1_BOOLEAN_SHORT_ELEMENT,
                     "Cannot decode the provided byte array as an ASN.1 " +
                     "Boolean element because the length of the array (%d " +
                     "bytes) is less than the minimum required for a Boolean " +
-                    "element (3 bytes).");
+                    "element (3 bytes)");
     registerMessage(MSGID_ASN1_BOOLEAN_DECODE_ARRAY_INVALID_LENGTH,
                     "Cannot decode the provided byte array as an ASN.1 " +
                     "Boolean element because the decoded value length was " +
-                    "not exactly one byte (decoded length was %d).");
+                    "not exactly one byte (decoded length was %d)");
 
 
     registerMessage(MSGID_ASN1_NULL_SET_VALUE_INVALID_LENGTH,
                     "Cannot decode the provided byte array as the value of " +
                     "an ASN.1 null element because the array did not have " +
-                    "a length of exactly zero byte (provided length was %d).");
+                    "a length of exactly zero byte (provided length was %d)");
     registerMessage(MSGID_ASN1_NULL_DECODE_ELEMENT_NULL,
                     "Cannot decode the provided ASN.1 element as a null " +
-                    "element because the provided element was null.");
+                    "element because the provided element was null");
     registerMessage(MSGID_ASN1_NULL_DECODE_ELEMENT_INVALID_LENGTH,
                     "Cannot decode the provided ASN.1 element as a null " +
                     "element because the length of the element value was not " +
-                    "exactly zero bytes (actual length was %d).");
+                    "exactly zero bytes (actual length was %d)");
     registerMessage(MSGID_ASN1_NULL_DECODE_ARRAY_NULL,
                     "Cannot decode the provided byte array as an ASN.1 null " +
-                    "element because the array was null.");
+                    "element because the array was null");
     registerMessage(MSGID_ASN1_NULL_DECODE_ARRAY_INVALID_LENGTH,
                     "Cannot decode the provided byte array as an ASN.1 null " +
                     "element because the decoded value length was not " +
-                    "exactly zero bytes (decoded length was %d).");
+                    "exactly zero bytes (decoded length was %d)");
 
 
     registerMessage(MSGID_ASN1_OCTET_STRING_DECODE_ELEMENT_NULL,
                     "Cannot decode the provided ASN.1 element as an octet " +
-                    "string element because the provided element was null.");
+                    "string element because the provided element was null");
     registerMessage(MSGID_ASN1_OCTET_STRING_DECODE_ARRAY_NULL,
                     "Cannot decode the provided byte array as an ASN.1 octet " +
-                    "string element because the array was null.");
+                    "string element because the array was null");
 
 
     registerMessage(MSGID_ASN1_INTEGER_SET_VALUE_NULL,
                     "Cannot decode the provided byte array as the value of " +
-                    "an ASN.1 integer element because the array was null.");
+                    "an ASN.1 integer element because the array was null");
     registerMessage(MSGID_ASN1_INTEGER_SET_VALUE_INVALID_LENGTH,
                     "Cannot decode the provided byte array as the value of " +
                     "an ASN.1 integer element because the array did not have " +
-                    "a length between 1 and 4 bytes (provided length was %d).");
+                    "a length between 1 and 4 bytes (provided length was %d)");
     registerMessage(MSGID_ASN1_INTEGER_DECODE_ELEMENT_NULL,
                     "Cannot decode the provided ASN.1 element as an integer " +
-                    "element because the provided element was null.");
+                    "element because the provided element was null");
     registerMessage(MSGID_ASN1_INTEGER_DECODE_ELEMENT_INVALID_LENGTH,
                     "Cannot decode the provided ASN.1 element as an integer " +
                     "element because the length of the element value was not " +
-                    "between one and four bytes (actual length was %d).");
+                    "between one and four bytes (actual length was %d)");
     registerMessage(MSGID_ASN1_INTEGER_DECODE_ARRAY_NULL,
                     "Cannot decode the provided byte array as an ASN.1 " +
-                    "integer element because the array was null.");
+                    "integer element because the array was null");
     registerMessage(MSGID_ASN1_INTEGER_SHORT_ELEMENT,
                     "Cannot decode the provided byte array as an ASN.1 " +
                     "integer element because the length of the array (%d " +
                     "bytes) is less than the minimum required for an integer " +
-                    "element (3 bytes).");
+                    "element (3 bytes)");
     registerMessage(MSGID_ASN1_INTEGER_DECODE_ARRAY_INVALID_LENGTH,
                     "Cannot decode the provided byte array as an ASN.1 " +
                     "integer element because the decoded value length was " +
-                    "not between 1 and 4 bytes (decoded length was %d).");
+                    "not between 1 and 4 bytes (decoded length was %d)");
 
 
     registerMessage(MSGID_ASN1_LONG_SET_VALUE_INVALID_LENGTH,
                     "Cannot decode the provided byte array as the value of " +
                     "an ASN.1 long element because the array did not have " +
-                    "a length between 1 and 8 bytes (provided length was %d).");
+                    "a length between 1 and 8 bytes (provided length was %d)");
     registerMessage(MSGID_ASN1_LONG_DECODE_ELEMENT_INVALID_LENGTH,
                     "Cannot decode the provided ASN.1 element as a long " +
                     "element because the length of the element value was not " +
-                    "between one and eight bytes (actual length was %d).");
+                    "between one and eight bytes (actual length was %d)");
     registerMessage(MSGID_ASN1_LONG_DECODE_ARRAY_INVALID_LENGTH,
                     "Cannot decode the provided byte array as an ASN.1 " +
                     "long element because the decoded value length was " +
-                    "not between 1 and 8 bytes (decoded length was %d).");
+                    "not between 1 and 8 bytes (decoded length was %d)");
 
 
     registerMessage(MSGID_ASN1_ENUMERATED_SET_VALUE_NULL,
                     "Cannot decode the provided byte array as the value of " +
-                    "an ASN.1 enumerated element because the array was null.");
+                    "an ASN.1 enumerated element because the array was null");
     registerMessage(MSGID_ASN1_ENUMERATED_SET_VALUE_INVALID_LENGTH,
                     "Cannot decode the provided byte array as the value of " +
                     "an ASN.1 enumerated element because the array did not " +
                     "have a length between 1 and 4 bytes (provided length " +
-                    "was %d).");
+                    "was %d)");
     registerMessage(MSGID_ASN1_ENUMERATED_DECODE_ELEMENT_NULL,
                     "Cannot decode the provided ASN.1 element as an " +
                     "enumerated element because the provided element was " +
-                    "null.");
+                    "null");
     registerMessage(MSGID_ASN1_ENUMERATED_DECODE_ELEMENT_INVALID_LENGTH,
                     "Cannot decode the provided ASN.1 element as an " +
                     "enumerated element because the length of the element " +
                     "value was not between one and four bytes (actual length " +
-                    "was %d).");
+                    "was %d)");
     registerMessage(MSGID_ASN1_ENUMERATED_DECODE_ARRAY_NULL,
                     "Cannot decode the provided byte array as an ASN.1 " +
-                    "enumerated element because the array was null.");
+                    "enumerated element because the array was null");
     registerMessage(MSGID_ASN1_ENUMERATED_SHORT_ELEMENT,
                     "Cannot decode the provided byte array as an ASN.1 " +
                     "enumerated element because the length of the array (%d " +
                     "bytes) is less than the minimum required for an " +
-                    "enumerated element (3 bytes).");
+                    "enumerated element (3 bytes)");
     registerMessage(MSGID_ASN1_ENUMERATED_DECODE_ARRAY_INVALID_LENGTH,
                     "Cannot decode the provided byte array as an ASN.1 " +
                     "enumerated element because the decoded value length was " +
-                    "not between 1 and 4 bytes (decoded length was %d).");
+                    "not between 1 and 4 bytes (decoded length was %d)");
 
 
     registerMessage(MSGID_ASN1_SEQUENCE_SET_VALUE_NULL,
                     "Cannot decode the provided byte array as the value of " +
-                    "an ASN.1 sequence element because the array was null.");
+                    "an ASN.1 sequence element because the array was null");
     registerMessage(MSGID_ASN1_SEQUENCE_DECODE_ELEMENT_NULL,
                     "Cannot decode the provided ASN.1 element as a sequence " +
-                    "element because the provided element was null.");
+                    "element because the provided element was null");
     registerMessage(MSGID_ASN1_SEQUENCE_DECODE_ARRAY_NULL,
                     "Cannot decode the provided byte array as an ASN.1 " +
-                    "sequence element because the array was null.");
+                    "sequence element because the array was null");
 
 
     registerMessage(MSGID_ASN1_SET_SET_VALUE_NULL,
                     "Cannot decode the provided byte array as the value of " +
-                    "an ASN.1 set element because the array was null.");
+                    "an ASN.1 set element because the array was null");
     registerMessage(MSGID_ASN1_SET_DECODE_ELEMENT_NULL,
                     "Cannot decode the provided ASN.1 element as a set " +
-                    "element because the provided element was null.");
+                    "element because the provided element was null");
     registerMessage(MSGID_ASN1_SET_DECODE_ARRAY_NULL,
                     "Cannot decode the provided byte array as an ASN.1 set " +
-                    "element because the array was null.");
+                    "element because the array was null");
 
 
     registerMessage(MSGID_ASN1_READER_MAX_SIZE_EXCEEDED,
@@ -4594,580 +4594,580 @@ public class ProtocolMessages
                     "because the decoded element length of %d bytes was " +
                     "larger than the maximum allowed element length of %d " +
                     "bytes.  The underlying input stream has been closed " +
-                    "and this reader may no longer be used.");
+                    "and this reader may no longer be used");
 
 
     registerMessage(MSGID_LDAP_MESSAGE_DECODE_NULL,
                     "Cannot decode the provided ASN.1 sequence as an LDAP " +
-                    "message because the sequence was null.");
+                    "message because the sequence was null");
     registerMessage(MSGID_LDAP_MESSAGE_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 sequence as an LDAP " +
                     "message because the sequence contained an invalid " +
-                    "number of elements (expected 2 or 3, got %d).");
+                    "number of elements (expected 2 or 3, got %d)");
     registerMessage(MSGID_LDAP_MESSAGE_DECODE_MESSAGE_ID,
                     "Cannot decode the provided ASN.1 sequence as an LDAP " +
                     "message because the first element of the sequence " +
-                    "could not be decoded as an integer message ID:  %s.");
+                    "could not be decoded as an integer message ID:  %s");
     registerMessage(MSGID_LDAP_MESSAGE_DECODE_PROTOCOL_OP,
                     "Cannot decode the provided ASN.1 sequence as an LDAP " +
                     "message because the second element of the sequence " +
-                    "could not be decoded as the protocol op:  %s.");
+                    "could not be decoded as the protocol op:  %s");
     registerMessage(MSGID_LDAP_MESSAGE_DECODE_CONTROLS,
                     "Cannot decode the provided ASN.1 sequence as an LDAP " +
                     "message because the third element of the sequence " +
-                    "could not be decoded as the set of controls:  %s.");
+                    "could not be decoded as the set of controls:  %s");
 
 
     registerMessage(MSGID_LDAP_CONTROL_DECODE_NULL,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
-                    "control because the element was null.");
+                    "control because the element was null");
     registerMessage(MSGID_LDAP_CONTROL_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "control because the element could not be decoded as a " +
-                    "sequence:  %s.");
+                    "sequence:  %s");
     registerMessage(MSGID_LDAP_CONTROL_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "control because the control sequence contained an " +
-                    "invalid number of elements (expected 1 to 3, got %d).");
+                    "invalid number of elements (expected 1 to 3, got %d)");
     registerMessage(MSGID_LDAP_CONTROL_DECODE_OID,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "control because the OID could not be decoded as a " +
-                    "string:  %s.");
+                    "string:  %s");
     registerMessage(MSGID_LDAP_CONTROL_DECODE_CRITICALITY,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "control because the criticality could not be decoded as " +
-                    "Boolean value:  %s.");
+                    "Boolean value:  %s");
     registerMessage(MSGID_LDAP_CONTROL_DECODE_VALUE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "control because the value could not be decoded as an " +
-                    "octet string:  %s.");
+                    "octet string:  %s");
     registerMessage(MSGID_LDAP_CONTROL_DECODE_INVALID_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "control because the BER type for the second element " +
-                    "in the sequence was invalid (expected 01 or 04, got %x).");
+                    "in the sequence was invalid (expected 01 or 04, got %x)");
     registerMessage(MSGID_LDAP_CONTROL_DECODE_CONTROLS_NULL,
                     "Cannot decode the provided ASN.1 element as a set of " +
-                    "LDAP controls because the element was null.");
+                    "LDAP controls because the element was null");
     registerMessage(MSGID_LDAP_CONTROL_DECODE_CONTROLS_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as a set of " +
                     "LDAP controls because the element could not be decoded " +
-                    "as a sequence:  %s.");
+                    "as a sequence:  %s");
 
 
     registerMessage(MSGID_LDAP_ABANDON_REQUEST_DECODE_ID,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "abandon request protocol op because a problem occurred " +
                     "while trying to obtain the message ID of the operation " +
-                    "to abandon:  %s.");
+                    "to abandon:  %s");
     registerMessage(MSGID_LDAP_ABANDON_INVALID_MESSAGE_TYPE,
                     "Cannot convert the provided LDAP message (%s) to an " +
-                    "abandon operation:  %s.");
+                    "abandon operation:  %s");
 
 
     registerMessage(MSGID_LDAP_RESULT_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "result protocol op because a problem occurred while " +
-                    "trying to parse the result sequence:  %s.");
+                    "trying to parse the result sequence:  %s");
     registerMessage(MSGID_LDAP_RESULT_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "result protocol op because the result sequence did not " +
                     "contain a valid number of elements (expected 3 or 4, " +
-                    "got %d).");
+                    "got %d)");
     registerMessage(MSGID_LDAP_RESULT_DECODE_RESULT_CODE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "result protocol op because the first element in the " +
                     "result sequence could not be decoded as an integer " +
-                    "result code:  %s.");
+                    "result code:  %s");
     registerMessage(MSGID_LDAP_RESULT_DECODE_MATCHED_DN,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "result protocol op because the second element in the " +
                     "result sequence could not be decoded as the matched " +
-                    "DN:  %s.");
+                    "DN:  %s");
     registerMessage(MSGID_LDAP_RESULT_DECODE_ERROR_MESSAGE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "result protocol op because the third element in the " +
                     "result sequence could not be decoded as the error " +
-                    "message:  %s.");
+                    "message:  %s");
     registerMessage(MSGID_LDAP_RESULT_DECODE_REFERRALS,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "result protocol op because the fourth element in the " +
                     "result sequence could not be decoded as a set of " +
-                    "referral URLs:  %s.");
+                    "referral URLs:  %s");
 
 
     registerMessage(MSGID_LDAP_BIND_RESULT_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind response protocol op because the result sequence " +
                     "did not contain a valid number of elements (expected 3 " +
-                    "to 5, got %d).");
+                    "to 5, got %d)");
     registerMessage(MSGID_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind response protocol op because the final element in " +
                     "the result sequence could not be decoded as the server " +
-                    "SASL credentials:  %s.");
+                    "SASL credentials:  %s");
     registerMessage(MSGID_LDAP_BIND_RESULT_DECODE_INVALID_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind response protocol op because the BER type for the " +
                     "fourth element in the sequence was invalid (expected A3 " +
-                    "or 87, got %x).");
+                    "or 87, got %x)");
 
 
     registerMessage(MSGID_LDAP_EXTENDED_RESULT_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind response protocol op because the result sequence " +
                     "did not contain a valid number of elements (expected 3 " +
-                    "to 6, got %d).");
+                    "to 6, got %d)");
     registerMessage(MSGID_LDAP_EXTENDED_RESULT_DECODE_REFERRALS,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind response protocol op because the set of referral " +
-                    "URLs could not be decoded:  %s.");
+                    "URLs could not be decoded:  %s");
     registerMessage(MSGID_LDAP_EXTENDED_RESULT_DECODE_OID,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind response protocol op because the response OID " +
-                    "could not be decoded:  %s.");
+                    "could not be decoded:  %s");
     registerMessage(MSGID_LDAP_EXTENDED_RESULT_DECODE_VALUE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind response protocol op because the response value " +
-                    "could not be decoded:  %s.");
+                    "could not be decoded:  %s");
     registerMessage(MSGID_LDAP_EXTENDED_RESULT_DECODE_INVALID_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "extended response protocol op because one of the " +
                     "elements it contained had an invalid BER type (expected " +
-                    "A3, 8A, or 8B, got %x).");
+                    "A3, 8A, or 8B, got %x)");
 
 
     registerMessage(MSGID_LDAP_UNBIND_DECODE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
-                    "unbind request protocol op:  %s.");
+                    "unbind request protocol op:  %s");
     registerMessage(MSGID_LDAP_UNBIND_INVALID_MESSAGE_TYPE,
                     "Cannot convert the provided LDAP message (%s) to an " +
-                    "unbind operation:  %s.");
+                    "unbind operation:  %s");
 
 
     registerMessage(MSGID_LDAP_BIND_REQUEST_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind request protocol op because the element could " +
-                    "not be decoded as a sequence:  %s.");
+                    "not be decoded as a sequence:  %s");
     registerMessage(MSGID_LDAP_BIND_REQUEST_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind request protocol op because the request sequence " +
-                    "had an invalid number of elements (expected 3, got %d).");
+                    "had an invalid number of elements (expected 3, got %d)");
     registerMessage(MSGID_LDAP_BIND_REQUEST_DECODE_VERSION,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind request protocol op because the protocol " +
-                    "version could not be decoded as an integer:  %s.");
+                    "version could not be decoded as an integer:  %s");
     registerMessage(MSGID_LDAP_BIND_REQUEST_DECODE_DN,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind request protocol op because the bind DN could not " +
-                    "be properly decoded:  %s.");
+                    "be properly decoded:  %s");
     registerMessage(MSGID_LDAP_BIND_REQUEST_DECODE_PASSWORD,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind request protocol op because the password to use " +
-                    "for simple authentication could not be decoded:  %s.");
+                    "for simple authentication could not be decoded:  %s");
     registerMessage(MSGID_LDAP_BIND_REQUEST_DECODE_SASL_INFO,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind request protocol op because the SASL " +
-                    "authentication information could not be decoded:  %s.");
+                    "authentication information could not be decoded:  %s");
     registerMessage(MSGID_LDAP_BIND_REQUEST_DECODE_INVALID_CRED_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "bind request protocol op because the authentication " +
                     "info element had an invalid BER type (expected 80 or " +
-                    "A3, got %x).");
+                    "A3, got %x)");
     registerMessage(MSGID_LDAP_BIND_REQUEST_DECODE_CREDENTIALS,
                     "Cannot decoded the provided ASN.1 element as an LDAP " +
                     "bind request protocol op because an unexpected error " +
                     "occurred while trying to decode the authentication " +
-                    "info element:  %s.");
+                    "info element:  %s");
 
 
     registerMessage(MSGID_LDAP_COMPARE_REQUEST_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "compare request protocol op because the element could " +
-                    "not be decoded as a sequence:  %s.");
+                    "not be decoded as a sequence:  %s");
     registerMessage(MSGID_LDAP_COMPARE_REQUEST_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "compare request protocol op because the request " +
                     "sequence had an invalid number of elements (expected 2, " +
-                    "got %d).");
+                    "got %d)");
     registerMessage(MSGID_LDAP_COMPARE_REQUEST_DECODE_DN,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "compare request protocol op because the target DN could " +
-                    "not be properly decoded:  %s.");
+                    "not be properly decoded:  %s");
     registerMessage(MSGID_LDAP_COMPARE_REQUEST_DECODE_AVA,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "compare request protocol op because the attribute value " +
-                    "assertion could not be decoded as a sequence:  %s.");
+                    "assertion could not be decoded as a sequence:  %s");
     registerMessage(MSGID_LDAP_COMPARE_REQUEST_DECODE_AVA_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "compare request protocol op because the attribute value " +
                     "assertion sequence had an invalid number of elements " +
-                    "(expected 2, got %d).");
+                    "(expected 2, got %d)");
     registerMessage(MSGID_LDAP_COMPARE_REQUEST_DECODE_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "compare request protocol op because the attribute type " +
-                    "could not be properly decoded:  %s.");
+                    "could not be properly decoded:  %s");
     registerMessage(MSGID_LDAP_COMPARE_REQUEST_DECODE_VALUE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "compare request protocol op because the assertion value " +
-                    "could not be properly decoded:  %s.");
+                    "could not be properly decoded:  %s");
 
 
     registerMessage(MSGID_LDAP_DELETE_REQUEST_DECODE_DN,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "delete request protocol op because the target DN could " +
-                    "not be properly decoded:  %s.");
+                    "not be properly decoded:  %s");
 
 
     registerMessage(MSGID_LDAP_EXTENDED_REQUEST_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "extended request protocol op because the element could " +
-                    "not be decoded as a sequence:  %s.");
+                    "not be decoded as a sequence:  %s");
     registerMessage(MSGID_LDAP_EXTENDED_REQUEST_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "extended request protocol op because the request " +
                     "sequence had an invalid number of elements (expected 1 " +
-                    "or 2, got %d).");
+                    "or 2, got %d)");
     registerMessage(MSGID_LDAP_EXTENDED_REQUEST_DECODE_OID,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "extended request protocol op because the OID could not " +
-                    "be properly decoded:  %s.");
+                    "be properly decoded:  %s");
     registerMessage(MSGID_LDAP_EXTENDED_REQUEST_DECODE_VALUE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "extended request protocol op because the value could " +
-                    "not be properly decoded:  %s.");
+                    "not be properly decoded:  %s");
 
 
     registerMessage(MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modify DN request protocol op because the element could " +
-                    "not be decoded as a sequence:  %s.");
+                    "not be decoded as a sequence:  %s");
     registerMessage(MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modify DN request protocol op because the request " +
                     "sequence had an invalid number of elements (expected 3 " +
-                    "or 4, got %d).");
+                    "or 4, got %d)");
     registerMessage(MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_DN,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modify DN request protocol op because the entry DN " +
-                    "could not be properly decoded:  %s.");
+                    "could not be properly decoded:  %s");
     registerMessage(MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_RDN,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modify DN request protocol op because the new RDN could " +
-                    "not be properly decoded:  %s.");
+                    "not be properly decoded:  %s");
     registerMessage(MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_DELETE_OLD_RDN,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modify DN request protocol op because the deleteOldRDN " +
-                    "flag could not be properly decoded:  %s.");
+                    "flag could not be properly decoded:  %s");
     registerMessage(MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_SUPERIOR,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modify DN request protocol op because the new superior " +
-                    "DN could not be properly decoded:  %s.");
+                    "DN could not be properly decoded:  %s");
 
 
     registerMessage(MSGID_LDAP_ATTRIBUTE_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "attribute because the element could not be decoded as a " +
-                    "sequence:  %s.");
+                    "sequence:  %s");
     registerMessage(MSGID_LDAP_ATTRIBUTE_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "attribute because the request sequence had an invalid " +
-                    "number of elements (expected 2, got %d).");
+                    "number of elements (expected 2, got %d)");
     registerMessage(MSGID_LDAP_ATTRIBUTE_DECODE_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "attribute because the attribute type could not be " +
-                    "decoded:  %s.");
+                    "decoded:  %s");
     registerMessage(MSGID_LDAP_ATTRIBUTE_DECODE_VALUES,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "attribute because the set of values could not be " +
-                    "decoded:  %s.");
+                    "decoded:  %s");
     registerMessage(MSGID_LDAP_ATTRIBUTE_DUPLICATE_VALUES,
                     "The provided LDAP attribute %s contains duplicate " +
-                    "values.");
+                    "values");
 
 
     registerMessage(MSGID_LDAP_ADD_REQUEST_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP add " +
                     "request protocol op because the element could not be " +
-                    "decoded as a sequence:  %s.");
+                    "decoded as a sequence:  %s");
     registerMessage(MSGID_LDAP_ADD_REQUEST_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP add " +
                     "request protocol op because the request sequence had an " +
-                    "invalid number of elements (expected 2, got %d).");
+                    "invalid number of elements (expected 2, got %d)");
     registerMessage(MSGID_LDAP_ADD_REQUEST_DECODE_DN,
                     "Cannot decode the provided ASN.1 element as an LDAP add " +
                     "request protocol op because the entry DN could not be " +
-                    "decoded:  %s.");
+                    "decoded:  %s");
     registerMessage(MSGID_LDAP_ADD_REQUEST_DECODE_ATTRS,
                     "Cannot decode the provided ASN.1 element as an LDAP add " +
                     "request protocol op because the set of attributes could " +
-                    "not be decoded:  %s.");
+                    "not be decoded:  %s");
 
 
     registerMessage(MSGID_LDAP_MODIFICATION_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modification because the element could not be decoded " +
-                    "as a sequence:  %s.");
+                    "as a sequence:  %s");
     registerMessage(MSGID_LDAP_MODIFICATION_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modification because the request sequence had an " +
-                    "invalid number of elements (expected 2, got %d).");
+                    "invalid number of elements (expected 2, got %d)");
     registerMessage(MSGID_LDAP_MODIFICATION_DECODE_INVALID_MOD_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modification because it contained an invalid " +
-                    "modification type (%d).");
+                    "modification type (%d)");
     registerMessage(MSGID_LDAP_MODIFICATION_DECODE_MOD_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modification because the modification type could not be " +
-                    "decoded:  %s.");
+                    "decoded:  %s");
     registerMessage(MSGID_LDAP_MODIFICATION_DECODE_ATTR,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modification because the attribute could not be " +
-                    "decoded:  %s.");
+                    "decoded:  %s");
 
 
     registerMessage(MSGID_LDAP_MODIFY_REQUEST_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modify request protocol op because the element could " +
-                    "not be decoded as a sequence:  %s.");
+                    "not be decoded as a sequence:  %s");
     registerMessage(MSGID_LDAP_MODIFY_REQUEST_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modify request protocol op because the request sequence " +
-                    "had an invalid number of elements (expected 2, got %d).");
+                    "had an invalid number of elements (expected 2, got %d)");
     registerMessage(MSGID_LDAP_MODIFY_REQUEST_DECODE_DN,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modify request protocol op because the entry DN could " +
-                    "not be decoded:  %s.");
+                    "not be decoded:  %s");
     registerMessage(MSGID_LDAP_MODIFY_REQUEST_DECODE_MODS,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "modify request protocol op because the set of " +
-                    "modifications could not be decoded:  %s.");
+                    "modifications could not be decoded:  %s");
 
 
     registerMessage(MSGID_LDAP_SEARCH_ENTRY_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search result entry protocol op because the element " +
-                    "could not be decoded as a sequence:  %s.");
+                    "could not be decoded as a sequence:  %s");
     registerMessage(MSGID_LDAP_SEARCH_ENTRY_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search result entry protocol op because the request " +
                     "sequence had an invalid number of elements (expected 2, " +
-                    "got %d).");
+                    "got %d)");
     registerMessage(MSGID_LDAP_SEARCH_ENTRY_DECODE_DN,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search result entry protocol op because the entry DN " +
-                    "could not be decoded:  %s.");
+                    "could not be decoded:  %s");
     registerMessage(MSGID_LDAP_SEARCH_ENTRY_DECODE_ATTRS,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search result entry protocol op because the set of " +
-                    "attributes could not be decoded:  %s.");
+                    "attributes could not be decoded:  %s");
 
 
     registerMessage(MSGID_LDAP_SEARCH_REFERENCE_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search result reference protocol op because the " +
-                    "element could not be decoded as a sequence:  %s.");
+                    "element could not be decoded as a sequence:  %s");
     registerMessage(MSGID_LDAP_SEARCH_REFERENCE_DECODE_URLS,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search result reference protocol op because a problem " +
                     "occurred while trying to decode the sequence elements " +
-                    "as referral URLs:  %s.");
+                    "as referral URLs:  %s");
 
 
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the element could " +
-                    "not be decoded as a sequence:  %s.");
+                    "not be decoded as a sequence:  %s");
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the request sequence " +
-                    "had an invalid number of elements (expected 8, got %d).");
+                    "had an invalid number of elements (expected 8, got %d)");
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_BASE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the base DN could " +
-                    "not be decoded:  %s.");
+                    "not be decoded:  %s");
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the provided scope " +
-                    "value (%d) is invalid.");
+                    "value (%d) is invalid");
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_SCOPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the scope could not " +
-                    "be decoded:  %s.");
+                    "be decoded:  %s");
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the provided alias " +
-                    "dereferencing policy value (%d) is invalid.");
+                    "dereferencing policy value (%d) is invalid");
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_DEREF,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the alias " +
-                    "dereferencing policy could not be decoded:  %s.");
+                    "dereferencing policy could not be decoded:  %s");
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_SIZE_LIMIT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the size limit could " +
-                    "not be decoded:  %s.");
+                    "not be decoded:  %s");
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_TIME_LIMIT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the time limit could " +
-                    "not be decoded:  %s.");
+                    "not be decoded:  %s");
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_TYPES_ONLY,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the typesOnly flag " +
-                    "could not be decoded:  %s.");
+                    "could not be decoded:  %s");
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_FILTER,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the filter could not " +
-                    "be decoded:  %s.");
+                    "be decoded:  %s");
     registerMessage(MSGID_LDAP_SEARCH_REQUEST_DECODE_ATTRIBUTES,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search request protocol op because the requested " +
-                    "attribute set could not be decoded:  %s.");
+                    "attribute set could not be decoded:  %s");
 
 
     registerMessage(MSGID_LDAP_PROTOCOL_OP_DECODE_NULL,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
-                    "protocol op because the element was null.");
+                    "protocol op because the element was null");
     registerMessage(MSGID_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "protocol op because the element had an invalid BER " +
-                    "type (%x) for an LDAP protocol op.");
+                    "type (%x) for an LDAP protocol op");
 
 
     registerMessage(MSGID_LDAP_FILTER_DECODE_NULL,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
-                    "search filter because the element was null.");
+                    "search filter because the element was null");
     registerMessage(MSGID_LDAP_FILTER_DECODE_INVALID_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the element had an invalid BER " +
-                    "type (%x) for a search filter.");
+                    "type (%x) for a search filter");
     registerMessage(MSGID_LDAP_FILTER_DECODE_COMPOUND_SET,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the compound filter set could " +
-                    "not be decoded:  %s.");
+                    "not be decoded:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_COMPOUND_COMPONENTS,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because an unexpected error occurred " +
                     "while trying to decode one of the compound filter " +
-                    "components.");
+                    "components");
     registerMessage(MSGID_LDAP_FILTER_DECODE_NOT_ELEMENT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the value of the element cannot " +
                     "itself be decoded as an ASN.1 element for a NOT filter " +
-                    "component:  %s.");
+                    "component:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_NOT_COMPONENT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the NOT component element could " +
-                    "not be decoded as an LDAP filter:  %s.");
+                    "not be decoded as an LDAP filter:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_TV_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the element could not be decoded " +
-                    "as a type-and-value sequence:  %s.");
+                    "as a type-and-value sequence:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_TV_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the type-and-value sequence had " +
-                    "an invalid number of elements (expected 2, got %d).");
+                    "an invalid number of elements (expected 2, got %d)");
     registerMessage(MSGID_LDAP_FILTER_DECODE_TV_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the attribute type could not be " +
-                    "decoded from the type-and-value sequence:  %s.");
+                    "decoded from the type-and-value sequence:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_TV_VALUE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the assertion value could not be " +
-                    "decoded from the type-and-value sequence:  %s.");
+                    "decoded from the type-and-value sequence:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the element could not be decoded " +
-                    "as a substring sequence:  %s.");
+                    "as a substring sequence:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_SUBSTRING_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the substring sequence had an " +
-                    "invalid number of elements (expected 2, got %d).");
+                    "invalid number of elements (expected 2, got %d)");
     registerMessage(MSGID_LDAP_FILTER_DECODE_SUBSTRING_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the attribute type could not be " +
-                    "decoded from the substring sequence:  %s.");
+                    "decoded from the substring sequence:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the substring value sequence " +
-                    "could not be decoded:  %s.");
+                    "could not be decoded:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_SUBSTRING_NO_SUBELEMENTS,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the substring value sequence did " +
-                    "not contain any elements.");
+                    "not contain any elements");
     registerMessage(MSGID_LDAP_FILTER_DECODE_SUBSTRING_INVALID_SUBTYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the substring value sequence had " +
-                    "an element with an invalid BER type (%x).");
+                    "an element with an invalid BER type (%x)");
     registerMessage(MSGID_LDAP_FILTER_DECODE_SUBSTRING_VALUES,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because a problem occurred while trying " +
-                    "to parse the substring value elements:  %s.");
+                    "to parse the substring value elements:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_PRESENCE_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the element could not be decoded " +
-                    "as the presence attribute type:  %s.");
+                    "as the presence attribute type:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the element could not be decoded " +
-                    "as an extensible matching sequence:  %s.");
+                    "as an extensible matching sequence:  %s");
     registerMessage(MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_INVALID_TYPE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because the extensible matching sequence " +
-                    "had an element with an invalid BER type (%x).");
+                    "had an element with an invalid BER type (%x)");
     registerMessage(MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_ELEMENTS,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "search filter because a problem occurred while trying " +
-                    "to parse the extensible match sequence elements:  %s.");
+                    "to parse the extensible match sequence elements:  %s");
     registerMessage(MSGID_LDAP_FILTER_UNKNOWN_MATCHING_RULE,
                     "The provided LDAP search filter references unknown " +
-                    "matching rule %s.");
+                    "matching rule %s");
     registerMessage(MSGID_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR,
                     "The provided LDAP search filter has an assertion value " +
                     "but does not include either an attribute type or a " +
-                    "matching rule ID.");
+                    "matching rule ID");
     registerMessage(MSGID_LDAP_FILTER_STRING_NULL,
                     "Cannot decode the provided string as an LDAP search " +
-                    "filter because the string was null.");
+                    "filter because the string was null");
     registerMessage(MSGID_LDAP_FILTER_UNCAUGHT_EXCEPTION,
                     "Cannot decode the provided string %s as an LDAP search " +
                     "filter because an unexpected exception was thrown " +
-                    "during processing:  %s.");
+                    "during processing:  %s");
     registerMessage(MSGID_LDAP_FILTER_MISMATCHED_PARENTHESES,
                     "The provided search filter \"%s\" had mismatched " +
                     "parentheses around the portion between positions %d and " +
-                    "%d.");
+                    "%d");
     registerMessage(MSGID_LDAP_FILTER_NO_EQUAL_SIGN,
                     "The provided search filter \"%s\" was missing an equal " +
                     "sign in the suspected simple filter component between " +
-                    "positions %d and %d.");
+                    "positions %d and %d");
     registerMessage(MSGID_LDAP_FILTER_INVALID_ESCAPED_BYTE,
                     "The provided search filter \"%s\" had an invalid " +
                     "escaped byte value at position %d.  A backslash in a " +
                     "value must be followed by two hexadecimal characters " +
-                    "that define the byte that has been encoded.");
+                    "that define the byte that has been encoded");
     registerMessage(MSGID_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the compound filter between positions %d and %d " +
                     "did not start with an open parenthesis and end with a " +
                     "close parenthesis (they may be parentheses for " +
-                    "different filter components).");
+                    "different filter components)");
     registerMessage(MSGID_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the closing parenthesis at position %d did not " +
-                    "have a corresponding open parenthesis.");
+                    "have a corresponding open parenthesis");
     registerMessage(MSGID_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the closing parenthesis at position %d did not " +
-                    "have a corresponding close parenthesis.");
+                    "have a corresponding close parenthesis");
     registerMessage(MSGID_LDAP_FILTER_SUBSTRING_NO_ASTERISKS,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the assumed substring filter value between " +
                     "positions %d and %d did not have any asterisk wildcard " +
-                    "characters.");
+                    "characters");
     registerMessage(MSGID_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the extensible match component starting at " +
                     "position %d did not have a colon to denote the end of " +
-                    "the attribute type name.");
+                    "the attribute type name");
 
 
     registerMessage(MSGID_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE,
@@ -5176,127 +5176,127 @@ public class ProtocolMessages
                     "have a result code.  This could indicate that the " +
                     "operation did not complete properly or that it is one " +
                     "that is not allowed to have a response.  Using a " +
-                    "generic 'Operations Error' response.");
+                    "generic 'Operations Error' response");
     registerMessage(MSGID_LDAP_CLIENT_SEND_RESPONSE_INVALID_OP,
                     "The server attempted to send a response to the %s " +
                     "operation (conn=%d, op=%d), but this type of operation " +
-                    "is not allowed to have responses.  Backtrace:  %s.");
+                    "is not allowed to have responses.  Backtrace:  %s");
     registerMessage(MSGID_LDAP_CLIENT_SEND_MESSAGE_ENCODE_ASN1,
                     "The server was unable to encode the provided LDAP " +
-                    "message %s (conn=%d, op=%d) into an ASN.1 element:  %s.");
+                    "message %s (conn=%d, op=%d) into an ASN.1 element:  %s");
     registerMessage(MSGID_LDAP_CLIENT_SEND_MESSAGE_ENCODE_BYTES,
                     "The server was unable to encode the ASN.1 element " +
                     "generated from LDAP message %s (conn=%d, op=%d) into a " +
-                    "byte array:  %s.");
+                    "byte array:  %s");
     registerMessage(MSGID_LDAP_CLIENT_SEND_MESSAGE_IO_PROBLEM,
                     "The server was unable to send the LDAP message %s " +
                     "(conn=%d, op=%d) to the client because an I/O problem " +
-                    "was encountered:  %s.");
+                    "was encountered:  %s");
     registerMessage(MSGID_LDAP_CLIENT_SEND_MESSAGE_UNEXPECTED_PROBLEM,
                     "The server was unable to send the LDAP message %s " +
                     "(conn=%d, op=%d) to the client because an unexpected " +
-                    "problem was encountered:  %s.");
+                    "problem was encountered:  %s");
     registerMessage(MSGID_LDAP_CLIENT_GENERIC_NOTICE_OF_DISCONNECTION,
                     "The Directory Server is closing the connection to this " +
-                    "client.");
+                    "client");
     registerMessage(MSGID_LDAP_CLIENT_DISCONNECT_IN_PROGRESS,
                     "The Directory Server is currently in the process of " +
-                    "closing this client connection.");
+                    "closing this client connection");
     registerMessage(MSGID_LDAP_CLIENT_DUPLICATE_MESSAGE_ID,
                     "The Directory Server is already processing another " +
                     "request on the same client connection with the same " +
-                    "message ID of %d.");
+                    "message ID of %d");
     registerMessage(MSGID_LDAP_CLIENT_CANNOT_ENQUEUE,
                     "The Directory Server encountered an unexpected error " +
                     "while attempting to add the client request to the work " +
-                    "queue:  %s.");
+                    "queue:  %s");
     registerMessage(MSGID_LDAP_CLIENT_DECODE_ZERO_BYTE_VALUE,
                     "The client sent a request to the Directory Server that " +
                     "was an ASN.1 element with a zero-byte value.  This " +
-                    "cannot possibly be a valid LDAP message.");
+                    "cannot possibly be a valid LDAP message");
     registerMessage(MSGID_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED,
                     "The client sent a request to the Directory Server with " +
                     "an ASN.1 element value length of %d bytes.  This " +
                     "exceeds the maximum allowed request size of %d bytes, " +
-                    "so processing cannot continue on this connection.");
+                    "so processing cannot continue on this connection");
     registerMessage(MSGID_LDAP_CLIENT_DECODE_INVALID_MULTIBYTE_LENGTH,
                     "The client sent a request to the Directory Server with " +
                     "an ASN.1 element using multiple bytes to express the " +
                     "value length.  The request indicated that %d bytes were " +
                     "needed to express the length, but this exceeds the " +
-                    "maximum allowed limit of four bytes.");
+                    "maximum allowed limit of four bytes");
     registerMessage(MSGID_LDAP_CLIENT_DECODE_ASN1_FAILED,
                     "The client sent a request to the Directory Server that " +
-                    "could not be properly decoded as an ASN.1 element:  %s.");
+                    "could not be properly decoded as an ASN.1 element:  %s");
     registerMessage(MSGID_LDAP_CLIENT_DECODE_LDAP_MESSAGE_FAILED,
                     "The client sent a request to the Directory Server that " +
-                    "could not be properly decoded as an LDAP message:  %s.");
+                    "could not be properly decoded as an LDAP message:  %s");
     registerMessage(MSGID_LDAP_CLIENT_INVALID_DECODE_STATE,
                     "An internal error has occurred within the Directory " +
                     "Server to cause it to lose track of where it is in " +
                     "decoding requests on this client connection.  It had an " +
                     "invalid decode state of %d, and this connection must be " +
-                    "terminated.");
+                    "terminated");
     registerMessage(MSGID_LDAP_CLIENT_DECODE_INVALID_REQUEST_TYPE,
                     "The client sent an LDAP message to the Directory Server " +
-                    "that was not a valid message for a client request:  %s.");
+                    "that was not a valid message for a client request:  %s");
     registerMessage(MSGID_LDAP_CLIENT_CANNOT_CONVERT_MESSAGE_TO_OPERATION,
                     "The Directory Server was unable to convert the LDAP " +
                     "message read from the client (%s) to an internal " +
-                    "operation for processing:  %s.");
+                    "operation for processing:  %s");
 
 
     registerMessage(MSGID_LDAP_CONNHANDLER_OPEN_SELECTOR_FAILED,
                     "The LDAP connection handler defined in configuration " +
                     "entry %s was unable to open a selector to allow it to " +
                     "multiplex the associated accept sockets:  %s.  This " +
-                    "connection handler will be disabled.");
+                    "connection handler will be disabled");
     registerMessage(MSGID_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED,
                     "The LDAP connection handler defined in configuration " +
                     "entry %s was unable to create a server socket channel " +
                     "to accept connections on %s:%d:  %s.  The Directory " +
                     "Server will not listen for new connections on that " +
-                    "address.");
+                    "address");
     registerMessage(MSGID_LDAP_CONNHANDLER_NO_ACCEPTORS,
                     "The LDAP connection handler defined in configuration " +
                     "entry %s was unable to create any of the socket " +
                     "channels on any of the configured addresses.  This " +
-                    "connection handler will be disabled.");
+                    "connection handler will be disabled");
     registerMessage(MSGID_LDAP_CONNHANDLER_DENIED_CLIENT,
                     "The connection attempt from client %s to %s has been " +
                     "rejected because the client was included in one of the " +
-                    "denied address ranges.");
+                    "denied address ranges");
     registerMessage(MSGID_LDAP_CONNHANDLER_DISALLOWED_CLIENT,
                     "The connection attempt from client %s to %s has been " +
                     "rejected because the client was not included in one of " +
-                    "the allowed address ranges.");
+                    "the allowed address ranges");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_SET_SECURITY_PROVIDER,
                     "An error occurred while attempting to configure the " +
                     "connection security provider for the client " +
-                    "connection:  %s.");
+                    "connection:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT,
                     "An internal error prevented the Directory Server from " +
                     "properly registering the client connection from %s to " +
-                    "%s with an appropriate request handler:  %s.");
+                    "%s with an appropriate request handler:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_ACCEPT_CONNECTION,
                     "The LDAP connection handler defined in configuration " +
                     "entry %s was unable to accept a new client connection:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES,
                     "The LDAP connection handler defined in configuration " +
                     "entry %s has experienced consecutive failures while " +
                     "trying to accept client connections:  %s.  This " +
-                    "connection handler will be disabled.");
+                    "connection handler will be disabled");
     registerMessage(MSGID_LDAP_CONNHANDLER_UNCAUGHT_ERROR,
                     "The LDAP connection handler defined in configuration " +
                     "entry %s caught an unexpected error while trying to " +
                     "listen for new connections:  %s.  This connection " +
-                    "handler will be disabled.");
+                    "handler will be disabled");
     registerMessage(MSGID_LDAP_CONNHANDLER_REJECTED_BY_SERVER,
                     "The attempt to register this connection with the " +
                     "Directory Server was rejected.  This may indicate that " +
                     "the server already has the maximum allowed number of " +
-                    "concurrent connections established.");
+                    "concurrent connections established");
 
 
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_ADDRESS,
@@ -5306,16 +5306,16 @@ public class ProtocolMessages
                     "connections on all active addresses.  Changes to this " +
                     "configuration attribute will not take effect until the " +
                     "connection handler is disabled and re-enabled, or until " +
-                    "the Directory Server is restarted.");
+                    "the Directory Server is restarted");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_PORT,
                     "Specifies the TCP port on which this connection handler " +
                     "may accept client connections.  Changes to this " +
                     "configuration attribute will not take effect until the " +
                     "connection handler is disabled and re-enabled, or until " +
-                    "the Directory Server is restarted.");
+                    "the Directory Server is restarted");
     registerMessage(MSGID_LDAPS_CONNHANDLER_DESCRIPTION_ENABLE,
                     "Specifies whether to enable the LDAPS connection " +
-                    "handler.");
+                    "handler");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_BACKLOG,
                     "Specifies the accept queue size, which controls the " +
                     "number of new connection attempts that may be allowed " +
@@ -5325,7 +5325,7 @@ public class ProtocolMessages
                     "connection attempts at the same time.  Changes to this " +
                     "configuration attribute will not take effect until the " +
                     "connection handler is disabled and re-enabled, or until " +
-                    "the Directory Server is restarted.");
+                    "the Directory Server is restarted");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_ALLOWED_CLIENTS,
                     "Specifies a set of address masks that may be used to " +
                     "determine the addresses of the clients that are allowed " +
@@ -5335,7 +5335,7 @@ public class ProtocolMessages
                     "list will be allowed.  Changes to this configuration " +
                     "attribute will take effect immediately but will not " +
                     "interfere with connections that may already be " +
-                    "established.");
+                    "established");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_DENIED_CLIENTS,
                     "Specifies a set of address masks that may be used to " +
                     "determine the set of addresses of the clients that are " +
@@ -5347,7 +5347,7 @@ public class ProtocolMessages
                     "client not matching a mask in that list will be " +
                     "allowed.  Changes to this configuration attribute will " +
                     "take effect immediately but will not interfere with " +
-                    "connections that may already be established.");
+                    "connections that may already be established");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEEP_STATS,
                     "Indicates whether the connection handler should keep " +
                     "statistics regarding LDAP client communication.  " +
@@ -5357,7 +5357,7 @@ public class ProtocolMessages
                     "configuration attribute will take effect immediately, " +
                     "but will only apply for new connections and will have " +
                     "the side effect of clearing any existing statistical " +
-                    "data that may have been collected.");
+                    "data that may have been collected");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_ALLOW_LDAPV2,
                     "Indicates whether to allow communication with LDAPv2 " +
                     "clients.  LDAPv2 is considered an obsolete protocol, " +
@@ -5365,7 +5365,7 @@ public class ProtocolMessages
                     "advantage of all features offered by the server.  " +
                     "Changes to this configuration attribute will take " +
                     "effect immediately, but will not interfere with " +
-                    "connections that may already be established.");
+                    "connections that may already be established");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_NUM_REQUEST_HANDLERS,
                     "Specifies the number of threads that should be used to " +
                     "read requests from clients and place them in the " +
@@ -5375,13 +5375,13 @@ public class ProtocolMessages
                     "Changes to this configuration attribute will not take " +
                     "effect until the connection handler is disabled and " +
                     "re-enabled, or until the Directory Server is " +
-                    "restarted.");
+                    "restarted");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_SEND_REJECTION_NOTICE,
                     "Indicates whether to send an LDAPv3 notice of " +
                     "disconnection message to client connections that " +
                     "are rejected before closing the connection.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_USE_TCP_KEEPALIVE,
                     "Indicates whether to use the TCP KeepAlive feature for " +
                     "client connections established through this connection " +
@@ -5391,7 +5391,7 @@ public class ProtocolMessages
                     "devices from closing connections due to a lack of " +
                     "communication.  Changes to this configuration attribute " +
                     "will take effect immediately but will only be applied " +
-                    "to connections established after the change.");
+                    "to connections established after the change");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_USE_TCP_NODELAY,
                     "Indicates whether to use the TCP NoDelay feature for " +
                     "client connections established through this connection " +
@@ -5401,7 +5401,7 @@ public class ProtocolMessages
                     "entries may be able to achieve higher throughput if it" +
                     " is disabled.  Changes to this configuration attribute " +
                     "will take effect immediately but will only be applied " +
-                    "to connections established after the change.");
+                    "to connections established after the change");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_ALLOW_REUSE_ADDRESS,
                     "Indicates whether to use the SO_REUSEADDR socket option " +
                     "for the socket accepting connections for this " +
@@ -5410,7 +5410,7 @@ public class ProtocolMessages
                     "support engineers.  Changes to this configuration " +
                     "attribute will not take effect until the connection " +
                     "handler is disabled and re-enabled, or until the " +
-                    "Directory Server is restarted.");
+                    "Directory Server is restarted");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_MAX_REQUEST_SIZE,
                     "Specifies the maximum size in bytes that will be " +
                     "allowed when reading requests from clients.  This can " +
@@ -5418,13 +5418,13 @@ public class ProtocolMessages
                     "clients that send extremely large requests.  A value of " +
                     "zero indicates that no limit should be imposed.  " +
                     "Changes to this configuration attribute will take " +
-                    "effect immediately.");
+                    "effect immediately");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_USE_SSL,
                     "Indicates whether this connection handler should use " +
                     "SSL when accepting connections from clients.  Changes " +
                     "to this configuration attribute will not take effect " +
                     "until the connection handler is disabled and " +
-                    "re-enabled, or until the Directory Server is restarted.");
+                    "re-enabled, or until the Directory Server is restarted");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_ALLOW_STARTTLS,
                     "Indicates whether this connection handler should allow " +
                     "clients to use the StartTLS extended operation to " +
@@ -5432,7 +5432,7 @@ public class ProtocolMessages
                     "connection.  This may not be used if SSL is enabled " +
                     "for the connection handler.  Changes to this " +
                     "configuration attribute will take effect immediately " +
-                    "for LDAP clients.");
+                    "for LDAP clients");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_SSL_CLIENT_AUTH_POLICY,
                     "Specifies the policy that should be used regarding " +
                     "requesting or requiring the client to present its own " +
@@ -5441,260 +5441,260 @@ public class ProtocolMessages
                     "established connection.  Changes to this configuration " +
                     "attribute will not take effect until the connection " +
                     "handler is disabled and re-enabled, or until the " +
-                    "Directory Server is restarted.");
+                    "Directory Server is restarted");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME,
                     "Specifies the nickname of the certificate that the " +
                     "connection handler should use when accepting SSL-based " +
                     "connections or performing StartTLS negotiation.  " +
                     "Changes to this configuration attribute will not take " +
                     "effect until the connection handler is disabled and " +
-                    "re-enabled, or until the Directory Server is restarted.");
+                    "re-enabled, or until the Directory Server is restarted");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_SSL_ENABLED_PROTOCOLS,
                     "Specifies the names of the SSL protocols that will be " +
                     "allowed for use in SSL or StartTLS communication.  " +
                     "Changes to this configuration attribute will take " +
                     "immediately but will only impact new SSL/TLS-based " +
-                    "sessions created after the change.");
+                    "sessions created after the change");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_SSL_ENABLED_CIPHERS,
                     "Specifies the names of the SSL cipher suites that will " +
                     "be allowed for use in SSL or StartTLS communication.  " +
                     "Changes to this configuration attribute will take " +
                     "immediately but will only impact new SSL/TLS-based " +
-                    "sessions created after the change.");
+                    "sessions created after the change");
 
 
     registerMessage(MSGID_LDAP_CONNHANDLER_UNKNOWN_LISTEN_ADDRESS,
                     "The specified listen address \"%s\" in configuration " +
                     "entry \"%s\" could not be resolved:  %s.  Please make " +
                     "sure that name resolution is properly configured on " +
-                    "this system.");
+                    "this system");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_LISTEN_ADDRESS,
                     "An unexpected error occurred while processing the " +
                     ATTR_LISTEN_ADDRESS + " attribute in configuration entry " +
                     "%s, which is used to specify the address or set of " +
                     "addresses on which to listen for client connections:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NO_LISTEN_PORT,
                     "No listen port was defined using configuration " +
                     ATTR_LISTEN_PORT + " in configuration entry %s.  This is " +
-                    "a required attribute.");
+                    "a required attribute");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_LISTEN_PORT,
                     "An unexpected error occurred while processing the " +
                     ATTR_LISTEN_PORT + " attribute in configuration entry " +
                     "%s, which is used to specify the port on which to " +
-                    "listen for client connections:  %s.");
+                    "listen for client connections:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_BACKLOG,
                     "An unexpected error occurred while processing the " +
                     ATTR_ACCEPT_BACKLOG + " attribute in configuration entry " +
                     "%s, which is used to specify the accept backlog size:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOWED_CLIENTS,
                     "An unexpected error occurred while processing the " +
                     ATTR_ALLOWED_CLIENT + " attribute in configuration entry " +
                     "%s, which is used to specify the address mask(s) of the " +
                     "clients that are allowed to establish connections to " +
-                    "this connection handler:  %s.");
+                    "this connection handler:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_DENIED_CLIENTS,
                     "An unexpected error occurred while processing the " +
                     ATTR_DENIED_CLIENT + " attribute in configuration entry " +
                     "%s, which is used to specify the address mask(s) of the " +
                     "clients that are not allowed to establish connections " +
-                    "to this connection handler:  %s.");
+                    "to this connection handler:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_LDAPV2,
                     "An unexpected error occurred while processing the " +
                     ATTR_ALLOW_LDAPV2 + " attribute in configuration entry " +
                     "%s, which is used to indicate whether LDAPv2 clients " +
-                    "will be allowed to access this connection handler:  %s.");
+                    "will be allowed to access this connection handler:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEEP_STATS,
                     "An unexpected error occurred while processing the " +
                     ATTR_KEEP_LDAP_STATS + " attribute in configuration " +
                     "entry %s, which is used to indicate whether LDAP usage " +
                     "statistics should be enabled for this connection " +
-                    "handler:  %s.");
+                    "handler:  %s");
     registerMessage(
          MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_NUM_REQUEST_HANDLERS,
          "An unexpected error occurred while processing the " +
          ATTR_NUM_REQUEST_HANDLERS + " attribute in configuration entry %s, " +
          "which is used to specify the number of request handlers to use " +
-         "to read requests from clients: %s.");
+         "to read requests from clients: %s");
     registerMessage(
          MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SEND_REJECTION_NOTICE,
          "An unexpected error occurred while processing the " +
          ATTR_SEND_REJECTION_NOTICE + " attribute in configuration entry %s, " +
          "which is used to indicate whether to send a notice of " +
-         "disconnection message to rejected client connections: %s.");
+         "disconnection message to rejected client connections: %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_KEEPALIVE,
                     "An unexpected error occurred while processing the " +
                     ATTR_USE_TCP_KEEPALIVE + " attribute in configuration " +
                     "entry %s, which is used to periodically send TCP " +
-                    "Keep-Alive messages over idle connections:  %s.");
+                    "Keep-Alive messages over idle connections:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_TCP_NODELAY,
                     "An unexpected error occurred while processing the " +
                     ATTR_USE_TCP_NODELAY + " attribute in configuration " +
                     "entry %s, which is used to determine whether to " +
-                    "immediately flush responses to clients:  %s.");
+                    "immediately flush responses to clients:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_REUSE_ADDRESS,
                     "An unexpected error occurred while processing the " +
                     ATTR_ALLOW_REUSE_ADDRESS + " attribute in configuration " +
                     "entry %s, which is used to determine whether to set the " +
-                    "SO_REUSEADDR option on the listen socket:  %s.");
+                    "SO_REUSEADDR option on the listen socket:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_MAX_REQUEST_SIZE,
                     "An unexpected error occurred while processing the " +
                     ATTR_MAX_REQUEST_SIZE + " attribute in configuration " +
                     "entry %s, which is used to determine the maximum size " +
-                    "in bytes that may be used for a client request:  %s.");
+                    "in bytes that may be used for a client request:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_USE_SSL,
                     "An unexpected error occurred while processing the " +
                     ATTR_USE_SSL + " attribute in configuration entry %s, " +
                     "which is used to indicate whether to use SSL when " +
-                    "accepting client connections:  %s.");
+                    "accepting client connections:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_HAVE_SSL_AND_STARTTLS,
                     "The LDAP connection handler defined in configuration " +
                     "entry %s is configured to communicate over SSL and " +
                     "also to allow clients to use the StartTLS extended " +
                     "operation.  These options may not be used at the same " +
                     "time, so clients will not be allowed to use the " +
-                    "StartTLS operation.");
+                    "StartTLS operation");
     registerMessage(MSGID_LDAP_CONNHANDLER_NO_KEYMANAGER_DN,
                     "The LDAP connection handler defined in configuration " +
                     "entry %s is configured to use either SSL or StartTLS, " +
                     "but does not specify which key manager provider should " +
-                    "be used.");
+                    "be used");
     registerMessage(MSGID_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN,
                     "The LDAP connection handler defined in configuration " +
                     "entry %s is configured to use either SSL or StartTLS, " +
                     "but does not specify which trust manager provider " +
-                    "should be used.");
+                    "should be used");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_ALLOW_STARTTLS,
                     "An unexpected error occurred while processing the " +
                     ATTR_ALLOW_STARTTLS + " attribute in configuration entry " +
                     "%s, which is used to indicate whether clients may use " +
-                    "the StartTLS extended operation:  %s.");
+                    "the StartTLS extended operation:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_INVALID_SSL_CLIENT_AUTH_POLICY,
                     "The SSL client authentication policy \"%s\" specified " +
                     "in attribute " + ATTR_SSL_CLIENT_AUTH_POLICY +
                     " of configuration entry %s is invalid.  The value must " +
-                    "be one of \"disabled\", \"optional\", or \"required\".");
+                    "be one of \"disabled\", \"optional\", or \"required\"");
     registerMessage(
          MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CLIENT_AUTH_POLICY,
          "An unexpected error occurred while processing the " +
          ATTR_SSL_CLIENT_AUTH_POLICY + " attribute in configuration entry " +
          "%s, which is used to specify the policy that should be used " +
-         "for requesting/requiring SSL client authentication:  %s.");
+         "for requesting/requiring SSL client authentication:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME,
                     "An unexpected error occurred while processing the " +
                     ATTR_SSL_CERT_NICKNAME + " attribute in configuration " +
                     "entry %s, which is used to specify the nickname of the " +
                     "certificate to use for accepting SSL/TSL connections:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_PROTOCOLS,
                     "An unexpected error occurred while processing the " +
                     ATTR_SSL_PROTOCOLS + " attribute in configuration " +
                     "entry %s, which is used to specify the names of the " +
-                    "SSL protocols to allow for SSL/TLS sessions:  %s.");
+                    "SSL protocols to allow for SSL/TLS sessions:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_SSL_CIPHERS,
                     "An unexpected error occurred while processing the " +
                     ATTR_SSL_PROTOCOLS + " attribute in configuration " +
                     "entry %s, which is used to specify the names of the " +
-                    "SSL cipher suites to allow for SSL/TLS sessions:  %s.");
+                    "SSL cipher suites to allow for SSL/TLS sessions:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN,
                     "Specifies the DN of the configuration entry for the key " +
                     "manager provider that should be used with this LDAP " +
                     "connection handler.  Changes to this attribute will " +
                     "take effect immediately, but only for subsequent " +
                     "attempts to access the key manager provider for " +
-                    "associated client connections.");
+                    "associated client connections");
     registerMessage(MSGID_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN,
                     "Configuration attribute " + ATTR_KEYMANAGER_DN +
                     " of configuration entry %s has an invalid value %s " +
                     "which does not reference an enabled key manager " +
-                    "provider.");
+                    "provider");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN,
                     "An error occurred while processing the " +
                     ATTR_KEYMANAGER_DN + " attribute in configuration entry " +
                     "%s, which is used to specify the key manager provider " +
-                    "for use with the LDAP connection handler:  %s.");
+                    "for use with the LDAP connection handler:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN,
                     "Specifies the DN of the configuration entry for the " +
                     "trust manager provider that should be used with this " +
                     "LDAP connection handler.  Changes to this attribute " +
                     "will take effect immediately, but only for subsequent " +
                     "attempts to access the trust manager provider for " +
-                    "associated client connections.");
+                    "associated client connections");
     registerMessage(MSGID_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN,
                     "Configuration attribute " + ATTR_TRUSTMANAGER_DN +
                     " of configuration entry %s has an invalid value %s " +
                     "which does not reference an enabled trust manager " +
-                    "provider.");
+                    "provider");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_TRUSTMANAGER_DN,
                     "An error occurred while processing the " +
                     ATTR_TRUSTMANAGER_DN + " attribute in configuration " +
                     "entry %s, which is used to specify the trust manager " +
-                    "provider for use with the LDAP connection handler:  %s.");
+                    "provider for use with the LDAP connection handler:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_INVALID_ADDRESS_MASK,
                     "The string %s defined in attribute %s of configuration " +
                     "entry %s could not be decoded as a valid address mask:  "+
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_ALLOWED_CLIENTS,
                     "A new set of allowed client address masks has been " +
-                    "applied for configuration entry %s.");
+                    "applied for configuration entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_DENIED_CLIENTS,
                     "A new set of denied client address masks has been " +
-                    "applied for configuration entry %s.");
+                    "applied for configuration entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_ALLOW_LDAPV2,
                     "The value of the " + ATTR_ALLOW_LDAPV2 +
                     " attribute has been updated to %s in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_KEEP_STATS,
                     "The value of the " + ATTR_KEEP_LDAP_STATS +
                     " attribute has been updated to %s in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_SEND_REJECTION_NOTICE,
                     "The value of the " + ATTR_SEND_REJECTION_NOTICE +
                     " attribute has been updated to %s in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_USE_KEEPALIVE,
                     "The value of the " + ATTR_USE_TCP_KEEPALIVE +
                     " attribute has been updated to %s in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_USE_TCP_NODELAY,
                     "The value of the " + ATTR_USE_TCP_NODELAY +
                     " attribute has been updated to %s in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_MAX_REQUEST_SIZE,
                     "The value of the " + ATTR_MAX_REQUEST_SIZE +
                     " attribute has been updated to %s in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_ALLOW_STARTTLS,
                     "The value of the " + ATTR_ALLOW_STARTTLS +
                     " attribute has been updated to %s in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_SSL_PROTOCOLS,
                     "The value of the " + ATTR_SSL_PROTOCOLS +
                     " attribute has been updated to %s in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_SSL_CIPHERS,
                     "The value of the " + ATTR_SSL_CIPHERS +
                     " attribute has been updated to %s in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_KEYMANAGER_DN,
                     "The value of the " + ATTR_KEYMANAGER_DN +
                     " attribute has been updated to %s in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_NEW_TRUSTMANAGER_DN,
                     "The value of the " + ATTR_TRUSTMANAGER_DN +
                     " attribute has been updated to %s in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_STARTED_LISTENING,
-                    "Started listening for new connections on %s.");
+                    "Started listening for new connections on %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_STOPPED_LISTENING,
-                    "Stopped listening for new connections on %s.");
+                    "Stopped listening for new connections on %s");
 
 
     registerMessage(MSGID_LDAP_REQHANDLER_OPEN_SELECTOR_FAILED,
                     "%s was unable to open a selector to multiplex reads " +
                     "from clients:  %s.  This request handler cannot " +
-                    "continue processing.");
+                    "continue processing");
     registerMessage(MSGID_LDAP_REQHANDLER_DETECTED_JVM_ISSUE_CR6322825,
                     "Unable to call select() in the LDAP connection " +
                     "handler:  %s.  It appears that your JVM may be " +
@@ -5706,77 +5706,77 @@ public class ProtocolMessages
                     "Update 8 or higher) or set the number of available " +
                     "file descriptors to a value greater than or equal to " +
                     "8193 (e.g., by issuing the command 'ulimit -n 8193') " +
-                    "before starting the Directory Server.");
+                    "before starting the Directory Server");
     registerMessage(MSGID_LDAP_REQHANDLER_CANNOT_REGISTER,
                     "%s was unable to register this client connection with " +
-                    "the selector:  %s.");
+                    "the selector:  %s");
     registerMessage(MSGID_LDAP_REQHANDLER_REJECT_DUE_TO_SHUTDOWN,
                     "This connection could not be registered with a " +
                     "request handler because the Directory Server is " +
-                    "shutting down.");
+                    "shutting down");
     registerMessage(MSGID_LDAP_REQHANDLER_REJECT_DUE_TO_QUEUE_FULL,
                     "This connection could not be registered with a request " +
                     "handler because the pending queue associated with %s " +
-                    "is too full.");
+                    "is too full");
     registerMessage(MSGID_LDAP_REQHANDLER_DEREGISTER_DUE_TO_SHUTDOWN,
                     "This client connection is being deregistered from the " +
                     "associated request handler because the Directory Server " +
-                    "is shutting down:  %s.");
+                    "is shutting down:  %s");
     registerMessage(MSGID_LDAP_REQHANDLER_UNEXPECTED_SELECT_EXCEPTION,
                     "The LDAP request handler thread \"%s\" encountered an " +
                     "unexpected error that would have caused the thread to " +
                     "die:  %s.  The error has been caught and the request " +
-                    "handler should continue operating as normal.");
+                    "handler should continue operating as normal");
 
 
     registerMessage(MSGID_LDAP_DISCONNECT_DUE_TO_INVALID_REQUEST_TYPE,
                     "Terminating this connection because the client sent " +
                     "an invalid message of type %s (LDAP message ID %d) that " +
-                    "is not allowed for request messages.");
+                    "is not allowed for request messages");
     registerMessage(MSGID_LDAP_DISCONNECT_DUE_TO_PROCESSING_FAILURE,
                     "An unexpected failure occurred while trying to process " +
                     "a request of type %s (LDAP message ID %d):  %s.  The " +
-                    "client connection will be terminated.");
+                    "client connection will be terminated");
     registerMessage(MSGID_LDAP_INVALID_BIND_AUTH_TYPE,
                     "The bind request message (LDAP message ID %d) included " +
                     "an invalid authentication type of %s.  This is a " +
                     "protocol error, and this connection will be terminated " +
-                    "as per RFC 2251 section 4.2.3.");
+                    "as per RFC 2251 section 4.2.3");
     registerMessage(MSGID_LDAP_DISCONNECT_DUE_TO_BIND_PROTOCOL_ERROR,
                     "This client connection is being terminated because a " +
                     "protocol error occurred while trying to process a bind " +
                     "request.  The LDAP message ID was %d and the error " +
-                    "message for the bind response was %s.");
+                    "message for the bind response was %s");
 
 
     registerMessage(MSGID_LDAPV2_SKIPPING_EXTENDED_RESPONSE,
                     "An extended response message would have been sent to an " +
                     "LDAPv2 client (connection ID=%d, operation ID=%d):  " +
                     "%s.  LDAPv2 does not allow extended operations, so this " +
-                    "response will not be sent.");
+                    "response will not be sent");
     registerMessage(MSGID_LDAPV2_SKIPPING_SEARCH_REFERENCE,
                     "A search performed by an LDAPv2 client (connection " +
                     "ID=%d, operation ID=%d) would have included a search " +
                     "result reference %s.  Referrals are not allowed for " +
                     "LDAPv2 clients, so this search reference will not be " +
-                    "sent.");
+                    "sent");
     registerMessage(MSGID_LDAPV2_REFERRAL_RESULT_CHANGED,
                     "The original result code for this message was " +
                     LDAPResultCode.REFERRAL + " but this result is not " +
-                    "allowed for LDAPv2 clients.");
+                    "allowed for LDAPv2 clients");
     registerMessage(MSGID_LDAPV2_REFERRALS_OMITTED,
                     "The response included one or more referrals, which are " +
                     "not allowed for LDAPv2 clients.  The referrals included " +
-                    "were:  %s.");
+                    "were:  %s");
     registerMessage(MSGID_LDAPV2_CLIENTS_NOT_ALLOWED,
                     "The Directory Server has been configured to deny access " +
-                    "to LDAPv2 clients.  This connection will be closed.");
+                    "to LDAPv2 clients.  This connection will be closed");
     registerMessage(MSGID_LDAPV2_EXTENDED_REQUEST_NOT_ALLOWED,
                     "The client with connection ID %d authenticated to the " +
                     "Directory Server using LDAPv2, but attempted to send an " +
                     "extended operation request (LDAP message ID %d), which " +
                     "is not allowed for LDAPv2 clients.  The connection will " +
-                    "be terminated.");
+                    "be terminated");
 
 
 
@@ -5785,348 +5785,348 @@ public class ProtocolMessages
                     "monitor provider as defined in configuration entry %s.  " +
                     "This monitor provider should only be dynamically " +
                     "created within the Directory Server itself and not " +
-                    "from within the configuration.");
+                    "from within the configuration");
 
 
     registerMessage(MSGID_INTERNAL_CANNOT_DECODE_DN,
                     "An unexpected error occurred while trying to decode the " +
-                    "DN %s used for internal operations as a root user:  %s.");
+                    "DN %s used for internal operations as a root user:  %s");
 
 
     registerMessage(MSGID_LDAP_TLS_EXISTING_SECURITY_PROVIDER,
                     "The TLS connection security provider cannot be enabled " +
                     "on this client connection because it is already using " +
                     "the %s provider.  StartTLS may only be used on " +
-                    "clear-text connections.");
+                    "clear-text connections");
     registerMessage(MSGID_LDAP_TLS_STARTTLS_NOT_ALLOWED,
                     "StartTLS cannot be enabled on this LDAP client " +
                     "connection because the corresponding LDAP connection " +
                     "handler is configured to reject StartTLS requests.  " +
                     "The use of StartTLS may be enabled using the " +
-                    ATTR_ALLOW_STARTTLS + " configuration attribute.");
+                    ATTR_ALLOW_STARTTLS + " configuration attribute");
     registerMessage(MSGID_LDAP_TLS_CANNOT_CREATE_TLS_PROVIDER,
                     "An error occurred while attempting to create a TLS " +
                     "connection security provider for this client connection " +
-                    "for use with StartTLS:  %s.");
+                    "for use with StartTLS:  %s");
     registerMessage(MSGID_LDAP_TLS_NO_PROVIDER,
                     "StartTLS is not available on this client connection " +
                     "because the connection does not have access to a TLS " +
-                    "connection security provider.");
+                    "connection security provider");
     registerMessage(MSGID_LDAP_TLS_CLOSURE_NOT_ALLOWED,
                     "The LDAP connection handler does not allow clients to " +
                     "close a StartTLS session on a client connection while " +
                     "leaving the underlying TCP connection active.  The " +
-                    "TCP connection will be closed.");
+                    "TCP connection will be closed");
     registerMessage(MSGID_LDAP_NO_CLEAR_SECURITY_PROVIDER,
                     "LDAP connection handler %s could not send a clear-text " +
                     "response to the client because it does not have a " +
-                    "reference to a clear connection security provider.");
+                    "reference to a clear connection security provider");
 
 
     registerMessage(MSGID_LDAP_PAGED_RESULTS_DECODE_NULL,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "paged results control value because the element is " +
-                    "null.");
+                    "null");
     registerMessage(MSGID_LDAP_PAGED_RESULTS_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "paged results control value because the element could " +
-                    "not be decoded as a sequence:  %s.");
+                    "not be decoded as a sequence:  %s");
     registerMessage(MSGID_LDAP_PAGED_RESULTS_DECODE_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "paged results control value because the request " +
                     "sequence has an invalid number of elements (expected 2, " +
-                    "got %d).");
+                    "got %d)");
     registerMessage(MSGID_LDAP_PAGED_RESULTS_DECODE_SIZE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "paged results control value because the size element " +
-                    "could not be properly decoded:  %s.");
+                    "could not be properly decoded:  %s");
     registerMessage(MSGID_LDAP_PAGED_RESULTS_DECODE_COOKIE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "paged results control value because the cookie could " +
-                    "not be properly decoded:  %s.");
+                    "not be properly decoded:  %s");
 
 
     registerMessage(MSGID_LDAPASSERT_NO_CONTROL_VALUE,
                     "Cannot decode the provided LDAP assertion control " +
-                    "because the control does not have a value.");
+                    "because the control does not have a value");
     registerMessage(MSGID_LDAPASSERT_INVALID_CONTROL_VALUE,
                     "Cannot decode the provided LDAP assertion control " +
                     "because the control value cannot be decoded as an " +
-                    "ASN.1 element:  %s.");
+                    "ASN.1 element:  %s");
 
 
     registerMessage(MSGID_PREREADREQ_NO_CONTROL_VALUE,
                     "Cannot decode the provided LDAP pre-read request " +
-                    "control because the control does not have a value.");
+                    "control because the control does not have a value");
     registerMessage(MSGID_PREREADREQ_CANNOT_DECODE_VALUE,
                     "Cannot decode the provided LDAP pre-read request " +
                     "control because an error occurred while trying to " +
-                    "decode the control value:  %s.");
+                    "decode the control value:  %s");
 
 
     registerMessage(MSGID_POSTREADREQ_NO_CONTROL_VALUE,
                     "Cannot decode the provided LDAP post-read request " +
-                    "control because the control does not have a value.");
+                    "control because the control does not have a value");
     registerMessage(MSGID_POSTREADREQ_CANNOT_DECODE_VALUE,
                     "Cannot decode the provided LDAP post-read request " +
                     "control because an error occurred while trying to " +
-                    "decode the control value:  %s.");
+                    "decode the control value:  %s");
 
 
     registerMessage(MSGID_PREREADRESP_NO_CONTROL_VALUE,
                     "Cannot decode the provided LDAP pre-read response " +
-                    "control because the control does not have a value.");
+                    "control because the control does not have a value");
     registerMessage(MSGID_PREREADRESP_CANNOT_DECODE_VALUE,
                     "Cannot decode the provided LDAP pre-read response " +
                     "control because an error occurred while trying to " +
-                    "decode the control value:  %s.");
+                    "decode the control value:  %s");
 
 
     registerMessage(MSGID_POSTREADRESP_NO_CONTROL_VALUE,
                     "Cannot decode the provided LDAP post-read response " +
-                    "control because the control does not have a value.");
+                    "control because the control does not have a value");
     registerMessage(MSGID_POSTREADRESP_CANNOT_DECODE_VALUE,
                     "Cannot decode the provided LDAP post-read response " +
                     "control because an error occurred while trying to " +
-                    "decode the control value:  %s.");
+                    "decode the control value:  %s");
 
 
     registerMessage(MSGID_PROXYAUTH1_CONTROL_NOT_CRITICAL,
                     "Unwilling to process the request because it contains a " +
                     "proxied authorization V1 control which is not marked " +
                     "critical.  The proxied authorization control must " +
-                    "always have a criticality of \"true\".");
+                    "always have a criticality of \"true\"");
     registerMessage(MSGID_PROXYAUTH1_NO_CONTROL_VALUE,
                     "Cannot decode the provided proxied authorization V1 " +
-                    "control because it does not have a value.");
+                    "control because it does not have a value");
     registerMessage(MSGID_PROXYAUTH1_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided proxied authorization V1 " +
                     "control because the ASN.1 sequence in the control " +
                     "value has an invalid number of elements (expected 1, " +
-                    "got %d).");
+                    "got %d)");
     registerMessage(MSGID_PROXYAUTH1_CANNOT_DECODE_VALUE,
                     "Cannot decode the provided proxied authorization V1 " +
                     "control because an error occurred while attempting to " +
-                    "decode the control value:  %s.");
+                    "decode the control value:  %s");
     registerMessage(MSGID_PROXYAUTH1_CANNOT_LOCK_USER,
                     "Unable to obtain a lock on user entry %s for the " +
-                    "proxied authorization V1 control validation.");
+                    "proxied authorization V1 control validation");
     registerMessage(MSGID_PROXYAUTH1_NO_SUCH_USER,
                     "User %s specified in the proxied authorization V1 " +
-                    "control does not exist in the Directory Server.");
+                    "control does not exist in the Directory Server");
     registerMessage(MSGID_PROXYAUTH1_UNUSABLE_ACCOUNT,
                     "Use of the proxied authorization V1 control for user %s " +
-                    "is not allowed by the password policy configuration.");
+                    "is not allowed by the password policy configuration");
 
 
     registerMessage(MSGID_PROXYAUTH2_CONTROL_NOT_CRITICAL,
                     "Unwilling to process the request because it contains a " +
                     "proxied authorization V2 control which is not marked " +
                     "critical.  The proxied authorization control must " +
-                    "always have a criticality of \"true\".");
+                    "always have a criticality of \"true\"");
     registerMessage(MSGID_PROXYAUTH2_NO_CONTROL_VALUE,
                     "Cannot decode the provided proxied authorization V2 " +
-                    "control because it does not have a value.");
+                    "control because it does not have a value");
     registerMessage(MSGID_PROXYAUTH2_CANNOT_DECODE_VALUE,
                     "Cannot decode the provided proxied authorization V2 " +
                     "control because an error occurred while attempting to " +
-                    "decode the control value:  %s.");
+                    "decode the control value:  %s");
     registerMessage(MSGID_PROXYAUTH2_CANNOT_LOCK_USER,
                     "Unable to obtain a lock on user entry %s for the " +
-                    "proxied authorization V2 control validation.");
+                    "proxied authorization V2 control validation");
     registerMessage(MSGID_PROXYAUTH2_NO_IDENTITY_MAPPER,
                     "Unable to process proxied authorization V2 control " +
                     "because it contains an authorization ID based on a " +
                     "username and no proxied authorization identity mapper " +
-                    "is configured in the Directory Server.");
+                    "is configured in the Directory Server");
     registerMessage(MSGID_PROXYAUTH2_INVALID_AUTHZID,
                     "The authorization ID \"%s\" contained in the proxied " +
                     "authorization V2 control is invalid because it does not " +
                     "start with \"dn:\" to indicate a user DN or \"u:\" to " +
-                    "indicate a username.");
+                    "indicate a username");
     registerMessage(MSGID_PROXYAUTH2_NO_SUCH_USER,
                     "User %s specified in the proxied authorization V2 " +
-                    "control does not exist in the Directory Server.");
+                    "control does not exist in the Directory Server");
     registerMessage(MSGID_PROXYAUTH2_UNUSABLE_ACCOUNT,
                     "Use of the proxied authorization V2 control for user %s " +
-                    "is not allowed by the password policy configuration.");
+                    "is not allowed by the password policy configuration");
 
 
     registerMessage(MSGID_PSEARCH_CHANGETYPES_INVALID_TYPE,
                     "The provided integer value %d does not correspond to " +
-                    "any persistent search change type.");
+                    "any persistent search change type");
     registerMessage(MSGID_PSEARCH_CHANGETYPES_NO_TYPES,
                     "The provided integer value indicated that there were no " +
-                    "persistent search change types, which is not allowed.");
+                    "persistent search change types, which is not allowed");
     registerMessage(MSGID_PSEARCH_CHANGETYPES_INVALID_TYPES,
                     "The provided integer value %d was outside the range of " +
-                    "acceptable values for an encoded change type set.");
+                    "acceptable values for an encoded change type set");
 
 
     registerMessage(MSGID_PSEARCH_NO_CONTROL_VALUE,
                     "Cannot decode the provided persistent search control " +
-                    "because it does not have a value.");
+                    "because it does not have a value");
     registerMessage(MSGID_PSEARCH_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided persistent search control " +
                     "because the value sequence has an invalid number of " +
-                    "elements (expected 3, got %d).");
+                    "elements (expected 3, got %d)");
     registerMessage(MSGID_PSEARCH_CANNOT_DECODE_VALUE,
                     "Cannot decode the provided persistent search control " +
                     "because an error occurred while attempting to decode " +
-                    "the control value:  %s.");
+                    "the control value:  %s");
 
 
     registerMessage(MSGID_ECN_NO_CONTROL_VALUE,
                     "Cannot decode the provided entry change notification " +
-                    "control because it does not have a value.");
+                    "control because it does not have a value");
     registerMessage(MSGID_ECN_INVALID_ELEMENT_COUNT,
                     "Cannot decode the provided entry change notification " +
                     "control because the value sequence has an invalid " +
-                    "number of elements (expected between 1 and 3, got %d).");
+                    "number of elements (expected between 1 and 3, got %d)");
     registerMessage(MSGID_ECN_ILLEGAL_PREVIOUS_DN,
                     "Cannot decode the provided entry change notification " +
                     "control because it contains a previous DN element but " +
                     "had a change type of %s.  The previous DN element may " +
-                    "only be provided with the modify DN change type.");
+                    "only be provided with the modify DN change type");
     registerMessage(MSGID_ECN_INVALID_ELEMENT_TYPE,
                     "Cannot decode the provided entry change notification " +
                     "control because the second element in the value " +
                     "sequence has an invalid type of %s that is not " +
-                    "appropriate for either a previous DN or a change number.");
+                    "appropriate for either a previous DN or a change number");
     registerMessage(MSGID_ECN_CANNOT_DECODE_VALUE,
                     "Cannot decode the provided entry change notification " +
                     "control because an error occurred while attempting to " +
-                    "decode the control value:  %s.");
+                    "decode the control value:  %s");
 
 
     registerMessage(MSGID_AUTHZIDRESP_NO_CONTROL_VALUE,
                     "Cannot decode the provided authorization identity " +
-                    "response control because it does not have a value.");
+                    "response control because it does not have a value");
 
 
     registerMessage(MSGID_LDAP_INTERMEDIATE_RESPONSE_DECODE_SEQUENCE,
                     "Cannot decode the provided ASN.1 element as an LDAP " +
                     "intermediate response protocol op because the element " +
-                    "could not be decoded as a sequence:  %s.");
+                    "could not be decoded as a sequence:  %s");
     registerMessage(
          MSGID_LDAP_INTERMEDIATE_RESPONSE_DECODE_INVALID_ELEMENT_COUNT,
          "Cannot decode the provided ASN.1 element as an LDAP intermediate " +
          "response protocol op because the request sequence had an invalid " +
-         "number of elements (expected 0, 1, or or 2, got %d).");
+         "number of elements (expected 0, 1, or or 2, got %d)");
     registerMessage(MSGID_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID,
                     "An error occurred while attempting to decode the " +
-                    "intermediate response OID:  %s.");
+                    "intermediate response OID:  %s");
     registerMessage(MSGID_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_VALUE,
                     "An error occurred while attempting to decode the " +
-                    "intermediate response value:  %s.");
+                    "intermediate response value:  %s");
     registerMessage(MSGID_LDAP_INTERMEDIATE_RESPONSE_INVALID_ELEMENT_TYPE,
                     "The intermediate response sequence element contained " +
                     "an invalid BER type %s that was not appropriate for " +
-                    "either the OID or the value.");
+                    "either the OID or the value");
 
 
     registerMessage(MSGID_MVFILTER_INVALID_LDAP_FILTER_TYPE,
                     "The provided LDAP filter \"%s\" cannot be used as a " +
                     "matched values filter because filters of type %s are " +
-                    "not allowed for use in matched values filters.");
+                    "not allowed for use in matched values filters");
     registerMessage(MSGID_MVFILTER_INVALID_DN_ATTRIBUTES_FLAG,
                     "The provided LDAP filter \"%s\" cannot be used as a " +
                     "matched values filter because it is an extensible " +
                     "match filter that contains the dnAttributes flag, which " +
-                    "is not allowed for matched values filters.");
+                    "is not allowed for matched values filters");
     registerMessage(MSGID_MVFILTER_INVALID_AVA_SEQUENCE_SIZE,
                     "The provided matched values filter could not be decoded " +
                     "because there were an invalid number of elements in the " +
-                    "attribute value assertion (expected 2, got %d).");
+                    "attribute value assertion (expected 2, got %d)");
     registerMessage(MSGID_MVFILTER_CANNOT_DECODE_AVA,
                     "An error occurred while attempting to decode the " +
                     "attribute value assertion in the provided matched " +
-                    "values filter:  %s.");
+                    "values filter:  %s");
     registerMessage(MSGID_MVFILTER_INVALID_SUBSTRING_SEQUENCE_SIZE,
                     "The provided matched values filter could not be decoded " +
                     "because there were an invalid number of elements " +
-                    "in the substring sequence (expected 2, got %d).");
+                    "in the substring sequence (expected 2, got %d)");
     registerMessage(MSGID_MVFILTER_NO_SUBSTRING_ELEMENTS,
                     "The provided matched values filter could not be decoded " +
                     "because there were no subInitial, subAny, or subFinal " +
-                    "components in the substring filter.");
+                    "components in the substring filter");
     registerMessage(MSGID_MVFILTER_MULTIPLE_SUBINITIALS,
                     "The provided matched values filter could not be decoded " +
                     "because there were multiple subInitial components in " +
-                    "the substring filter.");
+                    "the substring filter");
     registerMessage(MSGID_MVFILTER_MULTIPLE_SUBFINALS,
                     "The provided matched values filter could not be decoded " +
                     "because there were multiple subFinal components in " +
-                    "the substring filter.");
+                    "the substring filter");
     registerMessage(MSGID_MVFILTER_INVALID_SUBSTRING_ELEMENT_TYPE,
                     "The provided matched values filter could not be decoded " +
                     "because there was an invalid element of type %s in the " +
-                    "substring filter.");
+                    "substring filter");
     registerMessage(MSGID_MVFILTER_CANNOT_DECODE_SUBSTRINGS,
                     "The provided matched values filter could not be decoded " +
                     "because an error occurred while decoding the " +
-                    "substring filter component:  %s.");
+                    "substring filter component:  %s");
     registerMessage(MSGID_MVFILTER_CANNOT_DECODE_PRESENT_TYPE,
                     "The provided matched values filter could not be decoded " +
                     "because an error occurred while decoding the presence " +
-                    "filter component:  %s.");
+                    "filter component:  %s");
     registerMessage(MSGID_MVFILTER_INVALID_EXTENSIBLE_SEQUENCE_SIZE,
                     "The provided matched values filter could not be decoded " +
                     "because there were an invalid number of elements in the " +
-                    "extensible match sequence (expected 2 or 3, found %d).");
+                    "extensible match sequence (expected 2 or 3, found %d)");
     registerMessage(MSGID_MVFILTER_MULTIPLE_MATCHING_RULE_IDS,
                     "The provided matched values filter could not be decoded " +
                     "because there were multiple matching rule ID elements " +
-                    "found in the extensible match filter sequence.");
+                    "found in the extensible match filter sequence");
     registerMessage(MSGID_MVFILTER_MULTIPLE_ATTRIBUTE_TYPES,
                     "The provided matched values filter could not be decoded " +
                     "because there were multiple attribute type elements " +
-                    "found in the extensible match filter sequence.");
+                    "found in the extensible match filter sequence");
     registerMessage(MSGID_MVFILTER_MULTIPLE_ASSERTION_VALUES,
                     "The provided matched values filter could not be decoded " +
                     "because there were multiple assertion value elements " +
-                    "found in the extensible match filter sequence.");
+                    "found in the extensible match filter sequence");
     registerMessage(MSGID_MVFILTER_INVALID_EXTENSIBLE_ELEMENT_TYPE,
                     "The provided matched values filter could not be decoded " +
                     "because there was an invalid element of type %s in the " +
-                    "extensible match filter.");
+                    "extensible match filter");
     registerMessage(MSGID_MVFILTER_CANNOT_DECODE_EXTENSIBLE_MATCH,
                     "The provided matched values filter could not be decoded " +
                     "because an error occurred while decoding the extensible " +
-                    "match filter component:  %s.");
+                    "match filter component:  %s");
     registerMessage(MSGID_MVFILTER_INVALID_ELEMENT_TYPE,
                     "The provided matched values filter could not be decoded " +
-                    "because it had an invalid BER type of %s.");
+                    "because it had an invalid BER type of %s");
 
 
     registerMessage(MSGID_MATCHEDVALUES_NO_CONTROL_VALUE,
                     "Cannot decode the provided matched values control "+
-                    "because it does not have a value.");
+                    "because it does not have a value");
     registerMessage(MSGID_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE,
                     "Cannot decode the provided matched values control " +
                     "because an error occurred while attempting to decode " +
-                    "the value as an ASN.1 sequence:  %s.");
+                    "the value as an ASN.1 sequence:  %s");
     registerMessage(MSGID_MATCHEDVALUES_NO_FILTERS,
                     "Cannot decode the provided matched values control " +
                     "because the control value does not specify any filters " +
-                    "for use in matching attribute values.");
+                    "for use in matching attribute values");
 
 
     registerMessage(MSGID_PWEXPIRED_CONTROL_HAS_VALUE,
                     "Cannot decode the provided control as a password " +
                     "expired control because the provided control had a " +
                     "value but the password expired control should not have " +
-                    "a value.");
+                    "a value");
 
 
     registerMessage(MSGID_PWEXPIRING_NO_CONTROL_VALUE,
                     "Cannot decode the provided password expiring control "+
-                    "because it does not have a value.");
+                    "because it does not have a value");
     registerMessage(MSGID_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION,
                     "Cannot decode the provided control as a password " +
                     "expiring control because an error occurred while " +
                     "attempting to decode the number of seconds until " +
-                    "expiration:  %s.");
+                    "expiration:  %s");
 
 
     registerMessage(MSGID_JMX_CONNHANDLER_DESCRIPTION_LISTEN_PORT,
@@ -6134,83 +6134,83 @@ public class ProtocolMessages
             "may accept administrative connections.  Changes to this " +
             "configuration attribute will not take effect until the " +
             "connection handler is disabled and re-enabled, or until " +
-            "the Directory Server is restarted.");
+            "the Directory Server is restarted");
     registerMessage(MSGID_JMX_CONNHANDLER_NO_LISTEN_PORT,
             "No listen port was defined using configuration " +
             ATTR_LISTEN_PORT + " in configuration entry %s.  This is " +
-            "a required attribute.");
+            "a required attribute");
     registerMessage(MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_LISTEN_PORT,
             "An unexpected error occurred while processing the " +
             ATTR_LISTEN_PORT + " attribute in configuration entry " +
             "%s, which is used to specify the port on which to " +
-            "listen for client connections:  %s.");
+            "listen for client connections:  %s");
     registerMessage(MSGID_JMX_CONNHANDLER_DESCRIPTION_USE_SSL,
             "Indicates whether this connection handler should use " +
             "SSL when accepting connections from clients.  Changes " +
             "to this configuration attribute will not take effect " +
             "until the connection handler is disabled and " +
-            "re-enabled, or until the Directory Server is restarted.");
+            "re-enabled, or until the Directory Server is restarted");
     registerMessage(MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL,
             "An unexpected error occurred while processing the " +
             ATTR_USE_SSL + " attribute in configuration entry %s, " +
             "which is used to indicate whether to use SSL when " +
-            "accepting client connections:  %s.");
+            "accepting client connections:  %s");
     registerMessage(MSGID_JMX_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME,
             "Specifies the nickname of the certificate that the " +
             "connection handler should use when accepting SSL-based " +
             "connections or performing StartTLS negotiation.  " +
             "Changes to this configuration attribute will not take " +
             "effect until the connection handler is disabled and " +
-            "re-enabled, or until the Directory Server is restarted.");
+            "re-enabled, or until the Directory Server is restarted");
     registerMessage(MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_SSL_CERT_NICKNAME,
             "An unexpected error occurred while processing the " +
             ATTR_SSL_CERT_NICKNAME + " attribute in configuration " +
             "entry %s, which is used to specify the nickname of the " +
             "certificate to use for accepting SSL/TSL connections:  " +
-            "%s.");
+            "%s");
     registerMessage(MSGID_JMX_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN,
             "Specifies the DN of the key manager provider that the " +
             "connection handler should use when accepting SSL-based " +
             "connections or performing StartTLS negotiation.  " +
             "Changes to this configuration attribute will take effect " +
-            "immediately.");
+            "immediately");
     registerMessage(MSGID_JMX_CONNHANDLER_INVALID_KEYMANAGER_DN,
             "An error occurred while processing the " + ATTR_KEYMANAGER_DN +
             " attribute in configuration entry %s, because the provided " +
             "key manager DN %s does not refer to an enabled key manager " +
-            "provider.");
+            "provider");
     registerMessage(MSGID_JMX_CONNHANDLER_CANNOT_DETERMINE_KEYMANAGER_DN,
             "An unexpected error occurred while processing the " +
             ATTR_KEYMANAGER_DN + " attribute in configuration " +
             "entry %s, which is used to specify the DN of the key manager " +
-            "provider to use for accepting SSL/TSL connections:  %s.");
+            "provider to use for accepting SSL/TSL connections:  %s");
 
 
     registerMessage(MSGID_PWPOLICYREQ_CONTROL_HAS_VALUE,
                     "Cannot decode the provided control as a password policy " +
                     "request control because the provided control had a " +
                     "value but the password policy request control should " +
-                    "not have a value.");
+                    "not have a value");
 
 
     registerMessage(MSGID_PWPOLICYRES_NO_CONTROL_VALUE,
                     "Cannot decode the provided password policy response " +
-                    "control because it does not have a value.");
+                    "control because it does not have a value");
     registerMessage(MSGID_PWPOLICYRES_INVALID_WARNING_TYPE,
                     "Cannot decode the provided password policy response " +
                     "control because the warning element has an invalid " +
-                    "type of %s.");
+                    "type of %s");
     registerMessage(MSGID_PWPOLICYRES_INVALID_ERROR_TYPE,
                     "Cannot decode the provided password policy response " +
                     "control because the error element has an invalid type " +
-                    "of %d.");
+                    "of %d");
     registerMessage(MSGID_PWPOLICYRES_INVALID_ELEMENT_TYPE,
                     "Cannot decode the provided password policy response " +
                     "control because the value sequence has an element with " +
-                    "an invalid type of %s.");
+                    "an invalid type of %s");
     registerMessage(MSGID_PWPOLICYRES_DECODE_ERROR,
                     "Cannot decode the provided password policy response " +
-                    "control:  %s.");
+                    "control:  %s");
 
 
     registerMessage(MSGID_PWPERRTYPE_DESCRIPTION_PASSWORD_EXPIRED,
@@ -6243,32 +6243,32 @@ public class ProtocolMessages
                     "Cannot decode the provided control as an account " +
                     "availability request control because the provided " +
                     "control had a value but the account availability " +
-                    "request control should not have a value.");
+                    "request control should not have a value");
 
 
     registerMessage(MSGID_ACCTUSABLERES_NO_CONTROL_VALUE,
                     "Cannot decode the provided account availability " +
-                    "response control because it does not have a value.");
+                    "response control because it does not have a value");
     registerMessage(MSGID_ACCTUSABLERES_UNKNOWN_UNAVAILABLE_TYPE,
                     "The account availability response control indicated " +
                     "that the account was unavailable but had an unknown " +
-                    "unavailable element type of %s.");
+                    "unavailable element type of %s");
     registerMessage(MSGID_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE,
                     "The account availability response control had an " +
-                    "unknown ACCOUNT_USABLE_RESPONSE element type of %s.");
+                    "unknown ACCOUNT_USABLE_RESPONSE element type of %s");
     registerMessage(MSGID_ACCTUSABLERES_DECODE_ERROR,
             "Cannot decode the provided account availability " +
-            "response control:  %s.");
+            "response control:  %s");
     registerMessage(MSGID_ADDRESSMASK_PREFIX_DECODE_ERROR,
             "Cannot decode the provided address mask prefix because an" +
             "invalid value was specified. The permitted values for IPv4" +
             "are 0 to32 and for IPv6 0 to128");
     registerMessage(MSGID_ADDRESSMASK_WILDCARD_DECODE_ERROR,
             "Cannot decode the provided address mask because an prefix mask"+
-            "was specified with an wild card \"*\" match character.");
+            "was specified with an wild card \"*\" match character");
     registerMessage(MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR,
             "Cannot decode the provided address mask because the it has an" +
-            "invalid format.");
+            "invalid format");
   }
 }
 

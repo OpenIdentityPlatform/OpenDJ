@@ -40,7 +40,6 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPConstants;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
@@ -50,6 +49,7 @@ import org.opends.server.protocols.ldap.SearchResultReferenceProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.SearchScope;
 
 

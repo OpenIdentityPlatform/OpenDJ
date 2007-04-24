@@ -33,12 +33,12 @@ import java.util.ArrayList;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -192,7 +192,7 @@ public class MatchedValuesControl
       }
 
       int    msgID   = MSGID_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
     }
 

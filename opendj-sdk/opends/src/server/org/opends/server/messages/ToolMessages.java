@@ -6945,17 +6945,17 @@ public class ToolMessages
                     "Unable to create an SSL connection to the server: %s");
     registerMessage(MSGID_TOOLS_SSL_CONNECTION_NOT_INITIALIZED,
                     "Unable to create an SSL connection to the server because" +
-                    " the connection factory has not been initialized.");
+                    " the connection factory has not been initialized");
     registerMessage(MSGID_TOOLS_CANNOT_LOAD_KEYSTORE_FILE,
-                    "Cannot load the key store file: %s.");
+                    "Cannot load the key store file: %s");
     registerMessage(MSGID_TOOLS_CANNOT_INIT_KEYMANAGER,
                     "Cannot initialize the key manager for the key store:" +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_TOOLS_CANNOT_LOAD_TRUSTSTORE_FILE,
-                    "Cannot load the key store file: %s.");
+                    "Cannot load the key store file: %s");
     registerMessage(MSGID_TOOLS_CANNOT_INIT_TRUSTMANAGER,
                     "Cannot initialize the key manager for the key store:" +
-                    "%s.");
+                    "%s");
 
 
     registerMessage(MSGID_ENCPW_DESCRIPTION_LISTSCHEMES,
@@ -6974,10 +6974,10 @@ public class ToolMessages
                     "The fully-qualified name of the Java class to use as " +
                     "the Directory Server configuration handler.  If this is " +
                     "not provided, then a default of " +
-                    ConfigFileHandler.class.getName() + " will be used.");
+                    ConfigFileHandler.class.getName() + " will be used");
     registerMessage(MSGID_DESCRIPTION_CONFIG_FILE,
                     "Specifies the path to the Directory Server " +
-                    "configuration file.");
+                    "configuration file");
     registerMessage(MSGID_ENCPW_DESCRIPTION_SCHEME,
                     "Scheme to use for the encoded password");
     registerMessage(MSGID_ENCPW_DESCRIPTION_AUTHPW,
@@ -6987,62 +6987,62 @@ public class ToolMessages
                     "Use the LDAP compare result as an exit code for the " +
                     "password comparison");
     registerMessage(MSGID_DESCRIPTION_USAGE,
-                    "Displays this usage information.");
+                    "Displays this usage information");
     registerMessage(MSGID_CANNOT_INITIALIZE_ARGS,
                     "An unexpected error occurred while attempting to " +
-                    "initialize the command-line arguments:  %s.");
+                    "initialize the command-line arguments:  %s");
     registerMessage(MSGID_ERROR_PARSING_ARGS,
                     "An error occurred while parsing the command-line " +
-                    "arguments:  %s.");
+                    "arguments:  %s");
     registerMessage(MSGID_ENCPW_NO_CLEAR_PW,
                     "No clear-text password was specified.  Use --%s or --%s " +
-                    "to specify the password to encode.");
+                    "to specify the password to encode");
     registerMessage(MSGID_ENCPW_NO_SCHEME,
                     "No password storage scheme was specified.  Use the --%s " +
-                    "argument to specify the storage scheme.");
+                    "argument to specify the storage scheme");
     registerMessage(MSGID_SERVER_BOOTSTRAP_ERROR,
                     "An unexpected error occurred while attempting to " +
-                    "bootstrap the Directory Server client-side code:  %s.");
+                    "bootstrap the Directory Server client-side code:  %s");
     registerMessage(MSGID_CANNOT_LOAD_CONFIG,
                     "An error occurred while trying to load the Directory " +
-                    "Server configuration:  %s.");
+                    "Server configuration:  %s");
     registerMessage(MSGID_CANNOT_LOAD_SCHEMA,
                     "An error occurred while trying to load the Directory " +
-                    "Server schema:  %s.");
+                    "Server schema:  %s");
     registerMessage(MSGID_CANNOT_INITIALIZE_CORE_CONFIG,
                     "An error occurred while trying to initialize the core " +
-                    "Directory Server configuration:  %s.");
+                    "Directory Server configuration:  %s");
     registerMessage(MSGID_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES,
                     "An error occurred while trying to initialize the " +
-                    "Directory Server password storage schemes:  %s.");
+                    "Directory Server password storage schemes:  %s");
     registerMessage(MSGID_ENCPW_NO_AUTH_STORAGE_SCHEMES,
                     "No authentication password storage schemes have been " +
-                    "configured for use in the Directory Server.");
+                    "configured for use in the Directory Server");
     registerMessage(MSGID_ENCPW_NO_STORAGE_SCHEMES,
                     "No password storage schemes have been configured for " +
-                    "use in the Directory Server.");
+                    "use in the Directory Server");
     registerMessage(MSGID_ENCPW_NO_SUCH_AUTH_SCHEME,
                     "Authentication password storage scheme \"%s\" is not "+
-                    "configured for use in the Directory Server.");
+                    "configured for use in the Directory Server");
     registerMessage(MSGID_ENCPW_NO_SUCH_SCHEME,
                     "Password storage scheme \"%s\" is not configured for " +
-                    "use in the Directory Server.");
+                    "use in the Directory Server");
     registerMessage(MSGID_ENCPW_INVALID_ENCODED_AUTHPW,
                     "The provided password is not a valid encoded " +
-                    "authentication password value:  %s.");
+                    "authentication password value:  %s");
     registerMessage(MSGID_ENCPW_PASSWORDS_MATCH,
-                    "The provided clear-text and encoded passwords match.");
+                    "The provided clear-text and encoded passwords match");
     registerMessage(MSGID_ENCPW_PASSWORDS_DO_NOT_MATCH,
                     "The provided clear-text and encoded passwords do not " +
-                    "match.");
+                    "match");
     registerMessage(MSGID_ENCPW_INVALID_ENCODED_USERPW,
                     "The provided password is not a valid encoded " +
-                    "user password value:  %s.");
+                    "user password value:  %s");
     registerMessage(MSGID_ENCPW_ENCODED_PASSWORD,
-                    "Encoded Password:  \"%s\".");
+                    "Encoded Password:  \"%s\"");
     registerMessage(MSGID_ENCPW_CANNOT_ENCODE,
                     "An error occurred while attempting to encode the " +
-                    "clear-text password:  %s.");
+                    "clear-text password:  %s");
 
 
     registerMessage(MSGID_LDIFEXPORT_DESCRIPTION_LDIF_FILE,
@@ -7076,81 +7076,81 @@ public class ToolMessages
                     "Generate a signed hash of the export data");
     registerMessage(MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER,
                     "An error occurred while attempting to initialize the " +
-                    "crypto manager:  %s.");
+                    "crypto manager:  %s");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS,
                     "An error occurred while attempting to initialize the " +
-                    "LDIF export plugins:  %s.");
+                    "LDIF export plugins:  %s");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_PARSE_EXCLUDE_FILTER,
                     "Unable to decode exclude filter string \"%s\" as a " +
-                    "valid search filter:  %s.");
+                    "valid search filter:  %s");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_PARSE_INCLUDE_FILTER,
                     "Unable to decode include filter string \"%s\" as a " +
-                    "valid search filter:  %s.");
+                    "valid search filter:  %s");
     registerMessage(MSGID_CANNOT_DECODE_BASE_DN,
                     "Unable to decode base DN string \"%s\" as a valid " +
-                    "distinguished name:  %s.");
+                    "distinguished name:  %s");
     registerMessage(MSGID_LDIFEXPORT_MULTIPLE_BACKENDS_FOR_ID,
                     "Multiple Directory Server backends are configured with " +
-                    "the requested backend ID \"%s\".");
+                    "the requested backend ID \"%s\"");
     registerMessage(MSGID_LDIFEXPORT_NO_BACKENDS_FOR_ID,
                     "None of the Directory Server backends are configured " +
-                    "with the requested backend ID \"%s\".");
+                    "with the requested backend ID \"%s\"");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_EXPORT_BACKEND,
                     "The Directory Server backend with backend ID \"%s\" " +
                     "does not provide a mechanism for performing LDIF " +
-                    "exports.");
+                    "exports");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE,
                     "Unable to decode exclude branch string \"%s\" as a " +
-                    "valid distinguished name:  %s.");
+                    "valid distinguished name:  %s");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_DECODE_WRAP_COLUMN_AS_INTEGER,
                     "Unable to decode wrap column value \"%s\" as an " +
-                    "integer.");
+                    "integer");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_LOCK_BACKEND,
                     "An error occurred while attempting to acquire a shared " +
                     "lock for backend %s:  %s.  This generally means that " +
                     "some other process has an exclusive lock on this " +
                     "backend (e.g., an LDIF import or a restore).  The LDIF " +
-                    "export cannot continue.");
+                    "export cannot continue");
     registerMessage(MSGID_LDIFEXPORT_ERROR_DURING_EXPORT,
                     "An error occurred while attempting to process the LDIF " +
-                    "export:  %s.");
+                    "export:  %s");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_UNLOCK_BACKEND,
                     "An error occurred while attempting to release the " +
                     "shared lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the export process exits, " +
-                    "so no further action should be required.");
+                    "so no further action should be required");
     registerMessage(MSGID_CANNOT_DECODE_BACKEND_BASE_DN,
                     "Unable to decode the backend configuration base DN " +
-                    "string \"%s\" as a valid DN:  %s.");
+                    "string \"%s\" as a valid DN:  %s");
     registerMessage(MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY,
                     "Unable to retrieve the backend configuration base entry " +
-                    "\"%s\" from the server configuration:  %s.");
+                    "\"%s\" from the server configuration:  %s");
     registerMessage(MSGID_CANNOT_DETERMINE_BACKEND_CLASS,
                     "Cannot determine the name of the Java class providing " +
                     "the logic for the backend defined in configuration " +
-                    "entry %s:  %s.");
+                    "entry %s:  %s");
     registerMessage(MSGID_CANNOT_LOAD_BACKEND_CLASS,
                     "Unable to load class %s referenced in configuration " +
-                    "entry %s for use as a Directory Server backend:  %s.");
+                    "entry %s for use as a Directory Server backend:  %s");
     registerMessage(MSGID_CANNOT_INSTANTIATE_BACKEND_CLASS,
                     "Unable to create an instance of class %s referenced in " +
                     "configuration entry %s as a Directory Server backend:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_NO_BASES_FOR_BACKEND,
                     "No base DNs have been defined in backend configuration " +
-                    "entry %s.  This backend will not be evaluated.");
+                    "entry %s.  This backend will not be evaluated");
     registerMessage(MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND,
                     "Unable to determine the set of base DNs defined in " +
-                    "backend configuration entry %s:  %s.");
+                    "backend configuration entry %s:  %s");
     registerMessage(MSGID_CANNOT_DETERMINE_BACKEND_ID,
                     "Cannot determine the backend ID for the backend defined " +
-                    "in configuration entry %s:  %s.");
+                    "in configuration entry %s:  %s");
     registerMessage(MSGID_LDIFEXPORT_CANNOT_DECODE_INCLUDE_BASE,
                     "Unable to decode include branch string \"%s\" as a " +
-                    "valid distinguished name:  %s.");
+                    "valid distinguished name:  %s");
     registerMessage(MSGID_LDIFEXPORT_INVALID_INCLUDE_BASE,
                     "Provided include base DN \"%s\" is not handled by the " +
-                    "backend with backend ID %s.");
+                    "backend with backend ID %s");
 
 
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_LDIF_FILE,
@@ -7195,82 +7195,82 @@ public class ToolMessages
                     "Use quiet mode (no output)");
     registerMessage(MSGID_LDIFIMPORT_CONFLICTING_OPTIONS,
                     "The %s and %s arguments are incompatible and may not be " +
-                    "used together.");
+                    "used together");
     registerMessage(MSGID_LDIFIMPORT_MISSING_REQUIRED_ARGUMENT,
                     "Neither the %s or the %s argument was provided.  One " +
                     "of these arguments must be given to specify the source " +
-                    "for the LDIF data to be imported.");
+                    "for the LDIF data to be imported");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY,
                     "An error occurred while attempting to initialize the " +
-                    "password policy components:  %s.");
+                    "password policy components:  %s");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS,
                     "An error occurred while attempting to initialize the " +
-                    "LDIF import plugins:  %s.");
+                    "LDIF import plugins:  %s");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER,
                     "Unable to decode exclude filter string \"%s\" as a " +
-                    "valid search filter:  %s.");
+                    "valid search filter:  %s");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER,
                     "Unable to decode include filter string \"%s\" as a " +
-                    "valid search filter:  %s.");
+                    "valid search filter:  %s");
     registerMessage(MSGID_LDIFIMPORT_MULTIPLE_BACKENDS_FOR_ID,
                     "Multiple Directory Server backends are configured with " +
-                    "backend ID \"%s\".");
+                    "backend ID \"%s\"");
     registerMessage(MSGID_LDIFIMPORT_NO_BACKENDS_FOR_ID,
                     "None of the Directory Server backends are configured " +
-                    "with the requested backend ID \"%s\".");
+                    "with the requested backend ID \"%s\"");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_IMPORT,
                     "The Directory Server backend with backend ID %s does " +
-                    "not provide a mechanism for performing LDIF imports.");
+                    "not provide a mechanism for performing LDIF imports");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE,
                     "Unable to decode exclude branch string \"%s\" as a " +
-                    "valid distinguished name:  %s.");
+                    "valid distinguished name:  %s");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE,
                     "Unable to decode include branch string \"%s\" as a " +
-                    "valid distinguished name:  %s.");
+                    "valid distinguished name:  %s");
     registerMessage(MSGID_LDIFIMPORT_INVALID_INCLUDE_BASE,
                     "Provided include base DN \"%s\" is not handled by the " +
-                    "backend with backend ID %s.");
+                    "backend with backend ID %s");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_PARSE_TEMPLATE_FILE,
                     "Unable to parse the specified file %s as a MakeLDIF " +
-                    "template file:  %s.");
+                    "template file:  %s");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_OPEN_REJECTS_FILE,
                     "An error occurred while trying to open the rejects " +
-                    "file %s for writing:  %s.");
+                    "file %s for writing:  %s");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_LOCK_BACKEND,
                     "An error occurred while attempting to acquire an " +
                     "exclusive lock for backend %s:  %s.  This generally " +
                     "means some other process is still using this backend " +
                     "(e.g., it is in use by the Directory Server or a " +
                     "backup or LDIF export is in progress.  The LDIF import " +
-                    "cannot continue.");
+                    "cannot continue");
     registerMessage(MSGID_LDIFIMPORT_ERROR_DURING_IMPORT,
                     "An error occurred while attempting to process the LDIF " +
-                    "import:  %s.");
+                    "import:  %s");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_UNLOCK_BACKEND,
                     "An error occurred while attempting to release the " +
                     "exclusive lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the import process exits, " +
-                    "so no further action should be required.");
+                    "so no further action should be required");
 
 
     registerMessage(MSGID_PROCESSING_OPERATION,
-                    "Processing %s request for %s.");
+                    "Processing %s request for %s");
     registerMessage(MSGID_OPERATION_FAILED,
-                    "%s operation failed.");
+                    "%s operation failed");
     registerMessage(MSGID_OPERATION_SUCCESSFUL,
-                    "%s operation successful for DN %s.");
+                    "%s operation successful for DN %s");
     registerMessage(MSGID_PROCESSING_COMPARE_OPERATION,
-                    "Comparing type %s with value %s in entry %s.");
+                    "Comparing type %s with value %s in entry %s");
     registerMessage(MSGID_COMPARE_OPERATION_RESULT_FALSE,
-                    "Compare operation returned false for entry %s.");
+                    "Compare operation returned false for entry %s");
     registerMessage(MSGID_COMPARE_OPERATION_RESULT_TRUE,
-                    "Compare operation returned true for entry %s.");
+                    "Compare operation returned true for entry %s");
     registerMessage(MSGID_SEARCH_OPERATION_INVALID_PROTOCOL,
-                    "Invalid operation type returned in search result %s.");
+                    "Invalid operation type returned in search result %s");
     registerMessage(MSGID_DESCRIPTION_TRUSTALL,
                     "Trust all server SSL certificates");
     registerMessage(MSGID_DESCRIPTION_BINDDN,
-                    "Specifies the DN to use to bind to the server.");
+                    "Specifies the DN to use to bind to the server");
     registerMessage(MSGID_DESCRIPTION_BINDPASSWORD,
                     "Specifies the password to use to bind to the server");
     registerMessage(MSGID_DESCRIPTION_BINDPASSWORDFILE,
@@ -7288,18 +7288,18 @@ public class ToolMessages
     registerMessage(MSGID_DESCRIPTION_USE_PWP_CONTROL,
                     "Use the password policy request control");
     registerMessage(MSGID_BIND_AUTHZID_RETURNED,
-                    "# Bound with authorization ID %s.");
+                    "# Bound with authorization ID %s");
     registerMessage(MSGID_BIND_PASSWORD_EXPIRED,
-                    "# Your password has expired.");
+                    "# Your password has expired");
     registerMessage(MSGID_BIND_PASSWORD_EXPIRING,
-                    "# Your password will expire in %s.");
+                    "# Your password will expire in %s");
     registerMessage(MSGID_BIND_ACCOUNT_LOCKED,
-                    "# Your account has been locked.");
+                    "# Your account has been locked");
     registerMessage(MSGID_BIND_MUST_CHANGE_PASSWORD,
                     "# You must change your password before any other " +
-                    "operations will be allowed.");
+                    "operations will be allowed");
     registerMessage(MSGID_BIND_GRACE_LOGINS_REMAINING,
-                    "# You have %d grace logins remaining.");
+                    "# You have %d grace logins remaining");
     registerMessage(MSGID_DESCRIPTION_VERBOSE,
                     "Use verbose mode");
     registerMessage(MSGID_DESCRIPTION_KEYSTOREPATH,
@@ -7323,7 +7323,7 @@ public class ToolMessages
     registerMessage(MSGID_DESCRIPTION_VERSION,
                     "LDAP protocol version number");
     registerMessage(MSGID_DESCRIPTION_SHOWUSAGE,
-                    "Display this usage information.");
+                    "Display this usage information");
     registerMessage(MSGID_DESCRIPTION_CONTROLS,
                     "Use a request control with the provided information");
     registerMessage(MSGID_DESCRIPTION_CONTINUE_ON_ERROR,
@@ -7357,10 +7357,10 @@ public class ToolMessages
                     "filter");
     registerMessage(MSGID_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE,
                     "The assertion value was indicated to be base64-encoded, " +
-                    "but an error occurred while trying to decode the value.");
+                    "but an error occurred while trying to decode the value");
     registerMessage(MSGID_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE,
                     "Unable to read the assertion value from the specified " +
-                    "file:  %s.");
+                    "file:  %s");
     registerMessage(MSGID_SEARCH_DESCRIPTION_BASEDN,
                     "Search base DN");
     registerMessage(MSGID_SEARCH_DESCRIPTION_SIZE_LIMIT,
@@ -7376,159 +7376,159 @@ public class ToolMessages
 
 
     registerMessage(MSGID_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND,
-                    "Cannot send the simple bind request:  %s.");
+                    "Cannot send the simple bind request:  %s");
     registerMessage(MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE,
                     "The connection to the Directory Server was closed " +
-                    "before the bind response could be read.");
+                    "before the bind response could be read");
     registerMessage(MSGID_LDAPAUTH_CANNOT_READ_BIND_RESPONSE,
                     "Cannot read the bind response from the server:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_LDAPAUTH_SERVER_DISCONNECT,
                     "The Directory Server indicated that it was closing the " +
                     "connection to the client (result code %d, message " +
-                    "\"%s\".");
+                    "\"%s\"");
     registerMessage(MSGID_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE,
                     "The Directory Server sent an unexpected extended " +
-                    "response message to the client:  %s.");
+                    "response message to the client:  %s");
     registerMessage(MSGID_LDAPAUTH_UNEXPECTED_RESPONSE,
                     "The Directory Server sent an unexpected response " +
-                    "message to the client:  %s.");
+                    "message to the client:  %s");
     registerMessage(MSGID_LDAPAUTH_SIMPLE_BIND_FAILED,
-                    "The simple bind attempt failed.");
+                    "The simple bind attempt failed");
     registerMessage(MSGID_LDAPAUTH_NO_SASL_MECHANISM,
                     "A SASL bind was requested but no SASL mechanism was " +
-                    "specified.");
+                    "specified");
     registerMessage(MSGID_LDAPAUTH_UNSUPPORTED_SASL_MECHANISM,
                     "The requested SASL mechanism \"%s\" is not supported " +
-                    "by this client.");
+                    "by this client");
     registerMessage(MSGID_LDAPAUTH_TRACE_SINGLE_VALUED,
                     "The " + SASL_PROPERTY_TRACE + " SASL property may only " +
-                    "be given a single value.");
+                    "be given a single value");
     registerMessage(MSGID_LDAPAUTH_INVALID_SASL_PROPERTY,
                     "Property \"%s\" is not allowed for the %s SASL " +
-                    "mechanism.");
+                    "mechanism");
     registerMessage(MSGID_LDAPAUTH_CANNOT_SEND_SASL_BIND,
-                    "Cannot send the SASL %S bind request:  %s.");
+                    "Cannot send the SASL %S bind request:  %s");
     registerMessage(MSGID_LDAPAUTH_SASL_BIND_FAILED,
-                    "The SASL %s bind attempt failed.");
+                    "The SASL %s bind attempt failed");
     registerMessage(MSGID_LDAPAUTH_NO_SASL_PROPERTIES,
                     "No SASL properties were provided for use with the %s " +
-                    "mechanism.");
+                    "mechanism");
     registerMessage(MSGID_LDAPAUTH_AUTHID_SINGLE_VALUED,
                     "The \"" + SASL_PROPERTY_AUTHID + "\" SASL property only " +
-                    "accepts a single value.");
+                    "accepts a single value");
     registerMessage(MSGID_LDAPAUTH_SASL_AUTHID_REQUIRED,
                     "The \"" + SASL_PROPERTY_AUTHID + "\" SASL property is " +
-                    "required for use with the %s mechanism.");
+                    "required for use with the %s mechanism");
     registerMessage(MSGID_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND,
                     "Cannot send the initial bind request in the multi-stage " +
-                    "%s bind to the server:  %s.");
+                    "%s bind to the server:  %s");
     registerMessage(MSGID_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE,
                     "Cannot read the initial %s bind response from the " +
-                    "server:  %s.");
+                    "server:  %s");
     registerMessage(MSGID_LDAPAUTH_UNEXPECTED_INITIAL_BIND_RESPONSE,
                     "The client received an unexpected intermediate bind " +
                     "response.  The \"SASL bind in progress\" result was " +
                     "expected for the first response in the multi-stage %s " +
                     "bind process, but the bind response had a result code " +
-                    "of %d (%s) and an error message of \"%s\".");
+                    "of %d (%s) and an error message of \"%s\"");
     registerMessage(MSGID_LDAPAUTH_NO_CRAMMD5_SERVER_CREDENTIALS,
                     "The initial bind response from the server did not " +
                     "include any server SASL credentials containing the " +
                     "challenge information needed to complete the CRAM-MD5 " +
-                    "authentication.");
+                    "authentication");
     registerMessage(MSGID_LDAPAUTH_CANNOT_INITIALIZE_MD5_DIGEST,
                     "An unexpected error occurred while trying to initialize " +
-                    "the MD5 digest generator:  %s.");
+                    "the MD5 digest generator:  %s");
     registerMessage(MSGID_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND,
                     "Cannot send the second bind request in the multi-stage " +
-                    "%s bind to the server:  %s.");
+                    "%s bind to the server:  %s");
     registerMessage(MSGID_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE,
                     "Cannot read the second %s bind response from the " +
-                    "server:  %s.");
+                    "server:  %s");
     registerMessage(MSGID_LDAPAUTH_NO_ALLOWED_SASL_PROPERTIES,
                     "One or more SASL properties were provided, but the %s " +
-                    "mechanism does not take any SASL properties.");
+                    "mechanism does not take any SASL properties");
     registerMessage(MSGID_LDAPAUTH_AUTHZID_SINGLE_VALUED,
                     "The \"" + SASL_PROPERTY_AUTHZID + "\" SASL property " +
-                    "only accepts a single value.");
+                    "only accepts a single value");
     registerMessage(MSGID_LDAPAUTH_REALM_SINGLE_VALUED,
                     "The \"" + SASL_PROPERTY_REALM + "\" SASL property only " +
-                    "accepts a single value.");
+                    "accepts a single value");
     registerMessage(MSGID_LDAPAUTH_QOP_SINGLE_VALUED,
                     "The \"" + SASL_PROPERTY_QOP + "\" SASL property only " +
-                    "accepts a single value.");
+                    "accepts a single value");
     registerMessage(MSGID_LDAPAUTH_DIGESTMD5_QOP_NOT_SUPPORTED,
                     "The \"%s\" QoP mode is not supported by this client.  " +
-                    "Only the \"auth\" mode is currently available for use.");
+                    "Only the \"auth\" mode is currently available for use");
     // FIXME -- Update this message when auth-int and auth-conf are supported.
     registerMessage(MSGID_LDAPAUTH_DIGESTMD5_INVALID_QOP,
                     "The specified DIGEST-MD5 quality of protection mode " +
                     "\"%s\" is not valid.  The only QoP mode currently " +
-                    "supported is \"auth\".");
+                    "supported is \"auth\"");
     registerMessage(MSGID_LDAPAUTH_DIGEST_URI_SINGLE_VALUED,
                     "The \"" + SASL_PROPERTY_DIGEST_URI + "\" SASL property " +
-                    "only accepts a single value.");
+                    "only accepts a single value");
     registerMessage(MSGID_LDAPAUTH_NO_DIGESTMD5_SERVER_CREDENTIALS,
                     "The initial bind response from the server did not " +
                     "include any server SASL credentials containing the " +
                     "challenge information needed to complete the " +
-                    "DIGEST-MD5 authentication.");
+                    "DIGEST-MD5 authentication");
     registerMessage(MSGID_LDAPAUTH_DIGESTMD5_INVALID_TOKEN_IN_CREDENTIALS,
                     "The DIGEST-MD5 credentials provided by the server " +
                     "contained an invalid token of \"%s\" starting at " +
-                    "position %d.");
+                    "position %d");
     registerMessage(MSGID_LDAPAUTH_DIGESTMD5_INVALID_CHARSET,
                     "The DIGEST-MD5 credentials provided by the server " +
                     "specified the use of the \"%s\" character set.  The " +
                     "character set that may be specified in the DIGEST-MD5 " +
-                    "credentials is \"utf-8\".");
+                    "credentials is \"utf-8\"");
     registerMessage(MSGID_LDAPAUTH_REQUESTED_QOP_NOT_SUPPORTED_BY_SERVER,
                     "The requested QoP mode of \"%s\" is not listed as " +
                     "supported by the Directory Server.  The Directory " +
-                    "Server's list of supported QoP modes is:  \"%s\".");
+                    "Server's list of supported QoP modes is:  \"%s\"");
     registerMessage(MSGID_LDAPAUTH_DIGESTMD5_NO_NONCE,
                     "The server SASL credentials provided in response to the " +
                     "initial DIGEST-MD5 bind request did not include the " +
-                    "nonce to use to generate the authentication digests.");
+                    "nonce to use to generate the authentication digests");
     registerMessage(MSGID_LDAPAUTH_DIGESTMD5_CANNOT_CREATE_RESPONSE_DIGEST,
                     "An error occurred while attempting to generate the " +
-                    "response digest for the DIGEST-MD5 bind request:  %s.");
+                    "response digest for the DIGEST-MD5 bind request:  %s");
     registerMessage(MSGID_LDAPAUTH_DIGESTMD5_NO_RSPAUTH_CREDS,
                     "The DIGEST-MD5 bind response from the server did not " +
                     "include the \"rspauth\" element to provide a digest of " +
-                    "the response authentication information.");
+                    "the response authentication information");
     registerMessage(MSGID_LDAPAUTH_DIGESTMD5_COULD_NOT_DECODE_RSPAUTH,
                     "An error occurred while trying to decode the rspauth " +
                     "element of the DIGEST-MD5 bind response from the server " +
-                    "as a hexadecimal string:  %s.");
+                    "as a hexadecimal string:  %s");
     registerMessage(MSGID_LDAPAUTH_DIGESTMD5_COULD_NOT_CALCULATE_RSPAUTH,
                     "An error occurred while trying to calculate the " +
                     "expected rspauth element to compare against the value " +
                     "included in the DIGEST-MD5 response from the server:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_LDAPAUTH_DIGESTMD5_RSPAUTH_MISMATCH,
                     "The rpsauth element included in the DIGEST-MD5 bind " +
                     "response from the Directory Server was different from " +
-                    "the expected value calculated by the client.");
+                    "the expected value calculated by the client");
     registerMessage(MSGID_LDAPAUTH_DIGESTMD5_INVALID_CLOSING_QUOTE_POS,
                     "The DIGEST-MD5 response challenge could not be parsed " +
-                    "because it had an invalid quotation mark at position %d.");
+                    "because it had an invalid quotation mark at position %d");
     registerMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_TRACE,
                     "Specifies a text string that may be written to the " +
                     "Directory Server error log as trace information for " +
-                    "the bind.");
+                    "the bind");
     registerMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID,
-                    "Specifies the authentication ID for the bind.");
+                    "Specifies the authentication ID for the bind");
     registerMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_REALM,
                     "Specifies the realm into which the authentication is to " +
-                    "be performed.");
+                    "be performed");
     registerMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_QOP,
-                    "Specifies the quality of protection to use for the bind.");
+                    "Specifies the quality of protection to use for the bind");
     registerMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_DIGEST_URI,
-                    "Specifies the digest URI to use for the bind.");
+                    "Specifies the digest URI to use for the bind");
     registerMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHZID,
-                    "Specifies the authorization ID to use for the bind.");
+                    "Specifies the authorization ID to use for the bind");
     registerMessage(MSGID_DESCRIPTION_SASL_PROPERTIES,
                     "SASL bind options");
     registerMessage(MSGID_DESCRIPTION_DONT_WRAP,
@@ -7537,197 +7537,197 @@ public class ToolMessages
                     "Count the number of entries returned by the server");
     registerMessage(MSGID_LDAPAUTH_PROPERTY_DESCRIPTION_KDC,
                     "Specifies the KDC to use for the Kerberos " +
-                    "authentication.");
+                    "authentication");
     registerMessage(MSGID_LDAPAUTH_KDC_SINGLE_VALUED,
                     "The \"" + SASL_PROPERTY_KDC + "\" SASL property only " +
-                    "accepts a single value.");
+                    "accepts a single value");
     // FIXME -- Update this message when auth-int and auth-conf are supported.
     registerMessage(MSGID_LDAPAUTH_GSSAPI_INVALID_QOP,
                     "The specified GSSAPI quality of protection mode \"%s\" " +
                     "is not valid.  The only QoP mode currently supported is " +
-                    "\"auth\".");
+                    "\"auth\"");
     registerMessage(MSGID_LDAPAUTH_GSSAPI_CANNOT_CREATE_JAAS_CONFIG,
                     "An error occurred while trying to create the " +
                     "temporary JAAS configuration for GSSAPI " +
-                    "authentication:  %s.");
+                    "authentication:  %s");
     registerMessage(MSGID_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED,
                     "An error occurred while attempting to perform local " +
-                    "authentication to the Kerberos realm:  %s.");
+                    "authentication to the Kerberos realm:  %s");
     registerMessage(MSGID_LDAPAUTH_GSSAPI_REMOTE_AUTHENTICATION_FAILED,
                     "An error occurred while attempting to perform GSSAPI " +
-                    "authentication to the Directory Server:  %s.");
+                    "authentication to the Directory Server:  %s");
     registerMessage(MSGID_LDAPAUTH_NONSASL_RUN_INVOCATION,
                     "The LDAPAuthenticationHandler.run() method was called " +
-                    "for a non-SASL bind.  The backtrace for this call is %s.");
+                    "for a non-SASL bind.  The backtrace for this call is %s");
     registerMessage(MSGID_LDAPAUTH_UNEXPECTED_RUN_INVOCATION,
                     "The LDAPAuthenticationHandler.run() method was called " +
                     "for a SASL bind with an unexpected mechanism of " +
-                    "\"%s\".  The backtrace for this call is %s.");
+                    "\"%s\".  The backtrace for this call is %s");
     registerMessage(MSGID_LDAPAUTH_GSSAPI_CANNOT_CREATE_SASL_CLIENT,
                     "An error occurred while attempting to create a SASL " +
-                    "client to process the GSSAPI authentication:  %s.");
+                    "client to process the GSSAPI authentication:  %s");
     registerMessage(MSGID_LDAPAUTH_GSSAPI_CANNOT_CREATE_INITIAL_CHALLENGE,
                     "An error occurred while attempting to create the " +
-                    "initial challenge for GSSAPI authentication:  %s.");
+                    "initial challenge for GSSAPI authentication:  %s");
     registerMessage(MSGID_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS,
                     "An error occurred while trying to validate the SASL " +
                     "credentials provided by the Directory Server in the " +
-                    "GSSAPI bind response:  %s.");
+                    "GSSAPI bind response:  %s");
     registerMessage(MSGID_LDAPAUTH_GSSAPI_UNEXPECTED_SUCCESS_RESPONSE,
                     "The Directory Server unexpectedly returned a success " +
                     "response to the client even though the client does not " +
-                    "believe that the GSSAPI negotiation is complete.");
+                    "believe that the GSSAPI negotiation is complete");
     registerMessage(MSGID_LDAPAUTH_GSSAPI_BIND_FAILED,
-                    "The GSSAPI bind attempt failed.");
+                    "The GSSAPI bind attempt failed");
     registerMessage(MSGID_LDAPAUTH_NONSASL_CALLBACK_INVOCATION,
                     "The LDAPAuthenticationHandler.handle() method was " +
                     "called for a non-SASL bind.  The backtrace for this " +
-                    "call is %s.");
+                    "call is %s");
     registerMessage(MSGID_LDAPAUTH_UNEXPECTED_GSSAPI_CALLBACK,
                     "The LDAPAuthenticationHandler.handle() method was " +
                     "called during a GSSAPI bind attempt with an unexpected " +
-                    "callback type of %s.");
+                    "callback type of %s");
     registerMessage(MSGID_LDAPAUTH_UNEXPECTED_CALLBACK_INVOCATION,
                     "The LDAPAuthenticationHandler.handle() method was " +
                     "called for an unexpected SASL mechanism of %s.  The " +
-                    "backtrace for this call is %s.");
+                    "backtrace for this call is %s");
     registerMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT,
                     "Password for user '%s':  ");
     registerMessage(MSGID_LDAPAUTH_CANNOT_SEND_WHOAMI_REQUEST,
                     "Cannot send the 'Who Am I?' request to the Directory " +
-                    "Server:  %s.");
+                    "Server:  %s");
     registerMessage(MSGID_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE,
                     "Cannot read the 'Who Am I?' response from the Directory " +
-                    "Server:  %s.");
+                    "Server:  %s");
     registerMessage(MSGID_LDAPAUTH_WHOAMI_FAILED,
                     "The 'Who Am I?' request was rejected by the Directory " +
-                    "Server.");
+                    "Server");
 
 
     registerMessage(MSGID_DESCRIPTION_INVALID_VERSION,
                     "Invalid LDAP version number '%s'. Allowed values are " +
-                    "2 and 3.");
+                    "2 and 3");
     registerMessage(MSGID_SEARCH_INVALID_SEARCH_SCOPE,
-                    "Invalid scope %s specified for the search request.");
+                    "Invalid scope %s specified for the search request");
     registerMessage(MSGID_SEARCH_NO_FILTERS,
-                    "No filters specified for the search request.");
+                    "No filters specified for the search request");
     registerMessage(MSGID_PAGED_RESULTS_REQUIRES_SINGLE_FILTER,
                     "The simple paged results control may only be used with " +
-                    "a single search filter.");
+                    "a single search filter");
     registerMessage(MSGID_PAGED_RESULTS_CANNOT_DECODE,
                     "Unable to decode the simple paged results control from " +
-                    "the search response:  %s.");
+                    "the search response:  %s");
     registerMessage(MSGID_PAGED_RESULTS_RESPONSE_NOT_FOUND,
                     "The simple paged results response control was not found " +
-                    "in the search result done message from the server.");
+                    "in the search result done message from the server");
     registerMessage(MSGID_PSEARCH_MISSING_DESCRIPTOR,
                     "The request to use the persistent search control did " +
                     "not include a descriptor that indicates the options to " +
-                    "use with that control.");
+                    "use with that control");
     registerMessage(MSGID_PSEARCH_DOESNT_START_WITH_PS,
                     "The persistent search descriptor %s did not start with " +
-                    "the required 'ps' string.");
+                    "the required 'ps' string");
     registerMessage(MSGID_PSEARCH_INVALID_CHANGE_TYPE,
                     "The provided change type value %s is invalid.  The " +
                     "recognized change types are add, delete, modify, " +
-                    "modifydn, and any.");
+                    "modifydn, and any");
     registerMessage(MSGID_PSEARCH_INVALID_CHANGESONLY,
                     "The provided changesOnly value %s is invalid.  Allowed " +
                     "values are 1 to only return matching entries that have " +
                     "changed since the beginning of the search, or 0 to also " +
-                    "include existing entries that match the search criteria.");
+                    "include existing entries that match the search criteria");
     registerMessage(MSGID_PSEARCH_INVALID_RETURN_ECS,
                     "The provided returnECs value %s is invalid.  Allowed " +
                     "values are 1 to request that the entry change " +
                     "notification control be included in updated entries, or " +
-                    "0 to exclude the control from matching entries.");
+                    "0 to exclude the control from matching entries");
     registerMessage(MSGID_LDAP_ASSERTION_INVALID_FILTER,
                     "The search filter provided for the LDAP assertion " +
-                    "control was invalid:  %s.");
+                    "control was invalid:  %s");
     registerMessage(MSGID_LDAP_MATCHEDVALUES_INVALID_FILTER,
-                    "The provided matched values filter was invalid:  %s.");
+                    "The provided matched values filter was invalid:  %s");
     registerMessage(MSGID_LDAPMODIFY_PREREAD_NO_VALUE,
-                    "The pre-read response control did not include a value.");
+                    "The pre-read response control did not include a value");
     registerMessage(MSGID_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE,
                     "An error occurred while trying to decode the entry " +
                     "contained in the value of the pre-read response " +
-                    "control:  %s.");
+                    "control:  %s");
     registerMessage(MSGID_LDAPMODIFY_PREREAD_ENTRY,
                     "Target entry before the operation:");
     registerMessage(MSGID_LDAPMODIFY_POSTREAD_NO_VALUE,
-                    "The post-read response control did not include a value.");
+                    "The post-read response control did not include a value");
     registerMessage(MSGID_LDAPMODIFY_POSTREAD_CANNOT_DECODE_VALUE,
                     "An error occurred while trying to decode the entry " +
                     "contained in the value of the post-read response " +
-                    "control:  %s.");
+                    "control:  %s");
     registerMessage(MSGID_LDAPMODIFY_POSTREAD_ENTRY,
                     "Target entry after the operation:");
     registerMessage(MSGID_LDAPMODIFY_DESCRIPTION_FILENAME,
-                    "Specifies the LDIF file containing the changes to apply.");
+                    "Specifies the LDIF file containing the changes to apply");
 
 
 
     registerMessage(MSGID_VERIFYINDEX_DESCRIPTION_BASE_DN,
                     "Specifies the base DN of a backend supporting indexing. " +
                     "Verification is performed on indexes within the scope " +
-                    "of the given base DN.");
+                    "of the given base DN");
     registerMessage(MSGID_VERIFYINDEX_DESCRIPTION_INDEX_NAME,
                     "Specifies the name of an index to be verified. For an " +
                     "attribute index this is simply an attribute name.  " +
                     "Multiple indexes may be verified for completeness, or " +
                     "all indexes if no indexes are specified.  An index is " +
                     "complete if each index value references all entries " +
-                    "containing that value.");
+                    "containing that value");
     registerMessage(MSGID_VERIFYINDEX_DESCRIPTION_VERIFY_CLEAN,
                     "Specifies that a single index should be verified to " +
                     "ensure it is clean.  An index is clean if each index " +
                     "value references only entries containing that value.  " +
-                    "Only one index at a time may be verified in this way.");
+                    "Only one index at a time may be verified in this way");
     registerMessage(MSGID_VERIFYINDEX_ERROR_DURING_VERIFY,
                     "An error occurred while attempting to perform index " +
-                    "verification:  %s.");
+                    "verification:  %s");
     registerMessage(MSGID_VERIFYINDEX_VERIFY_CLEAN_REQUIRES_SINGLE_INDEX,
                     "Only one index at a time may be verified for " +
-                    "cleanliness.");
+                    "cleanliness");
     registerMessage(MSGID_BACKEND_NO_INDEXING_SUPPORT,
-                    "The backend does not support indexing.");
+                    "The backend does not support indexing");
     registerMessage(MSGID_VERIFYINDEX_CANNOT_LOCK_BACKEND,
                     "An error occurred while attempting to acquire a shared " +
                     "lock for backend %s:  %s.  This generally means that " +
                     "some other process has an exclusive lock on this " +
                     "backend (e.g., an LDIF import or a restore).  The " +
-                    "index verification cannot continue.");
+                    "index verification cannot continue");
     registerMessage(MSGID_VERIFYINDEX_CANNOT_UNLOCK_BACKEND,
                     "An error occurred while attempting to release the " +
                     "shared lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the verification process " +
-                    "exits, so no further action should be required.");
+                    "exits, so no further action should be required");
     registerMessage(MSGID_MULTIPLE_BACKENDS_FOR_BASE,
                     "Multiple Directory Server backends are configured to " +
-                    "support base DN \"%s\".");
+                    "support base DN \"%s\"");
     registerMessage(MSGID_NO_BACKENDS_FOR_BASE,
                     "None of the Directory Server backends are configured " +
-                    "to support the requested base DN \"%s\".");
+                    "to support the requested base DN \"%s\"");
 
     registerMessage(MSGID_REBUILDINDEX_TOOL_DESCRIPTION,
                     "This utility may be used to rebuild index data within " +
-                    "a backend based on the Berkeley DB Java Edition.");
+                    "a backend based on the Berkeley DB Java Edition");
     registerMessage(MSGID_REBUILDINDEX_DESCRIPTION_BASE_DN,
                     "Specifies the base DN of a backend supporting indexing. " +
                     "Rebuild is performed on indexes within the scope " +
-                    "of the given base DN.");
+                    "of the given base DN");
     registerMessage(MSGID_REBUILDINDEX_DESCRIPTION_INDEX_NAME,
                     "Specifies the names of index(es) to rebuild. For an " +
                     "attribute index this is simply an attribute name.  " +
-                    "At least one index must be specified for rebuild.");
+                    "At least one index must be specified for rebuild");
     registerMessage(MSGID_REBUILDINDEX_ERROR_DURING_REBUILD,
                     "An error occurred while attempting to perform index " +
-                    "rebuild:  %s.");
+                    "rebuild:  %s");
     registerMessage(MSGID_REBUILDINDEX_WRONG_BACKEND_TYPE,
-                    "The backend does not support rebuilding of indexes.");
+                    "The backend does not support rebuilding of indexes");
     registerMessage(MSGID_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX,
                     "At least one index must be spcified for the rebuild " +
-                    "process.");
+                    "process");
 
     registerMessage(MSGID_BACKUPDB_DESCRIPTION_BACKEND_ID,
                     "Backend ID for the backend to archive");
@@ -7752,66 +7752,66 @@ public class ToolMessages
                     "Sign the hash of the backup contents");
     registerMessage(MSGID_BACKUPDB_MULTIPLE_BACKENDS_FOR_ID,
                     "Multiple Directory Server backends are configured with " +
-                    "the requested backend ID \"%s\".");
+                    "the requested backend ID \"%s\"");
     registerMessage(MSGID_BACKUPDB_NO_BACKENDS_FOR_ID,
                     "None of the Directory Server backends are configured " +
-                    "with the requested backend ID \"%s\".");
+                    "with the requested backend ID \"%s\"");
     registerMessage(MSGID_BACKUPDB_CONFIG_ENTRY_MISMATCH,
                     "The configuration for the backend with backend ID %s is " +
                     "held in entry \"%s\", but other backups in the target " +
                     "backup directory %s were generated from a backend whose " +
-                    "configuration was held in configuration entry \"%s\".");
+                    "configuration was held in configuration entry \"%s\"");
     registerMessage(MSGID_BACKUPDB_INVALID_BACKUP_DIR,
                     "An error occurred while attempting to use the specified " +
-                    "path \"%s\" as the target directory for the backup:  %s.");
+                    "path \"%s\" as the target directory for the backup:  %s");
     registerMessage(MSGID_BACKUPDB_CANNOT_BACKUP,
                     "The target backend %s cannot be backed up using the " +
-                    "requested configuration:  %s.");
+                    "requested configuration:  %s");
     registerMessage(MSGID_BACKUPDB_ERROR_DURING_BACKUP,
                     "An error occurred while attempting to back up backend " +
-                    "%s with the requested configuration:  %s.");
+                    "%s with the requested configuration:  %s");
     registerMessage(MSGID_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID,
                     "The %s and %s arguments may not be used together.  " +
-                    "Exactly one of them must be provided.");
+                    "Exactly one of them must be provided");
     registerMessage(MSGID_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID,
                     "Neither the %s argument nor the %s argument was " +
-                    "provided.  Exactly one of them is required.");
+                    "provided.  Exactly one of them is required");
     registerMessage(MSGID_BACKUPDB_CANNOT_CREATE_BACKUP_DIR,
                     "An error occurred while attempting to create the backup " +
-                    "directory %s:  %s.");
+                    "directory %s:  %s");
     registerMessage(MSGID_BACKUPDB_BACKUP_NOT_SUPPORTED,
                     "Backend ID %s was included in the set of backends to " +
                     "archive, but this backend does not provide support for " +
-                    "a backup mechanism.  It will be skipped.");
+                    "a backup mechanism.  It will be skipped");
     registerMessage(MSGID_BACKUPDB_NO_BACKENDS_TO_ARCHIVE,
                     "None of the target backends provide a backup " +
-                    "mechanism.  The backup operation has been aborted.");
+                    "mechanism.  The backup operation has been aborted");
     registerMessage(MSGID_BACKUPDB_CANNOT_LOCK_BACKEND,
                     "An error occurred while attempting to acquire a shared " +
                     "lock for backend %s:  %s.  This generally means that " +
                     "some other process has exclusive access to this " +
                     "backend (e.g., a restore or an LDIF import).  This " +
-                    "backend will not be archived.");
+                    "backend will not be archived");
     registerMessage(MSGID_BACKUPDB_STARTING_BACKUP,
-                    "Starting backup for backend %s.");
+                    "Starting backup for backend %s");
     registerMessage(MSGID_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR,
                     "An error occurred while attempting to parse the backup " +
-                    "descriptor file %s:  %s.");
+                    "descriptor file %s:  %s");
     registerMessage(MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND,
                     "An error occurred while attempting to release the " +
                     "shared lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the backup process exits, " +
-                    "so no further action should be required.");
+                    "so no further action should be required");
     registerMessage(MSGID_BACKUPDB_COMPLETED_WITH_ERRORS,
-                    "The backup process completed with one or more errors.");
+                    "The backup process completed with one or more errors");
     registerMessage(MSGID_BACKUPDB_COMPLETED_SUCCESSFULLY,
-                    "The backup process completed successfully.");
+                    "The backup process completed successfully");
     registerMessage(MSGID_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL,
                     "The use of the %s argument requires that the %s " +
-                    "argument is also provided.");
+                    "argument is also provided");
     registerMessage(MSGID_BACKUPDB_SIGN_REQUIRES_HASH,
                     "The use of the %s argument requires that the %s " +
-                    "argument is also provided.");
+                    "argument is also provided");
 
 
     registerMessage(MSGID_RESTOREDB_DESCRIPTION_BACKEND_ID,
@@ -7826,7 +7826,7 @@ public class ToolMessages
                     "Verify the contents of the backup but do not restore it");
     registerMessage(MSGID_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY,
                     "An error occurred while attempting to examine the " +
-                    "set of backups contained in backup directory %s:  %s.");
+                    "set of backups contained in backup directory %s:  %s");
     registerMessage(MSGID_RESTOREDB_LIST_BACKUP_ID,
                     "Backup ID:          %s");
     registerMessage(MSGID_RESTOREDB_LIST_BACKUP_DATE,
@@ -7844,45 +7844,45 @@ public class ToolMessages
     registerMessage(MSGID_RESTOREDB_LIST_DEPENDENCIES,
                     "Dependent Upon:     %s");
     registerMessage(MSGID_RESTOREDB_INVALID_BACKUP_ID,
-                    "The requested backup ID %s does not exist in %s.");
+                    "The requested backup ID %s does not exist in %s");
     registerMessage(MSGID_RESTOREDB_NO_BACKUPS_IN_DIRECTORY,
                     "There are no Directory Server backups contained in " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_RESTOREDB_NO_BACKENDS_FOR_DN,
                     "The backups contained in directory %s were taken from " +
                     "a Directory Server backend defined in configuration " +
-                    "entry %s but no such backend is available.");
+                    "entry %s but no such backend is available");
     registerMessage(MSGID_RESTOREDB_CANNOT_RESTORE,
                     "The Directory Server backend configured with backend ID " +
                     "%s does not provide a mechanism for restoring " +
-                    "backups.");
+                    "backups");
     registerMessage(MSGID_RESTOREDB_CANNOT_LOCK_BACKEND,
                     "An error occurred while attempting to acquire an " +
                     "exclusive lock for backend %s:  %s.  This generally " +
                     "means some other process is still using this backend " +
                     "(e.g., it is in use by the Directory Server or a " +
                     "backup or LDIF export is in progress.  The restore " +
-                    "cannot continue.");
+                    "cannot continue");
     registerMessage(MSGID_RESTOREDB_ERROR_DURING_BACKUP,
                     "An unexpected error occurred while attempting to " +
-                    "restore backup %s from %s:  %s.");
+                    "restore backup %s from %s:  %s");
     registerMessage(MSGID_RESTOREDB_CANNOT_UNLOCK_BACKEND,
                     "An error occurred while attempting to release the " +
                     "exclusive lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the restore process " +
-                    "exits, so no further action should be required.");
+                    "exits, so no further action should be required");
     registerMessage(MSGID_DESCRIPTION_NOOP,
                     "Show what would be done but do not perform any operation");
     registerMessage(MSGID_DESCRIPTION_TYPES_ONLY,
                     "Only retrieve attribute names but not their values");
     registerMessage(MSGID_LDIF_FILE_CANNOT_OPEN_FOR_READ,
                     "An error occurred while attempting to open the " +
-                    "LDIF file %s for reading:  %s.");
+                    "LDIF file %s for reading:  %s");
     registerMessage(MSGID_LDIF_FILE_READ_ERROR,
                     "An error occurred while attempting to read the contents " +
-                    "of LDIF file %s:  %s.");
+                    "of LDIF file %s:  %s");
     registerMessage(MSGID_LDIF_FILE_INVALID_LDIF_ENTRY,
-                    "Error at or near line %d in LDIF file %s:  %s.");
+                    "Error at or near line %d in LDIF file %s:  %s");
 
 
     registerMessage(MSGID_STOPDS_DESCRIPTION_HOST,
@@ -7894,9 +7894,9 @@ public class ToolMessages
     registerMessage(MSGID_STOPDS_DESCRIPTION_USESTARTTLS,
                     "Use StartTLS for secure communication with the server");
     registerMessage(MSGID_STOPDS_DESCRIPTION_BINDDN,
-                    "Specifies the DN to use to bind to the server.");
+                    "Specifies the DN to use to bind to the server");
     registerMessage(MSGID_STOPDS_DESCRIPTION_BINDPW,
-                    "Specifies the password to use to bind to the server.");
+                    "Specifies the password to use to bind to the server");
     registerMessage(MSGID_STOPDS_DESCRIPTION_BINDPWFILE,
                     "Bind password file");
     registerMessage(MSGID_STOPDS_DESCRIPTION_SASLOPTIONS,
@@ -7911,7 +7911,7 @@ public class ToolMessages
                     "stopped");
     registerMessage(MSGID_STOPDS_CHECK_STOPPABILITY,
                     "Used to determine whether the server can be stopped "+
-                    "or not and the mode to be used to stop it.");
+                    "or not and the mode to be used to stop it");
     registerMessage(MSGID_STOPDS_DESCRIPTION_WINDOWS_NET_STOP,
                     "Used by the window service code to inform that stop-ds "+
                     "is being called from the window services after a call "+
@@ -7934,45 +7934,45 @@ public class ToolMessages
     registerMessage(MSGID_STOPDS_DESCRIPTION_TSPWFILE,
                     "Certificate trust store PIN file");
     registerMessage(MSGID_STOPDS_DESCRIPTION_SHOWUSAGE,
-                    "Display this usage information.");
+                    "Display this usage information");
     registerMessage(MSGID_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS,
                     "ERROR:  You may not provide both the %s and the %s " +
-                    "arguments.");
+                    "arguments");
     registerMessage(MSGID_STOPDS_CANNOT_DECODE_STOP_TIME,
                     "ERROR:  Unable to decode the provided stop time.  It " +
                     "should be in the form YYYYMMDDhhmmssZ for UTC time or " +
-                    "YYYYMMDDhhmmss for local time.");
+                    "YYYYMMDDhhmmss for local time");
     registerMessage(MSGID_STOPDS_CANNOT_INITIALIZE_SSL,
-                    "ERROR:  Unable to perform SSL initialization:  %s.");
+                    "ERROR:  Unable to perform SSL initialization:  %s");
     registerMessage(MSGID_STOPDS_CANNOT_PARSE_SASL_OPTION,
                     "ERROR:  The provided SASL option string \"%s\" could " +
-                    "not be parsed in the form \"name=value\".");
+                    "not be parsed in the form \"name=value\"");
     registerMessage(MSGID_STOPDS_NO_SASL_MECHANISM,
                     "ERROR:  One or more SASL options were provided, but " +
                     "none of them were the \"mech\" option to specify which " +
-                    "SASL mechanism should be used.");
+                    "SASL mechanism should be used");
     registerMessage(MSGID_STOPDS_CANNOT_DETERMINE_PORT,
                     "ERROR:  Cannot parse the value of the %s argument as " +
-                    "an integer value between 1 and 65535:  %s.");
+                    "an integer value between 1 and 65535:  %s");
     registerMessage(MSGID_STOPDS_CANNOT_CONNECT,
                     "ERROR:  Cannot establish a connection to the " +
-                    "Directory Server:  %s.");
+                    "Directory Server:  %s");
     registerMessage(MSGID_STOPDS_UNEXPECTED_CONNECTION_CLOSURE,
                     "NOTICE:  The connection to the Directory Server was " +
                     "closed while waiting for a response to the shutdown " +
                     "request.  This likely means that the server has started " +
-                    "the shudown process.");
+                    "the shudown process");
     registerMessage(MSGID_STOPDS_IO_ERROR,
                     "ERROR:  An I/O error occurred while attempting to " +
-                    "communicate with the Directory Server:  %s.");
+                    "communicate with the Directory Server:  %s");
     registerMessage(MSGID_STOPDS_DECODE_ERROR,
                     "ERROR:  An error occurred while trying to decode the " +
-                    "response from the server:  %s.");
+                    "response from the server:  %s");
     registerMessage(MSGID_STOPDS_INVALID_RESPONSE_TYPE,
                     "ERROR:  Expected an add response message but got a %s " +
-                    "message instead.");
+                    "message instead");
     registerMessage(MSGID_STOPDS_SERVER_ALREADY_STOPPED,
-                    "Server already stopped.");
+                    "Server already stopped");
     registerMessage(MSGID_STOPDS_GOING_TO_STOP,
                     "Stopping Server...\n");
 
@@ -7981,317 +7981,317 @@ public class ToolMessages
                     "Specifies the LDIF file containing the data to search.  " +
                     "Multiple files may be specified by providing the option " +
                     "multiple times.  If no files are provided, the data " +
-                    "will be read from standard input.");
+                    "will be read from standard input");
     registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_BASEDN,
                     "The base DN for the search.  Multiple base DNs may be " +
                     "specified by providing the option multiple times.  If " +
-                    "no base DN is provided, then the root DSE will be used.");
+                    "no base DN is provided, then the root DSE will be used");
     registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_SCOPE,
                     "The scope for the search.  It must be one of 'base', " +
                     "'one', 'sub', or 'subordinate'.  If it is not provided, " +
-                    "then 'sub' will be used.");
+                    "then 'sub' will be used");
     registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_FILTER_FILE,
                     "The path to the file containing the search filter(s) " +
                     "to use.  If this is not provided, then the filter must " +
                     "be provided on the command line after all configuration " +
-                    "options.");
+                    "options");
     registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_OUTPUT_FILE,
                     "The path to the output file to which the matching " +
                     "entries should be written.  If this is not provided, " +
-                    "then the data will be written to standard output.");
+                    "then the data will be written to standard output");
     registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_OVERWRITE_EXISTING,
                     "Indicates that any existing output file should be " +
-                    "overwritten rather than appending to it.");
+                    "overwritten rather than appending to it");
     registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_DONT_WRAP,
-                    "Indicates that long lines should not be wrapped.");
+                    "Indicates that long lines should not be wrapped");
     registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_SIZE_LIMIT,
                     "Specifies the maximum number of matching entries to " +
-                    "return.");
+                    "return");
     registerMessage(MSGID_LDIFSEARCH_DESCRIPTION_TIME_LIMIT,
                     "Specifies the maximum length of time (in seconds) to " +
-                    "spend processing.");
+                    "spend processing");
     registerMessage(MSGID_LDIFSEARCH_NO_FILTER,
                     "No search filter was specified.  Either a filter file " +
-                    "or an individual search filter must be provided.");
+                    "or an individual search filter must be provided");
     registerMessage(MSGID_LDIFSEARCH_CANNOT_INITIALIZE_JMX,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server JMX subsystem based on the information " +
-                    "in configuration file %s:  %s.");
+                    "in configuration file %s:  %s");
     registerMessage(MSGID_LDIFSEARCH_CANNOT_INITIALIZE_CONFIG,
                     "An error occurred while attempting to process the " +
-                    "Directory Server configuration file %s:  %s.");
+                    "Directory Server configuration file %s:  %s");
     registerMessage(MSGID_LDIFSEARCH_CANNOT_INITIALIZE_SCHEMA,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server schema based on the information in " +
-                    "configuration file %s:  %s.");
+                    "configuration file %s:  %s");
     registerMessage(MSGID_LDIFSEARCH_CANNOT_PARSE_FILTER,
                     "An error occurred while attempting to parse search " +
-                    "filter '%s':  %s.");
+                    "filter '%s':  %s");
     registerMessage(MSGID_LDIFSEARCH_CANNOT_PARSE_BASE_DN,
                     "An error occurred while attempting to parse base DN " +
-                    "'%s':  %s.");
+                    "'%s':  %s");
     registerMessage(MSGID_LDIFSEARCH_CANNOT_PARSE_TIME_LIMIT,
                     "An error occurred while attempting to parse the " +
-                    "time limit as an integer:  %s.");
+                    "time limit as an integer:  %s");
     registerMessage(MSGID_LDIFSEARCH_CANNOT_PARSE_SIZE_LIMIT,
                     "An error occurred while attempting to parse the " +
-                    "size limit as an integer:  %s.");
+                    "size limit as an integer:  %s");
     registerMessage(MSGID_LDIFSEARCH_CANNOT_CREATE_READER,
                     "An error occurred while attempting to create the LDIF " +
-                    "reader:  %s.");
+                    "reader:  %s");
     registerMessage(MSGID_LDIFSEARCH_CANNOT_CREATE_WRITER,
                     "An error occurred while attempting to create the LDIF " +
-                    "writer used to return matching entries:  %s.");
+                    "writer used to return matching entries:  %s");
     registerMessage(MSGID_LDIFSEARCH_TIME_LIMIT_EXCEEDED,
                     "The specified time limit has been exceeded during " +
-                    "search processing.");
+                    "search processing");
     registerMessage(MSGID_LDIFSEARCH_SIZE_LIMIT_EXCEEDED,
                     "The specified size limit has been exceeded during " +
-                    "search processing.");
+                    "search processing");
     registerMessage(MSGID_LDIFSEARCH_CANNOT_READ_ENTRY_RECOVERABLE,
                     "An error occurred while attempting to read an entry " +
                     "from the LDIF content:  %s.  Skipping this entry and " +
-                    "continuing processing.");
+                    "continuing processing");
     registerMessage(MSGID_LDIFSEARCH_CANNOT_READ_ENTRY_FATAL,
                     "An error occurred while attempting to read an entry " +
                     "from the LDIF content:  %s.  Unable to continue " +
-                    "processing.");
+                    "processing");
     registerMessage(MSGID_LDIFSEARCH_ERROR_DURING_PROCESSING,
                     "An unexpected error occurred during search processing:  " +
-                    "%s.");
+                    "%s");
 
 
     registerMessage(MSGID_LDIFDIFF_DESCRIPTION_SOURCE_LDIF,
-                    "Specifies the LDIF file to use as the source data.");
+                    "Specifies the LDIF file to use as the source data");
     registerMessage(MSGID_LDIFDIFF_DESCRIPTION_TARGET_LDIF,
-                    "Specifies the LDIF file to use as the target data.");
+                    "Specifies the LDIF file to use as the target data");
     registerMessage(MSGID_LDIFDIFF_DESCRIPTION_OUTPUT_LDIF,
                     "Specifies the file to which the output should be " +
-                    "written.");
+                    "written");
     registerMessage(MSGID_LDIFDIFF_DESCRIPTION_SINGLE_VALUE_CHANGES,
                     "Indicates that each attribute-level change should be " +
                     "written as a separate modification per attribute value " +
-                    "rather than one modification per entry.");
+                    "rather than one modification per entry");
     registerMessage(MSGID_LDIFDIFF_DESCRIPTION_OVERWRITE_EXISTING,
                     "Indicates that any existing output file should be " +
-                    "overwritten rather than appending to it.");
+                    "overwritten rather than appending to it");
     registerMessage(MSGID_LDIFDIFF_CANNOT_INITIALIZE_JMX,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server JMX subsystem based on the information " +
-                    "in configuration file %s:  %s.");
+                    "in configuration file %s:  %s");
     registerMessage(MSGID_LDIFDIFF_CANNOT_INITIALIZE_CONFIG,
                     "An error occurred while attempting to process the " +
-                    "Directory Server configuration file %s:  %s.");
+                    "Directory Server configuration file %s:  %s");
     registerMessage(MSGID_LDIFDIFF_CANNOT_INITIALIZE_SCHEMA,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server schema based on the information in " +
-                    "configuration file %s:  %s.");
+                    "configuration file %s:  %s");
     registerMessage(MSGID_LDIFDIFF_CANNOT_OPEN_SOURCE_LDIF,
                     "An error occurred while attempting to open source LDIF " +
-                    "%s:  %s.");
+                    "%s:  %s");
     registerMessage(MSGID_LDIFDIFF_ERROR_READING_SOURCE_LDIF,
                     "An error occurred while reading the contents of source " +
-                    "LDIF %s:  %s.");
+                    "LDIF %s:  %s");
     registerMessage(MSGID_LDIFDIFF_CANNOT_OPEN_TARGET_LDIF,
                     "An error occurred while attempting to open target LDIF " +
-                    "%s:  %s.");
+                    "%s:  %s");
     registerMessage(MSGID_LDIFDIFF_ERROR_READING_TARGET_LDIF,
                     "An error occurred while reading the contents of target " +
-                    "LDIF %s:  %s.");
+                    "LDIF %s:  %s");
     registerMessage(MSGID_LDIFDIFF_CANNOT_OPEN_OUTPUT,
                     "An error occurred while attempting to open the LDIF " +
-                    "writer for the diff output:  %s.");
+                    "writer for the diff output:  %s");
     registerMessage(MSGID_LDIFDIFF_NO_DIFFERENCES,
                     "No differences were detected between the source and " +
-                    "target LDIF files.");
+                    "target LDIF files");
     registerMessage(MSGID_LDIFDIFF_ERROR_WRITING_OUTPUT,
                     "An error occurred while attempting to write the diff " +
-                    "output:  %s.");
+                    "output:  %s");
 
 
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_LDAP_PORT,
                     "Specifies the port on which the Directory Server should " +
-                    "listen for LDAP communication.");
+                    "listen for LDAP communication");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_LDAPS_PORT,
                     "Specifies the port on which the Directory Server should " +
-                    "listen for LDAPS communication.");
+                    "listen for LDAPS communication");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_JMX_PORT,
                     "Specifies the port on which the Directory Server should " +
-                    "listen for JMX communication.");
+                    "listen for JMX communication");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_ENABLE_START_TLS,
-                    "Specifies whether to enable or not StartTLS.");
+                    "Specifies whether to enable or not StartTLS");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_KEYMANAGER_PROVIDER_DN,
                     "Specifies the DN of the key manager provider to use " +
-                    "for SSL and/or StartTLS.");
+                    "for SSL and/or StartTLS");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_TRUSTMANAGER_PROVIDER_DN,
                     "Specifies the DN of the trust manager provider to use " +
-                    "for SSL and/or StartTLS.");
+                    "for SSL and/or StartTLS");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_KEYMANAGER_PATH,
                     "Specifies the path of the keystore to be used by the " +
-                    "key manager provider.");
+                    "key manager provider");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_CERTNICKNAME,
                     "Specifies the nickname of the certificate that the " +
                     "connection handler should use when accepting SSL-based " +
-                    "connections or performing StartTLS negotiation.");
+                    "connections or performing StartTLS negotiation");
     registerMessage(MSGID_CONFIGDS_CANNOT_PARSE_KEYMANAGER_PROVIDER_DN,
                     "An error occurred while attempting to parse key manager " +
-                    "provider DN value \"%s\" as a DN:  %s.");
+                    "provider DN value \"%s\" as a DN:  %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_PARSE_TRUSTMANAGER_PROVIDER_DN,
                     "An error occurred while attempting to parse trust " +
-                    "manager provider DN value \"%s\" as a DN:  %s.");
+                    "manager provider DN value \"%s\" as a DN:  %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_ENABLE_STARTTLS,
                     "An error occurred while attempting to enable StartTLS: " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CONFIGDS_CANNOT_ENABLE_KEYMANAGER,
                     "An error occurred while attempting to enable key " +
-                    "manager provider entry: %s.");
+                    "manager provider entry: %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_ENABLE_TRUSTMANAGER,
                     "An error occurred while attempting to enable trust " +
-                    "manager provider entry: %s.");
+                    "manager provider entry: %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_KEYMANAGER_REFERENCE,
                     "An error occurred while attempting to update the key " +
                     "manager provider DN used for LDAPS communication: " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_TRUSTMANAGER_REFERENCE,
                     "An error occurred while attempting to update the trust " +
                     "manager provider DN used for LDAPS communication: " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CONFIGDS_KEYMANAGER_PROVIDER_DN_REQUIRED,
                     "ERROR:  You must provide the %s argument when providing " +
-                    "the %s argument.");
+                    "the %s argument");
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME,
                     "An error occurred while attempting to update the " +
                     "nickname of the certificate that the " +
                     "connection handler should use when accepting SSL-based " +
-                    "connections or performing StartTLS negotiation: %s.");
+                    "connections or performing StartTLS negotiation: %s");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_BASE_DN,
                     "Specifies the base DN for user information in the " +
                     "Directory Server.  Multiple base DNs may be provided " +
-                    "by using this option multiple times.");
+                    "by using this option multiple times");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_ROOT_DN,
                     "Specifies the DN for the initial root user for the " +
-                    "Directory Server.");
+                    "Directory Server");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_ROOT_PW,
                     "Specifies the password for the initial root user for " +
-                    "the Directory Server.");
+                    "the Directory Server");
     registerMessage(MSGID_CONFIGDS_DESCRIPTION_ROOT_PW_FILE,
                     "Specifies the path to a file containing the password " +
-                    "for the initial root user for the Directory Server.");
+                    "for the initial root user for the Directory Server");
     registerMessage(MSGID_CONFIGDS_CANNOT_ACQUIRE_SERVER_LOCK,
                     "An error occurred while attempting to acquire the " +
                     "server-wide lock file %s:  %s.  This generally means " +
                     "that the Directory Server is running, or another tool " +
-                    "that requires exclusive access to the server is in use.");
+                    "that requires exclusive access to the server is in use");
     registerMessage(MSGID_CONFIGDS_CANNOT_INITIALIZE_JMX,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server JMX subsystem based on the information " +
-                    "in configuration file %s:  %s.");
+                    "in configuration file %s:  %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_INITIALIZE_CONFIG,
                     "An error occurred while attempting to process the " +
-                    "Directory Server configuration file %s:  %s.");
+                    "Directory Server configuration file %s:  %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_INITIALIZE_SCHEMA,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server schema based on the information in " +
-                    "configuration file %s:  %s.");
+                    "configuration file %s:  %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_PARSE_BASE_DN,
                     "An error occurred while attempting to parse base DN " +
-                    "value \"%s\" as a DN:  %s.");
+                    "value \"%s\" as a DN:  %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_PARSE_ROOT_DN,
                     "An error occurred while attempting to parse root DN " +
-                    "value \"%s\" as a DN:  %s.");
+                    "value \"%s\" as a DN:  %s");
     registerMessage(MSGID_CONFIGDS_NO_ROOT_PW,
                     "The DN for the initial root user was provided, but no " +
                     "corresponding password was given.  If the root DN is " +
-                    "specified then the password must also be provided.");
+                    "specified then the password must also be provided");
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_BASE_DN,
                     "An error occurred while attempting to update the base " +
-                    "DN(s) for user data in the Directory Server:  %s.");
+                    "DN(s) for user data in the Directory Server:  %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_LDAP_PORT,
                     "An error occurred while attempting to update the port " +
-                    "on which to listen for LDAP communication:  %s.");
+                    "on which to listen for LDAP communication:  %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_LDAPS_PORT,
                     "An error occurred while attempting to update the port " +
-                    "on which to listen for LDAPS communication:  %s.");
+                    "on which to listen for LDAPS communication:  %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_JMX_PORT,
                     "An error occurred while attempting to update the port " +
-                    "on which to listen for JMX communication:  %s.");
+                    "on which to listen for JMX communication:  %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_UPDATE_ROOT_USER,
                     "An error occurred while attempting to update the entry " +
-                    "for the initial Directory Server root user:  %s.");
+                    "for the initial Directory Server root user:  %s");
     registerMessage(MSGID_CONFIGDS_CANNOT_WRITE_UPDATED_CONFIG,
                     "An error occurred while writing the updated Directory " +
-                    "Server configuration:  %s.");
+                    "Server configuration:  %s");
     registerMessage(MSGID_CONFIGDS_NO_CONFIG_CHANGES,
-                    "ERROR:  No configuration changes were specified.");
+                    "ERROR:  No configuration changes were specified");
     registerMessage(MSGID_CONFIGDS_WROTE_UPDATED_CONFIG,
                     "Successfully wrote the updated Directory Server " +
-                    "configuration.");
+                    "configuration");
 
 
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_TESTONLY,
-                    "Just verify that the JVM can be started properly.");
+                    "Just verify that the JVM can be started properly");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_PROGNAME,
-                    "The setup command used to invoke this program.");
+                    "The setup command used to invoke this program");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_CLI,
-                    "Launch the installer in command-line mode (no GUI).");
+                    "Launch the installer in command-line mode (no GUI)");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_SILENT,
-                    "Perform a silent installation.");
+                    "Perform a silent installation");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_BASEDN,
                     "Specifies the base DN for user information in the " +
                     "Directory Server.  Multiple base DNs may be provided " +
-                    "by using this option multiple times.");
+                    "by using this option multiple times");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_ADDBASE,
                     "Indicates whether to create the base entry in the " +
-                    "Directory Server database.");
+                    "Directory Server database");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_IMPORTLDIF,
                     "Specifies the path to an LDIF file containing data that " +
                     "should be added to the Directory Server database.  " +
                     "Multiple LDIF files may be provided by using this " +
-                    "option multiple times.");
+                    "option multiple times");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_SAMPLE_DATA,
                     "Specifies that the database should be populated with " +
-                    "the specified number of sample entries.");
+                    "the specified number of sample entries");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_LDAPPORT,
                     "Specifies the port on which the Directory Server should " +
-                    "listen for LDAP communication.");
+                    "listen for LDAP communication");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_JMXPORT,
                     "Specifies the port on which the Directory Server should " +
-                    "listen for JMX communication.");
+                    "listen for JMX communication");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_SKIPPORT,
                     "Skip the check to determine whether the specified LDAP " +
-                    "port is usable.");
+                    "port is usable");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_ROOTDN,
                     "Specifies the DN for the initial root user for the " +
-                    "Directory Server.");
+                    "Directory Server");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_ROOTPW,
                     "Specifies the password for the initial root user for " +
-                    "the Directory Server.");
+                    "the Directory Server");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_ROOTPWFILE,
                     "Specifies the path to a file containing the password " +
-                    "for the initial root user for the Directory Server.");
+                    "for the initial root user for the Directory Server");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_NO_WINDOWS_SERVICE,
-                    "Do not enable OpenDS to run as a Windows Service.");
+                    "Do not enable OpenDS to run as a Windows Service");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_HELP,
-                    "Display this usage information.");
+                    "Display this usage information");
     registerMessage(MSGID_INSTALLDS_NO_CONFIG_FILE,
                     "ERROR:  No configuration file path was provided (use " +
-                    "the %s argument).");
+                    "the %s argument)");
     registerMessage(MSGID_INSTALLDS_INITIALIZING,
-                    "Please wait while the setup program initializes....");
+                    "Please wait while the setup program initializes...");
     registerMessage(MSGID_INSTALLDS_CANNOT_INITIALIZE_JMX,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server JMX subsystem based on the information " +
-                    "in configuration file %s:  %s.");
+                    "in configuration file %s:  %s");
     registerMessage(MSGID_INSTALLDS_CANNOT_INITIALIZE_CONFIG,
                     "An error occurred while attempting to process the " +
-                    "Directory Server configuration file %s:  %s.");
+                    "Directory Server configuration file %s:  %s");
     registerMessage(MSGID_INSTALLDS_CANNOT_INITIALIZE_SCHEMA,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server schema based on the information in " +
-                    "configuration file %s:  %s.");
+                    "configuration file %s:  %s");
     registerMessage(MSGID_INSTALLDS_CANNOT_PARSE_DN,
                     "An error occurred while attempting to parse the string " +
-                    "\"%s\" as a valid DN:  %s.");
+                    "\"%s\" as a valid DN:  %s");
     registerMessage(MSGID_INSTALLDS_PROMPT_BASEDN,
                     "What do you wish to use as the base DN for the " +
                     "directory data?");
@@ -8300,10 +8300,10 @@ public class ToolMessages
                     "information from an existing LDIF file?");
     registerMessage(MSGID_INSTALLDS_PROMPT_IMPORT_FILE,
                     "Please specify the path to the LDIF file containing " +
-                    "the data to import.");
+                    "the data to import");
     registerMessage(MSGID_INSTALLDS_TWO_CONFLICTING_ARGUMENTS,
                     "ERROR:  You may not provide both the %s and the %s " +
-                    "arguments at the same time.");
+                    "arguments at the same time");
     registerMessage(MSGID_INSTALLDS_PROMPT_ADDBASE,
                     "Would you like to have the base %s entry automatically " +
                     "created in the directory database?");
@@ -8320,18 +8320,18 @@ public class ToolMessages
                     "already be in use, or you may not have permission to " +
                     "bind to it.  On UNIX-based operating systems, non-root " +
                     "users may not be allowed to bind to ports 1 through " +
-                    "1024.");
+                    "1024");
     registerMessage(MSGID_INSTALLDS_CANNOT_BIND_TO_PORT,
                     "ERROR:  Unable to bind to port %d.  This port may " +
                     "already be in use, or you may not have permission to " +
-                    "bind to it.");
+                    "bind to it");
     registerMessage(MSGID_INSTALLDS_PROMPT_ROOT_DN,
                     "What would you like to use as the initial root user DN " +
                     "for the Directory Server?");
     registerMessage(MSGID_INSTALLDS_NO_ROOT_PASSWORD,
                     "ERROR:  No password was provided for the initial root "+
                     "user.  When performing a silent installation, this must " +
-                    "be provided using either the %s or the %s argument.");
+                    "be provided using either the %s or the %s argument");
     registerMessage(MSGID_INSTALLDS_PROMPT_ROOT_PASSWORD,
                     "Please provide the password to use for the initial root " +
                     "user");
@@ -8339,51 +8339,51 @@ public class ToolMessages
                     "Please re-enter the password for confirmation");
     registerMessage(MSGID_INSTALLDS_STATUS_CONFIGURING_DS,
                     "Applying the requested configuration to the " +
-                    "Directory Server....");
+                    "Directory Server...");
     registerMessage(MSGID_INSTALLDS_STATUS_CREATING_BASE_LDIF,
                     "Creating a temporary LDIF file with the initial base " +
-                    "entry contents....");
+                    "entry contents...");
     registerMessage(MSGID_INSTALLDS_CANNOT_CREATE_BASE_ENTRY_LDIF,
                     "An error occurred while attempting to create the " +
-                    "base LDIF file:  %s.");
+                    "base LDIF file:  %s");
     registerMessage(MSGID_INSTALLDS_STATUS_IMPORTING_LDIF,
                     "Importing the LDIF data into the Directory Server " +
-                    "database....");
+                    "database...");
     registerMessage(MSGID_INSTALLDS_IMPORT_SUCCESSFUL,
-                    "Import complete.");
+                    "Import complete");
     registerMessage(MSGID_INSTALLDS_IMPORT_UNSUCCESSFUL,
-                    "Import failed.");
+                    "Import failed");
     registerMessage(MSGID_INSTALLDS_STATUS_SUCCESS,
                     "The " + SHORT_NAME + " setup process has completed " +
-                    "successfully.");
+                    "successfully");
     registerMessage(MSGID_INSTALLDS_PROMPT_VALUE_YES, "yes");
     registerMessage(MSGID_INSTALLDS_PROMPT_VALUE_NO, "no");
     registerMessage(MSGID_INSTALLDS_INVALID_YESNO_RESPONSE,
                     "ERROR:  The provided value could not be interpreted as " +
                     "a yes or no response.  Please enter a response of " +
-                    "either \"yes\" or \"no\".");
+                    "either \"yes\" or \"no\"");
     registerMessage(MSGID_INSTALLDS_INVALID_INTEGER_RESPONSE,
                     "ERROR:  The provided response could not be interpreted " +
                     "as an integer.  Please provide the repsonse as an " +
-                    "integer value.");
+                    "integer value");
     registerMessage(MSGID_INSTALLDS_INTEGER_BELOW_LOWER_BOUND,
                     "ERROR:  The provided value is less than the lowest " +
-                    "allowed value of %d.");
+                    "allowed value of %d");
     registerMessage(MSGID_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND,
                     "ERROR:  The provided value is greater than the largest " +
-                    "allowed value of %d.");
+                    "allowed value of %d");
     registerMessage(MSGID_INSTALLDS_INVALID_DN_RESPONSE,
                     "ERROR:  The provided response could not be interpreted " +
-                    "as an LDAP DN.");
+                    "as an LDAP DN");
     registerMessage(MSGID_INSTALLDS_INVALID_STRING_RESPONSE,
-                    "ERROR:  The response value may not be an empty string.");
+                    "ERROR:  The response value may not be an empty string");
     registerMessage(MSGID_INSTALLDS_INVALID_PASSWORD_RESPONSE,
-                    "ERROR:  The password value may not be an empty string.");
+                    "ERROR:  The password value may not be an empty string");
     registerMessage(MSGID_INSTALLDS_PASSWORDS_DONT_MATCH,
-                    "ERROR:  The provided password values do not match.");
+                    "ERROR:  The provided password values do not match");
     registerMessage(MSGID_INSTALLDS_ERROR_READING_FROM_STDIN,
                     "ERROR:  Unexpected failure while reading from standard " +
-                    "input:  %s.");
+                    "input:  %s");
     registerMessage(MSGID_INSTALLDS_HEADER_POPULATE_TYPE,
                     "Options for populating the database:");
     registerMessage(MSGID_INSTALLDS_POPULATE_OPTION_BASE_ONLY,
@@ -8397,423 +8397,423 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_PROMPT_POPULATE_CHOICE,
                     "Database population selection:");
     registerMessage(MSGID_INSTALLDS_NO_SUCH_LDIF_FILE,
-                    "ERROR:  The specified LDIF file %s does not exist.");
+                    "ERROR:  The specified LDIF file %s does not exist");
     registerMessage(MSGID_INSTALLDS_PROMPT_NUM_ENTRIES,
                     "Please specify the number of user entries to generate:");
     registerMessage(MSGID_INSTALLDS_CANNOT_CREATE_TEMPLATE_FILE,
                     "ERROR:  Cannot create the template file for generating " +
-                    "sample data:  %s.");
+                    "sample data:  %s");
     registerMessage(MSGID_INSTALLDS_ENABLING_WINDOWS_SERVICE,
-                    "Enabling OpenDS as a Windows service....");
+                    "Enabling OpenDS as a Windows service...");
 
 
     registerMessage(MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT,
                     "Invalid number of arguments provided for tag %s on line " +
-                    "number %d of the template file:  expected %d, got %d.");
+                    "number %d of the template file:  expected %d, got %d");
     registerMessage(MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT,
                     "Invalid number of arguments provided for tag %s on line " +
                     "number %d of the template file:  expected between %d " +
-                    "and %d, got %d.");
+                    "and %d, got %d");
     registerMessage(MSGID_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE,
                     "Undefined attribute %s referenced on line %d of the " +
-                    "template file.");
+                    "template file");
     registerMessage(MSGID_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND,
                     "Value %d is below the lowest allowed value of %d for " +
-                    "tag %s on line %d of the template file.");
+                    "tag %s on line %d of the template file");
     registerMessage(MSGID_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER,
                     "Cannot parse value \"%s\" as an integer for tag %s on " +
-                    "line %d of the template file.");
+                    "line %d of the template file");
     registerMessage(MSGID_MAKELDIF_TAG_INTEGER_ABOVE_UPPER_BOUND,
                     "Value %d is above the largest allowed value of %d for " +
-                    "tag %s on line %d of the template file.");
+                    "tag %s on line %d of the template file");
     registerMessage(MSGID_MAKELDIF_TAG_INVALID_EMPTY_STRING_ARGUMENT,
                     "Argument %d for tag %s on line number %d may not be an " +
-                    "empty string.");
+                    "empty string");
     registerMessage(MSGID_MAKELDIF_TAG_CANNOT_PARSE_AS_BOOLEAN,
                     "Cannot parse value \"%s\" as a Boolean value for tag %s " +
                     "on line %d of the template file.  The value must be " +
-                    "either 'true' or 'false'.");
+                    "either 'true' or 'false'");
     registerMessage(MSGID_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE,
                     "The branch with entry DN %s references a subordinate " +
                     "template named %s which is not defined in the template " +
-                    "file.");
+                    "file");
     registerMessage(MSGID_MAKELDIF_CANNOT_LOAD_TAG_CLASS,
-                    "Unable to load class %s for use as a MakeLDIF tag.");
+                    "Unable to load class %s for use as a MakeLDIF tag");
     registerMessage(MSGID_MAKELDIF_CANNOT_INSTANTIATE_TAG,
-                    "Cannot instantiate class %s as a MakeLDIF tag.");
+                    "Cannot instantiate class %s as a MakeLDIF tag");
     registerMessage(MSGID_MAKELDIF_CONFLICTING_TAG_NAME,
                     "Cannot register the tag defined in class %s because " +
                     "the tag name %s conflicts with the name of another " +
-                    "tag that has already been registered.");
+                    "tag that has already been registered");
     registerMessage(MSGID_MAKELDIF_WARNING_UNDEFINED_CONSTANT,
                     "Possible reference to an undefined constant %s on line " +
-                    "%d.");
+                    "%d");
     registerMessage(MSGID_MAKELDIF_DEFINE_MISSING_EQUALS,
                     "The constant definition on line %d is missing an " +
-                    "equal sign to delimit the constant name from the value.");
+                    "equal sign to delimit the constant name from the value");
     registerMessage(MSGID_MAKELDIF_DEFINE_NAME_EMPTY,
                     "The constant definition on line %d does not include a " +
-                    "name for the constant.");
+                    "name for the constant");
     registerMessage(MSGID_MAKELDIF_CONFLICTING_CONSTANT_NAME,
                     "The definition for constant %s on line %d conflicts " +
                     "with an earlier constant definition included in the " +
-                    "template.");
+                    "template");
     registerMessage(MSGID_MAKELDIF_WARNING_DEFINE_VALUE_EMPTY,
                     "Constant %s defined on line %d has not been assigned a " +
-                    "value.");
+                    "value");
     registerMessage(MSGID_MAKELDIF_CONFLICTING_BRANCH_DN,
                     "The branch definition %s starting on line %d conflicts " +
                     "with an earlier branch definition contained in the " +
-                    "template file.");
+                    "template file");
     registerMessage(MSGID_MAKELDIF_CONFLICTING_TEMPLATE_NAME,
                     "The template definition %s starting on line %d " +
                     "conflicts with an earlier template definition contained " +
-                    "in the template file.");
+                    "in the template file");
     registerMessage(MSGID_MAKELDIF_UNEXPECTED_TEMPLATE_FILE_LINE,
                     "Unexpected template line \"%s\" encountered on line %d " +
-                    "of the template file.");
+                    "of the template file");
     registerMessage(MSGID_MAKELDIF_UNDEFINED_TEMPLATE_SUBORDINATE,
                     "The template named %s references a subordinate template " +
-                    "named %s which is not defined in the template file.");
+                    "named %s which is not defined in the template file");
     registerMessage(MSGID_MAKELDIF_TEMPLATE_MISSING_RDN_ATTR,
                     "The template named %s includes RDN attribute %s that " +
-                    "is not assigned a value in that template.");
+                    "is not assigned a value in that template");
     registerMessage(MSGID_MAKELDIF_CANNOT_DECODE_BRANCH_DN,
                     "Unable to decode branch DN \"%s\" on line %d of the " +
-                    "template file.");
+                    "template file");
     registerMessage(MSGID_MAKELDIF_BRANCH_SUBORDINATE_TEMPLATE_NO_COLON,
                     "Subordinate template definition on line %d for branch " +
                     "%s is missing a colon to separate the template name " +
-                    "from the number of entries.");
+                    "from the number of entries");
     registerMessage(MSGID_MAKELDIF_BRANCH_SUBORDINATE_INVALID_NUM_ENTRIES,
                     "Subordinate template definition on line %d for branch " +
                     "%s specified invalid number of entries %d for template " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_MAKELDIF_BRANCH_SUBORDINATE_ZERO_ENTRIES,
                     "Subordinate template definition on line %d for branch " +
                     "%s specifies that zero entries of type %s should be " +
-                    "generated.");
+                    "generated");
     registerMessage(MSGID_MAKELDIF_BRANCH_SUBORDINATE_CANT_PARSE_NUMENTRIES,
                     "Unable to parse the number of entries for template %s " +
                     "as an integer for the subordinate template definition " +
-                    "on line %d for branch %s.");
+                    "on line %d for branch %s");
     registerMessage(MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_TEMPLATE_NO_COLON,
                     "Subordinate template definition on line %d for template " +
                     "%s is missing a colon to separate the template name " +
-                    "from the number of entries.");
+                    "from the number of entries");
     registerMessage(MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_INVALID_NUM_ENTRIES,
                     "Subordinate template definition on line %d for template " +
                     "%s specified invalid number of entries %d for " +
-                    "subordinate template %s.");
+                    "subordinate template %s");
     registerMessage(MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_ZERO_ENTRIES,
                     "Subordinate template definition on line %d for template " +
                     "%s specifies that zero entries of type %s should be " +
-                    "generated.");
+                    "generated");
     registerMessage(MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_CANT_PARSE_NUMENTRIES,
                     "Unable to parse the number of entries for template %s " +
                     "as an integer for the subordinate template definition " +
-                    "on line %d for template %s.");
+                    "on line %d for template %s");
     registerMessage(MSGID_MAKELDIF_NO_COLON_IN_BRANCH_EXTRA_LINE,
                     "There is no colon to separate the attribute name from " +
                     "the value pattern on line %s of the template file in " +
-                    "the definition for branch %s.");
+                    "the definition for branch %s");
     registerMessage(MSGID_MAKELDIF_NO_ATTR_IN_BRANCH_EXTRA_LINE,
                     "There is no attribute name before the colon on line %d " +
-                    "of the template file in the definition for branch %s.");
+                    "of the template file in the definition for branch %s");
     registerMessage(MSGID_MAKELDIF_NO_VALUE_IN_BRANCH_EXTRA_LINE,
                     "The value pattern for line %s of the template file in " +
-                    "the definition for branch %s is empty.");
+                    "the definition for branch %s is empty");
     registerMessage(MSGID_MAKELDIF_INCOMPLETE_TAG,
                     "Line %d of the template file contains an incomplete " +
                     "tag that starts with either '<' or '{' but does get " +
-                    "closed.");
+                    "closed");
     registerMessage(MSGID_MAKELDIF_NO_COLON_IN_TEMPLATE_LINE,
                     "There is no colon to separate the attribute name from " +
                     "the value pattern on line %s of the template file in " +
-                    "the definition for template %s.");
+                    "the definition for template %s");
     registerMessage(MSGID_MAKELDIF_NO_ATTR_IN_TEMPLATE_LINE,
                     "There is no attribute name before the colon on line %d " +
-                    "of the template file in the definition for template %s.");
+                    "of the template file in the definition for template %s");
     registerMessage(MSGID_MAKELDIF_NO_VALUE_IN_TEMPLATE_LINE,
                     "The value pattern for line %s of the template file in " +
-                    "the definition for template %s is empty.");
+                    "the definition for template %s is empty");
     registerMessage(MSGID_MAKELDIF_NO_SUCH_TAG,
                     "An undefined tag %s is referenced on line %d of the " +
-                    "template file.");
+                    "template file");
     registerMessage(MSGID_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG,
                     "An unexpected error occurred while trying to create a " +
                     "new instance of tag %s referenced on line %d of the " +
-                    "template file:  %s.");
+                    "template file:  %s");
     registerMessage(MSGID_MAKELDIF_TAG_NOT_ALLOWED_IN_BRANCH,
                     "Tag %s referenced on line %d of the template file is " +
-                    "not allowed for use in branch definitions.");
+                    "not allowed for use in branch definitions");
     registerMessage(MSGID_MAKELDIF_DESCRIPTION_RESOURCE_PATH,
                     "Specifies the path to look for MakeLDIF resources " +
                     "(e.g., data files) not found in the current working " +
-                    "directory or template directory path.");
+                    "directory or template directory path");
     registerMessage(MSGID_MAKELDIF_DESCRIPTION_TEMPLATE,
                     "The path to the template file with information about " +
-                    "the LDIF data to generate.");
+                    "the LDIF data to generate");
     registerMessage(MSGID_MAKELDIF_DESCRIPTION_LDIF,
-                    "The path to the LDIF file to be written.");
+                    "The path to the LDIF file to be written");
     registerMessage(MSGID_MAKELDIF_DESCRIPTION_SEED,
                     "The seed to use to initialize the random number " +
-                    "generator.");
+                    "generator");
     registerMessage(MSGID_MAKELDIF_DESCRIPTION_HELP,
-                    "Show this usage information.");
+                    "Show this usage information");
     registerMessage(MSGID_MAKELDIF_CANNOT_INITIALIZE_JMX,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server JMX subsystem based on the information " +
-                    "in configuration file %s:  %s.");
+                    "in configuration file %s:  %s");
     registerMessage(MSGID_MAKELDIF_CANNOT_INITIALIZE_CONFIG,
                     "An error occurred while attempting to process the " +
-                    "Directory Server configuration file %s:  %s.");
+                    "Directory Server configuration file %s:  %s");
     registerMessage(MSGID_MAKELDIF_CANNOT_INITIALIZE_SCHEMA,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server schema based on the information in " +
-                    "configuration file %s:  %s.");
+                    "configuration file %s:  %s");
     registerMessage(MSGID_MAKELDIF_IOEXCEPTION_DURING_PARSE,
                     "An error occurred while attempting to read the " +
-                    "template file:  %s.");
+                    "template file:  %s");
     registerMessage(MSGID_MAKELDIF_EXCEPTION_DURING_PARSE,
                     "An error occurred while attempting to parse the " +
-                    "template file:  %s.");
+                    "template file:  %s");
     registerMessage(MSGID_MAKELDIF_TAG_INVALID_FORMAT_STRING,
                     "Cannot parse value \"%s\" as an valid format string for " +
-                    "tag %s on line %d of the template file.");
+                    "tag %s on line %d of the template file");
     registerMessage(MSGID_MAKELDIF_TAG_NO_RANDOM_TYPE_ARGUMENT,
                     "The random tag on line %d of the template file does " +
                     "not include an argument to specify the type of random " +
-                    "value that should be generated.");
+                    "value that should be generated");
     registerMessage(MSGID_MAKELDIF_TAG_WARNING_EMPTY_VALUE,
                     "The value generated from the random tag on line %d of " +
-                    "the template file will always be an empty string.");
+                    "the template file will always be an empty string");
     registerMessage(MSGID_MAKELDIF_TAG_UNKNOWN_RANDOM_TYPE,
                     "The random tag on line %d of the template file " +
-                    "references an unknown random type of %s.");
+                    "references an unknown random type of %s");
     registerMessage(MSGID_MAKELDIF_COULD_NOT_FIND_TEMPLATE_FILE,
-                    "Could not find template file %s.");
+                    "Could not find template file %s");
     registerMessage(MSGID_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY,
-                    "The specified resource directory %s could not be found.");
+                    "The specified resource directory %s could not be found");
     registerMessage(MSGID_MAKELDIF_RESOURCE_DIRECTORY_NOT_DIRECTORY,
                     "The specified resource directory %s exists but is not a " +
-                    "directory.");
+                    "directory");
     registerMessage(MSGID_MAKELDIF_TAG_CANNOT_FIND_FILE,
                     "Cannot find file %s referenced by tag %s on line %d of " +
-                    "the template file.");
+                    "the template file");
     registerMessage(MSGID_MAKELDIF_TAG_INVALID_FILE_ACCESS_MODE,
                     "Invalid file access mode %s for tag %s on line %d of " +
                     "the template file.  It must be either \"sequential\" or " +
-                    "\"random\".");
+                    "\"random\"");
     registerMessage(MSGID_MAKELDIF_TAG_CANNOT_READ_FILE,
                     "An error occurred while trying to read file %s " +
                     "referenced by tag %s on line %d of the template file:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_MAKELDIF_UNABLE_TO_CREATE_LDIF,
                     "An error occurred while attempting to open LDIF file %s " +
-                    "for writing:  %s.");
+                    "for writing:  %s");
     registerMessage(MSGID_MAKELDIF_ERROR_WRITING_LDIF,
                     "An error occurred while writing data to LDIF file %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_MAKELDIF_PROCESSED_N_ENTRIES,
-                    "Processed %d entries.");
+                    "Processed %d entries");
     registerMessage(MSGID_MAKELDIF_CANNOT_WRITE_ENTRY,
                     "An error occurred while attempting to write entry %s to " +
-                    "LDIF:  %s.");
+                    "LDIF:  %s");
     registerMessage(MSGID_MAKELDIF_PROCESSING_COMPLETE,
-                    "LDIF processing complete.  %d entries written.");
+                    "LDIF processing complete.  %d entries written");
 
 
     registerMessage(MSGID_LDIFMODIFY_CANNOT_ADD_ENTRY_TWICE,
                     "Entry %s is added twice in the set of changes to apply, " +
-                    "which is not supported by the LDIF modify tool.");
+                    "which is not supported by the LDIF modify tool");
     registerMessage(MSGID_LDIFMODIFY_CANNOT_DELETE_AFTER_ADD,
                     "Entry %s cannot be deleted because it was previously " +
                     "added in the set of changes.  This is not supported by " +
-                    "the LDIF modify tool.");
+                    "the LDIF modify tool");
     registerMessage(MSGID_LDIFMODIFY_CANNOT_MODIFY_ADDED_OR_DELETED,
                     "Cannot modify entry %s because it was previously added " +
                     "or deleted in the set of changes.  This is not " +
-                    "supported by the LDIF modify tool.");
+                    "supported by the LDIF modify tool");
     registerMessage(MSGID_LDIFMODIFY_MODDN_NOT_SUPPORTED,
                     "The modify DN operation targeted at entry %s cannot be " +
                     "processed because modify DN operations are not " +
-                    "supported by the LDIF modify tool.");
+                    "supported by the LDIF modify tool");
     registerMessage(MSGID_LDIFMODIFY_UNKNOWN_CHANGETYPE,
-                    "Entry %s has an unknown changetype of %s.");
+                    "Entry %s has an unknown changetype of %s");
     registerMessage(MSGID_LDIFMODIFY_ADD_ALREADY_EXISTS,
                     "Unable to add entry %s because it already exists in " +
-                    "the data set.");
+                    "the data set");
     registerMessage(MSGID_LDIFMODIFY_DELETE_NO_SUCH_ENTRY,
                     "Unable to delete entry %s because it does not exist " +
-                    "in the data set.");
+                    "in the data set");
     registerMessage(MSGID_LDIFMODIFY_MODIFY_NO_SUCH_ENTRY,
                     "Unable to modify entry %s because it does not exist " +
-                    "in the data set.");
+                    "in the data set");
     registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_SOURCE,
                     "Specifies the LDIF file containing the data to be " +
-                    "updated.");
+                    "updated");
     registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_CHANGES,
-                    "Specifies the LDIF file containing the changes to apply.");
+                    "Specifies the LDIF file containing the changes to apply");
     registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_TARGET,
                     "Specifies the file to which the updated data should be " +
-                    "written.");
+                    "written");
     registerMessage(MSGID_LDIFMODIFY_DESCRIPTION_HELP,
-                    "Displays this usage information.");
+                    "Displays this usage information");
     registerMessage(MSGID_LDIFMODIFY_CANNOT_INITIALIZE_JMX,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server JMX subsystem based on the information " +
-                    "in configuration file %s:  %s.");
+                    "in configuration file %s:  %s");
     registerMessage(MSGID_LDIFMODIFY_CANNOT_INITIALIZE_CONFIG,
                     "An error occurred while attempting to process the " +
-                    "Directory Server configuration file %s:  %s.");
+                    "Directory Server configuration file %s:  %s");
     registerMessage(MSGID_LDIFMODIFY_CANNOT_INITIALIZE_SCHEMA,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server schema based on the information in " +
-                    "configuration file %s:  %s.");
+                    "configuration file %s:  %s");
     registerMessage(MSGID_LDIFMODIFY_SOURCE_DOES_NOT_EXIST,
-                    "The source LDIF file %s does not exist.");
+                    "The source LDIF file %s does not exist");
     registerMessage(MSGID_LDIFMODIFY_CANNOT_OPEN_SOURCE,
-                    "Unable to open the source LDIF file %s:  %s.");
+                    "Unable to open the source LDIF file %s:  %s");
     registerMessage(MSGID_LDIFMODIFY_CHANGES_DOES_NOT_EXIST,
-                    "The changes LDIF file %s does not exist.");
+                    "The changes LDIF file %s does not exist");
     registerMessage(MSGID_LDIFMODIFY_CANNOT_OPEN_CHANGES,
-                    "Unable to open the changes LDIF file %s:  %s.");
+                    "Unable to open the changes LDIF file %s:  %s");
     registerMessage(MSGID_LDIFMODIFY_CANNOT_OPEN_TARGET,
-                    "Unable to open the target LDIF file %s for writing:  %s.");
+                    "Unable to open the target LDIF file %s for writing:  %s");
     registerMessage(MSGID_LDIFMODIFY_ERROR_PROCESSING_LDIF,
                     "An error occurred while processing the requested " +
-                    "changes:  %s.");
+                    "changes:  %s");
 
 
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_HOST,
-                    "Specifies the address of the Directory Server system.");
+                    "Specifies the address of the Directory Server system");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_PORT,
                     "Specifies the port in which the Directory Server is " +
-                    "listening for LDAP client connections.");
+                    "listening for LDAP client connections");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_BIND_DN,
-                    "Specifies the DN to use to bind to the server.");
+                    "Specifies the DN to use to bind to the server");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_BIND_PW,
-                    "Specifies the password to use to bind to the server.");
+                    "Specifies the password to use to bind to the server");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_BIND_PW_FILE,
                     "Specifies the path to a file containing the password to "+
-                    "use to bind to the server.");
+                    "use to bind to the server");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_AUTHZID,
                     "Specifies the authorization ID for the user entry whose " +
-                    "password should be changed.");
+                    "password should be changed");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_PROVIDE_DN_FOR_AUTHZID,
                     "Indicates that the bind DN should be used as the " +
-                    "authorization ID for the password modify operation.");
+                    "authorization ID for the password modify operation");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_NEWPW,
                     "Specifies the new password to provide for the target " +
-                    "user.");
+                    "user");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_NEWPWFILE,
                     "Specifies the path to a file containing the new " +
-                    "password to provide for the target user.");
+                    "password to provide for the target user");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_CURRENTPW,
-                    "Specifies the current password for the target user.");
+                    "Specifies the current password for the target user");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE,
                     "Specifies the path to a file containing the current " +
-                    "password for the target user.");
+                    "password for the target user");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_USE_SSL,
                     "Use SSL to secure the communication with the Directory " +
-                    "Server.");
+                    "Server");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_USE_STARTTLS,
                     "Use StartTLS to secure the communication with the " +
-                    "Directory Server.");
+                    "Directory Server");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_BLIND_TRUST,
                     "Blindly trust any SSL certificate presented by the " +
-                    "server.");
+                    "server");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE,
                     "The path to the keystore to use when establishing " +
-                    "SSL/TLS communication with the server.");
+                    "SSL/TLS communication with the server");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PIN,
-                    "The PIN needed to access the contents of the keystore.");
+                    "The PIN needed to access the contents of the keystore");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE,
                     "The path to a file containing the PIN needed " +
-                    "to access the contents of the keystore.");
+                    "to access the contents of the keystore");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE,
                     "The path to the trust store to use when establishing " +
-                    "SSL/TLS communication with the server.");
+                    "SSL/TLS communication with the server");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PIN,
                     "The PIN needed to access the contents of the trust " +
-                    "store.");
+                    "store");
     registerMessage(MSGID_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE,
                     "The path to a file containing the PIN needed to access" +
-                    "the contents of the trust store.");
+                    "the contents of the trust store");
     registerMessage(MSGID_LDAPPWMOD_CONFLICTING_ARGS,
-                    "The %s and %s arguments may not be provided together.");
+                    "The %s and %s arguments may not be provided together");
     registerMessage(MSGID_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER,
                     "If either a bind DN or bind password is provided, then " +
-                    "the other must be given as well.");
+                    "the other must be given as well");
     registerMessage(MSGID_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW,
                     "If a bind DN and password are not provided, then an " +
-                    "authorization ID and current password must be given.");
+                    "authorization ID and current password must be given");
     registerMessage(MSGID_LDAPPWMOD_DEPENDENT_ARGS,
                     "If the %s argument is provided, then the  %s argument " +
-                    "must also be given.");
+                    "must also be given");
     registerMessage(MSGID_LDAPPWMOD_ERROR_INITIALIZING_SSL,
-                    "Unable to initialize SSL/TLS support:  %s.");
+                    "Unable to initialize SSL/TLS support:  %s");
     registerMessage(MSGID_LDAPPWMOD_CANNOT_CONNECT,
                     "An error occurred while attempting to connect to the" +
-                    "Directory Server:  %s.");
+                    "Directory Server:  %s");
     registerMessage(MSGID_LDAPPWMOD_CANNOT_SEND_PWMOD_REQUEST,
-                    "Unable to send the LDAP password modify request:  %s.");
+                    "Unable to send the LDAP password modify request:  %s");
     registerMessage(MSGID_LDAPPWMOD_CANNOT_READ_PWMOD_RESPONSE,
-                    "Unable to read the LDAP password modify response:  %s.");
+                    "Unable to read the LDAP password modify response:  %s");
     registerMessage(MSGID_LDAPPWMOD_FAILED,
                     "The LDAP password modify operation failed with result " +
-                    "code %d.");
+                    "code %d");
     registerMessage(MSGID_LDAPPWMOD_FAILURE_ERROR_MESSAGE,
-                    "Error Message:  %s.");
+                    "Error Message:  %s");
     registerMessage(MSGID_LDAPPWMOD_FAILURE_MATCHED_DN,
-                    "Matched DN:  %s.");
+                    "Matched DN:  %s");
     registerMessage(MSGID_LDAPPWMOD_SUCCESSFUL,
-                    "The LDAP password modify operation was successful.");
+                    "The LDAP password modify operation was successful");
     registerMessage(MSGID_LDAPPWMOD_ADDITIONAL_INFO,
-                    "Additional Info:  %s.");
+                    "Additional Info:  %s");
     registerMessage(MSGID_LDAPPWMOD_PWPOLICY_WARNING,
-                    "Password Policy Warning:  %s = %d.");
+                    "Password Policy Warning:  %s = %d");
     registerMessage(MSGID_LDAPPWMOD_PWPOLICY_ERROR,
-                    "Password Policy Error:  %s.");
+                    "Password Policy Error:  %s");
     registerMessage(MSGID_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL,
                     "Unable to decode the password policy response control:  " +
-                     "%s.");
+                     "%s");
     registerMessage(MSGID_LDAPPWMOD_GENERATED_PASSWORD,
-                    "Generated Password:  %s.");
+                    "Generated Password:  %s");
     registerMessage(MSGID_LDAPPWMOD_UNRECOGNIZED_VALUE_TYPE,
                     "Unable to decode the password modify response value " +
-                    "because it contained an invalid element type of %s.");
+                    "because it contained an invalid element type of %s");
     registerMessage(MSGID_LDAPPWMOD_COULD_NOT_DECODE_RESPONSE_VALUE,
                     "Unable to decode the password modify response value:  " +
-                    "%s.");
+                    "%s");
 
 
     registerMessage(MSGID_WAIT4DEL_DESCRIPTION_TARGET_FILE,
-                    "Specifies the path to the file to watch for deletion.");
+                    "Specifies the path to the file to watch for deletion");
     registerMessage(MSGID_WAIT4DEL_DESCRIPTION_LOG_FILE,
                     "Specifies the path to a file containing log output to " +
-                    "monitor.");
+                    "monitor");
     registerMessage(MSGID_WAIT4DEL_DESCRIPTION_OUTPUT_FILE,
                     "Specifies the path to a file to which the command will " +
-                    "write the output.");
+                    "write the output");
     registerMessage(MSGID_WAIT4DEL_DESCRIPTION_TIMEOUT,
                     "The maximum length of time in seconds to wait for the " +
-                    "target file to be deleted before exiting.");
+                    "target file to be deleted before exiting");
     registerMessage(MSGID_WAIT4DEL_DESCRIPTION_HELP,
-                    "Displays this usage information.");
+                    "Displays this usage information");
     registerMessage(MSGID_WAIT4DEL_CANNOT_OPEN_LOG_FILE,
-                    "WARNING:  Unable to open log file %s for reading:  %s.");
+                    "WARNING:  Unable to open log file %s for reading:  %s");
     registerMessage(MSGID_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE,
                     "WARNING:  Unable to open output file %s for writing:  "+
-                    "%s.");
+                    "%s");
 
 
     registerMessage(MSGID_LDAPCOMPARE_NO_DNS,
-                    "No entry DNs provided for the compare operation.");
+                    "No entry DNs provided for the compare operation");
     registerMessage(MSGID_LDAPCOMPARE_NO_ATTR,
                     "No attribute was specified to use as the target for " +
-                    "the comparison.");
+                    "the comparison");
     registerMessage(MSGID_LDAPCOMPARE_INVALID_ATTR_STRING,
                     "Invalid attribute string '%s'.  The attribute string " +
                     "must be in one of the following forms:  " +
@@ -8828,38 +8828,38 @@ public class ToolMessages
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_HEADER,
                     "# Account Usability Response Control");
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_IS_USABLE,
-                    "#   The account is usable.");
+                    "#   The account is usable");
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION,
-                    "#   Time until password expiration:  %s.");
+                    "#   Time until password expiration:  %s");
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_NOT_USABLE,
-                    "#   The account is not usable.");
+                    "#   The account is not usable");
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_ACCT_INACTIVE,
-                    "#   The account has been deactivated.");
+                    "#   The account has been deactivated");
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_PW_RESET,
-                    "#   The password has been reset.");
+                    "#   The password has been reset");
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_PW_EXPIRED,
-                    "#   The password has expired.");
+                    "#   The password has expired");
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_REMAINING_GRACE,
-                    "#   Number of grace logins remaining:  %d.");
+                    "#   Number of grace logins remaining:  %d");
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_LOCKED,
-                    "#   The account is locked.");
+                    "#   The account is locked");
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK,
-                    "#   Time until the account is unlocked:  %s.");
+                    "#   Time until the account is unlocked:  %s");
     registerMessage(MSGID_LDAPSEARCH_MATCHING_ENTRY_COUNT,
-                    "# Total number of matching entries:  %d.");
+                    "# Total number of matching entries:  %d");
 
 
     registerMessage(MSGID_TOOL_CONFLICTING_ARGS,
                     "You may not provide both the --%s and the --%s " +
-                    "arguments.");
+                    "arguments");
     registerMessage(MSGID_TOOL_INVALID_CONTROL_STRING,
-                    "Invalid control specification '%s'.");
+                    "Invalid control specification '%s'");
     registerMessage(MSGID_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS,
                     "SASL EXTERNAL authentication may only be requested if " +
-                    "SSL or StartTLS is used.");
+                    "SSL or StartTLS is used");
     registerMessage(MSGID_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE,
                     "SASL EXTERNAL authentication may only be used if a " +
-                    "client certificate keystore is specified.");
+                    "client certificate keystore is specified");
     registerMessage(MSGID_TOOL_RESULT_CODE,
                     "Result Code:  %d (%s)");
     registerMessage(MSGID_TOOL_ERROR_MESSAGE,
@@ -8870,68 +8870,68 @@ public class ToolMessages
 
     registerMessage(MSGID_BACKUPDB_TOOL_DESCRIPTION,
                     "This utility may be used to back up one or more " +
-                    "Directory Server backends.");
+                    "Directory Server backends");
     registerMessage(MSGID_CONFIGDS_TOOL_DESCRIPTION,
                     "This utility may be used to define a base configuration " +
-                    "for the Directory Server.");
+                    "for the Directory Server");
     registerMessage(MSGID_ENCPW_TOOL_DESCRIPTION,
                     "This utility may be used to encode user passwords with " +
                     "a specified storage scheme, or to determine whether a " +
                     "given clear-text value matches a provided encoded " +
-                    "password.");
+                    "password");
     registerMessage(MSGID_LDIFEXPORT_TOOL_DESCRIPTION,
                     "This utility may be used to export data from a " +
-                    "Directory Server backend in LDIF form.");
+                    "Directory Server backend in LDIF form");
     registerMessage(MSGID_LDIFIMPORT_TOOL_DESCRIPTION,
                     "This utility may be used to import LDIF data into a " +
-                    "Directory Server backend.");
+                    "Directory Server backend");
     registerMessage(MSGID_INSTALLDS_TOOL_DESCRIPTION,
                     "This utility may be used to define a base configuration " +
-                    "for the Directory Server.");
+                    "for the Directory Server");
     registerMessage(MSGID_LDAPCOMPARE_TOOL_DESCRIPTION,
                     "This utility may be used to perform LDAP compare " +
-                    "operations in the Directory Server.");
+                    "operations in the Directory Server");
     registerMessage(MSGID_LDAPDELETE_TOOL_DESCRIPTION,
                     "This utility may be used to perform LDAP delete " +
-                    "operations in the Directory Server.");
+                    "operations in the Directory Server");
     registerMessage(MSGID_LDAPMODIFY_TOOL_DESCRIPTION,
                     "This utility may be used to perform LDAP modify, add, " +
                     "delete, and modify DN operations in the Directory " +
-                    "Server.");
+                    "Server");
     registerMessage(MSGID_LDAPPWMOD_TOOL_DESCRIPTION,
                     "This utility may be used to perform LDAP password " +
-                    "modify operations in the Directory Server.");
+                    "modify operations in the Directory Server");
     registerMessage(MSGID_LDAPSEARCH_TOOL_DESCRIPTION,
                     "This utility may be used to perform LDAP search " +
-                    "operations in the Directory Server.");
+                    "operations in the Directory Server");
     registerMessage(MSGID_LDIFDIFF_TOOL_DESCRIPTION,
                     "This utility may be used to compare two LDIF files " +
-                    "and report the differences in LDIF format.");
+                    "and report the differences in LDIF format");
     registerMessage(MSGID_LDIFMODIFY_TOOL_DESCRIPTION,
                     "This utility may be used to apply a set of modify, add, " +
-                    "and delete operations against data in an LDIF file.");
+                    "and delete operations against data in an LDIF file");
     registerMessage(MSGID_LDIFSEARCH_TOOL_DESCRIPTION,
                     "This utility may be used to perform search operations " +
-                    "against data in an LDIF file.");
+                    "against data in an LDIF file");
     registerMessage(MSGID_MAKELDIF_TOOL_DESCRIPTION,
                     "This utility may be used to generate LDIF data based on " +
-                    "a definition in a template file.");
+                    "a definition in a template file");
     registerMessage(MSGID_RESTOREDB_TOOL_DESCRIPTION,
                     "This utility may be used to restore a backup of a " +
-                    "Directory Server backend.");
+                    "Directory Server backend");
     registerMessage(MSGID_STOPDS_TOOL_DESCRIPTION,
                     "This utility may be used to request that the Directory " +
-                    "Server stop running or perform a restart.");
+                    "Server stop running or perform a restart");
     registerMessage(MSGID_VERIFYINDEX_TOOL_DESCRIPTION,
                     "This utility may be used to ensure that index data is " +
                     "consistent within a backend based on the Berkeley DB " +
-                    "Java Edition.");
+                    "Java Edition");
     registerMessage(MSGID_WAIT4DEL_TOOL_DESCRIPTION,
                     "This utility may be used to wait for a file to be " +
-                    "removed from the filesystem.");
+                    "removed from the filesystem");
     registerMessage(MSGID_LISTBACKENDS_TOOL_DESCRIPTION,
                     "This utility may be used to list the backends and base " +
-                    "DNs configured in the Directory Server.");
+                    "DNs configured in the Directory Server");
 
 
     registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_BACKEND_ID,
@@ -8939,50 +8939,50 @@ public class ToolMessages
     registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_BASE_DN,
                     "Base DN for which to list the backend ID");
     registerMessage(MSGID_LISTBACKENDS_DESCRIPTION_HELP,
-                    "Display this usage information.");
+                    "Display this usage information");
     registerMessage(MSGID_LISTBACKENDS_CANNOT_GET_BACKENDS,
                     "An error occurred while trying to read backend " +
-                    "information from the server configuration:  %s.");
+                    "information from the server configuration:  %s");
     registerMessage(MSGID_LISTBACKENDS_INVALID_DN,
                     "The provided base DN value '%s' could not be parsed as " +
-                    "a valid DN:  %s.");
+                    "a valid DN:  %s");
     registerMessage(MSGID_LISTBACKENDS_NOT_BASE_DN,
                     "The provided DN '%s' is not a base DN for any backend " +
-                    "configured in the Directory Server.");
+                    "configured in the Directory Server");
     registerMessage(MSGID_LISTBACKENDS_NO_BACKEND_FOR_DN,
                     "The provided DN '%s' is not below any base DN for any " +
-                    "of the backends configured in the Directory Server.");
+                    "of the backends configured in the Directory Server");
     registerMessage(MSGID_LISTBACKENDS_DN_BELOW_BASE,
                     "The provided DN '%s' is below '%s' which is configured " +
-                    "as a base DN for backend '%s'.");
+                    "as a base DN for backend '%s'");
     registerMessage(MSGID_LISTBACKENDS_BASE_FOR_ID,
-                    "The provided DN '%s' is a base DN for backend '%s'.");
+                    "The provided DN '%s' is a base DN for backend '%s'");
     registerMessage(MSGID_LISTBACKENDS_LABEL_BACKEND_ID,
                     "Backend ID");
     registerMessage(MSGID_LISTBACKENDS_LABEL_BASE_DN,
                     "Base DN");
     registerMessage(MSGID_LISTBACKENDS_NO_SUCH_BACKEND,
                     "There is no backend with ID '%s' in the server " +
-                    "configuration.");
+                    "configuration");
     registerMessage(MSGID_LISTBACKENDS_NO_VALID_BACKENDS,
                     "None of the provided backend IDs exist in the server " +
-                    "configuration.");
+                    "configuration");
 
 
     registerMessage(MSGID_PROMPTTM_REJECTING_CLIENT_CERT,
                     "Rejecting client certificate chain because the prompt " +
                     "trust manager may only be used to trust server " +
-                    "certificates.");
+                    "certificates");
     registerMessage(MSGID_PROMPTTM_NO_SERVER_CERT_CHAIN,
                     "WARNING:  The server did not present a certificate " +
                     "chain.  Do you still wish to attempt connecting to the " +
                     "target server?");
     registerMessage(MSGID_PROMPTTM_CERT_EXPIRED,
                     "WARNING:  The server certificate is expired (expiration " +
-                    "time:  %s).");
+                    "time:  %s)");
     registerMessage(MSGID_PROMPTTM_CERT_NOT_YET_VALID,
                     "WARNING:  The server certificate will not be valid " +
-                    "until %s.");
+                    "until %s");
     registerMessage(MSGID_PROMPTTM_SERVER_CERT,
                     "The server is using the following certificate:  " + EOL +
                     "    Subject DN:  %s" + EOL +
@@ -8993,10 +8993,10 @@ public class ToolMessages
     registerMessage(MSGID_PROMPTTM_YESNO_PROMPT,
                     "Please enter \"yes\" or \"no\":  ");
     registerMessage(MSGID_PROMPTTM_USER_REJECTED,
-                    "The server certificate has been rejected by the user.");
+                    "The server certificate has been rejected by the user");
 
     registerMessage(MSGID_WINDOWS_SERVICE_NOT_FOUND,
-                    "Could not find the service name for OpenDS.");
+                    "Could not find the service name for OpenDS");
 
     registerMessage(MSGID_WINDOWS_SERVICE_START_ERROR,
                     "An unexpected error occurred starting OpenDS as a "+
@@ -9008,13 +9008,13 @@ public class ToolMessages
 
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_TOOL_DESCRIPTION,
                     "This utility may be used to configure OpenDS as a "+
-                    "Windows service.");
+                    "Windows service");
 
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_SHOWUSAGE,
-                    "Display this usage information.");
+                    "Display this usage information");
 
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_ENABLE,
-                    "Enables OpenDS as a Windows service.");
+                    "Enables OpenDS as a Windows service");
 
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_DISABLE,
                     "Disables OpenDS as a Windows service and stops the "+
@@ -9022,22 +9022,22 @@ public class ToolMessages
 
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_STATE,
                     "Provides information about the state of OpenDS as a "+
-                    "Windows service.");
+                    "Windows service");
 
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP,
                     "Allows to disable the OpenDS service and to clean up the "+
                     "windows registry information associated with the "+
-                    "provided service name.");
+                    "provided service name");
 
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS,
                     "You can only provide one of the following arguments:"+
                     EOL+"enableService, disableService, serviceState or "+
-                    "cleanupService.");
+                    "cleanupService");
 
     registerMessage(MSGID_CONFIGURE_WINDOWS_SERVICE_TOO_FEW_ARGS,
                     "You must provide at least one of the following arguments:"+
                     EOL+"enableService, disableService or serviceState or "+
-                    "cleanupService.");
+                    "cleanupService");
 
     registerMessage(MSGID_WINDOWS_SERVICE_NAME,
                     "OpenDS");
@@ -9047,75 +9047,75 @@ public class ToolMessages
                     "Installation path: %s");
 
     registerMessage(MSGID_WINDOWS_SERVICE_SUCCESSULLY_ENABLED,
-                    "OpenDS was successfully enabled as a Windows service.");
+                    "OpenDS was successfully enabled as a Windows service");
 
     registerMessage(MSGID_WINDOWS_SERVICE_ALREADY_ENABLED,
-                    "OpenDS was already enabled as a Windows service.");
+                    "OpenDS was already enabled as a Windows service");
 
     registerMessage(MSGID_WINDOWS_SERVICE_NAME_ALREADY_IN_USE,
                     "OpenDS could not enabled as a Windows service.  The "+
-                    "service name is already in use.");
+                    "service name is already in use");
 
     registerMessage(MSGID_WINDOWS_SERVICE_ENABLE_ERROR,
                     "An unexpected error occurred trying to enable OpenDS as "+
-                    "a Windows service.");
+                    "a Windows service");
 
     registerMessage(MSGID_WINDOWS_SERVICE_SUCCESSULLY_DISABLED,
-                    "OpenDS was successfully disabled as a Windows service.");
+                    "OpenDS was successfully disabled as a Windows service");
 
     registerMessage(MSGID_WINDOWS_SERVICE_ALREADY_DISABLED,
-                    "OpenDS was already disabled as a Windows service.");
+                    "OpenDS was already disabled as a Windows service");
 
     registerMessage(MSGID_WINDOWS_SERVICE_MARKED_FOR_DELETION,
                     "OpenDS has been marked for deletion as a Windows "+
-                    "Service.");
+                    "Service");
 
     registerMessage(MSGID_WINDOWS_SERVICE_DISABLE_ERROR,
                     "An unexpected error occurred trying to disable OpenDS as "+
-                    "a Windows service.");
+                    "a Windows service");
 
     registerMessage(MSGID_WINDOWS_SERVICE_ENABLED,
                     "OpenDS is enabled as a Windows service.  The service "+
                     "name for OpenDS is: %s");
 
     registerMessage(MSGID_WINDOWS_SERVICE_DISABLED,
-                    "OpenDS is disabled as a Windows service.");
+                    "OpenDS is disabled as a Windows service");
 
     registerMessage(MSGID_WINDOWS_SERVICE_STATE_ERROR,
                     "An unexpected error occurred trying to retrieve the "+
-                    "state of OpenDS as a Windows service.");
+                    "state of OpenDS as a Windows service");
 
     registerMessage(MSGID_WINDOWS_SERVICE_CLEANUP_SUCCESS,
-                    "Clean up of service %s was successful.");
+                    "Clean up of service %s was successful");
 
     registerMessage(MSGID_WINDOWS_SERVICE_CLEANUP_NOT_FOUND,
-                    "Could not find the service with name %s.");
+                    "Could not find the service with name %s");
 
     registerMessage(MSGID_WINDOWS_SERVICE_CLEANUP_ERROR,
-                    "An unexpected error occurred cleaning up the service %s.");
+                    "An unexpected error occurred cleaning up the service %s");
 
     registerMessage(MSGID_WINDOWS_SERVICE_CLEANUP_MARKED_FOR_DELETION,
-                    "Service %s has been marked for deletion.");
+                    "Service %s has been marked for deletion");
 
     registerMessage(MSGID_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND,
                     "An error occurred while attempting to acquire a shared " +
                     "lock for backend %s:  %s.  This generally means that " +
                     "some other process has an exclusive lock on this " +
                     "backend (e.g., an LDIF import or a restore). The rebuild" +
-                    "process cannot continue.");
+                    "process cannot continue");
 
     registerMessage(MSGID_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND,
                     "An error occurred while attempting to acquire a " +
                     "exclusive lock for backend %s:  %s.  This generally " +
                     "means that some other process has an lock " +
                     "on this backend or the server is running with this " +
-                    "backend online. The rebuild process cannot continue.");
+                    "backend online. The rebuild process cannot continue");
 
     registerMessage(MSGID_REBUILDINDEX_CANNOT_UNLOCK_BACKEND,
                     "An error occurred while attempting to release the " +
                     "shared lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the rebuild process " +
-                    "exits, so no further action should be required.");
+                    "exits, so no further action should be required");
   }
 }
 

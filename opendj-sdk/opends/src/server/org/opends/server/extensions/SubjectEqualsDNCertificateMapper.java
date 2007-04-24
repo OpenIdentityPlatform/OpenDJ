@@ -156,7 +156,7 @@ public class SubjectEqualsDNCertificateMapper
 
       int    msgID   = MSGID_SEDCM_CANNOT_DECODE_SUBJECT_AS_DN;
       String message = getMessage(msgID, String.valueOf(peerPrincipal),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
                                    msgID);
     }
@@ -211,7 +211,7 @@ public class SubjectEqualsDNCertificateMapper
 
       int    msgID   = MSGID_SEDCM_CANNOT_GET_ENTRY;
       String message = getMessage(msgID, String.valueOf(subjectDN),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
                                    msgID, e);
     }

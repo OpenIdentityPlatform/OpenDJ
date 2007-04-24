@@ -181,8 +181,7 @@ public class StartTLSExtendedOperation
       }
 
       logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.MILD_ERROR,
-               MSGID_STARTTLS_ERROR_ON_ENABLE,
-               stackTraceToSingleLineString(de));
+               MSGID_STARTTLS_ERROR_ON_ENABLE, getExceptionMessage(de));
     }
 
 
@@ -204,11 +203,11 @@ public class StartTLSExtendedOperation
 
       logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.MILD_ERROR,
                MSGID_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE,
-               stackTraceToSingleLineString(e));
+               getExceptionMessage(e));
 
       clientConnection.disconnect(DisconnectReason.SECURITY_PROBLEM, false,
                                   MSGID_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
     }
   }
 }

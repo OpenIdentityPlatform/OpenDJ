@@ -703,7 +703,7 @@ public class ConfigFileHandler
 
       int    msgID   = MSGID_CONFIG_CANNOT_REGISTER_AS_PRIVATE_SUFFIX;
       String message = getMessage(msgID, configRootEntry.getDN(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
   }
@@ -1142,7 +1142,7 @@ public class ConfigFileHandler
         int    msgID   = MSGID_CONFIG_FILE_ADD_FAILED;
         String message = getMessage(msgID, String.valueOf(entryDN),
                                     String.valueOf(parentDN),
-                                    stackTraceToSingleLineString(ce));
+                                    getExceptionMessage(ce));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, msgID);
       }
@@ -1290,7 +1290,7 @@ public class ConfigFileHandler
         int    msgID   = MSGID_CONFIG_FILE_DELETE_FAILED;
         String message = getMessage(msgID, String.valueOf(entryDN),
                                     String.valueOf(parentEntry.getDN()),
-                                    stackTraceToSingleLineString(ce));
+                                    getExceptionMessage(ce));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, msgID);
       }
@@ -2363,7 +2363,7 @@ writeConfigArchive:
       }
 
       msgID   = MSGID_CONFIG_BACKUP_CANNOT_DETERMINE_CONFIG_FILE_LOCATION;
-      message = getMessage(msgID, stackTraceToSingleLineString(e));
+      message = getMessage(msgID, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
     }
@@ -2511,7 +2511,7 @@ writeConfigArchive:
 
       msgID   = MSGID_CONFIG_BACKUP_CANNOT_CLOSE_ZIP_STREAM;
       message = getMessage(msgID, filename, backupDirectory.getPath(),
-                           stackTraceToSingleLineString(e));
+                           getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
     }
@@ -2839,7 +2839,7 @@ writeConfigArchive:
         int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_BACKUP_EXISTING_CONFIG;
         String message = getMessage(msgID, backupID, configDirPath,
                                     String.valueOf(backupDirPath),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, msgID, e);
       }
@@ -2876,7 +2876,7 @@ writeConfigArchive:
 
         int    msgID   = MSGID_CONFIG_RESTORE_CANNOT_CREATE_CONFIG_DIRECTORY;
         String message = getMessage(msgID, backupID, configDirPath,
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, msgID, e);
       }
@@ -3041,7 +3041,7 @@ writeConfigArchive:
     {
       int    msgID   = MSGID_CONFIG_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE;
       String message = getMessage(msgID, backupID, backupFile.getPath(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
     }

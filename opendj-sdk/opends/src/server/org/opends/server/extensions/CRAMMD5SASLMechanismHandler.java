@@ -155,7 +155,7 @@ public class CRAMMD5SASLMechanismHandler
       }
 
       int msgID = MSGID_SASLCRAMMD5_CANNOT_GET_MESSAGE_DIGEST;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 

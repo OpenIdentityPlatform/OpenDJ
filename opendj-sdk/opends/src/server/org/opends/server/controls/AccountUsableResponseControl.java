@@ -36,10 +36,10 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1Integer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -581,7 +581,7 @@ public class AccountUsableResponseControl
       }
 
       int msgID = MSGID_ACCTUSABLERES_DECODE_ERROR;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
     }
   }

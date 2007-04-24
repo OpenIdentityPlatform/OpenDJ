@@ -34,15 +34,14 @@ import java.util.Set;
 import org.opends.server.controls.EntryChangeNotificationControl;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
 
@@ -52,9 +51,6 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class PersistentSearch
 {
-
-
-
   // Indicates whether entries returned should include the entry change
   // notification control.
   private boolean returnECs;

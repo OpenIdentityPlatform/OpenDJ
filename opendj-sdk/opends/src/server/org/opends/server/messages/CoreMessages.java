@@ -6037,11 +6037,11 @@ public class CoreMessages
   public static void registerMessages()
   {
     registerMessage(MSGID_CANNOT_CANCEL_ABANDON,
-                    "Abandon requests cannot be canceled.");
+                    "Abandon requests cannot be canceled");
     registerMessage(MSGID_CANNOT_CANCEL_BIND,
-                    "Bind requests cannot be canceled.");
+                    "Bind requests cannot be canceled");
     registerMessage(MSGID_CANNOT_CANCEL_UNBIND,
-                    "Unbind requests cannot be canceled.");
+                    "Unbind requests cannot be canceled");
 
 
     registerMessage(MSGID_DISCONNECT_DUE_TO_UNBIND, "Client Unbind");
@@ -6206,16 +6206,16 @@ public class CoreMessages
     registerMessage(MSGID_UNKNOWN_ATTRIBUTE_USAGE,
                     "Unable to determine the attribute usage type for " +
                     "attribute %s.  The server will assume that it is " +
-                    "user-defined.");
+                    "user-defined");
     registerMessage(MSGID_ATTR_TYPE_NORMALIZE_NO_MR,
                     "Unable to normalize value %s for attribute type %s " +
                     "because no equality matching rule is defined for that " +
-                    "attribute.");
+                    "attribute");
 
 
     registerMessage(MSGID_CANCELED_BY_SHUTDOWN,
                     "Processing on this operation has been canceled because " +
-                    "the Directory Server is shutting down.");
+                    "the Directory Server is shutting down");
     registerMessage(MSGID_UNCAUGHT_WORKER_THREAD_EXCEPTION,
                     "%s encountered an uncaught exception while processing " +
                     "operation %s:  %s");
@@ -6223,89 +6223,89 @@ public class CoreMessages
                     "%s is unexpectedly exiting when the Directory Server " +
                     "is not in the process of shutting down.  This likely " +
                     "indicates that the thread encountered an unexpected " +
-                    "error.");
+                    "error");
     registerMessage(MSGID_CANNOT_CREATE_WORKER_THREAD,
                     "An unexpected error occurred while trying to create a " +
                     "worker thread:  %s");
     registerMessage(MSGID_OP_REJECTED_BY_SHUTDOWN,
                     "The request to process this operation has been rejected " +
                     "because the Directory Server has already started its " +
-                    "shutdown process.");
+                    "shutdown process");
     registerMessage(MSGID_OP_REJECTED_BY_QUEUE_FULL,
                     "The request to process this operation has been rejected " +
                     "because the work queue has already reached its maximum " +
-                    "capacity of %d pending operations.");
+                    "capacity of %d pending operations");
     registerMessage(MSGID_WORKER_INTERRUPTED_WITHOUT_SHUTDOWN,
                     "%s was interrupted while waiting for new work:  %s.  " +
                     "This should not happen, but the thread will resume " +
                     "waiting for new work so there should be no adverse " +
-                    "effects.");
+                    "effects");
     registerMessage(MSGID_WORKER_WAITING_UNCAUGHT_EXCEPTION,
                     "An unexpected exception was caught while %s was waiting " +
                     "for new work:  %s.  This should not happen, but the " +
                     "thread will resume waiting for new work so there should " +
-                    "be no adverse effects.");
+                    "be no adverse effects");
     registerMessage(MSGID_QUEUE_UNABLE_TO_CANCEL,
                     "The work queue caught an exception while trying to " +
                     "cancel pending operation %s when the Directory Server " +
-                    "was shutting down:  %s.");
+                    "was shutting down:  %s");
     registerMessage(MSGID_QUEUE_UNABLE_TO_NOTIFY_THREAD,
                     "The work queue caught an exception while trying to " +
                     "notify %s that the Directory Server was shutting " +
-                    "down:  %s.");
+                    "down:  %s");
     registerMessage(MSGID_WORKER_STOPPED_BY_REDUCED_THREADNUMBER,
                     "%s has been stopped because the total number of worker " +
-                    "threads in the Directory Server was reduced.");
+                    "threads in the Directory Server was reduced");
 
 
     registerMessage(MSGID_CANNOT_BOOTSTRAP_WHILE_RUNNING,
                     "The Directory Server is currently running.  The " +
                     "configuration may not be bootstrapped while the server " +
-                    "is online.");
+                    "is online");
     registerMessage(MSGID_DIRECTORY_BOOTSTRAPPING,
                     "The Directory Server is beginning the configuration " +
-                    "bootstrapping process.");
+                    "bootstrapping process");
     registerMessage(MSGID_DIRECTORY_BOOTSTRAPPED,
                     "The Directory Server has completed the configuration " +
-                    "bootstrapping process.");
+                    "bootstrapping process");
     registerMessage(MSGID_CANNOT_LOAD_CONFIG_HANDLER_CLASS,
                     "Unable to load class %s to serve as the Directory " +
-                    "Server configuration handler:  %s.");
+                    "Server configuration handler:  %s");
     registerMessage(MSGID_CANNOT_INSTANTIATE_CONFIG_HANDLER,
                     "Unable to create an instance of class %s to serve as " +
-                    "the Directory Server configuration handler: %s.");
+                    "the Directory Server configuration handler: %s");
     registerMessage(MSGID_CANNOT_INITIALIZE_CONFIG_HANDLER,
                     "An error occurred while trying to initialize the " +
                     "configuration handler %s using configuration file %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CANNOT_START_BEFORE_BOOTSTRAP,
                     "The Directory Server may not be started before the " +
-                    "configuration has been bootstrapped.");
+                    "configuration has been bootstrapped");
     registerMessage(MSGID_CANNOT_START_WHILE_RUNNING,
                     "The Directory Server may not be started while it is " +
                     "already running.   Please stop the running instance " +
-                    "before attempting to start it again.");
+                    "before attempting to start it again");
     registerMessage(MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK,
                     "The Directory Server could not acquire an exclusive " +
                     "lock on file %s:  %s.  This generally means that " +
-                    "another instance of this server is already running.");
+                    "another instance of this server is already running");
     registerMessage(MSGID_CANNOT_BOOTSTRAP_MATCHING_RULE,
                     "An error occurred while attempting to bootstrap the " +
-                    "matching rule defined in class %s:  %s.");
+                    "matching rule defined in class %s:  %s");
     registerMessage(MSGID_CANNOT_BOOTSTRAP_SYNTAX,
                     "An error occurred while attempting to bootstrap the " +
-                    "attribute syntax defined in class %s:  %s.");
-    registerMessage(MSGID_DIRECTORY_SERVER_STARTING, "%s starting up.");
+                    "attribute syntax defined in class %s:  %s");
+    registerMessage(MSGID_DIRECTORY_SERVER_STARTING, "%s starting up");
     registerMessage(MSGID_DIRECTORY_SERVER_STARTED,
-                    "The Directory Server has started successfully.");
+                    "The Directory Server has started successfully");
     registerMessage(MSGID_CANNOT_CREATE_MBEAN_SERVER,
                     "An error occurred while attempting to create the JMX " +
                     "MBean server that will be used for monitoring, " +
                     "notification, and configuration interaction within the " +
-                    "Directory Server:  %s.");
+                    "Directory Server:  %s");
     registerMessage(MSGID_SENT_ALERT_NOTIFICATION,
                     "The Directory Server has sent an alert notification " +
-                    "generated by class %s (alert type %s, alert ID %s):  %s.");
+                    "generated by class %s (alert type %s, alert ID %s):  %s");
     registerMessage(MSGID_UNCAUGHT_THREAD_EXCEPTION,
                     "An uncaught exception during processing for thread %s " +
                     "has caused it to terminate abnormally.  The stack trace " +
@@ -6313,313 +6313,313 @@ public class CoreMessages
     registerMessage(MSGID_SERVER_SHUTDOWN,
                     "The Directory Server has started the shutdown process.  " +
                     "The shutdown was initiated by an instance of class %s " +
-                    "and the reason provided for the shutdown was %s.");
+                    "and the reason provided for the shutdown was %s");
     registerMessage(MSGID_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK,
                     "An error occurred while attempting to release a shared " +
                     "lock for backend %s:  %s.  This lock should be " +
                     "automatically cleaned when the Directory Server process " +
-                    "exits, so no additional action should be necessary.");
+                    "exits, so no additional action should be necessary");
     registerMessage(MSGID_CANNOT_RELEASE_EXCLUSIVE_SERVER_LOCK,
                     "An error occurred while attempting to release the " +
                     "exclusive server lock held on file %s:  %s.  This lock " +
                     "should be automatically cleaned when the Directory " +
                     "Server process exits, so no additional action should be " +
-                    "necessary.");
+                    "necessary");
     registerMessage(MSGID_SHUTDOWN_DUE_TO_SHUTDOWN_HOOK,
                     "The Directory Server shutdown hook detected that the " +
                     "JVM is shutting down.  This generally indicates that " +
                     "JVM received an external request to stop (e.g., through " +
-                    "a kill signal).");
+                    "a kill signal)");
     registerMessage(MSGID_SERVER_STOPPED,
-                    "The Directory Server is now stopped.");
+                    "The Directory Server is now stopped");
     registerMessage(MSGID_CANNOT_CREATE_WORK_QUEUE,
                     "An error occurred while trying to create the Directory " +
                     "Server work queue:  %s.  This is an unrecoverable error " +
-                    "and the startup process will not be able to continue.");
+                    "and the startup process will not be able to continue");
     registerMessage(MSGID_CANNOT_REGISTER_DUPLICATE_ALTERNATE_ROOT_BIND_DN,
                     "The alternate root bind DN \"%s\" is already registered " +
                     "with the Directory Server for actual root entry DN " +
-                    "\"%s\".");
+                    "\"%s\"");
     registerMessage(MSGID_CANNOT_REGISTER_DUPLICATE_SUFFIX,
                     "The suffix \"%s\" is already registered with the " +
-                    "Directory Server with a backend of type %s.");
+                    "Directory Server with a backend of type %s");
     registerMessage(MSGID_CANNOT_REGISTER_DUPLICATE_SUBSUFFIX,
                     "The suffix \"%s\" is already registered with the " +
                     "Directory Server as a sub-suffix of the backend for " +
-                    "suffix \"%s\".");
+                    "suffix \"%s\"");
     registerMessage(MSGID_CANNOT_REGISTER_PRIVATE_SUFFIX_BELOW_USER_PARENT,
                     "The private suffix \"%s\" is below a non-private suffix " +
                     "defined with a base DN of \"%s\".  A private sub-suffix " +
-                    "may not exist below a non-private suffix.");
+                    "may not exist below a non-private suffix");
     registerMessage(MSGID_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY,
                     "An error occurred while trying to retrieve the root " +
                     "DSE configuration entry (" + DN_ROOT_DSE_CONFIG +
-                    ") from the Directory Server configuration:  %s.");
+                    ") from the Directory Server configuration:  %s");
     registerMessage(MSGID_STARTUP_PLUGIN_ERROR,
                     "A fatal error occurred when executing one of the " +
                     "Directory Server startup plugins:  %s (error ID %d).  " +
-                    "The Directory Server startup process has been aborted.");
+                    "The Directory Server startup process has been aborted");
 
 
     registerMessage(MSGID_ENTRY_SCHEMA_UNKNOWN_OC,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it contains an unknown " +
-                    "objectclass %s.");
+                    "objectclass %s");
     registerMessage(MSGID_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_OC,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it is missing attribute %s " +
-                    "which is required by objectclass %s.");
+                    "which is required by objectclass %s");
     registerMessage(MSGID_ENTRY_SCHEMA_DISALLOWED_USER_ATTR_FOR_OC,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it includes attribute %s which is " +
                     "not allowed by any of the objectclasses defined in that " +
-                    "entry.");
+                    "entry");
     registerMessage(MSGID_ENTRY_SCHEMA_ATTR_NO_VALUES,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it includes attribute %s without " +
-                    "any values.");
+                    "any values");
     registerMessage(MSGID_ENTRY_SCHEMA_ATTR_SINGLE_VALUED,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it includes multiple values for " +
                     "attribute %s, which is defined as a single-valued " +
-                    "attribute.");
+                    "attribute");
     registerMessage(MSGID_ENTRY_SCHEMA_MULTIPLE_STRUCTURAL_CLASSES,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it includes multiple conflicting " +
                     "structural objectclasses %s and %s.  Only a single " +
-                    "structural objectclass is allowed in an entry.");
+                    "structural objectclass is allowed in an entry");
     registerMessage(MSGID_ENTRY_SCHEMA_NO_STRUCTURAL_CLASS,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it does not include a structural " +
                     "objectclass.  All entries must contain a structural " +
-                    "objectclass.");
+                    "objectclass");
     registerMessage(MSGID_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because its RDN does not contain " +
-                    "attribute %s that is required by name form %s.");
+                    "attribute %s that is required by name form %s");
     registerMessage(MSGID_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because its RDN contains attribute %s " +
-                    "that is not allowed by name form %s.");
+                    "that is not allowed by name form %s");
     registerMessage(MSGID_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_DCR,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it is missing attribute %s " +
-                    "which is required by DIT content rule %s.");
+                    "which is required by DIT content rule %s");
     registerMessage(MSGID_ENTRY_SCHEMA_PROHIBITED_ATTR_FOR_DCR,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it contains attribute %s which is " +
-                    "prohibited by DIT content rule %s.");
+                    "prohibited by DIT content rule %s");
     registerMessage(MSGID_ENTRY_SCHEMA_DISALLOWED_USER_ATTR_FOR_DCR,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it includes attribute %s which is " +
                     "not in the list of allowed or required attributes for " +
-                    "DIT content rule %s.");
+                    "DIT content rule %s");
     registerMessage(MSGID_ENTRY_SCHEMA_DISALLOWED_AUXILIARY_CLASS,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because it includes auxiliary objectClass " +
-                    "%s that is not allowed by DIT content rule %s.");
+                    "%s that is not allowed by DIT content rule %s");
     registerMessage(MSGID_ENTRY_SCHEMA_DSR_COULD_NOT_LOCK_PARENT,
                     "The Directory Server was unable to evaluate entry %s to " +
                     "determine whether it was compliant with the DIT " +
                     "structure rule configuration because it was unable to " +
-                    "obtain a read lock on parent entry %s.");
+                    "obtain a read lock on parent entry %s");
     registerMessage(MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_ENTRY,
                     "The Directory Server was unable to evaluate entry %s to " +
                     "determine whether it was compliant with the DIT " +
                     "structure rule configuration because parent entry %s " +
-                    "either does not exist or could not be retrieved.");
+                    "either does not exist or could not be retrieved");
     registerMessage(MSGID_ENTRY_SCHEMA_DSR_NO_PARENT_OC,
                     "The Directory Server was unable to evaluate entry %s to " +
                     "determine whether it was compliant with the DIT " +
                     "rule configuration because the parent entry %s does not " +
-                    "appear to contain a valid structural objectclass.");
+                    "appear to contain a valid structural objectclass");
     registerMessage(MSGID_ENTRY_SCHEMA_VIOLATES_PARENT_DSR,
                     "Entry %s is invalid according to the server schema " +
                     "because there is no DIT structure rule that applies " +
                     "to that entry, but there is a DIT structure rule for " +
-                    "the parent entry %s.");
+                    "the parent entry %s");
     registerMessage(MSGID_ENTRY_SCHEMA_DSR_DISALLOWED_SUPERIOR_OC,
                     "Entry %s violates the Directory Server schema " +
                     "configuration because DIT structure rule %s does not " +
                     "allow entries of type %s to be placed immediately below " +
-                    "entries of type %s.");
+                    "entries of type %s");
     registerMessage(MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR,
                     "An unexpected error occurred while attempting to check " +
-                    "entry %s against DIT structure rule %s:  %s.");
+                    "entry %s against DIT structure rule %s:  %s");
     registerMessage(MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_PARENT_DSR,
                     "An unexpected error occurred while attempting to " +
                     "perform DIT structure rule processing for the parent of " +
-                    "entry %s:  %s.");
+                    "entry %s:  %s");
     registerMessage(MSGID_ENTRY_SET_UNKNOWN_OC,
                     "Objectclass %s cannot be used in entry %s because that " +
-                    "class is not defined in the Directory Server schema.");
+                    "class is not defined in the Directory Server schema");
     registerMessage(MSGID_ENTRY_ADD_UNKNOWN_OC,
                     "Objectclass %s cannot be added to entry %s because that " +
-                    "class is not defined in the Directory Server schema.");
+                    "class is not defined in the Directory Server schema");
     registerMessage(MSGID_ENTRY_ADD_DUPLICATE_OC,
                     "Objectclass %s is already present in entry %s and " +
-                    "cannot be added a second time.");
+                    "cannot be added a second time");
     registerMessage(MSGID_ENTRY_ADD_OBSOLETE_OC,
                     "Objectclass %s added to entry %s is marked OBSOLETE in " +
-                    "the server schema.");
+                    "the server schema");
     registerMessage(MSGID_ENTRY_DUPLICATE_VALUES,
                     "Unable to add one or more values to attribute %s " +
-                    "because at least one of the values already exists.");
+                    "because at least one of the values already exists");
     registerMessage(MSGID_ENTRY_NO_SUCH_VALUE,
                     "Unable to remove one or more values from attribute %s " +
                     "because at least one of the attributes does not exist " +
-                    "in the entry.");
+                    "in the entry");
     registerMessage(MSGID_ENTRY_OC_INCREMENT_NOT_SUPPORTED,
                     "The increment operation is not supported for the " +
-                    "objectClass attribute.");
+                    "objectClass attribute");
     registerMessage(MSGID_ENTRY_UNKNOWN_MODIFICATION_TYPE,
-                    "Unknown modification type %s requested.");
+                    "Unknown modification type %s requested");
     registerMessage(MSGID_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE,
                     "Unable to increment the value of attribute %s because " +
-                    "that attribute does not exist in the entry.");
+                    "that attribute does not exist in the entry");
     registerMessage(MSGID_ENTRY_INCREMENT_MULTIPLE_VALUES,
                     "Unable to increment the value of attribute %s because " +
-                    "there are multiple values for that attribute.");
+                    "there are multiple values for that attribute");
     registerMessage(MSGID_ENTRY_INCREMENT_INVALID_VALUE_COUNT,
                     "Unable to increment the value of attribute %s because " +
                     "the provided modification did not have exactly one " +
-                    "value to use as the increment.");
+                    "value to use as the increment");
     registerMessage(MSGID_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT,
                     "Unable to increment the value of attribute %s because " +
                     "either the current value or the increment could not " +
-                    "be parsed as an integer.");
+                    "be parsed as an integer");
     registerMessage(MSGID_ENTRY_DECODE_UNRECOGNIZED_VERSION,
                     "Unable to decode an entry because it had an unsupported " +
-                    "entry version byte value of %s.");
+                    "entry version byte value of %s");
     registerMessage(MSGID_ENTRY_DECODE_EXCEPTION,
                     "Unable to decode an entry because an unexpected " +
-                    "exception was caught during processing:  %s.");
+                    "exception was caught during processing:  %s");
 
 
     registerMessage(MSGID_SEARCH_FILTER_NULL,
                     "Unable to decode the provided filter string as a search " +
-                    "filter because the provided string was empty or null.");
+                    "filter because the provided string was empty or null");
     registerMessage(MSGID_SEARCH_FILTER_UNCAUGHT_EXCEPTION,
                     "An unexpected error occurred while attempting to decode " +
-                    "the string \"%s\" as a search filter:  %s.");
+                    "the string \"%s\" as a search filter:  %s");
     registerMessage(MSGID_SEARCH_FILTER_MISMATCHED_PARENTHESES,
                     "The provided search filter \"%s\" had mismatched " +
                     "parentheses around the portion between positions %d and " +
-                    "%d.");
+                    "%d");
     registerMessage(MSGID_SEARCH_FILTER_NO_EQUAL_SIGN,
                     "The provided search filter \"%s\" was missing an equal " +
                     "sign in the suspected simple filter component between " +
-                    "positions %d and %d.");
+                    "positions %d and %d");
     registerMessage(MSGID_SEARCH_FILTER_INVALID_ESCAPED_BYTE,
                     "The provided search filter \"%s\" had an invalid " +
                     "escaped byte value at position %d.  A backslash in a " +
                     "value must be followed by two hexadecimal characters " +
-                    "that define the byte that has been encoded.");
+                    "that define the byte that has been encoded");
     registerMessage(MSGID_SEARCH_FILTER_COMPOUND_MISSING_PARENTHESES,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the compound filter between positions %d and %d " +
                     "did not start with an open parenthesis and end with a " +
                     "close parenthesis (they may be parentheses for " +
-                    "different filter components).");
+                    "different filter components)");
     registerMessage(MSGID_SEARCH_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the closing parenthesis at position %d did not " +
-                    "have a corresponding open parenthesis.");
+                    "have a corresponding open parenthesis");
     registerMessage(MSGID_SEARCH_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the closing parenthesis at position %d did not " +
-                    "have a corresponding close parenthesis.");
+                    "have a corresponding close parenthesis");
     registerMessage(MSGID_SEARCH_FILTER_SUBSTRING_NO_ASTERISKS,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the assumed substring filter value between " +
                     "positions %d and %d did not have any asterisk wildcard " +
-                    "characters.");
+                    "characters");
     registerMessage(MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_COLON,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the extensible match component starting at " +
                     "position %d did not have a colon to denote the end of " +
-                    "the attribute type name.");
+                    "the attribute type name");
     registerMessage(MSGID_SEARCH_FILTER_INVALID_FILTER_TYPE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because it contained an unknown filter type %s");
     registerMessage(MSGID_SEARCH_FILTER_INVALID_RESULT_TYPE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because the internal check returned an unknown " +
-                    "result type \"%s\".");
+                    "result type \"%s\"");
     registerMessage(MSGID_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because the set of filter components for an %s " +
-                    "component was NULL.");
+                    "component was NULL");
     registerMessage(MSGID_SEARCH_FILTER_NESTED_TOO_DEEP,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because the filter was nested beyond the maximum " +
-                    "allowed depth of " + MAX_NESTED_FILTER_DEPTH + " levels.");
+                    "allowed depth of " + MAX_NESTED_FILTER_DEPTH + " levels");
     registerMessage(MSGID_SEARCH_FILTER_NOT_COMPONENT_NULL,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because the NOT filter component did not include " +
-                    "a subcomponent.");
+                    "a subcomponent");
     registerMessage(MSGID_SEARCH_FILTER_EQUALITY_NO_ATTRIBUTE_TYPE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because an equality component had a NULL " +
-                    "attribute type.");
+                    "attribute type");
     registerMessage(MSGID_SEARCH_FILTER_EQUALITY_NO_ASSERTION_VALUE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because an equality component for attribute %s " +
-                    "had a NULL assertion value.");
+                    "had a NULL assertion value");
     registerMessage(MSGID_SEARCH_FILTER_SUBSTRING_NO_ATTRIBUTE_TYPE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because a substring component had a NULL " +
-                    "attribute type.");
+                    "attribute type");
     registerMessage(MSGID_SEARCH_FILTER_SUBSTRING_NO_SUBSTRING_COMPONENTS,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because a substring component for attribute %s " +
                     "did not have any subInitial, subAny, or subFinal " +
-                    "elements.");
+                    "elements");
     registerMessage(MSGID_SEARCH_FILTER_GREATER_OR_EQUAL_NO_ATTRIBUTE_TYPE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because a greater-or-equal component had a NULL " +
-                    "attribute type.");
+                    "attribute type");
     registerMessage(MSGID_SEARCH_FILTER_GREATER_OR_EQUAL_NO_VALUE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because a greater-or-equal component for " +
-                    "attribute %s had a NULL assertion value.");
+                    "attribute %s had a NULL assertion value");
     registerMessage(MSGID_SEARCH_FILTER_LESS_OR_EQUAL_NO_ATTRIBUTE_TYPE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because a less-or-equal component had a NULL " +
-                    "attribute type.");
+                    "attribute type");
     registerMessage(MSGID_SEARCH_FILTER_LESS_OR_EQUAL_NO_ASSERTION_VALUE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because a less-or-equal component for attribute " +
-                    "%s had a NULL assertion value.");
+                    "%s had a NULL assertion value");
     registerMessage(MSGID_SEARCH_FILTER_PRESENCE_NO_ATTRIBUTE_TYPE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because a presence component had a NULL " +
-                    "attribute type.");
+                    "attribute type");
     registerMessage(MSGID_SEARCH_FILTER_APPROXIMATE_NO_ATTRIBUTE_TYPE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because an approximate component had a NULL " +
-                    "attribute type.");
+                    "attribute type");
     registerMessage(MSGID_SEARCH_FILTER_APPROXIMATE_NO_ASSERTION_VALUE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because an approximate component for attribute " +
-                    "%s had a NULL assertion value.");
+                    "%s had a NULL assertion value");
     registerMessage(MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_ASSERTION_VALUE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because a contained extensible match filter did " +
-                    "not have an assertion value.");
+                    "not have an assertion value");
     registerMessage(MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_RULE_OR_TYPE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because a contained extensible match filter did " +
-                    "not have either an attribute type or a matching rule ID.");
+                    "not have either an attribute type or a matching rule ID");
     registerMessage(MSGID_SEARCH_BACKEND_EXCEPTION,
                     "An unexpected error was encountered while processing " +
-                    "a search in one of the Directory Server backends:  %s.");
+                    "a search in one of the Directory Server backends:  %s");
 
 
     registerMessage(MSGID_RDN_DECODE_NULL,
                     "Unable to decode the provided string as a relative " +
                     "distinguished name because the provided string was " +
-                    "empty or null.");
+                    "empty or null");
     registerMessage(MSGID_RDN_END_WITH_ATTR_NAME,
                     "Unable to decode the provided string \"%s\" as a " +
                     "relative distinguished name because the string ended " +
@@ -6628,689 +6628,689 @@ public class CoreMessages
                     "Unable to decode the provided string \"%s\" as a " +
                     "relative distinguished name because the first non-blank " +
                     "character after the attribute type %s was not an " +
-                    "equal sign (character read was %s).");
+                    "equal sign (character read was %s)");
     registerMessage(MSGID_RDN_UNEXPECTED_COMMA,
                     "Unable to decode the provided string \"%s\" as a " +
                     "relative distinguished name because it contained an " +
                     "unexpected plus, comma, or semicolon at position %d, "+
-                    "which is not allowed in an RDN.");
+                    "which is not allowed in an RDN");
     registerMessage(MSGID_RDN_ILLEGAL_CHARACTER,
                     "Unable to decode the provided string \"%s\" as a " +
                     "relative distinguished name because an illegal " +
                     "character %s was found at position %d, where either the " +
-                    "end of the string or a '+' sign were expected.");
+                    "end of the string or a '+' sign were expected");
 
 
     registerMessage(MSGID_SCHEMA_CONFLICTING_ATTRIBUTE_OID,
                     "Unable to register attribute type %s with the server " +
                     "schema because its OID %s conflicts with the OID of an " +
-                    "existing attribute type %s.");
+                    "existing attribute type %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_ATTRIBUTE_NAME,
                     "Unable to register attribute type %s with the server " +
                     "schema because its name %s conflicts with the name of " +
-                    "an existing attribute type %s.");
+                    "an existing attribute type %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_OBJECTCLASS_OID,
                     "Unable to register objectclass %s with the server " +
                     "schema because its OID %s conflicts with the OID of an " +
-                    "existing objectclass %s.");
+                    "existing objectclass %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_OBJECTCLASS_NAME,
                     "Unable to register objectclass %s with the server " +
                     "schema because its name %s conflicts with the name of " +
-                    "an existing objectclass %s.");
+                    "an existing objectclass %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_SYNTAX_OID,
                     "Unable to register attribute syntax %s with the server " +
                     "schema because its OID %s conflicts with the OID of an " +
-                    "existing syntax %s.");
+                    "existing syntax %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_MR_OID,
                     "Unable to register matching rule %s with the server " +
                     "schema because its OID %s conflicts with the OID of an " +
-                    "existing matching rule %s.");
+                    "existing matching rule %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_MR_NAME,
                     "Unable to register matching rule %s with the server " +
                     "schema because its name %s conflicts with the name of " +
-                    "an existing matching rule %s.");
+                    "an existing matching rule %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_MATCHING_RULE_USE,
                     "Unable to register matching rule use %s with the server " +
                     "schema because its matching rule %s conflicts with the " +
-                    "matching rule for an existing matching rule use %s.");
+                    "matching rule for an existing matching rule use %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_DIT_CONTENT_RULE,
                     "Unable to register DIT content rule %s with the server " +
                     "schema because its structural objectclass %s conflicts " +
                     "with the structural objectclass for an existing DIT " +
-                    "content rule %s.");
+                    "content rule %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_NAME_FORM,
                     "Unable to register DIT structure rule %s with the " +
                     "server schema because its name form %s conflicts with " +
-                    "the name form for an existing DIT structure rule %s.");
+                    "the name form for an existing DIT structure rule %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID,
                     "Unable to register DIT structure rule %s with the " +
                     "server schema because its rule ID %d conflicts with the " +
-                    "rule ID for an existing DIT structure rule %s.");
+                    "rule ID for an existing DIT structure rule %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_NAME_FORM_OC,
                     "Unable to register name form %s with the server schema " +
                     "because its structural objectclass %s conflicts with " +
-                    "the structural objectclass for an existing name form %s.");
+                    "the structural objectclass for an existing name form %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_NAME_FORM_OID,
                     "Unable to register name form %s with the server schema " +
                     "because its OID %s conflicts with the OID for an " +
-                    "existing name form %s.");
+                    "existing name form %s");
     registerMessage(MSGID_SCHEMA_CONFLICTING_NAME_FORM_NAME,
                     "Unable to register name form %s with the server schema " +
                     "because its name %s conflicts with the name for an " +
-                    "existing name form %s.");
+                    "existing name form %s");
     registerMessage(MSGID_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE,
                     "Unable to update the schema element with definition " +
                     "\"%s\" because a circular reference was identified " +
                     "when attempting to rebuild other schema elements " +
-                    "dependent upon it.");
+                    "dependent upon it");
 
 
     registerMessage(MSGID_ADD_OP_INVALID_SYNTAX,
                     "Entry \"%s\" contains a value \"%s\" for attribute %s " +
                     "that is invalid according to the syntax for that " +
-                    "attribute:  %s.");
+                    "attribute:  %s");
     registerMessage(MSGID_ADD_ATTR_IS_OBSOLETE,
                     "Entry \"%s\" cannot be added because it contains " +
                     "attribute type %s which is declared OBSOLETE in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ADD_OC_IS_OBSOLETE,
                     "Entry \"%s\" cannot be added because it contains " +
                     "objectclass %s which is declared OBSOLETE in the server " +
-                    "schema.");
+                    "schema");
     registerMessage(MSGID_ADD_INVALID_PWPOLICY_DN_SYNTAX,
                     "Entry \"%s\" cannot be added because it contains an " +
-                    "invalid password policy subentry DN:  %s.");
+                    "invalid password policy subentry DN:  %s");
     registerMessage(MSGID_ADD_NO_SUCH_PWPOLICY,
                     "Entry \"%s\" cannot be added because it references " +
                     "password policy subentry %s that does not exist or does " +
-                    "not contain a valid password policy subentry definition.");
+                    "not contain a valid password policy subentry definition");
     registerMessage(MSGID_ADD_ASSERTION_FAILED,
                     "Entry %s cannot be added because the request contained " +
                     "an LDAP assertion control and the associated filter did " +
-                    "not match the contents of the provided entry.");
+                    "not match the contents of the provided entry");
     registerMessage(MSGID_ADD_CANNOT_PROCESS_ASSERTION_FILTER,
                     "Entry %s cannot be added because the request contained " +
                     "an LDAP assertion control, but an error occurred while " +
                     "attempting to compare the provided entry against the " +
-                    "filter contained in that control:  %s.");
+                    "filter contained in that control:  %s");
     registerMessage(MSGID_ADD_UNSUPPORTED_CRITICAL_CONTROL,
                     "Entry %s cannot be added because the request contained " +
                     "a critical control with OID %s that is not supported by " +
-                    "the Directory Server for this type of operation.");
+                    "the Directory Server for this type of operation");
     registerMessage(MSGID_ADD_ATTR_IS_NO_USER_MOD,
                     "Entry %s cannot be added because it includes attribute " +
                     "%s which is defined as NO-USER-MODIFICATION in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_ADD_CANNOT_ADD_ROOT_DSE,
                     "The provided entry cannot be added because it contains " +
                     "a null DN.  This DN is reserved for the root DSE, and " +
-                    "that entry may not be added over protocol.");
+                    "that entry may not be added over protocol");
     registerMessage(MSGID_ADD_ENTRY_NOT_SUFFIX,
                     "The provided entry %s cannot be added because it does " +
                     "not have a parent and is not defined as one of the " +
-                    "suffixes within the Directory Server.");
+                    "suffixes within the Directory Server");
     registerMessage(MSGID_ADD_CANNOT_LOCK_PARENT,
                     "Entry %s cannot be added because the server failed to " +
                     "obtain a read lock on the parent entry %s after " +
-                    "multiple attempts.");
+                    "multiple attempts");
     registerMessage(MSGID_ADD_NO_PARENT,
                     "Entry %s cannot be added because its parent entry %s " +
-                    "does not exist in the server.");
+                    "does not exist in the server");
     registerMessage(MSGID_ADD_CANNOT_LOCK_ENTRY,
                     "Entry %s cannot be added because the server failed " +
                     "to obtain a write lock for this entry after multiple " +
-                    "attempts.");
+                    "attempts");
     registerMessage(MSGID_ADD_MISSING_RDN_ATTRIBUTE,
                     "Entry %s cannot be added because it is missing " +
                     "attribute %s that is contained in the entry's RDN.  " +
                     "All attributes used in the RDN must also be provided in " +
-                    "the attribute list for the entry.");
+                    "the attribute list for the entry");
     registerMessage(MSGID_ADD_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to add entries " +
-                    "that include privileges.");
+                    "that include privileges");
     registerMessage(MSGID_ADD_NOOP,
                     "The add operation was not actually performed in the " +
                     "Directory Server backend because the LDAP no-op control " +
-                    "was present in the request.");
+                    "was present in the request");
     registerMessage(MSGID_ADD_ERROR_NOTIFYING_CHANGE_LISTENER,
                     "An unexpected error occurred while notifying a change " +
-                    "notification listener of an add operation:  %s.");
+                    "notification listener of an add operation:  %s");
     registerMessage(MSGID_ADD_ERROR_NOTIFYING_PERSISTENT_SEARCH,
                     "An unexpected error occurred while notifying persistent " +
                     "search %s of an add operation:  %s.  The persistent " +
-                    "search has been terminated.");
+                    "search has been terminated");
 
 
     registerMessage(MSGID_COMPARE_OP_NO_SUCH_ATTR,
                     "Entry \"%s\" does not contain any values for attribute " +
-                    "\"%s\".");
+                    "\"%s\"");
     registerMessage(MSGID_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS,
                     "Entry \"%s\" does not contain any values for attribute " +
-                    "\"%s\" with the specified set of options.");
+                    "\"%s\" with the specified set of options");
 
 
     registerMessage(MSGID_CANCELED_BY_BIND_REQUEST,
                     "Processing on this operation has been canceled because " +
                     "the Directory Server received a bind request on this " +
                     "connection, which requires that all operations in " +
-                    "progress to be abandoned.");
+                    "progress to be abandoned");
     registerMessage(MSGID_BIND_OPERATION_UNKNOWN_USER,
                     "Unable to bind to the Directory Server as user %s " +
-                    "because no such user exists in the server.");
+                    "because no such user exists in the server");
     registerMessage(MSGID_BIND_UNSUPPORTED_CRITICAL_CONTROL,
                     "Unable to process the bind request because it " +
                     "contained a control with OID %s that was marked " +
                     "critical but this control is not supported for the bind " +
-                    "operation.");
+                    "operation");
     registerMessage(MSGID_BIND_DN_BUT_NO_PASSWORD,
                     "Unable to process the simple bind request because it " +
                     "contained a bind DN but no password, which is forbidden " +
-                    "by the server configuration.");
+                    "by the server configuration");
     registerMessage(MSGID_BIND_OPERATION_CANNOT_LOCK_USER,
                     "Unable to process the bind because the server was " +
-                    "unable to obtain a read lock on the entry %s.");
+                    "unable to obtain a read lock on the entry %s");
     registerMessage(MSGID_BIND_OPERATION_NO_PASSWORD,
                     "Unable to bind to the Directory Server as user %s " +
                     "using simple authentication because that user does " +
-                    "not have a password.");
+                    "not have a password");
     registerMessage(MSGID_BIND_OPERATION_UNKNOWN_SASL_MECHANISM,
                     "Unable to process the bind request because it attempted " +
                     "to use an unknown SASL mechanism %s that is not " +
-                    "available in the Directory Server.");
+                    "available in the Directory Server");
     registerMessage(MSGID_BIND_OPERATION_UNKNOWN_STORAGE_SCHEME,
                     "Password with unknown storage scheme %s included in " +
-                    "user entry %s will be ignored.");
+                    "user entry %s will be ignored");
     registerMessage(MSGID_BIND_MULTIPLE_USER_SIZE_LIMITS,
                     "There are multiple user-specific size limit values " +
                     "contained in user entry %s.  The default server size " +
-                    "limit will be used.");
+                    "limit will be used");
     registerMessage(MSGID_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT,
                     "The user-specific size limit value %s contained in " +
                     "user entry %s could not be parsed as an integer.  The " +
-                    "default server size limit will be used.");
+                    "default server size limit will be used");
     registerMessage(MSGID_BIND_MULTIPLE_USER_TIME_LIMITS,
                     "There are multiple user-specific time limit values " +
                     "contained in user entry %s.  The default server time " +
-                    "limit will be used.");
+                    "limit will be used");
     registerMessage(MSGID_BIND_CANNOT_PROCESS_USER_TIME_LIMIT,
                     "The user-specific time limit value %s contained in " +
                     "user entry %s could not be parsed as an integer.  The " +
-                    "default server time limit will be used.");
+                    "default server time limit will be used");
     registerMessage(MSGID_BIND_PASSWORD_EXPIRING,
                     "The user password is about to expire (time to " +
-                    "expiration:  %s).");
+                    "expiration:  %s)");
     registerMessage(MSGID_BIND_OPERATION_WRONG_PASSWORD,
                     "The password provided by the user did not match any " +
-                    "password(s) stored in the user's entry.");
+                    "password(s) stored in the user's entry");
     registerMessage(MSGID_BIND_ACCOUNT_TEMPORARILY_LOCKED,
                     "The account has been locked as a result of too many " +
-                    "failed authentication attempts (time to unlock:  %s).");
+                    "failed authentication attempts (time to unlock:  %s)");
     registerMessage(MSGID_BIND_ACCOUNT_PERMANENTLY_LOCKED,
                     "The account has been locked as a result of too many " +
                     "failed authentication attempts.  It may only be " +
-                    "unlocked by an administrator.");
+                    "unlocked by an administrator");
     registerMessage(MSGID_BIND_OPERATION_PASSWORD_VALIDATION_EXCEPTION,
                     "An unexpected error occurred while attempting to " +
-                    "validate the provided password:  %s.");
+                    "validate the provided password:  %s");
 
 
     registerMessage(MSGID_ABANDON_OP_NO_SUCH_OPERATION,
                     "Unable to abandon the operation with message ID %d " +
                     "because no information is available about that " +
                     "operation.  This could mean that the target operation " +
-                    "has already completed or was never requested.");
+                    "has already completed or was never requested");
     registerMessage(MSGID_CANCELED_BY_ABANDON_REQUEST,
                     "The operation was canceled because the client issued " +
-                    "an abandon request (message ID %d) for this operation.");
+                    "an abandon request (message ID %d) for this operation");
 
 
     registerMessage(MSGID_CANCELED_BY_PREPARSE_DISCONNECT,
                     "The operation was canceled because the client " +
-                    "connection was terminated by a pre-parse plugin.");
+                    "connection was terminated by a pre-parse plugin");
     registerMessage(MSGID_CANCELED_BY_PREOP_DISCONNECT,
                     "The operation was canceled because the client " +
-                    "connection was terminated by a pre-operation plugin.");
+                    "connection was terminated by a pre-operation plugin");
     registerMessage(MSGID_CANCELED_BY_POSTOP_DISCONNECT,
                     "The operation was canceled because the client " +
-                    "connection was terminated by a post-operation plugin.");
+                    "connection was terminated by a post-operation plugin");
     registerMessage(MSGID_CANCELED_BY_SEARCH_ENTRY_DISCONNECT,
                     "The operation was canceled because the client " +
                     "connection was terminated by a search result entry " +
-                    "plugin working on entry %s.");
+                    "plugin working on entry %s");
     registerMessage(MSGID_CANCELED_BY_SEARCH_REF_DISCONNECT,
                     "The operation was canceled because the client " +
                     "connection was terminated by a search result reference " +
-                    "plugin working on referral %s.");
+                    "plugin working on referral %s");
 
 
     registerMessage(MSGID_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to access the " +
-                    "server configuration.");
+                    "server configuration");
     registerMessage(MSGID_COMPARE_CANNOT_LOCK_ENTRY,
                     "The Directory Server was unable to obtain a read " +
                     "lock on entry %s after multiple attempts.  Processing " +
-                    "on this operation cannot continue.");
+                    "on this operation cannot continue");
     registerMessage(MSGID_COMPARE_NO_SUCH_ENTRY,
                     "The specified entry %s does not exist in the " +
-                    "Directory Server.");
+                    "Directory Server");
     registerMessage(MSGID_COMPARE_ASSERTION_FAILED,
                     "Cannot perform the compare operation on entry %s " +
                     "because the request contained an LDAP assertion control " +
                     "and the associated filter did not match the contents of " +
-                    "the that entry.");
+                    "the that entry");
     registerMessage(MSGID_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER,
                     "Cannot perform the compare operation on entry %s " +
                     "because the request contained an LDAP assertion " +
                     "control, but an error occurred while attempting to " +
                     "compare the target entry against the filter contained " +
-                    "in that control:  %s.");
+                    "in that control:  %s");
     registerMessage(MSGID_COMPARE_UNSUPPORTED_CRITICAL_CONTROL,
                     "Cannot perform the compare operation on entry %s " +
                     "because the request contained a critical control with " +
                     "OID %s that is not supported by the Directory Server " +
-                    "for this type of operation.");
+                    "for this type of operation");
 
 
     registerMessage(MSGID_DELETE_CANNOT_LOCK_ENTRY,
                     "Entry %s cannot be removed because the server failed " +
                     "to obtain a write lock for this entry after multiple " +
-                    "attempts.");
+                    "attempts");
     registerMessage(MSGID_DELETE_CANNOT_GET_ENTRY_FOR_ASSERTION,
                     "Entry %s cannot be removed because the delete request " +
                     "contains an LDAP assertion control and an error " +
                     "occurred while trying to retrieve the target entry to " +
-                    "compare it against the associated filter:  %s.");
+                    "compare it against the associated filter:  %s");
     registerMessage(MSGID_DELETE_NO_SUCH_ENTRY_FOR_ASSERTION,
                     "Entry %s cannot be removed because it was determined " +
                     "that the target entry does not exist while attempting " +
                     "to process it against the LDAP assertion control " +
-                    "contained in the request.");
+                    "contained in the request");
     registerMessage(MSGID_DELETE_ASSERTION_FAILED,
                     "Entry %s cannot be removed because the request " +
                     "contained an LDAP assertion control and the associated " +
-                    "filter did not match the contents of the that entry.");
+                    "filter did not match the contents of the that entry");
     registerMessage(MSGID_DELETE_CANNOT_PROCESS_ASSERTION_FILTER,
                     "Entry %s cannot be removed because the request " +
                     "contained an LDAP assertion control, but an error " +
                     "occurred while attempting to compare the target entry " +
-                    "against the filter contained in that control:  %s.");
+                    "against the filter contained in that control:  %s");
     registerMessage(MSGID_DELETE_PREREAD_NO_ENTRY,
                     "Entry %s cannot be removed because it was determined " +
                     "that the target entry does not exist while attempting " +
-                    "to process it against the LDAP pre-read request control.");
+                    "to process it against the LDAP pre-read request control");
     registerMessage(MSGID_DELETE_UNSUPPORTED_CRITICAL_CONTROL,
                     "Entry %s cannot be removed because the request " +
                     "contained a critical control with OID %s that is not " +
                     "supported by the Directory Server for this type of " +
-                    "operation.");
+                    "operation");
     registerMessage(MSGID_DELETE_NO_SUCH_ENTRY,
-                    "Entry %s does not exist in the Directory Server.");
+                    "Entry %s does not exist in the Directory Server");
     registerMessage(MSGID_DELETE_HAS_SUB_BACKEND,
                     "Entry %s cannot be removed because the backend that " +
                     "should contain that entry has a subordinate backend " +
-                    "with a base DN of %s that is below the target DN.");
+                    "with a base DN of %s that is below the target DN");
     registerMessage(MSGID_DELETE_NOOP,
                     "The delete operation was not actually performed in the " +
                     "Directory Server backend because the LDAP no-op control " +
-                    "was present in the request.");
+                    "was present in the request");
     registerMessage(MSGID_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER,
                     "An unexpected error occurred while notifying a change " +
-                    "notification listener of a delete operation:  %s.");
+                    "notification listener of a delete operation:  %s");
     registerMessage(MSGID_DELETE_ERROR_NOTIFYING_PERSISTENT_SEARCH,
                     "An unexpected error occurred while notifying persistent " +
                     "search %s of a delete operation:  %s.  The persistent " +
-                    "search has been terminated.");
+                    "search has been terminated");
 
 
     registerMessage(MSGID_SEARCH_TIME_LIMIT_EXCEEDED,
                     "The maximum time limit of %d seconds for processing " +
-                    "this search operation has expired.");
+                    "this search operation has expired");
     registerMessage(MSGID_SEARCH_SIZE_LIMIT_EXCEEDED,
                     "This search operation has sent the maximum of %d " +
-                    "entries to the client.");
+                    "entries to the client");
     registerMessage(MSGID_SEARCH_CANNOT_GET_ENTRY_FOR_ASSERTION,
                     "The search request cannot be processed because it " +
                     "contains an LDAP assertion control and an error " +
                     "occurred while trying to retrieve the base entry to " +
-                    "compare it against the assertion filter:  %s.");
+                    "compare it against the assertion filter:  %s");
     registerMessage(MSGID_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION,
                     "The search request cannot be processed because it " +
                     "contains an LDAP assertion control but the search base " +
-                    "entry does not exist.");
+                    "entry does not exist");
     registerMessage(MSGID_SEARCH_ASSERTION_FAILED,
                     "The search request cannot be processed because it " +
                     "contains an LDAP assertion control and the assertion " +
-                    "filter did not match the contents of the base entry.");
+                    "filter did not match the contents of the base entry");
     registerMessage(MSGID_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER,
                     "The search request cannot be processed because it " +
                     "contains an LDAP assertion control, but an error " +
                     "occurred while attempting to compare the base entry " +
-                    "against the assertion filter:  %s.");
+                    "against the assertion filter:  %s");
     registerMessage(MSGID_SEARCH_UNSUPPORTED_CRITICAL_CONTROL,
                     "The search request cannot be processed because it " +
                     "contains a critical control with OID %s that is not " +
                     "supported by the Directory Server for this type of " +
-                    "operation.");
+                    "operation");
     registerMessage(MSGID_SEARCH_BASE_DOESNT_EXIST,
                     "The entry %s specified as the search base does not " +
-                    "exist in the Directory Server.");
+                    "exist in the Directory Server");
 
 
     registerMessage(MSGID_MODDN_NO_PARENT,
                     "A modify DN operation cannot be performed on entry %s " +
-                    "because the new RDN would not have a parent DN.");
+                    "because the new RDN would not have a parent DN");
     registerMessage(MSGID_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because no backend is registered to handle " +
-                    "that DN.");
+                    "that DN");
     registerMessage(MSGID_MODDN_NO_BACKEND_FOR_NEW_ENTRY,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because no backend is registered to handle " +
-                    "the new DN %s.");
+                    "the new DN %s");
     registerMessage(MSGID_MODDN_DIFFERENT_BACKENDS,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because the backend holding the current entry " +
                     "is different from the backend used to handle the new DN " +
                     "%s.  Modify DN operations may not span multiple " +
-                    "backends.");
+                    "backends");
     registerMessage(MSGID_MODDN_CANNOT_LOCK_CURRENT_DN,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because the server was unable to obtain a " +
-                    "write lock for that DN.");
+                    "write lock for that DN");
     registerMessage(MSGID_MODDN_EXCEPTION_LOCKING_NEW_DN,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because an exception was caught while " +
-                    "attempting to obtain a write lock for new DN %s:  %s.");
+                    "attempting to obtain a write lock for new DN %s:  %s");
     registerMessage(MSGID_MODDN_CANNOT_LOCK_NEW_DN,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because the server was unable to obtain a " +
-                    "write lock for the new DN %s.");
+                    "write lock for the new DN %s");
     registerMessage(MSGID_MODDN_NO_CURRENT_ENTRY,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because that entry does not exist in the " +
-                    "server.");
+                    "server");
     registerMessage(MSGID_MODDN_ASSERTION_FAILED,
                     "Entry %s cannot be renamed because the request " +
                     "contained an LDAP assertion control and the associated " +
-                    "filter did not match the contents of the that entry.");
+                    "filter did not match the contents of the that entry");
     registerMessage(MSGID_MODDN_CANNOT_PROCESS_ASSERTION_FILTER,
                     "Entry %s cannot be renamed because the request " +
                     "contained an LDAP assertion control, but an error " +
                     "occurred while attempting to compare the target entry " +
-                    "against the filter contained in that control:  %s.");
+                    "against the filter contained in that control:  %s");
     registerMessage(MSGID_MODDN_UNSUPPORTED_CRITICAL_CONTROL,
                     "Entry %s cannot be renamed because the request " +
                     "contained a critical control with OID %s that is not " +
                     "supported by the Directory Server for this type of " +
-                    "operation.");
+                    "operation");
     registerMessage(MSGID_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD,
                     "Entry %s cannot be renamed because the current DN " +
                     "includes attribute %s which is defined as " +
                     "NO-USER-MODIFICATION in the server schema and the " +
-                    "deleteOldRDN flag was set in the modify DN request.");
+                    "deleteOldRDN flag was set in the modify DN request");
     registerMessage(MSGID_MODDN_NEW_RDN_ATTR_IS_NO_USER_MOD,
                     "Entry %s cannot be renamed because the new RDN " +
                     "includes attribute %s which is defined as " +
                     "NO-USER-MODIFICATION in the server schema, and the " +
                     "target value for that attribute is not already " +
-                    "included in the entry.");
+                    "included in the entry");
     registerMessage(MSGID_MODDN_VIOLATES_SCHEMA,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because the change would have violated the " +
-                    "server schema:  %s.");
+                    "server schema:  %s");
     registerMessage(MSGID_MODDN_NEWRDN_ATTR_IS_OBSOLETE,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because the new RDN includes attribute type " +
-                    "%s which is declared OBSOLETE in the server schema.");
+                    "%s which is declared OBSOLETE in the server schema");
     registerMessage(MSGID_MODDN_PREOP_INCREMENT_NO_ATTR,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because a pre-operation plugin attempted to " +
                     "increment attribute %s but that attribute does not " +
-                    "exist in the target entry.");
+                    "exist in the target entry");
     registerMessage(MSGID_MODDN_PREOP_INCREMENT_MULTIPLE_VALUES,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because a pre-operation plugin attempted to " +
                     "increment attribute %s but that attribute has multiple " +
-                    "values in the target entry.");
+                    "values in the target entry");
     registerMessage(MSGID_MODDN_PREOP_INCREMENT_VALUE_NOT_INTEGER,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because a pre-operation plugin attempted to " +
                     "increment attribute %s but the value of that attribute " +
-                    "is not an integer.");
+                    "is not an integer");
     registerMessage(MSGID_MODDN_PREOP_INCREMENT_NO_AMOUNT,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because a pre-operation plugin attempted to " +
                     "increment attribute %s but no increment amount was " +
-                    "provided.");
+                    "provided");
     registerMessage(MSGID_MODDN_PREOP_INCREMENT_MULTIPLE_AMOUNTS,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because a pre-operation plugin attempted to " +
                     "increment attribute %s but multiple increment amount " +
-                    "values were provided.");
+                    "values were provided");
     registerMessage(MSGID_MODDN_PREOP_INCREMENT_AMOUNT_NOT_INTEGER,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because a pre-operation plugin attempted to " +
                     "increment attribute %s but the increment amount value " +
-                    "was not an integer.");
+                    "was not an integer");
     registerMessage(MSGID_MODDN_PREOP_VIOLATES_SCHEMA,
                     "The modify DN operation for entry %s cannot be " +
                     "performed because a pre-operation plugin modified the " +
                     "entry in a way that caused it to violate the server " +
-                    "schema:  %s.");
+                    "schema:  %s");
     registerMessage(MSGID_MODDN_NOOP,
                     "The modify DN operation was not actually performed in " +
                     "the Directory Server backend because the LDAP no-op " +
-                    "control was present in the request.");
+                    "control was present in the request");
     registerMessage(MSGID_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER,
                     "An unexpected error occurred while notifying a change " +
-                    "notification listener of a modify DN operation:  %s.");
+                    "notification listener of a modify DN operation:  %s");
     registerMessage(MSGID_MODDN_ERROR_NOTIFYING_PERSISTENT_SEARCH,
                     "An unexpected error occurred while notifying persistent " +
                     "search %s of a modify DN operation:  %s.  The " +
-                    "persistent search has been terminated.");
+                    "persistent search has been terminated");
 
 
     registerMessage(MSGID_MODIFY_NO_MODIFICATIONS,
                     "Entry %s cannot be updated because the request did not " +
-                    "contain any modifications.");
+                    "contain any modifications");
     registerMessage(MSGID_MODIFY_CANNOT_LOCK_ENTRY,
                     "Entry %s cannot be modified because the server failed " +
                     "to obtain a write lock for this entry after multiple " +
-                    "attempts.");
+                    "attempts");
     registerMessage(MSGID_MODIFY_NO_SUCH_ENTRY,
                     "Entry %s cannot be modified because no such entry " +
-                    "exists in the server.");
+                    "exists in the server");
     registerMessage(MSGID_MODIFY_ASSERTION_FAILED,
                     "Entry %s cannot be modified because the request " +
                     "contained an LDAP assertion control and the associated " +
-                    "filter did not match the contents of the that entry.");
+                    "filter did not match the contents of the that entry");
     registerMessage(MSGID_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER,
                     "Entry %s cannot be modified because the request " +
                     "contained an LDAP assertion control, but an error " +
                     "occurred while attempting to compare the target entry " +
-                    "against the filter contained in that control:  %s.");
+                    "against the filter contained in that control:  %s");
     registerMessage(MSGID_MODIFY_UNSUPPORTED_CRITICAL_CONTROL,
                     "Entry %s cannot be modified because the request " +
                     "contained a critical control with OID %s that is not " +
                     "supported by the Directory Server for this type of " +
-                    "operation.");
+                    "operation");
     registerMessage(MSGID_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to reset user " +
-                    "passwords.");
+                    "passwords");
     registerMessage(MSGID_MODIFY_MUST_CHANGE_PASSWORD,
                     "You must change your password before you will be " +
-                    "allowed to perform any other operations.");
+                    "allowed to perform any other operations");
     registerMessage(MSGID_MODIFY_ATTR_IS_NO_USER_MOD,
                     "Entry %s cannot be modified because the modification " +
                     "attempted to update attribute %s which is defined as " +
-                    "NO-USER-MODIFICATION in the server schema.");
+                    "NO-USER-MODIFICATION in the server schema");
     registerMessage(MSGID_MODIFY_ATTR_IS_OBSOLETE,
                     "Entry %s cannot be modified because the modification " +
                     "attempted to set one or more new values for attribute " +
-                    "%s which is marked OBSOLETE in the server schema.");
+                    "%s which is marked OBSOLETE in the server schema");
     registerMessage(MSGID_MODIFY_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to modify the " +
-                    "set of privileges contained in an entry.");
+                    "set of privileges contained in an entry");
     registerMessage(MSGID_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS,
                     "Attributes used to hold user passwords are not allowed " +
-                    "to have any attribute options.");
+                    "to have any attribute options");
     registerMessage(MSGID_MODIFY_NO_USER_PW_CHANGES,
-                    "Users are not allowed to change their own passwords.");
+                    "Users are not allowed to change their own passwords");
     registerMessage(MSGID_MODIFY_REQUIRE_SECURE_CHANGES,
                     "Password changes must be performed over a secure " +
-                    "authentication channel.");
+                    "authentication channel");
     registerMessage(MSGID_MODIFY_WITHIN_MINIMUM_AGE,
                     "The password cannot be changed because it has not been " +
-                    "long enough since the last password change.");
+                    "long enough since the last password change");
     registerMessage(MSGID_MODIFY_MULTIPLE_VALUES_NOT_ALLOWED,
                     "Multiple password values are not allowed in user " +
-                    "entries.");
+                    "entries");
     registerMessage(MSGID_MODIFY_NO_PREENCODED_PASSWORDS,
-                    "User passwords may not be provided in pre-encoded form.");
+                    "User passwords may not be provided in pre-encoded form");
     registerMessage(MSGID_MODIFY_PASSWORD_EXISTS,
                     "The specified password value already exists in the " +
-                    "user entry.");
+                    "user entry");
     registerMessage(MSGID_MODIFY_NO_EXISTING_VALUES,
                     "The user entry does not have any existing passwords to " +
-                    "remove.");
+                    "remove");
     registerMessage(MSGID_MODIFY_CANNOT_DECODE_PW,
                     "An error occurred while attempting to decode an " +
-                    "existing user password:  %s.");
+                    "existing user password:  %s");
     registerMessage(MSGID_MODIFY_INVALID_PASSWORD,
                     "The provided user password does not match any password " +
-                    "in the user's entry.");
+                    "in the user's entry");
     registerMessage(MSGID_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD,
                     "Invalid modification type %s attempted on password " +
-                    "attribute %s.");
+                    "attribute %s");
     registerMessage(MSGID_MODIFY_INVALID_DISABLED_VALUE,
                     "Invalid value provided for operational attribute %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_MODIFY_ADD_NO_VALUES,
                     "Entry %s cannot be modified because the modification " +
                     "contained an add component for attribute %s but no " +
-                    "values were provided.");
+                    "values were provided");
     registerMessage(MSGID_MODIFY_ADD_INVALID_SYNTAX,
                     "When attempting to modify entry %s to add one or more " +
                     "values for attribute %s, value \"%s\" was found to be " +
-                    "invalid according to the associated syntax:  %s.");
+                    "invalid according to the associated syntax:  %s");
     registerMessage(MSGID_MODIFY_ADD_DUPLICATE_VALUE,
                     "Entry %s cannot be modified because it would have " +
                     "resulted in one or more duplicate values for attribute " +
-                    "%s:  %s.");
+                    "%s:  %s");
     registerMessage(MSGID_MODIFY_DELETE_RDN_ATTR,
                     "Entry %s cannot be modified because the change to " +
-                    "attribute %s would have removed a value used in the RDN.");
+                    "attribute %s would have removed a value used in the RDN");
     registerMessage(MSGID_MODIFY_DELETE_MISSING_VALUES,
                     "Entry %s cannot be modified because the attempt to " +
                     "update attribute %s would have removed one or more " +
-                    "values from the attribute that were not present:  %s.");
+                    "values from the attribute that were not present:  %s");
     registerMessage(MSGID_MODIFY_DELETE_NO_SUCH_ATTR,
                     "Entry %s cannot be modified because an attempt was made " +
                     "to remove one or more values from attribute %s but this " +
-                    "attribute is not present in the entry.");
+                    "attribute is not present in the entry");
     registerMessage(MSGID_MODIFY_REPLACE_INVALID_SYNTAX,
                     "When attempting to modify entry %s to replace the set " +
                     "of values for attribute %s, value \"%s\" was found to " +
-                    "be invalid according to the associated syntax:  %s.");
+                    "be invalid according to the associated syntax:  %s");
     registerMessage(MSGID_MODIFY_INCREMENT_RDN,
                     "Entry %s cannot be modified because an attempt was made " +
                     "to increment the value of attribute %s which is used as " +
-                    "an RDN attribute for the entry.");
+                    "an RDN attribute for the entry");
     registerMessage(MSGID_MODIFY_INCREMENT_REQUIRES_VALUE,
                     "Entry %s cannot be modified because an attempt was made " +
                     "to increment the value of attribute %s but the request " +
                     "did not include a value for that attribute specifying " +
-                    "the amount by which to increment the value.");
+                    "the amount by which to increment the value");
     registerMessage(MSGID_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE,
                     "Entry %s cannot be modified because an attempt was made " +
                     "to increment the value of attribute %s but the request " +
                     "contained multiple values, where only a single integer " +
-                    "value is allowed.");
+                    "value is allowed");
     registerMessage(MSGID_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER,
                     "Entry %s cannot be modified because an attempt was made " +
                     "to increment the value of attribute %s but the value " +
                     "\"%s\" contained in the request could not be parsed as " +
-                    "an integer.");
+                    "an integer");
     registerMessage(MSGID_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE,
                     "Entry %s cannot be modified because an attempt was made " +
                     "to increment the value of attribute %s but that " +
-                    "attribute did not have any values in the target entry.");
+                    "attribute did not have any values in the target entry");
     registerMessage(MSGID_MODIFY_PW_CHANGE_REQUIRES_CURRENT_PW,
                     "The password policy requires that user password changes " +
-                    "include the current password in the request.");
+                    "include the current password in the request");
     registerMessage(MSGID_MODIFY_MULTIPLE_PASSWORDS_NOT_ALLOWED,
                     "The password change would result in multiple password " +
-                    "values in the user entry, which is not allowed.");
+                    "values in the user entry, which is not allowed");
     registerMessage(MSGID_MODIFY_PW_VALIDATION_FAILED,
                     "The provided password value was rejected by a password " +
-                    "validator:  %s.");
+                    "validator:  %s");
     registerMessage(MSGID_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE,
                     "Entry %s cannot be modified because an attempt was " +
                     "made to increment the value of attribute %s but the " +
-                    "value \"%s\" could not be parsed as an integer.");
+                    "value \"%s\" could not be parsed as an integer");
     registerMessage(MSGID_MODIFY_VIOLATES_SCHEMA,
                     "Entry %s cannot not be modified because the resulting " +
-                    "entry would have violated the server schema:  %s.");
+                    "entry would have violated the server schema:  %s");
     registerMessage(MSGID_MODIFY_NO_BACKEND_FOR_ENTRY,
                     "Entry %s cannot be modified because there is no backend " +
-                    "registered to handle operations for that entry.");
+                    "registered to handle operations for that entry");
     registerMessage(MSGID_MODIFY_NOOP,
                     "The modify operation was not actually performed in the " +
                     "Directory Server backend because the LDAP no-op control " +
-                    "was present in the request.");
+                    "was present in the request");
     registerMessage(MSGID_MODIFY_PASSWORD_CHANGED,
-                    "The user password has been changed.");
+                    "The user password has been changed");
     registerMessage(MSGID_MODIFY_PASSWORD_RESET,
-                    "The user password has been administratively reset.");
+                    "The user password has been administratively reset");
     registerMessage(MSGID_MODIFY_ACCOUNT_ENABLED,
-                    "The user account has been administratively enabled.");
+                    "The user account has been administratively enabled");
     registerMessage(MSGID_MODIFY_ACCOUNT_DISABLED,
-                    "The user account has been administratively disabled.");
+                    "The user account has been administratively disabled");
     registerMessage(MSGID_MODIFY_ACCOUNT_UNLOCKED,
-                    "The user account has been administratively unlocked.");
+                    "The user account has been administratively unlocked");
     registerMessage(MSGID_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER,
                     "An unexpected error occurred while notifying a change " +
-                    "notification listener of a modify operation:  %s.");
+                    "notification listener of a modify operation:  %s");
     registerMessage(MSGID_MODIFY_ERROR_NOTIFYING_PERSISTENT_SEARCH,
                     "An unexpected error occurred while notifying persistent " +
                     "search %s of a modify operation:  %s.  The persistent " +
-                    "search has been terminated.");
+                    "search has been terminated");
 
 
     registerMessage(MSGID_EXTENDED_NO_HANDLER,
                     "There is no extended operation handler registered with " +
                     "the Directory Server for handling extended operations " +
-                    "with a request OID of %s.");
+                    "with a request OID of %s");
     registerMessage(MSGID_EXTENDED_UNSUPPORTED_CRITICAL_CONTROL,
                     "Unable to process the request for extended operation %s " +
                     "because it contained an unsupported critical control " +
-                    "with OID %s.");
+                    "with OID %s");
 
 
     registerMessage(MSGID_CONNHANDLER_CLOSED_BY_SHUTDOWN,
-                    "The Directory Server is shutting down.");
+                    "The Directory Server is shutting down");
     registerMessage(MSGID_CONNHANDLER_CLOSED_BY_DISABLE,
                     "The connection handler that accepted this connection " +
-                    "has been disabled.");
+                    "has been disabled");
     registerMessage(MSGID_CONNHANDLER_CLOSED_BY_DELETE,
                     "The connection handler that accepted this connection " +
-                    "has been removed from the server.");
+                    "has been removed from the server");
 
 
     registerMessage(MSGID_DSCORE_TOOL_DESCRIPTION,
                     "This utility may be used to start the Directory Server, " +
                     "as well as to obtain the server version and other forms " +
-                    "of general server information.");
+                    "of general server information");
     registerMessage(MSGID_DSCORE_DESCRIPTION_CONFIG_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
-                    "to use as the Directory Server configuration handler.");
+                    "to use as the Directory Server configuration handler");
     registerMessage(MSGID_DSCORE_DESCRIPTION_CONFIG_FILE,
                     "Specifies the path to the file containing the " +
                     "information needed by the configuration handler to " +
-                    "obtain the Directory Server configuration.");
+                    "obtain the Directory Server configuration");
     registerMessage(MSGID_DSCORE_DESCRIPTION_CHECK_STARTABILITY,
                     "Used to determine whether a server can be started or not" +
-                    "and the mode to be used to start it.");
+                    "and the mode to be used to start it");
     registerMessage(MSGID_DSCORE_DESCRIPTION_WINDOWS_NET_START,
                     "Used by the window service code to inform that start-ds "+
                     "is being called from the window services after a call "+
@@ -7330,252 +7330,252 @@ public class CoreMessages
                     "Display this usage information");
     registerMessage(MSGID_DSCORE_CANNOT_INITIALIZE_ARGS,
                     "An error occurred while attempting to initialize the " +
-                    "command-line arguments:  %s.");
+                    "command-line arguments:  %s");
     registerMessage(MSGID_DSCORE_ERROR_PARSING_ARGS,
                     "An error occurred while attempting to parse the " +
-                    "provided set of command line arguments:  %s.");
+                    "provided set of command line arguments:  %s");
     registerMessage(MSGID_DSCORE_ERROR_NODETACH_AND_WINDOW_SERVICE,
                     "OpenDS is configured to run as a window service and it "+
-                    "cannot run in no-detach mode.");
+                    "cannot run in no-detach mode");
     registerMessage(MSGID_DSCORE_CANNOT_BOOTSTRAP,
                     "An error occurred while attempting to bootstrap the " +
-                    "Directory Server:  %s.");
+                    "Directory Server:  %s");
     registerMessage(MSGID_DSCORE_CANNOT_START,
                     "An error occurred while trying to start the Directory " +
-                    "Server:  %s.");
+                    "Server:  %s");
 
 
     registerMessage(MSGID_BACKUPINFO_NO_DELIMITER,
                     "The line \"%s\" associated with the backup information " +
                     "in directory %s could not be parsed because it did not " +
                     "contain an equal sign to delimit the property name from " +
-                    "the value.");
+                    "the value");
     registerMessage(MSGID_BACKUPINFO_NO_NAME,
                     "The line \"%s\" associated with the backup information " +
                     "in directory %s could not be parsed because it did not " +
-                    "include a property name.");
+                    "include a property name");
     registerMessage(MSGID_BACKUPINFO_MULTIPLE_BACKUP_IDS,
                     "The backup information structure in directory %s could " +
                     "not be parsed because it contained multiple backup IDs " +
-                    "(%s and %s).");
+                    "(%s and %s)");
     registerMessage(MSGID_BACKUPINFO_UNKNOWN_PROPERTY,
                     "The backup information structure in directory %s could " +
                     "not be parsed because it contained an unknown property " +
-                    "%s with value %s.");
+                    "%s with value %s");
     registerMessage(MSGID_BACKUPINFO_CANNOT_DECODE,
                     "An unexpected error occurred while trying to decode a " +
-                    "backup information structure in directory %s:  %s.");
+                    "backup information structure in directory %s:  %s");
     registerMessage(MSGID_BACKUPINFO_NO_BACKUP_ID,
                     "Unable to decode a backup information structure in " +
                     "directory %s because the structure did not include a " +
-                    "backup ID.");
+                    "backup ID");
     registerMessage(MSGID_BACKUPINFO_NO_BACKUP_DATE,
                     "The backup information structure with backup ID %s in " +
                     "Unable to decode a backup information structure in " +
                     "directory %s was not valid because it did not contain " +
-                    "the backup date.");
+                    "the backup date");
 
 
     registerMessage(MSGID_BACKUPDIRECTORY_ADD_DUPLICATE_ID,
                     "Cannot add a backup with ID %s to backup directory %s " +
-                    "because another backup already exists with that ID.");
+                    "because another backup already exists with that ID");
     registerMessage(MSGID_BACKUPDIRECTORY_NO_SUCH_BACKUP,
                     "Cannot remove backup %s from backup directory %s " +
-                    "because no backup with that ID exists in that directory.");
+                    "because no backup with that ID exists in that directory");
     registerMessage(MSGID_BACKUPDIRECTORY_UNRESOLVED_DEPENDENCY,
                     "Cannot remove backup %s from backup directory %s " +
-                    "because it is listed as a dependency for backup %s.");
+                    "because it is listed as a dependency for backup %s");
     registerMessage(MSGID_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY,
                     "Backup directory %s does not exist and an error " +
-                    "occurred while attempting to create it:  %s.");
+                    "occurred while attempting to create it:  %s");
     registerMessage(MSGID_BACKUPDIRECTORY_NOT_DIRECTORY,
                     "The path %s specifies as a backup directory exists but " +
-                    "does not reference a directory.");
+                    "does not reference a directory");
     registerMessage(MSGID_BACKUPDIRECTORY_CANNOT_DELETE_SAVED_DESCRIPTOR,
                     "An error occurred while trying to remove saved backup " +
                     "descriptor file %s:  %s.  The new backup descriptor " +
                     "has been written to %s but will not be used until it is " +
-                    "manually renamed to %s.");
+                    "manually renamed to %s");
     registerMessage(MSGID_BACKUPDIRECTORY_CANNOT_RENAME_CURRENT_DESCRIPTOR,
                     "An error occurred while trying to rename the current " +
                     "backup descriptor file %s to %s:  %s.  The new backup " +
                     "descriptor has been written to %s but will not be used " +
-                    "until it is manually renamed to %s.");
+                    "until it is manually renamed to %s");
     registerMessage(MSGID_BACKUPDIRECTORY_CANNOT_RENAME_NEW_DESCRIPTOR,
                     "An error occurred while trying to rename the new backup " +
                     "descriptor file %s to %s:  %s.  The new backup " +
                     "descriptor will not be used until it is manually " +
-                    "renamed.");
+                    "renamed");
     registerMessage(MSGID_BACKUPDIRECTORY_NO_DESCRIPTOR_FILE,
-                    "No backup directory descriptor file was found at %s.");
+                    "No backup directory descriptor file was found at %s");
     registerMessage(MSGID_BACKUPDIRECTORY_CANNOT_READ_CONFIG_ENTRY_DN,
                     "The backup descriptor file %s is invalid because the " +
                     "first line should have contained the DN of the backend " +
-                    "configuration entry but was blank.");
+                    "configuration entry but was blank");
     registerMessage(MSGID_BACKUPDIRECTORY_FIRST_LINE_NOT_DN,
                     "The backup descriptor file %s is invalid because the " +
                     "first line of the file was \"%s\", but the DN of the " +
-                    "backend configuration entry was expected.");
+                    "backend configuration entry was expected");
     registerMessage(MSGID_BACKUPDIRECTORY_CANNOT_DECODE_DN,
                     "An error occurred while trying to decode the value " +
                     "\"%s\" read from the first line of %s as the DN of " +
-                    "the backend configuration entry:  %s.");
+                    "the backend configuration entry:  %s");
 
 
     registerMessage(MSGID_FILELOCKER_LOCK_SHARED_REJECTED_BY_EXCLUSIVE,
                     "The attempt to obtain a shared lock on file %s was " +
                     "rejected because an exclusive lock was already held on " +
-                    "that file.");
+                    "that file");
     registerMessage(MSGID_FILELOCKER_LOCK_SHARED_FAILED_CREATE,
                     "The attempt to obtain a shared lock on file %s was " +
                     "rejected because the attempt to create the lock file " +
-                    "failed:  %s.");
+                    "failed:  %s");
     registerMessage(MSGID_FILELOCKER_LOCK_SHARED_FAILED_OPEN,
                     "The attempt to obtain a shared lock on file %s was " +
                     "rejected because the attempt to open the lock file " +
-                    "failed:  %s.");
+                    "failed:  %s");
     registerMessage(MSGID_FILELOCKER_LOCK_SHARED_FAILED_LOCK,
                     "The attempt to obtain a shared lock on file %s was " +
                     "rejected because an error occurred while attempting to " +
-                    "acquire the lock:  %s.");
+                    "acquire the lock:  %s");
     registerMessage(MSGID_FILELOCKER_LOCK_SHARED_NOT_GRANTED,
                     "The shared lock requested for file %s was not granted, " +
                     "which indicates that another process already holds an "+
-                    "exclusive lock on that file.");
+                    "exclusive lock on that file");
     registerMessage(MSGID_FILELOCKER_LOCK_EXCLUSIVE_REJECTED_BY_EXCLUSIVE,
                     "The attempt to obtain an exclusive lock on file %s was " +
                     "rejected because an exclusive lock was already held on " +
-                    "that file.");
+                    "that file");
     registerMessage(MSGID_FILELOCKER_LOCK_EXCLUSIVE_REJECTED_BY_SHARED,
                     "The attempt to obtain an exclusive lock on file %s was " +
                     "rejected because a shared lock was already held on that " +
-                    "file.");
+                    "file");
     registerMessage(MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_CREATE,
                     "The attempt to obtain an exclusive lock on file %s was " +
                     "rejected because the attempt to create the lock file " +
-                    "failed:  %s.");
+                    "failed:  %s");
     registerMessage(MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_OPEN,
                     "The attempt to obtain an exclusive lock on file %s was " +
                     "rejected because the attempt to open the lock file " +
-                    "failed:  %s.");
+                    "failed:  %s");
     registerMessage(MSGID_FILELOCKER_LOCK_EXCLUSIVE_FAILED_LOCK,
                     "The attempt to obtain an exclusive lock on file %s was " +
                     "rejected because an error occurred while attempting to " +
-                    "acquire the lock:  %s.");
+                    "acquire the lock:  %s");
     registerMessage(MSGID_FILELOCKER_LOCK_EXCLUSIVE_NOT_GRANTED,
                     "The exclusive lock requested for file %s was not " +
                     "granted, which indicates that another process already " +
-                    "holds a shared or exclusive lock on that file.");
+                    "holds a shared or exclusive lock on that file");
     registerMessage(MSGID_FILELOCKER_UNLOCK_EXCLUSIVE_FAILED_RELEASE,
                     "The attempt to release the exclusive lock held on %s " +
-                    "failed:  %s.");
+                    "failed:  %s");
     registerMessage(MSGID_FILELOCKER_UNLOCK_SHARED_FAILED_RELEASE,
                     "The attempt to release the shared lock held on %s " +
-                    "failed:  %s.");
+                    "failed:  %s");
     registerMessage(MSGID_FILELOCKER_UNLOCK_UNKNOWN_FILE,
                     "The attempt to release the lock held on %s failed " +
-                    "because no record of a lock on that file was found.");
+                    "because no record of a lock on that file was found");
     registerMessage(MSGID_ADD_ENTRY_ALREADY_EXISTS,
                     "The entry %s cannot be added because an entry with " +
-                    "that name already exists.");
+                    "that name already exists");
 
 
     registerMessage(MSGID_ADD_SYNCH_CONFLICT_RESOLUTION_FAILED,
                     "An error occurred during conflict resolution " +
                     "synchronization processing for the add operation with " +
-                    "connection ID %d and operation ID %d:  %s.");
+                    "connection ID %d and operation ID %d:  %s");
     registerMessage(MSGID_ADD_SYNCH_PREOP_FAILED,
                     "An error occurred during preoperation synchronization " +
                     "processing for the add operation with connection ID %d " +
-                    "and operation ID %d:  %s.");
+                    "and operation ID %d:  %s");
     registerMessage(MSGID_ADD_SYNCH_POSTOP_FAILED,
                     "An error occurred during postoperation synchronization " +
                     "processing for the add operation with connection ID %d " +
-                    "and operation ID %d:  %s.");
+                    "and operation ID %d:  %s");
     registerMessage(MSGID_DELETE_SYNCH_CONFLICT_RESOLUTION_FAILED,
                     "An error occurred during conflict resolution " +
                     "synchronization processing for the delete operation " +
-                    "with connection ID %d and operation ID %d:  %s.");
+                    "with connection ID %d and operation ID %d:  %s");
     registerMessage(MSGID_DELETE_SYNCH_PREOP_FAILED,
                     "An error occurred during preoperation synchronization " +
                     "processing for the delete operation with connection ID " +
-                    "%d and operation ID %d:  %s.");
+                    "%d and operation ID %d:  %s");
     registerMessage(MSGID_DELETE_SYNCH_POSTOP_FAILED,
                     "An error occurred during postoperation synchronization " +
                     "processing for the delete operation with connection ID " +
-                    "%d and operation ID %d:  %s.");
+                    "%d and operation ID %d:  %s");
     registerMessage(MSGID_MODIFY_SYNCH_CONFLICT_RESOLUTION_FAILED,
                     "An error occurred during conflict resolution " +
                     "synchronization processing for the modify operation " +
-                    "with connection ID %d and operation ID %d:  %s.");
+                    "with connection ID %d and operation ID %d:  %s");
     registerMessage(MSGID_MODIFY_SYNCH_PREOP_FAILED,
                     "An error occurred during preoperation synchronization " +
                     "processing for the modify operation with connection ID " +
-                    "%d and operation ID %d:  %s.");
+                    "%d and operation ID %d:  %s");
     registerMessage(MSGID_MODIFY_SYNCH_POSTOP_FAILED,
                     "An error occurred during postoperation synchronization " +
                     "processing for the modify operation with connection ID " +
-                    "%d and operation ID %d:  %s.");
+                    "%d and operation ID %d:  %s");
     registerMessage(MSGID_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED,
                     "An error occurred during conflict resolution " +
                     "synchronization processing for the modify DN operation " +
-                    "with connection ID %d and operation ID %d:  %s.");
+                    "with connection ID %d and operation ID %d:  %s");
     registerMessage(MSGID_MODDN_SYNCH_PREOP_FAILED,
                     "An error occurred during preoperation synchronization " +
                     "processing for the modify DN operation with connection " +
-                    "ID %d and operation ID %d:  %s.");
+                    "ID %d and operation ID %d:  %s");
     registerMessage(MSGID_MODDN_SYNCH_POSTOP_FAILED,
                     "An error occurred during postoperation synchronization " +
                     "processing for the modify DN operation with connection " +
-                    "ID %d and operation ID %d:  %s.");
+                    "ID %d and operation ID %d:  %s");
 
 
     registerMessage(MSGID_ADD_SERVER_READONLY,
                     "Unable to add entry %s because the Directory Server " +
-                    "is configured in read-only mode.");
+                    "is configured in read-only mode");
     registerMessage(MSGID_ADD_BACKEND_READONLY,
                     "Unable to add entry %s because the backend that should " +
-                    "hold that entry is configured in read-only mode.");
+                    "hold that entry is configured in read-only mode");
     registerMessage(MSGID_DELETE_SERVER_READONLY,
                     "Unable to delete entry %s because the Directory Server " +
-                    "is configured in read-only mode.");
+                    "is configured in read-only mode");
     registerMessage(MSGID_DELETE_BACKEND_READONLY,
                     "Unable to delete entry %s because the backend that " +
-                    "holds that entry is configured in read-only mode.");
+                    "holds that entry is configured in read-only mode");
     registerMessage(MSGID_MODIFY_SERVER_READONLY,
                     "Unable to modify entry %s because the Directory Server " +
-                    "is configured in read-only mode.");
+                    "is configured in read-only mode");
     registerMessage(MSGID_MODIFY_BACKEND_READONLY,
                     "Unable to modify entry %s because the backend that " +
-                    "holds that entry is configured in read-only mode.");
+                    "holds that entry is configured in read-only mode");
     registerMessage(MSGID_MODDN_SERVER_READONLY,
                     "Unable to rename entry %s because the Directory Server " +
-                    "is configured in read-only mode.");
+                    "is configured in read-only mode");
     registerMessage(MSGID_MODDN_BACKEND_READONLY,
                     "Unable to rename entry %s because the backend that " +
-                    "holds that entry is configured in read-only mode.");
+                    "holds that entry is configured in read-only mode");
 
 
     registerMessage(MSGID_PWPOLICY_NO_PASSWORD_ATTRIBUTE,
                     "The password policy configuration entry \"%s\" does not " +
                     "contain a value for attribute " +
                     ATTR_PWPOLICY_PASSWORD_ATTRIBUTE + ", which specifies " +
-                    "the attribute to hold user passwords.");
+                    "the attribute to hold user passwords");
     registerMessage(MSGID_PWPOLICY_NO_DEFAULT_STORAGE_SCHEMES,
                     "The password policy configuration entry \"%s\" does not " +
                     "contain any values for attribute " +
                     ATTR_PWPOLICY_DEFAULT_SCHEME + ", which specifies " +
-                    "the set of default password storage schemes.");
+                    "the set of default password storage schemes");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_PW_ATTR,
                     "Specifies the attribute type used to hold user " +
                     "passwords.  This attribute type must be defined in the " +
                     "server schema.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_PWPOLICY_UNDEFINED_PASSWORD_ATTRIBUTE,
                     "The password policy definition contained in " +
                     "configuration entry \"%s\" is invalid because the " +
                     "specified password attribute \"%s\" is not defined in " +
-                    "the server schema.");
+                    "the server schema");
     registerMessage(MSGID_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX,
                     "The password policy definition contained in " +
                     "configuration entry \"%s\" is invalid because the " +
@@ -7583,11 +7583,11 @@ public class CoreMessages
                     "%s.  The password attribute must have a syntax OID of " +
                     "either " + SYNTAX_USER_PASSWORD_OID + " (for the user " +
                     "password syntax) or " + SYNTAX_AUTH_PASSWORD_OID +
-                    " (for the authentication password syntax).");
+                    " (for the authentication password syntax)");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_ATTRIBUTE,
                     "An error occurred while attempting to determine the " +
                     "value of attribute " + ATTR_PWPOLICY_PASSWORD_ATTRIBUTE +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_DEFAULT_STORAGE_SCHEMES,
                     "Specifies the password storage scheme (or set of " +
                     "schemes) that will be used to encode clear-text " +
@@ -7595,16 +7595,16 @@ public class CoreMessages
                     "defined for a password policy, then the same password " +
                     "will be encoded using all of those schemes.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWPOLICY_NO_SUCH_DEFAULT_SCHEME,
                     "The password policy definition contained in " +
                     "configuration entry \"%s\" is invalid because it " +
                     "references a default password storage scheme \"%s\" " +
-                    "that is not defined in the server configuration.");
+                    "that is not defined in the server configuration");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_DEFAULT_STORAGE_SCHEMES,
                     "An error occurred while attempting to determine the " +
                     "values for attribute " + ATTR_PWPOLICY_DEFAULT_SCHEME +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_DEPRECATED_STORAGE_SCHEMES,
                     "Specifies the password storage scheme (or set of " +
                     "schemes) that should be considered deprecated.  If an " +
@@ -7612,96 +7612,96 @@ public class CoreMessages
                     "these schemes, those passwords will be removed and " +
                     "replaced with passwords encoded using the default " +
                     "schemes.  Changes to this configuration attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_DEPRECATED_STORAGE_SCHEMES,
                     "An error occurred while attempting to determine the " +
                     "values for attribute " + ATTR_PWPOLICY_DEPRECATED_SCHEME +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_PASSWORD_VALIDATORS,
                     "Specifies the DN(s) of the password validator(s) that " +
                     "should be used with the associated password storage " +
                     "scheme.  Changes to this configuration attribute will " +
-                    "take effect immediately.");
+                    "take effect immediately");
     registerMessage(MSGID_PWPOLICY_NO_SUCH_VALIDATOR,
                     "The password policy definition contained in " +
                     "configuration entry \"%s\" is invalid because it " +
                     "references a password validator \"%s\" that is not " +
-                    "defined in the server configuration.");
+                    "defined in the server configuration");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_VALIDATORS,
                     "An error occurred while attempting to determine the " +
                     "values for attribute " + ATTR_PWPOLICY_PASSWORD_VALIDATOR +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_NOTIFICATION_HANDLERS,
                     "Specifies the DN(s) of the account status notification " +
                     "handler(s) that should be used with the associated " +
                     "password storage scheme.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_PWPOLICY_NO_SUCH_NOTIFICATION_HANDLER,
                     "The password policy definition contained in " +
                     "configuration entry \"%s\" is invalid because it " +
                     "references account status notification handler \"%s\" " +
-                    "that is not defined in the server configuration.");
+                    "that is not defined in the server configuration");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_NOTIFICATION_HANDLERS,
                     "An error occurred while attempting to determine the " +
                     "values for attribute " +
                     ATTR_PWPOLICY_NOTIFICATION_HANDLER +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_ALLOW_USER_PW_CHANGES,
                     "Indicates whether users will be allowed to change " +
                     "their own passwords.  This check is made in addition " +
                     "to access control evaluation, and therefore both must " +
                     "allow the password change for it to occur.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_USER_PW_CHANGES,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " + ATTR_PWPOLICY_ALLOW_USER_CHANGE +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_REQUIRE_CURRENT_PW,
                     "Indicates whether user password changes will be " +
                     "required to use the password modify extended operation " +
                     "and include the user's current password before the " +
                     "change will be allowed.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CURRENT_PW,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " + ATTR_PWPOLICY_ALLOW_USER_CHANGE +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_FORCE_CHANGE_ON_ADD,
                     "Indicates whether users will be forced to change their " +
                     "passwords upon first authenticating to the Directory " +
                     "Server after their account has been created.  Changes " +
                     "to this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_FORCE_CHANGE_ON_ADD,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_FORCE_CHANGE_ON_ADD +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_FORCE_CHANGE_ON_RESET,
                     "Indicates whether users will be forced to change their " +
                     "passwords if they are reset by an administrator.  " +
                     "For this purpose, anyone with permission to change a " +
                     "given user's password other than that user will be " +
                     "considered an administrator.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_FORCE_CHANGE_ON_RESET,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_FORCE_CHANGE_ON_RESET +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_SKIP_ADMIN_VALIDATION,
                     "Indicates whether passwords set by administrators (in " +
                     "add, modify, or password modify operations) will be " +
                     "allowed to bypass the password validation process that " +
                     "will be required for user password changes.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_SKIP_ADMIN_VALIDATION,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_SKIP_ADMIN_VALIDATION +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_PASSWORD_GENERATOR,
                     "Specifies the DN of the configuration entry that " +
                     "references the password generator for use with the " +
@@ -7709,16 +7709,16 @@ public class CoreMessages
                     "conjunction with the password modify extended operation " +
                     "to generate a new password for a user when none was " +
                     "provided in the request.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_PWPOLICY_NO_SUCH_GENERATOR,
                     "The password policy definition contained in " +
                     "configuration entry \"%s\" is invalid because it " +
                     "references password generator \"%s\" that is not " +
-                    "defined in the server configuration.");
+                    "defined in the server configuration");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_PASSWORD_GENERATOR,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " + ATTR_PWPOLICY_PASSWORD_GENERATOR +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_REQUIRE_SECURE_AUTH,
                     "Indicates whether users with the associated password " +
                     "policy will be required to authenticate in a secure " +
@@ -7726,23 +7726,23 @@ public class CoreMessages
                     "communication channel between the client and the " +
                     "server, or using a SASL mechanism that does not expose " +
                     "the credentials.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_SECURE_AUTH,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_REQUIRE_SECURE_AUTHENTICATION +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_REQUIRE_SECURE_CHANGES,
                     "Indicates whether users with the associated password " +
                     "policy will be required to change their password in " +
                     "a secure manner that does not expose the credentials.  " +
                     "Changes to this configuration attribute will take " +
-                    "effect immediately.");
+                    "effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_SECURE_CHANGES,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_REQUIRE_SECURE_PASSWORD_CHANGES +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_ALLOW_MULTIPLE_PW_VALUES,
                     "Indicates whether user entries will be allowed to have " +
                     "multiple distinct values for the password attribute.  " +
@@ -7752,24 +7752,24 @@ public class CoreMessages
                     "allowed, then any of them may be used to authenticate, " +
                     "and they will all be subject to the same policy " +
                     "constraints.  Changes to this configuration attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_MULTIPLE_PW_VALUES,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_ALLOW_MULTIPLE_PW_VALUES +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_ALLOW_PREENCODED,
                     "Indicates whether users will be allowed to change their " +
                     "passwords by providing a pre-encoded value.  This can " +
                     "cause a security risk because the clear-text version of " +
                     "the password is not known and therefore validation " +
                     "checks cannot be applied to it.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_PREENCODED,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_ALLOW_PRE_ENCODED_PASSWORDS +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_MIN_AGE,
                     "Specifies the minimum length of time that must pass " +
                     "after a password change before the user will be allowed " +
@@ -7780,12 +7780,12 @@ public class CoreMessages
                     "passwords repeatedly over a short period of time to " +
                     "flush and old password from the history so that it may " +
                     "be re-used.  Changes to this configuration attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_MIN_AGE,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_MINIMUM_PASSWORD_AGE +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_MAX_AGE,
                     "Specifies the maximum length of time that a user may " +
                     "continue using the same password before it must be " +
@@ -7794,12 +7794,12 @@ public class CoreMessages
                     "by a unit of seconds, minutes, hours, days, or weeks.  " +
                     "A value of 0 seconds will disable password expiration.  " +
                     "Changes to this configuration attribute will take " +
-                    "effect immediately.");
+                    "effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_MAX_AGE,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_MAXIMUM_PASSWORD_AGE +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_MAX_RESET_AGE,
                     "Specifies the maximum length of time that users have to " +
                     "change passwords after they have been reset by an " +
@@ -7808,12 +7808,12 @@ public class CoreMessages
                     "unit of seconds, minutes, hours, days, or weeks.  A " +
                     "value of 0 seconds will disable this feature.  Changes " +
                     "to this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_MAX_RESET_AGE,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_MAXIMUM_PASSWORD_RESET_AGE +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_WARNING_INTERVAL,
                     "Specifies the maximum length of time before a user's " +
                     "password actually expires that the server will begin " +
@@ -7822,11 +7822,11 @@ public class CoreMessages
                     "integer followed by a unit of seconds, minutes, hours, " +
                     "days, or weeks.  A value of 0 seconds will disable " +
                     "the warning interval.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_WARNING_INTERVAL,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " + ATTR_PWPOLICY_WARNING_INTERVAL +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_EXPIRE_WITHOUT_WARNING,
                     "Indicates whether the Directory Server should allow " +
                     "a user's password to expire even if that user has " +
@@ -7837,12 +7837,12 @@ public class CoreMessages
                     "one warning notification, and the password expiration " +
                     "will be set to the warning time plus the warning " +
                     "interval.  Changes to this configuration attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_EXPIRE_WITHOUT_WARNING,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_EXPIRE_WITHOUT_WARNING +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(
          MSGID_PWPOLICY_MUST_HAVE_WARNING_IF_NOT_EXPIRE_WITHOUT_WARNING,
          "The password policy defined in configuration entry %s is " +
@@ -7850,41 +7850,41 @@ public class CoreMessages
          "the password is expired, but no warning interval has been set.  " +
          "If configuration attribute " + ATTR_PWPOLICY_EXPIRE_WITHOUT_WARNING +
          " is set to \"false\", then configuration attribute " +
-         ATTR_PWPOLICY_WARNING_INTERVAL + " must have a positive value.");
+         ATTR_PWPOLICY_WARNING_INTERVAL + " must have a positive value");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_ALLOW_EXPIRED_CHANGES,
                     "Indicates whether a user whose password is expired " +
                     "will still be allowed to change that password using " +
                     "the password modify extended operation.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_ALLOW_EXPIRED_CHANGES,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_ALLOW_EXPIRED_CHANGES +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_GRACE_LOGIN_COUNT,
                     "Specifies the number of grace logins that a user will " +
                     "be allowed after the account has expired to allow that " +
                     "user to choose a new password.  A value of 0 " +
                     "indicates that no grace logins will be allowed.  " +
                     "Changes to this configuration attribute will take " +
-                    "effect immediately.");
+                    "effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_GRACE_LOGIN_COUNT,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " + ATTR_PWPOLICY_GRACE_LOGIN_COUNT +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_LOCKOUT_FAILURE_COUNT,
                     "Specifies the maximum number of authentication failures " +
                     "that a user should be allowed before the account is " +
                     "locked out.  A value of 0 indicates that accounts " +
                     "should never be locked out due to failed attempts.  " +
                     "changes to this configuration attribute will take " +
-                    "effect immediately.");
+                    "effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_LOCKOUT_FAILURE_COUNT,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_LOCKOUT_FAILURE_COUNT +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_LOCKOUT_DURATION,
                     "Specifies the length of time that an account should be " +
                     "locked after too many authentication failures.  The " +
@@ -7893,11 +7893,11 @@ public class CoreMessages
                     "A value of 0 seconds indicates that the account should " +
                     "remain locked until an administrator resets the " +
                     "password.  Changes to this configuration attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_LOCKOUT_DURATION,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " + ATTR_PWPOLICY_LOCKOUT_DURATION +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_FAILURE_EXPIRATION,
                     "Specifies the length of time that should pass before " +
                     "an authentication failure is no longer counted against " +
@@ -7908,12 +7908,12 @@ public class CoreMessages
                     "failures should never expire.  The failure count will " +
                     "always be cleared upon a successful authentication.  " +
                     "Changes to this configuration attribute will take " +
-                    "effect immediately.");
+                    "effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_FAILURE_EXPIRATION,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_LOCKOUT_FAILURE_EXPIRATION_INTERVAL +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_REQUIRE_CHANGE_BY_TIME,
                     "Specifies the time by which all users with the " +
                     "associated password policy must change their " +
@@ -7925,12 +7925,12 @@ public class CoreMessages
                     "to the behavior observed when users are forced to " +
                     "change their passwords after an administrative reset.  " +
                     "Changes to this configuration attribute will take " +
-                    "effect immediately.");
+                    "effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_REQUIRE_CHANGE_BY_TIME,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_REQUIRE_CHANGE_BY_TIME +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_LAST_LOGIN_TIME_ATTR,
                     "Specifies the name or OID of the attribute type that "+
                     "should be used to hold the last login time for users " +
@@ -7940,17 +7940,17 @@ public class CoreMessages
                     "must be allowed by the set of objectClasses for all " +
                     "users with the associated password policy.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWPOLICY_UNDEFINED_LAST_LOGIN_TIME_ATTRIBUTE,
                     "The password policy definition contained in " +
                     "configuration entry \"%s\" is invalid because the " +
                     "specified last login time attribute \"%s\" is not " +
-                    "defined in the server schema.");
+                    "defined in the server schema");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_ATTR,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_LAST_LOGIN_TIME_ATTRIBUTE +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_LAST_LOGIN_TIME_FORMAT,
                     "Specifies the format string that should be used to " +
                     "generate the last login time value for users with the " +
@@ -7959,7 +7959,7 @@ public class CoreMessages
                     "documentation for the " +
                     "<CODE>java.text.SimpleDateFormat</CODE> class.  Changes " +
                     "to this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT,
                     "The password policy definition contained in " +
                     "configuration entry \"%s\" is invalid because the " +
@@ -7967,12 +7967,12 @@ public class CoreMessages
                     "a valid format string  The last login time format " +
                     "string should conform to the syntax described in the " +
                     "API documentation for the " +
-                    "<CODE>java.text.SimpleDateFormat</CODE> class.");
+                    "<CODE>java.text.SimpleDateFormat</CODE> class");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_LAST_LOGIN_TIME_FORMAT,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_LAST_LOGIN_TIME_FORMAT +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_PREVIOUS_LAST_LOGIN_TIME_FORMAT,
                     "Specifies the format string(s) that may have been " +
                     "used with the last login time at any point in the " +
@@ -7983,7 +7983,7 @@ public class CoreMessages
                     "syntax described in the API documentation for the " +
                     "<CODE>java.text.SimpleDateFormat</CODE> class.  Changes " +
                     "to this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT,
                     "The password policy definition contained in " +
                     "configuration entry \"%s\" is invalid because the " +
@@ -7991,12 +7991,12 @@ public class CoreMessages
                     "a valid format string  The previous last login time " +
                     "format strings should conform to the syntax described " +
                     "in the API documentation for the " +
-                    "<CODE>java.text.SimpleDateFormat</CODE> class.");
+                    "<CODE>java.text.SimpleDateFormat</CODE> class");
     registerMessage(
          MSGID_PWPOLICY_CANNOT_DETERMINE_PREVIOUS_LAST_LOGIN_TIME_FORMAT,
          "An error occurred while attempting to determine the values for " +
          "attribute " + ATTR_PWPOLICY_PREVIOUS_LAST_LOGIN_TIME_FORMAT +
-         " in configuration entry %s:  %s.");
+         " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_IDLE_LOCKOUT_INTERVAL,
                     "Specifies the maximum length of time that an account " +
                     "may remain idle (i.e., the associated user does not" +
@@ -8007,174 +8007,174 @@ public class CoreMessages
                     "accounts should not automatically be locked out.  This " +
                     "feature will only be available if the last login time " +
                     "is maintained.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_PWPOLICY_CANNOT_DETERMINE_IDLE_LOCKOUT_INTERVAL,
                     "An error occurred while attempting to determine the " +
                     "value for attribute " +
                     ATTR_PWPOLICY_IDLE_LOCKOUT_INTERVAL +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_PWPOLICY_UPDATED_POLICY,
                     "The password policy defined in configuration entry %s " +
-                    "has been successfully updated.");
+                    "has been successfully updated");
     registerMessage(MSGID_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED,
                     "Attribute options are not allowed for the password " +
-                    "attribute %s.");
+                    "attribute %s");
     registerMessage(MSGID_PWPOLICY_MULTIPLE_PW_VALUES_NOT_ALLOWED,
                     "Only a single value may be provided for the password " +
-                    "attribute %s.");
+                    "attribute %s");
     registerMessage(MSGID_PWPOLICY_PREENCODED_NOT_ALLOWED,
                     "Pre-encoded passwords are not allowed for the password " +
-                    "attribute %s.");
+                    "attribute %s");
     registerMessage(MSGID_PWPOLICY_VALIDATION_FAILED,
                     "The password value for attribute %s was found to be " +
-                    "unacceptable:  %s.");
+                    "unacceptable:  %s");
 
 
     registerMessage(MSGID_ENQUEUE_BIND_IN_PROGRESS,
                     "A bind operation is currently in progress on the " +
                     "associated client connection.  No other requests may " +
                     "be made on this client connection until the bind " +
-                    "processing has completed.");
+                    "processing has completed");
     registerMessage(MSGID_ENQUEUE_MUST_CHANGE_PASSWORD,
                     "You must change your password before you will be " +
-                    "allowed to request any other operations.");
+                    "allowed to request any other operations");
 
 
     registerMessage(MSGID_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN,
                     "An error occurred while attempting to decode the " +
                     OP_ATTR_PWPOLICY_POLICY_DN + " value \"%s\" in user " +
-                    "entry \"%s\" as a DN:  %s.");
+                    "entry \"%s\" as a DN:  %s");
     registerMessage(MSGID_PWPSTATE_NO_SUCH_POLICY,
                     "User entry %s is configured to use a password policy " +
                     "subentry of %s but no such password policy has been " +
-                    "defined in the server configuration.");
+                    "defined in the server configuration");
     registerMessage(MSGID_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME,
                     "An error occurred while attempting to decode value " +
                     "\"%s\" for attribute %s in user entry %s in accordance " +
-                    "with the generalized time format:  %s.");
+                    "with the generalized time format:  %s");
     registerMessage(MSGID_PWPSTATE_CANNOT_DECODE_BOOLEAN,
                     "Unable to decode value \"%s\" for attribute %s in user " +
-                    "entry %s as a Boolean value.");
+                    "entry %s as a Boolean value");
     registerMessage(MSGID_PWPSTATE_CANNOT_UPDATE_USER_ENTRY,
                     "An error occurred while attempting to update password " +
-                    "policy state information for user %s:  %s.");
+                    "policy state information for user %s:  %s");
 
     registerMessage(MSGID_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS,
-        "The entry %s cannot be added due to insufficient access rights.");
+        "The entry %s cannot be added due to insufficient access rights");
     registerMessage(MSGID_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS,
-        "The user %s cannot bind due to insufficient access rights.");
+        "The user %s cannot bind due to insufficient access rights");
     registerMessage(MSGID_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS,
-        "The entry %s cannot be compared due to insufficient access rights.");
+        "The entry %s cannot be compared due to insufficient access rights");
     registerMessage(MSGID_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS,
-        "The entry %s cannot be deleted due to insufficient access rights.");
+        "The entry %s cannot be deleted due to insufficient access rights");
     registerMessage(MSGID_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS,
         "The extended operation %s cannot be performed "
-            + "due to insufficient access rights.");
+            + "due to insufficient access rights");
     registerMessage(MSGID_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS,
-        "The entry %s cannot be renamed due to insufficient access rights.");
+        "The entry %s cannot be renamed due to insufficient access rights");
     registerMessage(MSGID_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS,
-        "The entry %s cannot be modified due to insufficient access rights.");
+        "The entry %s cannot be modified due to insufficient access rights");
     registerMessage(MSGID_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS,
-        "The entry %s cannot be searched due to insufficient access rights.");
+        "The entry %s cannot be searched due to insufficient access rights");
 
 
     registerMessage(MSGID_BIND_OPERATION_INSECURE_SIMPLE_BIND,
                     "Rejecting a simple bind request for user %s because the " +
-                    "password policy requires secure authentication.");
+                    "password policy requires secure authentication");
     registerMessage(MSGID_BIND_OPERATION_ACCOUNT_DISABLED,
                     "Rejecting a bind request for user %s because the " +
-                    "account has been administrative disabled.");
+                    "account has been administrative disabled");
     registerMessage(MSGID_BIND_OPERATION_ACCOUNT_EXPIRED,
                     "Rejecting a bind request for user %s because the " +
-                    "account has expired.");
+                    "account has expired");
     registerMessage(MSGID_BIND_OPERATION_ACCOUNT_FAILURE_LOCKED,
                     "Rejecting a bind request for user %s because the " +
                     "account has been locked due to too many failed " +
-                    "authentication attempts.");
+                    "authentication attempts");
     registerMessage(MSGID_BIND_OPERATION_ACCOUNT_RESET_LOCKED,
                     "Rejecting a bind request for user %s because the " +
                     "account has been locked after the user's password was " +
                     "not changed in a timely manner after an administrative " +
-                    "reset.");
+                    "reset");
     registerMessage(MSGID_BIND_OPERATION_ACCOUNT_IDLE_LOCKED,
                     "Rejecting a bind request for user %s because the " +
                     "account has been locked after remaining idle for too " +
-                    "long.");
+                    "long");
     registerMessage(MSGID_BIND_OPERATION_PASSWORD_EXPIRED,
                     "Rejecting a bind request for user %s because that " +
-                    "user's password is expired.");
+                    "user's password is expired");
     registerMessage(MSGID_BIND_OPERATION_INSECURE_SASL_BIND,
                     "Rejecting a SASL %s bind request for user %s because " +
-                    "the password policy requires secure authentication.");
+                    "the password policy requires secure authentication");
 
 
     registerMessage(MSGID_WORKQ_CANNOT_PARSE_DN,
                     "An error occurred while attempting to parse string %s " +
-                    "as the DN of the work queue configuration entry:  %s.");
+                    "as the DN of the work queue configuration entry:  %s");
     registerMessage(MSGID_WORKQ_NO_CONFIG,
                     "Work queue configuration entry %s does not exist in " +
-                    "the server configuration.");
+                    "the server configuration");
     registerMessage(MSGID_WORKQ_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that provides the core work queue logic for the " +
                     "Directory Server.  Changes to this configuration " +
                     "attribute require that the server be restarted for the " +
-                    "change to take effect.");
+                    "change to take effect");
     registerMessage(MSGID_WORKQ_NO_CLASS_ATTR,
                     "Configuration entry %s does not contain required " +
                     "attribute %s that specifies the fully-qualified class " +
-                    "name for the work queue implementation.");
+                    "name for the work queue implementation");
     registerMessage(MSGID_WORKQ_CANNOT_LOAD,
                     "An error occurred while trying to load class %s to use " +
-                    "as the Directory Server work queue implementation:  %s.");
+                    "as the Directory Server work queue implementation:  %s");
     registerMessage(MSGID_WORKQ_CANNOT_INSTANTIATE,
                     "An error occured while trying to create an instance " +
                     "of class %s to use as the Directory Server work queue:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS,
                     "There are multiple user-specific lookthrough limit " +
                     "values contained in user entry %s.  The default server " +
-                    "lookthrough limit will be used.");
+                    "lookthrough limit will be used");
     registerMessage(MSGID_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT,
                     "The user-specific lookthrough limit value %s contained " +
                     "in user entry %s could not be parsed as an integer.  " +
-                    "The default server lookthrough limit will be used.");
+                    "The default server lookthrough limit will be used");
 
 
     registerMessage(MSGID_REGISTER_BACKEND_ALREADY_EXISTS,
                     "Unable to register backend %s with the Directory Server " +
                     "because another backend with the same backend ID is " +
-                    "already registered.");
+                    "already registered");
     registerMessage(MSGID_REGISTER_BASEDN_ALREADY_EXISTS,
                     "Unable to register base DN %s with the Directory Server " +
                     "for backend %s because that base DN is already " +
-                    "registered for backend %s.");
+                    "registered for backend %s");
     registerMessage(MSGID_REGISTER_BASEDN_HIERARCHY_CONFLICT,
                     "Unable to register base DN %s with the Directory Server " +
                     "for backend %s because that backend already contains " +
                     "another base DN %s that is within the same hierarchical " +
-                    "path.");
+                    "path");
     registerMessage(MSGID_REGISTER_BASEDN_DIFFERENT_PARENT_BASES,
                     "Unable to register base DN %s with the Directory Server " +
                     "for backend %s because that backend already contains " +
                     "another base DN %s that is not subordinate to the same " +
-                    "base DN in the parent backend.");
+                    "base DN in the parent backend");
     registerMessage(MSGID_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE,
                     "Unable to register base DN %s with the Directory Server " +
                     "for backend %s because that backend already contains " +
                     "one or more other base DNs that are subordinate to " +
-                    "backend %s but the new base DN is not.");
+                    "backend %s but the new base DN is not");
     registerMessage(MSGID_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS,
                     "Backend %s already contains entry %s which has just " +
                     "been registered as the base DN for backend %s.  " +
                     "These conflicting entries may cause unexpected or " +
                     "errant search results, and both backends should be " +
                     "reinitialized to ensure that each has the correct " +
-                    "content.");
+                    "content");
     registerMessage(MSGID_DEREGISTER_BASEDN_NOT_REGISTERED,
                     "Unable to de-register base DN %s with the Directory " +
                     "Server because that base DN is not registered for any " +
-                    "active backend.");
+                    "active backend");
     registerMessage(MSGID_DEREGISTER_BASEDN_MISSING_HIERARCHY,
                     "Base DN %s has been deregistered from the Directory " +
                     "Server for backend %s.  This base DN had both superior " +
@@ -8182,16 +8182,16 @@ public class CoreMessages
                     "may be inconsistent or unexpected behavior when " +
                     "accessing entries in this portion of the hierarchy " +
                     "because of the missing entries that had been held in " +
-                    "the de-registered backend.");
+                    "the de-registered backend");
     registerMessage(MSGID_REJECT_UNAUTHENTICATED_OPERATION,
                      "Rejecting the requested operation  " +
-                     "because the connection has not been authenticated.");
+                     "because the connection has not been authenticated");
 
 
     registerMessage(MSGID_CLIENTCONNECTION_DISCONNECT_DUE_TO_DELETE,
                     "Terminating the client connection because its " +
                     "associated authentication or authorization entry %s has " +
-                    "been deleted.");
+                    "been deleted");
     registerMessage(MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE,
                     "hasPrivilege determination for connID=%d opID=%d " +
                     "requesterDN=\"%s\" privilege=\"%s\" result=%b");
@@ -8200,11 +8200,11 @@ public class CoreMessages
                     "requesterDN=\"%s\" privilegeSet=\"%s\" result=%b");
     registerMessage(MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to use the " +
-                    "proxied authorization control.");
+                    "proxied authorization control");
 
     registerMessage(MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to use the " +
-                    "proxied authorization control.");
+                    "proxied authorization control");
   }
 }
 

@@ -279,7 +279,7 @@ public class SchemaConfigManager
 
         msgID = MSGID_CONFIG_SCHEMA_MR_UNABLE_TO_DETERMINE_ENABLED_STATE;
         String message = getMessage(msgID, String.valueOf(mrEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         continue;
@@ -324,7 +324,7 @@ public class SchemaConfigManager
 
         msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_GET_CLASS;
         String message = getMessage(msgID, String.valueOf(mrEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         continue;
@@ -346,7 +346,7 @@ public class SchemaConfigManager
         msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_INSTANTIATE;
         String message = getMessage(msgID, String.valueOf(className),
                                     String.valueOf(mrEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         continue;
@@ -368,7 +368,7 @@ public class SchemaConfigManager
         msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_INITIALIZE;
         String message = getMessage(msgID, String.valueOf(className),
                                     String.valueOf(mrEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         continue;
@@ -523,7 +523,7 @@ public class SchemaConfigManager
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_UNABLE_TO_DETERMINE_ENABLED_STATE;
         String message = getMessage(msgID, String.valueOf(syntaxEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         continue;
@@ -567,7 +567,7 @@ public class SchemaConfigManager
 
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_GET_CLASS;
         String message = getMessage(msgID, String.valueOf(syntaxEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         continue;
@@ -589,7 +589,7 @@ public class SchemaConfigManager
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_INSTANTIATE;
         String message = getMessage(msgID, String.valueOf(className),
                                     String.valueOf(syntaxEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         continue;
@@ -611,7 +611,7 @@ public class SchemaConfigManager
         msgID = MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE;
         String message = getMessage(msgID, String.valueOf(className),
                                     String.valueOf(syntaxEntryDN),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         continue;
@@ -730,7 +730,7 @@ public class SchemaConfigManager
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_LIST_FILES;
       String message = getMessage(msgID, schemaDirPath,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -836,7 +836,7 @@ public class SchemaConfigManager
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_OPEN_FILE;
       String message = getMessage(msgID, schemaFile, schemaDirPath,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
 
       if (failOnError)
       {
@@ -872,7 +872,7 @@ public class SchemaConfigManager
 
       int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY;
       String message = getMessage(msgID, schemaFile, schemaDirPath,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
 
       if (failOnError)
       {
@@ -1211,7 +1211,7 @@ public class SchemaConfigManager
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE;
             String message = getMessage(msgID, schemaFile,
                                         v.getStringValue() + ":  " +
-                                             stackTraceToSingleLineString(e));
+                                        getExceptionMessage(e));
             if (failOnError)
             {
               throw new ConfigException(msgID, message, e);
@@ -1310,7 +1310,7 @@ public class SchemaConfigManager
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC;
             String message = getMessage(msgID, schemaFile,
                                         v.getStringValue() + ":  " +
-                                             stackTraceToSingleLineString(e));
+                                        getExceptionMessage(e));
 
             if (failOnError)
             {
@@ -1409,7 +1409,7 @@ public class SchemaConfigManager
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM;
             String message = getMessage(msgID, schemaFile,
                                         v.getStringValue() + ":  " +
-                                             stackTraceToSingleLineString(e));
+                                        getExceptionMessage(e));
 
             if (failOnError)
             {
@@ -1508,7 +1508,7 @@ public class SchemaConfigManager
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR;
             String message = getMessage(msgID, schemaFile,
                                         v.getStringValue() + ":  " +
-                                             stackTraceToSingleLineString(e));
+                                        getExceptionMessage(e));
 
             if (failOnError)
             {
@@ -1608,7 +1608,7 @@ public class SchemaConfigManager
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR;
             String message = getMessage(msgID, schemaFile,
                                         v.getStringValue() + ":  " +
-                                             stackTraceToSingleLineString(e));
+                                        getExceptionMessage(e));
 
             if (failOnError)
             {
@@ -1708,7 +1708,7 @@ public class SchemaConfigManager
             int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU;
             String message = getMessage(msgID, schemaFile,
                                         v.getStringValue() + ":  " +
-                                             stackTraceToSingleLineString(e));
+                                        getExceptionMessage(e));
 
             if (failOnError)
             {

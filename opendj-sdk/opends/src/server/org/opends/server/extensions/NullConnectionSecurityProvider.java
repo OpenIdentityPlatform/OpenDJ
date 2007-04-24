@@ -329,7 +329,7 @@ public class NullConnectionSecurityProvider
         // An unexpected error occurred.  Disconnect and return.
         clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
                                     MSGID_NULL_SECURITY_PROVIDER_READ_ERROR,
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         return false;
       }
     }
@@ -398,7 +398,7 @@ public class NullConnectionSecurityProvider
       // An unexpected error occurred.  Disconnect and return.
       clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
                                   MSGID_NULL_SECURITY_PROVIDER_WRITE_ERROR,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       return false;
     }
     finally

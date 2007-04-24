@@ -38,8 +38,8 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Integer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.types.Control;
+import org.opends.server.types.LDAPException;
 
 import java.util.ArrayList;
 

@@ -30,7 +30,9 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import static org.opends.server.util.ServerConstants.EOL;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawModification;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -81,10 +83,10 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
    * @return              The generate attributes.
    *
    */
-  private ArrayList<LDAPModification> generateModifications(int numAttributes,
-                                                            String prefix)
+  private ArrayList<RawModification> generateModifications(int numAttributes,
+                                                           String prefix)
   {
-    ArrayList<LDAPModification> modifies = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> modifies = new ArrayList<RawModification>();
     LDAPAttribute attribute;
     ModificationType modificationType;
     Random randomGenerator = new Random(0);
@@ -112,8 +114,8 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
     return modifies;
   }
 
-  private Boolean modificationsEquals(ArrayList<LDAPModification> modifies1,
-                                      ArrayList<LDAPModification> modifies2)
+  private Boolean modificationsEquals(ArrayList<RawModification> modifies1,
+                                      ArrayList<RawModification> modifies2)
   {
     if(modifies1.size() != modifies2.size())
     {
@@ -121,8 +123,8 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
     }
 
     int i, j;
-    LDAPModification modify1;
-    LDAPModification modify2;
+    RawModification modify1;
+    RawModification modify2;
 
     for(i = 0; i < modifies1.size(); i++)
     {
@@ -179,7 +181,7 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   public void testConstructors() throws Exception
   {
     ModifyRequestProtocolOp modifyRequest;
-    ArrayList<LDAPModification> modifications;
+    ArrayList<RawModification> modifications;
 
     //Test to make sure the constructor with dn param works.
     modifyRequest = new ModifyRequestProtocolOp(dn);
@@ -305,7 +307,7 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
     ModifyRequestProtocolOp modifyEncoded;
     ModifyRequestProtocolOp modifyDecoded;
     ASN1Element element;
-    ArrayList<LDAPModification> modifies;
+    ArrayList<RawModification> modifies;
 
 
     //Test case for a full encode decode operation with normal params.
@@ -351,7 +353,7 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   public void TestToStringSingleLine() throws Exception
   {
     ModifyRequestProtocolOp modifyRequest;
-    ArrayList<LDAPModification> modifications;
+    ArrayList<RawModification> modifications;
     StringBuilder buffer = new StringBuilder();
     StringBuilder key = new StringBuilder();
     int i;
@@ -385,7 +387,7 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   public void TestToStringMultiLine() throws Exception
   {
     ModifyRequestProtocolOp modifyRequest;
-    ArrayList<LDAPModification> modifications;
+    ArrayList<RawModification> modifications;
     StringBuilder buffer = new StringBuilder();
     StringBuilder key = new StringBuilder();
     int i;
@@ -415,7 +417,7 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
     key.append("  Modifications:");
     key.append(EOL);
 
-    for (LDAPModification modify : modifications)
+    for (RawModification modify : modifications)
     {
       modify.toString(key, indent+4);
     }

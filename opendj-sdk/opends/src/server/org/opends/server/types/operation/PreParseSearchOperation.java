@@ -31,11 +31,11 @@ package org.opends.server.types.operation;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
+import org.opends.server.types.RawFilter;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
 
@@ -176,7 +176,7 @@ public interface PreParseSearchOperation
    * @return  The raw, unprocessed search filter as included in the
    *          request from the client.
    */
-  public LDAPFilter getRawFilter();
+  public RawFilter getRawFilter();
 
 
 
@@ -186,7 +186,7 @@ public interface PreParseSearchOperation
    *
    * @param  rawFilter  The raw, unprocessed search filter.
    */
-  public void setRawFilter(LDAPFilter rawFilter);
+  public void setRawFilter(RawFilter rawFilter);
 
 
 

@@ -33,7 +33,6 @@ import org.opends.server.types.ConditionResult;
 
 
 
-
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that implements a matching
@@ -42,9 +41,6 @@ import org.opends.server.types.ConditionResult;
 public abstract class ApproximateMatchingRule
        extends MatchingRule
 {
-
-
-
   /**
    * Indicates whether the two provided normalized values are
    * approximately equal to each other.

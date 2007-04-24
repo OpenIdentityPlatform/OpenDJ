@@ -138,7 +138,7 @@ public class BackendConfigManager implements
       }
 
       int    msgID   = MSGID_CONFIG_BACKEND_CANNOT_GET_CONFIG_BASE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new ConfigException(msgID, message, e);
 
     }
@@ -362,7 +362,7 @@ public class BackendConfigManager implements
 
           int msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
           String message = getMessage(msgID, backendID,
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.CONFIGURATION,
                    ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
@@ -841,7 +841,7 @@ public class BackendConfigManager implements
 
         int msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
         String message = getMessage(msgID, backendID,
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
 
         resultCode = DirectoryServer.getServerErrorResultCode();
         messages.add(message);
@@ -974,7 +974,7 @@ public class BackendConfigManager implements
       }
       catch (Exception e)
       {
-        unacceptableReason.add(stackTraceToSingleLineString(e));
+        unacceptableReason.add(getExceptionMessage(e));
         return false;
       }
     }
@@ -1218,7 +1218,7 @@ public class BackendConfigManager implements
 
       int msgID = MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND;
       String message = getMessage(msgID, backendID,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
 
       resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(message);

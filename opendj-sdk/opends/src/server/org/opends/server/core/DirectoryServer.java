@@ -8981,7 +8981,7 @@ public class DirectoryServer
       // be able to start it anyway.
       int msgID = MSGID_CANNOT_ACQUIRE_EXCLUSIVE_SERVER_LOCK;
       String message = getMessage(msgID, lockFile,
-          stackTraceToSingleLineString(e));
+          getExceptionMessage(e));
       System.err.println(message);
       isServerRunning = true;
     }

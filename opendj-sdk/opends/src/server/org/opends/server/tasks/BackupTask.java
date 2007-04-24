@@ -33,7 +33,7 @@ import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.ServerConstants.DATE_FORMAT_GMT_TIME;
 import static org.opends.server.loggers.Error.logError;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.
      BACKUP_DIRECTORY_DESCRIPTOR_FILE;
 
@@ -41,7 +41,6 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.core.Operation;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigEntry;
@@ -54,6 +53,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
@@ -277,7 +277,7 @@ public class BackupTask extends Task
       {
         int    msgID   = MSGID_BACKUPDB_CANNOT_CREATE_BACKUP_DIR;
         String message = getMessage(msgID, backupDirectory.getPath(),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         System.err.println(message);
         return false;
       }
@@ -388,7 +388,7 @@ public class BackupTask extends Task
         {
           int msgID   = MSGID_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR;
           String message = getMessage(msgID, descriptorPath,
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
           return false;
@@ -410,7 +410,7 @@ public class BackupTask extends Task
       {
         int msgID   = MSGID_BACKUPDB_CANNOT_CREATE_BACKUP_DIR;
         String message = getMessage(msgID, backupLocation.getPath(),
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return false;
@@ -453,7 +453,7 @@ public class BackupTask extends Task
       DirectoryServer.notifyBackupEnded(b, backupConfig, false);
       int msgID   = MSGID_BACKUPDB_ERROR_DURING_BACKUP;
       String message = getMessage(msgID, b.getBackendID(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
       return false;
@@ -487,7 +487,7 @@ public class BackupTask extends Task
     {
       int    msgID   = MSGID_BACKUPDB_CANNOT_LOCK_BACKEND;
       String message = getMessage(msgID, b.getBackendID(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
       return false;
@@ -521,7 +521,7 @@ public class BackupTask extends Task
     {
       int msgID   = MSGID_BACKUPDB_CANNOT_UNLOCK_BACKEND;
       String message = getMessage(msgID, b.getBackendID(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND,
                ErrorLogSeverity.SEVERE_WARNING, message, msgID);
       return false;

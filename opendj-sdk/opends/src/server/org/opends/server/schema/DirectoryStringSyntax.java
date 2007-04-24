@@ -215,7 +215,7 @@ public class DirectoryStringSyntax
 
       msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_CANNOT_DETERMINE_ZEROLENGTH;
       String message = getMessage(msgID, ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
                message, msgID);
     }
@@ -456,7 +456,7 @@ public class DirectoryStringSyntax
       msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_CANNOT_DETERMINE_ZEROLENGTH;
       unacceptableReasons.add(getMessage(msgID,
                                          ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
-                                         stackTraceToSingleLineString(e)));
+                                         getExceptionMessage(e)));
     }
 
 
@@ -515,7 +515,7 @@ public class DirectoryStringSyntax
 
       msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_CANNOT_DETERMINE_ZEROLENGTH;
       messages.add(getMessage(msgID, ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
-                              stackTraceToSingleLineString(e)));
+                              getExceptionMessage(e)));
     }
 
     if (resultCode == ResultCode.SUCCESS)

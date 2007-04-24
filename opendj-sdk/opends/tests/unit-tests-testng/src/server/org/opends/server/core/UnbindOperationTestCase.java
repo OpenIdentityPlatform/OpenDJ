@@ -38,6 +38,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.Operation;
 
 import static org.testng.Assert.*;
 

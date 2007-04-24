@@ -194,7 +194,7 @@ public class MonitorBackend
       }
 
       int msgID = MSGID_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -236,7 +236,7 @@ public class MonitorBackend
 
       int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
       String message = getMessage(msgID, baseMonitorDN.toString(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
   }

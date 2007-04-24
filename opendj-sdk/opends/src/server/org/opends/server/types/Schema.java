@@ -2956,7 +2956,7 @@ public class Schema
                ErrorLogSeverity.SEVERE_WARNING,
                MSGID_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE,
                String.valueOf(concatFilePath),
-               stackTraceToSingleLineString(e));
+               getExceptionMessage(e));
     }
   }
 

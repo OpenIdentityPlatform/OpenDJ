@@ -6581,455 +6581,455 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_ATTR_IS_REQUIRED,
                     "Configuration attribute %s is required to have at least " +
                     "one value but the resulted operation would have removed " +
-                    "all values.");
+                    "all values");
     registerMessage(MSGID_CONFIG_ATTR_REJECTED_VALUE,
                     "Provided value %s for configuration attribute %s was " +
-                    "rejected.  The reason provided was:  %s.");
+                    "rejected.  The reason provided was:  %s");
     registerMessage(MSGID_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED,
                     "Configuration attribute %s is single-valued, but " +
-                    "multiple values were provided.");
+                    "multiple values were provided");
     registerMessage(MSGID_CONFIG_ATTR_ADD_VALUES_IS_SINGLE_VALUED,
                     "Configuration attribute %s is single-valued, but adding " +
                     "the provided value(s) would have given it multiple " +
-                    "values.");
+                    "values");
     registerMessage(MSGID_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS,
-                    "Configuration attribute %s already contains a value %s.");
+                    "Configuration attribute %s already contains a value %s");
     registerMessage(MSGID_CONFIG_ATTR_NO_SUCH_VALUE,
                     "Cannot remove value %s from configuration attribute %s " +
-                    "because the specified value does not exist.");
+                    "because the specified value does not exist");
     registerMessage(MSGID_CONFIG_ATTR_OPTIONS_NOT_ALLOWED,
                     "Invalid configuration attribute %s detected in entry " +
                     "%s:  the only attribute option allowed in the Directory " +
                     "Server configuration is \"" + OPTION_PENDING_VALUES +
-                    "\" to indicate the set of pending values.");
+                    "\" to indicate the set of pending values");
     registerMessage(MSGID_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS,
                     "Configuration attribute %s appears to contain multiple " +
-                    "pending value sets.");
+                    "pending value sets");
     registerMessage(MSGID_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS,
                     "Configuration attribute %s appears to contain multiple " +
-                    "active value sets.");
+                    "active value sets");
     registerMessage(MSGID_CONFIG_ATTR_NO_ACTIVE_VALUE_SET,
                     "Configuration attribute %s does not contain an active " +
-                    "value set.");
+                    "value set");
     registerMessage(MSGID_CONFIG_CANNOT_GET_CONFIG_ENTRY,
                     "An error occurred while attempting to retrieve " +
-                    "configuration entry %s:  %s.");
+                    "configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_SET_ATTRIBUTE,
                     "The value of configuration attribute %s has been set to " +
-                    "%s in configuration entry %s.");
+                    "%s in configuration entry %s");
     registerMessage(MSGID_CONFIG_CHANGE_NOT_SUCCESSFUL,
                     "The attempt to update configuration entry %s was not " +
                     "successful and one or more problems were encountered:  " +
-                    "%s.");
+                    "%s");
 
 
     registerMessage(MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE,
                     "Unable to set the value for Boolean configuration " +
                     "attribute %s because the provided value %s was not " +
-                    "either 'true' or 'false'.");
+                    "either 'true' or 'false'");
 
 
     registerMessage(MSGID_CONFIG_ATTR_NO_INT_VALUE,
                     "Unable to retrieve the value for configuration " +
                     "attribute %s as an integer because that attribute does " +
-                    "not have any values.");
+                    "not have any values");
     registerMessage(MSGID_CONFIG_ATTR_MULTIPLE_INT_VALUES,
                     "Unable to retrieve the value for configuration " +
                     "attribute %s as an integer because that attribute has " +
-                    "multiple values.");
+                    "multiple values");
     registerMessage(MSGID_CONFIG_ATTR_VALUE_OUT_OF_INT_RANGE,
                     "Unable to retrieve the value for configuration " +
                     "attribute %s as a Java int because the value is outside " +
-                    "the allowable range for an int.");
+                    "the allowable range for an int");
     registerMessage(MSGID_CONFIG_ATTR_INVALID_INT_VALUE,
                     "Unable to set the value for integer configuration " +
                     "attribute %s because the provided value %s cannot be " +
-                    "interpreted as an integer value:  %s.");
+                    "interpreted as an integer value:  %s");
     registerMessage(MSGID_CONFIG_ATTR_INT_BELOW_LOWER_BOUND,
                     "Unable to set the value for configuration attribute %s " +
                     "because the provided value %d is less than the lowest " +
-                    "allowed value of %d.");
+                    "allowed value of %d");
     registerMessage(MSGID_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND,
                     "Unable to set the value for configuration attribute %s " +
                     "because the provided value %d is greater than the " +
-                    "largest allowed value of %d.");
+                    "largest allowed value of %d");
     registerMessage(MSGID_CONFIG_ATTR_INT_COULD_NOT_PARSE,
                     "Unable to parse value %s for configuration attribute %s " +
-                    "as an integer value:  %s.");
+                    "as an integer value:  %s");
     registerMessage(MSGID_CONFIG_ATTR_INT_INVALID_TYPE,
                     "Unable to parse value %s for configuration attribute %s " +
                     "as an integer value because the element was of an " +
-                    "invalid type (%s).");
+                    "invalid type (%s)");
     registerMessage(MSGID_CONFIG_ATTR_INT_INVALID_ARRAY_TYPE,
                     "Unable to parse value for configuration attribute %s " +
                     "as a set of integer values because the array contained " +
-                    "elements of an invalid type (%s).");
+                    "elements of an invalid type (%s)");
 
 
     registerMessage(MSGID_CONFIG_ATTR_NO_STRING_VALUE,
                     "Unable to retrieve the value for configuration " +
                     "attribute %s as a string because that attribute does " +
-                    "not have any values.");
+                    "not have any values");
     registerMessage(MSGID_CONFIG_ATTR_MULTIPLE_STRING_VALUES,
                     "Unable to retrieve the value for configuration " +
                     "attribute %s as a string because that attribute has " +
-                    "multiple values.");
+                    "multiple values");
     registerMessage(MSGID_CONFIG_ATTR_EMPTY_STRING_VALUE,
                     "An empty value string was provided for configuration " +
-                    "attribute %s.");
+                    "attribute %s");
     registerMessage(MSGID_CONFIG_ATTR_INVALID_STRING_VALUE,
                     "Unable to parse value %s for configuration attribute %s " +
-                    "as a string value:  %s.");
+                    "as a string value:  %s");
     registerMessage(MSGID_CONFIG_ATTR_STRING_INVALID_TYPE,
                     "Unable to parse value %s for configuration attribute %s " +
                     "as a string value because the element was of an invalid " +
-                    "type (%s).");
+                    "type (%s)");
     registerMessage(MSGID_CONFIG_ATTR_STRING_INVALID_ARRAY_TYPE,
                     "Unable to parse value for configuration attribute %s " +
                     "as a set of string values because the array contained " +
-                    "elements of an invalid type (%s).");
+                    "elements of an invalid type (%s)");
 
 
     registerMessage(MSGID_CONFIG_ATTR_VALUE_NOT_ALLOWED,
                     "The value %s is not included in the list of acceptable " +
-                    "values for configuration attribute %s.");
+                    "values for configuration attribute %s");
     registerMessage(MSGID_CONFIG_ATTR_READ_ONLY,
                     "Configuration attribute %s is read-only and its values " +
-                    "may not be altered.");
+                    "may not be altered");
 
 
     registerMessage(MSGID_CONFIG_ATTR_INVALID_UNIT,
-                    "'%s' is not a valid unit for configuration attribute %s.");
+                    "'%s' is not a valid unit for configuration attribute %s");
     registerMessage(MSGID_CONFIG_ATTR_NO_UNIT_DELIMITER,
                     "Cannot decode %s as an integer value and a unit for " +
                     "configuration attribute %s because no value/unit " +
-                    "delimiter could be found.");
+                    "delimiter could be found");
     registerMessage(MSGID_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT,
                     "Could not decode the integer portion of value %s for " +
-                    "configuration attribute %s:  %s.");
+                    "configuration attribute %s:  %s");
     registerMessage(MSGID_CONFIG_ATTR_INVALID_VALUE_WITH_UNIT,
                     "The provided value %s for integer with unit attribute " +
-                    "%s is not allowed:  %s.");
+                    "%s is not allowed:  %s");
     registerMessage(MSGID_CONFIG_ATTR_INT_WITH_UNIT_INVALID_TYPE,
                     "Unable to parse value %s for configuration attribute %s " +
                     "as an integer with unit value because the element was " +
-                    "of an invalid type (%s).");
+                    "of an invalid type (%s)");
 
 
     registerMessage(MSGID_CONFIG_ENTRY_CONFLICTING_CHILD,
                     "Unable to add configuration entry %s as a child of " +
                     "configuration entry %s because a child entry was " +
-                    "already found with that DN.");
+                    "already found with that DN");
     registerMessage(MSGID_CONFIG_ENTRY_NO_SUCH_CHILD,
                     "Unable to remove entry %s as a child of configuration " +
                     "entry %s because that entry did not have a child with " +
-                    "the specified DN.");
+                    "the specified DN");
     registerMessage(MSGID_CONFIG_ENTRY_CANNOT_REMOVE_NONLEAF,
                     "Unable to remove entry %s as a child of configuration " +
                     "entry %s because that entry had children of its own and " +
-                    "non-leaf entries may not be removed.");
+                    "non-leaf entries may not be removed");
     registerMessage(MSGID_CONFIG_ENTRY_CANNOT_REMOVE_CHILD,
                     "An unexpected error occurred while attempting to remove " +
-                    "entry %s as a child of configuration entry %s:  %s.");
+                    "entry %s as a child of configuration entry %s:  %s");
 
 
     registerMessage(MSGID_CONFIG_FILE_DOES_NOT_EXIST,
                     "The specified configuration file %s does not exist or " +
-                    "is not readable.");
+                    "is not readable");
     registerMessage(MSGID_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE,
                     "An unexpected error occurred while attempting to " +
-                    "determine whether configuration file %s exists:  %s.");
+                    "determine whether configuration file %s exists:  %s");
     registerMessage(MSGID_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES,
                     "An error occurred while attempting to apply the changes " +
                     "contained in file %s to the server configuration at " +
-                    "startup:  %s.");
+                    "startup:  %s");
     registerMessage(MSGID_CONFIG_FILE_CANNOT_OPEN_FOR_READ,
                     "An error occurred while attempting to open the " +
-                    "configuration file %s for reading:  %s.");
+                    "configuration file %s for reading:  %s");
     registerMessage(MSGID_CONFIG_FILE_READ_ERROR,
                     "An error occurred while attempting to read the contents " +
-                    "of configuration file %s:  %s.");
+                    "of configuration file %s:  %s");
     registerMessage(MSGID_CONFIG_FILE_INVALID_LDIF_ENTRY,
                     "An error occurred at or near line %d while trying to " +
-                    "parse the configuration from LDIF file %s:  %s.");
+                    "parse the configuration from LDIF file %s:  %s");
     registerMessage(MSGID_CONFIG_FILE_EMPTY,
                     "The specified configuration file %s does not appear to " +
-                    "contain any configuration entries.");
+                    "contain any configuration entries");
     registerMessage(MSGID_CONFIG_FILE_INVALID_BASE_DN,
                     "The first entry read from LDIF configuration file %s " +
                     "had a DN of \"%s\" rather than the expected \"%s\" " +
                     "which should be used as the Directory Server " +
-                    "configuration root.");
+                    "configuration root");
     registerMessage(MSGID_CONFIG_FILE_GENERIC_ERROR,
                     "An unexpected error occurred while attempting to " +
-                    "process the Directory Server configuration file %s:  %s.");
+                    "process the Directory Server configuration file %s:  %s");
     registerMessage(MSGID_CONFIG_FILE_DUPLICATE_ENTRY,
                     "Configuration entry %s starting at or near line %s in " +
                     "the LDIF configuration file %s has the same DN as " +
-                    "another entry already read from that file.");
+                    "another entry already read from that file");
     registerMessage(MSGID_CONFIG_FILE_NO_PARENT,
                     "Configuration entry %s starting at or near line %d in " +
                     "the configuration LDIF file %s does not appear to have " +
-                    "a parent entry (expected parent DN was %s).");
+                    "a parent entry (expected parent DN was %s)");
     registerMessage(MSGID_CONFIG_FILE_UNKNOWN_PARENT,
                     "The Directory Server was unable to determine the parent " +
                     "DN for configuration entry %s starting at or near line " +
-                    "%d in the configuration LDIF file %s.");
+                    "%d in the configuration LDIF file %s");
     registerMessage(MSGID_CONFIG_CANNOT_DETERMINE_SERVER_ROOT,
                     "Unable to determine the Directory Server instance root " +
                     "from either an environment variable or based on the " +
                     "location of the configuration file.  Please set an " +
                     "environment variable named %s with a value containing " +
-                    "the absolute path to the server installation root.");
+                    "the absolute path to the server installation root");
     registerMessage(MSGID_CONFIG_LDIF_WRITE_ERROR,
                     "An unexpected error occurred while trying to export " +
-                    "the Directory Server configuration to LDIF:  %s.");
+                    "the Directory Server configuration to LDIF:  %s");
     registerMessage(MSGID_CONFIG_FILE_WRITE_ERROR,
                     "An unexpected error occurred while trying to write " +
-                    "configuration entry %s to LDIF:  %s.");
+                    "configuration entry %s to LDIF:  %s");
     registerMessage(MSGID_CONFIG_FILE_CLOSE_ERROR,
                     "An unexpected error occurred while trying to close " +
-                    "the LDIF writer:  %s.");
+                    "the LDIF writer:  %s");
     registerMessage(MSGID_CONFIG_FILE_UNWILLING_TO_IMPORT,
                     "The Directory Server configuration may not be altered " +
-                    "by importing a new configuration from LDIF.");
+                    "by importing a new configuration from LDIF");
     registerMessage(MSGID_CONFIG_CANNOT_REGISTER_AS_PRIVATE_SUFFIX,
                     "An unexpected error occurred while trying to register " +
                     "the configuration handler base DN \"%s\" as a private " +
-                    "suffix with the Directory Server:  %s.");
+                    "suffix with the Directory Server:  %s");
     registerMessage(MSGID_CONFIG_ERROR_APPLYING_STARTUP_CHANGE,
-                    "Unable to apply a change at server startup:  %s.");
+                    "Unable to apply a change at server startup:  %s");
     registerMessage(MSGID_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE,
                     "One or more errors occurred while applying changes on " +
-                    "server startup.");
+                    "server startup");
     registerMessage(MSGID_CONFIG_FILE_ADD_ALREADY_EXISTS,
                     "Entry %s cannot be added to the Directory Server " +
                     "configuration because another configuration entry " +
-                    "already exists with that DN.");
+                    "already exists with that DN");
     registerMessage(MSGID_CONFIG_FILE_ADD_NO_PARENT_DN,
                     "Entry %s cannot be added to the Directory Server " +
-                    "configuration because that DN does not have a parent.");
+                    "configuration because that DN does not have a parent");
     registerMessage(MSGID_CONFIG_FILE_ADD_NO_PARENT,
                     "Entry %s cannot be added to the Directory Server " +
                     "configuration because its parent entry %s does not " +
-                    "exist.");
+                    "exist");
     registerMessage(MSGID_CONFIG_FILE_ADD_REJECTED_BY_LISTENER,
                     "The Directory Server is unwilling to add configuration " +
                     "entry %s because one of the add listeners registered " +
                     "with the parent entry %s rejected this change with " +
-                    "the message:  %s.");
+                    "the message:  %s");
     registerMessage(MSGID_CONFIG_FILE_ADD_FAILED,
                     "An unexpected error occurred while attempting to add " +
-                    "configuration entry %s as a child of entry %s:  %s.");
+                    "configuration entry %s as a child of entry %s:  %s");
     registerMessage(MSGID_CONFIG_FILE_DELETE_NO_SUCH_ENTRY,
                     "Entry %s cannot be removed from the Directory Server " +
                     "configuration because the specified entry does not " +
-                    "exist.");
+                    "exist");
     registerMessage(MSGID_CONFIG_FILE_DELETE_HAS_CHILDREN,
                     "Entry %s cannot be removed from the Directory Server " +
                     "configuration because the specified entry has one or " +
-                    "more subordinate entries.");
+                    "more subordinate entries");
     registerMessage(MSGID_CONFIG_FILE_DELETE_NO_PARENT,
                     "Entry %s cannot be removed from the Directory Server " +
                     "configuration because the entry does not have a parent " +
                     "and removing the configuration root entry is not " +
-                    "allowed.");
+                    "allowed");
     registerMessage(MSGID_CONFIG_FILE_DELETE_REJECTED,
                     "Entry %s cannot be removed from the Directory Server " +
                     "configuration because one of the delete listeners " +
                     "registered with the parent entry %s rejected this " +
-                    "change with the message:  %s.");
+                    "change with the message:  %s");
     registerMessage(MSGID_CONFIG_FILE_DELETE_FAILED,
                     "An unexpected error occurred while attempting to remove " +
-                    "configuration entry %s as a child of entry %s:  %s.");
+                    "configuration entry %s as a child of entry %s:  %s");
     registerMessage(MSGID_CONFIG_FILE_MODIFY_NO_SUCH_ENTRY,
                     "Entry %s cannot be modified because the specified entry " +
-                    "does not exist.");
+                    "does not exist");
     registerMessage(MSGID_CONFIG_FILE_MODIFY_REJECTED_BY_CHANGE_LISTENER,
                     "Entry %s cannot be modified because one of the " +
                     "configuration change listeners registered for that " +
-                    "entry rejected the change:  %s.");
+                    "entry rejected the change:  %s");
     registerMessage(MSGID_CONFIG_FILE_MODIFY_REJECTED_BY_COMPONENT,
                     "Entry %s cannot be modified because one of the " +
                     "configurable components registered for that entry " +
-                    "rejected the change:  %s.");
+                    "rejected the change:  %s");
     registerMessage(MSGID_CONFIG_FILE_SEARCH_NO_SUCH_BASE,
                     "The search operation cannot be processed because base " +
-                    "entry %s does not exist.");
+                    "entry %s does not exist");
     registerMessage(MSGID_CONFIG_FILE_SEARCH_INVALID_SCOPE,
                     "The search operation cannot be processed because the " +
-                    "specified search scope %s is invalid.");
+                    "specified search scope %s is invalid");
     registerMessage(MSGID_CONFIG_FILE_WRITE_CANNOT_CREATE_TEMP_ARCHIVE,
                     "An error occurred while attempting to create a " +
                     "temporary file %s to hold the archived versions of " +
                     "previous Directory Server configurations as a result of " +
-                    "a configuration change:  %s.");
+                    "a configuration change:  %s");
     registerMessage(MSGID_CONFIG_FILE_WRITE_CANNOT_COPY_EXISTING_ARCHIVE,
                     "An error occurred while attempting to copy the " +
                     "archived configurations from %s to temporary file %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CONFIG_FILE_WRITE_CANNOT_COPY_CURRENT_CONFIG,
                     "An error occurred while attempting to update the " +
                     "archived configurations in file %s to include the " +
-                    "running configuration from file %s:  %s.");
+                    "running configuration from file %s:  %s");
     registerMessage(MSGID_CONFIG_FILE_WRITE_CANNOT_RENAME_TEMP_ARCHIVE,
                     "The attempt to rename the archived configuration data " +
                     "from %s to %s failed, but the underlying reason for the " +
-                    "failure could not be determined.");
+                    "failure could not be determined");
     registerMessage(MSGID_CONFIG_FILE_WRITE_CANNOT_REPLACE_ARCHIVE,
                     "The updated archive containing previous Directory " +
                     "Server configurations could not be renamed from %s to " +
-                    "%s:  %s.");
+                    "%s:  %s");
     registerMessage(MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON,
                     "An error occurred while trying to create the " +
-                    "configuration archive directory %s.");
+                    "configuration archive directory %s");
     registerMessage(MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR,
                     "An error occurred while trying to create the " +
-                    "configuration archive directory %s:  %s.");
+                    "configuration archive directory %s:  %s");
     registerMessage(MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE,
                     "An error occurred while trying to write the current " +
-                    "configuration to the configuration archive:  %s.");
+                    "configuration to the configuration archive:  %s");
     registerMessage(MSGID_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG,
                     "An error occurred while attempting to export the new " +
-                    "Directory Server configuration to file %s:  %s.");
+                    "Directory Server configuration to file %s:  %s");
     registerMessage(MSGID_CONFIG_FILE_WRITE_CANNOT_RENAME_NEW_CONFIG,
                     "An error occurred while attempting to rename the new " +
-                    "Directory Server configuration from file %s to %s:  %s.");
+                    "Directory Server configuration from file %s to %s:  %s");
     registerMessage(MSGID_CONFIG_FILE_MODDN_NOT_ALLOWED,
                     "Modify DN operations are not allowed in the Directory " +
-                    "Server configuration.");
+                    "Server configuration");
     registerMessage(MSGID_CONFIG_FILE_HEADER,
                     "This file contains the primary Directory Server " +
                     "configuration.  It must not be directly edited while " +
                     "the server is online.  The server configuration should " +
                     "only be managed using the administration utilities " +
-                    "provided with the Directory Server.");
+                    "provided with the Directory Server");
     registerMessage(MSGID_CONFIG_FILE_ADD_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to perform add " +
-                    "operations in the Directory Server configuration.");
+                    "operations in the Directory Server configuration");
     registerMessage(MSGID_CONFIG_FILE_DELETE_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to perform delete " +
-                    "operations in the Directory Server configuration.");
+                    "operations in the Directory Server configuration");
     registerMessage(MSGID_CONFIG_FILE_MODIFY_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to perform modify " +
-                    "operations in the Directory Server configuration.");
+                    "operations in the Directory Server configuration");
     registerMessage(MSGID_CONFIG_FILE_MODIFY_PRIVS_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to change the set " +
-                    "of default root privileges.");
+                    "of default root privileges");
     registerMessage(MSGID_CONFIG_FILE_MODDN_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to perform modify " +
-                    "DN operations in the Directory Server configuration.");
+                    "DN operations in the Directory Server configuration");
     registerMessage(MSGID_CONFIG_FILE_SEARCH_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to perform search " +
-                    "operations in the Directory Server configuration.");
+                    "operations in the Directory Server configuration");
 
 
     registerMessage(MSGID_CONFIG_LOGGER_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "base logger entry " + DN_LOGGER_BASE + " from the " +
-                    "Directory Server configuration:  %s.");
+                    "Directory Server configuration:  %s");
     registerMessage(MSGID_CONFIG_LOGGER_BASE_DOES_NOT_EXIST,
                     "The logger configuration base " + DN_LOGGER_BASE +
                     " does not exist in the Directory Server configuration.  " +
                     "Logging facilities will not be available until this " +
-                    "entry is created and the Directory Server is restarted.");
+                    "entry is created and the Directory Server is restarted");
     registerMessage(MSGID_CONFIG_LOGGER_NO_ACTIVE_ACCESS_LOGGERS,
                     "There are no active access loggers defined in the " +
                     "Directory Server configuration.  No access logging will " +
-                    "be performed.");
+                    "be performed");
     registerMessage(MSGID_CONFIG_LOGGER_NO_ACTIVE_ERROR_LOGGERS,
                     "There are no active error loggers defined in the " +
                     "Directory Server configuration.  No error logging will " +
-                    "be performed.");
+                    "be performed");
     registerMessage(MSGID_CONFIG_LOGGER_NO_ACTIVE_DEBUG_LOGGERS,
                     "There are no active debug loggers defined in the " +
                     "Directory Server configuration.  No debug logging will " +
-                    "be performed.");
+                    "be performed");
     registerMessage(MSGID_CONFIG_LOGGER_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid logger " +
-                    "configuration:  %s.  It will be ignored.");
+                    "configuration:  %s.  It will be ignored");
     registerMessage(MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER,
                     "An error occurred while attempting to create a " +
                     "Directory Server logger from the information in " +
-                    "configuration entry %s:  %s.");
+                    "configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain a valid " +
                     "objectclass for a Directory Server access, error, or " +
-                    "debug logger definition.");
+                    "debug logger definition");
     registerMessage(MSGID_CONFIG_LOGGER_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_LOGGER_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated logger.");
+                    "the associated logger");
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_LOGGER_CLASS + ":  %s.");
+                    "attribute " + ATTR_LOGGER_CLASS + ":  %s");
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS,
                     "Class %s specified in attribute " + ATTR_LOGGER_CLASS +
                     " of configuration entry %s cannot be instantiated as " +
-                    "a Directory Server access logger:  %s.");
+                    "a Directory Server access logger:  %s");
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS,
                     "Class %s specified in attribute " + ATTR_LOGGER_CLASS +
                     " of configuration entry %s cannot be instantiated as " +
-                    "a Directory Server error logger:  %s.");
+                    "a Directory Server error logger:  %s");
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS,
                     "Class %s specified in attribute " + ATTR_LOGGER_CLASS +
                     " of configuration entry %s cannot be instantiated as " +
-                    "a Directory Server debug logger:  %s.");
+                    "a Directory Server debug logger:  %s");
     registerMessage(MSGID_CONFIG_LOGGER_NO_ENABLED_ATTR,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_LOGGER_ENABLED +
                     " which indicates whether the logger should be enabled " +
-                    "for use in the Directory Server.");
+                    "for use in the Directory Server");
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_LOGGER_ENABLED + ":  %s.");
+                    "attribute " + ATTR_LOGGER_ENABLED + ":  %s");
     registerMessage(MSGID_CONFIG_LOGGER_DESCRIPTION_CLASS_NAME,
                     "The fully-qualified name of the Java class that defines " +
                     "the Directory Server logger.  If this is altered while " +
                     "the associated logger is enabled, then that logger must " +
                     "be disabled and re-enabled for the change to take " +
-                    "effect.");
+                    "effect");
     registerMessage(MSGID_CONFIG_LOGGER_DESCRIPTION_ENABLED,
                     "Indicates whether this Directory Server logger should " +
                     "be enabled.  Changes to this attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_CONFIG_LOGGER_NO_FILE_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_LOGGER_FILE +
                     " which specifies the log file name for " +
-                    "the associated logger.");
+                    "the associated logger");
     registerMessage(MSGID_CONFIG_LOGGER_CLASS_ACTION_REQUIRED,
                     "The requested change in the logger class name from %s " +
                     "to %s in configuration entry %s cannot be dynamically " +
                     "applied.  This change will not take effect until the " +
                     "logger is disabled and re-enabled or the Directory " +
-                    "Server is restarted.");
+                    "Server is restarted");
     registerMessage(MSGID_CONFIG_LOGGER_EXISTS,
                     "Unable to add a new logger entry with DN %s because " +
-                    "there is already a logger registered with that DN.");
+                    "there is already a logger registered with that DN");
     registerMessage(MSGID_CONFIG_LOGGER_ACCESS_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as an access logger as defined in " +
-                    "configuration entry %s:  %s.");
+                    "configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_LOGGER_ERROR_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as an error logger as defined in " +
-                    "configuration entry %s:  %s.");
+                    "configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_LOGGER_DEBUG_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as a debug logger as defined in " +
-                    "configuration entry %s:  %s.");
+                    "configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_LOGGER_UNACCEPTABLE_CONFIG,
                     "The configuration for the logger defined in " +
                     "configuration entry %s was not acceptable according to " +
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
-                    "the entry.");
+                    "the entry");
 
 
     registerMessage(MSGID_CONFIG_UNKNOWN_UNACCEPTABLE_REASON,
-                    "Unknown unacceptable reason.");
+                    "Unknown unacceptable reason");
 
 
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_ADD_MISSING_RDN_ATTRS,
@@ -7039,12 +7039,12 @@ public class ConfigMessages
                     "not contain the RDN attribute values in their attribute " +
                     "lists will be rejected because they are in violation " +
                     "of the LDAP specification.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_ADD_MISSING_RDN_ATTRS,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " +
                     ATTR_ADD_MISSING_RDN_ATTRS + " (it should be a Boolean " +
-                    "value of true or false):  %s.");
+                    "value of true or false):  %s");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_ALLOW_ATTR_EXCEPTIONS,
                     "Indicates whether to allow some flexibility in the " +
                     "characters that may be used in attribute names.  By " +
@@ -7054,24 +7054,24 @@ public class ConfigMessages
                     "exceptions are enabled, then the underscore character " +
                     "will also be allowed and the attribute name may also " +
                     "start with a digit.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_ALLOW_EXCEPTIONS,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " +
                     ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS + " (it should be a " +
-                    "Boolean value of true or false):  %s.");
+                    "Boolean value of true or false):  %s");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_SERVER_ERROR_RESULT_CODE,
                     "Specifies the result code that should be used for " +
                     "responses in which the operation fails because of an " +
                     "internal server error.  The value should be the " +
                     "integer equivalent of the corresponding LDAP result " +
                     "code.  Changes to this configuration attribute will " +
-                    "take effect immediately.");
+                    "take effect immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_SERVER_ERROR_RESULT_CODE,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " +
                     ATTR_SERVER_ERROR_RESULT_CODE + " (it should be an " +
-                    "integer value greater than or equal to 1):  %s.");
+                    "integer value greater than or equal to 1):  %s");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_INVALID_SYNTAX_BEHAVIOR,
                     "Specifies the behavior that the Directory Server should " +
                     "exhibit if it discovers an attribute whose value does " +
@@ -7081,22 +7081,22 @@ public class ConfigMessages
                     "invalid value but log a warning message, or \"accept\" " +
                     "to accept the invalid value with no warning.  Changes " +
                     "to this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_ENFORCE_STRICT_SYNTAX,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_INVALID_SYNTAX_BEHAVIOR +
                     " (it should be one of \"accept\", \"reject\", or " +
-                    "\"warn\" ):  %s.");
+                    "\"warn\" ):  %s");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_MAX_ALLOWED_CONNECTIONS,
                     "The maximum number of client connections that may be " +
                     "established to the Directory Server at any given time.  " +
                     "a value that is less than or equal to zero indicates " +
                     "that there should be no limit.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_MAX_ALLOWED_CONNECTIONS,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_MAX_ALLOWED_CONNS +
-                    " (it should be an integer value).");
+                    " (it should be an integer value)");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_STRUCTURAL_CLASS_BEHAVIOR,
                     "Specifies the behavior that the Directory Server should " +
                     "exhibit if it discovers an entry that does not have " +
@@ -7105,13 +7105,13 @@ public class ConfigMessages
                     "the entry but log a warning message, or \"accept\" to " +
                     "accept the invalid entry with no warning.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_STRUCTURAL_CLASS_BEHAVIOR,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " +
                     ATTR_SINGLE_STRUCTURAL_CLASS_BEHAVIOR +
                     " (it should be one of \"accept\", \"reject\", or " +
-                    "\"warn\" ):  %s.");
+                    "\"warn\" ):  %s");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_CHECK_SCHEMA,
                     "Indicates whether the Directory Server should perform " +
                     "schema checking for update operations to ensure that " +
@@ -7121,11 +7121,11 @@ public class ConfigMessages
                     "Disabling schema checking is generally not recommended " +
                     "because it may allow invalid entries to be included in " +
                     "the server.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_CHECK_SCHEMA,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_CHECK_SCHEMA +
-                    " (it should be a Boolean value of true or false):  %s.");
+                    " (it should be a Boolean value of true or false):  %s");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_NOTIFY_ABANDONED_OPERATIONS,
                     "Indicates whether the Directory Server should send a " +
                     "response to operations that have been abandoned to " +
@@ -7135,26 +7135,26 @@ public class ConfigMessages
                     "not behave properly if they are waiting on a response " +
                     "for an operation when there will not be one because it " +
                     "has been abandoned.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_PROXY_MAPPER_DN,
                     "Specifies the DN of the configuration entry for the " +
                     "identity mapper that the Directory Server should use in " +
                     "conjunction with the proxied authorization V2 control.  " +
                     "Changes to this configuration attribute will take " +
-                    "effect immediately.");
+                    "effect immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_NOTIFY_ABANDONED_OPERATIONS,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_NOTIFY_ABANDONED_OPS +
-                    " (it should be a Boolean value of true or false):  %s.");
+                    " (it should be a Boolean value of true or false):  %s");
     registerMessage(MSGID_CONFIG_CORE_INVALID_PROXY_MAPPER_DN,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_PROXY_MAPPER_DN +
                     " (it should be the DN of a valid identity mapper " +
-                    "configuration entry):  %s.");
+                    "configuration entry):  %s");
     registerMessage(MSGID_CONFIG_CORE_NO_PROXY_MAPPER_FOR_DN,
                     "The proxied authorization identity mapper DN %s " +
                     "specified in configuration entry %s does not refer to a " +
-                    "valid identity mapper configuration entry.");
+                    "valid identity mapper configuration entry");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_SIZE_LIMIT,
                     "Specifies the default maximum number of entries that " +
                     "should be returned to a client when processing a search " +
@@ -7162,36 +7162,36 @@ public class ConfigMessages
                     "by including the " + OP_ATTR_USER_SIZE_LIMIT +
                     " operational attribute in the user's entry.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_SIZE_LIMIT,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_SIZE_LIMIT +
                     " (It should be a positive integer value specifying " +
                     "the size limit to use, or a value of 0 or -1 to " +
-                    "indicate that no limit should be enforced):  %s.");
+                    "indicate that no limit should be enforced):  %s");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_TIME_LIMIT,
                     "Specifies the default maximum length of time that " +
                     "should be allowed when processing a search operation.  " +
                     "This may be overridden on a per-user basis by including " +
                     "the " + OP_ATTR_USER_TIME_LIMIT + " operational " +
                     "attribute in the user's entry.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_TIME_LIMIT,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_TIME_LIMIT +
                     " (it should be an integer value followed by a space " +
                     "and a time unit of seconds, minutes, hours, days, or " +
-                    "weeks):  %s.");
+                    "weeks):  %s");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_WRITABILITY_MODE,
                     "Specifies the writability mode for the Directory " +
                     "Server.  The value may be one of \"enabled\", " +
                     "\"disabled\", or \"internal-only\".  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_WRITABILITY_MODE,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_WRITABILITY_MODE +
                     " (the value should be one of \"enabled\", \"disabled\", " +
-                    "or \"internal-only\"):  %s.");
+                    "or \"internal-only\"):  %s");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_BIND_WITH_DN_REQUIRES_PW,
                     "Indicates whether simple binds that contain a DN will " +
                     "also be required to contain a password.  If this is " +
@@ -7202,7 +7202,7 @@ public class ConfigMessages
                     "simple bind request that contains a DN but no password " +
                     "will be rejected rather than defaulting to anonymous " +
                     "authentication.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_DEFAULT_PWPOLICY_DN,
                     "Specifies the DN of the configuration entry that " +
                     "defines the default password policy for the Directory " +
@@ -7210,59 +7210,59 @@ public class ConfigMessages
                     "custom password policy is not defined.  This entry must " +
                     "exist and must specify a valid password policy " +
                     "configuration.  Changes to this configuration attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_BIND_WITH_DN_REQUIRES_PW,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_BIND_WITH_DN_REQUIRES_PW +
                     " (the value should be either \"TRUE\" or \"FALSE\"):  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CONFIG_CORE_NO_DEFAULT_PWPOLICY,
                     "No default password policy was configured for the " +
                     "Directory Server.  This must be specified by the " +
                     ATTR_DEFAULT_PWPOLICY_DN + " attribute in configuration " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_CONFIG_CORE_INVALID_DEFAULT_PWPOLICY_DN,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_DEFAULT_PWPOLICY_DN +
                     " (the value should a DN specifying the default " +
-                    "password policy configuration entry):  %s.");
+                    "password policy configuration entry):  %s");
     registerMessage(MSGID_CONFIG_CORE_NO_SUCH_PWPOLICY,
                     "The value %s for configuration attribute " +
                     ATTR_DEFAULT_PWPOLICY_DN + " does not refer to a valid " +
-                    "password policy configuration entry.");
+                    "password policy configuration entry");
 
 
     registerMessage(MSGID_CONFIG_JMX_ATTR_NO_VALUE,
                     "Configuration entry %s does not contain a value for " +
-                    "attribute %s.");
+                    "attribute %s");
     registerMessage(MSGID_CONFIG_JMX_ATTR_NO_ATTR,
                     "Configuration entry %s does not contain attribute %s " +
                     "(or that attribute exists but is not accessible using " +
-                    "JMX).");
+                    "JMX)");
     registerMessage(MSGID_CONFIG_JMX_CANNOT_GET_CONFIG_ENTRY,
                     "Unable to retrieve configuration entry %s for access " +
-                    "through JMX:  %s.");
+                    "through JMX:  %s");
     registerMessage(MSGID_CONFIG_JMX_ATTR_INVALID_VALUE,
                     "Attempted update to attribute %s of configuration entry " +
                     "%s over JMX would have resulted in an invalid value:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CONFIG_JMX_UNACCEPTABLE_CONFIG,
                     "Update to configuration entry %s over JMX would have " +
-                    "resulted in an invalid configuration:  %s.");
+                    "resulted in an invalid configuration:  %s");
     registerMessage(MSGID_CONFIG_JMX_NO_METHOD,
                     "There is no method %s for any invokable component " +
-                    "registered with configuration entry %s.");
+                    "registered with configuration entry %s");
     registerMessage(MSGID_CONFIG_JMX_CANNOT_REGISTER_MBEAN,
                     "The Directory Server could not register a JMX MBean for " +
                     "the component associated with configuration entry %s:  " +
                     "%s ");
     registerMessage(MSGID_CONFIG_JMX_CANNOT_GET_ATTRIBUTE,
                     "Unable to retrieve JMX attribute %s associated with " +
-                    "configuration entry %s:  %s.");
+                    "configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_JMX_SET_ATTR_NO_CONNECTION,
                     "Unable to set the value of JMX attribute %s associated " +
                     "with configuration entry %s because no JMX connection " +
-                    "is avaialble.");
+                    "is avaialble");
 
 
     registerMessage(MSGID_CONFIG_WORK_QUEUE_DESCRIPTION_NUM_THREADS,
@@ -7273,7 +7273,7 @@ public class ConfigMessages
                     "system on which the server is running and the workload " +
                     "it needs to handle, and may best be determined by " +
                     "performance testing.  Changes to this attribute will " +
-                    "take effect immediately.");
+                    "take effect immediately");
     registerMessage(MSGID_CONFIG_WORK_QUEUE_DESCRIPTION_MAX_CAPACITY,
                     "Specifies the maximum number of pending requests that " +
                     "may be held in the work queue at any one time while all " +
@@ -7281,14 +7281,14 @@ public class ConfigMessages
                     "If this limit is reached, then any new requests will be " +
                     "rejected.  A value of 0 indicates that there is no " +
                     "limit.  Changes to this attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_NUM_WORKER_THREADS,
                     "An error occurred while attempting to retrieve the " +
                     "value of the " + ATTR_NUM_WORKER_THREADS + " attribute " +
                     "from the %s entry, which is used to specify the number " +
                     "of worker threads to service the work queue:  %s.  The " +
                     "Directory Server will use the default value of " +
-                    DEFAULT_NUM_WORKER_THREADS + ".");
+                    DEFAULT_NUM_WORKER_THREADS + "");
     registerMessage(MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_QUEUE_CAPACITY,
                     "An error occurred while attempting to retrieve the " +
                     "value of the " + ATTR_MAX_WORK_QUEUE_CAPACITY +
@@ -7296,43 +7296,43 @@ public class ConfigMessages
                     "the maximum number of pending operations that may be " +
                     "held in the work queue:  %s.  The Directory Server will " +
                     "use the default value of " +
-                    DEFAULT_MAX_WORK_QUEUE_CAPACITY + ".");
+                    DEFAULT_MAX_WORK_QUEUE_CAPACITY + "");
     registerMessage(MSGID_CONFIG_WORK_QUEUE_NUM_THREADS_INVALID_VALUE,
                     "The value of configuration attribute " +
                     ATTR_NUM_WORKER_THREADS + " in configuration entry %s " +
                     "has an invalid value (%d).  This attribute requires " +
-                    "an integer value greater than zero.");
+                    "an integer value greater than zero");
     registerMessage(MSGID_CONFIG_WORK_QUEUE_CAPACITY_INVALID_VALUE,
                     "The value of configuration attribute " +
                     ATTR_MAX_WORK_QUEUE_CAPACITY + " in configuration entry " +
                     "%s has an invalid value (%d).  This attribute requires " +
-                    "an integer value greater than or equal to zero.");
+                    "an integer value greater than or equal to zero");
     registerMessage(MSGID_CONFIG_WORK_QUEUE_CREATED_THREADS,
                     "%d additional worker threads have been created to bring " +
-                    "the total number of available threads to %d.");
+                    "the total number of available threads to %d");
     registerMessage(MSGID_CONFIG_WORK_QUEUE_DESTROYING_THREADS,
                     "%d worker threads will terminate as soon as it is " +
                     "convenient to do so (it may take a couple of seconds " +
                     "for the threads to actually exit) to bring the total " +
-                    "number of available threads to %d.");
+                    "number of available threads to %d");
     registerMessage(MSGID_CONFIG_WORK_QUEUE_NEW_CAPACITY,
                     "The work queue capacity has been updated to use a new "+
-                    "value of %d.");
+                    "value of %d");
     registerMessage(MSGID_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES,
                     "Worker thread \"%s\" has experienced too many repeated " +
                     "failures while attempting to retrieve the next " +
                     "operation from the work queue (%d failures experienced, " +
                     "maximum of %d failures allowed).  This worker thread " +
-                    "will be destroyed.");
+                    "will be destroyed");
     registerMessage(MSGID_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR,
                     "A problem occurred while trying to create and start an " +
                     "instance of class %s to use as a monitor provider for " +
                     "the Directory Server work queue:  %s.  No monitor " +
-                    "information will be available for the work queue.");
+                    "information will be available for the work queue");
 
    registerMessage(MSGID_CONFIG_DESCRIPTION_BACKEND_DIRECTORY,
                    "The name of the directory in which backend database " +
-                   "files are stored.");
+                   "files are stored");
    registerMessage(MSGID_CONFIG_BACKEND_NO_DIRECTORY,
                    "Configuration entry %s does not contain a valid value " +
                    "for configuration attribute " +
@@ -7341,49 +7341,49 @@ public class ConfigMessages
 
     registerMessage(MSGID_CONFIG_ATTR_DN_NULL,
                     "A null value was provided for DN configuration " +
-                    "attribute %s.");
+                    "attribute %s");
     registerMessage(MSGID_CONFIG_ATTR_DN_CANNOT_PARSE,
                     "An error occurred while trying to parse value \"%s\" of " +
-                    "attribute %s as a DN:  %s.");
+                    "attribute %s as a DN:  %s");
     registerMessage(MSGID_CONFIG_ATTR_INVALID_DN_VALUE,
                     "Unable to parse value %s for configuration attribute %s " +
-                    "as a DN:  %s.");
+                    "as a DN:  %s");
     registerMessage(MSGID_CONFIG_ATTR_DN_INVALID_TYPE,
                     "Unable to parse value %s for configuration attribute %s " +
-                    "as a DN because the element was of an invalid type (%s).");
+                    "as a DN because the element was of an invalid type (%s)");
     registerMessage(MSGID_CONFIG_ATTR_DN_INVALID_ARRAY_TYPE,
                     "Unable to parse value for configuration attribute %s " +
                     "as a set of DN values because the array contained " +
-                    "elements of an invalid type (%s).");
+                    "elements of an invalid type (%s)");
 
 
     registerMessage(MSGID_CONFIG_BACKEND_CANNOT_GET_CONFIG_BASE,
                     "An error occurred while trying to retrieve " +
                     "configuration entry " + DN_BACKEND_BASE + " in order to " +
-                    "initialize the Directory Server backends:  %s.");
+                    "initialize the Directory Server backends:  %s");
     registerMessage(MSGID_CONFIG_BACKEND_BASE_DOES_NOT_EXIST,
                     "The entry " + DN_BACKEND_BASE +  " does not appear to " +
                     "exist in the Directory Server configuration.  This is a " +
-                    "required entry.");
+                    "required entry");
     registerMessage(MSGID_CONFIG_BACKEND_ENTRY_DOES_NOT_HAVE_BACKEND_CONFIG,
                     "Configuration entry %s exists below the backend " +
                     "configuration root of " + DN_BACKEND_BASE + " but does " +
                     "not have objectclass " + OC_BACKEND + " that is " +
                     "required for a Directory Server backend.  This " +
-                    "configuration entry will be ignored.");
+                    "configuration entry will be ignored");
     registerMessage(MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY,
                     "An unexpected error occurred while interacting with " +
-                    "backend configuration entry %s:  %s.");
+                    "backend configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_ENABLED,
                     "Indicates whether this backend should be enabled for " +
                     "use in the Directory Server.  This may be altered while " +
                     "the Directory Server is online, but if a backend is " +
-                    "disabled, then it will not be available for use.");
+                    "disabled, then it will not be available for use");
     registerMessage(MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID,
                     "Specifies the unique identifier for this backend.  " +
                     "Changes to this configuration attribute will not take " +
                     "effect until the backend is disabled and re-enabled or " +
-                    "the server is restarted.");
+                    "the server is restarted");
     registerMessage(MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_WRITABILITY,
                     "Specifies the writability mode for this backend.  The " +
                     "value may be \"enabled\" if all write operations will " +
@@ -7391,328 +7391,328 @@ public class ConfigMessages
                     "be rejected, or \"internal-only\" if only internal " +
                     "write operations and synchronization updates will be " +
                     "allowed.  Changes to this configuration attribute will " +
-                    "take effect immediately.");
+                    "take effect immediately");
     registerMessage(MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that should provide the core logic for this backend " +
                     "implementation.  Changes to this configuration " +
                     "attribute will not take effect until the backend is "+
-                    "disabled and re-enabled or the server is restarted.");
+                    "disabled and re-enabled or the server is restarted");
     registerMessage(MSGID_CONFIG_BACKEND_NO_ENABLED_ATTR,
                     "Backend configuration entry %s does not contain " +
                     "attribute " + ATTR_BACKEND_ENABLED + ", which is used " +
                     "to indicate whether the backend should be enabled or " +
                     "disabled.  Without this attribute, it will default to " +
-                    "being disabled.");
+                    "being disabled");
     registerMessage(MSGID_CONFIG_BACKEND_DISABLED,
                     "The backend defined in configuration entry %s is " +
-                    "marked as disabled and therefore will not be used.");
+                    "marked as disabled and therefore will not be used");
     registerMessage(MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE,
                     "An unexpected error occurred while attempting to " +
                     "determine whether the backend associated with " +
                     "configuration entry %s should be enabled or disabled:  " +
-                    "%s.  It will be disabled.");
+                    "%s.  It will be disabled");
     registerMessage(MSGID_CONFIG_BACKEND_NO_BACKEND_ID,
                     "Backend configuration entry %s does not contain " +
                     "attribute " + ATTR_BACKEND_ID + ", which is used " +
                     "to provide a unique identifier for the backend.  The " +
-                    "backend will be disabled.");
+                    "backend will be disabled");
     registerMessage(MSGID_CONFIG_BACKEND_DUPLICATE_BACKEND_ID,
                     "The backend defined in configuration entry %s has a " +
                     "backend ID of %s that conflicts with the backend ID for " +
                     "another backend in the server.  The backend will be " +
-                    "disabled.");
+                    "disabled");
     registerMessage(MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BACKEND_ID,
                     "An unexpected error occurred while attempting to " +
                     "determine the backend ID for the backend defined in " +
                     "configuration entry %s:  %s.  The backend will be " +
-                    "disabled.");
+                    "disabled");
     registerMessage(MSGID_CONFIG_BACKEND_NO_WRITABILITY_MODE,
                     "The backend defined in configuration entry %s does not " +
                     "have a value for configuration attribute " +
                     ATTR_BACKEND_WRITABILITY_MODE + " which indicates the " +
                     "writability mode for that backend.  The backend will be " +
-                    "disabled.");
+                    "disabled");
     registerMessage(MSGID_CONFIG_BACKEND_INVALID_WRITABILITY_MODE,
                     "The backend defined in configuration entry %s has an " +
                     "invalid writability mode of %s.  The backend will be " +
-                    "disabled.");
+                    "disabled");
     registerMessage(MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_WRITABILITY,
                     "An unexpected error occurred while attempting to " +
                     "determine the writability mode for the backend defined " +
                     "in configuration entry %s:  %s.  The backend will be " +
-                    "disabled.");
+                    "disabled");
     registerMessage(MSGID_CONFIG_BACKEND_NO_CLASS_ATTR,
                     "Backend configuration entry %s does not contain " +
                     "attribute " + ATTR_BACKEND_CLASS + ", which is used to " +
                     "specify the name of the class used to provide the " +
                     "backend implementation.  The backend associated with " +
-                    "this configuration entry will be disabled.");
+                    "this configuration entry will be disabled");
     registerMessage(MSGID_CONFIG_BACKEND_CANNOT_GET_CLASS,
                     "An unexpected error occurred while trying to determine " +
                     "the name of the Java class that contains the " +
                     "implementation for backend %s:  %s.  This backend will " +
-                    "be disabled.");
+                    "be disabled");
     registerMessage(MSGID_CONFIG_BACKEND_CANNOT_INSTANTIATE,
                     "The Directory Server was unable to load class %s and " +
                     "use it to create a backend instance as defined in " +
                     "configuration entry %s.  The error that occurred was:  " +
-                    "%s.  This backend will be disabled.");
+                    "%s.  This backend will be disabled");
     registerMessage(MSGID_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK,
                     "The Directory Server was unable to acquire a shared " +
                     "lock for backend %s:  %s.  This generally means that " +
                     "the backend is in use by a process that requires an " +
                     "exclusive lock (e.g., importing from LDIF or restoring " +
-                    "a backup).  This backend will be disabled.");
+                    "a backup).  This backend will be disabled");
     registerMessage(MSGID_CONFIG_BACKEND_CANNOT_INITIALIZE,
                     "An error occurred while trying to initialize a backend " +
                     "loaded from class %s with the information in " +
                     "configuration entry %s:  %s.  This backend will be " +
-                    "disabled.");
+                    "disabled");
     registerMessage(MSGID_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK,
                     "An error occurred while attempting to release a shared " +
                     "lock for backend %s:  %s.  This may interfere with " +
                     "operations that require exclusive access, including " +
-                    "LDIF import and restoring a backup.");
+                    "LDIF import and restoring a backup");
     registerMessage(MSGID_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND,
                     "An error occurred while attempting to register backend " +
-                    "%s with the Directory Server:  %s.");
+                    "%s with the Directory Server:  %s");
     registerMessage(MSGID_CONFIG_BACKEND_CLASS_NOT_BACKEND,
                     "The class %s specified in configuration entry %s does " +
                     "not contain a valid Directory Server backend " +
-                    "implementation.");
+                    "implementation");
     registerMessage(MSGID_CONFIG_BACKEND_ACTION_REQUIRED_TO_CHANGE_CLASS,
                     "The requested change to configuration entry %s would " +
                     "cause the class for the associated backend to change " +
                     "from %s to %s.  This change will not take effect until " +
                     "the backend is disabled and re-enabled, or until the " +
-                    "Directory Server is restarted.");
+                    "Directory Server is restarted");
     registerMessage(
          MSGID_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES,
          "The backend defined in configuration entry %s has one or more " +
          "subordinate backends.  A backend may not be removed if it has " +
-         "subordinate backends.");
+         "subordinate backends");
     registerMessage(MSGID_CONFIG_BACKEND_UNACCEPTABLE_CONFIG,
                     "The configuration for the backend defined in " +
                     "configuration entry %s was not acceptable according to " +
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
-                    "the entry.");
+                    "the entry");
     registerMessage(MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS,
                     "Specifies the set of base DNs that should be used for " +
                     "this backend.  It is up to the backend implementation " +
                     "as to whether changes to this attribute will " +
-                    "automatically take effect.");
+                    "automatically take effect");
     registerMessage(MSGID_CONFIG_BACKEND_NO_BASE_DNS,
                     "Backend configuration entry %s does not contain " +
                     "attribute " + ATTR_BACKEND_BASE_DN + ", which is used " +
                     "to specify the set of base DNs for the backend.  This " +
                     "is a required attribute, and therefore the backend will " +
-                    "be disabled.");
+                    "be disabled");
     registerMessage(MSGID_CONFIG_BACKEND_UNABLE_TO_DETERMINE_BASE_DNS,
                     "An unexpected error occurred while attempting to " +
                     "determine the set of base DNs associated with the " +
                     "backend defined in configuration entry %s:  %s.  This " +
-                    "backend will be disabled.");
+                    "backend will be disabled");
 
 
     registerMessage(MSGID_CONFIG_MONITOR_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "base monitor entry " + DN_MONITOR_CONFIG_BASE +
-                    " from the Directory Server configuration:  %s.");
+                    " from the Directory Server configuration:  %s");
     registerMessage(MSGID_CONFIG_MONITOR_BASE_DOES_NOT_EXIST,
                     "The monitor configuration base " + DN_MONITOR_CONFIG_BASE +
                     " does not exist in the Directory Server configuration.  " +
-                    "Only limited monitoring information will be available.");
+                    "Only limited monitoring information will be available");
     registerMessage(MSGID_CONFIG_MONITOR_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid monitor " +
-                    "provider configuration:  %s.  It will be ignored.");
+                    "provider configuration:  %s.  It will be ignored");
     registerMessage(MSGID_CONFIG_MONITOR_CANNOT_CREATE_MONITOR,
                     "An error occurred while attempting to create a " +
                     "Directory Server monitor provider from the information " +
-                    "in configuration entry %s:  %s.");
+                    "in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_MONITOR_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_MONITOR_PROVIDER + " objectclass, which is required " +
-                    "for monitor provider definitions.");
+                    "for monitor provider definitions");
     registerMessage(MSGID_CONFIG_MONITOR_DESCRIPTION_CLASS_NAME,
                     "The fully-qualified name of the Java class that defines " +
                     "the Directory Server monitor provider.  If this is " +
                     "altered while the associated monitor is enabled, then " +
                     "that monitor must be disabled and re-enabled for the " +
-                    "change to take effect.");
+                    "change to take effect");
     registerMessage(MSGID_CONFIG_MONITOR_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_MONITOR_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated monitor provider.");
+                    "the associated monitor provider");
     registerMessage(MSGID_CONFIG_MONITOR_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_MONITOR_CLASS + ":  %s.");
+                    "attribute " + ATTR_MONITOR_CLASS + ":  %s");
     registerMessage(MSGID_CONFIG_MONITOR_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
-                    "contain a valid monitor provider implementation:  %s.");
+                    "contain a valid monitor provider implementation:  %s");
     registerMessage(MSGID_CONFIG_MONITOR_DESCRIPTION_ENABLED,
                     "Indicates whether this Directory Server monitor " +
                     "provider should be enabled.  Changes to this attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_CONFIG_MONITOR_NO_ENABLED_ATTR,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_MONITOR_ENABLED +
                     " which indicates whether the monitor provider should be " +
-                    "enabled for use in the Directory Server.");
+                    "enabled for use in the Directory Server");
     registerMessage(MSGID_CONFIG_MONITOR_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_MONITOR_ENABLED + ":  %s.");
+                    "attribute " + ATTR_MONITOR_ENABLED + ":  %s");
     registerMessage(MSGID_CONFIG_MONITOR_CLASS_ACTION_REQUIRED,
                     "The requested change in the monitor class name from %s " +
                     "to %s in configuration entry %s cannot be dynamically " +
                     "applied.  This change will not take effect until the " +
                     "monitor provider is disabled and re-enabled or the " +
-                    "Directory Server is restarted.");
+                    "Directory Server is restarted");
     registerMessage(MSGID_CONFIG_MONITOR_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as a monitor provider as defined " +
-                    "in configuration entry %s:  %s.");
+                    "in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_MONITOR_EXISTS,
                     "Unable to add a new monitor provider entry with DN %s " +
                     "because there is already a monitor provider registered " +
-                    "with that DN.");
+                    "with that DN");
     registerMessage(MSGID_CONFIG_MONITOR_UNACCEPTABLE_CONFIG,
                     "The configuration for the monitor provider defined in " +
                     "configuration entry %s was not acceptable according to " +
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
-                    "the entry.");
+                    "the entry");
 
 
     registerMessage(MSGID_CONFIG_CONNHANDLER_CANNOT_GET_CONFIG_BASE,
                     "An error occurred while trying to retrieve " +
                     "configuration entry " + DN_CONNHANDLER_BASE +
                     " in order to initialize the Directory Server backends:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CONFIG_CONNHANDLER_BASE_DOES_NOT_EXIST,
                     "The entry " + DN_CONNHANDLER_BASE +  " does not appear " +
                     "to exist in the Directory Server configuration.  This " +
-                    "is a required entry.");
+                    "is a required entry");
     registerMessage(
          MSGID_CONFIG_CONNHANDLER_ENTRY_DOES_NOT_HAVE_CONNHANDLER_CONFIG,
          "Configuration entry %s exists below the connection handler " +
          "configuration root of " + DN_CONNHANDLER_BASE + " but does not " +
          "have objectclass " + OC_CONNECTION_HANDLER + " that is required " +
          "for a Directory Server connection handler.  This configuration " +
-         "entry will be ignored.");
+         "entry will be ignored");
     registerMessage(
          MSGID_CONFIG_CONNHANDLER_ERROR_INTERACTING_WITH_CONNHANDLER_ENTRY,
          "An unexpected error occurred while interacting with connection " +
-         "handler configuration entry %s:  %s.");
+         "handler configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_CONNHANDLER_ATTR_DESCRIPTION_ENABLED,
                     "Indicates whether this connection handler should be " +
                     "enabled for use in the Directory Server.  This may be " +
                     "altered while the Directory Server is online, but if a " +
                     "connection handler is disabled, then it will not be " +
-                    "available for use.");
+                    "available for use");
     registerMessage(MSGID_CONFIG_CONNHANDLER_ATTR_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that should provide the core logic for this connection " +
                     "handler implementation.  Changes to this configuration " +
                     "attribute will not take effect until the connection " +
                     "handler is disabled and re-enabled or the server is " +
-                    "restarted.");
+                    "restarted");
     registerMessage(MSGID_CONFIG_CONNHANDLER_NO_ENABLED_ATTR,
                     "Connection handler configuration entry %s does not " +
                     "contain attribute " + ATTR_CONNECTION_HANDLER_ENABLED +
                     ", which is used to indicate whether the connection " +
                     "handler should be enabled or disabled.  Without this " +
-                    "attribute, it will default to being disabled.");
+                    "attribute, it will default to being disabled");
     registerMessage(MSGID_CONFIG_CONNHANDLER_DISABLED,
                     "The connection handler defined in configuration entry " +
-                    "%s is marked as disabled and therefore will not be used.");
+                    "%s is marked as disabled and therefore will not be used");
     registerMessage(MSGID_CONFIG_CONNHANDLER_UNABLE_TO_DETERMINE_ENABLED_STATE,
                     "An unexpected error occurred while attempting to " +
                     "determine whether the connection handler associated " +
                     "with configuration entry %s should be enabled or " +
-                    "disabled:  %s.  It will be disabled.");
+                    "disabled:  %s.  It will be disabled");
     registerMessage(MSGID_CONFIG_CONNHANDLER_NO_CLASS_ATTR,
                     "Connection handler configuration entry %s does not " +
                     "contain attribute " + ATTR_CONNECTION_HANDLER_CLASS +
                     ", which is used to specify the name of the class used " +
                     "to provide the connection handler implementation.  The " +
                     "connection handler associated with this configuration " +
-                    "entry will be disabled.");
+                    "entry will be disabled");
     registerMessage(MSGID_CONFIG_CONNHANDLER_CANNOT_GET_CLASS,
                     "An unexpected error occurred while trying to determine " +
                     "the name of the Java class that contains the " +
                     "implementation for connection handler %s:  %s.  This " +
-                    "connection handler will be disabled.");
+                    "connection handler will be disabled");
     registerMessage(MSGID_CONFIG_CONNHANDLER_CANNOT_INSTANTIATE,
                     "The Directory Server was unable to load class %s and " +
                     "use it to create a connection handler instance as " +
                     "defined in configuration entry %s.  The error that " +
                     "occurred was:  %s.  This connection handler will be " +
-                    "disabled.");
+                    "disabled");
     registerMessage(MSGID_CONFIG_CONNHANDLER_CANNOT_INITIALIZE,
                     "An error occurred while trying to initialize a " +
                     "connection handler loaded from class %s with the " +
                     "information in configuration entry %s:  %s.  This " +
-                    "connection handler will be disabled.");
+                    "connection handler will be disabled");
     registerMessage(MSGID_CONFIG_CONNHANDLER_UNACCEPTABLE_CONFIG,
                     "The configuration for the connection handler defined in " +
                     "configuration entry %s was not acceptable according to " +
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
-                    "the entry.");
+                    "the entry");
     registerMessage(MSGID_CONFIG_CONNHANDLER_CLASS_NOT_CONNHANDLER,
                     "The class %s specified in configuration entry %s does " +
                     "not contain a valid Directory Server connection handler " +
-                    "implementation.");
+                    "implementation");
 
 
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_GET_MR_BASE,
                     "An error occurred while trying to retrieve " +
                     "configuration entry " + DN_MATCHING_RULE_CONFIG_BASE +
                     " in order to initialize the Directory Server matching " +
-                    "rules:  %s.");
+                    "rules:  %s");
     registerMessage(MSGID_CONFIG_SCHEMA_MR_BASE_DOES_NOT_EXIST,
                     "The entry " + DN_MATCHING_RULE_CONFIG_BASE +
                     " does not appear to exist in the Directory Server " +
-                    "configuration.  This is a required entry.");
+                    "configuration.  This is a required entry");
     registerMessage(MSGID_CONFIG_SCHEMA_NO_MATCHING_RULES,
                     "No child entries were found below the entry " +
                     DN_MATCHING_RULE_CONFIG_BASE + " to define the matching " +
                     "rules for use in the Directory Server.  This is an " +
                     "error, because the Directory Server must have matching " +
-                    "rules defined to function properly.");
+                    "rules defined to function properly");
     registerMessage(MSGID_CONFIG_SCHEMA_ENTRY_DOES_NOT_HAVE_MR_CONFIG,
                     "Configuration entry %s exists below the matching rule " +
                     "configuration root of " + DN_MATCHING_RULE_CONFIG_BASE +
                     " but does not have objectclass " + OC_MATCHING_RULE +
                     " that is required for a Directory Server matching " +
-                    "rule.  This configuration entry will be ignored.");
+                    "rule.  This configuration entry will be ignored");
     registerMessage(MSGID_CONFIG_SCHEMA_MR_ATTR_DESCRIPTION_ENABLED,
                     "Indicates whether this matching rule should be enabled " +
                     "for use in the Directory Server.  This may be altered " +
                     "while the Directory Server is online, but if a matching " +
                     "rule is disabled, after it has been used for one or " +
                     "more attributes then matching may no longer function " +
-                    "as expected for those attributes.");
+                    "as expected for those attributes");
     registerMessage(MSGID_CONFIG_SCHEMA_MR_NO_ENABLED_ATTR,
                     "Matching rule configuration entry %s does not contain " +
                     "attribute " + ATTR_MATCHING_RULE_ENABLED + ", which is " +
                     "used to indicate whether the matching rule should be " +
                     "enabled or disabled.  Without this attribute, it will " +
-                    "default to being disabled.");
+                    "default to being disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_MR_DISABLED,
                     "The matching rule defined in configuration entry " +
                     "%s is marked as disabled and therefore will not be " +
                     "used.  If it has been used in the past for one or more " +
                     "attributes, then matching may no longer function for " +
-                    "values of those attributes.");
+                    "values of those attributes");
     registerMessage(MSGID_CONFIG_SCHEMA_MR_UNABLE_TO_DETERMINE_ENABLED_STATE,
                     "An unexpected error occurred while attempting to " +
                     "determine whether the matching rule associated with " +
                     "configuration entry %s should be enabled or disabled:  " +
-                    "%s.  It will be disabled.");
+                    "%s.  It will be disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_MR_ATTR_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that should provide the core logic for this matching " +
@@ -7722,81 +7722,81 @@ public class ConfigMessages
                     "restarted.  Also, changes to the matching rule class " +
                     "for matching rules that have already been used for one " +
                     "or more attributes may cause unexpected results when " +
-                    "performing matching for those attributes.");
+                    "performing matching for those attributes");
     registerMessage(MSGID_CONFIG_SCHEMA_MR_NO_CLASS_ATTR,
                     "Matching rule configuration entry %s does not contain " +
                     "attribute " + ATTR_MATCHING_RULE_CLASS + ", which is " +
                     "used to specify the name of the class used to provide " +
                     "the matching rule implementation.  The matching rule " +
                     "associated with this configuration entry will be " +
-                    "disabled.");
+                    "disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_MR_CANNOT_GET_CLASS,
                     "An unexpected error occurred while trying to determine " +
                     "the name of the Java class that contains the " +
                     "implementation for matching rule %s:  %s.  This " +
-                    "matching rule will be disabled.");
+                    "matching rule will be disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_MR_CANNOT_INSTANTIATE,
                     "The Directory Server was unable to load class %s and " +
                     "use it to create a matching rule instance as defined in " +
                     "configuration entry %s.  The error that occurred was:  " +
-                    "%s.  This matching rule will be disabled.");
+                    "%s.  This matching rule will be disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_MR_CANNOT_INITIALIZE,
                     "An error occurred while trying to initialize a matching " +
                     "rule loaded from class %s with the information in " +
                     "configuration entry %s:  %s.  This matching rule will " +
-                    "be disabled.");
+                    "be disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_MR_CONFLICTING_MR,
                     "The matching rule defined in configuration entry %s " +
                     "conflicts with another matching rule defined in the " +
                     "server configuration:  %s.  This matching rule will not " +
-                    "be used.");
+                    "be used");
 
 
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_GET_SYNTAX_BASE,
                     "An error occurred while trying to retrieve " +
                     "configuration entry " + DN_SYNTAX_CONFIG_BASE +
                     " in order to initialize the Directory Server attribute " +
-                    "syntaxes:  %s.");
+                    "syntaxes:  %s");
     registerMessage(MSGID_CONFIG_SCHEMA_SYNTAX_BASE_DOES_NOT_EXIST,
                     "The entry " + DN_SYNTAX_CONFIG_BASE +
                     " does not appear to exist in the Directory Server " +
-                    "configuration.  This is a required entry.");
+                    "configuration.  This is a required entry");
     registerMessage(MSGID_CONFIG_SCHEMA_NO_SYNTAXES,
                     "No child entries were found below the entry " +
                     DN_SYNTAX_CONFIG_BASE + " to define the attribute " +
                     "syntaxes for use in the Directory Server.  This is an " +
                     "error, because the Directory Server must have syntaxes " +
-                    "defined to function properly.");
+                    "defined to function properly");
     registerMessage(MSGID_CONFIG_SCHEMA_ENTRY_DOES_NOT_HAVE_SYNTAX_CONFIG,
                     "Configuration entry %s exists below the attribute " +
                     "syntax configuration root of " + DN_SYNTAX_CONFIG_BASE +
                     " but does not have objectclass " + OC_ATTRIBUTE_SYNTAX +
                     " that is required for a Directory Server attribute " +
-                    "syntax.  This configuration entry will be ignored.");
+                    "syntax.  This configuration entry will be ignored");
     registerMessage(MSGID_CONFIG_SCHEMA_SYNTAX_ATTR_DESCRIPTION_ENABLED,
                     "Indicates whether this attribute syntax should be " +
                     "enabled for use in the Directory Server.  This may be " +
                     "altered while the Directory Server is online, but if a " +
                     "syntax is disabled, after it has been used for one or " +
                     "more attributes then matching may no longer function " +
-                    "as expected for those attributes.");
+                    "as expected for those attributes");
     registerMessage(MSGID_CONFIG_SCHEMA_SYNTAX_NO_ENABLED_ATTR,
                     "Attribute syntax configuration entry %s does not " +
                     "contain attribute " + ATTR_SYNTAX_ENABLED + ", which is " +
                     "used to indicate whether the syntax should be enabled " +
                     "or disabled.  Without this attribute, it will default " +
-                    "to being disabled.");
+                    "to being disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_SYNTAX_DISABLED,
                     "The attribute syntax defined in configuration entry " +
                     "%s is marked as disabled and therefore will not be " +
                     "used.  If it has been used in the past for one or more " +
                     "attributes, then matching may no longer function for " +
-                    "values of those attributes.");
+                    "values of those attributes");
     registerMessage(
          MSGID_CONFIG_SCHEMA_SYNTAX_UNABLE_TO_DETERMINE_ENABLED_STATE,
          "An unexpected error occurred while attempting to determine whether " +
          "the attribute syntax associated with configuration entry %s should " +
-         "be enabled or disabled:  %s.  It will be disabled.");
+         "be enabled or disabled:  %s.  It will be disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_SYNTAX_ATTR_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that should provide the core logic for this attribute " +
@@ -7806,133 +7806,133 @@ public class ConfigMessages
                     "Also, changes to the syntax class for attribute " +
                     "syntaxes that have already been used for one or more " +
                     "attributes may cause unexpected results when performing " +
-                    "matching for those attributes.");
+                    "matching for those attributes");
     registerMessage(MSGID_CONFIG_SCHEMA_SYNTAX_NO_CLASS_ATTR,
                     "Matching rule configuration entry %s does not contain " +
                     "attribute " + ATTR_SYNTAX_CLASS + ", which is used to " +
                     "specify the name of the class used to provide the " +
                     "attribute syntax implementation.  The syntax associated " +
-                    "with this configuration entry will be disabled.");
+                    "with this configuration entry will be disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_GET_CLASS,
                     "An unexpected error occurred while trying to determine " +
                     "the name of the Java class that contains the " +
                     "implementation for attribute syntax %s:  %s.  This " +
-                    "syntax will be disabled.");
+                    "syntax will be disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_INSTANTIATE,
                     "The Directory Server was unable to load class %s and " +
                     "use it to create an attribute syntax instance as " +
                     "defined in configuration entry %s.  The error that " +
-                    "occurred was:  %s.  This syntax will be disabled.");
+                    "occurred was:  %s.  This syntax will be disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE,
                     "An error occurred while trying to initialize an " +
                     "attribute syntax loaded from class %s with the " +
                     "information in configuration entry %s:  %s.  This " +
-                    "syntax will be disabled.");
+                    "syntax will be disabled");
     registerMessage(MSGID_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX,
                     "The attribute syntax defined in configuration entry %s " +
                     "conflicts with another syntax defined in the server " +
                     "configuration:  %s.  This attribute syntax will not be " +
-                    "used.");
+                    "used");
 
 
     registerMessage(MSGID_CONFIG_SCHEMA_NO_SCHEMA_DIR,
                     "Unable to read the Directory Server schema definitions " +
-                    "because the schema directory %s does not exist.");
+                    "because the schema directory %s does not exist");
     registerMessage(MSGID_CONFIG_SCHEMA_DIR_NOT_DIRECTORY,
                     "Unable to read the Directory Server schema definitions " +
                     "because the schema directory %s exists but is not a " +
-                    "directory.");
+                    "directory");
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_LIST_FILES,
                     "Unable to read the Directory Server schema definitions " +
                     "from directory %s because an unexpected error occurred " +
-                    "while trying to list the files in that directory:  %s.");
+                    "while trying to list the files in that directory:  %s");
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_OPEN_FILE,
                     "Schema configuration file %s in directory %s cannot be " +
                     "parsed because an unexpected error occurred while " +
-                    "trying to open the file for reading:  %s.");
+                    "trying to open the file for reading:  %s");
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY,
                     "Schema configuration file %s in directory %s cannot be " +
                     "parsed because an unexpected error occurred while " +
-                    "trying to read its contents as an LDIF entry:  %s.");
+                    "trying to read its contents as an LDIF entry:  %s");
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE,
                     "Unable to parse an attribute type definition from " +
-                    "schema configuration file %s:  %s.");
+                    "schema configuration file %s:  %s");
     registerMessage(MSGID_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE,
                     "An attribute type read from schema configuration file " +
                     "%s conflicts with another attribute type already read " +
                     "into the schema:  %s.  The later attribute type " +
-                    "definition will be used.");
+                    "definition will be used");
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_PARSE_OC,
                     "Unable to parse an objectclass definition from schema " +
-                    "configuration file %s:  %s.");
+                    "configuration file %s:  %s");
     registerMessage(MSGID_CONFIG_SCHEMA_CONFLICTING_OC,
                     "An objectclass read from schema configuration file %s " +
                     "conflicts with another objectclass already read into " +
                     "the schema:  %s.  The later objectclass definition will " +
-                    "be used.");
+                    "be used");
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM,
                     "Unable to parse a name form definition from schema " +
-                    "configuration file %s:  %s.");
+                    "configuration file %s:  %s");
     registerMessage(MSGID_CONFIG_SCHEMA_CONFLICTING_NAME_FORM,
                     "A name form read from schema configuration file %s " +
                     "conflicts with another name form already read into " +
                     "the schema:  %s.  The later name form definition will " +
-                    "be used.");
+                    "be used");
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DCR,
                     "Unable to parse a DIT content rule definition from " +
-                    "schema configuration file %s:  %s.");
+                    "schema configuration file %s:  %s");
     registerMessage(MSGID_CONFIG_SCHEMA_CONFLICTING_DCR,
                     "A DIT content rule read from schema configuration file " +
                     "%s conflicts with another DIT content rule already read " +
                     "into the schema:  %s.  The later DIT content rule " +
-                    "definition will be used.");
+                    "definition will be used");
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_PARSE_DSR,
                     "Unable to parse a DIT structure rule definition from " +
-                    "schema configuration file %s:  %s.");
+                    "schema configuration file %s:  %s");
     registerMessage(MSGID_CONFIG_SCHEMA_CONFLICTING_DSR,
                     "A DIT structure rule read from schema configuration " +
                     "file %s conflicts with another DIT structure rule " +
                     "already read into the schema:  %s.  The later DIT " +
-                    "structure rule definition will be used.");
+                    "structure rule definition will be used");
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_PARSE_MRU,
                     "Unable to parse a matching rule use definition from " +
-                    "schema configuration file %s:  %s.");
+                    "schema configuration file %s:  %s");
     registerMessage(MSGID_CONFIG_SCHEMA_CONFLICTING_MRU,
                     "A matching rule use read from schema configuration " +
                     "file %s conflicts with another matching rule use " +
                     "already read into the schema:  %s.  The later matching " +
-                    "rule use definition will be used.");
+                    "rule use definition will be used");
 
 
     registerMessage(MSGID_CONFIG_ENTRYCACHE_CANNOT_INSTALL_DEFAULT_CACHE,
                     "An unexpected error occurred that prevented the server " +
                     "from installing a temporary default entry cache for " +
                     "use until the actual cache could be created from the " +
-                    "configuration:  %s.");
+                    "configuration:  %s");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_CANNOT_GET_CONFIG_ENTRY,
                     "An unexpected error occurred while attempting to get " +
                     "the \"" + DN_ENTRY_CACHE_CONFIG + "\" entry, which " +
                     "holds the entry cache configuration:  %s.  No entry " +
-                    "cache will be available.");
+                    "cache will be available");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY,
                     "The entry cache configuration entry \"" +
                     DN_ENTRY_CACHE_CONFIG + "\" does not exist in the " +
                     "Directory Server configuration.  No entry cache will " +
                     "be available until this entry is created with a valid " +
-                    "entry cache configuration.");
+                    "entry cache configuration");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_CANNOT_REGISTER_ADD_LISTENER,
                     "An error occurred while attempting to register an " +
                     "add listener to watch for the entry cache configuration " +
                     "entry to be created:  %s.  If an entry cache " +
                     "configuration is added while the server is online, it " +
-                    "will not be detected until the server is restarted.");
+                    "will not be detected until the server is restarted");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_CANNOT_REGISTER_DELETE_LISTENER,
                     "An error occurred while attempting to register a " +
                     "delete listener to watch for the entry cache " +
                     "configuration entry to be deleted: %s.  If the entry " +
                     "cache configuration entry is deleted while the server " +
                     "is online, it will not be detected until the server is " +
-                    "restarted.");
+                    "restarted");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_DESCRIPTION_CACHE_ENABLED,
                     "Indicates whether the Directory Server entry cache " +
                     "should be enabled.  If the entry cache is enabled, it " +
@@ -7942,128 +7942,128 @@ public class ConfigMessages
                     "Changes to this configuration attribute will take " +
                     "effect immediately, but will have the side effect " +
                     "of clearing the cache contents, which may result in " +
-                    "degraded performance for a period of time.");
+                    "degraded performance for a period of time");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_NO_ENABLED_ATTR,
                     "Configuration entry \"" + DN_ENTRY_CACHE_CONFIG +
                     "\" does not contain a value for attribute " +
                     ATTR_ENTRYCACHE_ENABLED + ", which indicates whether " +
                     "the entry cache is enabled for use in the server.  As a " +
-                    "result, the cache will be disabled.");
+                    "result, the cache will be disabled");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_DISABLED,
                     "The Directory Server entry cache configured in entry \"" +
                     DN_ENTRY_CACHE_CONFIG + "\" has been disabled.  No entry " +
-                    "cache will be available within the server.");
+                    "cache will be available within the server");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_UNABLE_TO_DETERMINE_ENABLED_STATE,
                     "An unexpected error occurred while attempting to " +
                     "determine whether the entry cache configured in entry \"" +
                     DN_ENTRY_CACHE_CONFIG + "\" is enabled:  %s.  As a " +
-                    "result, the entry cache will be disabled.");
+                    "result, the entry cache will be disabled");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_DESCRIPTION_CACHE_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that should provide the entry cache implementation.  " +
                     "Changes to this configuration attribute will take " +
                     "effect immediately, but will have the side effect of " +
                     "clearing the cache contents, which may result in " +
-                    "degraded performance for a period of time.");
+                    "degraded performance for a period of time");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_NO_CLASS_ATTR,
                     "Configuration entry \"" + DN_ENTRY_CACHE_CONFIG +
                     "\" does not contain a value for attribute " +
                     ATTR_ENTRYCACHE_CLASS + "\", which specifies the class " +
                     "name for the entry cache implementation.  As a result, " +
-                    "the entry cache will be disabled.");
+                    "the entry cache will be disabled");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_CANNOT_DETERMINE_CLASS,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_ENTRYCACHE_CLASS +
                     " attribute in configuration entry \"" +
                     DN_ENTRY_CACHE_CONFIG + "\":  %s.  The entry cache will " +
-                    "be disabled.");
+                    "be disabled");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_CANNOT_LOAD_CLASS,
                     "The class %s defined in attribute " +
                     ATTR_ENTRYCACHE_CLASS + " of configuration entry \"" +
                     DN_ENTRY_CACHE_CONFIG + "\" could not be loaded:  %s.  " +
-                    "The entry cache will be disabled.");
+                    "The entry cache will be disabled");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_CANNOT_INSTANTIATE_CLASS,
                     "The class %s defined in attribute " +
                     ATTR_ENTRYCACHE_CLASS + " of configuration entry \"" +
                     DN_ENTRY_CACHE_CONFIG + "\" could not be instantiated " +
                     "as a Directory Server entry cache:  %s.  As a result, " +
-                    "the entry cache will be disabled.");
+                    "the entry cache will be disabled");
     registerMessage(MSGID_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE,
                     "An error occurred while attempting to initialize " +
                     "an instance of class %s for use as the Directory Server " +
                     "entry cache:  %s.  As a result, the entry cache will be " +
-                    "disabled.");
+                    "disabled");
 
 
     registerMessage(MSGID_CONFIG_LOGGER_NO_ROTATION_POLICY,
                     "No file rotation policy has been defined in " +
-                    "configuration entry %s. No log rotation will take place.");
+                    "configuration entry %s. No log rotation will take place");
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY,
                     "An invalid file rotation policy %s has been defined in " +
-                    "configuration entry %s.");
+                    "configuration entry %s");
     registerMessage(MSGID_CONFIG_LOGGER_NO_SIZE_LIMIT,
                     "No size limit has been defined for the size based file " +
-                    "rotation policy in the configuration entry %s.");
+                    "rotation policy in the configuration entry %s");
     registerMessage(MSGID_CONFIG_LOGGER_NO_TIME_LIMIT,
                     "No time limit has been defined for the time based file " +
-                    "rotation policy in the configuration entry %s.");
+                    "rotation policy in the configuration entry %s");
 
     registerMessage(MSGID_CONFIG_LOGGER_NO_RETENTION_POLICY,
                     "No file retention policy has been defined in " +
-                    "configuration entry %s. No log files will be deleted.");
+                    "configuration entry %s. No log files will be deleted");
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY,
                     "An invalid file retention policy %s has been defined in " +
-                    "configuration entry %s.");
+                    "configuration entry %s");
     registerMessage(MSGID_CONFIG_LOGGER_NO_NUMBER_OF_FILES,
                     "No file number limit has been defined for the " +
-                    "retention policy in the configuration entry %s.");
+                    "retention policy in the configuration entry %s");
     registerMessage(MSGID_CONFIG_LOGGER_NO_DISK_SPACE_USED,
                     "No disk space limit has been defined for the " +
-                    "retention policy in the configuration entry %s.");
+                    "retention policy in the configuration entry %s");
     registerMessage(MSGID_CONFIG_LOGGER_NO_FREE_DISK_SPACE,
                     "No disk space limit has been defined for the " +
-                    "retention policy in the configuration entry %s.");
+                    "retention policy in the configuration entry %s");
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_JAVA5_POLICY,
                     "The free disk space based retention policy " +
                     "in the configuration entry %s. is not allowed for " +
-                    "the Directory Server when running on pre Java 6 VMs.");
+                    "the Directory Server when running on pre Java 6 VMs");
 
     registerMessage(MSGID_CONFIG_PLUGIN_CANNOT_GET_CONFIG_BASE,
                     "An error occurred while trying to retrieve " +
                     "configuration entry " + DN_PLUGIN_BASE + " in order to " +
-                    "initialize the Directory Server plugins:  %s.");
+                    "initialize the Directory Server plugins:  %s");
     registerMessage(MSGID_CONFIG_PLUGIN_BASE_DOES_NOT_EXIST,
                     "The entry " + DN_PLUGIN_BASE +  " does not appear to " +
                     "exist in the Directory Server configuration.  This is a " +
-                    "required entry.");
+                    "required entry");
     registerMessage(MSGID_CONFIG_PLUGIN_ENTRY_DOES_NOT_HAVE_PLUGIN_CONFIG,
                     "Configuration entry %s exists below the plugin " +
                     "configuration root of " + DN_PLUGIN_BASE + " but does " +
                     "not have objectclass " + OC_BACKEND + " that is " +
                     "required for a Directory Server plugin.  This " +
-                    "configuration entry will be ignored.");
+                    "configuration entry will be ignored");
     registerMessage(MSGID_CONFIG_PLUGIN_ERROR_INTERACTING_WITH_PLUGIN_ENTRY,
                     "An unexpected error occurred while interacting with " +
-                    "backend configuration entry %s:  %s.");
+                    "backend configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_ENABLED,
                     "Indicates whether this plugin should be enabled for " +
                     "use in the Directory Server.  This may be altered while " +
                     "the Directory Server is online, and will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_CONFIG_PLUGIN_NO_ENABLED_ATTR,
                     "Plugin configuration entry %s does not contain " +
                     "attribute " + ATTR_PLUGIN_ENABLED + ", which is used " +
                     "to indicate whether the plugin should be enabled or " +
                     "disabled.  Without this attribute, it will default to " +
-                    "being disabled.");
+                    "being disabled");
     registerMessage(MSGID_CONFIG_PLUGIN_DISABLED,
                     "The plugin defined in configuration entry %s is " +
-                    "marked as disabled and therefore will not be used.");
+                    "marked as disabled and therefore will not be used");
     registerMessage(MSGID_CONFIG_PLUGIN_UNABLE_TO_DETERMINE_ENABLED_STATE,
                     "An unexpected error occurred while attempting to " +
                     "determine whether the plugin associated with " +
                     "configuration entry %s should be enabled or disabled:  " +
-                    "%s.  It will be disabled.");
+                    "%s.  It will be disabled");
     registerMessage(MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_PLUGIN_TYPE,
                     "Specifies the plugin type(s) for this plugin, which "+
                     "control the times when this plugin will be invoked " +
@@ -8071,181 +8071,181 @@ public class ConfigMessages
                     "the plugin is loaded and initialized, so changes to " +
                     "this attribute will not take effect until the plugin " +
                     "is disabled and re-enabled, or until the server is " +
-                    "restarted.");
+                    "restarted");
     registerMessage(MSGID_CONFIG_PLUGIN_NO_PLUGIN_TYPES,
                     "Plugin configuration entry %s does not contain " +
                     "attribute " + ATTR_PLUGIN_TYPE + ", which is used to " +
                     "specify the name(s) of the plugin type(s) for the " +
                     "plugin.  This is a required attribute, so this plugin " +
-                    "will be disabled.");
+                    "will be disabled");
     registerMessage(MSGID_CONFIG_PLUGIN_INVALID_PLUGIN_TYPE,
                     "Plugin configuration entry %s has an invalid value %s " +
                     "for attribute " + ATTR_PLUGIN_TYPE + " that does not " +
-                    "name a valid plugin type.  This plugin will be disabled.");
+                    "name a valid plugin type.  This plugin will be disabled");
     registerMessage(MSGID_CONFIG_PLUGIN_CANNOT_GET_PLUGIN_TYPES,
                     "An unexpected error occurred while trying to " +
                     "determine the set of plugin types for the plugin " +
                     "defined in configuration entry %s:  %s.  This plugin " +
-                    "will be disabled.");
+                    "will be disabled");
     registerMessage(MSGID_CONFIG_PLUGIN_ATTR_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that should provide the core logic for this plugin " +
                     "implementation.  Changes to this configuration " +
                     "attribute will not take effect until the plugin is "+
-                    "disabled and re-enabled or the server is restarted.");
+                    "disabled and re-enabled or the server is restarted");
     registerMessage(MSGID_CONFIG_PLUGIN_NO_CLASS_ATTR,
                     "Plugin configuration entry %s does not contain " +
                     "attribute " + ATTR_PLUGIN_CLASS + ", which is used to " +
                     "specify the name of the class used to provide the " +
                     "plugin implementation.  The plugin associated with " +
-                    "this configuration entry will be disabled.");
+                    "this configuration entry will be disabled");
     registerMessage(MSGID_CONFIG_PLUGIN_CANNOT_GET_CLASS,
                     "An unexpected error occurred while trying to determine " +
                     "the name of the Java class that contains the " +
                     "implementation for plugin %s:  %s.  This plugin will " +
-                    "be disabled.");
+                    "be disabled");
     registerMessage(MSGID_CONFIG_PLUGIN_CANNOT_INSTANTIATE,
                     "The Directory Server was unable to load class %s and " +
                     "use it to create a plugin instance as defined in " +
                     "configuration entry %s.  The error that occurred was:  " +
-                    "%s.  This plugin will be disabled.");
+                    "%s.  This plugin will be disabled");
     registerMessage(MSGID_CONFIG_PLUGIN_CANNOT_INITIALIZE,
                     "An error occurred while attempting to initialize an " +
                     "instance of class %s as a Directory Server plugin using " +
                     "the information in configuration entry %s:  %s.  This " +
-                    "plugin will be disabled.");
+                    "plugin will be disabled");
     registerMessage(MSGID_CONFIG_PLUGIN_CLASS_ACTION_REQUIRED,
                     "The requested change in the plugin class name from %s " +
                     "to %s in configuration entry %s cannot be dynamically " +
                     "applied.  This change will not take effect until the " +
                     "plugin is disabled and re-enabled or the Directory " +
-                    "Server is restarted.");
+                    "Server is restarted");
 
 
     registerMessage(MSGID_CONFIG_EXTOP_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
                     "contain a valid extended operation handler " +
-                    "implementation:  %s.");
+                    "implementation:  %s");
     registerMessage(MSGID_CONFIG_EXTOP_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as an extended operation handler " +
-                    "as defined in configuration entry %s:  %s.");
+                    "as defined in configuration entry %s:  %s");
 
 
     registerMessage(MSGID_CONFIG_SASL_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the SASL " +
                     "mechanism handler base entry " +
                     DN_SASL_CONFIG_BASE +
-                    " from the Directory Server configuration:  %s.");
+                    " from the Directory Server configuration:  %s");
     registerMessage(MSGID_CONFIG_SASL_BASE_DOES_NOT_EXIST,
                     "The SASL mechanism configuration base " +
                     DN_SASL_CONFIG_BASE + " does not exist in the " +
                     "Directory Server configuration.  This entry must be " +
-                    "present for the server to function properly.");
+                    "present for the server to function properly");
     registerMessage(MSGID_CONFIG_SASL_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid SASL " +
                     "mechanism handler configuration:  %s.  It will be " +
-                    "ignored.");
+                    "ignored");
     registerMessage(MSGID_CONFIG_SASL_CANNOT_CREATE_HANDLER,
                     "An error occurred while attempting to create a " +
                     "Directory Server SASL mechanism handler from the " +
-                    "information in configuration entry %s:  %s.");
+                    "information in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_SASL_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_SASL_MECHANISM_HANDLER + " objectclass, which is " +
-                    "required for SASL mechanism handler definitions.");
+                    "required for SASL mechanism handler definitions");
     registerMessage(MSGID_CONFIG_SASL_DESCRIPTION_CLASS_NAME,
                     "The fully-qualified name of the Java class that defines " +
                     "the Directory Server SASL mechanism handler.  If this " +
                     "is altered while the associated handler is enabled, " +
                     "then that handler must be disabled and re-enabled for " +
-                    "the change to take effect.");
+                    "the change to take effect");
     registerMessage(MSGID_CONFIG_SASL_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_SASL_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated SASL mechanism handler.");
+                    "the associated SASL mechanism handler");
     registerMessage(MSGID_CONFIG_SASL_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_SASL_CLASS + ":  %s.");
+                    "attribute " + ATTR_SASL_CLASS + ":  %s");
     registerMessage(MSGID_CONFIG_SASL_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
                     "contain a valid SASL mechanism handler implementation:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CONFIG_SASL_DESCRIPTION_ENABLED,
                     "Indicates whether this Directory Server SASL mechanism " +
                     "handler should be enabled.  Changes to this attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_CONFIG_SASL_NO_ENABLED_ATTR,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_SASL_ENABLED +
                     " which indicates whether the SASL mechanism handler " +
-                    "should be enabled for use in the Directory Server.");
+                    "should be enabled for use in the Directory Server");
     registerMessage(MSGID_CONFIG_SASL_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_SASL_ENABLED + ":  %s.");
+                    "attribute " + ATTR_SASL_ENABLED + ":  %s");
     registerMessage(MSGID_CONFIG_SASL_CLASS_ACTION_REQUIRED,
                     "The requested change in the SASL mechanism handler " +
                     "class name from %s to %s in configuration entry %s " +
                     "cannot be dynamically applied.  This change will not " +
                     "take effect until the handler is disabled and " +
-                    "re-enabled or the Directory Server is restarted.");
+                    "re-enabled or the Directory Server is restarted");
     registerMessage(MSGID_CONFIG_SASL_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as a SASL mechanism handler as " +
-                    "defined in configuration entry %s:  %s.");
+                    "defined in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_SASL_EXISTS,
                     "Unable to add a new SASL mechanism handler entry with " +
                     "DN %s because there is already a handler registered " +
-                    "with that DN.");
+                    "with that DN");
     registerMessage(MSGID_CONFIG_SASL_UNACCEPTABLE_CONFIG,
                     "The configuration for the SASL mechanism handler " +
                     "defined in configuration entry %s was not acceptable " +
                     "according to its internal validation.  However, no " +
                     "specific information is available regarding the " +
-                    "problem(s) with the entry.");
+                    "problem(s) with the entry");
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_SUPPRESS_INT_OPERATION_VALUE,
         "Invalid value specified for attribute %s. " +
-        "Allowed values are true or false.");
+        "Allowed values are true or false");
     registerMessage(MSGID_CONFIG_LOGGER_SUPPRESS_INTERNAL_OPERATIONS,
                     "Indicates whether messages for internal operations " +
-                    "should be excluded from the access log file.");
+                    "should be excluded from the access log file");
 
 
     registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the key " +
                     "manager provider base entry " +
                     DN_KEYMANAGER_PROVIDER_CONFIG_BASE +
-                    " from the Directory Server configuration:  %s.");
+                    " from the Directory Server configuration:  %s");
     registerMessage(MSGID_CONFIG_KEYMANAGER_BASE_DOES_NOT_EXIST,
                     "The key manager provider configuration base " +
                     DN_KEYMANAGER_PROVIDER_CONFIG_BASE + " does not exist in " +
                     "the Directory Server configuration.  This entry must be " +
-                    "present for the server to function properly.");
+                    "present for the server to function properly");
     registerMessage(MSGID_CONFIG_KEYMANAGER_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid key " +
                     "manager provider configuration:  %s.  It will be " +
-                    "ignored.");
+                    "ignored");
     registerMessage(MSGID_CONFIG_KEYMANAGER_CANNOT_CREATE_PROVIDER,
                     "An error occurred while attempting to create a " +
                     "Directory Server key manager provider from the " +
-                    "information in configuration entry %s:  %s.");
+                    "information in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_KEYMANAGER_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_KEY_MANAGER_PROVIDER + " objectclass, which is " +
-                    "required for key manager provider definitions.");
+                    "required for key manager provider definitions");
     registerMessage(MSGID_CONFIG_KEYMANAGER_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_KEYMANAGER_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated key manager provider.");
+                    "the associated key manager provider");
     registerMessage(MSGID_CONFIG_KEYMANAGER_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_KEYMANAGER_CLASS + ":  %s.");
+                    "attribute " + ATTR_KEYMANAGER_CLASS + ":  %s");
     registerMessage(MSGID_CONFIG_KEYMANAGER_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
                     "contain a valid key manager provider implementation:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CONFIG_KEYMANAGER_DESCRIPTION_ENABLED,
                     "Indicates whether the Directory Server key manager " +
                     "provider should be enabled.  A key manager provider is " +
@@ -8253,77 +8253,77 @@ public class ConfigMessages
                     "key manager (e.g., communication over SSL).  Changes to " +
                     "this configuration attribute will take effect " +
                     "immediately, but will only impact future attempts to " +
-                    "access the key manager.");
+                    "access the key manager");
     registerMessage(MSGID_CONFIG_KEYMANAGER_NO_ENABLED_ATTR,
                     "Configuration entry \"%s\" does not contain a value for " +
                     "attribute " + ATTR_KEYMANAGER_ENABLED +
                     ", which indicates whether the key manager provider is " +
-                    "enabled for use in the server.");
+                    "enabled for use in the server");
     registerMessage(MSGID_CONFIG_KEYMANAGER_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_KEYMANAGER_ENABLED + ":  %s.");
+                    "attribute " + ATTR_KEYMANAGER_ENABLED + ":  %s");
     registerMessage(MSGID_CONFIG_KEYMANAGER_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that includes the key manager provider implementation.  " +
                     "Changes to this configuration attribute will not take " +
                     "effect until the key manager provider has been disabled " +
-                    "and then re-enabled, or until the server is restarted.");
+                    "and then re-enabled, or until the server is restarted");
     registerMessage(MSGID_CONFIG_KEYMANAGER_CLASS_ACTION_REQUIRED,
                     "The requested change in the key manager provider class " +
                     "name from %s to %s in configuration entry %s cannot be " +
                     "dynamically applied.  This change will not take effect " +
                     "until the provider is disabled and re-enabled or the " +
-                    "Directory Server is restarted.");
+                    "Directory Server is restarted");
     registerMessage(MSGID_CONFIG_KEYMANAGER_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as a key manager provider as " +
-                    "defined in configuration entry %s:  %s.");
+                    "defined in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_KEYMANAGER_EXISTS,
                     "Unable to add a new key manager provider entry with DN " +
                     "%s because there is already a provider registered with " +
-                    "that DN.");
+                    "that DN");
     registerMessage(MSGID_CONFIG_KEYMANAGER_UNACCEPTABLE_CONFIG,
                     "The configuration for the key manager provider defined " +
                     "in configuration entry %s was not acceptable according " +
                     "to its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
-                    "the entry.");
+                    "the entry");
 
 
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "trust manager provider base entry " +
                     DN_TRUSTMANAGER_PROVIDER_CONFIG_BASE +
-                    " from the Directory Server configuration:  %s.");
+                    " from the Directory Server configuration:  %s");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_BASE_DOES_NOT_EXIST,
                     "The trust manager provider configuration base " +
                     DN_TRUSTMANAGER_PROVIDER_CONFIG_BASE + " does not exist " +
                     "in the Directory Server configuration.  This entry must " +
-                    "be present for the server to function properly.");
+                    "be present for the server to function properly");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid trust " +
                     "manager provider configuration:  %s.  It will be " +
-                    "ignored.");
+                    "ignored");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_CREATE_PROVIDER,
                     "An error occurred while attempting to create a " +
                     "Directory Server trust manager provider from the " +
-                    "information in configuration entry %s:  %s.");
+                    "information in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_TRUST_MANAGER_PROVIDER + " objectclass, which is " +
-                    "required for trust manager provider definitions.");
+                    "required for trust manager provider definitions");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_TRUSTMANAGER_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated trust manager provider.");
+                    "the associated trust manager provider");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_TRUSTMANAGER_CLASS + ":  %s.");
+                    "attribute " + ATTR_TRUSTMANAGER_CLASS + ":  %s");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
                     "contain a valid trust manager provider implementation:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_DESCRIPTION_ENABLED,
                     "Indicates whether the Directory Server trust manager " +
                     "provider should be enabled.  A trust manager provider " +
@@ -8331,77 +8331,77 @@ public class ConfigMessages
                     "trust manager (e.g., communication over SSL).  Changes " +
                     "to this configuration attribute will take effect " +
                     "immediately, but will only impact future attempts to " +
-                    "access the trust manager.");
+                    "access the trust manager");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_NO_ENABLED_ATTR,
                     "Configuration entry \"%s\" does not contain a value for " +
                     "attribute " + ATTR_TRUSTMANAGER_ENABLED +
                     ", which indicates whether the trust manager provider is " +
-                    "enabled for use in the server.");
+                    "enabled for use in the server");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_TRUSTMANAGER_ENABLED + ":  %s.");
+                    "attribute " + ATTR_TRUSTMANAGER_ENABLED + ":  %s");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that includes the trust manager provider " +
                     "implementation.  Changes to this configuration " +
                     "attribute will not take effect until the trust manager " +
                     "provider has been disabled and then re-enabled, or " +
-                    "until the server is restarted.");
+                    "until the server is restarted");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_CLASS_ACTION_REQUIRED,
                     "The requested change in the trust manager provider " +
                     "class name from %s to %s in configuration entry %s " +
                     "cannot be dynamically applied.  This change will not " +
                     "take effect until the provider is disabled and " +
-                    "re-enabled or the Directory Server is restarted.");
+                    "re-enabled or the Directory Server is restarted");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as a trust manager provider as " +
-                    "defined in configuration entry %s:  %s.");
+                    "defined in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_EXISTS,
                     "Unable to add a new trust manager provider entry with " +
                     "DN %s because there is already a provider registered " +
-                    "with that DN.");
+                    "with that DN");
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_UNACCEPTABLE_CONFIG,
                     "The configuration for the trust manager provider " +
                     "defined in configuration entry %s was not acceptable " +
                     "according to its internal validation.  However, no " +
                     "specific information is available regarding the " +
-                    "problem(s) with the entry.");
+                    "problem(s) with the entry");
 
 
     registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "certificate mapper base entry " +
                     DN_CERTMAPPER_CONFIG_BASE +
-                    " from the Directory Server configuration:  %s.");
+                    " from the Directory Server configuration:  %s");
     registerMessage(MSGID_CONFIG_CERTMAPPER_BASE_DOES_NOT_EXIST,
                     "The certificate mapper configuration base " +
                     DN_CERTMAPPER_CONFIG_BASE + " does not exist in the " +
                     "Directory Server configuration.  This entry must be " +
-                    "present for the server to function properly.");
+                    "present for the server to function properly");
     registerMessage(MSGID_CONFIG_CERTMAPPER_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid " +
                     "certificate mapper configuration:  %s.  It will be " +
-                    "ignored.");
+                    "ignored");
     registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_CREATE_MAPPER,
                     "An error occurred while attempting to create a " +
                     "Directory Server certificate mapper from the " +
-                    "information in configuration entry %s:  %s.");
+                    "information in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_CERTMAPPER_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_CERTIFICATE_MAPPER + " objectclass, which is required " +
-                    "for certificate mapper definitions.");
+                    "for certificate mapper definitions");
     registerMessage(MSGID_CONFIG_CERTMAPPER_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_CERTMAPPER_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated certificate mapper.");
+                    "the associated certificate mapper");
     registerMessage(MSGID_CONFIG_CERTMAPPER_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_CERTMAPPER_CLASS + ":  %s.");
+                    "attribute " + ATTR_CERTMAPPER_CLASS + ":  %s");
     registerMessage(MSGID_CONFIG_CERTMAPPER_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
-                    "contain a valid certificate mapper implementation:  %s.");
+                    "contain a valid certificate mapper implementation:  %s");
     registerMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_ENABLED,
                     "Indicates whether the Directory Server certificate " +
                     "mapper should be enabled.  A certificate mapper is " +
@@ -8409,194 +8409,194 @@ public class ConfigMessages
                     "certificate chain and a user entry in the Directory " +
                     "Server for SASL EXTERNAL authentication and similar " +
                     "purposes.  Changes to this configuration attribute will " +
-                    "take effect immediately.");
+                    "take effect immediately");
     registerMessage(MSGID_CONFIG_CERTMAPPER_NO_ENABLED_ATTR,
                     "Configuration entry \"%s\" does not contain a value for " +
                     "attribute " + ATTR_CERTMAPPER_ENABLED +
                     ", which indicates whether the certificate mapper is " +
-                    "enabled for use in the server.");
+                    "enabled for use in the server");
     registerMessage(MSGID_CONFIG_CERTMAPPER_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_CERTMAPPER_ENABLED + ":  %s.");
+                    "attribute " + ATTR_CERTMAPPER_ENABLED + ":  %s");
     registerMessage(MSGID_CONFIG_CERTMAPPER_DESCRIPTION_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that includes the certificate mapper implementation.  " +
                     "Changes to this configuration attribute will not take " +
                     "effect until the certificate mapper has been disabled " +
-                    "and then re-enabled, or until the server is restarted.");
+                    "and then re-enabled, or until the server is restarted");
     registerMessage(MSGID_CONFIG_CERTMAPPER_CLASS_ACTION_REQUIRED,
                     "The requested change in the certificate mapper class " +
                     "name from %s to %s in configuration entry %s cannot be " +
                     "dynamically applied.  This change will not take effect " +
                     "until the mapper is disabled and re-enabled or the " +
-                    "Directory Server is restarted.");
+                    "Directory Server is restarted");
     registerMessage(MSGID_CONFIG_CERTMAPPER_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as a certificate mapper as defined " +
-                    "in configuration entry %s:  %s.");
+                    "in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_CERTMAPPER_EXISTS,
                     "Unable to add a new certificate mapper entry with DN %s " +
                     "because there is already a mapper registered with that " +
-                    "DN.");
+                    "DN");
     registerMessage(MSGID_CONFIG_CERTMAPPER_UNACCEPTABLE_CONFIG,
                     "The configuration for the certificate mapper defined in " +
                     "configuration entry %s was not acceptable according to " +
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
-                    "the entry.");
+                    "the entry");
 
 
     registerMessage(MSGID_CONFIG_PWSCHEME_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "password storage scheme base entry " +
                     DN_PWSCHEME_CONFIG_BASE + " from the Directory Server " +
-                    "configuration:  %s.");
+                    "configuration:  %s");
     registerMessage(MSGID_CONFIG_PWSCHEME_BASE_DOES_NOT_EXIST,
                     "The password storage scheme configuration base " +
                     DN_PWSCHEME_CONFIG_BASE + " does not exist in the " +
                     "Directory Server configuration.  This entry must be " +
-                    "present for the server to function properly.");
+                    "present for the server to function properly");
     registerMessage(MSGID_CONFIG_PWSCHEME_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid " +
                     "password storage scheme configuration:  %s.  It will be " +
-                    "ignored.");
+                    "ignored");
     registerMessage(MSGID_CONFIG_PWSCHEME_CANNOT_CREATE_SCHEME,
                     "An error occurred while attempting to create a " +
                     "Directory Server password storage scheme from the " +
-                    "information in configuration entry %s:  %s.");
+                    "information in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_PWSCHEME_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_PASSWORD_STORAGE_SCHEME + " objectclass, which is " +
-                    "required for password storage scheme definitions.");
+                    "required for password storage scheme definitions");
     registerMessage(MSGID_CONFIG_PWSCHEME_DESCRIPTION_CLASS_NAME,
                     "The fully-qualified name of the Java class that defines " +
                     "the Directory Server password storage scheme.  If this " +
                     "is altered while the associated scheme is enabled, " +
                     "then that storage scheme must be disabled and " +
-                    "re-enabled for the change to take effect.");
+                    "re-enabled for the change to take effect");
     registerMessage(MSGID_CONFIG_PWSCHEME_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_PWSCHEME_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated password storage scheme.");
+                    "the associated password storage scheme");
     registerMessage(MSGID_CONFIG_PWSCHEME_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_PWSCHEME_CLASS + ":  %s.");
+                    "attribute " + ATTR_PWSCHEME_CLASS + ":  %s");
     registerMessage(MSGID_CONFIG_PWSCHEME_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
                     "contain a valid password storage scheme " +
-                    "implementation:  %s.");
+                    "implementation:  %s");
     registerMessage(MSGID_CONFIG_PWSCHEME_DESCRIPTION_ENABLED,
                     "Indicates whether this Directory Server password " +
                     "storage scheme should be enabled.  Changes to this " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_PWSCHEME_NO_ENABLED_ATTR,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_PWSCHEME_ENABLED +
                     " which indicates whether the password storage scheme " +
-                    "should be enabled for use in the Directory Server.");
+                    "should be enabled for use in the Directory Server");
     registerMessage(MSGID_CONFIG_PWSCHEME_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_PWSCHEME_ENABLED + ":  %s.");
+                    "attribute " + ATTR_PWSCHEME_ENABLED + ":  %s");
     registerMessage(MSGID_CONFIG_PWSCHEME_CLASS_ACTION_REQUIRED,
                     "The requested change in the password storage scheme " +
                     "class name from %s to %s in configuration entry %s " +
                     "cannot be dynamically applied.  This change will not " +
                     "take effect until the storage scheme is disabled and " +
-                    "re-enabled or the Directory Server is restarted.");
+                    "re-enabled or the Directory Server is restarted");
     registerMessage(MSGID_CONFIG_PWSCHEME_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as a password storage scheme as " +
-                    "defined in configuration entry %s:  %s.");
+                    "defined in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_PWSCHEME_EXISTS,
                     "Unable to add a new password storage scheme entry with " +
                     "DN %s because there is already a storage scheme " +
-                    "registered with that DN.");
+                    "registered with that DN");
     registerMessage(MSGID_CONFIG_PWSCHEME_UNACCEPTABLE_CONFIG,
                     "The configuration for the password storage scheme " +
                     "defined in configuration entry %s was not acceptable " +
                     "according to its internal validation.  However, no " +
                     "specific information is available regarding the " +
-                    "problem(s) with the entry.");
+                    "problem(s) with the entry");
 
 
     registerMessage(MSGID_CONFIG_BACKUP_CANNOT_GET_MAC,
                     "An error occurred while attempting to obtain the %s MAC " +
-                    "provider to create the signed hash for the backup:  %s.");
+                    "provider to create the signed hash for the backup:  %s");
     registerMessage(MSGID_CONFIG_BACKUP_CANNOT_GET_DIGEST,
                     "An error occurred while attempting to obtain the %s " +
-                    "message digest to create the hash for the backup:  %s.");
+                    "message digest to create the hash for the backup:  %s");
     registerMessage(MSGID_CONFIG_BACKUP_CANNOT_CREATE_ARCHIVE_FILE,
                     "An error occurred while trying to create the config " +
-                    "archive file %s in directory %s:  %s.");
+                    "archive file %s in directory %s:  %s");
     registerMessage(MSGID_CONFIG_BACKUP_CANNOT_GET_CIPHER,
                     "An error occurred while attempting to obtain the %s " +
-                    "cipher to use to encrypt the backup:  %s.");
+                    "cipher to use to encrypt the backup:  %s");
     registerMessage(MSGID_CONFIG_BACKUP_ZIP_COMMENT,
                     "%s config backup %s");
     registerMessage(MSGID_CONFIG_BACKUP_CANNOT_DETERMINE_CONFIG_FILE_LOCATION,
                     "An error occurred while attempting to determine the " +
                     "path to the Directory Server configuration file so that " +
-                    "it could be archived:  %s.");
+                    "it could be archived:  %s");
     registerMessage(MSGID_CONFIG_BACKUP_CANNOT_BACKUP_CONFIG_FILE,
                     "An error occurred while attempting to back up " +
-                    "configuration file %s:  %s.");
+                    "configuration file %s:  %s");
     registerMessage(MSGID_CONFIG_BACKUP_CANNOT_BACKUP_ARCHIVED_CONFIGS,
                     "An error occurred while attempting to back up the " +
-                    "archived previous configurations from file %s:  %s.");
+                    "archived previous configurations from file %s:  %s");
     registerMessage(MSGID_CONFIG_BACKUP_CANNOT_CLOSE_ZIP_STREAM,
                     "An error occurred while trying to close the config " +
-                    "archive file %s in directory %s:  %s.");
+                    "archive file %s in directory %s:  %s");
     registerMessage(MSGID_CONFIG_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR,
                     "An error occurred while attempting to update the backup " +
                     "descriptor file %s with information about the " +
-                    "configuration backup:  %s.");
+                    "configuration backup:  %s");
 
 
     registerMessage(MSGID_CONFIG_RESTORE_NO_SUCH_BACKUP,
                     "Unable to restore or verify configuration backup %s in " +
-                    "directory %s because no such backup exists.");
+                    "directory %s because no such backup exists");
     registerMessage(MSGID_CONFIG_RESTORE_NO_BACKUP_FILE,
                     "Unable to restore or verify configuration backup %s in " +
                     "directory %s because the archive filename could not be " +
-                    "determined.");
+                    "determined");
     registerMessage(MSGID_CONFIG_RESTORE_NO_SUCH_FILE,
                     "Unable to restore or verify configuration backup %s " +
-                    "because the specified archive file %s does not exist.");
+                    "because the specified archive file %s does not exist");
     registerMessage(MSGID_CONFIG_RESTORE_CANNOT_CHECK_FOR_ARCHIVE,
                     "Unable to restore or verify configuration backup %s " +
                     "because an error occurred while trying to determine " +
-                    "whether backup archive %s exists:  %s.");
+                    "whether backup archive %s exists:  %s");
     registerMessage(MSGID_CONFIG_RESTORE_UNKNOWN_DIGEST,
                     "Unable to restore or verify configuration backup %s " +
                     "because an unsigned hash of this backup is available " +
                     "but the server cannot determine the digest algorithm " +
-                    "used to generate this hash.");
+                    "used to generate this hash");
     registerMessage(MSGID_CONFIG_RESTORE_CANNOT_GET_DIGEST,
                     "Unable to restore or verify configuration backup %s " +
                     "because it has an unsigned hash that uses an unknown or " +
-                    "unsupported digest algorithm of %s.");
+                    "unsupported digest algorithm of %s");
     registerMessage(MSGID_CONFIG_RESTORE_UNKNOWN_MAC,
                     "Unable to restore or verify configuration backup %s " +
                     "because a signed hash of this backup is available but " +
                     "the server cannot determine the MAC algorithm used to " +
-                    "generate this hash.");
+                    "generate this hash");
     registerMessage(MSGID_CONFIG_RESTORE_CANNOT_GET_MAC,
                     "Unable to restore or verify configuration backup %s " +
                     "because it has a signed hash that uses an unknown or " +
-                    "unsupported MAC algorithm of %s.");
+                    "unsupported MAC algorithm of %s");
     registerMessage(MSGID_CONFIG_RESTORE_CANNOT_OPEN_BACKUP_FILE,
                     "Unable to restore or verify configuration backup %s " +
                     "because an error occurred while attempting to open the " +
-                    "backup archive file %s:  %s.");
+                    "backup archive file %s:  %s");
     registerMessage(MSGID_CONFIG_RESTORE_UNKNOWN_CIPHER,
                     "Unable to restore or verify configuration backup %s " +
                     "because it is encrypted but the server cannot determine " +
-                    "the cipher used to perform this encryption.");
+                    "the cipher used to perform this encryption");
     registerMessage(MSGID_CONFIG_RESTORE_CANNOT_GET_CIPHER,
                     "Unable to restore or verify configuration backup %s " +
                     "because it is encrypted using an unknown or unsupported " +
-                    "cipher of %s.");
+                    "cipher of %s");
     registerMessage(MSGID_CONFIG_RESTORE_CANNOT_BACKUP_EXISTING_CONFIG,
                     "Unable to restore configuration backup %s because an " +
                     "error occurred while attempting to temporarily back up " +
@@ -8606,530 +8606,530 @@ public class ConfigMessages
                     "backup from being properly restored.  However, the " +
                     "original configuration files that were in place before " +
                     "the start of the restore process have been preserved " +
-                    "and are now in their original location of %s.");
+                    "and are now in their original location of %s");
     registerMessage(MSGID_CONFIG_RESTORE_CANNOT_RESTORE_OLD_CONFIG,
                     "An error occurred that prevented the configuration " +
                     "backup from being properly restored.  The original " +
                     "configuration files that were in place before the start " +
                     "of the restore process have been preserved and are " +
-                    "contained in the %s directory.");
+                    "contained in the %s directory");
     registerMessage(MSGID_CONFIG_RESTORE_CANNOT_CREATE_CONFIG_DIRECTORY,
                     "Unable to restore configuration backup %s because an " +
                     "error occurred while attempting to create a new empty " +
                     "directory %s into which the files should be restored:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_CONFIG_RESTORE_OLD_CONFIG_SAVED,
                     "An error occurred that prevented the configuration " +
                     "backup from being properly restored.  The original " +
                     "configuration files that were in place before the start " +
                     "of the restore process have been preserved in the %s " +
-                    "directory.");
+                    "directory");
     registerMessage(MSGID_CONFIG_RESTORE_CANNOT_GET_ZIP_ENTRY,
                     "Unable to restore or verify configuration backup %s " +
                     "because an error occurred while trying to read the next " +
-                    "entry from the archive file %s:  %s.");
+                    "entry from the archive file %s:  %s");
     registerMessage(MSGID_CONFIG_RESTORE_CANNOT_CREATE_FILE,
                     "Unable to restore configuration backup %s because an " +
-                    "error occurred while trying to recreate file %s:  %s.");
+                    "error occurred while trying to recreate file %s:  %s");
     registerMessage(MSGID_CONFIG_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE,
                     "Unable to restore or verify configuration backup %s " +
                     "because an error occurred while processing archived " +
-                    "file %s:  %s.");
+                    "file %s:  %s");
     registerMessage(MSGID_CONFIG_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE,
                     "Unable to restore or verify configuration backup %s " +
                     "because an unexpected error occurred while trying to " +
-                    "close the archive file %s:  %s.");
+                    "close the archive file %s:  %s");
     registerMessage(MSGID_CONFIG_RESTORE_UNSIGNED_HASH_VALID,
                     "The message digest calculated from the backup archive " +
-                    "matches the digest stored with the backup information.");
+                    "matches the digest stored with the backup information");
     registerMessage(MSGID_CONFIG_RESTORE_UNSIGNED_HASH_INVALID,
                     "Unable to restore or verify configuration backup %s " +
                     "because the message digest calculated from the backup " +
                     "archive does not match the digest stored with the " +
-                    "backup information.");
+                    "backup information");
     registerMessage(MSGID_CONFIG_RESTORE_SIGNED_HASH_VALID,
                     "The signed digest calculated from the backup archive " +
                     "matches the signature stored with the backup " +
-                    "information.");
+                    "information");
     registerMessage(MSGID_CONFIG_RESTORE_SIGNED_HASH_INVALID,
                     "Unable to restore or verify configuration backup %s " +
                     "because the signed digest calculated from the backup " +
                     "archive does not match the signature stored with the " +
-                    "backup information.");
+                    "backup information");
     registerMessage(MSGID_CONFIG_RESTORE_VERIFY_SUCCESSFUL,
                     "All tests performed on configuration backup %s from " +
-                    "directory %s show that the archive appears to be valid.");
+                    "directory %s show that the archive appears to be valid");
     registerMessage(MSGID_CONFIG_RESTORE_SUCCESSFUL,
                     "Configuration backup %s was successfully restored from " +
-                    "the archive in directory %s.");
+                    "the archive in directory %s");
 
 
     registerMessage(MSGID_CONFIG_IDMAPPER_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "identity mapper base entry " + DN_IDMAPPER_CONFIG_BASE +
-                    " from the Directory Server configuration:  %s.");
+                    " from the Directory Server configuration:  %s");
     registerMessage(MSGID_CONFIG_IDMAPPER_BASE_DOES_NOT_EXIST,
                     "The identity mapper configuration base " +
                     DN_IDMAPPER_CONFIG_BASE + " does not exist in the " +
                     "Directory Server configuration.  This entry must be " +
-                    "present for the server to function properly.");
+                    "present for the server to function properly");
     registerMessage(MSGID_CONFIG_IDMAPPER_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid " +
-                    "identity mapper configuration:  %s.  It will be ignored.");
+                    "identity mapper configuration:  %s.  It will be ignored");
     registerMessage(MSGID_CONFIG_IDMAPPER_CANNOT_CREATE_MAPPER,
                     "An error occurred while attempting to create a " +
                     "Directory Server identity mapper from the information " +
-                    "in configuration entry %s:  %s.");
+                    "in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_IDMAPPER_NO_PROXY_MAPPER_DN,
                     "The Directory Server does not have any identity mapper " +
                     "configured for use in conjunction with proxied " +
                     "authorization V2 operations.  The Directory Server " +
                     "will not be able to process requests containing the " +
                     "proxied authorization control with a username-based " +
-                    "authorization ID.");
+                    "authorization ID");
     registerMessage(MSGID_CONFIG_IDMAPPER_INVALID_PROXY_MAPPER_DN,
                     "The configured proxied authorization identity mapper DN " +
                     "%s does not refer to an active identity mapper.  The " +
                     "Directory Server will not be able to process requests " +
                     "containing the proxied authorization control with a " +
-                    "username-based authorization ID.");
+                    "username-based authorization ID");
     registerMessage(MSGID_CONFIG_IDMAPPER_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_IDENTITY_MAPPER + " objectclass, which is " +
-                    "required for identity mapper definitions.");
+                    "required for identity mapper definitions");
     registerMessage(MSGID_CONFIG_IDMAPPER_DESCRIPTION_CLASS_NAME,
                     "The fully-qualified name of the Java class that defines " +
                     "a Directory Server identity mapper.  If this is altered " +
                     "while the associated identity mapper is enabled, then " +
                     "that mapper must be disabled and re-enabled for the " +
-                    "change to take effect.");
+                    "change to take effect");
     registerMessage(MSGID_CONFIG_IDMAPPER_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_IDMAPPER_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated identity mapper.");
+                    "the associated identity mapper");
     registerMessage(MSGID_CONFIG_IDMAPPER_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_IDMAPPER_CLASS + ":  %s.");
+                    "attribute " + ATTR_IDMAPPER_CLASS + ":  %s");
     registerMessage(MSGID_CONFIG_IDMAPPER_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
-                    "contain a valid identity mapper implementation:  %s.");
+                    "contain a valid identity mapper implementation:  %s");
     registerMessage(MSGID_CONFIG_IDMAPPER_DESCRIPTION_ENABLED,
                     "Indicates whether this Directory Server identity mapper " +
                     "should be enabled.  Changes to this attribute will take " +
-                    "effect immediately.");
+                    "effect immediately");
     registerMessage(MSGID_CONFIG_IDMAPPER_NO_ENABLED_ATTR,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_IDMAPPER_ENABLED +
                     " which indicates whether the identity mapper should be " +
-                    "enabled for use in the Directory Server.");
+                    "enabled for use in the Directory Server");
     registerMessage(MSGID_CONFIG_IDMAPPER_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_IDMAPPER_ENABLED + ":  %s.");
+                    "attribute " + ATTR_IDMAPPER_ENABLED + ":  %s");
     registerMessage(MSGID_CONFIG_IDMAPPER_CLASS_ACTION_REQUIRED,
                     "The requested change in the identity mapper class name " +
                     "from %s to %s in configuration entry %s cannot be " +
                     "dynamically applied.  This change will not take effect " +
                     "until the identity mapper is disabled and re-enabled or " +
-                    "the Directory Server is restarted.");
+                    "the Directory Server is restarted");
     registerMessage(MSGID_CONFIG_IDMAPPER_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as an identity mapper as defined " +
-                    "in configuration entry %s:  %s.");
+                    "in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_IDMAPPER_EXISTS,
                     "Unable to add a new identity mapper entry with DN %s " +
                     "because there is already an identity mapper registered " +
-                    "with that DN.");
+                    "with that DN");
     registerMessage(MSGID_CONFIG_IDMAPPER_UNACCEPTABLE_CONFIG,
                     "The configuration for the identity mapper defined in " +
                     "configuration entry %s was not acceptable according to " +
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
-                    "the entry.");
+                    "the entry");
 
 
     registerMessage(MSGID_CONFIG_SYNCH_CANNOT_GET_CONFIG_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "Directory Server synchronization provider configuration " +
                     "base entry " + DN_SYNCHRONIZATION_PROVIDER_BASE +
-                    ":  %s.");
+                    ":  %s");
     registerMessage(MSGID_CONFIG_SYNCH_BASE_DOES_NOT_EXIST,
                     "The Directory Server synchronization provider " +
                     "base entry " + DN_SYNCHRONIZATION_PROVIDER_BASE +
                     " does not exist.  This entry must be  present in the " +
-                    "Directory Server configuration.");
+                    "Directory Server configuration");
     registerMessage(MSGID_CONFIG_SYNCH_ENTRY_DOES_NOT_HAVE_PROVIDER_CONFIG,
                     "Configuration entry %s exists below the Directory " +
                     "Server synchronization provider root but does not " +
                     "contain attribute " + OC_SYNCHRONIZATION_PROVIDER +
                     " which must be present in all synchronization provider " +
-                    "configuration entries.");
+                    "configuration entries");
     registerMessage(MSGID_CONFIG_SYNCH_CANNOT_CHECK_FOR_PROVIDER_CONFIG_OC,
                     "An error occurred while attempting to determine whether " +
                     "configuration entry %s was a valid Directory Server " +
-                    "synchronization provider:  %s.");
+                    "synchronization provider:  %s");
     registerMessage(MSGID_CONFIG_SYNCH_DESCRIPTION_PROVIDER_ENABLED,
                     "Indicates whether the associated Directory Server " +
                     "synchronization provider is enabled and should be used " +
                     "by the server.  This attribute must be present in all " +
                     "synchronization provider entries and may not be changed " +
-                    "while the Directory Server is running.");
+                    "while the Directory Server is running");
     registerMessage(MSGID_CONFIG_SYNCH_PROVIDER_NO_ENABLED_ATTR,
                     "Synchronization provider configuration entry %s does " +
                     "not contain attribute " +
                     ATTR_SYNCHRONIZATION_PROVIDER_ENABLED +
                     " which indicates whether the synchronization provider " +
-                    "is enabled for use.");
+                    "is enabled for use");
     registerMessage(MSGID_CONFIG_SYNCH_PROVIDER_DISABLED,
                     "The Directory Server synchronization provider defined " +
                     "in configuration entry %s is disabled.  This " +
-                    "provider will not be used.");
+                    "provider will not be used");
     registerMessage(MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_ENABLED_STATE,
                     "An error occurred while attempting to determine whether " +
                     "the Directory Server synchronization provider defined " +
-                    "in configuration entry %s should be enabled:  %s.");
+                    "in configuration entry %s should be enabled:  %s");
     registerMessage(MSGID_CONFIG_SYNCH_DESCRIPTION_PROVIDER_CLASS,
                     "Specifies the fully-qualified name of the Java class " +
                     "that will provide the logic for the Directory Server " +
                     "synchronization provider.  This attribute must be " +
                     "present in all synchronization provider entries and may " +
-                    "not be changed while the Directory Server is running.");
+                    "not be changed while the Directory Server is running");
     registerMessage(MSGID_CONFIG_SYNCH_NO_CLASS_ATTR,
                     "Synchronization provider configuration entry %s does " +
                     "not contain attribute " +
                     ATTR_SYNCHRONIZATION_PROVIDER_CLASS +
                     " which specifies the name of the class that implements " +
-                    "the synchronization provider logic.");
+                    "the synchronization provider logic");
     registerMessage(MSGID_CONFIG_SYNCH_UNABLE_TO_DETERMINE_CLASS,
                     "An error occurred while attempting to determine the " +
                     "name of the class used to provide the Directory Server " +
                     "synchronization provider logic from configuration " +
-                    "entry %s:  %s.");
+                    "entry %s:  %s");
     registerMessage(MSGID_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS,
                     "An error occurred while attempting to load class %s " +
                     "referenced in synchronization provider configuration " +
-                    "entry %s:  %s.");
+                    "entry %s:  %s");
     registerMessage(MSGID_CONFIG_SYNCH_UNABLE_TO_INSTANTIATE_PROVIDER,
                     "An error occurred while attempting to instantiate " +
                     "class %s referenced in synchronization provider " +
-                    "configuration entry %s:  %s.");
+                    "configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER,
                     "An error occurred while attempting to initialize the " +
                     "Directory Server synchronization provider referenced " +
-                    "in configuration entry %s:  %s.");
+                    "in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_SYNCH_PROVIDER_HAS_BEEN_DISABLED,
                     "The synchronization provider defined in configuration " +
                     "entry %s is currently enabled but the configuration has " +
                     "changed so that it should be disabled.  This will not " +
-                    "take effect until the Directory Server is restarted.");
+                    "take effect until the Directory Server is restarted");
     registerMessage(MSGID_CONFIG_SYNCH_PROVIDER_CLASS_CHANGED,
                     "The Java class providing the logic for the " +
                     "synchronization provider defined in configuration entry " +
                     "%s has changed from %s to %s.  This will not take " +
-                    "effect until the Directory Server is restarted.");
+                    "effect until the Directory Server is restarted");
 
 
     registerMessage(MSGID_CONFIG_PWVALIDATOR_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "password validator base entry " +
                     DN_PWVALIDATOR_CONFIG_BASE + " from the Directory Server " +
-                    "configuration:  %s.");
+                    "configuration:  %s");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_BASE_DOES_NOT_EXIST,
                     "The password validator configuration base " +
                     DN_PWVALIDATOR_CONFIG_BASE + " does not exist in the " +
                     "Directory Server configuration.  This entry must be " +
-                    "present for the server to function properly.");
+                    "present for the server to function properly");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid " +
                     "password validator configuration:  %s.  It will be " +
-                    "ignored.");
+                    "ignored");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_CANNOT_CREATE_VALIDATOR,
                     "An error occurred while attempting to create a " +
                     "Directory Server password validator from the " +
-                    "information in configuration entry %s:  %s.");
+                    "information in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_PASSWORD_VALIDATOR + " objectclass, which is required " +
-                    "for password validator definitions.");
+                    "for password validator definitions");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_DESCRIPTION_CLASS_NAME,
                     "The fully-qualified name of the Java class that defines " +
                     "the Directory Server password validator.  If this is " +
                     "altered while the associated validator is enabled, then " +
                     "that validator must be disabled and re-enabled for the " +
-                    "change to take effect.");
+                    "change to take effect");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_PWVALIDATOR_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated password validator.");
+                    "the associated password validator");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_PWVALIDATOR_CLASS + ":  %s.");
+                    "attribute " + ATTR_PWVALIDATOR_CLASS + ":  %s");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
-                    "contain a valid password validator implementation:  %s.");
+                    "contain a valid password validator implementation:  %s");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_DESCRIPTION_ENABLED,
                     "Indicates whether this Directory Server password " +
                     "validator should be enabled.  Changes to this attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_NO_ENABLED_ATTR,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_PWVALIDATOR_ENABLED +
                     " which indicates whether the password validator should " +
-                    "be enabled for use in the Directory Server.");
+                    "be enabled for use in the Directory Server");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_PWVALIDATOR_ENABLED + ":  %s.");
+                    "attribute " + ATTR_PWVALIDATOR_ENABLED + ":  %s");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_CLASS_ACTION_REQUIRED,
                     "The requested change in the password validator class " +
                     "name from %s to %s in configuration entry %s cannot be " +
                     "dynamically applied.  This change will not take effect " +
                     "until the validator is disabled and re-enabled or the " +
-                    "Directory Server is restarted.");
+                    "Directory Server is restarted");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as a password validator as defined " +
-                    "in configuration entry %s:  %s.");
+                    "in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_EXISTS,
                     "Unable to add a new password validator entry with DN %s " +
                     "because there is already a validator registered with " +
-                    "that DN.");
+                    "that DN");
     registerMessage(MSGID_CONFIG_PWVALIDATOR_UNACCEPTABLE_CONFIG,
                     "The configuration for the password validator defined in " +
                     "configuration entry %s was not acceptable according to " +
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
-                    "the entry.");
+                    "the entry");
 
 
     registerMessage(MSGID_CONFIG_PWGENERATOR_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "password generator base entry " +
                     DN_PWGENERATOR_CONFIG_BASE + " from the Directory Server " +
-                    "configuration:  %s.");
+                    "configuration:  %s");
     registerMessage(MSGID_CONFIG_PWGENERATOR_BASE_DOES_NOT_EXIST,
                     "The password generator configuration base " +
                     DN_PWGENERATOR_CONFIG_BASE + " does not exist in the " +
                     "Directory Server configuration.  This entry must be " +
-                    "present for the server to function properly.");
+                    "present for the server to function properly");
     registerMessage(MSGID_CONFIG_PWGENERATOR_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid " +
                     "password generator configuration:  %s.  It will be " +
-                    "ignored.");
+                    "ignored");
     registerMessage(MSGID_CONFIG_PWGENERATOR_CANNOT_CREATE_GENERATOR,
                     "An error occurred while attempting to create a " +
                     "Directory Server password generator from the " +
-                    "information in configuration entry %s:  %s.");
+                    "information in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_PWGENERATOR_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_PASSWORD_GENERATOR + " objectclass, which is required " +
-                    "for password generator definitions.");
+                    "for password generator definitions");
     registerMessage(MSGID_CONFIG_PWGENERATOR_DESCRIPTION_CLASS_NAME,
                     "The fully-qualified name of the Java class that defines " +
                     "the Directory Server password generator.  If this is " +
                     "altered while the associated generator is enabled, then " +
                     "that generator must be disabled and re-enabled for the " +
-                    "change to take effect.");
+                    "change to take effect");
     registerMessage(MSGID_CONFIG_PWGENERATOR_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_PWGENERATOR_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated password generator.");
+                    "the associated password generator");
     registerMessage(MSGID_CONFIG_PWGENERATOR_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_PWGENERATOR_CLASS + ":  %s.");
+                    "attribute " + ATTR_PWGENERATOR_CLASS + ":  %s");
     registerMessage(MSGID_CONFIG_PWGENERATOR_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
-                    "contain a valid password generator implementation:  %s.");
+                    "contain a valid password generator implementation:  %s");
     registerMessage(MSGID_CONFIG_PWGENERATOR_DESCRIPTION_ENABLED,
                     "Indicates whether this Directory Server password " +
                     "generator should be enabled.  Changes to this attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_CONFIG_PWGENERATOR_NO_ENABLED_ATTR,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " + ATTR_PWGENERATOR_ENABLED +
                     " which indicates whether the password generator should " +
-                    "be enabled for use in the Directory Server.");
+                    "be enabled for use in the Directory Server");
     registerMessage(MSGID_CONFIG_PWGENERATOR_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_PWGENERATOR_ENABLED + ":  %s.");
+                    "attribute " + ATTR_PWGENERATOR_ENABLED + ":  %s");
     registerMessage(MSGID_CONFIG_PWGENERATOR_CLASS_ACTION_REQUIRED,
                     "The requested change in the password generator class " +
                     "name from %s to %s in configuration entry %s cannot be " +
                     "dynamically applied.  This change will not take effect " +
                     "until the generator is disabled and re-enabled or the " +
-                    "Directory Server is restarted.");
+                    "Directory Server is restarted");
     registerMessage(MSGID_CONFIG_PWGENERATOR_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as a password generator as defined " +
-                    "in configuration entry %s:  %s.");
+                    "in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_PWGENERATOR_EXISTS,
                     "Unable to add a new password generator entry with DN %s " +
                     "because there is already a generator registered with " +
-                    "that DN.");
+                    "that DN");
     registerMessage(MSGID_CONFIG_PWGENERATOR_UNACCEPTABLE_CONFIG,
                     "The configuration for the password generator defined in " +
                     "configuration entry %s was not acceptable according to " +
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
-                    "the entry.");
+                    "the entry");
 
 
     registerMessage(MSGID_CONFIG_PWPOLICY_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "password policy base entry " + DN_PWPOLICY_CONFIG_BASE +
-                    " from the Directory Server configuration:  %s.");
+                    " from the Directory Server configuration:  %s");
     registerMessage(MSGID_CONFIG_PWPOLICY_BASE_DOES_NOT_EXIST,
                     "The password policy configuration base " +
                     DN_PWPOLICY_CONFIG_BASE + " does not exist in the " +
                     "Directory Server configuration.  This entry must be " +
-                    "present for the server to function properly.");
+                    "present for the server to function properly");
     registerMessage(MSGID_CONFIG_PWPOLICY_NO_POLICIES,
                     "No password policies have been defined below the " +
                     DN_PWPOLICY_CONFIG_BASE + " entry in the Directory " +
                     "Server configuration.  At least one password policy " +
-                    "configuration must be defined.");
+                    "configuration must be defined");
     registerMessage(MSGID_CONFIG_PWPOLICY_NO_DEFAULT_POLICY,
                     "No default password policy is configured for the " +
                     "Directory Server.  The default password policy must be " +
                     "specified by the " + ATTR_DEFAULT_PWPOLICY_DN +
-                    " attribute in the " + DN_CONFIG_ROOT + " entry.");
+                    " attribute in the " + DN_CONFIG_ROOT + " entry");
     registerMessage(MSGID_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG,
                     "The password policy defined in configuration entry %s " +
-                    "is invalid:  %s.");
+                    "is invalid:  %s");
     registerMessage(MSGID_CONFIG_PWPOLICY_MISSING_DEFAULT_POLICY,
                     "The Directory Server default password policy is " +
                     "defined as %s, but that entry does not exist or is not " +
                     "below the password policy configuration base " +
-                    DN_PWPOLICY_CONFIG_BASE + ".");
+                    DN_PWPOLICY_CONFIG_BASE + "");
     registerMessage(MSGID_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY,
                     "The specified entry %s is currently defined as the " +
                     "configuration entry for the default password policy.  " +
                     "The default password policy configuration entry may not " +
-                    "be removed.");
+                    "be removed");
     registerMessage(MSGID_CONFIG_PWPOLICY_REMOVED_POLICY,
                     "Password policy entry %s has been removed from the " +
                     "Directory Server configuration.  Any user entries that " +
                     "explicitly reference this password policy will no " +
-                    "longer be allowed to authenticate.");
+                    "longer be allowed to authenticate");
 
     registerMessage(MSGID_CONFIG_AUTHZ_CANNOT_GET_ENTRY,
         "An error occurred while attempting to retrieve the "
             + "Directory Server access control configuration entry "
-            + DN_AUTHZ_HANDLER_CONFIG + ":  %s.");
+            + DN_AUTHZ_HANDLER_CONFIG + ":  %s");
 
     registerMessage(MSGID_CONFIG_AUTHZ_ENTRY_DOES_NOT_EXIST,
         "The Directory Server access control configuration entry "
             + DN_AUTHZ_HANDLER_CONFIG
             + " does not exist.  This entry must be present in the "
-            + "Directory Server configuration.");
+            + "Directory Server configuration");
 
     registerMessage(MSGID_CONFIG_AUTHZ_ENTRY_DOES_NOT_HAVE_OBJECT_CLASS,
         "The Directory Server access control configuration entry "
             + DN_AUTHZ_HANDLER_CONFIG
             + " does not have the correct object class.  This entry must"
             + " have the object class " + OC_AUTHZ_HANDLER_CONFIG
-            + " in order to be valid.");
+            + " in order to be valid");
 
     registerMessage(MSGID_CONFIG_AUTHZ_DESCRIPTION_ENABLED,
         "Indicates whether access control is enabled and should be used "
-            + "by the server.  This attribute is mandatory.");
+            + "by the server.  This attribute is mandatory");
 
     registerMessage(MSGID_CONFIG_AUTHZ_NO_ENABLED_ATTR,
         "The access control configuration entry %s does "
             + "not contain attribute " + ATTR_AUTHZ_HANDLER_ENABLED
             + " which indicates whether the access control "
-            + "is enabled for use.");
+            + "is enabled for use");
 
     registerMessage(MSGID_CONFIG_AUTHZ_DISABLED,
-        "Access control has been disabled.");
+        "Access control has been disabled");
 
     registerMessage(MSGID_CONFIG_AUTHZ_ENABLED,
         "Access control has been enabled and will use the %s "
-            + "implementation.");
+            + "implementation");
 
     registerMessage(MSGID_CONFIG_AUTHZ_UNABLE_TO_DETERMINE_ENABLED_STATE,
         "An error occurred while attempting to determine whether "
             + "the Directory Server access control as defined "
-            + "in configuration entry %s should be enabled:  %s.");
+            + "in configuration entry %s should be enabled:  %s");
 
     registerMessage(MSGID_CONFIG_AUTHZ_DESCRIPTION_CLASS,
         "Specifies the fully-qualified name of the Java class "
             + "that will provide the access control implementation for "
-            + "the Directory Server. This attribute is mandatory.");
+            + "the Directory Server. This attribute is mandatory");
 
     registerMessage(MSGID_CONFIG_AUTHZ_NO_CLASS_ATTR,
         "The access control configuration entry %s does "
             + "not contain attribute "
             + ATTR_AUTHZ_HANDLER_CLASS
             + " which specifies the name of the Java class providing"
-            + " the access control implementation for the Directory Server.");
+            + " the access control implementation for the Directory Server");
 
     registerMessage(MSGID_CONFIG_AUTHZ_UNABLE_TO_DETERMINE_CLASS,
         "An error occurred while attempting to determine the "
             + "name of the class used to provide the Directory Server "
             + "access control implementation from configuration "
-            + "entry %s:  %s.");
+            + "entry %s:  %s");
 
     registerMessage(MSGID_CONFIG_AUTHZ_UNABLE_TO_LOAD_CLASS,
         "An error occurred while attempting to load class %s "
             + "referenced in the access control configuration "
-            + "entry %s:  %s.");
+            + "entry %s:  %s");
 
     registerMessage(MSGID_CONFIG_AUTHZ_BAD_CLASS,
         "The access control implementation class %s "
             + "referenced in the access control configuration "
-            + "entry %s does not implement the %s interface:  %s.");
+            + "entry %s does not implement the %s interface:  %s");
 
     registerMessage(MSGID_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER,
         "An error occurred while attempting to instantiate "
             + "class %s referenced in the access control configuration "
-            + "entry %s:  %s.");
+            + "entry %s:  %s");
 
     registerMessage(MSGID_CONFIG_AUTHZ_ERROR_INITIALIZING_HANDLER,
         "An error occurred while attempting to initialize the "
             + "Directory Server access control implementation referenced "
-            + "in configuration entry %s:  %s.");
+            + "in configuration entry %s:  %s");
 
 
     registerMessage(MSGID_CONFIG_ROOTDN_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "root DN base entry " + DN_ROOT_DN_CONFIG_BASE +
-                    " from the Directory Server configuration:  %s.");
+                    " from the Directory Server configuration:  %s");
     registerMessage(MSGID_CONFIG_ROOTDN_BASE_DOES_NOT_EXIST,
                     "The password policy configuration base " +
                     DN_ROOT_DN_CONFIG_BASE + " does not exist in the " +
                     "Directory Server configuration.  This entry must be " +
-                    "present for the server to function properly.");
+                    "present for the server to function properly");
     registerMessage(MSGID_CONFIG_ROOTDN_DESCRIPTION_ROOT_PRIVILEGE,
                     "Specifies the set of privileges that should " +
                     "automatically be assigned to root users when they " +
-                    "authenticate to the server.");
+                    "authenticate to the server");
     registerMessage(MSGID_CONFIG_ROOTDN_UNRECOGNIZED_PRIVILEGE,
                     "The set of default root privileges contained in " +
                     "configuration attribute %s of entry %s contains an " +
-                    "unrecognized privilege %s.");
+                    "unrecognized privilege %s");
     registerMessage(MSGID_CONFIG_ROOTDN_ERROR_DETERMINING_ROOT_PRIVILEGES,
                     "An error occurred while attempting to determine the " +
                     "set of privileges that root users should be granted by " +
-                    "default:  %s.");
+                    "default:  %s");
     registerMessage(MSGID_CONFIG_ROOTDN_UPDATED_PRIVILEGES,
                     "The set of privileges that will automatically be " +
                     "assigned to root users has been updated.  This new " +
                     "privilege set will not apply to any existing " +
                     "connection already authenticated as a root user, but " +
-                    "will used for any subsequent root user authentications.");
+                    "will used for any subsequent root user authentications");
     registerMessage(MSGID_CONFIG_ROOTDN_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid root DN " +
-                    "configuration:  %s.  It will be ignored.");
+                    "configuration:  %s.  It will be ignored");
     registerMessage(MSGID_CONFIG_ROOTDN_CANNOT_CREATE,
                     "An error occurred while attempting to create a " +
                     "Directory Server root DN from the information in " +
-                    "configuration entry %s:  %s.");
+                    "configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_ROOTDN_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_ROOT_DN + " objectclass, which is required for " +
-                    "Directory Server root DN definitions.");
+                    "Directory Server root DN definitions");
     registerMessage(MSGID_CONFIG_ROOTDN_DESCRIPTION_ALTERNATE_BIND_DN,
                     "Specifies one or more alternate bind DNs that may be " +
                     "used to authenticate as the associated root DN, in " +
@@ -9138,102 +9138,102 @@ public class ConfigMessages
                     "DNs of any other entries in the directory, nor can they " +
                     "conflict with other alternate bind DNs configured for " +
                     "other root DNs.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_ROOTDN_CONFLICTING_MAPPING,
                     "Unable to register \"%s\" as an alternate bind DN for " +
                     "user \"%s\" because it is already registered as an " +
-                    "alternate bind DN for root user \"%s\".");
+                    "alternate bind DN for root user \"%s\"");
     registerMessage(MSGID_CONFIG_ROOTDN_CANNOT_PARSE_ALTERNATE_BIND_DNS,
                     "An error occurred while trying to parse the set of " +
-                    "alternate bind DNs for root user %s:  %s.");
+                    "alternate bind DNs for root user %s:  %s");
     registerMessage(MSGID_CONFIG_ROOTDN_CANNOT_REGISTER_ALTERNATE_BIND_DN,
                     "An error occurred while trying to register\"%s\" as an " +
-                    "alternate bind DN for root user \"%s\":  %s.");
+                    "alternate bind DN for root user \"%s\":  %s");
     registerMessage(MSGID_CONFIG_ROOTDN_EXISTS,
                     "Unable to add root DN entry %s because another root " +
-                    "user is already registered with that DN.");
+                    "user is already registered with that DN");
 
 
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "account status notification handler base entry " +
                     DN_ACCT_NOTIFICATION_HANDLER_CONFIG_BASE +
-                    " from the Directory Server configuration:  %s.");
+                    " from the Directory Server configuration:  %s");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_BASE_DOES_NOT_EXIST,
                     "The account status notification handler configuration " +
                     "base " + DN_ACCT_NOTIFICATION_HANDLER_CONFIG_BASE +
                     " does not exist in the Directory Server configuration.  " +
                     "This entry must be present for the server to function " +
-                    "properly.");
+                    "properly");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid " +
                     "account status notification handler configuration:  " +
-                    "%s.  It will be ignored.");
+                    "%s.  It will be ignored");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_CANNOT_CREATE_HANDLER,
                     "An error occurred while attempting to create a " +
                     "Directory Server account status notification handler " +
-                    "from the information in configuration entry %s:  %s.");
+                    "from the information in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_ACCT_NOTIFICATION_HANDLER + " objectclass, which is " +
                     "required for account status notification handler " +
-                    "definitions.");
+                    "definitions");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_DESCRIPTION_CLASS_NAME,
                     "The fully-qualified name of the Java class that defines " +
                     "the Directory Server account status notification " +
                     "handler.  If this is altered while the associated " +
                     "notification handler is enabled, then that handler must " +
                     "be disabled and re-enabled for the change to take " +
-                    "effect.");
+                    "effect");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " +
                     ATTR_ACCT_NOTIFICATION_HANDLER_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated account status notification handler.");
+                    "the associated account status notification handler");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
                     "attribute " + ATTR_ACCT_NOTIFICATION_HANDLER_CLASS +
-                    ":  %s.");
+                    ":  %s");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
                     "contain a valid account status notification handler " +
-                    "implementation:  %s.");
+                    "implementation:  %s");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_DESCRIPTION_ENABLED,
                     "Indicates whether this Directory Server account status " +
                     "notification handler should be enabled.  Changes to " +
-                    "this attribute will take effect immediately.");
+                    "this attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_NO_ENABLED_ATTR,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " +
                     ATTR_ACCT_NOTIFICATION_HANDLER_ENABLED +
                     " which indicates whether the account status " +
                     "notification handler should be enabled for use in the " +
-                    "Directory Server.");
+                    "Directory Server");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
                     "attribute " + ATTR_ACCT_NOTIFICATION_HANDLER_ENABLED +
-                    ":  %s.");
+                    ":  %s");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_CLASS_ACTION_REQUIRED,
                     "The requested change in the account status notification " +
                     "handler class name from %s to %s in configuration entry " +
                     "%s cannot be dynamically applied.  This change will not " +
                     "take effect until the notification handler is disabled " +
-                    "and re-enabled or the Directory Server is restarted.");
+                    "and re-enabled or the Directory Server is restarted");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as an account status notification " +
-                    "handler as defined in configuration entry %s:  %s.");
+                    "handler as defined in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_EXISTS,
                     "Unable to add a new account status notification handler " +
                     "entry with DN %s because there is already a " +
-                    "notification handler registered with that DN.");
+                    "notification handler registered with that DN");
     registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_UNACCEPTABLE_CONFIG,
                     "The configuration for the account status notification " +
                     "handler defined in configuration entry %s was not " +
                     "acceptable according to its internal validation.  " +
                     "However, no specific information is available regarding " +
-                    "the problem(s) with the entry.");
+                    "the problem(s) with the entry");
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_LOOKTHROUGH_LIMIT,
                     "Specifies the default maximum number of candidate " +
                     "entries checked for matches when processing a search " +
@@ -9241,13 +9241,13 @@ public class ConfigMessages
                     "by including the " + OP_ATTR_USER_LOOKTHROUGH_LIMIT +
                     " operational attribute in the user's entry.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_CONFIG_CORE_INVALID_LOOKTHROUGH_LIMIT,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_LOOKTHROUGH_LIMIT +
                     " (It should be a positive integer value specifying " +
                     "the lookthrough limit to use, or a value of 0 or -1 to " +
-                    "indicate that no limit should be enforced):  %s.");
+                    "indicate that no limit should be enforced):  %s");
     registerMessage(MSGID_CONFIG_DESCRIPTION_BACKEND_MODE,
                     "The permissions used for the directory containing the " +
                     "backend database files");
@@ -9259,83 +9259,83 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_BACKEND_INSANE_MODE,
                    "Unable to set the requested file permissions to the " +
                    "backend database directory. The requested permissions " +
-                   "will result in an inaccessable database.");
+                   "will result in an inaccessable database");
 
 
     registerMessage(MSGID_CONFIG_GROUP_CANNOT_GET_BASE,
                     "An error occurred while attempting to retrieve the " +
                     "group implementation base entry " +
                     DN_GROUP_IMPLEMENTATION_CONFIG_BASE +
-                    " from the Directory Server configuration:  %s.");
+                    " from the Directory Server configuration:  %s");
     registerMessage(MSGID_CONFIG_GROUP_BASE_DOES_NOT_EXIST,
                     "The group implementation configuration base " +
                     DN_GROUP_IMPLEMENTATION_CONFIG_BASE + " does not exist " +
                     "in the Directory Server configuration.  This entry must " +
-                    "be present for the server to function properly.");
+                    "be present for the server to function properly");
     registerMessage(MSGID_CONFIG_GROUP_ENTRY_UNACCEPTABLE,
                     "Configuration entry %s does not contain a valid " +
                     "group implementation configuration:  %s.  It will be " +
-                    "ignored.");
+                    "ignored");
     registerMessage(MSGID_CONFIG_GROUP_CANNOT_CREATE_IMPLEMENTATION,
                     "An error occurred while attempting to create a " +
                     "Directory Server group implementation from the " +
-                    "information in configuration entry %s:  %s.");
+                    "information in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_GROUP_INVALID_OBJECTCLASS,
                     "Configuration entry %s does not contain the " +
                     OC_GROUP_IMPLEMENTATION + " objectclass, which is " +
-                    "required for group implementation definitions.");
+                    "required for group implementation definitions");
     registerMessage(MSGID_CONFIG_GROUP_DESCRIPTION_CLASS_NAME,
                     "The fully-qualified name of the Java class that defines " +
                     "the Directory Server group implementation.  If this is " +
                     "while the associated implementation is enabled, then " +
                     "that group implementation must be disabled and " +
-                    "re-enabled for the change to take effect.");
+                    "re-enabled for the change to take effect");
     registerMessage(MSGID_CONFIG_GROUP_NO_CLASS_NAME,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " +
                     ATTR_GROUP_IMPLEMENTATION_CLASS +
                     " which specifies the fully-qualified class name for " +
-                    "the associated group implementation.");
+                    "the associated group implementation");
     registerMessage(MSGID_CONFIG_GROUP_INVALID_CLASS_NAME,
                     "Configuration entry %s has an invalid value for " +
-                    "attribute " + ATTR_GROUP_IMPLEMENTATION_CLASS + ":  %s.");
+                    "attribute " + ATTR_GROUP_IMPLEMENTATION_CLASS + ":  %s");
     registerMessage(MSGID_CONFIG_GROUP_INVALID_CLASS,
                     "Class %s specified in configuration entry %s does not " +
-                    "contain a valid group implementation:  %s.");
+                    "contain a valid group implementation:  %s");
     registerMessage(MSGID_CONFIG_GROUP_DESCRIPTION_ENABLED,
                     "Indicates whether this Directory Server group " +
                     "implementation should be enabled.  Changes to this " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_CONFIG_GROUP_NO_ENABLED_ATTR,
                     "Configuration entry %s does not contain a valid value " +
                     "for configuration attribute " +
                     ATTR_GROUP_IMPLEMENTATION_ENABLED +
                     " which indicates whether the group implementation " +
-                    "should be enabled for use in the Directory Server.");
+                    "should be enabled for use in the Directory Server");
     registerMessage(MSGID_CONFIG_GROUP_INVALID_ENABLED_VALUE,
                     "Configuration entry %s has an invalid value for " +
                     "attribute " + ATTR_GROUP_IMPLEMENTATION_ENABLED +
-                    ":  %s.");
+                    ":  %s");
     registerMessage(MSGID_CONFIG_GROUP_CLASS_ACTION_REQUIRED,
                     "The requested change in the group implementation class " +
                     "name from %s to %s in configuration entry %s cannot be " +
                     "dynamically applied.  This change will not take effect " +
                     "until the group implementation is disabled and " +
-                    "re-enabled or the Directory Server is restarted.");
+                    "re-enabled or the Directory Server is restarted");
     registerMessage(MSGID_CONFIG_GROUP_INITIALIZATION_FAILED,
                     "An error occurred while trying to initialize an " +
                     "instance of class %s as a group implementation as " +
-                    "in configuration entry %s:  %s.");
+                    "in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_GROUP_EXISTS,
                     "Unable to add a new group implementation entry with DN " +
                     "%s because there is already a group implementation " +
-                    "registered with that DN.");
+                    "registered with that DN");
     registerMessage(MSGID_CONFIG_GROUP_UNACCEPTABLE_CONFIG,
                     "The configuration for the group implementation defined " +
                     "in configuration entry %s was not acceptable according " +
                     "to its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
-                    "the entry.");
+                    "the entry");
 
 
     registerMessage(
@@ -9345,7 +9345,7 @@ public class ConfigMessages
                     "to \"true\", then unauthenticated clients will only be "+
                     "allowed to send bind and StartTLS requests. Changes to "+
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_CONFIG_CORE_REJECT_UNAUTHENTICATED_REQUESTS_INVALID,
                     "Configuration entry %s has an invalid value for" +
                     "configuration attribute " +
@@ -9354,34 +9354,34 @@ public class ConfigMessages
 
 
     registerMessage(MSGID_CONFIG_CHANGE_NO_RESULT,
-                    "%s.%s returned a result of null for entry %s.");
+                    "%s.%s returned a result of null for entry %s");
     registerMessage(MSGID_CONFIG_CHANGE_RESULT_ERROR,
                     "%s.%s failed for entry %s:  result code=%s, admin " +
-                    "action required=%b, messages=\"%s\".");
+                    "action required=%b, messages=\"%s\"");
     registerMessage(MSGID_CONFIG_CHANGE_RESULT_ACTION_REQUIRED,
                     "%s.%s indicated that administrative action is required " +
-                    "for entry %s:  messages=\"%s\".");
+                    "for entry %s:  messages=\"%s\"");
     registerMessage(MSGID_CONFIG_CHANGE_RESULT_MESSAGES,
                     "%s.%s succeeded but generated the following messages " +
-                    "for entry %s:  %s.");
+                    "for entry %s:  %s");
 
 
     registerMessage(MSGID_CONFIG_VATTR_INVALID_SEARCH_FILTER,
                     "Unable to parse value \"%s\" from config entry \"%s\" " +
-                    "as a valid search filter:  %s.");
+                    "as a valid search filter:  %s");
     registerMessage(MSGID_CONFIG_VATTR_SV_TYPE_WITH_MV_PROVIDER,
                     "The virtual attribute configuration in entry \"%s\" is " +
                     "not valid because attribute type %s is single-valued " +
-                    "but provider %s may generate multiple values.");
+                    "but provider %s may generate multiple values");
     registerMessage(MSGID_CONFIG_VATTR_SV_TYPE_WITH_MERGE_VALUES,
                     "The virtual attribute configuration in entry \"%s\" is " +
                     "not valid because attribute type %s is single-valued " +
                     "but the conflict behavior is configured to merge real " +
-                    "and virtual values.");
+                    "and virtual values");
     registerMessage(MSGID_CONFIG_VATTR_INITIALIZATION_FAILED,
                     "An error occurred while trying to load an instance " +
                     "of class %s referenced in configuration entry %s as a " +
-                    "virtual attribute provider:  %s.");
+                    "virtual attribute provider:  %s");
   }
 }
 

@@ -46,7 +46,6 @@ import org.opends.server.api.PasswordValidator;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -62,6 +61,8 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
@@ -3596,11 +3597,11 @@ public class PasswordPolicyState
 
 
     // Convert the set of modifications to a set of LDAP modifications.
-    ArrayList<LDAPModification> modList = new ArrayList<LDAPModification>();
+    ArrayList<RawModification> modList = new ArrayList<RawModification>();
     for (Modification m : modifications)
     {
-      modList.add(new LDAPModification(m.getModificationType(),
-                                       new LDAPAttribute(m.getAttribute())));
+      modList.add(RawModification.create(m.getModificationType(),
+                       new LDAPAttribute(m.getAttribute())));
     }
 
     InternalClientConnection conn =
@@ -3619,3 +3620,4 @@ public class PasswordPolicyState
     }
   }
 }
+

@@ -28,17 +28,12 @@ package org.opends.server.protocols.ldap;
 
 
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Enumerated;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -53,15 +48,13 @@ import static org.opends.server.util.ServerConstants.*;
  * attribute.
  */
 public class LDAPModification
+       extends RawModification
 {
-
-
-
-  // The attribute for this modification.
-  private LDAPAttribute attribute;
-
   // The modification type for this modification.
   private ModificationType modificationType;
+
+  // The attribute for this modification.
+  private RawAttribute attribute;
 
 
 
@@ -72,7 +65,7 @@ public class LDAPModification
    * @param  attribute         The attribute for this modification.
    */
   public LDAPModification(ModificationType modificationType,
-                          LDAPAttribute attribute)
+                          RawAttribute attribute)
   {
     this.modificationType = modificationType;
     this.attribute        = attribute;
@@ -109,7 +102,7 @@ public class LDAPModification
    *
    * @return  The attribute for this modification.
    */
-  public LDAPAttribute getAttribute()
+  public RawAttribute getAttribute()
   {
     return attribute;
   }
@@ -121,129 +114,9 @@ public class LDAPModification
    *
    * @param  attribute  The attribute for this modification.
    */
-  public void setAttribute(LDAPAttribute attribute)
+  public void setAttribute(RawAttribute attribute)
   {
     this.attribute = attribute;
-  }
-
-
-
-  /**
-   * Encodes this modification to an ASN.1 element.
-   *
-   * @return  The ASN.1 element containing the encoded modification.
-   */
-  public ASN1Element encode()
-  {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(modificationType.intValue()));
-    elements.add(attribute.encode());
-
-    return new ASN1Sequence(elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP modification.
-   *
-   * @param  element  The ASN.1 element to decode.
-   *
-   * @return  The decoded LDAP modification.
-   *
-   * @throws  LDAPException  If a problem occurs while attempting to decode the
-   *                         provided ASN.1 element as an LDAP modification.
-   */
-  public static LDAPModification decode(ASN1Element element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_LDAP_MODIFICATION_DECODE_SEQUENCE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if (numElements != 2)
-    {
-      int    msgID   = MSGID_LDAP_MODIFICATION_DECODE_INVALID_ELEMENT_COUNT;
-      String message = getMessage(msgID, numElements);
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message);
-    }
-
-
-    ModificationType modificationType;
-    try
-    {
-      switch (elements.get(0).decodeAsEnumerated().intValue())
-      {
-        case MOD_TYPE_ADD:
-          modificationType = ModificationType.ADD;
-          break;
-        case MOD_TYPE_DELETE:
-          modificationType = ModificationType.DELETE;
-          break;
-        case MOD_TYPE_REPLACE:
-          modificationType = ModificationType.REPLACE;
-          break;
-        case MOD_TYPE_INCREMENT:
-          modificationType = ModificationType.INCREMENT;
-          break;
-        default:
-          int    intValue = elements.get(0).decodeAsEnumerated().intValue();
-          int    msgID    = MSGID_LDAP_MODIFICATION_DECODE_INVALID_MOD_TYPE;
-          String message  = getMessage(msgID, intValue);
-          throw new LDAPException(PROTOCOL_ERROR, msgID, message);
-      }
-    }
-    catch (LDAPException le)
-    {
-      throw le;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_LDAP_MODIFICATION_DECODE_MOD_TYPE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
-    }
-
-
-    LDAPAttribute attribute;
-    try
-    {
-      attribute = LDAPAttribute.decode(elements.get(1));
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_LDAP_MODIFICATION_DECODE_ATTR;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, msgID, message, e);
-    }
-
-
-    return new LDAPModification(modificationType, attribute);
   }
 
 

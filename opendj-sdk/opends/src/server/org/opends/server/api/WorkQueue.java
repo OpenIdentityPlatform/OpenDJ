@@ -30,10 +30,9 @@ package org.opends.server.api;
 
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.Operation;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-
+import org.opends.server.types.Operation;
 
 
 
@@ -49,9 +48,6 @@ import org.opends.server.types.InitializationException;
  */
 public abstract class WorkQueue
 {
-
-
-
   /**
    * Initializes this work queue based on the information in the
    * provided configuration entry.

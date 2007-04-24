@@ -42,7 +42,6 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.Operation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -56,6 +55,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
@@ -151,7 +151,7 @@ public class AddSchemaFileTask
 
           int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE;
           String message = getMessage(msgID, filename, schemaDirectory,
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                        message, msgID, e);
         }
@@ -315,7 +315,7 @@ public class AddSchemaFileTask
 
             int msgID = MSGID_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER;
             String message = getMessage(msgID, provider.getClass().getName(),
-                                        stackTraceToSingleLineString(e));
+                                        getExceptionMessage(e));
             logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_ERROR,
                      message, msgID);
           }

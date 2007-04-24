@@ -420,7 +420,7 @@ public class LDAPSyntaxDescriptionSyntax
 
       int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_TOKEN;
       invalidReason.append(getMessage(msgID, valueStr, pos,
-                                      stackTraceToSingleLineString(e)));
+                                      getExceptionMessage(e)));
       return false;
     }
 
@@ -447,7 +447,7 @@ public class LDAPSyntaxDescriptionSyntax
 
       int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_VALUE;
       invalidReason.append(getMessage(msgID, valueStr, pos,
-                                      stackTraceToSingleLineString(e)));
+                                      getExceptionMessage(e)));
       return false;
     }
     //Check if we have a RFC 4512 style extension.
@@ -461,8 +461,7 @@ public class LDAPSyntaxDescriptionSyntax
             debugCaught(DebugLogLevel.ERROR, e);
           }
             int msgID = MSGID_ATTR_SYNTAX_ATTRSYNTAX_INVALID_EXTENSION;
-            invalidReason.append(getMessage(msgID,
-                    stackTraceToSingleLineString(e)));
+            invalidReason.append(getMessage(msgID, getExceptionMessage(e)));
             return false;
         }
     }

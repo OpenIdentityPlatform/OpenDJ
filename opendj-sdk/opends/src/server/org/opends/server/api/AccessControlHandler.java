@@ -32,6 +32,8 @@ import org.opends.server.core.*;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.Entry;
+import org.opends.server.types.Operation;
+
 
 
 /**
@@ -43,7 +45,6 @@ import org.opends.server.types.Entry;
  */
 public abstract class AccessControlHandler
 {
-
   /**
    * Indicates whether the provided add operation is allowed based on
    * the access control configuration.  This method should not alter
@@ -230,6 +231,8 @@ public abstract class AccessControlHandler
    */
   public abstract boolean maySend(SearchOperation searchOperation,
                                SearchResultReference searchReference);
+
+
 
   /**
    * Indicates whether a proxied authorization control is allowed

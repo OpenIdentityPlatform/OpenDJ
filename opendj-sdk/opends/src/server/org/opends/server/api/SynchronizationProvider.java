@@ -43,7 +43,6 @@ import org.opends.server.types.SynchronizationProviderResult;
 
 
 
-
 /**
  * This class defines the set of methods and structures that are
  * available for use in a Directory Server synchronization provider.
@@ -55,11 +54,8 @@ import org.opends.server.types.SynchronizationProviderResult;
  * @param <T> the configuration for the synchronization provider.
  */
 public abstract class
-  SynchronizationProvider<T extends SynchronizationProviderCfg>
+       SynchronizationProvider<T extends SynchronizationProviderCfg>
 {
-
-
-
   /**
    * Performs any initialization that might be necessary for this
    * synchronization provider.

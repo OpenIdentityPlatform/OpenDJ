@@ -28,18 +28,12 @@ package org.opends.server.api.plugin;
 
 
 
-
-
-
 /**
  * This class defines a data structure that holds information about
  * the result of processing by a post-connect plugin.
  */
 public class PostConnectPluginResult
 {
-
-
-
   /**
    * A post-connect plugin result instance that indicates all
    * processing was  successful.

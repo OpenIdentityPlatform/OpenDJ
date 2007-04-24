@@ -32,27 +32,28 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ProtocolMessages.MSGID_ECN_INVALID_ELEMENT_TYPE;
 import static org.opends.server.messages.ProtocolMessages.MSGID_ECN_CANNOT_DECODE_VALUE;
 import static org.testng.Assert.*;
+import org.opends.server.types.LDAPException;
 
 public class TestLDAPException extends LdapTestCase {
 
-	@Test()
-	public void testLDAPException() {
-		int    msgID   = MSGID_ECN_INVALID_ELEMENT_TYPE;
-		String message = getMessage(msgID);
-		LDAPException ex=new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
-		assertTrue(ex.getResultCode() == LDAPResultCode.PROTOCOL_ERROR);
-		assertTrue(ex.getMessageID() == msgID); 
-	}
+  @Test()
+  public void testLDAPException() {
+    int    msgID   = MSGID_ECN_INVALID_ELEMENT_TYPE;
+    String message = getMessage(msgID);
+    LDAPException ex=new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+    assertTrue(ex.getResultCode() == LDAPResultCode.PROTOCOL_ERROR);
+    assertTrue(ex.getMessageID() == msgID);
+  }
 
-	@Test()
-	public void testLDAPExceptionThrowable() {
-		int    msgID   = MSGID_ECN_INVALID_ELEMENT_TYPE;
-		String message = getMessage(msgID);
-		LDAPException ex=new LDAPException(LDAPResultCode.OTHER, msgID, message);
-		int    msgID1   = MSGID_ECN_CANNOT_DECODE_VALUE;
-		String message1 = getMessage(msgID);
-		new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID1, message1,ex);
-		assertTrue(ex.getResultCode() == LDAPResultCode.OTHER);
-		assertTrue(ex.getMessageID() == msgID); 
-	}
+  @Test()
+  public void testLDAPExceptionThrowable() {
+    int    msgID   = MSGID_ECN_INVALID_ELEMENT_TYPE;
+    String message = getMessage(msgID);
+    LDAPException ex=new LDAPException(LDAPResultCode.OTHER, msgID, message);
+    int    msgID1   = MSGID_ECN_CANNOT_DECODE_VALUE;
+    String message1 = getMessage(msgID);
+    new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID1, message1,ex);
+    assertTrue(ex.getResultCode() == LDAPResultCode.OTHER);
+    assertTrue(ex.getMessageID() == msgID);
+  }
 }

@@ -46,7 +46,6 @@ import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.CancelledOperationException;
@@ -59,7 +58,9 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.LockManager;
+import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
@@ -648,7 +649,7 @@ deleteProcessing:
                      ErrorLogSeverity.SEVERE_ERROR,
                      MSGID_DELETE_SYNCH_CONFLICT_RESOLUTION_FAILED,
                      getConnectionID(), getOperationID(),
-                     stackTraceToSingleLineString(de));
+                     getExceptionMessage(de));
 
             setResponseData(de);
             break deleteProcessing;
@@ -1093,7 +1094,7 @@ deleteProcessing:
                 logError(ErrorLogCategory.SYNCHRONIZATION,
                          ErrorLogSeverity.SEVERE_ERROR,
                          MSGID_DELETE_SYNCH_PREOP_FAILED, getConnectionID(),
-                         getOperationID(), stackTraceToSingleLineString(de));
+                         getOperationID(), getExceptionMessage(de));
 
                 setResponseData(de);
                 break deleteProcessing;
@@ -1212,7 +1213,7 @@ deleteProcessing:
             logError(ErrorLogCategory.SYNCHRONIZATION,
                      ErrorLogSeverity.SEVERE_ERROR,
                      MSGID_DELETE_SYNCH_POSTOP_FAILED, getConnectionID(),
-                     getOperationID(), stackTraceToSingleLineString(de));
+                     getOperationID(), getExceptionMessage(de));
 
             setResponseData(de);
             break;
@@ -1264,7 +1265,7 @@ deleteProcessing:
           }
 
           int    msgID   = MSGID_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER;
-          String message = getMessage(msgID, stackTraceToSingleLineString(e));
+          String message = getMessage(msgID, getExceptionMessage(e));
           logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
         }
@@ -1303,7 +1304,7 @@ deleteProcessing:
 
           int    msgID   = MSGID_DELETE_ERROR_NOTIFYING_PERSISTENT_SEARCH;
           String message = getMessage(msgID, String.valueOf(persistentSearch),
-                                      stackTraceToSingleLineString(e));
+                                      getExceptionMessage(e));
           logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
 
@@ -1376,7 +1377,7 @@ deleteProcessing:
    * {@inheritDoc}
    */
   @Override()
-  boolean setCancelRequest(CancelRequest cancelRequest)
+  protected boolean setCancelRequest(CancelRequest cancelRequest)
   {
     this.cancelRequest = cancelRequest;
     return true;

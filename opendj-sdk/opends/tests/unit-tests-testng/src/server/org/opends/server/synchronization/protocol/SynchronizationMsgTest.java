@@ -43,7 +43,6 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.Operation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.synchronization.SynchronizationTestCase;
 import org.opends.server.synchronization.common.ChangeNumber;
@@ -56,6 +55,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
 import org.opends.server.types.RDN;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
@@ -574,7 +574,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     short requestorID = 3;
     long entryCount = 4;
     DN baseDN = DN.decode("dc=example");
-      
+
     InitializeTargetMessage msg = new InitializeTargetMessage(
         baseDN, senderID, targetID, requestorID, entryCount);
     InitializeTargetMessage newMsg = new InitializeTargetMessage(msg.getBytes());
@@ -583,7 +583,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     assertEquals(msg.getRequestorID(), newMsg.getRequestorID());
     assertEquals(msg.getEntryCount(), newMsg.getEntryCount());
     assertTrue(msg.getBaseDN().equals(newMsg.getBaseDN())) ;
-    
+
     assertEquals(senderID, newMsg.getsenderID());
     assertEquals(targetID, newMsg.getDestination());
     assertEquals(requestorID, newMsg.getRequestorID());

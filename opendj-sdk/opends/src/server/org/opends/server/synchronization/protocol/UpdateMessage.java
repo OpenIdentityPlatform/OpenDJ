@@ -34,11 +34,11 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.Operation;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.synchronization.common.ChangeNumber;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Operation;
 
 /**
  * Abstract class that must be extended to define a message

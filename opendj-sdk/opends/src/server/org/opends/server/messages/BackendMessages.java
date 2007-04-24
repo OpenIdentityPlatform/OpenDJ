@@ -3228,172 +3228,172 @@ public class BackendMessages
                     "contains additional sub-suffixes and may not be " +
                     "de-registered.  It may be possible to remove this " +
                     "sub-suffix by editing the configuration for the " +
-                    "subordinate backend with which it is associated.");
+                    "subordinate backend with which it is associated");
     registerMessage(MSGID_BACKEND_CANNOT_LOCK_ENTRY,
                     "The Directory Server was unable to obtain a lock on " +
                     "entry %s after multiple attempts.  This could mean that " +
                     "the entry is already locked by a long-running operation " +
                     "or that the entry has previously been locked but was " +
-                    "not properly unlocked.");
+                    "not properly unlocked");
     registerMessage(MSGID_BACKEND_CANNOT_REGISTER_BASEDN,
                     "An error occurred while attempting to register base DN " +
-                    "in the Directory Server:  %s.");
+                    "in the Directory Server:  %s");
 
 
     registerMessage(MSGID_ROOTDSE_CONFIG_ENTRY_NULL,
                     "An attempt was made to configure the root DSE backend " +
                     "without providing a configuration entry.  This is not " +
-                    "allowed.");
+                    "allowed");
     registerMessage(MSGID_ROOTDSE_SUBORDINATE_BASE_DESCRIPTION,
                     "Specifies the set of base DNs that will be used for " +
                     "singleLevel, wholeSubtree, and subordinateSubtree " +
                     "searches based at the root DSE.  If this is not " +
                     "provided, then the set of all user-defined suffixes " +
-                    "will be used.");
+                    "will be used");
     registerMessage(MSGID_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE,
                     "Base DN \"%s\" is configured as one of the subordinate " +
                     "base DNs to use for searches below the root DSE.  " +
                     "However, this base DN is not handled by any suffix " +
                     "registered with the Directory Server and will therefore " +
-                    "not be used.");
+                    "not be used");
     registerMessage(MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION,
                     "An unexpected problem occurred while trying to " +
                     "determine the set of subordinate base DNs to use for " +
-                    "searches below the root DSE:  %s.");
+                    "searches below the root DSE:  %s");
     registerMessage(MSGID_ROOTDSE_DESCRIPTION_SHOW_ALL_ATTRIBUTES,
                     "Indicates whether all attributes in the root DSE should " +
                     "be treated like user attributes (and therefore returned " +
                     "to clients by default) regardless of the Directory " +
-                    "Server schema configuration.");
+                    "Server schema configuration");
     registerMessage(MSGID_ROOTDSE_CANNOT_DETERMINE_ALL_USER_ATTRIBUTES,
                     "An error occurred while trying to determine the value " +
                     "of the %s configuration attribute, which controls " +
                     "whether to treat all root DSE attributes like user " +
                     "attributes:  %s.  The attributes in the root DSE will " +
                     "be treated based on their definition in the server " +
-                    "schema.");
+                    "schema");
     registerMessage(MSGID_ROOTDSE_GET_ENTRY_NONROOT,
                     "The root DSE backend was asked to retrieve entry with " +
                     "DN \"%s\".  This backend should only be asked to " +
                     "retrieve the root DSE itself.  However, it will check " +
                     "with the defined subordinate backends and see if it " +
-                    "can find the requested entry.");
+                    "can find the requested entry");
     registerMessage(MSGID_ROOTDSE_ADD_NOT_SUPPORTED,
                     "Unwilling to add entry \"%s\" because add operations " +
-                    "are not supported in the root DSE backend.");
+                    "are not supported in the root DSE backend");
     registerMessage(MSGID_ROOTDSE_DELETE_NOT_SUPPORTED,
                     "Unwilling to remove entry \"%s\" because delete " +
-                    "operations are not supported in the root DSE backend.");
+                    "operations are not supported in the root DSE backend");
     registerMessage(MSGID_ROOTDSE_MODIFY_NOT_SUPPORTED,
                     "Unwilling to update entry \"%s\" because modify " +
                     "operations are not supported in the root DSE backend.  " +
                     "If you wish to alter the contents of the root DSE " +
                     "itself, then it may be possible to do so by modifying " +
-                    "the \"%s\" entry in the configuration.");
+                    "the \"%s\" entry in the configuration");
     registerMessage(MSGID_ROOTDSE_MODIFY_DN_NOT_SUPPORTED,
                     "Unwilling to rename entry \"%s\" because modify DN " +
-                    "operations are not supported in the root DSE backend.");
+                    "operations are not supported in the root DSE backend");
     registerMessage(MSGID_ROOTDSE_INVALID_SEARCH_BASE,
                     "Unwilling to perform a search (connection ID %d, " +
                     "operation ID %d) with a base DN of \"%s\" in the root " +
                     "DSE backend.  The base DN for searches in this backend " +
-                    "must be the DN of the root DSE itself.");
+                    "must be the DN of the root DSE itself");
     registerMessage(MSGID_ROOTDSE_UNEXPECTED_SEARCH_FAILURE,
                     "An unexpected failure occurred while trying to process " +
                     "a search operation (connection ID %d, operation ID %d) " +
-                    "in the root DSE backend:  %s.");
+                    "in the root DSE backend:  %s");
     registerMessage(MSGID_ROOTDSE_INVALID_SEARCH_SCOPE,
                     "Unable to process the search with connection ID %d and " +
-                    "operation ID %d because it had an invalid scope of %s.");
+                    "operation ID %d because it had an invalid scope of %s");
     registerMessage(MSGID_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER,
                     "An unexpected error occurred while trying to open the " +
-                    "LDIF writer for the root DSE backend:  %s.");
+                    "LDIF writer for the root DSE backend:  %s");
     registerMessage(MSGID_ROOTDSE_UNABLE_TO_EXPORT_DSE,
                     "An unexpected error occurred while trying to export the " +
-                    "root DSE entry to the specified LDIF target: %s.");
+                    "root DSE entry to the specified LDIF target: %s");
     registerMessage(MSGID_ROOTDSE_IMPORT_NOT_SUPPORTED,
                     "The root DSE backend does not support LDIF import " +
-                    "operations.");
+                    "operations");
     registerMessage(MSGID_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED,
                     "The root DSE backend does not provide a facility for " +
                     "backup and restore operations.  The contents of the " +
                     "root DSE should be backed up as part of the Directory " +
-                    "Server configuration.");
+                    "Server configuration");
     registerMessage(MSGID_ROOTDSE_USING_SUFFIXES_AS_BASE_DNS,
                     "The root DSE configuration has been updated so that it " +
                     "will now use the defined set of Directory Server " +
-                    "suffixes when performing searches below the root DSE.");
+                    "suffixes when performing searches below the root DSE");
     registerMessage(MSGID_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS,
                     "The root DSE configuration has been updated so that it " +
                     "will now use the base DN set %s when performing " +
-                    "below the root DSE.");
+                    "below the root DSE");
     registerMessage(MSGID_ROOTDSE_UPDATED_SHOW_ALL_ATTRS,
                     "The root DSE configuration has been updated so that " +
-                    "configuration attribute %s will now use a value of %s.");
+                    "configuration attribute %s will now use a value of %s");
     registerMessage(MSGID_ROOTDSE_USING_NEW_USER_ATTRS,
                     "The root DSE configuration has been updated so that it " +
-                    "will now use a new set of user-defined attributes.");
+                    "will now use a new set of user-defined attributes");
 
 
     registerMessage(MSGID_MONITOR_CONFIG_ENTRY_NULL,
                     "An attempt was made to configure the monitor backend " +
                     "without providing a configuration entry.  This is not " +
                     "allowed, and no monitor information will be available " +
-                    "over protocol.");
+                    "over protocol");
     registerMessage(MSGID_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN,
                     "An unexpected error occurred while attempting to decode " +
                     DN_MONITOR_ROOT + " as the base DN for the Directory " +
                     "Server monitor information:  %s.  No monitor " +
-                    "information will be available over protocol.");
+                    "information will be available over protocol");
     registerMessage(MSGID_MONITOR_ADD_NOT_SUPPORTED,
                     "Unwilling to add entry \"%s\" because add operations " +
-                    "are not supported in the monitor backend.");
+                    "are not supported in the monitor backend");
     registerMessage(MSGID_MONITOR_DELETE_NOT_SUPPORTED,
                     "Unwilling to remove entry \"%s\" because delete " +
-                    "operations are not supported in the monitor backend.");
+                    "operations are not supported in the monitor backend");
     registerMessage(MSGID_MONITOR_MODIFY_NOT_SUPPORTED,
                     "Unwilling to update entry \"%s\" because modify " +
                     "operations are not supported in the monitor backend.  " +
                     "If you wish to alter the contents of the base monitor " +
                     "entry itself, then it may be possible to do so by " +
-                    "modifying the \"%s\" entry in the configuration.");
+                    "modifying the \"%s\" entry in the configuration");
     registerMessage(MSGID_MONITOR_MODIFY_DN_NOT_SUPPORTED,
                     "Unwilling to rename entry \"%s\" because modify DN " +
-                    "operations are not supported in the monitor backend.");
+                    "operations are not supported in the monitor backend");
     registerMessage(MSGID_MONITOR_UNABLE_TO_EXPORT_BASE,
                     "An error occurred while attempting to export the base " +
-                    "monitor entry:  %s.");
+                    "monitor entry:  %s");
     registerMessage(MSGID_MONITOR_UNABLE_TO_EXPORT_PROVIDER_ENTRY,
                     "An error occurred while attempting to export the " +
-                    "monitor entry for monitor provider %s:  %s.");
+                    "monitor entry for monitor provider %s:  %s");
     registerMessage(MSGID_MONITOR_IMPORT_NOT_SUPPORTED,
                     "The monitor backend does not support LDIF import " +
-                    "operations.");
+                    "operations");
     registerMessage(MSGID_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED,
                     "The monitor backend does not provide a facility for " +
-                    "backup and restore operations.");
+                    "backup and restore operations");
     registerMessage(MSGID_MONITOR_USING_NEW_USER_ATTRS,
                     "The monitor configuration has been updated so that it " +
-                    "will now use a new set of user-defined attributes.");
+                    "will now use a new set of user-defined attributes");
     registerMessage(MSGID_MONITOR_GET_ENTRY_NULL,
                     "Unable to retrieve the requested entry from the monitor " +
-                    "backend because the provided DN was null.");
+                    "backend because the provided DN was null");
     registerMessage(MSGID_MONITOR_BASE_TOO_DEEP,
                     "Unable to retrieve the requested entry %s from the " +
                     "monitor backend because the DN is too deep.  Monitor " +
-                    "entries may not be more than one level below %s.");
+                    "entries may not be more than one level below %s");
     registerMessage(MSGID_MONITOR_INVALID_BASE,
                     "Unable to retrieve the requested entry %s from the " +
                     "monitor backend because the DN is not below the monitor " +
-                    "base of %s.");
+                    "base of %s");
     registerMessage(MSGID_MONITOR_MULTIVALUED_RDN,
                     "Unable to retrieve the requested entry %s from the " +
                     "monitor backend because monitor entries may not contain " +
-                    "multivalued RDNs.");
+                    "multivalued RDNs");
     registerMessage(MSGID_MONITOR_NO_SUCH_PROVIDER,
                     "Unable to retrieve the requested entry from the monitor " +
                     "backend because there is no monitor provider \"%s\" " +
-                    "registered with the Directory Server.");
+                    "registered with the Directory Server");
     registerMessage(MSGID_MONITOR_UPTIME,
                     "%d days %d hours %d minutes %d seconds");
 
@@ -3402,7 +3402,7 @@ public class BackendMessages
                     "An attempt was made to configure the schema backend " +
                     "without providing a configuration entry.  This is not " +
                     "allowed, and no schema information will be available " +
-                    "over protocol.");
+                    "over protocol");
     registerMessage(MSGID_SCHEMA_DESCRIPTION_ENTRY_DN,
                     "Specifies the DN or set of DNs for the entries that may " +
                     "be retrieved in order to retrieve the Directory Server " +
@@ -3410,7 +3410,7 @@ public class BackendMessages
                     "if the schema is to be available in multiple " +
                     "locations for compatibility purposes.  If no value is " +
                     "provided, a default of \"" + DN_DEFAULT_SCHEMA_ROOT +
-                    "\" will be used.");
+                    "\" will be used");
     registerMessage(MSGID_SCHEMA_DESCRIPTION_SHOW_ALL_ATTRIBUTES,
                     "Indicates whether to treat attributes in the subschema " +
                     "entry as user attributes even if they are marked " +
@@ -3420,14 +3420,14 @@ public class BackendMessages
                     "default even if they are not requested.  Note that the " +
                     "ldapSyntaxes attribute will always be treated as " +
                     "operational in order to avoid problems with attempts to " +
-                    "modify the schema over protocol.");
+                    "modify the schema over protocol");
     registerMessage(MSGID_SCHEMA_CANNOT_DETERMINE_BASE_DN,
                     "An error occurred while trying to determine the base " +
                     "DNs to use when publishing the Directory Server schema " +
                     "information, as specified in the " + ATTR_SCHEMA_ENTRY_DN +
                     " attribute of configuration entry %s:  %s.  The default " +
                     "schema base DN of " + DN_DEFAULT_SCHEMA_ROOT +
-                    " will be used.");
+                    " will be used");
     registerMessage(MSGID_SCHEMA_CANNOT_DETERMINE_SHOW_ALL,
                     "An error occurred while trying to determine whether to " +
                     "treat all subschema entry attributes as user attributes " +
@@ -3435,452 +3435,452 @@ public class BackendMessages
                     "as specified in the " + ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES +
                     " attribute of configuration entry %s:  %s.  The default " +
                     "behavior, which is to treat the attribute types as " +
-                    "defined in the server schema, will be used.");
+                    "defined in the server schema, will be used");
     registerMessage(MSGID_SCHEMA_CANNOT_FIND_CONCAT_FILE,
                     "Unable to find a file containing concatenated schema " +
                     "element definitions in order to determine if any schema " +
                     "changes were made with the server offline.  The " +
                     "file was expected in the %s directory and should have " +
-                    "been named either %s or %s.");
+                    "been named either %s or %s");
     registerMessage(MSGID_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES,
                     "An error occurred while attempting to determine whether " +
                     "any schema changes had been made by directly editing " +
-                    "the schema files with the server offline:  %s.");
+                    "the schema files with the server offline:  %s");
     registerMessage(MSGID_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE,
                     "An error occurred while attempting to write file %s " +
                     "containing a concatenated list of all server schema " +
                     "elements:  %s.  The server may not be able to " +
                     "accurately identify any schema changes made with the " +
-                    "server offline.");
+                    "server offline");
     registerMessage(MSGID_SCHEMA_ADD_NOT_SUPPORTED,
                     "Unwilling to add entry \"%s\" because add operations " +
-                    "are not supported in the schema backend.");
+                    "are not supported in the schema backend");
     registerMessage(MSGID_SCHEMA_DELETE_NOT_SUPPORTED,
                     "Unwilling to remove entry \"%s\" because delete " +
-                    "operations are not supported in the schema backend.");
+                    "operations are not supported in the schema backend");
     registerMessage(MSGID_SCHEMA_MODIFY_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to modify the " +
-                    "Directory Server schema.");
+                    "Directory Server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_NOT_SUPPORTED,
                     "Unwilling to update entry \"%s\" because modify " +
                     "operations are not yet supported in the schema " +
                     "backend.  If you wish to alter the contents of the base " +
                     "schema entry itself, then it may be possible to do so " +
-                    "by modifying the \"%s\" entry in the configuration.");
+                    "by modifying the \"%s\" entry in the configuration");
     registerMessage(MSGID_SCHEMA_DELETE_MODTYPE_NOT_SUPPORTED,
                     "The schema backend does not currently support removing " +
-                    "existing schema elements.");
+                    "existing schema elements");
     registerMessage(MSGID_SCHEMA_INVALID_MODIFICATION_TYPE,
                     "The schema backend does not support the %s modification " +
-                    "type.");
+                    "type");
     registerMessage(MSGID_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE,
                     "The schema backend does not support the modification of " +
                     "the %s attribute type.  Only attribute types, object " +
                     "classes, name forms, DIT content rules, DIT structure " +
-                    "rules, and matching rule uses may be modified.");
+                    "rules, and matching rule uses may be modified");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE,
                     "An error occurred while attempting to decode the " +
-                    "attribute type \"%s\":  %s.");
+                    "attribute type \"%s\":  %s");
     registerMessage(MSGID_SCHEMA_MODIFY_ATTRTYPE_ALREADY_EXISTS,
                     "Unable to add attribute type  %s to the server schema " +
                     "because there is an existing attribute type with a " +
-                    "conflicting name or OID:  %s.");
+                    "conflicting name or OID:  %s");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS,
                     "An error occurred while attempting to decode the object " +
-                    "class \"%s\":  %s.");
+                    "class \"%s\":  %s");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM,
                     "An error occurred while attempting to decode the name " +
-                    "form \"%s\":  %s.");
+                    "form \"%s\":  %s");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DCR,
                     "An error occurred while attempting to decode the DIT " +
-                    "content rule \"%s\":  %s.");
+                    "content rule \"%s\":  %s");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_DSR,
                     "An error occurred while attempting to decode the DIT " +
-                    "structure rule \"%s\":  %s.");
+                    "structure rule \"%s\":  %s");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE,
                     "An error occurred while attempting to decode the " +
-                    "matching rule use \"%s\":  %s.");
+                    "matching rule use \"%s\":  %s");
     registerMessage(MSGID_SCHEMA_MODIFY_DELETE_NO_VALUES,
                     "The server will not allow removing all values for the " +
-                    "%s attribute type in the server schema.");
+                    "%s attribute type in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS,
                     "Unable to add objectclass %s because its superior " +
-                    "class of %s is not defined in the server schema.");
+                    "class of %s is not defined in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_OC_UNDEFINED_REQUIRED_ATTR,
                     "Unable to add objectclass %s because it requires " +
-                    "attribute %s which is not defined in the server schema.");
+                    "attribute %s which is not defined in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_OC_UNDEFINED_OPTIONAL_ATTR,
                     "Unable to add objectclass %s because it allows " +
-                    "attribute %s which is not defined in the server schema.");
+                    "attribute %s which is not defined in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_OBJECTCLASS_ALREADY_EXISTS,
                     "Unable to add objectclass %s to the server schema " +
                     "because there is an existing objectclass with a " +
                     "conflicting name or OID:  %s");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_READ_EXISTING_USER_SCHEMA,
                     "An error occurred while attempting to read the contents " +
-                    "of schema file %s:  %s.");
+                    "of schema file %s:  %s");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA,
                     "An error occurred while attepting to write the updated " +
-                    "schema:  %s.");
+                    "schema:  %s");
     registerMessage(MSGID_SCHEMA_MODIFY_DN_NOT_SUPPORTED,
                     "Unwilling to rename entry \"%s\" because modify DN " +
-                    "operations are not supported in the schema backend.");
+                    "operations are not supported in the schema backend");
     registerMessage(MSGID_SCHEMA_UNABLE_TO_EXPORT_BASE,
                     "An error occurred while attempting to export the base " +
-                    "schema entry:  %s.");
+                    "schema entry:  %s");
     registerMessage(MSGID_SCHEMA_IMPORT_NOT_SUPPORTED,
                     "The schema backend does not support LDIF import " +
-                    "operations.");
+                    "operations");
     registerMessage(MSGID_SCHEMA_BACKUP_AND_RESTORE_NOT_SUPPORTED,
                     "The schema backend does not yet provide a facility for " +
-                    "backup and restore operations.");
+                    "backup and restore operations");
     registerMessage(MSGID_SCHEMA_INVALID_BASE,
                     "Unable to retrieve the requested entry %s from the " +
                     "schema backend because the DN is equal to one of the " +
-                    "schema entry DNs.");
+                    "schema entry DNs");
     registerMessage(MSGID_SCHEMA_UNABLE_TO_CREATE_LDIF_WRITER,
                     "An unexpected error occurred while trying to open the " +
-                    "LDIF writer for the schema backend:  %s.");
+                    "LDIF writer for the schema backend:  %s");
     registerMessage(MSGID_SCHEMA_DEREGISTERED_BASE_DN,
                     "Successfully deregistered DN %s so that it will no " +
-                    "longer be available as a schema entry DN.");
+                    "longer be available as a schema entry DN");
     registerMessage(MSGID_SCHEMA_CANNOT_DEREGISTER_BASE_DN,
                     "An error occurred while trying to deregister %s as a " +
-                    "schema entry DN:  %s.");
+                    "schema entry DN:  %s");
     registerMessage(MSGID_SCHEMA_REGISTERED_BASE_DN,
-                    "Successfully registered DN %s as a new schema entry DN.");
+                    "Successfully registered DN %s as a new schema entry DN");
     registerMessage(MSGID_SCHEMA_CANNOT_REGISTER_BASE_DN,
                     "An error occurred while trying to register %s as a " +
-                    "schema entry DN:  %s.");
+                    "schema entry DN:  %s");
     registerMessage(MSGID_SCHEMA_USING_NEW_USER_ATTRS,
                     "The schema configuration has been updated so that it " +
-                    "will now use a new set of user-defined attributes.");
+                    "will now use a new set of user-defined attributes");
     registerMessage(MSGID_SCHEMA_BACKUP_CANNOT_GET_MAC,
                     "An error occurred while attempting to obtain the %s MAC " +
-                    "provider to create the signed hash for the backup:  %s.");
+                    "provider to create the signed hash for the backup:  %s");
     registerMessage(MSGID_SCHEMA_BACKUP_CANNOT_GET_DIGEST,
                     "An error occurred while attempting to obtain the %s " +
-                    "message digest to create the hash for the backup:  %s.");
+                    "message digest to create the hash for the backup:  %s");
     registerMessage(MSGID_SCHEMA_BACKUP_CANNOT_CREATE_ARCHIVE_FILE,
                     "An error occurred while trying to create the schema " +
-                    "archive file %s in directory %s:  %s.");
+                    "archive file %s in directory %s:  %s");
     registerMessage(MSGID_SCHEMA_BACKUP_CANNOT_GET_CIPHER,
                     "An error occurred while attempting to obtain the %s " +
-                    "cipher to use to encrypt the backup:  %s.");
+                    "cipher to use to encrypt the backup:  %s");
     registerMessage(MSGID_SCHEMA_BACKUP_ZIP_COMMENT,
                     "%s schema backup %s");
     registerMessage(MSGID_SCHEMA_BACKUP_CANNOT_LIST_SCHEMA_FILES,
                     "An error occurred while attempting to obtain a list " +
                     "of the files in directory %s to include in the schema " +
-                    "backup:  %s.");
+                    "backup:  %s");
     registerMessage(MSGID_SCHEMA_BACKUP_CANNOT_BACKUP_SCHEMA_FILE,
                     "An error occurred while attempting to back up schema " +
-                    "file %s:  %s.");
+                    "file %s:  %s");
     registerMessage(MSGID_SCHEMA_BACKUP_CANNOT_CLOSE_ZIP_STREAM,
                     "An error occurred while trying to close the schema " +
-                    "archive file %s in directory %s:  %s.");
+                    "archive file %s in directory %s:  %s");
     registerMessage(MSGID_SCHEMA_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR,
                     "An error occurred while attempting to update the backup " +
                     "descriptor file %s with information about the schema " +
-                    "backup:  %s.");
+                    "backup:  %s");
     registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_ATTRTYPE,
                     "Unable to add attribute type %s because it conflicts " +
                     "with multiple existing attribute types (%s and " +
-                    "%s).");
+                    "%s)");
     registerMessage(MSGID_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_ATTRIBUTE_TYPE,
                     "Unable to add attribute type %s because it references " +
                     "superior attribute type %s which is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_OBJECTCLASS,
                     "Unable to add objectclass %s because it conflicts with " +
-                    "multiple existing objectclasses (%s and %s).");
+                    "multiple existing objectclasses (%s and %s)");
     registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_NAME_FORM,
                     "Unable to add name form %s because it conflicts with " +
-                    "multiple existing name forms (%s and %s).");
+                    "multiple existing name forms (%s and %s)");
     registerMessage(MSGID_SCHEMA_MODIFY_NF_UNDEFINED_STRUCTURAL_OC,
                     "Unable to add name form %s because it references " +
                     "structural objectclass %s which is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_NF_OC_NOT_STRUCTURAL,
                     "Unable to add name form %s because it references " +
                     "objectclass %s which is defined in the server schema " +
-                    "but is not a structural objectclass.");
+                    "but is not a structural objectclass");
     registerMessage(MSGID_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_NF,
                     "Unable to add name form %s because it references " +
                     "structural objectclass %s which is already associated " +
-                    "with another name form %s.");
+                    "with another name form %s");
     registerMessage(MSGID_SCHEMA_MODIFY_NF_UNDEFINED_REQUIRED_ATTR,
                     "Unable to add name form %s because it references " +
                     "required attribute type %s which is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_NF_UNDEFINED_OPTIONAL_ATTR,
                     "Unable to add name form %s because it references " +
                     "optional attribute type %s which is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DCR,
                     "Unable to add DIT content rule %s because it conflicts " +
-                    "with multiple existing DIT content rules (%s and %s).");
+                    "with multiple existing DIT content rules (%s and %s)");
     registerMessage(MSGID_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_DCR,
                     "Unable to add DIT content rule %s because it " +
                     "references structural objectclass %s which is already " +
-                    "associated with another DIT content rule %s.");
+                    "associated with another DIT content rule %s");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_STRUCTURAL_OC,
                     "Unable to add DIT content rule %s because it " +
                     "references structural objectclass %s which is not " +
-                    "defined in the server schema.");
+                    "defined in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_OC_NOT_STRUCTURAL,
                     "Unable to add DIT content rule %s because it " +
                     "references structural objectclass %s which is defined " +
-                    "in the server schema but is not structural.");
+                    "in the server schema but is not structural");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_AUXILIARY_OC,
                     "Unable to add DIT content rule %s because it " +
                     "references auxiliary objectclass %s which is not " +
-                    "defined in the server schema.");
+                    "defined in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_REQUIRED_ATTR,
                     "Unable to add DIT content rule %s because it " +
                     "references required attribute type %s which is not " +
-                    "defined in the server schema.");
+                    "defined in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_OPTIONAL_ATTR,
                     "Unable to add DIT content rule %s because it " +
                     "references optional attribute type %s which is not " +
-                    "defined in the server schema.");
+                    "defined in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_UNDEFINED_PROHIBITED_ATTR,
                     "Unable to add DIT content rule %s because it " +
                     "references prohibited attribute type %s which is not " +
-                    "defined in the server schema.");
+                    "defined in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DSR,
                     "Unable to add DIT structure rule %s because it " +
                     "conflicts with multiple existing DIT structure rules " +
-                    "(%s and %s).");
+                    "(%s and %s)");
     registerMessage(MSGID_SCHEMA_MODIFY_NAME_FORM_CONFLICT_FOR_ADD_DSR,
                     "Unable to add DIT structure rule %s because it " +
                     "references name form %s which is already associated " +
-                    "with another DIT structure rule %s.");
+                    "with another DIT structure rule %s");
     registerMessage(MSGID_SCHEMA_MODIFY_DSR_UNDEFINED_NAME_FORM,
                     "Unable to add DIT structure rule %s because it " +
                     "references name form %s which is not defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_MR_USE,
                     "Unable to add matching rule use %s because it " +
                     "conflicts with multiple existing matching rule uses " +
-                    "(%s and %s).");
+                    "(%s and %s)");
     registerMessage(MSGID_SCHEMA_MODIFY_MR_CONFLICT_FOR_ADD_MR_USE,
                     "Unable to add matching rule use %s because it " +
                     "references matching rule %s which is already associated " +
-                    "with another matching rule use %s.");
+                    "with another matching rule use %s");
     registerMessage(MSGID_SCHEMA_MODIFY_MRU_UNDEFINED_ATTR,
                     "Unable to add matching rule use %s because it " +
                     "references attribute type %s which is not defined in " +
-                    "the server schema.");
+                    "the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_AT,
                     "Circular reference detected for attribute type %s in " +
                     "which the superior type chain references the " +
-                    "attribute type itself.");
+                    "attribute type itself");
     registerMessage(MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_OC,
                     "Circular reference detected for objectclass %s in which " +
                     "the superior class chain references the objectclass " +
-                    "itself.");
+                    "itself");
     registerMessage(MSGID_SCHEMA_MODIFY_CIRCULAR_REFERENCE_DSR,
                     "Circular reference detected for DIT structure rule %s " +
                     "in which the superior rule chain references the DIT " +
-                    "structure rule itself.");
+                    "structure rule itself");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED,
                     "An error occurred while attempting to create copies " +
                     "of the existing schema files before applying the " +
                     "updates:  %s.  The server was able to restore the " +
                     "original schema configuration, so no additional " +
-                    "cleanup should be required.");
+                    "cleanup should be required");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED,
                     "An error occurred while attempting to create copies " +
                     "of the existing schema files before applying the " +
                     "updates:  %s.  A problem also occurred when attempting " +
                     "to restore the original schema configuration, so the " +
                     "server may be left in an inconsistent state and could " +
-                    "require manual cleanup.");
+                    "require manual cleanup");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED,
                     "An error occurred while attempting to write new " +
                     "versions of the server schema files:  %s.   The server " +
                     "was able to restore the original schema configuration, " +
-                    "so no additional cleanup should be required.");
+                    "so no additional cleanup should be required");
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED,
                     "An error occrred while attempting to write new " +
                     "versions of the server schema files:  %s.  A problem " +
                     "also occured when attempting to restore the original " +
                     "schema configuration, so the server may be left in an " +
-                    "inconsistent state and could require manual cleanup.");
+                    "inconsistent state and could require manual cleanup");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE,
                     "Unable to remove attribute type %s from the server " +
-                    "schema because no such attribute type is defined.");
+                    "schema because no such attribute type is defined");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_AT_SUPERIOR_TYPE,
                     "Unable to remove attribute type %s from the server " +
                     "schema because it is referenced as the superior type " +
-                    "for attribute type %s.");
+                    "for attribute type %s");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_OC,
                     "Unable to remove attribute type %s from the server " +
                     "schema because it is referenced as a required or " +
-                    "optional attribute type in objectclass %s.");
+                    "optional attribute type in objectclass %s");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_NF,
                     "Unable to remove attribute type %s from the server " +
                     "schema because it is referenced as a required or " +
-                    "optional attribute type in name form %s.");
+                    "optional attribute type in name form %s");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_DCR,
                     "Unable to remove attribute type %s from the server " +
                     "schema because it is referenced as a required, " +
                     "optional, or prohibited attribute type in DIT content " +
-                    "rule %s.");
+                    "rule %s");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_AT_IN_MR_USE,
                     "Unable to remove attribute type %s from the server " +
                     "schema because it is referenced by matching rule use %s");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS,
                     "Unable to remove objectclass %s from the server schema " +
-                    "because no such objectclass is defined.");
+                    "because no such objectclass is defined");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_OC_SUPERIOR_CLASS,
                     "Unable to remove objectclass %s from the server schema " +
                     "because it is referenced as the superior class for " +
-                    "objectclass %s.");
+                    "objectclass %s");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_OC_IN_NF,
                     "Unable to remove objectclass %s from the server schema " +
                     "because it is referenced as the structural class for " +
-                    "name form %s.");
+                    "name form %s");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_OC_IN_DCR,
                     "Unable to remove objectclass %s from the server schema " +
                     "because it is referenced as a structural or auxiliary " +
-                    "class for DIT content rule %s.");
+                    "class for DIT content rule %s");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM,
                     "Unable to remove name form %s from the server schema " +
-                    "because no such name form is defined.");
+                    "because no such name form is defined");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NF_IN_DSR,
                     "Unable to remove name form %s from the server schema " +
-                    "because it is referenced by DIT structure rule %s.");
+                    "because it is referenced by DIT structure rule %s");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_DCR,
                     "Unable to remove DIT content rule %s from the server " +
-                    "schema because no such DIT content rule is defined.");
+                    "schema because no such DIT content rule is defined");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR,
                     "Unable to remove DIT structure rule %s from the server " +
-                    "schema because no such DIT structure rule is defined.");
+                    "schema because no such DIT structure rule is defined");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_DSR_SUPERIOR_RULE,
                     "Unable to remove DIT structure rule %s from the server " +
                     "schema because it is referenced as a superior rule for " +
-                    "DIT structure rule %s.");
+                    "DIT structure rule %s");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE,
                     "Unable to remove matching rule use %s from the server " +
-                    "schema because no such matching rule use is defined.");
+                    "schema because no such matching rule use is defined");
     registerMessage(MSGID_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_ATTRIBUTE_TYPE,
                     "Unable to add attribute type %s because the superior " +
-                    "type %s is marked as OBSOLETE in the server schema.");
+                    "type %s is marked as OBSOLETE in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR,
                     "Unable to add attribute type %s because the associated " +
                     "matching rule %s is marked as OBSOLETE in the server " +
-                    "schema.");
+                    "schema");
     registerMessage(MSGID_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_OBJECTCLASS,
                     "Unable to add object class %s because the superior " +
-                    "class %s is marked as OBSOLETE in the server schema.");
+                    "class %s is marked as OBSOLETE in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_OC_OBSOLETE_REQUIRED_ATTR,
                     "Unable to add object class %s because required " +
-                    "attribute %s is marked as OBSOLETE in the server schema.");
+                    "attribute %s is marked as OBSOLETE in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_OC_OBSOLETE_OPTIONAL_ATTR,
                     "Unable to add object class %s because optional " +
-                    "attribute %s is marked as OBSOLETE in the server schema.");
+                    "attribute %s is marked as OBSOLETE in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_NF_OC_OBSOLETE,
                     "Unable to add name form %s because its structural " +
                     "object class %s is marked as OBSOLETE in the server " +
-                    "schema.");
+                    "schema");
     registerMessage(MSGID_SCHEMA_MODIFY_NF_OBSOLETE_REQUIRED_ATTR,
                     "Unable to add name form %s because it requires " +
                     "attribute type %s which is marked as OBSOLETE in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_NF_OBSOLETE_OPTIONAL_ATTR,
                     "Unable to add name form %s because it allows " +
                     "attribute type %s which is marked as OBSOLETE in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_STRUCTURAL_OC_OBSOLETE,
                     "Unable to add DIT content rule %s because its " +
                     "structural object class %s is marked as OBSOLETE in " +
-                    "the server schema.");
+                    "the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_OC_NOT_AUXILIARY,
                     "Unable to add DIT content rule %s because it references " +
                     "auxiliary object class %s which is defined in the " +
-                    "server schema but is not an auxiliary class.");
+                    "server schema but is not an auxiliary class");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_AUXILIARY_OC,
                     "Unable to add DIT content rule %s because it references " +
                     "auxiliary object class %s which is marked as OBSOLETE " +
-                    "in the server schema.");
+                    "in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_AUXILIARY_OC_OBSOLETE,
                     "Unable to add DIT content rule %s because it allows " +
                     "auxiliary object class %s which is marked as OBSOLETE " +
-                    "in the server schema.");
+                    "in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_REQUIRED_ATTR,
                     "Unable to add DIT content rule %s because it requires " +
                     "attribute type %s which is marked as OBSOLETE in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_OPTIONAL_ATTR,
                     "Unable to add DIT content rule %s because it allows " +
                     "attribute type %s which is marked as OBSOLETE in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DCR_OBSOLETE_PROHIBITED_ATTR,
                     "Unable to add DIT content rule %s because it prohibits " +
                     "attribute type %s which is marked as OBSOLETE in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DSR_OBSOLETE_NAME_FORM,
                     "Unable to add DIT structure rule %s because its name " +
-                    "form %s is marked OBSOLETE in the server schema.");
+                    "form %s is marked OBSOLETE in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_DSR_OBSOLETE_SUPERIOR_RULE,
                     "Unable to add DIT structure rule %s because it " +
                     "references superior rule %s whihc is marked as OBSOLETE " +
-                    "in the server schema.");
+                    "in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_MRU_OBSOLETE_MR,
                     "Unable to add matching rule use %s because its matching " +
-                    "rule %s is marked OBSOLETE in the server schema.");
+                    "rule %s is marked OBSOLETE in the server schema");
     registerMessage(MSGID_SCHEMA_MODIFY_MRU_OBSOLETE_ATTR,
                     "Unable to add matching rule use %s because it " +
                     "references attribute type %s which is marked as " +
-                    "OBSOLETE in the server schema.");
+                    "OBSOLETE in the server schema");
 
 
     registerMessage(MSGID_SCHEMA_RESTORE_NO_SUCH_BACKUP,
                     "Unable to restore or verify schema backup %s in " +
-                    "directory %s because no such backup exists.");
+                    "directory %s because no such backup exists");
     registerMessage(MSGID_SCHEMA_RESTORE_NO_BACKUP_FILE,
                     "Unable to restore or verify schema backup %s in " +
                     "directory %s because the archive filename could not be " +
-                    "determined.");
+                    "determined");
     registerMessage(MSGID_SCHEMA_RESTORE_NO_SUCH_FILE,
                     "Unable to restore or verify schema backup %s because " +
-                    "the specified archive file %s does not exist.");
+                    "the specified archive file %s does not exist");
     registerMessage(MSGID_SCHEMA_RESTORE_CANNOT_CHECK_FOR_ARCHIVE,
                     "Unable to restore or verify schema backup %s because " +
                     "an error occurred while trying to determine whether " +
-                    "backup archive %s exists:  %s.");
+                    "backup archive %s exists:  %s");
     registerMessage(MSGID_SCHEMA_RESTORE_UNKNOWN_DIGEST,
                     "Unable to restore or verify schema backup %s because " +
                     "an unsigned hash of this backup is available but the " +
                     "server cannot determine the digest algorithm used to " +
-                    "generate this hash.");
+                    "generate this hash");
     registerMessage(MSGID_SCHEMA_RESTORE_CANNOT_GET_DIGEST,
                     "Unable to restore or verify schema backup %s because " +
                     "it has an unsigned hash that uses an unknown or " +
-                    "unsupported digest algorithm of %s.");
+                    "unsupported digest algorithm of %s");
     registerMessage(MSGID_SCHEMA_RESTORE_UNKNOWN_MAC,
                     "Unable to restore or verify schema backup %s because " +
                     "a signed hash of this backup is available but the " +
                     "server cannot determine the MAC algorithm used to " +
-                    "generate this hash.");
+                    "generate this hash");
     registerMessage(MSGID_SCHEMA_RESTORE_CANNOT_GET_MAC,
                     "Unable to restore or verify schema backup %s because " +
                     "it has a signed hash that uses an unknown or " +
-                    "unsupported MAC algorithm of %s.");
+                    "unsupported MAC algorithm of %s");
     registerMessage(MSGID_SCHEMA_RESTORE_CANNOT_OPEN_BACKUP_FILE,
                     "Unable to restore or verify schema backup %s because " +
                     "an error occurred while attempting to open the backup " +
-                    "archive file %s:  %s.");
+                    "archive file %s:  %s");
     registerMessage(MSGID_SCHEMA_RESTORE_UNKNOWN_CIPHER,
                     "Unable to restore or verify schema backup %s because " +
                     "it is encrypted but the server cannot determine the " +
-                    "cipher used to perform this encryption.");
+                    "cipher used to perform this encryption");
     registerMessage(MSGID_SCHEMA_RESTORE_CANNOT_GET_CIPHER,
                     "Unable to restore or verify schema backup %s because " +
                     "it is encrypted using an unknown or unsupported cipher " +
-                    "of %s.");
+                    "of %s");
     registerMessage(MSGID_SCHEMA_RESTORE_CANNOT_RENAME_CURRENT_DIRECTORY,
                     "Unable to restore schema backup %s because an error " +
                     "occurred while attempting to rename the current " +
@@ -3890,126 +3890,126 @@ public class BackendMessages
                     "being properly restored.  However, the original schema " +
                     "files that were in place before the start of the " +
                     "restore process have been preserved and are now in " +
-                    "their original location of %s.");
+                    "their original location of %s");
     registerMessage(MSGID_SCHEMA_RESTORE_CANNOT_RESTORE_OLD_SCHEMA,
                     "An error occurred that prevented the schema backup from " +
                     "being properly restored.  The original schema files " +
                     "that were in place before the start of the restore " +
                     "process have been preserved and are contained in the %s " +
-                    "directory.");
+                    "directory");
     registerMessage(MSGID_SCHEMA_RESTORE_CANNOT_CREATE_SCHEMA_DIRECTORY,
                     "Unable to restore schema backup %s because an error " +
                     "occurred while attempting to create a new empty " +
                     "directory %s into which the files should be restored:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_SCHEMA_RESTORE_OLD_SCHEMA_SAVED,
                     "An error occurred that prevented the schema backup from " +
                     "being properly restored.  The original schema files " +
                     "that were in place before the start of the restore " +
-                    "process have been preserved in the %s directory.");
+                    "process have been preserved in the %s directory");
     registerMessage(MSGID_SCHEMA_RESTORE_CANNOT_GET_ZIP_ENTRY,
                     "Unable to restore or verify schema backup %s because " +
                     "an error occurred while trying to read the next entry " +
-                    "from the archive file %s:  %s.");
+                    "from the archive file %s:  %s");
     registerMessage(MSGID_SCHEMA_RESTORE_CANNOT_CREATE_FILE,
                     "Unable to restore schema backup %s because an error " +
-                    "occurred while trying to recreate file %s:  %s.");
+                    "occurred while trying to recreate file %s:  %s");
     registerMessage(MSGID_SCHEMA_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE,
                     "Unable to restore or verify schema backup %s because " +
                     "an error occurred while processing archived file %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_SCHEMA_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE,
                     "Unable to restore or verify schema backup %s because an " +
                     "unexpected error occurred while trying to close the " +
-                    "archive file %s:  %s.");
+                    "archive file %s:  %s");
     registerMessage(MSGID_SCHEMA_RESTORE_UNSIGNED_HASH_VALID,
                     "The message digest calculated from the backup archive " +
-                    "matches the digest stored with the backup information.");
+                    "matches the digest stored with the backup information");
     registerMessage(MSGID_SCHEMA_RESTORE_UNSIGNED_HASH_INVALID,
                     "Unable to restore or verify schema backup %s because " +
                     "the message digest calculated from the backup archive " +
                     "does not match the digest stored with the backup " +
-                    "information.");
+                    "information");
     registerMessage(MSGID_SCHEMA_RESTORE_SIGNED_HASH_VALID,
                     "The signed digest calculated from the backup archive " +
                     "matches the signature stored with the backup " +
-                    "information.");
+                    "information");
     registerMessage(MSGID_SCHEMA_RESTORE_SIGNED_HASH_INVALID,
                     "Unable to restore or verify schema backup %s because " +
                     "the signed digest calculated from the backup archive " +
                     "does not match the signature stored with the backup " +
-                    "information.");
+                    "information");
     registerMessage(MSGID_SCHEMA_RESTORE_VERIFY_SUCCESSFUL,
                     "All tests performed on schema backup %s from directory " +
-                    "%s show that the archive appears to be valid.");
+                    "%s show that the archive appears to be valid");
     registerMessage(MSGID_SCHEMA_RESTORE_SUCCESSFUL,
                     "Schema backup %s was successfully restored from the " +
-                    "archive in directory %s.");
+                    "archive in directory %s");
 
 
     registerMessage(MSGID_TASK_INVALID_STATE,
                     "The task defined in entry %s is invalid because it has " +
-                    "an invalid state %s.");
+                    "an invalid state %s");
     registerMessage(MSGID_TASK_CANNOT_PARSE_SCHEDULED_START_TIME,
                     "An error occurred while trying to parse the scheduled " +
-                    "start time value %s from task entry %s.");
+                    "start time value %s from task entry %s");
     registerMessage(MSGID_TASK_CANNOT_PARSE_ACTUAL_START_TIME,
                     "An error occurred while trying to parse the actual " +
-                    "start time value %s from task entry %s.");
+                    "start time value %s from task entry %s");
     registerMessage(MSGID_TASK_CANNOT_PARSE_COMPLETION_TIME,
                     "An error occurred while trying to parse the completion " +
-                    "time value %s from task entry %s.");
+                    "time value %s from task entry %s");
     registerMessage(MSGID_TASK_MISSING_ATTR,
-                    "Task entry %s is missing required attribute %s.");
+                    "Task entry %s is missing required attribute %s");
     registerMessage(MSGID_TASK_MULTIPLE_ATTRS_FOR_TYPE,
                     "There are multiple instances of attribute %s in task " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_TASK_NO_VALUES_FOR_ATTR,
-                    "There are no values for attribute %s in task entry %s.");
+                    "There are no values for attribute %s in task entry %s");
     registerMessage(MSGID_TASK_MULTIPLE_VALUES_FOR_ATTR,
                     "There are multiple values for attribute %s in task " +
-                    "entry %s.");
+                    "entry %s");
     registerMessage(MSGID_TASK_EXECUTE_FAILED,
                     "An error occurred while executing the task defined in " +
-                    "entry %s:  %s.");
+                    "entry %s:  %s");
 
 
     registerMessage(MSGID_RECURRINGTASK_NO_ID_ATTRIBUTE,
                     "The provided recurring task entry does not contain " +
                     "attribute %s which is needed to hold the recurring task " +
-                    "ID.");
+                    "ID");
     registerMessage(MSGID_RECURRINGTASK_MULTIPLE_ID_TYPES,
                     "The provided recurring task entry contains multiple " +
                     "attributes with type %s, which is used to hold the " +
                     "recurring task ID, but only a single instance is " +
-                    "allowed.");
+                    "allowed");
     registerMessage(MSGID_RECURRINGTASK_NO_ID,
                     "The provided recurring task entry does not contain any " +
                     "values for the %s attribute, which is used to specify " +
-                    "the recurring task ID.");
+                    "the recurring task ID");
     registerMessage(MSGID_RECURRINGTASK_MULTIPLE_ID_VALUES,
                     "The provided recurring task entry contains multiple " +
                     "values for the %s attribute, which is used to specify " +
                     "the recurring task ID, but only a single value is " +
-                    "allowed.");
+                    "allowed");
     registerMessage(MSGID_RECURRINGTASK_NO_CLASS_ATTRIBUTE,
                     "The provided recurring task entry does not contain " +
                     "attribute %s which is needed to specify the " +
                     "fully-qualified name of the class providing the task " +
-                    "logic.");
+                    "logic");
     registerMessage(MSGID_RECURRINGTASK_MULTIPLE_CLASS_TYPES,
                     "The provided recurring task entry contains multiple " +
                     "attributes with type %s, which is used to hold the " +
-                    "task class name, but only a single instance is allowed.");
+                    "task class name, but only a single instance is allowed");
     registerMessage(MSGID_RECURRINGTASK_NO_CLASS_VALUES,
                     "The provided recurring task entry does not contain any " +
                     "values for the %s attribute, which is used to specify " +
                     "the fully-qualified name of the class providing the " +
-                    "task logic.");
+                    "task logic");
     registerMessage(MSGID_RECURRINGTASK_MULTIPLE_CLASS_VALUES,
                     "The provided recurring task entry contains multiple " +
                     "values for the %s attribute, which is used to specify " +
-                    "the task class name, but only a single value is allowed.");
+                    "the task class name, but only a single value is allowed");
     registerMessage(MSGID_RECURRINGTASK_CANNOT_LOAD_CLASS,
                     "An error occurred while attempting to load class %s " +
                     "specified in attribute %s of the provided recurring " +
@@ -4022,90 +4022,90 @@ public class BackendMessages
     registerMessage(MSGID_RECURRINGTASK_CANNOT_INITIALIZE_INTERNAL,
                     "An error occurred while attempting to perform internal " +
                     "initialization on an instance of class %s with the " +
-                    "information contained in the provided entry:  %s.");
+                    "information contained in the provided entry:  %s");
 
 
     registerMessage(MSGID_TASKBE_CONFIG_ENTRY_NULL,
                     "The configuration entry provided when attempting to " +
-                    "initialize the task backend was null.");
+                    "initialize the task backend was null");
     registerMessage(MSGID_TASKBE_NO_BASE_DNS,
                     "The task backend configuration entry does not contain " +
                     "any base DNs.  There must be exactly one base DN for " +
-                    "task information in the Directory Server.");
+                    "task information in the Directory Server");
     registerMessage(MSGID_TASKBE_MULTIPLE_BASE_DNS,
                     "The task backend configuration entry contains multiple " +
                     "base DNs.  There must be exactly one base DN for task " +
-                    "information in the Directory Server.");
+                    "information in the Directory Server");
     registerMessage(MSGID_TASKBE_CANNOT_DECODE_RECURRING_TASK_BASE_DN,
                     "An error occurred while attempting to decode recurring " +
-                    "task base %s as a DN:  %s.");
+                    "task base %s as a DN:  %s");
     registerMessage(MSGID_TASKBE_CANNOT_DECODE_SCHEDULED_TASK_BASE_DN,
                     "An error occurred while attempting to decode scheduled " +
-                    "task base %s as a DN:  %s.");
+                    "task base %s as a DN:  %s");
     registerMessage(MSGID_TASKBE_DESCRIPTION_RETENTION_TIME,
                     "Specifies the length of time in seconds that task " +
                     "information should be retained after processing on that " +
                     "task has completed.  Once this period has passed, the " +
                     "task information will be automatically removed to " +
-                    "conserve memory and disk space.");
+                    "conserve memory and disk space");
     registerMessage(MSGID_TASKBE_CANNOT_INITIALIZE_RETENTION_TIME,
                     "An unexpected error occurred while attempting to " +
-                    "initialize the task retention time configuration:  %s.");
+                    "initialize the task retention time configuration:  %s");
     registerMessage(MSGID_TASKBE_DESCRIPTION_BACKING_FILE,
                     "Specifies the path to the backing file for the task " +
                     "backend.  This LDIF file will hold all the " +
                     "configuration for the defined scheduled tasks and " +
-                    "recurring tasks.");
+                    "recurring tasks");
     registerMessage(MSGID_TASKBE_CANNOT_INITIALIZE_BACKING_FILE,
                     "An unexpected error occurred while attempting to " +
-                    "initialize the task backing file configuration:  %s.");
+                    "initialize the task backing file configuration:  %s");
     registerMessage(MSGID_TASKBE_NO_BACKING_FILE,
                     "The updated configuration entry does not have a value " +
                     "for the required %s attribute, which specifies the " +
-                    "path to the task data backing file.");
+                    "path to the task data backing file");
     registerMessage(MSGID_TASKBE_BACKING_FILE_EXISTS,
                     "The specified task data backing file %s already exists " +
                     "and the Directory Server will not attempt to overwrite " +
                     "it.  Please delete or rename the existing file before " +
                     "attempting to use that path for the new backing file, " +
-                    "or choose a new path.");
+                    "or choose a new path");
     registerMessage(MSGID_TASKBE_INVALID_BACKING_FILE_PATH,
                     "The specified path %s for the new task data backing " +
                     "file appears to be an invalid path.  Please choose a " +
-                    "new path for the task data backing file.");
+                    "new path for the task data backing file");
     registerMessage(MSGID_TASKBE_BACKING_FILE_MISSING_PARENT,
                     "The parent directory %s for the new task data backing " +
                     "file %s does not exist.  Please create this directory " +
                     "before attempting to use this path for the new backing " +
-                    "file or choose a new path.");
+                    "file or choose a new path");
     registerMessage(MSGID_TASKBE_BACKING_FILE_PARENT_NOT_DIRECTORY,
                     "The parent directory %s for the new task data backing " +
                     "file %s exists but is not a directory.  Please choose a " +
-                    "new path for the task data backing file.");
+                    "new path for the task data backing file");
     registerMessage(MSGID_TASKBE_ERROR_GETTING_BACKING_FILE,
                     "An error occurred while attempting to determine the " +
-                    "new path to the task data backing file:  %s.");
+                    "new path to the task data backing file:  %s");
     registerMessage(MSGID_TASKBE_NO_RETENTION_TIME,
                     "The updated configuration entry does not have a value " +
                     "for the required %s attribute, which specifies the " +
                     "length of time in seconds that information about " +
                     "completed tasks should be retained before they are " +
-                    "cleaned up.");
+                    "cleaned up");
     registerMessage(MSGID_TASKBE_ERROR_GETTING_RETENTION_TIME,
                     "An error occurred while attempting to determine the " +
-                    "completed task retention time:  %s.");
+                    "completed task retention time:  %s");
     registerMessage(MSGID_TASKBE_UPDATED_RETENTION_TIME,
                     "The completed task retention time has been updated to " +
-                    "%d seconds.  This will take effect immediately.");
+                    "%d seconds.  This will take effect immediately");
     registerMessage(MSGID_TASKBE_UPDATED_BACKING_FILE,
                     "The path to the task data backing file has been changed " +
                     "to %s.  A snapshot of the current task configuration " +
                     "has been written to that file and it will continue to " +
-                    "be used for future updates.");
+                    "be used for future updates");
     registerMessage(MSGID_TASKBE_ADD_DISALLOWED_DN,
                     "New entries in the task backend may only be added " +
                     "immediately below %s for scheduled tasks or immediately " +
-                    "below %s for recurring tasks.");
+                    "below %s for recurring tasks");
     registerMessage(MSGID_TASKBE_DELETE_INVALID_ENTRY,
                     "Unable to remove entry %s from the task backend because " +
                     "its DN is either not appropriate for that backend or it " +
@@ -4113,77 +4113,77 @@ public class BackendMessages
     registerMessage(MSGID_TASKBE_DELETE_NO_SUCH_TASK,
                     "Unable to remove entry %s from the task backend because " +
                     "there is no scheduled task associated with that entry " +
-                    "DN.");
+                    "DN");
     registerMessage(MSGID_TASKBE_DELETE_RUNNING,
                     "Unable to delete entry %s from the task backend because " +
-                    "the associated task is currently running.");
+                    "the associated task is currently running");
     registerMessage(MSGID_TASKBE_DELETE_NO_SUCH_RECURRING_TASK,
                     "Unable to remove entry %s from the task backend because " +
                     "there is no recurring task associated with that entry " +
-                    "DN.");
+                    "DN");
     registerMessage(MSGID_TASKBE_MODIFY_DN_NOT_SUPPORTED,
                     "Modify DN operations are not supported in the task " +
-                    "backend.");
+                    "backend");
     registerMessage(MSGID_TASKBE_SEARCH_INVALID_BASE,
                     "Unable to process the search operation in the task " +
                     "backend because the provided base DN %s is not valid " +
-                    "for entries in the task backend.");
+                    "for entries in the task backend");
     registerMessage(MSGID_TASKBE_SEARCH_NO_SUCH_TASK,
                     "Unable to process the search operation in the task " +
                     "backend because there is no scheduled task associated " +
-                    "with the provided search base entry %s.");
+                    "with the provided search base entry %s");
     registerMessage(MSGID_TASKBE_SEARCH_NO_SUCH_RECURRING_TASK,
                     "Unable to process the search operation in the task " +
                     "backend because there is no recurring task associated " +
-                    "with the provided search base entry %s.");
+                    "with the provided search base entry %s");
     registerMessage(MSGID_TASKBE_BACKING_FILE_HEADER,
                     "This file contains the data used by the Directory " +
                     "Server task scheduler backend.  Do not edit this file " +
                     "directly, as there is a risk that those changes will be " +
                     "lost.  Scheculed and recurring task definitions should " +
                     "only be edited using the administration utilities " +
-                    "provided with the Directory Server.");
+                    "provided with the Directory Server");
     registerMessage(MSGID_TASKBE_IMPORT_NOT_SUPPORTED,
                     "The task backend does not support LDIF import " +
-                    "operations.");
+                    "operations");
     registerMessage(MSGID_TASKBE_INTERRUPTED_BY_SHUTDOWN,
-                    "The tasks backend is being shut down.");
+                    "The tasks backend is being shut down");
 
 
     registerMessage(MSGID_TASKSCHED_DUPLICATE_RECURRING_ID,
                     "Unable to add recurring task %s to the task scheduler " +
                     "because another recurring task already exists with the " +
-                    "same ID.");
+                    "same ID");
     registerMessage(MSGID_TASKSCHED_REMOVE_RECURRING_EXISTING_ITERATION,
                     "Unable to remove recurring task %s because there is " +
                     "already a scheduled iteration of that task with ID %s " +
-                    "that must be removed first.");
+                    "that must be removed first");
     registerMessage(MSGID_TASKSCHED_REMOVE_PENDING_NO_SUCH_TASK,
                     "Unable to remove pending task %s because no such task " +
-                    "exists.");
+                    "exists");
     registerMessage(MSGID_TASKSCHED_REMOVE_PENDING_NOT_PENDING,
                     "Unable to remove pending task %s because the task is " +
-                    "no longer pending.");
+                    "no longer pending");
     registerMessage(MSGID_TASKSCHED_REMOVE_COMPLETED_NO_SUCH_TASK,
                     "Unable to remove completed task %s because no such " +
-                    "task exists in the list of completed tasks.");
+                    "task exists in the list of completed tasks");
     registerMessage(MSGID_TASKSCHED_DUPLICATE_TASK_ID,
                     "Unable to schedule task %s because another task already " +
-                    "exists with the same ID.");
+                    "exists with the same ID");
     registerMessage(MSGID_TASKSCHED_CANNOT_FIND_RECURRING_TASK,
                     "Task %s has completed processing and indicates that it " +
                     "is associated with recurring task %s but no recurring " +
                     "task with that ID is currently defined so it is not " +
-                    "possible to schedule the next iteration.");
+                    "possible to schedule the next iteration");
     registerMessage(MSGID_TASKSCHED_ERROR_SCHEDULING_RECURRING_ITERATION,
                     "An error occurred while attempting to schedule the next " +
-                    "iteration of recurring task %s:  %s.");
+                    "iteration of recurring task %s:  %s");
     registerMessage(MSGID_TASKSCHED_CANNOT_PARSE_ENTRY_RECOVERABLE,
                     "An error occurred while attempting to read an entry " +
                     "from the tasks backing file %s on or near line %d:  " +
                     "%s.  This is not a fatal error, so the task scheduler " +
                     "will attempt to continue parsing the file and schedule " +
-                    "any additional tasks that it contains.");
+                    "any additional tasks that it contains");
     registerMessage(MSGID_TASKSCHED_CANNOT_PARSE_ENTRY_FATAL,
                     "An error occurred while attempting to read an entry " +
                     "from the tasks backing file %s on or near line %d:  " +
@@ -4192,41 +4192,41 @@ public class BackendMessages
     registerMessage(MSGID_TASKSCHED_ENTRY_HAS_NO_PARENT,
                     "Entry %s read from the tasks backing file is invalid " +
                     "because it has no parent and does not match the task " +
-                    "root DN of %s.");
+                    "root DN of %s");
     registerMessage(MSGID_TASKSCHED_CANNOT_SCHEDULE_RECURRING_TASK_FROM_ENTRY,
                     "An error occurred while attempting to parse entry %s " +
-                    "as a recurring task and add it to the scheduler:  %s.");
+                    "as a recurring task and add it to the scheduler:  %s");
     registerMessage(MSGID_TASKSCHED_CANNOT_SCHEDULE_TASK_FROM_ENTRY,
                     "An error occurred while attempting to parse entry %s " +
-                    "as a task and add it to the scheduler:  %s.");
+                    "as a task and add it to the scheduler:  %s");
     registerMessage(MSGID_TASKSCHED_INVALID_TASK_ENTRY_DN,
                     "Entry %s read from the tasks backing file %s has a DN " +
                     "which is not valid for a task or recurring task " +
-                    "definition and will be ignored.");
+                    "definition and will be ignored");
     registerMessage(MSGID_TASKSCHED_ERROR_READING_TASK_BACKING_FILE,
                     "An error occurred while attempting to read from the " +
-                    "tasks data backing file %s:  %s.");
+                    "tasks data backing file %s:  %s");
     registerMessage(MSGID_TASKSCHED_CANNOT_CREATE_BACKING_FILE,
                     "An error occurred while attempting to create a new " +
                     "tasks backing file %s for use with the task " +
-                    "scheduler:  %s.");
+                    "scheduler:  %s");
     registerMessage(MSGID_TASKSCHED_NO_CLASS_ATTRIBUTE,
                     "The provided task entry does not contain attribute %s " +
                     "which is needed to specify the fully-qualified name of " +
-                    "the class providing the task logic.");
+                    "the class providing the task logic");
     registerMessage(MSGID_TASKSCHED_MULTIPLE_CLASS_TYPES,
                     "The provided task entry contains multiple attributes " +
                     "with type %s, which is used to hold the task class " +
-                    "name, but only a single instance is allowed.");
+                    "name, but only a single instance is allowed");
     registerMessage(MSGID_TASKSCHED_NO_CLASS_VALUES,
                     "The provided task entry does not contain any values for " +
                     "the %s attribute, which is used to specify the " +
                     "fully-qualified name of the class providing the task " +
-                    "logic.");
+                    "logic");
     registerMessage(MSGID_TASKSCHED_MULTIPLE_CLASS_VALUES,
                     "The provided task entry contains multiple values for " +
                     "the %s attribute, which is used to specify the task " +
-                    "class name, but only a single value is allowed.");
+                    "class name, but only a single value is allowed");
     registerMessage(MSGID_TASKSCHED_CANNOT_LOAD_CLASS,
                     "An error occurred while attempting to load class %s " +
                     "specified in attribute %s of the provided task entry:  " +
@@ -4239,26 +4239,26 @@ public class BackendMessages
     registerMessage(MSGID_TASKSCHED_CANNOT_INITIALIZE_INTERNAL,
                     "An error occurred while attempting to perform internal " +
                     "initialization on an instance of class %s with the " +
-                    "information contained in the provided entry:  %s.");
+                    "information contained in the provided entry:  %s");
     registerMessage(MSGID_TASKSCHED_CANNOT_RENAME_CURRENT_BACKING_FILE,
                     "An error occurred while attempting to rename the " +
                     "current tasks backing file from %s to %s:  %s.  The " +
                     "previous task configuration (which does not reflect the " +
-                    "latest update) may be lost.");
+                    "latest update) may be lost");
     registerMessage(MSGID_TASKSCHED_CANNOT_RENAME_NEW_BACKING_FILE,
                     "An error occurred while attempting to rename the " +
                     "new tasks backing file from %s to %s:  %s.  If the " +
                     "Directory Server is restarted, then the task scheduler " +
-                    "may not be able to .");
+                    "may not be able to ");
     registerMessage(MSGID_TASKSCHED_CANNOT_WRITE_BACKING_FILE,
                     "An error occurred while attempting to write the new " +
                     "tasks data backing file %s:  %s.  Configuration " +
-                    "information reflecting the latest update may be lost.");
+                    "information reflecting the latest update may be lost");
 
 
     registerMessage(MSGID_BACKUP_CONFIG_ENTRY_NULL,
                     "Unable to initialize the backup backend because the " +
-                    "provided configuration entry is null.");
+                    "provided configuration entry is null");
     registerMessage(MSGID_BACKUP_CANNOT_DECODE_BACKUP_ROOT_DN,
                     "Unable to initialize the backup backend because an " +
                     "error occurred while attempting to decode the base DN " +
@@ -4269,106 +4269,106 @@ public class BackendMessages
                     "backend.  Backup directories not in this list may still " +
                     "be accessed by directly specifying the backup directory " +
                     "in the search base DN.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_BACKUP_CANNOT_DETERMINE_BACKUP_DIR_LIST,
                     "An error occurred while attempting to determine the " +
                     "backup directory list:  %s.  Initialization of the " +
-                    "backup backend cannot continue.");
+                    "backup backend cannot continue");
     registerMessage(MSGID_BACKUP_GET_ENTRY_NULL,
                     "Unable to retrieve an entry from the backup backend " +
-                    "because the requested entry was null.");
+                    "because the requested entry was null");
     registerMessage(MSGID_BACKUP_INVALID_BASE,
-                    "Requested entry %s does not exist in the backup backend.");
+                    "Requested entry %s does not exist in the backup backend");
     registerMessage(MSGID_BACKUP_DN_DOES_NOT_SPECIFY_DIRECTORY,
                     "Unable to retrieve entry %s from the backup backend " +
                     "because the requested DN is one level below the " +
-                    "base DN but does not specify a backup directory.");
+                    "base DN but does not specify a backup directory");
     registerMessage(MSGID_BACKUP_INVALID_BACKUP_DIRECTORY,
                     "Unable to retrieve entry %s from the backup backend " +
-                    "because the requested backup directory is invalid:  %s.");
+                    "because the requested backup directory is invalid:  %s");
     registerMessage(MSGID_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY,
                     "An error occurred while attempting to examine the " +
-                    "requested backup directory:  %s.");
+                    "requested backup directory:  %s");
     registerMessage(MSGID_BACKUP_NO_BACKUP_ID_IN_DN,
                     "Unable to retrieve entry %s from the backup backend " +
                     "because the requested DN is two levels below the " +
-                    "base DN but does not specify a backup ID.");
+                    "base DN but does not specify a backup ID");
     registerMessage(MSGID_BACKUP_NO_BACKUP_PARENT_DN,
                     "Unable to retrieve entry %s from the backup backend " +
-                    "because it does not have a parent.");
+                    "because it does not have a parent");
     registerMessage(MSGID_BACKUP_NO_BACKUP_DIR_IN_DN,
                     "Unable to retrieve entry %s from the backup backend " +
                     "because the DN does not contain the backup directory " +
-                    "in which the requested backup should reside.");
+                    "in which the requested backup should reside");
     registerMessage(MSGID_BACKUP_NO_SUCH_BACKUP,
-                    "Backup %s does not exist in backup directory %s.");
+                    "Backup %s does not exist in backup directory %s");
     registerMessage(MSGID_BACKUP_ADD_NOT_SUPPORTED,
-                    "Add operations are not supported in the backup backend.");
+                    "Add operations are not supported in the backup backend");
     registerMessage(MSGID_BACKUP_DELETE_NOT_SUPPORTED,
                     "Delete operations are not supported in the backup " +
-                    "backend.");
+                    "backend");
     registerMessage(MSGID_BACKUP_MODIFY_NOT_SUPPORTED,
                     "Modify operations are not supported in the backup " +
-                    "backend.");
+                    "backend");
     registerMessage(MSGID_BACKUP_MODIFY_DN_NOT_SUPPORTED,
                     "Modify DN operations are not supported in the backup " +
-                    "backend.");
+                    "backend");
     registerMessage(MSGID_BACKUP_NO_SUCH_ENTRY,
                     "The requested entry %s does not exist in the backup " +
-                    "backend.");
+                    "backend");
     registerMessage(MSGID_BACKUP_EXPORT_NOT_SUPPORTED,
                     "LDIF export operations are not supported in the backup " +
-                    "backend.");
+                    "backend");
     registerMessage(MSGID_BACKUP_IMPORT_NOT_SUPPORTED,
                     "LDIF import operations are not supported in the backup " +
-                    "backend.");
+                    "backend");
     registerMessage(MSGID_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED,
                     "Backup and restore operations are not supported in " +
-                    "the backup backend.");
+                    "the backup backend");
 
 
     registerMessage(MSGID_MEMORYBACKEND_REQUIRE_EXACTLY_ONE_BASE,
                     "Exactly one base DN must be provided for use with the " +
-                    "memory-based backend.");
+                    "memory-based backend");
     registerMessage(MSGID_MEMORYBACKEND_ENTRY_ALREADY_EXISTS,
-                    "Entry %s already exists in the memory-based backend.");
+                    "Entry %s already exists in the memory-based backend");
     registerMessage(MSGID_MEMORYBACKEND_ENTRY_DOESNT_BELONG,
-                    "Entry %s does not belong in the memory-based backend.");
+                    "Entry %s does not belong in the memory-based backend");
     registerMessage(MSGID_MEMORYBACKEND_PARENT_DOESNT_EXIST,
                     "Unable to add entry %s because its parent entry %s does " +
-                    "not exist in the memory-based backend.");
+                    "not exist in the memory-based backend");
     registerMessage(MSGID_MEMORYBACKEND_ENTRY_DOESNT_EXIST,
-                    "Entry %s does not exist in the memory-based backend.");
+                    "Entry %s does not exist in the memory-based backend");
     registerMessage(MSGID_MEMORYBACKEND_CANNOT_DELETE_ENTRY_WITH_CHILDREN,
                     "Cannot delete entry %s because it has one or more " +
-                    "subordinate entries.");
+                    "subordinate entries");
     registerMessage(MSGID_MEMORYBACKEND_MODDN_NOT_SUPPORTED,
                     "Modify DN operations are not supported in the " +
-                    "memory-based backend.");
+                    "memory-based backend");
     registerMessage(MSGID_MEMORYBACKEND_CANNOT_CREATE_LDIF_WRITER,
-                    "Unable to create an LDIF writer:  %s.");
+                    "Unable to create an LDIF writer:  %s");
     registerMessage(MSGID_MEMORYBACKEND_CANNOT_WRITE_ENTRY_TO_LDIF,
-                    "Cannot write entry %s to LDIF:  %s.");
+                    "Cannot write entry %s to LDIF:  %s");
     registerMessage(MSGID_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER,
-                    "Unable to create an LDIF reader:  %s.");
+                    "Unable to create an LDIF reader:  %s");
     registerMessage(MSGID_MEMORYBACKEND_ERROR_READING_LDIF,
                     "An unrecoverable error occurred while reading from " +
-                    "LDIF:  %s.");
+                    "LDIF:  %s");
     registerMessage(MSGID_MEMORYBACKEND_ERROR_DURING_IMPORT,
                     "An unexpected error occurred while processing the " +
-                    "import:  %s.");
+                    "import:  %s");
     registerMessage(MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED,
                     "The memory-based backend does not support backup or " +
-                    "restore operations.");
+                    "restore operations");
     registerMessage(MSGID_MEMORYBACKEND_CANNOT_RENAME_ENRY_WITH_CHILDREN,
                     "Cannot rename entry %s because it has one or more " +
-                    "subordinate entries.");
+                    "subordinate entries");
     registerMessage(MSGID_MEMORYBACKEND_CANNOT_RENAME_TO_ANOTHER_BACKEND,
                     "Cannot rename entry %s because the target entry is in a " +
-                    "different backend.");
+                    "different backend");
     registerMessage(MSGID_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST,
                     "Cannot rename entry %s because the new parent entry %s " +
-                    "doesn't exist.");
+                    "doesn't exist");
   }
 }
 

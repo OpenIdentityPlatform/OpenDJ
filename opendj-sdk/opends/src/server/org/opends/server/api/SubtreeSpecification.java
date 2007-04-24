@@ -26,19 +26,26 @@
  */
 package org.opends.server.api;
 
+
+
 import org.opends.server.types.Entry;
+
+
 
 /**
  * Generic subtree specification interface.
  */
-public abstract class SubtreeSpecification {
-
+public abstract class SubtreeSpecification
+{
   /**
    * Create a new subtree specification.
    */
-  protected SubtreeSpecification() {
+  protected SubtreeSpecification()
+  {
     // No implementation required.
   }
+
+
 
   /**
    * Determine if an entry is within the scope of the subtree
@@ -52,17 +59,32 @@ public abstract class SubtreeSpecification {
    */
   public abstract boolean isWithinScope(Entry entry);
 
+
+
   /**
-   * {@inheritDoc}
+   * Indicates whether the provided object is logically equal to this
+   * subtree specification object.
+   *
+   * @param  obj  The object for which to make the determination.
+   *
+   * @return  {@code true} if the provided object is logically equal
+   *          to this subtree specification object, or {@code false}
+   *          if not.
    */
   @Override
   public abstract boolean equals(Object obj);
 
+
+
   /**
-   * {@inheritDoc}
+   * Retrieves the hash code for this subtree specification object.
+   *
+   * @return  The hash code for this subtree specification object.
    */
   @Override
   public abstract int hashCode();
+
+
 
   /**
    * Append the string representation of the subtree specification to
@@ -74,12 +96,20 @@ public abstract class SubtreeSpecification {
    */
   public abstract StringBuilder toString(StringBuilder builder);
 
+
+
   /**
-   * {@inheritDoc}
+   * Retrieves a string representation of this subtree specification
+   * object.
+   *
+   * @return  A string representation of this subtree specification
+   *          object.
    */
   @Override
-  public final String toString() {
+  public final String toString()
+  {
     StringBuilder builder = new StringBuilder();
     return toString(builder).toString();
   }
 }
+

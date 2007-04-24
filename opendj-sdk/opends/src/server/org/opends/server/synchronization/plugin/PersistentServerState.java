@@ -28,7 +28,7 @@ package org.opends.server.synchronization.plugin;
 
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.synchronization.common.LogMessages.*;
+import static org.opends.server.messages.SynchronizationMessages.*;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -41,7 +41,6 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.synchronization.common.ChangeNumber;
@@ -54,7 +53,9 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
@@ -214,7 +215,7 @@ public class PersistentServerState extends ServerState
     LDAPAttribute attr =
       new LDAPAttribute(SYNCHRONIZATION_STATE, values);
     LDAPModification mod = new LDAPModification(ModificationType.REPLACE, attr);
-    ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>(1);
+    ArrayList<RawModification> mods = new ArrayList<RawModification>(1);
     mods.add(mod);
 
     ModifyOperation op =

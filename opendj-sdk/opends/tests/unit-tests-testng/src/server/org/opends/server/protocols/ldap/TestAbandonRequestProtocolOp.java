@@ -29,6 +29,7 @@ package org.opends.server.protocols.ldap;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Long;
 import org.opends.server.protocols.ldap.AbandonRequestProtocolOp;
+import org.opends.server.types.LDAPException;
 import org.testng.annotations.Test;
 import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_ABANDON_REQUEST;
 import static org.testng.Assert.*;
@@ -36,37 +37,37 @@ import static org.testng.Assert.*;
 public class
 TestAbandonRequestProtocolOp extends LdapTestCase {
 
-	static int id=56;
+  static int id=56;
 
-	@Test ()
-	public void testAbandonRequestToString() throws Exception
-	{			
-		toString(new AbandonRequestProtocolOp(id));
-	}
+  @Test ()
+  public void testAbandonRequestToString() throws Exception
+  {
+    toString(new AbandonRequestProtocolOp(id));
+  }
 
-	@Test()
-	public void testAbandonRequestEncodeDecode() throws Exception {
-		AbandonRequestProtocolOp req = new AbandonRequestProtocolOp(id);
-		ASN1Element reqElem=req.encode();
-		ProtocolOp reqOp= ProtocolOp.decode(reqElem);
-		assertTrue(reqOp.getProtocolOpName() == req.getProtocolOpName());
-		assertTrue(reqOp.getType() == req.getType());
-	}
+  @Test()
+  public void testAbandonRequestEncodeDecode() throws Exception {
+    AbandonRequestProtocolOp req = new AbandonRequestProtocolOp(id);
+    ASN1Element reqElem=req.encode();
+    ProtocolOp reqOp= ProtocolOp.decode(reqElem);
+    assertTrue(reqOp.getProtocolOpName() == req.getProtocolOpName());
+    assertTrue(reqOp.getType() == req.getType());
+  }
 
-	@Test()
-	public void testSetters() throws Exception {
-		AbandonRequestProtocolOp req = new AbandonRequestProtocolOp(id);
-		req.encode();
-		req.setIDToAbandon(id+1);
-		ASN1Element reqElem=req.encode();
-		ProtocolOp reqDec= ProtocolOp.decode(reqElem);
-		AbandonRequestProtocolOp reqOp =
-			(AbandonRequestProtocolOp)reqDec;
-		assertTrue(reqOp.getIDToAbandon() == req.getIDToAbandon());
-	}
+  @Test()
+  public void testSetters() throws Exception {
+    AbandonRequestProtocolOp req = new AbandonRequestProtocolOp(id);
+    req.encode();
+    req.setIDToAbandon(id+1);
+    ASN1Element reqElem=req.encode();
+    ProtocolOp reqDec= ProtocolOp.decode(reqElem);
+    AbandonRequestProtocolOp reqOp =
+      (AbandonRequestProtocolOp)reqDec;
+    assertTrue(reqOp.getIDToAbandon() == req.getIDToAbandon());
+  }
 
-	@Test (expectedExceptions = LDAPException.class)
-	public void testAbandonRequestBadID() throws Exception {
-		ProtocolOp.decode(new ASN1Long(OP_TYPE_ABANDON_REQUEST, Long.MAX_VALUE));
-	}
+  @Test (expectedExceptions = LDAPException.class)
+  public void testAbandonRequestBadID() throws Exception {
+    ProtocolOp.decode(new ASN1Long(OP_TYPE_ABANDON_REQUEST, Long.MAX_VALUE));
+  }
 }

@@ -212,7 +212,7 @@ public class TLSConnectionSecurityProvider
       }
 
       int msgID = MSGID_TLS_SECURITY_PROVIDER_CANNOT_INITIALIZE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
     }
@@ -660,7 +660,7 @@ handshakeLoop:
         // Disconnect and return.
         clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
                                     MSGID_TLS_SECURITY_PROVIDER_READ_ERROR,
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         return false;
       }
     }
@@ -960,7 +960,7 @@ handshakeStatusLoop:
       // Disconnect and return.
       clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
                                   MSGID_TLS_SECURITY_PROVIDER_WRITE_ERROR,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       return false;
     }
   }

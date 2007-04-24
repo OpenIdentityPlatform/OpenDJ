@@ -35,17 +35,20 @@ import java.util.List;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.Base64;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+
 
 
 /**
@@ -55,11 +58,8 @@ import static org.opends.server.util.StaticUtils.*;
 public class AddRequestProtocolOp
        extends ProtocolOp
 {
-
-
-
   // The set of attributes for this add request.
-  private List<LDAPAttribute> attributes;
+  private List<RawAttribute> attributes;
 
   // The DN for this add request.
   private ASN1OctetString dn;
@@ -75,7 +75,7 @@ public class AddRequestProtocolOp
   public AddRequestProtocolOp(ASN1OctetString dn)
   {
     this.dn         = dn;
-    this.attributes = new ArrayList<LDAPAttribute>();
+    this.attributes = new ArrayList<RawAttribute>();
   }
 
 
@@ -88,13 +88,13 @@ public class AddRequestProtocolOp
    * @param  attributes  The set of attributes for this add request.
    */
   public AddRequestProtocolOp(ASN1OctetString dn,
-                              ArrayList<LDAPAttribute> attributes)
+                              ArrayList<RawAttribute> attributes)
   {
     this.dn = dn;
 
     if (attributes == null)
     {
-      this.attributes = new ArrayList<LDAPAttribute>();
+      this.attributes = new ArrayList<RawAttribute>();
     }
     else
     {
@@ -134,7 +134,7 @@ public class AddRequestProtocolOp
    *
    * @return  The set of attributes for this add request.
    */
-  public List<LDAPAttribute> getAttributes()
+  public List<RawAttribute> getAttributes()
   {
     return attributes;
   }
@@ -179,7 +179,7 @@ public class AddRequestProtocolOp
 
     ArrayList<ASN1Element> attrElements =
          new ArrayList<ASN1Element>(attributes.size());
-    for (LDAPAttribute attr : attributes)
+    for (RawAttribute attr : attributes)
     {
       attrElements.add(attr.encode());
     }
@@ -250,12 +250,12 @@ public class AddRequestProtocolOp
 
 
 
-    ArrayList<LDAPAttribute> attributes;
+    ArrayList<RawAttribute> attributes;
     try
     {
       ArrayList<ASN1Element> attrElements =
            elements.get(1).decodeAsSequence().elements();
-      attributes = new ArrayList<LDAPAttribute>(attrElements.size());
+      attributes = new ArrayList<RawAttribute>(attrElements.size());
       for (ASN1Element e : attrElements)
       {
         attributes.add(LDAPAttribute.decode(e));
@@ -293,7 +293,7 @@ public class AddRequestProtocolOp
 
     if (! attributes.isEmpty())
     {
-      Iterator<LDAPAttribute> iterator = attributes.iterator();
+      Iterator<RawAttribute> iterator = attributes.iterator();
       iterator.next().toString(buffer);
 
       while (iterator.hasNext())
@@ -336,7 +336,7 @@ public class AddRequestProtocolOp
     buffer.append("  Attributes:");
     buffer.append(EOL);
 
-    for (LDAPAttribute attribute : attributes)
+    for (RawAttribute attribute : attributes)
     {
       attribute.toString(buffer, indent+4);
     }
@@ -401,7 +401,7 @@ public class AddRequestProtocolOp
 
 
     // Add the attributes to the buffer.
-    for (LDAPAttribute a : attributes)
+    for (RawAttribute a : attributes)
     {
       String name       = a.getAttributeType();
       int    nameLength = name.length();

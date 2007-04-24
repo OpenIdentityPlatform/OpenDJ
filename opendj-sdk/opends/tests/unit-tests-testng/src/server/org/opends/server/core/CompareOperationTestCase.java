@@ -38,6 +38,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager;
+import org.opends.server.types.Operation;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.controls.LDAPAssertionRequestControl;

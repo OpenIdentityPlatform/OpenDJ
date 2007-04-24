@@ -193,7 +193,7 @@ public class RootDNConfigManager
       }
 
       msgID = MSGID_CONFIG_ROOTDN_ERROR_DETERMINING_ROOT_PRIVILEGES;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       throw new InitializationException(msgID, message, e);
     }
 
@@ -348,7 +348,7 @@ public class RootDNConfigManager
 
       msgID = MSGID_CONFIG_ROOTDN_CANNOT_PARSE_ALTERNATE_BIND_DNS;
       String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       unacceptableReason.append(message);
       return false;
     }
@@ -401,7 +401,7 @@ public class RootDNConfigManager
       }
 
       msgID = MSGID_CONFIG_ROOTDN_CANNOT_PARSE_ALTERNATE_BIND_DNS;
-      messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
+      messages.add(getMessage(msgID, getExceptionMessage(e)));
 
       resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
     }
@@ -543,7 +543,7 @@ public class RootDNConfigManager
       }
 
       msgID = MSGID_CONFIG_ROOTDN_CANNOT_PARSE_ALTERNATE_BIND_DNS;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       unacceptableReason.append(message);
       return false;
     }
@@ -595,7 +595,7 @@ public class RootDNConfigManager
       }
 
       msgID = MSGID_CONFIG_ROOTDN_CANNOT_PARSE_ALTERNATE_BIND_DNS;
-      messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
+      messages.add(getMessage(msgID, getExceptionMessage(e)));
 
       resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
     }
@@ -811,7 +811,7 @@ public class RootDNConfigManager
       }
 
       msgID = MSGID_CONFIG_ROOTDN_ERROR_DETERMINING_ROOT_PRIVILEGES;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -905,7 +905,7 @@ public class RootDNConfigManager
       }
 
       msgID = MSGID_CONFIG_ROOTDN_ERROR_DETERMINING_ROOT_PRIVILEGES;
-      messages.add(getMessage(msgID, stackTraceToSingleLineString(e)));
+      messages.add(getMessage(msgID, getExceptionMessage(e)));
     }
 
 

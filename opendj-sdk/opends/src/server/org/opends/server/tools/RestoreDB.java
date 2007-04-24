@@ -228,7 +228,7 @@ public class RestoreDB
       catch (Exception e)
       {
         int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -248,7 +248,7 @@ public class RestoreDB
       catch (Exception e)
       {
         int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -277,7 +277,7 @@ public class RestoreDB
       catch (Exception e)
       {
         int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -306,7 +306,7 @@ public class RestoreDB
       catch (Exception e)
       {
         int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -334,7 +334,7 @@ public class RestoreDB
       catch (Exception e)
       {
         int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, getExceptionMessage(e));
         System.err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
@@ -359,7 +359,7 @@ public class RestoreDB
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_READ_BACKUP_DIRECTORY;
       String message = getMessage(msgID, backupDirectory.getValue(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
       return 1;
@@ -538,7 +538,7 @@ public class RestoreDB
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_LOCK_BACKEND;
       String message = getMessage(msgID, backend.getBackendID(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
       return 0;
@@ -562,7 +562,7 @@ public class RestoreDB
     {
       int    msgID   = MSGID_RESTOREDB_ERROR_DURING_BACKUP;
       String message = getMessage(msgID, backupID, backupDir.getPath(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
     }
@@ -586,7 +586,7 @@ public class RestoreDB
     {
       int    msgID   = MSGID_RESTOREDB_CANNOT_UNLOCK_BACKEND;
       String message = getMessage(msgID, backend.getBackendID(),
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
                message, msgID);
     }

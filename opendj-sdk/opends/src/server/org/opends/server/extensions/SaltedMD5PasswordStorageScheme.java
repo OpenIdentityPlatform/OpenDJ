@@ -188,8 +188,7 @@ public class SaltedMD5PasswordStorageScheme
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
-      String message = getMessage(msgID, CLASS_NAME,
-                                  stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, CLASS_NAME, getExceptionMessage(e));
 
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
@@ -251,8 +250,7 @@ public class SaltedMD5PasswordStorageScheme
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
-      String message = getMessage(msgID, CLASS_NAME,
-                                  stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, CLASS_NAME, getExceptionMessage(e));
 
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
@@ -403,8 +401,7 @@ public class SaltedMD5PasswordStorageScheme
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
-      String message = getMessage(msgID, CLASS_NAME,
-                                  stackTraceToSingleLineString(e));
+      String message = getMessage(msgID, CLASS_NAME, getExceptionMessage(e));
 
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);

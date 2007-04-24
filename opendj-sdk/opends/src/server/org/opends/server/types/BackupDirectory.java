@@ -329,7 +329,7 @@ public class BackupDirectory
 
         int msgID = MSGID_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY;
         String message = getMessage(msgID, path,
-                                    stackTraceToSingleLineString(e));
+                                    getExceptionMessage(e));
         throw new IOException(message);
       }
     }
@@ -404,7 +404,7 @@ public class BackupDirectory
           int msgID =
               MSGID_BACKUPDIRECTORY_CANNOT_DELETE_SAVED_DESCRIPTOR;
           String message = getMessage(msgID, savedDescriptorFilePath,
-                                      stackTraceToSingleLineString(e),
+                                      getExceptionMessage(e),
                                       newDescriptorFilePath,
                                       descriptorFilePath);
           throw new IOException(message);
@@ -426,7 +426,7 @@ public class BackupDirectory
             MSGID_BACKUPDIRECTORY_CANNOT_RENAME_CURRENT_DESCRIPTOR;
         String message = getMessage(msgID, descriptorFilePath,
                                     savedDescriptorFilePath,
-                                    stackTraceToSingleLineString(e),
+                                    getExceptionMessage(e),
                                     newDescriptorFilePath);
         throw new IOException(message);
       }
@@ -448,7 +448,7 @@ public class BackupDirectory
       int msgID = MSGID_BACKUPDIRECTORY_CANNOT_RENAME_NEW_DESCRIPTOR;
       String message = getMessage(msgID, newDescriptorFilePath,
                                   descriptorFilePath,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new IOException(message);
     }
   }
@@ -525,7 +525,7 @@ public class BackupDirectory
     {
       int    msgID   = MSGID_BACKUPDIRECTORY_CANNOT_DECODE_DN;
       String message = getMessage(msgID, dnString,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new ConfigException(msgID, message, e);
     }
 

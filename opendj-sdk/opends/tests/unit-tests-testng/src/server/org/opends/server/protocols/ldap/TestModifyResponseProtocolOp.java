@@ -29,6 +29,7 @@ package org.opends.server.protocols.ldap;
 import org.opends.server.types.DN;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.RDN;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.*;

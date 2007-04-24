@@ -5020,26 +5020,26 @@ public class ExtensionsMessages
   {
     registerMessage(MSGID_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST,
                     "An error occurred while attempting to initialize the " +
-                    "message digest generator for the %s algorithm:  %s.");
+                    "message digest generator for the %s algorithm:  %s");
     registerMessage(MSGID_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD,
                     "An error occurred while attempting to base64-decode " +
-                    "the password value %s:  %s.");
+                    "the password value %s:  %s");
     registerMessage(MSGID_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD,
                     "Password storage scheme %s does not support use with " +
-                    "the authentication password attribute syntax.");
+                    "the authentication password attribute syntax");
     registerMessage(MSGID_PWSCHEME_NOT_REVERSIBLE,
                     "The %s password storage scheme is not reversible, so it " +
                     "is impossible to recover the plaintext version of an " +
-                    "encoded password.");
+                    "encoded password");
     registerMessage(MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD,
                     "An unexpected error occurred while attempting to encode " +
                     "a password using the storage scheme defined in class " +
-                    "%s:  %s.");
+                    "%s:  %s");
 
 
     registerMessage(MSGID_JMX_ALERT_HANDLER_CANNOT_REGISTER,
                     "An error occurred while trying to register the JMX " +
-                    "alert handler with the MBean server:  %s.");
+                    "alert handler with the MBean server:  %s");
 
 
     registerMessage(MSGID_FIFOCACHE_DESCRIPTION_MAX_MEMORY_PCT,
@@ -5050,12 +5050,12 @@ public class ExtensionsMessages
                     "effect immediately, although if the value is reduced " +
                     "to a percentage that is less than the current " +
                     "consumption in the JVM, it may take some time for " +
-                    "existing cache items to be purged.");
+                    "existing cache items to be purged");
     registerMessage(MSGID_FIFOCACHE_CANNOT_DETERMINE_MAX_MEMORY_PCT,
                     "An error occurred while attempting to determine the " +
                     "value of the " + ATTR_FIFOCACHE_MAX_MEMORY_PCT +
                     " attribute in configuration entry %s:  %s.  The default " +
-                    "of %d will be used.");
+                    "of %d will be used");
     registerMessage(MSGID_FIFOCACHE_DESCRIPTION_MAX_ENTRIES,
                     "Specifies the maximum number of entries that may be " +
                     "held in the entry cache, with a value of zero " +
@@ -5065,24 +5065,24 @@ public class ExtensionsMessages
                     "will take effect immediately, although if it is reduced " +
                     "to a value that is less than the number of entries " +
                     "currently held in the cache, it may take some time for " +
-                    "existing cache items to be purged.");
+                    "existing cache items to be purged");
     registerMessage(MSGID_FIFOCACHE_CANNOT_DETERMINE_MAX_ENTRIES,
                     "An error occurred while attempting to determine the " +
                     "value of the " + ATTR_FIFOCACHE_MAX_ENTRIES +
                     " attribute in configuration entry %s:  %s.  No hard " +
                     "limit on the number of entries will be enforced, but " +
                     "the value of " + ATTR_FIFOCACHE_MAX_MEMORY_PCT +
-                    " will still be observed.");
+                    " will still be observed");
     registerMessage(MSGID_FIFOCACHE_DESCRIPTION_LOCK_TIMEOUT,
                     "Specifies the maximum length of time in milliseconds " +
                     "that the entry cache should block while attempting " +
                     "to acquire a lock for an entry.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_FIFOCACHE_CANNOT_DETERMINE_LOCK_TIMEOUT,
                     "An error occurred while attempting to determine the " +
                     "value of the " + ATTR_FIFOCACHE_LOCK_TIMEOUT +
                     " attribute in configuration entry %s:  %s.  The default " +
-                    "of %d will be used.");
+                    "of %d will be used");
     registerMessage(MSGID_FIFOCACHE_DESCRIPTION_INCLUDE_FILTERS,
                     "Specifies a set of search filters that may be used to " +
                     "indicate which entries should be included in the entry " +
@@ -5091,22 +5091,22 @@ public class ExtensionsMessages
                     "are provided, then any entry will be accepted.  Changes " +
                     "to this configuration attribute will take effect " +
                     "immediately, but will not impact existing entries that " +
-                    "are already held in the cache.");
+                    "are already held in the cache");
     registerMessage(MSGID_FIFOCACHE_CANNOT_DECODE_INCLUDE_FILTER,
                     "An error occurred while attempting to decode the value " +
                     "\"%s\" from attribute " + ATTR_FIFOCACHE_INCLUDE_FILTER +
                     " of entry %s:  %s.  This filter will not be used when " +
-                    "determining whether to store an entry in the cache.");
+                    "determining whether to store an entry in the cache");
     registerMessage(MSGID_FIFOCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
                     "An error occurred while attempting to decode any of the " +
                     "values from attribute " + ATTR_FIFOCACHE_INCLUDE_FILTER +
                     " of entry %s.  All entries will be considered eligible " +
-                    "for inclusion in the cache.");
+                    "for inclusion in the cache");
     registerMessage(MSGID_FIFOCACHE_CANNOT_DETERMINE_INCLUDE_FILTERS,
                     "An error occurred while attempting to determine the " +
                     "value of the " + ATTR_FIFOCACHE_INCLUDE_FILTER +
                     " attribute in configuration entry %s:  %s.  All entries " +
-                    "will be considered eligible for inclusion in the cache.");
+                    "will be considered eligible for inclusion in the cache");
     registerMessage(MSGID_FIFOCACHE_DESCRIPTION_EXCLUDE_FILTERS,
                     "Specifies a set of search filters that may be used to " +
                     "indicate which entries should be excluded from the " +
@@ -5115,61 +5115,61 @@ public class ExtensionsMessages
                     "provided, then any entry will be accepted.  Changes to " +
                     "this configuration attribute will take effect " +
                     "immediately, but will not impact existing entries that " +
-                    "are already held in the cache.");
+                    "are already held in the cache");
     registerMessage(MSGID_FIFOCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
                     "An error occurred while attempting to decode the value " +
                     "\"%s\" from attribute " + ATTR_FIFOCACHE_EXCLUDE_FILTER +
                     " of entry %s:  %s.  This filter will not be used when " +
-                    "determining whether to store an entry in the cache.");
+                    "determining whether to store an entry in the cache");
     registerMessage(MSGID_FIFOCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
                     "An error occurred while attempting to decode any of the " +
                     "values from attribute " + ATTR_FIFOCACHE_EXCLUDE_FILTER +
                     " of entry %s.  All entries will be considered eligible " +
-                    "for inclusion in the cache.");
+                    "for inclusion in the cache");
     registerMessage(MSGID_FIFOCACHE_CANNOT_DETERMINE_EXCLUDE_FILTERS,
                     "An error occurred while attempting to determine the " +
                     "value of the " + ATTR_FIFOCACHE_EXCLUDE_FILTER +
                     " attribute in configuration entry %s:  %s.  All entries " +
-                    "will be considered eligible for inclusion in the cache.");
+                    "will be considered eligible for inclusion in the cache");
     registerMessage(MSGID_FIFOCACHE_INVALID_MAX_MEMORY_PCT,
                     "The " + ATTR_FIFOCACHE_MAX_MEMORY_PCT + " attribute of " +
                     "entry %s, which holds the maximum percentage of JVM " +
                     "memory available for use in the entry cache, has an " +
                     "invalid value:  %s.  Its value must be an integer " +
-                    "between 1 and 100.");
+                    "between 1 and 100");
     registerMessage(MSGID_FIFOCACHE_INVALID_MAX_ENTRIES,
                     "The " + ATTR_FIFOCACHE_MAX_ENTRIES + " attribute of " +
                     "entry %s, which specifies the maximum number of entries " +
                     "that may be held in the entry cache, has an invalid " +
                     "value:  %s.  Its value must be a positive integer, or " +
-                    "zero to indicate that no limit should be enforced.");
+                    "zero to indicate that no limit should be enforced");
     registerMessage(MSGID_FIFOCACHE_INVALID_LOCK_TIMEOUT,
                     "The " + ATTR_FIFOCACHE_LOCK_TIMEOUT + " attribute of " +
                     "entry %s, which specifies the maximum length of time in " +
                     "milliseconds that the cache should block while " +
                     "attempting to obtain a lock on an entry, has an invalid " +
                     "value:  %s.  Its value must be a positive integer, or " +
-                    "zero to indicate that it should never block.");
+                    "zero to indicate that it should never block");
     registerMessage(MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER,
                     "The " + ATTR_FIFOCACHE_INCLUDE_FILTER + " attribute of " +
                     "entry %s, which specifies a set of search filters that " +
                     "may be used to control which entries are included in " +
-                    "the cache, has an invalid value of \"%s\":  %s.");
+                    "the cache, has an invalid value of \"%s\":  %s");
     registerMessage(MSGID_FIFOCACHE_INVALID_INCLUDE_FILTERS,
                     "The " + ATTR_FIFOCACHE_INCLUDE_FILTER + " attribute of " +
                     "entry %s, which specifies a set of search filters that " +
                     "may be used to control which entries are included in " +
-                    "the cache, has an invalid value:  %s.");
+                    "the cache, has an invalid value:  %s");
     registerMessage(MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTER,
                     "The " + ATTR_FIFOCACHE_EXCLUDE_FILTER + " attribute of " +
                     "entry %s, which specifies a set of search filters that " +
                     "may be used to control which entries are excluded from " +
-                    "the cache, has an invalid value of \"%s\":  %s.");
+                    "the cache, has an invalid value of \"%s\":  %s");
     registerMessage(MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTERS,
                     "The " + ATTR_FIFOCACHE_EXCLUDE_FILTER + " attribute of " +
                     "entry %s, which specifies a set of search filters that " +
                     "may be used to control which entries are excluded from " +
-                    "the cache, has an invalid value:  %s.");
+                    "the cache, has an invalid value:  %s");
     registerMessage(MSGID_FIFOCACHE_UPDATED_MAX_MEMORY_PCT,
                     "The amount of memory that may be used for the entry " +
                     "cache has been updated to %d percent of the total " +
@@ -5177,24 +5177,24 @@ public class ExtensionsMessages
                     "bytes.  If this percentage has been reduced, it may " +
                     "take some time for entries to be purged so that the " +
                     "current cache memory consumption can reflect this new " +
-                    "setting.");
+                    "setting");
     registerMessage(MSGID_FIFOCACHE_UPDATED_MAX_ENTRIES,
                     "The number of entries that may be held in the entry " +
                     "cache has been updated to %d.  If this value has been " +
                     "reduced, it may take some time for entries to be purged " +
-                    "so that the cache can reflect this new setting.");
+                    "so that the cache can reflect this new setting");
     registerMessage(MSGID_FIFOCACHE_UPDATED_LOCK_TIMEOUT,
                     "The lock timeout that will be used to determine the " +
                     "length of time that the cache should block while " +
                     "attempting to acquire a lock for an entry has been " +
-                    "set to %d milliseconds.");
+                    "set to %d milliseconds");
     registerMessage(MSGID_FIFOCACHE_UPDATED_INCLUDE_FILTERS,
                     "The set of search filters that will control which " +
-                    "entries may be included in the cache has been updated.");
+                    "entries may be included in the cache has been updated");
     registerMessage(MSGID_FIFOCACHE_UPDATED_EXCLUDE_FILTERS,
                     "The set of search filters that will control which " +
                     "entries should be be excluded from the cache has been " +
-                    "updated.");
+                    "updated");
 
 
     registerMessage(MSGID_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER,
@@ -5203,127 +5203,127 @@ public class ExtensionsMessages
                     "operation defined in entry %s either does not exist or " +
                     "is not enabled.  The identity mapper is a required " +
                     "component, and the password modify extended operation " +
-                    "will not be enabled.");
+                    "will not be enabled");
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER,
                     "An error occurred while attempting to determine the " +
                     "identity mapper to use in conjunction with the password " +
                     "modify extended operation defined in configuration " +
                     "entry %s:  %s.  The password modify extended operation " +
-                    "will not be enabled for use in the server.");
+                    "will not be enabled for use in the server");
     registerMessage(MSGID_EXTOP_PASSMOD_ILLEGAL_REQUEST_ELEMENT_TYPE,
                     "The password modify extended request sequence included " +
-                    "an ASN.1 element of an invalid type:  %s.");
+                    "an ASN.1 element of an invalid type:  %s");
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST,
                     "An unexpected error occurred while attempting to decode " +
-                    "the password modify extended request sequence:  %s.");
+                    "the password modify extended request sequence:  %s");
     registerMessage(MSGID_EXTOP_PASSMOD_NO_AUTH_OR_USERID,
                     "The password modify extended request cannot be " +
                     "processed because it does not contain an authorization " +
-                    "ID and the underlying connection is not authenticated.");
+                    "ID and the underlying connection is not authenticated");
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_LOCK_USER_ENTRY,
                     "The password modify extended request cannot be " +
                     "processed because the server was unable to obtain a " +
-                    "write lock on user entry %s after multiple attempts.");
+                    "write lock on user entry %s after multiple attempts");
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_DECODE_AUTHZ_DN,
                     "The password modify extended request cannot be " +
                     "processed because the server cannot decode \"%s\" as a " +
                     "valid DN for use in the authorization ID for the " +
-                    "operation.");
+                    "operation");
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_MAP_USER,
                     "The provided authorization ID string \"%s\" could not " +
-                    "be mapped to any user in the directory.");
+                    "be mapped to any user in the directory");
     registerMessage(MSGID_EXTOP_PASSMOD_ERROR_MAPPING_USER,
                     "An error occurred while attempting to map authorization " +
-                    "ID string \"%s\" to a user entry:  %s.");
+                    "ID string \"%s\" to a user entry:  %s");
     registerMessage(MSGID_EXTOP_PASSMOD_INVALID_AUTHZID_STRING,
                     "The password modify extended request cannot be " +
                     "processed because it contained an invalid authorization " +
                     "ID that did not start with either \"dn:\" or \"u:\".  " +
-                    "The provided authorization ID string was \"%s\".");
+                    "The provided authorization ID string was \"%s\"");
     registerMessage(MSGID_EXTOP_PASSMOD_NO_USER_ENTRY_BY_AUTHZID,
                     "The password modify extended request cannot be " +
                     "processed because it was not possible to identify the " +
                     "user entry to update based on the authorization DN of " +
-                    "\"%s\".");
+                    "\"%s\"");
     registerMessage(MSGID_EXTOP_PASSMOD_NO_DN_BY_AUTHZID,
                     "The password modify extended request cannot be " +
                     "processed because the provided authorization UID of " +
-                    "\"%s\" did not match any entries in the directory.");
+                    "\"%s\" did not match any entries in the directory");
     registerMessage(MSGID_EXTOP_PASSMOD_MULTIPLE_ENTRIES_BY_AUTHZID,
                     "The password modify extended request cannot be " +
                     "processed because the provided authorization UID of " +
-                    "\"%s\" matched more than one entry in the directory.");
+                    "\"%s\" matched more than one entry in the directory");
     registerMessage(MSGID_EXTOP_PASSMOD_INVALID_OLD_PASSWORD,
                     "The password modify extended operation cannot be " +
                     "processed because the current password provided for the " +
-                    "user is invalid.");
+                    "user is invalid");
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY,
                     "An error occurred while attempting to get the " +
-                    "password policy for user %s:  %s.");
+                    "password policy for user %s:  %s");
     registerMessage(MSGID_EXTOP_PASSMOD_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to perform " +
-                    "password reset operations.");
+                    "password reset operations");
     registerMessage(MSGID_EXTOP_PASSMOD_ACCOUNT_DISABLED,
-                    "The user account has been administratively disabled.");
+                    "The user account has been administratively disabled");
     registerMessage(MSGID_EXTOP_PASSMOD_ACCOUNT_LOCKED,
-                    "The user account is locked.");
+                    "The user account is locked");
     registerMessage(MSGID_EXTOP_PASSMOD_REQUIRE_CURRENT_PW,
                     "The current password must be provided for self password " +
-                    "changes.");
+                    "changes");
     registerMessage(MSGID_EXTOP_PASSMOD_SECURE_AUTH_REQUIRED,
                     "Password modify operations that supply the user's " +
                     "current password must be performed over a secure " +
-                    "communication channel.");
+                    "communication channel");
     registerMessage(MSGID_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED,
-                    "End users are not allowed to change their passwords.");
+                    "End users are not allowed to change their passwords");
     registerMessage(MSGID_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED,
                     "Password changes must be performed over a secure " +
-                    "communication channel.");
+                    "communication channel");
     registerMessage(MSGID_EXTOP_PASSMOD_IN_MIN_AGE,
                     "The password cannot be changed because the previous " +
-                    "password change was too recent.");
+                    "password change was too recent");
     registerMessage(MSGID_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED,
-                    "The password cannot be changed because it is expired.");
+                    "The password cannot be changed because it is expired");
     registerMessage(MSGID_EXTOP_PASSMOD_NO_PW_GENERATOR,
                     "No new password was provided, and no password generator " +
                     "has been defined that may be used to automatically " +
-                    "create a new password.");
+                    "create a new password");
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_GENERATE_PW,
                     "An error occurred while attempting to create a new " +
-                    "password using the password generator:  %s.");
+                    "password using the password generator:  %s");
     registerMessage(MSGID_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED,
                     "The password policy does not allow users to supply " +
-                    "pre-encoded passwords.");
+                    "pre-encoded passwords");
     registerMessage(MSGID_EXTOP_PASSMOD_UNACCEPTABLE_PW,
                     "The provided new password failed the validation checks " +
-                    "defined in the server:  %s.");
+                    "defined in the server:  %s");
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD,
                     "Unable to encode the provided password using the " +
-                    "default scheme(s):  %s.");
+                    "default scheme(s):  %s");
     registerMessage(MSGID_EXTOP_PASSMOD_NOOP,
                     "The password modify operation was not actually " +
                     "performed in the Directory Server because the LDAP " +
-                    "no-op control was present in the request.");
+                    "no-op control was present in the request");
 
 
     registerMessage(MSGID_FILE_KEYMANAGER_DESCRIPTION_FILE,
                     "Specifies the path to the file containing the Directory " +
                     "Server keystore information.  Changes to this " +
                     "configuration attribute will take effect the next time " +
-                    "that the key manager is accessed.");
+                    "that the key manager is accessed");
     registerMessage(MSGID_FILE_KEYMANAGER_NO_FILE_ATTR,
                     "The configuration entry %s that defines a file-based " +
                     "key manager does not contain attribute " +
                     ATTR_KEYSTORE_FILE + " that should hold the path to the " +
-                    "keystore file.");
+                    "keystore file");
     registerMessage(MSGID_FILE_KEYMANAGER_NO_SUCH_FILE,
                     "The keystore file %s specified in attribute " +
                     ATTR_KEYSTORE_FILE + " of configuration entry %s does " +
-                    " not exist.");
+                    " not exist");
     registerMessage(MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
-                    ATTR_KEYSTORE_FILE + " in configuration entry %s:  %s.");
+                    ATTR_KEYSTORE_FILE + " in configuration entry %s:  %s");
     registerMessage(MSGID_FILE_KEYMANAGER_DESCRIPTION_TYPE,
                     "Specifies the keystore type for the Directory Server " +
                     "keystore.  Valid values should always include 'JKS' and " +
@@ -5331,82 +5331,82 @@ public class ExtensionsMessages
                     "values as well.  If no value is provided, then the " +
                     "JVM-default value will be used.  Changes to this " +
                     "configuration attribute will take effect the next time " +
-                    "that the key manager is accessed.");
+                    "that the key manager is accessed");
     registerMessage(MSGID_FILE_KEYMANAGER_INVALID_TYPE,
                     "The keystore type %s specified in attribute " +
                     ATTR_KEYSTORE_TYPE + " of configuration entry %s is not " +
-                    "valid:  %s.");
+                    "valid:  %s");
     registerMessage(MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_TYPE,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
-                    ATTR_KEYSTORE_TYPE + " in configuration entry %s:  %s.");
+                    ATTR_KEYSTORE_TYPE + " in configuration entry %s:  %s");
     registerMessage(MSGID_FILE_KEYMANAGER_DESCRIPTION_PIN_PROPERTY,
                     "Specifies the name of the Java property that contains " +
                     "the clear-text PIN needed to access the file-based " +
                     "key manager.  Changes to this configuration attribute " +
                     "will take effect the next time that the key manager is " +
-                    "accessed.");
+                    "accessed");
     registerMessage(MSGID_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET,
                     "Java property %s which is specified in attribute " +
                     ATTR_KEYSTORE_PIN_PROPERTY + " of configuration entry %s " +
                     "should contain the PIN needed to access the file-based " +
-                    "key manager, but this property is not set.");
+                    "key manager, but this property is not set");
     registerMessage(MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_PROPERTY,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
                     ATTR_KEYSTORE_PIN_PROPERTY + " in configuration entry " +
-                    "%s:  %s.");
+                    "%s:  %s");
     registerMessage(MSGID_FILE_KEYMANAGER_DESCRIPTION_PIN_ENVAR,
                     "Specifies the name of the environment variable that " +
                     "contains the clear-text PIN needed to access the " +
                     "file-based key manager.  Changes to this configuration " +
                     "attribute will take effect the next time that the " +
-                    "key manager is accessed.");
+                    "key manager is accessed");
     registerMessage(MSGID_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET,
                     "Environment variable %s which is specified in attribute " +
                     ATTR_KEYSTORE_PIN_ENVAR + " of configuration entry %s " +
                     "should contain the PIN needed to access the file-based " +
-                    "key manager, but this property is not set.");
+                    "key manager, but this property is not set");
     registerMessage(MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_ENVAR,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
                     ATTR_KEYSTORE_PIN_ENVAR + " in configuration entry %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_FILE_KEYMANAGER_DESCRIPTION_PIN_FILE,
                     "Specifies the path to the text file whose only contents " +
                     "should be a single line containing the clear-text PIN " +
                     "needed to access the file-based key manager.  Changes " +
                     "to this configuration attribute will take effect the " +
-                    "next time that the key manager is accessed.");
+                    "next time that the key manager is accessed");
     registerMessage(MSGID_FILE_KEYMANAGER_PIN_NO_SUCH_FILE,
                     "File %s specified in attribute " + ATTR_KEYSTORE_PIN_FILE +
                     " of configuration entry %s should contain the PIN " +
                     "needed to access the file-based key manager, but this " +
-                    "file does not exist.");
+                    "file does not exist");
     registerMessage(MSGID_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ,
                     "An error occurred while trying to read the keystore PIN " +
                     "from file %s specified in configuration attribute " +
                     ATTR_KEYSTORE_PIN_FILE + " of configuration entry %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_FILE_KEYMANAGER_PIN_FILE_EMPTY,
                     "File %s specified in attribute " + ATTR_KEYSTORE_PIN_FILE +
                     " of configuration entry %s should contain the PIN " +
                     "needed to access the file-based key manager, but this " +
-                    "file is empty.");
+                    "file is empty");
     registerMessage(MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FILE,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
                     ATTR_KEYSTORE_PIN_FILE + " in configuration entry %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_FILE_KEYMANAGER_DESCRIPTION_PIN_ATTR,
                     "Specifies the clear-text PIN needed to access the " +
                     "file-based key manager.  Changes to this configuration " +
                     "attribute will take effect the next time that the " +
-                    "key manager is accessed.");
+                    "key manager is accessed");
     registerMessage(MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
-                    ATTR_KEYSTORE_PIN + " in configuration entry %s:  %s.");
+                    ATTR_KEYSTORE_PIN + " in configuration entry %s:  %s");
     registerMessage(MSGID_FILE_KEYMANAGER_NO_PIN,
                     "Configuration entry %s does not specify a means of " +
                     "determining the PIN needed to access the contents of " +
@@ -5416,27 +5416,27 @@ public class ExtensionsMessages
                     "variable (named by attribute " + ATTR_KEYSTORE_PIN_ENVAR +
                     "), a text file (named by attribute " +
                     ATTR_KEYSTORE_PIN_FILE + "), or directly in the entry " +
-                    "using attribute " + ATTR_KEYSTORE_PIN + ".");
+                    "using attribute " + ATTR_KEYSTORE_PIN + "");
     registerMessage(MSGID_FILE_KEYMANAGER_CANNOT_LOAD,
                     "An error occurred while trying to load the keystore " +
-                    "contents from file %s:  %s.");
+                    "contents from file %s:  %s");
     registerMessage(MSGID_FILE_KEYMANAGER_CANNOT_CREATE_FACTORY,
                     "An error occurred while trying to create a key manager " +
-                    "factory to access the contents of keystore file %s:  %s.");
+                    "factory to access the contents of keystore file %s:  %s");
     registerMessage(MSGID_FILE_KEYMANAGER_UPDATED_FILE,
                     "The value of the " + ATTR_KEYSTORE_FILE +
                     " attribute in configuration entry %s has been updated " +
                     "to %s.  The new value will take effect the next time " +
-                    "the key manager is accessed.");
+                    "the key manager is accessed");
     registerMessage(MSGID_FILE_KEYMANAGER_UPDATED_TYPE,
                     "The value of the " + ATTR_KEYSTORE_TYPE +
                     " attribute in configuration entry %s has been updated " +
                     "to %s.  The new value will take effect the next time " +
-                    "the key manager is accessed.");
+                    "the key manager is accessed");
     registerMessage(MSGID_FILE_KEYMANAGER_UPDATED_PIN,
                     "The PIN to use to access the file-based key manager has " +
                     "been updated.  The new value will take effect the next " +
-                    "time the key manager is accessed.");
+                    "time the key manager is accessed");
 
 
     registerMessage(MSGID_PKCS11_KEYMANAGER_DESCRIPTION_PIN_PROPERTY,
@@ -5444,68 +5444,68 @@ public class ExtensionsMessages
                     "the clear-text PIN needed to access the PKCS#11 key " +
                     "manager.  Changes to this configuration attribute will " +
                     "take effect the next time that the key manager is " +
-                    "accessed.");
+                    "accessed");
     registerMessage(MSGID_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET,
                     "Java property %s which is specified in attribute " +
                     ATTR_KEYSTORE_PIN_PROPERTY + " of configuration entry %s " +
                     "should contain the PIN needed to access the PKCS#11 key " +
-                    "manager, but this property is not set.");
+                    "manager, but this property is not set");
     registerMessage(MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_PROPERTY,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
                     ATTR_KEYSTORE_PIN_PROPERTY + " in configuration entry " +
-                    "%s:  %s.");
+                    "%s:  %s");
     registerMessage(MSGID_PKCS11_KEYMANAGER_DESCRIPTION_PIN_ENVAR,
                     "Specifies the name of the environment variable that " +
                     "contains the clear-text PIN needed to access the " +
                     "PKCS#11 key manager.  Changes to this configuration " +
                     "attribute will take effect the next time that the key " +
-                    "manager is accessed.");
+                    "manager is accessed");
     registerMessage(MSGID_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET,
                     "Environment variable %s which is specified in attribute " +
                     ATTR_KEYSTORE_PIN_ENVAR + " of configuration entry %s " +
                     "should contain the PIN needed to access the PKCS#11 " +
-                    "key manager, but this property is not set.");
+                    "key manager, but this property is not set");
     registerMessage(MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_ENVAR,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
                     ATTR_KEYSTORE_PIN_ENVAR + " in configuration entry %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_PKCS11_KEYMANAGER_DESCRIPTION_PIN_FILE,
                     "Specifies the path to the text file whose only contents " +
                     "should be a single line containing the clear-text PIN " +
                     "needed to access the PKCS#11 key manager.  Changes to " +
                     "this configuration attribute will take effect the next " +
-                    "time that the key manager is accessed.");
+                    "time that the key manager is accessed");
     registerMessage(MSGID_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE,
                     "File %s specified in attribute " + ATTR_KEYSTORE_PIN_FILE +
                     " of configuration entry %s should contain the PIN " +
                     "needed to access the PKCS#11 key manager, but this file " +
-                    "does not exist.");
+                    "does not exist");
     registerMessage(MSGID_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ,
                     "An error occurred while trying to read the keystore PIN " +
                     "from file %s specified in configuration attribute " +
                     ATTR_KEYSTORE_PIN_FILE + " of configuration entry %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_PKCS11_KEYMANAGER_PIN_FILE_EMPTY,
                     "File %s specified in attribute " + ATTR_KEYSTORE_PIN_FILE +
                     " of configuration entry %s should contain the PIN " +
                     "needed to access the PKCS#11 key manager, but this file " +
-                    "is empty.");
+                    "is empty");
     registerMessage(MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_FILE,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
                     ATTR_KEYSTORE_PIN_FILE + " in configuration entry %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_PKCS11_KEYMANAGER_DESCRIPTION_PIN_ATTR,
                     "Specifies the clear-text PIN needed to access the " +
                     "PKCS#11 key manager.  Changes to this configuration " +
                     "attribute will take effect the next time that the key " +
-                    "manager is accessed.");
+                    "manager is accessed");
     registerMessage(MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
-                    ATTR_KEYSTORE_PIN + " in configuration entry %s:  %s.");
+                    ATTR_KEYSTORE_PIN + " in configuration entry %s:  %s");
     registerMessage(MSGID_PKCS11_KEYMANAGER_NO_PIN,
                     "Configuration entry %s does not specify a means of " +
                     "determining the PIN needed to access the contents of " +
@@ -5515,38 +5515,38 @@ public class ExtensionsMessages
                     "variable (named by attribute " + ATTR_KEYSTORE_PIN_ENVAR +
                     "), a text file (named by attribute " +
                     ATTR_KEYSTORE_PIN_FILE + "), or directly in the entry " +
-                    "using attribute " + ATTR_KEYSTORE_PIN + ".");
+                    "using attribute " + ATTR_KEYSTORE_PIN + "");
     registerMessage(MSGID_PKCS11_KEYMANAGER_CANNOT_LOAD,
                     "An error occurred while trying to access the PKCS#11 " +
-                    "key manager:  %s.");
+                    "key manager:  %s");
     registerMessage(MSGID_PKCS11_KEYMANAGER_CANNOT_CREATE_FACTORY,
                     "An error occurred while trying to create a key manager " +
                     "factory to access the contents of the PKCS#11 " +
-                    "keystore:  %s.");
+                    "keystore:  %s");
     registerMessage(MSGID_PKCS11_KEYMANAGER_UPDATED_PIN,
                     "The PIN to use to access the PKCS#11 key manager has " +
                     "been updated.  The new value will take effect the next " +
-                    "time the key manager is accessed.");
+                    "time the key manager is accessed");
 
 
     registerMessage(MSGID_FILE_TRUSTMANAGER_DESCRIPTION_FILE,
                     "Specifies the path to the file containing the Directory " +
                     "Server trust store information.  Changes to this " +
                     "configuration attribute will take effect the next time " +
-                    "that the trust manager is accessed.");
+                    "that the trust manager is accessed");
     registerMessage(MSGID_FILE_TRUSTMANAGER_NO_FILE_ATTR,
                     "The configuration entry %s that defines a file-based " +
                     "trust manager does not contain attribute " +
                     ATTR_TRUSTSTORE_FILE + " that should hold the path to " +
-                    "the trust store file.");
+                    "the trust store file");
     registerMessage(MSGID_FILE_TRUSTMANAGER_NO_SUCH_FILE,
                     "The trust store file %s specified in attribute " +
                     ATTR_TRUSTSTORE_FILE + " of configuration entry %s does " +
-                    " not exist.");
+                    " not exist");
     registerMessage(MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
-                    ATTR_TRUSTSTORE_FILE + " in configuration entry %s:  %s.");
+                    ATTR_TRUSTSTORE_FILE + " in configuration entry %s:  %s");
     registerMessage(MSGID_FILE_TRUSTMANAGER_DESCRIPTION_TYPE,
                     "Specifies the keystore type for the Directory Server " +
                     "trust store.  Valid values should always include 'JKS' " +
@@ -5554,127 +5554,127 @@ public class ExtensionsMessages
                     "other values as well.  If no value is provided, then " +
                     "the JVM-default value will be used.  Changes to this " +
                     "configuration attribute will take effect the next time " +
-                    "that the trust manager is accessed.");
+                    "that the trust manager is accessed");
     registerMessage(MSGID_FILE_TRUSTMANAGER_INVALID_TYPE,
                     "The trust store type %s specified in attribute " +
                     ATTR_TRUSTSTORE_TYPE + " of configuration entry %s is " +
-                    "not valid:  %s.");
+                    "not valid:  %s");
     registerMessage(MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_TYPE,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
-                    ATTR_TRUSTSTORE_TYPE + " in configuration entry %s:  %s.");
+                    ATTR_TRUSTSTORE_TYPE + " in configuration entry %s:  %s");
     registerMessage(MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_PROPERTY,
                     "Specifies the name of the Java property that contains " +
                     "the clear-text PIN needed to access the file-based " +
                     "trust manager.  Changes to this configuration attribute " +
                     "will take effect the next time that the trust manager " +
-                    "is accessed.");
+                    "is accessed");
     registerMessage(MSGID_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET,
                     "Java property %s which is specified in attribute " +
                     ATTR_TRUSTSTORE_PIN_PROPERTY + " of configuration entry " +
                     "%s should contain the PIN needed to access the " +
-                    "file-based trust manager, but this property is not set.");
+                    "file-based trust manager, but this property is not set");
     registerMessage(MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_PROPERTY,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
                     ATTR_TRUSTSTORE_PIN_PROPERTY + " in configuration entry " +
-                    "%s:  %s.");
+                    "%s:  %s");
     registerMessage(MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_ENVAR,
                     "Specifies the name of the environment variable that " +
                     "contains the clear-text PIN needed to access the " +
                     "file-based trust manager.  Changes to this " +
                     "configuration attribute will take effect the next time " +
-                    "that the trust manager is accessed.");
+                    "that the trust manager is accessed");
     registerMessage(MSGID_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET,
                     "Environment variable %s which is specified in attribute " +
                     ATTR_TRUSTSTORE_PIN_ENVAR + " of configuration entry %s " +
                     "should contain the PIN needed to access the file-based " +
-                    "trust manager, but this property is not set.");
+                    "trust manager, but this property is not set");
     registerMessage(MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_ENVAR,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
                     ATTR_TRUSTSTORE_PIN_ENVAR + " in configuration entry " +
-                    "%s:  %s.");
+                    "%s:  %s");
     registerMessage(MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_FILE,
                     "Specifies the path to the text file whose only contents " +
                     "should be a single line containing the clear-text PIN " +
                     "needed to access the file-based trust manager.  Changes " +
                     "to this configuration attribute will take effect the " +
-                    "next time that the trust manager is accessed.");
+                    "next time that the trust manager is accessed");
     registerMessage(MSGID_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE,
                     "File %s specified in attribute " +
                     ATTR_TRUSTSTORE_PIN_FILE + " of configuration entry %s " +
                     "should contain the PIN needed to access the file-based " +
-                    "trust manager, but this file does not exist.");
+                    "trust manager, but this file does not exist");
     registerMessage(MSGID_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ,
                     "An error occurred while trying to read the trust store " +
                     "PIN from file %s specified in configuration attribute " +
                     ATTR_TRUSTSTORE_PIN_FILE + " of configuration entry %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_FILE_TRUSTMANAGER_PIN_FILE_EMPTY,
                     "File %s specified in attribute " +
                     ATTR_TRUSTSTORE_PIN_FILE + " of configuration entry %s " +
                     "should contain the PIN needed to access the file-based " +
-                    "trust manager, but this file is empty.");
+                    "trust manager, but this file is empty");
     registerMessage(MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FILE,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
                     ATTR_TRUSTSTORE_PIN_FILE + " in configuration entry %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_ATTR,
                     "Specifies the clear-text PIN needed to access the " +
                     "file-based trust manager.  Changes to this " +
                     "configuration attribute will take effect the next time " +
-                    "that the trust manager is accessed.");
+                    "that the trust manager is accessed");
     registerMessage(MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR,
                     "An unexpected error occurred while trying to determine " +
                     "the value of configuration attribute " +
-                    ATTR_TRUSTSTORE_PIN + " in configuration entry %s:  %s.");
+                    ATTR_TRUSTSTORE_PIN + " in configuration entry %s:  %s");
     registerMessage(MSGID_FILE_TRUSTMANAGER_CANNOT_LOAD,
                     "An error occurred while trying to load the trust store " +
-                    "contents from file %s:  %s.");
+                    "contents from file %s:  %s");
     registerMessage(MSGID_FILE_TRUSTMANAGER_CANNOT_CREATE_FACTORY,
                     "An error occurred while trying to create a trust " +
                     "manager factory to access the contents of trust store " +
-                    "file %s:  %s.");
+                    "file %s:  %s");
     registerMessage(MSGID_FILE_TRUSTMANAGER_UPDATED_FILE,
                     "The value of the " + ATTR_TRUSTSTORE_FILE +
                     " attribute in configuration entry %s has been updated " +
                     "to %s.  The new value will take effect the next time " +
-                    "the trust manager is accessed.");
+                    "the trust manager is accessed");
     registerMessage(MSGID_FILE_TRUSTMANAGER_UPDATED_TYPE,
                     "The value of the " + ATTR_TRUSTSTORE_TYPE +
                     " attribute in configuration entry %s has been updated " +
                     "to %s.  The new value will take effect the next time " +
-                    "the trust manager is accessed.");
+                    "the trust manager is accessed");
     registerMessage(MSGID_FILE_TRUSTMANAGER_UPDATED_PIN,
                     "The PIN to use to access the file-based trust manager " +
                     "has been updated.  The new value will take effect the " +
-                    "next time the trust manager is accessed.");
+                    "next time the trust manager is accessed");
 
 
     registerMessage(MSGID_NULL_SECURITY_PROVIDER_READ_ERROR,
                     "An unexpected error occurred while attempting to read " +
                     "data from the client using the null connection security " +
-                    "provider:  %s.");
+                    "provider:  %s");
     registerMessage(MSGID_NULL_SECURITY_PROVIDER_WRITE_ERROR,
                     "An unexpected error occurred while attempting to write " +
                     "data to the client using the null connection security " +
-                    "provider:  %s.");
+                    "provider:  %s");
 
 
     registerMessage(MSGID_TLS_SECURITY_PROVIDER_CANNOT_INITIALIZE,
                     "An error occurred while attempting to initialize the " +
                     "SSL context for use in the TLS connection security " +
-                    "provider:  %s.");
+                    "provider:  %s");
     registerMessage(MSGID_TLS_SECURITY_PROVIDER_UNEXPECTED_UNWRAP_STATUS,
                     "An unexpected status result was returned to the TLS " +
                     "connection security provider when attempting to unwrap " +
-                    "encrypted data read from the client:  %s.");
+                    "encrypted data read from the client:  %s");
     registerMessage(MSGID_TLS_SECURITY_PROVIDER_READ_ERROR,
                     "An unexpected error occurred while attempting to read " +
                     "data from the client using the TLS connection security " +
-                    "provider:  %s.");
+                    "provider:  %s");
     registerMessage(MSGID_TLS_SECURITY_PROVIDER_WRITE_NEEDS_UNWRAP,
                     "An attempt was made to write data to a client through " +
                     "the TLS connection security provider, but the SSL " +
@@ -5684,64 +5684,64 @@ public class ExtensionsMessages
                     "condition, and it is not possible to continue " +
                     "processing on this client connection without the " +
                     "potential for blocking other client connections, so " +
-                    "connection will be closed.");
+                    "connection will be closed");
     registerMessage(MSGID_TLS_SECURITY_PROVIDER_UNEXPECTED_WRAP_STATUS,
                     "An unexpected status result was returned to the TLS " +
                     "connection security provider when attempting to wrap " +
-                    "clear-text data for writing to the client:  %s.");
+                    "clear-text data for writing to the client:  %s");
     registerMessage(MSGID_TLS_SECURITY_PROVIDER_WRITE_ERROR,
                     "An unexpected error occurred while attempting to write " +
                     "data to the client using the TLS connection security " +
-                    "provider:  %s.");
+                    "provider:  %s");
 
 
     registerMessage(MSGID_SEDCM_NO_PEER_CERTIFICATE,
                     "Could not map the provided certificate chain to a user " +
-                    "entry because no peer certificate was available.");
+                    "entry because no peer certificate was available");
     registerMessage(MSGID_SEDCM_PEER_CERT_NOT_X509,
                     "Could not map the provided certificate chain to a user " +
                     "because the peer certificate was not an X.509 " +
-                    "certificate (peer certificate format was %s).");
+                    "certificate (peer certificate format was %s)");
     registerMessage(MSGID_SEDCM_CANNOT_DECODE_SUBJECT_AS_DN,
                     "Could not map the provided certificate chain to a user " +
                     "because the peer certificate subject \"%s\" could not " +
-                    "be decoded as an LDAP DN:  %s.");
+                    "be decoded as an LDAP DN:  %s");
     registerMessage(MSGID_SEDCM_CANNOT_GET_ENTRY,
                     "Could not map the provided certificate chain to a user " +
                     "because an error occurred while attempting to retrieve " +
-                    "the user entry with DN \"%s\":  %s.");
+                    "the user entry with DN \"%s\":  %s");
     registerMessage(MSGID_SEDCM_NO_USER_FOR_DN,
                     "Could not map the provided certificate chain to a user " +
-                    "because no user entry exists with a DN of %s.");
+                    "because no user entry exists with a DN of %s");
     registerMessage(MSGID_SEDCM_CANNOT_LOCK_ENTRY,
                     "The Directory Server was unable to obtain a read lock " +
-                    "on user entry %s in order to retrieve that entry.");
+                    "on user entry %s in order to retrieve that entry");
 
 
 
     registerMessage(MSGID_SASLEXTERNAL_NO_CLIENT_CONNECTION,
                     "The SASL EXTERNAL bind request could not be processed " +
                     "because the associated bind request does not have a " +
-                    "reference to the client connection.");
+                    "reference to the client connection");
     registerMessage(MSGID_SASLEXTERNAL_NO_SECURITY_PROVIDER,
                     "The SASL EXTERNAL bind request could not be processed " +
                     "because the associated client connection does not " +
-                    "have a security provider.");
+                    "have a security provider");
     registerMessage(MSGID_SASLEXTERNAL_CLIENT_NOT_USING_TLS_PROVIDER,
                     "The SASL EXTERNAL bind request could not be processed " +
                     "because the client connection is not using the TLS " +
                     "security provider (client security provider is %s).  " +
                     "The TLS security provider is required for clients that " +
-                    "wish to use SASL EXTERNAL authentication.");
+                    "wish to use SASL EXTERNAL authentication");
     registerMessage(MSGID_SASLEXTERNAL_NO_CLIENT_CERT,
                     "The SASL EXTERNAL bind request could not be processed " +
                     "because the client did not present an certificate chain " +
-                    "during SSL/TLS negotiation.");
+                    "during SSL/TLS negotiation");
     registerMessage(MSGID_SASLEXTERNAL_NO_MAPPING,
                     "The SASL EXTERNAL bind request failed because the " +
                     "certificate chain presented by the client during " +
                     "SSL/TLS negotiation could not be mapped to a user " +
-                    "entry in the Directory Server.");
+                    "entry in the Directory Server");
     registerMessage(MSGID_SASLEXTERNAL_DESCRIPTION_VALIDATION_POLICY,
                     "Indicates whether the SASL EXTERNAL mechanism handler " +
                     "should attempt to validate the peer certificate against " +
@@ -5754,96 +5754,96 @@ public class ExtensionsMessages
                     "if there are one or more certificates in the user's " +
                     "entry, but will not fail if there are no certificates " +
                     "in the entry.  Changes to this configuration attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_SASLEXTERNAL_INVALID_VALIDATION_VALUE,
                     "Configuration entry %s has an invalid value %s for " +
                     "attribute " + ATTR_CLIENT_CERT_VALIDATION_POLICY +
                     ".  The value must be one of \"always\", \"never\", or " +
-                    "\"ifpresent\".");
+                    "\"ifpresent\"");
     registerMessage(MSGID_SASLEXTERNAL_CANNOT_GET_VALIDATION_POLICY,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " +
                     ATTR_CLIENT_CERT_VALIDATION_POLICY +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLEXTERNAL_DESCRIPTION_CERTIFICATE_ATTRIBUTE,
                     "Specifies the name of the attribute that will be used " +
                     "to hold the certificate information in user entries " +
                     "for the purpose of validation.  This must specify the " +
                     "name of a valid attribute type defined in the server " +
                     "schema.  Changes to this configuration attribute will " +
-                    "take effect immediately.");
+                    "take effect immediately");
     registerMessage(MSGID_SASLEXTERNAL_CANNOT_GET_CERT_ATTR,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " +
                     ATTR_VALIDATION_CERT_ATTRIBUTE +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLEXTERNAL_UNKNOWN_CERT_ATTR,
                     "The attribute %s referenced in configuration attribute " +
                     ATTR_VALIDATION_CERT_ATTRIBUTE +
                     " in configuration entry %s does not exist in the " +
                     "Directory Server schema.  The attribute that is to be " +
                     "used for certificate validation during SASL EXTERNAL " +
-                    "authentication must be defined in the server schema.");
+                    "authentication must be defined in the server schema");
     registerMessage(MSGID_SASLEXTERNAL_DESCRIPTION_CERT_MAPPER_DN,
                     "Specifies the DN of the configuration entry that " +
                     "defines the certificate mapper to use when mapping a " +
                     "certificate to a user entry.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_SASLEXTERNAL_NO_CERTIFICATE_MAPPER_DN,
                     "Configuration entry %s does not contain attribute " +
                     ATTR_CERTMAPPER_DN + " which is required to specify " +
                     "which certificate mapper should be used to map " +
-                    "certificates to user entries.");
+                    "certificates to user entries");
     registerMessage(MSGID_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN,
                     "Configuration entry %s contains a certificate mapper DN " +
                     "of %s, but no such certificate mapper is enabled for " +
-                    "use in the Directory Server.");
+                    "use in the Directory Server");
     registerMessage(MSGID_SASLEXTERNAL_CANNOT_GET_CERT_MAPPER_DN,
                     "An error occurred while attempting to retrieve the " +
-                    "certificate mapper DN from configuration entry %s:  %s.");
+                    "certificate mapper DN from configuration entry %s:  %s");
     registerMessage(MSGID_SASLEXTERNAL_NO_CERT_IN_ENTRY,
                     "Unable to authenticate via SASL EXTERNAL because the " +
                     "mapped user entry %s does not have any certificates " +
-                    "with which to verify the presented peer certificate.");
+                    "with which to verify the presented peer certificate");
     registerMessage(MSGID_SASLEXTERNAL_PEER_CERT_NOT_FOUND,
                     "Unable to authenticate via SASL EXTERNAL because the " +
                     "mapped user entry %s did not contain the peer " +
-                    "certificate presented by the client.");
+                    "certificate presented by the client");
     registerMessage(MSGID_SASLEXTERNAL_CANNOT_VALIDATE_CERT,
                     "An error occurred while attempting to validate the peer " +
                     "certificate presented by the client with a certificate " +
-                    "from the user's entry %s:  %s.");
+                    "from the user's entry %s:  %s");
     registerMessage(MSGID_SASLEXTERNAL_UPDATED_VALIDATION_POLICY,
                     "Attribute " + ATTR_CLIENT_CERT_VALIDATION_POLICY +
                     " in configuration entry %s has been updated.  The new " +
-                    "client certificate validation policy is %s.");
+                    "client certificate validation policy is %s");
     registerMessage(MSGID_SASLEXTERNAL_UPDATED_CERT_ATTR,
                     "Attribute " + ATTR_VALIDATION_CERT_ATTRIBUTE +
                     " in configuration entry %s has been updated.  The %s " +
                     "attribute will now be used when validating peer " +
-                    "certificates.");
+                    "certificates");
     registerMessage(MSGID_SASLEXTERNAL_UPDATED_CERT_MAPPER_DN,
                     "Attribute " + ATTR_CERTMAPPER_DN +
                     " in configuration entry %s has been updated.  " +
                     "Certificate mapper %s will now be used to map " +
-                    "certificates to user entries.");
+                    "certificates to user entries");
 
 
     registerMessage(MSGID_STARTTLS_NO_CLIENT_CONNECTION,
                     "StartTLS cannot be used on this connection because the " +
-                    "underlying client connection is not available.");
+                    "underlying client connection is not available");
     registerMessage(MSGID_STARTTLS_NOT_TLS_CAPABLE,
                     "StartTLS cannot be used on this client connection " +
                     "because this connection type is not capable of using " +
-                    "StartTLS to protect its communication.");
+                    "StartTLS to protect its communication");
     registerMessage(MSGID_STARTTLS_ERROR_ON_ENABLE,
                     "An unexpected error occurred while attempting to enable " +
                     "the TLS connection security manager on the client " +
-                    "connection for the purpose of StartTLS:  %s.");
+                    "connection for the purpose of StartTLS:  %s");
     registerMessage(MSGID_STARTTLS_ERROR_SENDING_CLEAR_RESPONSE,
                     "An unexpected error occurred while attempting to " +
                     "send the clear-text response to the client after " +
-                    "starting TLS negotiation:  %s.");
+                    "starting TLS negotiation:  %s");
 
 
 
@@ -5852,587 +5852,587 @@ public class ExtensionsMessages
                     "the configuration for the identity mapper that should " +
                     "be used to map the provided username to a Directory " +
                     "Server user entry.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_SASLPLAIN_NO_IDENTITY_MAPPER_ATTR,
                     "Configuration entry %s does not contain attribute " +
                     ATTR_IDMAPPER_DN + " which specifies the DN of the " +
                     "identity mapper to use in conjunction with the PLAIN " +
-                    "SASL mechanism.  This is a required attribute.");
+                    "SASL mechanism.  This is a required attribute");
     registerMessage(MSGID_SASLPLAIN_NO_SUCH_IDENTITY_MAPPER,
                     "The identity mapper %s specified in attribute " +
                     ATTR_IDMAPPER_DN + " of configuration entry %s does not " +
                     "reference a valid identity mapper configuration that is " +
-                    "enabled for use in the Directory Server.");
+                    "enabled for use in the Directory Server");
     registerMessage(MSGID_SASLPLAIN_CANNOT_GET_IDENTITY_MAPPER,
                     "An error occurred while trying to process the value " +
                     "of the " + ATTR_IDMAPPER_DN + " attribute in " +
                     "configuration entry %s to determine which identity " +
                     "mapper should be used in conjunction with the PLAIN " +
-                    "SASL mechanism:  %s.");
+                    "SASL mechanism:  %s");
     registerMessage(MSGID_SASLPLAIN_DESCRIPTION_USERNAME_ATTRIBUTE,
                     "Specifies the name of the attribute that will be used " +
                     "to identify user entries based on the authcID/authzID " +
                     "provided during SASL PLAIN authentication.  This must " +
                     "specify the name of a valid attribute type defined in " +
                     "the server schema.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_SASLPLAIN_CANNOT_GET_USERNAME_ATTR,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_USERNAME_ATTRIBUTE +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLPLAIN_UNKNOWN_USERNAME_ATTR,
                     "The attribute %s referenced in configuration attribute " +
                     ATTR_USERNAME_ATTRIBUTE + " in configuration entry %s " +
                     "does not exist in the Directory Server schema.  The " +
                     "attribute that is to be used for username lookups " +
                     "during SASL PLAIN authentication must be defined in the " +
-                    "server schema.");
+                    "server schema");
     registerMessage(MSGID_SASLPLAIN_DESCRIPTION_USER_BASE_DN,
                     "Specifies the base DN that should be used when " +
                     "searching for entries based on the authcID/authzID " +
                     "provided during SASL PLAIN authentication.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_SASLPLAIN_CANNOT_GET_USER_BASE_DN,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_USER_BASE_DN +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLPLAIN_NO_SASL_CREDENTIALS,
                     "SASL PLAIN authentication requires that SASL " +
                     "credentials be provided but none were included in the " +
-                    "bind request.");
+                    "bind request");
     registerMessage(MSGID_SASLPLAIN_NO_NULLS_IN_CREDENTIALS,
                     "The SASL PLAIN bind request did not include any NULL " +
                     "characters.  NULL characters are required as delimiters " +
                     "between the authorization ID and authentication ID, and " +
-                    "also between the authentication ID and the password.");
+                    "also between the authentication ID and the password");
     registerMessage(MSGID_SASLPLAIN_NO_SECOND_NULL,
                     "The SASL PLAIN bind request did not include a second " +
                     "NULL character in the credentials, which is required as " +
                     "a delimiter between the authentication ID and the " +
-                    "password.");
+                    "password");
     registerMessage(MSGID_SASLPLAIN_ZERO_LENGTH_AUTHCID,
                     "The authentication ID contained in the SASL PLAIN bind " +
                     "request had a length of zero characters, which is not " +
                     "allowed.  SASL PLAIN authentication does not allow an " +
-                    "empty string for use as the authentication ID.");
+                    "empty string for use as the authentication ID");
     registerMessage(MSGID_SASLPLAIN_ZERO_LENGTH_PASSWORD,
                     "The password contained in the SASL PLAIN bind request " +
                     "had a length of zero characters, which is not allowed.  " +
                     "SASL PLAIN authentication does not allow an empty " +
-                    "string for use as the password.");
+                    "string for use as the password");
     registerMessage(MSGID_SASLPLAIN_CANNOT_DECODE_AUTHCID_AS_DN,
                     "An error occurred while attempting to decode the SASL " +
                     "PLAIN authentication ID \"%s\" because it appeared to " +
-                    "contain a DN but DN decoding failed:  %s.");
+                    "contain a DN but DN decoding failed:  %s");
     registerMessage(MSGID_SASLPLAIN_AUTHCID_IS_NULL_DN,
                     "The authentication ID in the SASL PLAIN bind request " +
-                    "appears to be an empty DN.  This is not allowed.");
+                    "appears to be an empty DN.  This is not allowed");
     registerMessage(MSGID_SASLPLAIN_CANNOT_GET_ENTRY_BY_DN,
                     "An error occurred while attempting to retrieve user " +
                     "entry %s as specified in the DN-based authentication ID " +
-                    "of a SASL PLAIN bind request:  %s.");
+                    "of a SASL PLAIN bind request:  %s");
     registerMessage(MSGID_SASLPLAIN_CANNOT_MAP_USERNAME,
                     "An error occurred while attempting to map username %s " +
-                    "to a Directory Server entry:  %s.");
+                    "to a Directory Server entry:  %s");
     registerMessage(MSGID_SASLPLAIN_CANNOT_PERFORM_INTERNAL_SEARCH,
                     "An error occurred while trying to perform an internal " +
                     "search to retrieve the user entry associated with the " +
                     "SASL PLAIN authentication ID %s.  The result of that " +
-                    "search was %s with a message of %s.");
+                    "search was %s with a message of %s");
     registerMessage(MSGID_SASLPLAIN_MULTIPLE_MATCHING_ENTRIES,
                     "The internal search attempting to resolve SASL PLAIN " +
                     "authentication ID %s matched multiple entries.  " +
                     "Authentication cannot succeed unless the authentication " +
-                    "ID is mapped to exactly one user entry.");
+                    "ID is mapped to exactly one user entry");
     registerMessage(MSGID_SASLPLAIN_NO_MATCHING_ENTRIES,
                     "The server was not able to find any user entries for " +
-                    "the provided authentication ID of %s.");
+                    "the provided authentication ID of %s");
     registerMessage(MSGID_SASLPLAIN_AUTHZID_INVALID_DN,
                     "The provided authorization ID %s contained an invalid " +
-                    "DN:  %s.");
+                    "DN:  %s");
     registerMessage(MSGID_SASLPLAIN_AUTHZID_INSUFFICIENT_PRIVILEGES,
                     "The authenticating user %s does not have sufficient " +
-                    "privileges to specify an alternate authorization ID.");
+                    "privileges to specify an alternate authorization ID");
     registerMessage(MSGID_SASLPLAIN_AUTHZID_NO_SUCH_ENTRY,
                     "The entry corresponding to authorization DN %s does not " +
-                    "exist in the Directory Server.");
+                    "exist in the Directory Server");
     registerMessage(MSGID_SASLPLAIN_AUTHZID_CANNOT_GET_ENTRY,
                     "An error occurred while attempting to retrieve entry %s " +
-                    "specified as the authorization ID:  %s.");
+                    "specified as the authorization ID:  %s");
     registerMessage(MSGID_SASLPLAIN_AUTHZID_NO_MAPPED_ENTRY,
                     "No entry corresponding to authorization ID %s was found " +
-                    "in the server.");
+                    "in the server");
     registerMessage(MSGID_SASLPLAIN_AUTHZID_CANNOT_MAP_AUTHZID,
                     "An error occurred while attempting to map authorization " +
-                    "ID %s to a user entry:  %s.");
+                    "ID %s to a user entry:  %s");
     registerMessage(MSGID_SASLPLAIN_NO_PW_ATTR,
                     "The SASL PLAIN authentication failed because the mapped " +
                     "user entry did not contain any values for the %s " +
-                    "attribute.");
+                    "attribute");
     registerMessage(MSGID_SASLPLAIN_UNKNOWN_STORAGE_SCHEME,
                     "A password in the target user entry %s could not be " +
                     "processed via SASL PLAIN because that password has an " +
-                    "unknown storage scheme of %s.");
+                    "unknown storage scheme of %s");
     registerMessage(MSGID_SASLPLAIN_INVALID_PASSWORD,
-                    "The provided password is invalid.");
+                    "The provided password is invalid");
     registerMessage(MSGID_SASLPLAIN_CANNOT_CHECK_PASSWORD_VALIDITY,
                     "An error occurred while attempting to verify the " +
                     "password for user %s during SASL PLAIN authentication:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_SASLPLAIN_UPDATED_IDENTITY_MAPPER,
                     "Attribute " + ATTR_IDMAPPER_DN +
                     " in configuration entry %s has been updated.  The " +
                     "identity mapper defined in configuration entry %s " +
                     "will now be used to map usernames to entries when " +
-                    "processing SASL PLAIN bind requests.");
+                    "processing SASL PLAIN bind requests");
     registerMessage(MSGID_SASLPLAIN_UPDATED_USERNAME_ATTR,
                     "Attribute " + ATTR_USERNAME_ATTRIBUTE +
                     " in configuration entry %s has been updated.  The %s " +
                     "attribute will now be used when looking up user entries " +
-                    "based on their authcID/authzID.");
+                    "based on their authcID/authzID");
     registerMessage(MSGID_SASLPLAIN_UPDATED_USER_BASE_DN,
                     "Attribute " + ATTR_USER_BASE_DN +
                     " in configuration entry %s has been updated.  The DN %s " +
                     "will now be used as the search base when looking up " +
-                    "user entries based on their authcID/authzID.");
+                    "user entries based on their authcID/authzID");
     registerMessage(MSGID_SASLPLAIN_CANNOT_LOCK_ENTRY,
                     "The Directory Server was unable to obtain a read lock " +
-                    "on user entry %s in order to retrieve that entry.");
+                    "on user entry %s in order to retrieve that entry");
 
 
     registerMessage(MSGID_SASLANONYMOUS_TRACE,
                     "SASL ANONYMOUS bind operation (conn=%d, op=%d) provided " +
-                    "trace information:  %s.");
+                    "trace information:  %s");
 
 
     registerMessage(MSGID_SASLCRAMMD5_CANNOT_GET_MESSAGE_DIGEST,
                     "An unexpected error occurred while attempting to obtain " +
                     "an MD5 digest engine for use by the CRAM-MD5 SASL " +
-                    "handler:  %s.");
+                    "handler:  %s");
     registerMessage(MSGID_SASLCRAMMD5_DESCRIPTION_IDENTITY_MAPPER_DN,
                     "Specifies the DN of the configuration entry that holds " +
                     "the configuration for the identity mapper that should " +
                     "be used to map the CRAM-MD5 username to a Directory " +
                     "Server user entry.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_SASLCRAMMD5_NO_IDENTITY_MAPPER_ATTR,
                     "Configuration entry %s does not contain attribute " +
                     ATTR_IDMAPPER_DN + " which specifies the DN of the " +
                     "identity mapper to use in conjunction with the CRAM-MD5 " +
-                    "SASL mechanism.  This is a required attribute.");
+                    "SASL mechanism.  This is a required attribute");
     registerMessage(MSGID_SASLCRAMMD5_NO_SUCH_IDENTITY_MAPPER,
                     "The identity mapper %s specified in attribute " +
                     ATTR_IDMAPPER_DN + " of configuration entry %s does not " +
                     "reference a valid identity mapper configuration that is " +
-                    "enabled for use in the Directory Server.");
+                    "enabled for use in the Directory Server");
     registerMessage(MSGID_SASLCRAMMD5_CANNOT_GET_IDENTITY_MAPPER,
                     "An error occurred while trying to process the value " +
                     "of the " + ATTR_IDMAPPER_DN + " attribute in " +
                     "configuration entry %s to determine which identity " +
                     "mapper should be used in conjunction with the CRAM-MD5 " +
-                    "SASL mechanism:  %s.");
+                    "SASL mechanism:  %s");
     registerMessage(MSGID_SASLCRAMMD5_DESCRIPTION_USERNAME_ATTRIBUTE,
                     "Specifies the name of the attribute that will be used " +
                     "to identify user entries based on the username provided " +
                     "during SASL CRAM-MD5 authentication.  This must specify " +
                     "the name of a valid attribute type defined in the " +
                     "server schema.  Changes to this configuration attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_SASLCRAMMD5_CANNOT_GET_USERNAME_ATTR,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_USERNAME_ATTRIBUTE +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLCRAMMD5_UNKNOWN_USERNAME_ATTR,
                     "The attribute %s referenced in configuration attribute " +
                     ATTR_USERNAME_ATTRIBUTE + " in configuration entry %s " +
                     "does not exist in the Directory Server schema.  The " +
                     "attribute that is to be used for username lookups " +
                     "during SASL CRAM-MD5 authentication must be defined in " +
-                    "the server schema.");
+                    "the server schema");
     registerMessage(MSGID_SASLCRAMMD5_DESCRIPTION_USER_BASE_DN,
                     "Specifies the base DN that should be used when " +
                     "searching for entries based on the username provided " +
                     "during SASL CRAM-MD5 authentication.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_SASLCRAMMD5_CANNOT_GET_USER_BASE_DN,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_USER_BASE_DN +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLCRAMMD5_NO_STORED_CHALLENGE,
                     "The SASL CRAM-MD5 bind request contained SASL " +
                     "credentials but there is no stored challenge for this " +
                     "client connection.  The first CRAM-MD5 bind request in " +
                     "the two-stage process must not contain client SASL " +
-                    "credentials.");
+                    "credentials");
     registerMessage(MSGID_SASLCRAMMD5_INVALID_STORED_CHALLENGE,
                     "The SASL CRAM-MD5 bind request contained SASL " +
                     "credentials, but the stored SASL state information for " +
                     "this client connection is not in an appropriate form " +
-                    "for the challenge.");
+                    "for the challenge");
     registerMessage(MSGID_SASLCRAMMD5_NO_SPACE_IN_CREDENTIALS,
                     "The SASL CRAM-MD5 bind request from the client included " +
                     "SASL credentials but there was no space to separate " +
-                    "the username from the authentication digest.");
+                    "the username from the authentication digest");
     registerMessage(MSGID_SASLCRAMMD5_INVALID_DIGEST_LENGTH,
                     "The SASL CRAM-MD5 bind request included SASL " +
                     "credentials, but the decoded digest string had an " +
                     "invalid length of %d bytes rather than the %d bytes " +
-                    "expected for a hex representation of an MD5 digest.");
+                    "expected for a hex representation of an MD5 digest");
     registerMessage(MSGID_SASLCRAMMD5_INVALID_DIGEST_CONTENT,
                     "The SASL CRAM-MD5 bind request included SASL " +
                     "credentials, but the decoded digest was not comprised " +
-                    "of only hexadecimal digits:  %s.");
+                    "of only hexadecimal digits:  %s");
     registerMessage(MSGID_SASLCRAMMD5_CANNOT_DECODE_USERNAME_AS_DN,
                     "An error occurred while attempting to decode the SASL " +
                     "CRAM-MD5 username \"%s\" because it appeared to contain " +
-                    "a DN but DN decoding failed:  %s.");
+                    "a DN but DN decoding failed:  %s");
     registerMessage(MSGID_SASLCRAMMD5_USERNAME_IS_NULL_DN,
                     "The username in the SASL CRAM-MD5 bind request appears " +
-                    "to be an empty DN.  This is not allowed.");
+                    "to be an empty DN.  This is not allowed");
     registerMessage(MSGID_SASLCRAMMD5_CANNOT_LOCK_ENTRY,
                     "The Directory Server was unable to obtain a read lock " +
-                    "on user entry %s in order to retrieve that entry.");
+                    "on user entry %s in order to retrieve that entry");
     registerMessage(MSGID_SASLCRAMMD5_CANNOT_GET_ENTRY_BY_DN,
                     "An error occurred while attempting to retrieve user " +
                     "entry %s as specified in the DN-based username of a " +
-                    "SASL CRAM-MD5 bind request:  %s.");
+                    "SASL CRAM-MD5 bind request:  %s");
     registerMessage(MSGID_SASLCRAMMD5_CANNOT_MAP_USERNAME,
                     "An error occurred while attempting to map username %s " +
-                    "to a Directory Server entry:  %s.");
+                    "to a Directory Server entry:  %s");
     registerMessage(MSGID_SASLCRAMMD5_ZERO_LENGTH_USERNAME,
                     "The username contained in the SASL CRAM-MD5 bind " +
                     "request had a length of zero characters, which is not " +
                     "allowed.  CRAM-MD5 authentication does not allow an " +
-                    "empty string for use as the username.");
+                    "empty string for use as the username");
     registerMessage(MSGID_SASLCRAMMD5_CANNOT_PERFORM_INTERNAL_SEARCH,
                     "An error occurred while trying to perform an internal " +
                     "search to retrieve the user entry associated with the " +
                     "SASL CRAM-MD5 username %s.  The result of that " +
-                    "search was %s with a message of %s.");
+                    "search was %s with a message of %s");
     registerMessage(MSGID_SASLCRAMMD5_MULTIPLE_MATCHING_ENTRIES,
                     "The internal search attempting to resolve SASL CRAM-MD5 " +
                     "username %s matched multiple entries.  Authentication " +
                     "cannot succeed unless the username is mapped to exactly " +
-                    "one user entry.");
+                    "one user entry");
     registerMessage(MSGID_SASLCRAMMD5_NO_MATCHING_ENTRIES,
                     "The server was not able to find any user entries for " +
-                    "the provided username of %s.");
+                    "the provided username of %s");
     registerMessage(MSGID_SASLCRAMMD5_NO_PW_ATTR,
                     "The SASL CRAM-MD5 authentication failed because the " +
                     "mapped user entry did not contain any values for the %s " +
-                    "attribute.");
+                    "attribute");
     registerMessage(MSGID_SASLCRAMMD5_UNKNOWN_STORAGE_SCHEME,
                     "A password in the target user entry %s could not be " +
                     "processed via SASL CRAM-MD5 because that password has " +
-                    "an unknown storage scheme of %s.");
+                    "an unknown storage scheme of %s");
     registerMessage(MSGID_SASLCRAMMD5_CANNOT_GET_CLEAR_PASSWORD,
                     "An error occurred while attempting to obtain the " +
                     "clear-text password for user %s from the value with " +
-                    "storage scheme %s:  %s.");
+                    "storage scheme %s:  %s");
     registerMessage(MSGID_SASLCRAMMD5_INVALID_PASSWORD,
-                    "The provided password is invalid.");
+                    "The provided password is invalid");
     registerMessage(MSGID_SASLCRAMMD5_NO_REVERSIBLE_PASSWORDS,
                     "SASL CRAM-MD5 authentication is not possible for user " +
                     "%s because none of the passwords in the user entry are " +
-                    "stored in a reversible form.");
+                    "stored in a reversible form");
     registerMessage(MSGID_SASLCRAMMD5_CANNOT_GET_REVERSIBLE_PASSWORDS,
                     "An error occurred while attempting to retrieve the " +
                     "clear-text password(s) for user %s in order to perform " +
-                    "SASL CRAM-MD5 authentication:  %s.");
+                    "SASL CRAM-MD5 authentication:  %s");
     registerMessage(MSGID_SASLCRAMMD5_UPDATED_IDENTITY_MAPPER,
                     "Attribute " + ATTR_IDMAPPER_DN +
                     " in configuration entry %s has been updated.  The " +
                     "identity mapper defined in configuration entry %s " +
                     "will now be used to map usernames to entries when " +
-                    "processing SASL CRAM-MD5 bind requests.");
+                    "processing SASL CRAM-MD5 bind requests");
     registerMessage(MSGID_SASLCRAMMD5_UPDATED_USERNAME_ATTR,
                     "Attribute " + ATTR_USERNAME_ATTRIBUTE +
                     " in configuration entry %s has been updated.  The %s " +
                     "attribute will now be used when looking up user entries " +
-                    "based on their username.");
+                    "based on their username");
     registerMessage(MSGID_SASLCRAMMD5_UPDATED_USER_BASE_DN,
                     "Attribute " + ATTR_USER_BASE_DN +
                     " in configuration entry %s has been updated.  The DN %s " +
                     "will now be used as the search base when looking up " +
-                    "user entries based on their username.");
+                    "user entries based on their username");
 
 
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GET_MESSAGE_DIGEST,
                     "An unexpected error occurred while attempting to obtain " +
                     "an MD5 digest engine for use by the DIGEST-MD5 SASL " +
-                    "handler:  %s.");
+                    "handler:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_DESCRIPTION_IDENTITY_MAPPER_DN,
                     "Specifies the DN of the configuration entry that holds " +
                     "the configuration for the identity mapper that should " +
                     "be used to map the DIGEST-MD5 username to a Directory " +
                     "Server user entry.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_SASLDIGESTMD5_NO_IDENTITY_MAPPER_ATTR,
                     "Configuration entry %s does not contain attribute " +
                     ATTR_IDMAPPER_DN + " which specifies the DN of the " +
                     "identity mapper to use in conjunction with the " +
                     "DIGEST-MD5 SASL mechanism.  This is a required " +
-                    "attribute.");
+                    "attribute");
     registerMessage(MSGID_SASLDIGESTMD5_NO_SUCH_IDENTITY_MAPPER,
                     "The identity mapper %s specified in attribute " +
                     ATTR_IDMAPPER_DN + " of configuration entry %s does not " +
                     "reference a valid identity mapper configuration that is " +
-                    "enabled for use in the Directory Server.");
+                    "enabled for use in the Directory Server");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GET_IDENTITY_MAPPER,
                     "An error occurred while trying to process the value " +
                     "of the " + ATTR_IDMAPPER_DN + " attribute in " +
                     "configuration entry %s to determine which identity " +
                     "mapper should be used in conjunction with the " +
-                    "DIGEST-MD5 SASL mechanism:  %s.");
+                    "DIGEST-MD5 SASL mechanism:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_DESCRIPTION_USERNAME_ATTRIBUTE,
                     "Specifies the name of the attribute that will be used " +
                     "to identify user entries based on the username provided " +
                     "during SASL DIGEST-MD5 authentication.  This must " +
                     "specify the name of a valid attribute type defined in " +
                     "the server schema.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GET_USERNAME_ATTR,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_USERNAME_ATTRIBUTE +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_UNKNOWN_USERNAME_ATTR,
                     "The attribute %s referenced in configuration attribute " +
                     ATTR_USERNAME_ATTRIBUTE + " in configuration entry %s " +
                     "does not exist in the Directory Server schema.  The " +
                     "attribute that is to be used for username lookups " +
                     "during SASL DIGEST-MD5 authentication must be defined " +
-                    "in the server schema.");
+                    "in the server schema");
     registerMessage(MSGID_SASLDIGESTMD5_DESCRIPTION_USER_BASE_DN,
                     "Specifies the base DN that should be used when " +
                     "searching for entries based on the username provided " +
                     "during SASL DIGEST-MD5 authentication.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GET_USER_BASE_DN,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_USER_BASE_DN +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_DESCRIPTION_REALM,
                     "Specifies the realm that should be used by the server " +
                     "for DIGEST-MD5 authentication.  If this is not " +
                     "provided, then the server will default to using a set " +
                     "of realm names that correspond to the defined " +
                     "suffixes.  Changes to this configuration attribute will " +
-                    "take effect immediately.");
+                    "take effect immediately");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GET_REALM,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_DIGESTMD5_REALM +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_CHALLENGE_TOO_LONG,
                     "The initial DIGEST-MD5 must be less than 2048 bytes, " +
-                    "but the generated challenge was %d bytes.");
+                    "but the generated challenge was %d bytes");
     registerMessage(MSGID_SASLDIGESTMD5_NO_STORED_STATE,
                     "The SASL DIGEST-MD5 bind request contained SASL " +
                     "credentials but there is no stored SASL state " +
                     "information for this client connection.  If this is " +
                     "an initial authentication, then the client must not " +
-                    "provide any SASL credentials.");
+                    "provide any SASL credentials");
     registerMessage(MSGID_SASLDIGESTMD5_INVALID_STORED_STATE,
                     "The SASL DIGEST-MD5 bind request contained SASL " +
                     "credentials, but the stored SASL state information for " +
                     "this client connection is not in an appropriate form " +
-                    "for the challenge.");
+                    "for the challenge");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_PARSE_ISO_CREDENTIALS,
                     "An error occurred while attempting to parse the " +
                     "DIGEST-MD5 credentials as a string using the %s " +
-                    "character set:  %s.  The server will re-try using UTF-8.");
+                    "character set:  %s.  The server will re-try using UTF-8");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_PARSE_UTF8_CREDENTIALS,
                     "An error occurred while attempting to parse the " +
                     "DIGEST-MD5 credentials as a string using the UTF-8 " +
-                    "character set:  %s.");
+                    "character set:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_INVALID_TOKEN_IN_CREDENTIALS,
                     "The DIGEST-MD5 credentials provided by the client " +
                     "contained an invalid token of \"%s\" starting at " +
-                    "position %d.");
+                    "position %d");
     registerMessage(MSGID_SASLDIGESTMD5_INVALID_CHARSET,
                     "The DIGEST-MD5 credentials provided by the client " +
                     "specified an invalid character set of %s.  Only a value " +
-                    "of 'utf-8' is acceptable for this parameter.");
+                    "of 'utf-8' is acceptable for this parameter");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_DECODE_REALM_AS_DN,
                     "An error occurred while attempting to parse the " +
                     "provided response realm \"%s\" as a DN:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_INVALID_REALM,
                     "The DIGEST-MD5 credentials provided by the client " +
-                    "included an invalid realm of \"%s\".");
+                    "included an invalid realm of \"%s\"");
     registerMessage(MSGID_SASLDIGESTMD5_INVALID_NONCE,
                     "The DIGEST-MD5 credentials provided by the client " +
                     "included a nonce that was different from the nonce " +
                     "supplied by the server.  This could indicate a replay " +
                     "attack or a chosen plaintext attack, and as a result " +
-                    "the client connection will be terminated.");
+                    "the client connection will be terminated");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_DECODE_NONCE_COUNT,
                     "The DIGEST-MD5 credentials provided by the client " +
                     "included a nonce count \"%s\" that could not be decoded " +
-                    "as a hex-encoded integer.");
+                    "as a hex-encoded integer");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_DECODE_STORED_NONCE_COUNT,
                     "An unexpected error occurred while attempting to decode " +
                     "the nonce count stored by the server for this client " +
-                    "connection:  %s.");
+                    "connection:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_INVALID_NONCE_COUNT,
                     "The DIGEST-MD5 credentials provided by the client " +
                     "included a nonce count that was different from the " +
                     "count expected by the server.  This could indicate a " +
                     "replay attack, and as a result the client connection " +
-                    "will be terminated.");
+                    "will be terminated");
     registerMessage(MSGID_SASLDIGESTMD5_INTEGRITY_NOT_SUPPORTED,
                     "The client requested the auth-int quality of protection " +
                     "but integrity protection is not currently supported by " +
-                    "the Directory Server.");
+                    "the Directory Server");
     registerMessage(MSGID_SASLDIGESTMD5_CONFIDENTIALITY_NOT_SUPPORTED,
                     "The client requested the auth-conf quality of " +
                     "protection but confidentiality protection is not " +
-                    "currently supported by the Directory Server.");
+                    "currently supported by the Directory Server");
     registerMessage(MSGID_SASLDIGESTMD5_INVALID_QOP,
                     "The DIGEST-MD5 credentials provided by the client " +
                     "requested an invalid quality of protection mechanism of " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_PARSE_RESPONSE_DIGEST,
                     "The DIGEST-MD5 credentials provided by the client " +
                     "included a digest that could not be decoded as a " +
-                    "hex-encoded byte sequence:  %s.");
+                    "hex-encoded byte sequence:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_INVALID_RESPONSE_TOKEN,
                     "The DIGEST-MD5 credentials provided by the client " +
-                    "included an invalid token named \"%s\".");
+                    "included an invalid token named \"%s\"");
     registerMessage(MSGID_SASLDIGESTMD5_NO_USERNAME_IN_RESPONSE,
                     "The DIGEST-MD5 credentials provided by the client did " +
-                    "not contain the required \"username\" token.");
+                    "not contain the required \"username\" token");
     registerMessage(MSGID_SASLDIGESTMD5_NO_NONCE_IN_RESPONSE,
                     "The DIGEST-MD5 credentials provided by the client did " +
-                    "not contain the required \"nonce\" token.");
+                    "not contain the required \"nonce\" token");
     registerMessage(MSGID_SASLDIGESTMD5_NO_CNONCE_IN_RESPONSE,
                     "The DIGEST-MD5 credentials provided by the client did " +
-                    "not contain the required \"cnonce\" token.");
+                    "not contain the required \"cnonce\" token");
     registerMessage(MSGID_SASLDIGESTMD5_NO_NONCE_COUNT_IN_RESPONSE,
                     "The DIGEST-MD5 credentials provided by the client did " +
-                    "not contain the required \"nc\" token.");
+                    "not contain the required \"nc\" token");
     registerMessage(MSGID_SASLDIGESTMD5_NO_DIGEST_URI_IN_RESPONSE,
                     "The DIGEST-MD5 credentials provided by the client did " +
-                    "not contain the required \"digest-uri\" token.");
+                    "not contain the required \"digest-uri\" token");
     registerMessage(MSGID_SASLDIGESTMD5_NO_DIGEST_IN_RESPONSE,
                     "The DIGEST-MD5 credentials provided by the client did " +
-                    "not contain the required \"response\" token.");
+                    "not contain the required \"response\" token");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_DECODE_USERNAME_AS_DN,
                     "An error occurred while attempting to decode the SASL " +
                     "DIGEST-MD5 username \"%s\" because it appeared to " +
-                    "contain a DN but DN decoding failed:  %s.");
+                    "contain a DN but DN decoding failed:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_USERNAME_IS_NULL_DN,
                     "The username in the SASL DIGEST-MD5 bind request " +
-                    "appears to be an empty DN.  This is not allowed.");
+                    "appears to be an empty DN.  This is not allowed");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_LOCK_ENTRY,
                     "The Directory Server was unable to obtain a read lock " +
-                    "on user entry %s in order to retrieve that entry.");
+                    "on user entry %s in order to retrieve that entry");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GET_ENTRY_BY_DN,
                     "An error occurred while attempting to retrieve user " +
                     "entry %s as specified in the DN-based username of a " +
-                    "SASL DIGEST-MD5 bind request:  %s.");
+                    "SASL DIGEST-MD5 bind request:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_ZERO_LENGTH_USERNAME,
                     "The username contained in the SASL DIGEST-MD5 bind " +
                     "request had a length of zero characters, which is not " +
                     "allowed.  DIGEST-MD5 authentication does not allow an " +
-                    "empty string for use as the username.");
+                    "empty string for use as the username");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_MAP_USERNAME,
                     "An error occurred while attempting to map username %s " +
-                    "to a Directory Server entry:  %s.");
+                    "to a Directory Server entry:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_PERFORM_INTERNAL_SEARCH,
                     "An error occurred while trying to perform an internal " +
                     "search to retrieve the user entry associated with the " +
                     "SASL DIGEST-MD5 username %s.  The result of that " +
-                    "search was %s with a message of %s.");
+                    "search was %s with a message of %s");
     registerMessage(MSGID_SASLDIGESTMD5_MULTIPLE_MATCHING_ENTRIES,
                     "The internal search attempting to resolve SASL " +
                     "DIGEST-MD5 username %s matched multiple entries.  " +
                     "Authentication cannot succeed unless the username is " +
-                    "mapped to exactly one user entry.");
+                    "mapped to exactly one user entry");
     registerMessage(MSGID_SASLDIGESTMD5_NO_MATCHING_ENTRIES,
                     "The server was not able to find any user entries for " +
-                    "the provided username of %s.");
+                    "the provided username of %s");
     registerMessage(MSGID_SASLDIGESTMD5_EMPTY_AUTHZID,
                     "The provided authorization ID was empty, which is not " +
-                    "allowed for DIGEST-MD5 authentication.");
+                    "allowed for DIGEST-MD5 authentication");
     registerMessage(MSGID_SASLDIGESTMD5_AUTHZID_INVALID_DN,
                     "The provided authorization ID %s contained an invalid " +
-                    "DN:  %s.");
+                    "DN:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_AUTHZID_INSUFFICIENT_PRIVILEGES,
                     "The authenticating user %s does not have sufficient " +
-                    "privileges to assume a different authorization identity.");
+                    "privileges to assume a different authorization identity");
     registerMessage(MSGID_SASLDIGESTMD5_AUTHZID_NO_SUCH_ENTRY,
                     "The entry %s specified as the authorization identity " +
-                    "does not exist.");
+                    "does not exist");
     registerMessage(MSGID_SASLDIGESTMD5_AUTHZID_CANNOT_GET_ENTRY,
                     "The entry %s specified as the authorization identity " +
-                    "could not be retrieved:  %s.");
+                    "could not be retrieved:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_AUTHZID_NO_MAPPED_ENTRY,
                     "The server was unable to find any entry corresponding " +
-                    "to authorization ID %s.");
+                    "to authorization ID %s");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_MAP_AUTHZID,
                     "An error occurred while attempting to map authorization " +
-                    "ID %s to a user entry:  %s.");
+                    "ID %s to a user entry:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_NO_PW_ATTR,
                     "The SASL DIGEST-MD5 authentication failed because the " +
                     "mapped user entry did not contain any values for the %s " +
-                    "attribute.");
+                    "attribute");
     registerMessage(MSGID_SASLDIGESTMD5_UNKNOWN_STORAGE_SCHEME,
                     "A password in the target user entry %s could not be " +
                     "processed via SASL DIGEST-MD5 because that password has " +
-                    "an unknown storage scheme of %s.");
+                    "an unknown storage scheme of %s");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GET_CLEAR_PASSWORD,
                     "An error occurred while attempting to obtain the " +
                     "clear-text password for user %s from the value with " +
-                    "storage scheme %s:  %s.");
+                    "storage scheme %s:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_INVALID_CREDENTIALS,
                     "The DIGEST-MD5 credentials provided by the client are " +
                     "not appropriate for any password in the associated user " +
-                    "account.");
+                    "account");
     registerMessage(MSGID_SASLDIGESTMD5_NO_REVERSIBLE_PASSWORDS,
                     "SASL DIGEST-MD5 authentication is not possible for user " +
                     "%s because none of the passwords in the user entry are " +
-                    "stored in a reversible form.");
+                    "stored in a reversible form");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GET_REVERSIBLE_PASSWORDS,
                     "An error occurred while attempting to retrieve the " +
                     "clear-text password(s) for user %s in order to perform " +
-                    "SASL DIGEST-MD5 authentication:  %s.");
+                    "SASL DIGEST-MD5 authentication:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GENERATE_RESPONSE_DIGEST,
                     "An error occurred while attempting to generate a " +
                     "server-side digest to compare with the client " +
-                    "response:  %s.");
+                    "response:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_GENERATE_RESPONSE_AUTH_DIGEST,
                     "An error occurred while trying to generate the " +
                     "response auth digest to include in the server SASL " +
-                    "credentials:  %s.");
+                    "credentials:  %s");
     registerMessage(MSGID_SASLDIGESTMD5_INVALID_CLOSING_QUOTE_POS,
                     "The DIGEST-MD5 response challenge could not be parsed " +
-                    "because it had an invalid quotation mark at position %d.");
+                    "because it had an invalid quotation mark at position %d");
     registerMessage(MSGID_SASLDIGESTMD5_UPDATED_IDENTITY_MAPPER,
                     "Attribute " + ATTR_IDMAPPER_DN +
                     " in configuration entry %s has been updated.  The " +
                     "identity mapper defined in configuration entry %s " +
                     "will now be used to map usernames to entries when " +
-                    "processing SASL DIGEST-MD5 bind requests.");
+                    "processing SASL DIGEST-MD5 bind requests");
     registerMessage(MSGID_SASLDIGESTMD5_UPDATED_USERNAME_ATTR,
                     "Attribute " + ATTR_USERNAME_ATTRIBUTE +
                     " in configuration entry %s has been updated.  The %s " +
                     "attribute will now be used when looking up user entries " +
-                    "based on their username.");
+                    "based on their username");
     registerMessage(MSGID_SASLDIGESTMD5_UPDATED_USER_BASE_DN,
                     "Attribute " + ATTR_USER_BASE_DN +
                     " in configuration entry %s has been updated.  The DN %s " +
                     "will now be used as the search base when looking up " +
-                    "user entries based on their username.");
+                    "user entries based on their username");
     registerMessage(MSGID_SASLDIGESTMD5_UPDATED_NEW_REALM,
                     "Attribute " + ATTR_DIGESTMD5_REALM +
                     " in configuration entry %s has been updated.  The realm " +
                     "\"%s\" will now be advertised by the server in the " +
-                    "challenge response.");
+                    "challenge response");
     registerMessage(MSGID_SASLDIGESTMD5_UPDATED_NO_REALM,
                     "Attribute " + ATTR_DIGESTMD5_REALM +
                     " in configuration entry %s has been updated.  The " +
                     "realm(s) advertised by the server in the challenge " +
-                    "response will be the DNs of the server suffixes.");
+                    "response will be the DNs of the server suffixes");
 
 
     registerMessage(MSGID_SASLGSSAPI_DESCRIPTION_USERNAME_ATTRIBUTE,
@@ -6441,165 +6441,165 @@ public class ExtensionsMessages
                     "during SASL GSSAPI authentication.  This must " +
                     "specify the name of a valid attribute type defined in " +
                     "the server schema.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_GET_USERNAME_ATTR,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_USERNAME_ATTRIBUTE +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLGSSAPI_UNKNOWN_USERNAME_ATTR,
                     "The attribute %s referenced in configuration attribute " +
                     ATTR_USERNAME_ATTRIBUTE + " in configuration entry %s " +
                     "does not exist in the Directory Server schema.  The " +
                     "attribute that is to be used for username lookups " +
                     "during SASL GSSAPI authentication must be defined " +
-                    "in the server schema.");
+                    "in the server schema");
     registerMessage(MSGID_SASLGSSAPI_DESCRIPTION_USER_BASE_DN,
                     "Specifies the base DN that should be used when " +
                     "searching for entries based on the username provided " +
                     "during SASL GSSAPI authentication.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_GET_USER_BASE_DN,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_USER_BASE_DN +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLGSSAPI_DESCRIPTION_IDENTITY_MAPPER_DN,
                     "Specifies the DN of the configuration entry that holds " +
                     "the configuration for the identity mapper that should " +
                     "be used to map the GSSAPI principal to a Directory " +
                     "Server user entry.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_SASLGSSAPI_NO_IDENTITY_MAPPER_ATTR,
                     "Configuration entry %s does not contain attribute " +
                     ATTR_IDMAPPER_DN + " which specifies the DN of the " +
                     "identity mapper to use in conjunction with the GSSAPI " +
-                    "SASL mechanism.  This is a required attribute.");
+                    "SASL mechanism.  This is a required attribute");
     registerMessage(MSGID_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER,
                     "The identity mapper %s specified in attribute " +
                     ATTR_IDMAPPER_DN + " of configuration entry %s does not " +
                     "reference a valid identity mapper configuration that is " +
-                    "enabled for use in the Directory Server.");
+                    "enabled for use in the Directory Server");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_GET_IDENTITY_MAPPER,
                     "An error occurred while trying to process the value " +
                     "of the " + ATTR_IDMAPPER_DN + " attribute in " +
                     "configuration entry %s to determine which identity " +
                     "mapper should be used in conjunction with the GSSAPI " +
-                    "SASL mechanism:  %s.");
+                    "SASL mechanism:  %s");
     registerMessage(MSGID_SASLGSSAPI_DESCRIPTION_SERVER_FQDN,
                     "Specifies the fully-qualified domain name that should " +
                     "be used for the server during SASL GSSAPI " +
                     "authentication.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_SERVER_FQDN +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLGSSAPI_UPDATED_USERNAME_ATTR,
                     "Attribute " + ATTR_USERNAME_ATTRIBUTE +
                     " in configuration entry %s has been updated.  The %s " +
                     "attribute will now be used when looking up user entries " +
-                    "based on their username.");
+                    "based on their username");
     registerMessage(MSGID_SASLGSSAPI_UPDATED_USER_BASE_DN,
                     "Attribute " + ATTR_USER_BASE_DN +
                     " in configuration entry %s has been updated.  The DN %s " +
                     "will now be used as the search base when looking up " +
-                    "user entries based on their username.");
+                    "user entries based on their username");
     registerMessage(MSGID_SASLGSSAPI_UPDATED_IDENTITY_MAPPER,
                     "Attribute " + ATTR_IDMAPPER_DN +
                     " in configuration entry %s has been updated.  The value " +
                     "\"%s\" will now be used as the DN of the identity " +
-                    "mapper configuration entry for GSSAPI authentication.");
+                    "mapper configuration entry for GSSAPI authentication");
     registerMessage(MSGID_SASLGSSAPI_UPDATED_NEW_SERVER_FQDN,
                     "Attribute " + ATTR_SERVER_FQDN +
                     " in configuration entry %s has been updated.  The value " +
                     "\"%s\" will now be used as the fully-qualified name of " +
-                    "the Directory Server for GSSAPI authentication.");
+                    "the Directory Server for GSSAPI authentication");
     registerMessage(MSGID_SASLGSSAPI_UPDATED_NO_SERVER_FQDN,
                     "Attribute " + ATTR_SERVER_FQDN +
                     " in configuration entry %s has been updated.  The " +
                     "Directory Server will attempt to determine its own " +
-                    "FQDN for use in GSSAPI authentication.");
+                    "FQDN for use in GSSAPI authentication");
     registerMessage(MSGID_SASLGSSAPI_UNEXPECTED_CALLBACK,
                     "An unexpected callback was provided for the SASL server " +
-                    "for use during GSSAPI authentication:  %s.");
+                    "for use during GSSAPI authentication:  %s");
     registerMessage(MSGID_SASLGSSAPI_DESCRIPTION_KDC_ADDRESS,
                     "Specifies the address of the KDC that should be used " +
                     "during SASL GSSAPI authentication.  If this is not " +
                     "specified, then an attempt will be made to obtain it " +
                     "from the system-wide Kerberos configuration.  Changes " +
                     "to this configuration attribute will take effect " +
-                    "immediately for subsequent GSSAPI bind attempts.");
+                    "immediately for subsequent GSSAPI bind attempts");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_GET_KDC_ADDRESS,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_GSSAPI_KDC +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLGSSAPI_DESCRIPTION_REALM,
                     "Specifies the default realm that should be used during " +
                     "SASL GSSAPI authentication.  If this is not specified, " +
                     "then an attempt will be made to obtain it from the " +
                     "system-wide Kerberos configuration.  Changes to this " +
                     "configuration attribute will take effect immediately " +
-                    "for subsequent GSSAPI bind attempts.");
+                    "for subsequent GSSAPI bind attempts");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_GET_REALM,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_GSSAPI_REALM +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLGSSAPI_NO_CLIENT_CONNECTION,
                     "No client connection was available for use in " +
-                    "processing the GSSAPI bind request.");
+                    "processing the GSSAPI bind request");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_CREATE_SASL_SERVER,
                     "An error occurred while attempting to create the " +
                     "SASL server instance to process the GSSAPI bind " +
-                    "request:  %s.");
+                    "request:  %s");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_EVALUATE_RESPONSE,
                     "An error occurred while attempting to evaluate the " +
                     "challenge response provided by the client in the " +
-                    "GSSAPI bind request:  %s.");
+                    "GSSAPI bind request:  %s");
     registerMessage(MSGID_SASLGSSAPI_NO_AUTHZ_ID,
                     "The GSSAPI authentication process appears to have " +
                     "completed but no authorization ID is available for " +
-                    "mapping to a directory user.");
+                    "mapping to a directory user");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_PERFORM_INTERNAL_SEARCH,
                     "An error occurred while attempting to perform an " +
                     "internal search to map the GSSAPI authorization ID %s " +
                     "to a Directory Server user (result code %d, error " +
-                    "message \"%s\").");
+                    "message \"%s\")");
     registerMessage(MSGID_SASLGSSAPI_MULTIPLE_MATCHING_ENTRIES,
                     "The GSSAPI authorization ID %s appears to have multiple " +
-                    "matches in the Directory Server.");
+                    "matches in the Directory Server");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_MAP_AUTHZID,
                     "The GSSAPI authorization ID %s could not be mapped to " +
-                    "any user in the Directory Server.");
+                    "any user in the Directory Server");
     registerMessage(MSGID_SASLGSSAPI_UPDATED_KDC,
                     "Attribute " + ATTR_GSSAPI_KDC +
                     " in configuration entry %s has been updated.  The value " +
                     "\"%s\" will now be used as the address of the KDC for " +
-                    "GSSAPI authentication.");
+                    "GSSAPI authentication");
     registerMessage(MSGID_SASLGSSAPI_UNSET_KDC,
                     "Attribute " + ATTR_GSSAPI_KDC +
                     " in configuration entry %s has been un-set as a system " +
                     "property.  Any further GSSAPI authentication attempts " +
                     "will rely on the Kerberos configuration in the " +
                     "underlying operating system to determine the KDC " +
-                    "address.");
+                    "address");
     registerMessage(MSGID_SASLGSSAPI_UPDATED_REALM,
                     "Attribute " + ATTR_GSSAPI_REALM +
                     " in configuration entry %s has been updated.  The value " +
                     "\"%s\" will now be used as the default realm for GSSAPI " +
-                    "authentication.");
+                    "authentication");
     registerMessage(MSGID_SASLGSSAPI_UNSET_REALM,
                     "Attribute " + ATTR_GSSAPI_REALM +
                     " in configuration entry %s has been un-set as a system " +
                     "property.  Any further GSSAPI authentication attempts " +
                     "will rely on the Kerberos configuration in the " +
                     "underlying operating system to determine the default " +
-                    "realm.");
+                    "realm");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT,
                     "An error occurred while attempting to create the JAAS " +
-                    "login context for GSSAPI authentication:  %s.");
+                    "login context for GSSAPI authentication:  %s");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_AUTHENTICATE_SERVER,
                     "An error occurred while attempting to perform " +
                     "server-side Kerberos authentication to support a GSSAPI " +
-                    "bind operation:  %s.");
+                    "bind operation:  %s");
     registerMessage(MSGID_SASLGSSAPI_DESCRIPTION_KEYTAB_FILE,
                     "Specifies the path to the keytab file containing the " +
                     "secret key for the Kerberos principal to use when " +
@@ -6608,36 +6608,36 @@ public class ExtensionsMessages
                     "will be used.  Changes to this configuration attribute " +
                     "will not take effect until the GSSAPI SASL mechanism " +
                     "handler is disabled and re-enabled or the Directory " +
-                    "Server is restarted.");
+                    "Server is restarted");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_GET_KEYTAB_FILE,
                     "An unexpected error occurred while attempting to " +
                     "determine the value of the " + ATTR_GSSAPI_KEYTAB_FILE +
-                    " attribute in configuration entry %s:  %s.");
+                    " attribute in configuration entry %s:  %s");
     registerMessage(MSGID_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG,
                     "An error occurred while attempting to write a " +
                     "temporary JAAS configuration file for use during " +
-                    "GSSAPI processing:  %s.");
+                    "GSSAPI processing:  %s");
     registerMessage(MSGID_SASLGSSAPI_DIFFERENT_AUTHID_AND_AUTHZID,
                     "The authentication ID %s was not equal to the " +
                     "authorization ID %s.  This is not supported for " +
-                    "GSSAPI authentication.");
+                    "GSSAPI authentication");
 
 
     registerMessage(MSGID_EXTOP_WHOAMI_NO_CLIENT_CONNECTION,
                     "No client connection structure is available for use in " +
-                    "determining the requested authorization ID.");
+                    "determining the requested authorization ID");
 
 
     registerMessage(MSGID_SOFTREFCACHE_DESCRIPTION_LOCK_TIMEOUT,
                     "Specifies the maximum length of time in milliseconds " +
                     "that the entry cache should block while attempting " +
                     "to acquire a lock for an entry.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_SOFTREFCACHE_CANNOT_DETERMINE_LOCK_TIMEOUT,
                     "An error occurred while attempting to determine the " +
                     "value of the " + ATTR_SOFTREFCACHE_LOCK_TIMEOUT +
                     " attribute in configuration entry %s:  %s.  The default " +
-                    "of %d will be used.");
+                    "of %d will be used");
     registerMessage(MSGID_SOFTREFCACHE_DESCRIPTION_INCLUDE_FILTERS,
                     "Specifies a set of search filters that may be used to " +
                     "indicate which entries should be included in the entry " +
@@ -6646,24 +6646,24 @@ public class ExtensionsMessages
                     "are provided, then any entry will be accepted.  Changes " +
                     "to this configuration attribute will take effect " +
                     "immediately, but will not impact existing entries that " +
-                    "are already held in the cache.");
+                    "are already held in the cache");
     registerMessage(MSGID_SOFTREFCACHE_CANNOT_DECODE_INCLUDE_FILTER,
                     "An error occurred while attempting to decode the value " +
                     "\"%s\" from attribute " +
                     ATTR_SOFTREFCACHE_INCLUDE_FILTER + " of entry %s:  %s.  " +
                     "This filter will not be used when determining whether " +
-                    "to store an entry in the cache.");
+                    "to store an entry in the cache");
     registerMessage(MSGID_SOFTREFCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
                     "An error occurred while attempting to decode any of the " +
                     "values from attribute " +
                     ATTR_SOFTREFCACHE_INCLUDE_FILTER + " of entry %s.  All " +
                     "entries will be considered eligible for inclusion in " +
-                    "the cache.");
+                    "the cache");
     registerMessage(MSGID_SOFTREFCACHE_CANNOT_DETERMINE_INCLUDE_FILTERS,
                     "An error occurred while attempting to determine the " +
                     "value of the " + ATTR_SOFTREFCACHE_INCLUDE_FILTER +
                     " attribute in configuration entry %s:  %s.  All entries " +
-                    "will be considered eligible for inclusion in the cache.");
+                    "will be considered eligible for inclusion in the cache");
     registerMessage(MSGID_SOFTREFCACHE_DESCRIPTION_EXCLUDE_FILTERS,
                     "Specifies a set of search filters that may be used to " +
                     "indicate which entries should be excluded from the " +
@@ -6672,63 +6672,63 @@ public class ExtensionsMessages
                     "provided, then any entry will be accepted.  Changes to " +
                     "this configuration attribute will take effect " +
                     "immediately, but will not impact existing entries that " +
-                    "are already held in the cache.");
+                    "are already held in the cache");
     registerMessage(MSGID_SOFTREFCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
                     "An error occurred while attempting to decode the value " +
                     "\"%s\" from attribute " +
                     ATTR_SOFTREFCACHE_EXCLUDE_FILTER + " of entry %s:  %s.  " +
                     "This filter will not be used when determining whether " +
-                    "to store an entry in the cache.");
+                    "to store an entry in the cache");
     registerMessage(MSGID_SOFTREFCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
                     "An error occurred while attempting to decode any of the " +
                     "values from attribute " +
                     ATTR_SOFTREFCACHE_EXCLUDE_FILTER + " of entry %s.  All " +
                     "entries will be considered eligible for inclusion in " +
-                    "the cache.");
+                    "the cache");
     registerMessage(MSGID_SOFTREFCACHE_CANNOT_DETERMINE_EXCLUDE_FILTERS,
                     "An error occurred while attempting to determine the " +
                     "value of the " + ATTR_SOFTREFCACHE_EXCLUDE_FILTER +
                     " attribute in configuration entry %s:  %s.  All entries " +
-                    "will be considered eligible for inclusion in the cache.");
+                    "will be considered eligible for inclusion in the cache");
     registerMessage(MSGID_SOFTREFCACHE_INVALID_LOCK_TIMEOUT,
                     "The " + ATTR_SOFTREFCACHE_LOCK_TIMEOUT + " attribute of " +
                     "entry %s, which specifies the maximum length of time in " +
                     "milliseconds that the cache should block while " +
                     "attempting to obtain a lock on an entry, has an invalid " +
                     "value:  %s.  Its value must be a positive integer, or " +
-                    "zero to indicate that it should never block.");
+                    "zero to indicate that it should never block");
     registerMessage(MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTER,
                     "The " + ATTR_SOFTREFCACHE_INCLUDE_FILTER + " attribute " +
                     "of entry %s, which specifies a set of search filters " +
                     "that may be used to control which entries are included " +
-                    "in the cache, has an invalid value of \"%s\":  %s.");
+                    "in the cache, has an invalid value of \"%s\":  %s");
     registerMessage(MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTERS,
                     "The " + ATTR_SOFTREFCACHE_INCLUDE_FILTER + " attribute " +
                     "of entry %s, which specifies a set of search filters " +
                     "that may be used to control which entries are included " +
-                    "in the cache, has an invalid value:  %s.");
+                    "in the cache, has an invalid value:  %s");
     registerMessage(MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTER,
                     "The " + ATTR_SOFTREFCACHE_EXCLUDE_FILTER + " attribute " +
                     "of entry %s, which specifies a set of search filters " +
                     "that may be used to control which entries are excluded " +
-                    "from the cache, has an invalid value of \"%s\":  %s.");
+                    "from the cache, has an invalid value of \"%s\":  %s");
     registerMessage(MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTERS,
                     "The " + ATTR_SOFTREFCACHE_EXCLUDE_FILTER + " attribute " +
                     "of entry %s, which specifies a set of search filters " +
                     "that may be used to control which entries are excluded " +
-                    "from the cache, has an invalid value:  %s.");
+                    "from the cache, has an invalid value:  %s");
     registerMessage(MSGID_SOFTREFCACHE_UPDATED_LOCK_TIMEOUT,
                     "The lock timeout that will be used to determine the " +
                     "length of time that the cache should block while " +
                     "attempting to acquire a lock for an entry has been " +
-                    "set to %d milliseconds.");
+                    "set to %d milliseconds");
     registerMessage(MSGID_SOFTREFCACHE_UPDATED_INCLUDE_FILTERS,
                     "The set of search filters that will control which " +
-                    "entries may be included in the cache has been updated.");
+                    "entries may be included in the cache has been updated");
     registerMessage(MSGID_SOFTREFCACHE_UPDATED_EXCLUDE_FILTERS,
                     "The set of search filters that will control which " +
                     "entries should be be excluded from the cache has been " +
-                    "updated.");
+                    "updated");
 
 
     registerMessage(MSGID_EXACTMAP_DESCRIPTION_MATCH_ATTR,
@@ -6739,61 +6739,61 @@ public class ExtensionsMessages
                     "attribute type defined in the Directory Server schema.  " +
                     "If multiple attribute type names or OIDs are provided, " +
                     "then at least one of those attributes must contain the " +
-                    "provided ID string value in exactly one entry.");
+                    "provided ID string value in exactly one entry");
     registerMessage(MSGID_EXACTMAP_NO_MATCH_ATTR,
                     "Configuration entry %s does not have any values for " +
                     "attribute " + ATTR_MATCH_ATTRIBUTE + ", which is used " +
                     "to specify which attribute(s) may be used to map a " +
-                    "given ID string to a user entry.");
+                    "given ID string to a user entry");
     registerMessage(MSGID_EXACTMAP_UNKNOWN_ATTR,
                     "Configuration entry %s contains value %s for attribute " +
                     ATTR_MATCH_ATTRIBUTE + " but that is not a valid name or " +
                     "OID for any attribute type defined in the Directory " +
-                    "Server schema.");
+                    "Server schema");
     registerMessage(MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_ATTR,
                     "An error occurred while attempting to process the " +
                     "value(s) of attribute " + ATTR_MATCH_ATTRIBUTE +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_EXACTMAP_DESCRIPTION_SEARCH_BASE,
                     "Specifies the base DN(s) that should be used when " +
                     "performing searches to map the provided ID string to a " +
                     "user entry.  If no values are provided, then the " +
-                    "root DSE will be used as the search base.");
+                    "root DSE will be used as the search base");
     registerMessage(MSGID_EXACTMAP_CANNOT_DETERMINE_MATCH_BASE,
                     "An error occurred while attempting to process the " +
                     "value(s) of attribute " + ATTR_MATCH_BASE +
-                    " in configuration entry %s:  %s.");
+                    " in configuration entry %s:  %s");
     registerMessage(MSGID_EXACTMAP_UPDATED_MATCH_ATTRS,
                     "The set of attributes to use when matching ID strings " +
                     "to user entries contained in attribute " +
                     ATTR_MATCH_ATTRIBUTE + " of configuration entry %s has " +
-                    "been updated.");
+                    "been updated");
     registerMessage(MSGID_EXACTMAP_UPDATED_MATCH_BASES,
                     "The set of search base DNs to use when matching ID " +
                     "strings to user entries contained in attribute " +
                     ATTR_MATCH_BASE + " of configuration entry %s has been " +
-                    "updated.");
+                    "updated");
     registerMessage(MSGID_EXACTMAP_MULTIPLE_MATCHING_ENTRIES,
-                    "ID string %s mapped to multiple users.");
+                    "ID string %s mapped to multiple users");
     registerMessage(MSGID_EXACTMAP_INEFFICIENT_SEARCH,
                     "The internal search based on ID string %s could not be " +
                     "processed efficiently:  %s.  Check the server " +
                     "configuration to ensure that all associated backends " +
-                    "are properly configured for these types of searches.");
+                    "are properly configured for these types of searches");
     registerMessage(MSGID_EXACTMAP_SEARCH_FAILED,
                     "An internal failure occurred while attempting to " +
-                    "resolve ID string %s to a user entry:  %s.");
+                    "resolve ID string %s to a user entry:  %s");
 
 
     registerMessage(MSGID_EXTOP_CANCEL_NO_REQUEST_VALUE,
                     "Unable to process the cancel request because the " +
-                    "extended operation did not include a request value.");
+                    "extended operation did not include a request value");
     registerMessage(MSGID_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE,
                     "An error occurred while attempting to decode the value " +
-                    "of the cancel extended request:  %s.");
+                    "of the cancel extended request:  %s");
     registerMessage(MSGID_EXTOP_CANCEL_REASON,
                     "Processing on this operation was terminated as a " +
-                    "result of receiving a cancel request (message ID %d).");
+                    "result of receiving a cancel request (message ID %d)");
 
 
     registerMessage(MSGID_PWLENGTHVALIDATOR_DESCRIPTION_MIN_LENGTH,
@@ -6801,50 +6801,50 @@ public class ExtensionsMessages
                     "password will be allowed to have.  A value of zero " +
                     "indicates that there is no minimum length.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWLENGTHVALIDATOR_CANNOT_DETERMINE_MIN_LENGTH,
                     "An error occurred while attempting to determine the " +
                     "minimum allowed password length from the " +
-                    ATTR_PASSWORD_MIN_LENGTH + " attribute:  %s.");
+                    ATTR_PASSWORD_MIN_LENGTH + " attribute:  %s");
     registerMessage(MSGID_PWLENGTHVALIDATOR_DESCRIPTION_MAX_LENGTH,
                     "Specifies the maximum number of characters that a " +
                     "password will be allowed to have.  A value of zero " +
                     "indicates that there is no maximum length.  Changes to " +
                     "this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWLENGTHVALIDATOR_CANNOT_DETERMINE_MAX_LENGTH,
                     "An error occurred while attempting to determine the " +
                     "maximum allowed password length from the " +
-                    ATTR_PASSWORD_MAX_LENGTH + " attribute:  %s.");
+                    ATTR_PASSWORD_MAX_LENGTH + " attribute:  %s");
     registerMessage(MSGID_PWLENGTHVALIDATOR_MIN_GREATER_THAN_MAX,
                     "The configured minimum password length of %d characters " +
                     "is greater than the configured maximum password length " +
-                    "of %d.");
+                    "of %d");
     registerMessage(MSGID_PWLENGTHVALIDATOR_TOO_SHORT,
                     "The provided password is shorter than the minimum " +
-                    "required length of %d characters.");
+                    "required length of %d characters");
     registerMessage(MSGID_PWLENGTHVALIDATOR_TOO_LONG,
                     "The provided password is longer than the maximum " +
-                    "allowed length of %d characters.");
+                    "allowed length of %d characters");
     registerMessage(MSGID_PWLENGTHVALIDATOR_UPDATED_MIN_LENGTH,
-                    "The minimum password length has been updated to %d.");
+                    "The minimum password length has been updated to %d");
     registerMessage(MSGID_PWLENGTHVALIDATOR_UPDATED_MAX_LENGTH,
-                    "The maximum password length has been updated to %d.");
+                    "The maximum password length has been updated to %d");
     registerMessage(MSGID_PWDIFFERENCEVALIDATOR_DESCRIPTION_MIN_DIFFERENCE,
                     "Specifies the minimum difference that a " +
                     "password will be allowed to have.  A value of zero " +
                     "indicates that there is no minimum difference.  Changes " +
                     "to this configuration attribute will take effect " +
-                    "immediately.");
+                    "immediately");
     registerMessage(MSGID_PWDIFFERENCEVALIDATOR_CANNOT_DETERMINE_MIN_DIFFERENCE,
                     "An error occurred while attempting to determine the " +
                     "minimum allowed password difference from the " +
-                    ATTR_PASSWORD_MIN_DIFFERENCE + " attribute:  %s.");
+                    ATTR_PASSWORD_MIN_DIFFERENCE + " attribute:  %s");
     registerMessage(MSGID_PWDIFFERENCEVALIDATOR_TOO_SMALL,
                     "The provided password differs less than the minimum " +
-                    "required difference of %d characters.");
+                    "required difference of %d characters");
     registerMessage(MSGID_PWDIFFERENCEVALIDATOR_UPDATED_MIN_DIFFERENCE,
-                    "The minimum password difference has been updated to %d.");
+                    "The minimum password difference has been updated to %d");
 
 
     registerMessage(MSGID_RANDOMPWGEN_DESCRIPTION_CHARSET,
@@ -6854,21 +6854,21 @@ public class ExtensionsMessages
                     "characters) followed immediately by a colon and the set " +
                     "of characters that should be included in that " +
                     "character set.  Changes to this configuration attribute " +
-                    "will take effect immediately.");
+                    "will take effect immediately");
     registerMessage(MSGID_RANDOMPWGEN_NO_CHARSETS,
                     "Configuration entry \"%s\" does not contain attribute " +
                     ATTR_PASSWORD_CHARSET + " which specifies the sets of " +
                     "characters that should be used when generating the " +
-                    "password.  This is a required attribute.");
+                    "password.  This is a required attribute");
     registerMessage(MSGID_RANDOMPWGEN_CHARSET_NAME_CONFLICT,
                     "Configuration entry \"%s\" contains multiple " +
-                    "definitions for the %s character set.");
+                    "definitions for the %s character set");
     registerMessage(MSGID_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS,
                     "An error occurred while attempting to decode the " +
                     "value(s) of the configuration attribute " +
                     ATTR_PASSWORD_CHARSET + ", which is used to hold the " +
                     "character set(s) for use in generating the password:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_RANDOMPWGEN_DESCRIPTION_PWFORMAT,
                     "Specifies the format that should be used for passwords " +
                     "constructed by this password generator.  The value " +
@@ -6876,40 +6876,40 @@ public class ExtensionsMessages
                     "each element is the name of a character set followed " +
                     "by a colon and the number of characters to choose at " +
                     "random from that character set.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_RANDOMPWGEN_NO_PWFORMAT,
                     "Configuration entry \"%s\" does not contain attribute " +
                     ATTR_PASSWORD_FORMAT + " which specifies the format to " +
                     "use for the generated password.  This is a required " +
-                    "attribute.");
+                    "attribute");
     registerMessage(MSGID_RANDOMPWGEN_UNKNOWN_CHARSET,
                     "The password format string \"%s\" references an " +
-                    "undefined character set \"%s\".");
+                    "undefined character set \"%s\"");
     registerMessage(MSGID_RANDOMPWGEN_INVALID_PWFORMAT,
                     "The password format string \"%s\" contains an invalid " +
                     "syntax.  This value should be a comma-delimited " +
                     "sequence of elements, where each element is the name of " +
                     "a character set followed by a colon and the number of " +
-                    "characters to choose at random from that character set.");
+                    "characters to choose at random from that character set");
     registerMessage(MSGID_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT,
                     "An error occurred while attempting to decode the " +
                     "value for configuration attribute " +
                     ATTR_PASSWORD_FORMAT + ", which is used to specify the " +
-                    "format for the generated passwords:  %s.");
+                    "format for the generated passwords:  %s");
 
 
     registerMessage(
          MSGID_ERRORLOG_ACCTNOTHANDLER_DESCRIPTION_NOTIFICATION_TYPES,
          "Specifies the status notification types for which log messages " +
          "should be generated.  It is a multivalued attribute, and changes " +
-         "will take effect immediately.");
+         "will take effect immediately");
     registerMessage(MSGID_ERRORLOG_ACCTNOTHANDLER_INVALID_TYPE,
                     "Configuration entry %s contains unrecognized account " +
-                    "status notification type %s.");
+                    "status notification type %s");
     registerMessage(MSGID_ERRORLOG_ACCTNOTHANDLER_CANNOT_GET_NOTIFICATION_TYPES,
                     "An error occurred while attempting to determine " +
                     "the account status notification types from " +
-                    "configuration entry %s:  %s.");
+                    "configuration entry %s:  %s");
     registerMessage(MSGID_ERRORLOG_ACCTNOTHANDLER_NOTIFICATION,
                     "Account-Status-Notification type='%s' userdn='%s' " +
                     "id=%d msg='%s'");
@@ -6918,79 +6918,79 @@ public class ExtensionsMessages
     registerMessage(MSGID_STATICMEMBERS_NO_SUCH_ENTRY,
                     "Unable to examine entry %s as a potential member of " +
                     "static group %s because that entry does not exist in " +
-                    "the Directory Server.");
+                    "the Directory Server");
     registerMessage(MSGID_STATICMEMBERS_CANNOT_GET_ENTRY,
                     "An error occurred while attempting to retrieve entry %s " +
-                    "as a potential member of static group %s:  %s.");
+                    "as a potential member of static group %s:  %s");
 
 
     registerMessage(MSGID_STATICGROUP_INVALID_OC_COMBINATION,
                     "Entry %s cannot be parsed as a valid static group " +
                     "because static groups are not allowed to have both the " +
-                    "%s and %s object classes.");
+                    "%s and %s object classes");
     registerMessage(MSGID_STATICGROUP_NO_VALID_OC,
                     "Entry %s cannot be parsed as a valid static group " +
                     "because it does not contain exactly one of the %s or " +
-                    "the %s object classes.");
+                    "the %s object classes");
     registerMessage(MSGID_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN,
                     "Value %s for attribute %s in entry %s cannot be parsed " +
                     "as a valid DN:  %s.  It will be excluded from the set " +
-                    "of group members.");
+                    "of group members");
     registerMessage(MSGID_STATICGROUP_ADD_MEMBER_ALREADY_EXISTS,
                     "Cannot add user %s as a new member of static group %s " +
                     "because that user is already in the member list for the " +
-                    "group.");
+                    "group");
     registerMessage(MSGID_STATICGROUP_ADD_MEMBER_UPDATE_FAILED,
                     "Cannot add user %s as a new member of static group %s " +
                     "because an error occurred while attempting to perform " +
-                    "an internal modification to update the group:  %s.");
+                    "an internal modification to update the group:  %s");
     registerMessage(MSGID_STATICGROUP_REMOVE_MEMBER_NO_SUCH_MEMBER,
                     "Cannot remove user %s as a member of static group %s " +
                     "because that user is not included in the member list " +
-                    "for the group.");
+                    "for the group");
     registerMessage(MSGID_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED,
                     "Cannot remove user %s as a member of static group %s " +
                     "because an error occurred while attempting to perform " +
-                    "an internal modification to update the group:  %s.");
+                    "an internal modification to update the group:  %s");
 
 
     registerMessage(MSGID_SDTUACM_DESCRIPTION_SUBJECT_ATTR,
                     "Specifies the name of the attribute type in user " +
                     "entries that contains the subjects of the certificates " +
                     "held by that user.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_SDTUACM_NO_SUBJECT_ATTR,
                     "Configuration entry %s does not contain required " +
                     "attribute %s, which is used to specify which attribute " +
                     "should contain the subjects of the certificates held " +
-                    "by users.");
+                    "by users");
     registerMessage(MSGID_SDTUACM_NO_SUCH_ATTR,
                     "Configuration entry %s indicates that certificate " +
                     "subjects should be held in attribute %s, but this " +
-                    "attribute is not defined in the server schema.");
+                    "attribute is not defined in the server schema");
     registerMessage(MSGID_SDTUACM_CANNOT_GET_SUBJECT_ATTR,
                     "An error occurred while attempting to determine which " +
                     "attribute type should be used to hold certificate " +
-                    "subjects from configuration entry %s:  %s.");
+                    "subjects from configuration entry %s:  %s");
     registerMessage(MSGID_SDTUACM_DESCRIPTION_BASE_DN,
                     "Specifies the base DNs below which the searches to " +
                     "find matching user entries will be performed.  If no " +
                     "base DN(s) are provided, then the server will search " +
                     "below all public naming contexts.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_SDTUACM_CANNOT_GET_BASE_DN,
                     "An error occurred while attempting to determine the " +
-                    "search base DN(s) from configuration entry %s:  %s.");
+                    "search base DN(s) from configuration entry %s:  %s");
     registerMessage(MSGID_SDTUACM_NO_PEER_CERTIFICATE,
                     "Could not map the provided certificate chain to a user " +
-                    "entry because no peer certificate was available.");
+                    "entry because no peer certificate was available");
     registerMessage(MSGID_SDTUACM_PEER_CERT_NOT_X509,
                     "Could not map the provided certificate chain to a user " +
                     "because the peer certificate was not an X.509 " +
-                    "certificate (peer certificate format was %s).");
+                    "certificate (peer certificate format was %s)");
     registerMessage(MSGID_SDTUACM_MULTIPLE_MATCHING_ENTRIES,
                     "The certificate with subject %s could not be mapped to " +
-                    "exactly one user.  It maps to both %s and %s.");
+                    "exactly one user.  It maps to both %s and %s");
 
 
     registerMessage(MSGID_SATUACM_DESCRIPTION_ATTR_MAP,
@@ -6999,212 +6999,212 @@ public class ExtensionsMessages
                     "in certificate subjects and attributes in user " +
                     "entries.  Values should be in the form " +
                     "'certattr:userattr'.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_SATUACM_NO_MAP_ATTR,
                     "Configuration entry %s does not contain required " +
                     "attribute %s, which is used to specify the mappings " +
                     "between attributes in certificate subjects and " +
-                    "attributes in user entries.");
+                    "attributes in user entries");
     registerMessage(MSGID_SATUACM_INVALID_MAP_FORMAT,
                     "Configuration entry %s has value '%s' which violates " +
                     "the format required for attribute mappings.  The " +
-                    "expected format is 'certattr:userattr'.");
+                    "expected format is 'certattr:userattr'");
     registerMessage(MSGID_SATUACM_DUPLICATE_CERT_ATTR,
                     "Configuration entry %s contains multiple mappings " +
-                    "for certificate attribute %s.");
+                    "for certificate attribute %s");
     registerMessage(MSGID_SATUACM_NO_SUCH_ATTR,
                     "Mapping %s in configuration entry %s references " +
-                    "attribute %s which is not defined in the server schema.");
+                    "attribute %s which is not defined in the server schema");
     registerMessage(MSGID_SATUACM_DUPLICATE_USER_ATTR,
                     "Configuration entry %s contains multiple mappings " +
-                    "for user attribute %s.");
+                    "for user attribute %s");
     registerMessage(MSGID_SATUACM_CANNOT_GET_ATTR_MAP,
                     "An error occurred while attempting to determine the set " +
-                    "of attribute mappings from configuration entry %s:  %s.");
+                    "of attribute mappings from configuration entry %s:  %s");
     registerMessage(MSGID_SATUACM_DESCRIPTION_BASE_DN,
                     "Specifies the base DNs below which the searches to " +
                     "find matching user entries will be performed.  If no " +
                     "base DN(s) are provided, then the server will search " +
                     "below all public naming contexts.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_SATUACM_CANNOT_GET_BASE_DN,
                     "An error occurred while attempting to determine the " +
-                    "search base DN(s) from configuration entry %s:  %s.");
+                    "search base DN(s) from configuration entry %s:  %s");
     registerMessage(MSGID_SATUACM_NO_PEER_CERTIFICATE,
                     "Could not map the provided certificate chain to a user " +
-                    "entry because no peer certificate was available.");
+                    "entry because no peer certificate was available");
     registerMessage(MSGID_SATUACM_PEER_CERT_NOT_X509,
                     "Could not map the provided certificate chain to a user " +
                     "because the peer certificate was not an X.509 " +
-                    "certificate (peer certificate format was %s).");
+                    "certificate (peer certificate format was %s)");
     registerMessage(MSGID_SATUACM_CANNOT_DECODE_SUBJECT_AS_DN,
                     "Unable to decode peer certificate subject %s as a DN:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_SATUACM_NO_MAPPABLE_ATTRIBUTES,
                     "Peer certificate subject %s does not contain any " +
-                    "attributes for which a mapping has been established.");
+                    "attributes for which a mapping has been established");
     registerMessage(MSGID_SATUACM_MULTIPLE_MATCHING_ENTRIES,
                     "The certificate with subject %s could not be mapped to " +
-                    "exactly one user.  It maps to both %s and %s.");
+                    "exactly one user.  It maps to both %s and %s");
 
 
     registerMessage(MSGID_FCM_DESCRIPTION_FINGERPRINT_ATTR,
                     "Specifies the name of the attribute type in user " +
                     "entries that contains the fingerprints of the " +
                     "certificates held by that user.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_FCM_NO_FINGERPRINT_ATTR,
                     "Configuration entry %s does not contain required " +
                     "attribute %s, which is used to specify which attribute " +
                     "should contain the fingerprints of the certificates " +
-                    "held by users.");
+                    "held by users");
     registerMessage(MSGID_FCM_NO_SUCH_ATTR,
                     "Configuration entry %s indicates that certificate " +
                     "fingerprints should be held in attribute %s, but this " +
-                    "attribute is not defined in the server schema.");
+                    "attribute is not defined in the server schema");
     registerMessage(MSGID_FCM_CANNOT_GET_FINGERPRINT_ATTR,
                     "An error occurred while attempting to determine which " +
                     "attribute type should be used to hold certificate " +
-                    "fingerprints from configuration entry %s:  %s.");
+                    "fingerprints from configuration entry %s:  %s");
     registerMessage(MSGID_FCM_DESCRIPTION_FINGERPRINT_ALGORITHM,
                     "Specifies the name of the digest algorithm used for " +
                     "the certificate fingerprints.  The value should be " +
                     "either 'MD5' or 'SHA1'.  Changes to this configuration " +
-                    "attribute will take effect immediately.");
+                    "attribute will take effect immediately");
     registerMessage(MSGID_FCM_NO_FINGERPRINT_ALGORITHM,
                     "Configuration entry %s does not contain required " +
                     "attribute %s, which is used to specify which digest " +
                     "algorithm should be used to compute certificate " +
-                    "fingerprints.");
+                    "fingerprints");
     registerMessage(MSGID_FCM_CANNOT_GET_FINGERPRINT_ALGORITHM,
                     "An error occurred while attempting to determine the " +
-                    "digest algorithm from configuration entry %s:  %s.");
+                    "digest algorithm from configuration entry %s:  %s");
     registerMessage(MSGID_FCM_DESCRIPTION_BASE_DN,
                     "Specifies the base DNs below which the searches to " +
                     "find matching user entries will be performed.  If no " +
                     "base DN(s) are provided, then the server will search " +
                     "below all public naming contexts.  Changes to this " +
-                    "configuration attribute will take effect immediately.");
+                    "configuration attribute will take effect immediately");
     registerMessage(MSGID_FCM_CANNOT_GET_BASE_DN,
                     "An error occurred while attempting to determine the " +
-                    "search base DN(s) from configuration entry %s:  %s.");
+                    "search base DN(s) from configuration entry %s:  %s");
     registerMessage(MSGID_FCM_NO_PEER_CERTIFICATE,
                     "Could not map the provided certificate chain to a user " +
-                    "entry because no peer certificate was available.");
+                    "entry because no peer certificate was available");
     registerMessage(MSGID_FCM_PEER_CERT_NOT_X509,
                     "Could not map the provided certificate chain to a user " +
                     "because the peer certificate was not an X.509 " +
-                    "certificate (peer certificate format was %s).");
+                    "certificate (peer certificate format was %s)");
     registerMessage(MSGID_FCM_CANNOT_CALCULATE_FINGERPRINT,
                     "An error occurred while attempting to calculate the " +
                     "fingerprint for the peer certificate with subject %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_FCM_MULTIPLE_MATCHING_ENTRIES,
                     "The certificate with fingerprint %s could not be mapped " +
-                    "to exactly one user.  It maps to both %s and %s.");
+                    "to exactly one user.  It maps to both %s and %s");
 
 
     registerMessage(MSGID_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL,
                     "Unable to decode value \"%s\" in entry \"%s\" as an " +
-                    "LDAP URL:  %s.");
+                    "LDAP URL:  %s");
     registerMessage(MSGID_DYNAMICGROUP_NESTING_NOT_SUPPORTED,
-                    "Dynamic groups do not support nested groups.");
+                    "Dynamic groups do not support nested groups");
     registerMessage(MSGID_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED,
                     "Dynamic groups do not support explicitly altering their " +
-                    "membership.");
+                    "membership");
     registerMessage(MSGID_DYNAMICGROUP_NONEXISTENT_BASE_DN,
                     "Base DN %s specified in dynamic group %s does not exist " +
-                    "in the server.");
+                    "in the server");
     registerMessage(MSGID_DYNAMICGROUP_INTERNAL_SEARCH_FAILED,
                     "An error occurred while attempting perform an internal " +
                     "search with base DN %s and filter %s to resolve the " +
                     "member list for dynamic group %s:  result code %s, " +
-                    "error message %s.");
+                    "error message %s");
     registerMessage(MSGID_DYNAMICGROUP_CANNOT_RETURN_ENTRY,
                     "The server encountered a timeout while attempting to " +
-                    "add user %s to the member list for dynamic group %s.");
+                    "add user %s to the member list for dynamic group %s");
 
 
     registerMessage(MSGID_REPEATEDCHARS_VALIDATOR_TOO_MANY_CONSECUTIVE,
                     "The provided password contained too many instances " +
                     "of the same character appearing consecutively.  The " +
                     "maximum number of times the same character may appear " +
-                    "consecutively in a password is %d.");
+                    "consecutively in a password is %d");
 
 
     registerMessage(MSGID_UNIQUECHARS_VALIDATOR_NOT_ENOUGH_UNIQUE_CHARS,
                     "The provided password does not contain enough unique " +
                     "characters.  The minimum number of unique characters " +
-                    "that may appear in a user password is %d.");
+                    "that may appear in a user password is %d");
 
 
     registerMessage(MSGID_SUBSCHEMASUBENTRY_VATTR_NOT_SEARCHABLE,
                     "The %s attribute is not searchable and should not be " +
-                    "included in otherwise unindexed search filters.");
+                    "included in otherwise unindexed search filters");
 
 
     registerMessage(MSGID_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY,
                     "The provided password was found in the server's " +
-                    "dictionary.");
+                    "dictionary");
     registerMessage(MSGID_DICTIONARY_VALIDATOR_NO_SUCH_FILE,
-                    "The specified dictionary file %s does not exist.");
+                    "The specified dictionary file %s does not exist");
     registerMessage(MSGID_DICTIONARY_VALIDATOR_CANNOT_READ_FILE,
                     "An error occurred while attempting to load the " +
-                    "dictionary from file %s:  %s.");
+                    "dictionary from file %s:  %s");
 
 
     registerMessage(MSGID_ATTRVALUE_VALIDATOR_PASSWORD_IN_ENTRY,
                     "The provided password was found in another attribute " +
-                    "in the user entry.");
+                    "in the user entry");
 
 
     registerMessage(MSGID_CHARSET_VALIDATOR_ILLEGAL_CHARACTER,
                     "The provided password contained character '%s' which is " +
-                    "not allowed for use in passwords.");
+                    "not allowed for use in passwords");
     registerMessage(MSGID_CHARSET_VALIDATOR_TOO_FEW_CHARS_FROM_SET,
                     "The provided password did not contain enough " +
                     "characters from the character set '%s'.  The minimum " +
                     "number of characters from that set that must be present " +
-                    "in user passwords is %d.");
+                    "in user passwords is %d");
     registerMessage(MSGID_CHARSET_VALIDATOR_NO_COLON,
                     "The provided character set definition '%s' is invalid " +
                     "because it does not contain a colon to separate the " +
-                    "minimum count from the character set.");
+                    "minimum count from the character set");
     registerMessage(MSGID_CHARSET_VALIDATOR_NO_CHARS,
                     "The provided character set definition '%s' is invalid " +
-                    "because the provided character set is empty.");
+                    "because the provided character set is empty");
     registerMessage(MSGID_CHARSET_VALIDATOR_INVALID_COUNT,
                     "The provided character set definition '%s' is invalid " +
                     "because the value before the colon must be an integer " +
-                    "greater than zero.");
+                    "greater than zero");
     registerMessage(MSGID_CHARSET_VALIDATOR_DUPLICATE_CHAR,
                     "The provided character set definition '%s' is invalid " +
                     "because it contains character '%s' which has already " +
-                    "been used.");
+                    "been used");
 
 
     registerMessage(MSGID_VIRTUAL_STATIC_GROUP_MULTIPLE_TARGETS,
                     "The virtual static group defined in entry %s contains " +
-                    "multiple target group DNs, but only one is allowed.");
+                    "multiple target group DNs, but only one is allowed");
     registerMessage(MSGID_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET,
                     "Unable to decode \"%s\" as the target DN for group %s:  " +
-                    "%s.");
+                    "%s");
     registerMessage(MSGID_VIRTUAL_STATIC_GROUP_NO_TARGET,
                     "The virtual static group defined in entry %s does not " +
-                    "contain a target group definition.");
+                    "contain a target group definition");
     registerMessage(MSGID_VIRTUAL_STATIC_GROUP_NESTING_NOT_SUPPORTED,
-                    "Virtual static groups do not support nesting.");
+                    "Virtual static groups do not support nesting");
     registerMessage(MSGID_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP,
                     "Target group %s referenced by virtual static group %s " +
-                    "does not exist.");
+                    "does not exist");
     registerMessage(MSGID_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED,
                     "Altering membership for virtual static group %s is not " +
-                    "allowed.");
+                    "allowed");
     registerMessage(MSGID_VIRTUAL_STATIC_GROUP_TARGET_CANNOT_BE_VIRTUAL,
                     "Virtual static group %s references target group %s " +
                     "which is itself a virtual static group.  One " +
                     "virtual static group is not allowed to reference " +
-                    "another as its target group.");
+                    "another as its target group");
   }
 }
 

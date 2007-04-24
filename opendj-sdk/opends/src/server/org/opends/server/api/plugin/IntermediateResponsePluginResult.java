@@ -28,18 +28,12 @@ package org.opends.server.api.plugin;
 
 
 
-
-
-
 /**
  * This class defines a data structure that holds information about
  * the result of processing by an intermediate response plugin.
  */
 public class IntermediateResponsePluginResult
 {
-
-
-
   /**
    * An intermediate response plugin result instance that indicates
    * all processing was successful.

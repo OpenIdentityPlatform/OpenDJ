@@ -70,7 +70,8 @@ public class UnregisteredMessageIDsTestCase
    * Look in the build filesystem for files in the org.opends.server.messages
    * package.  Dynamically load all of those classes and use reflection to look
    * at all fields in those classes.  For each field, make sure that it has a
-   * corresponding message registered with the server.
+   * corresponding message registered with the server.  Also, look at all of the
+   * strings and make sure that they do not end with periods.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -101,6 +102,7 @@ public class UnregisteredMessageIDsTestCase
     assertFalse(classNames.isEmpty());
 
     LinkedList<String> unregisteredMessageIDs = new LinkedList<String>();
+    LinkedList<String> idsEndingWithPeriods = new LinkedList<String>();
     for (String className : classNames)
     {
       Class c = Class.forName(className);
@@ -115,19 +117,25 @@ public class UnregisteredMessageIDsTestCase
             String fieldName  = className + "." + field.getName();
             int    fieldValue = field.getInt(null);
 
-            if (! messages.containsKey(fieldValue))
+            String message = messages.get(fieldValue);
+            if (message == null)
             {
               unregisteredMessageIDs.add(fieldName);
+System.err.println("Unregistered field:  " + fieldName);
+            }
+            else if (message.endsWith(".") && (! message.endsWith("...")))
+            {
+              idsEndingWithPeriods.add(fieldName);
+System.err.println("Message ending with a period:  " + fieldName + " -- " + message);
             }
           }
         }
       }
     }
 
+    StringBuilder buffer = new StringBuilder();
     if (! unregisteredMessageIDs.isEmpty())
     {
-      StringBuilder buffer = new StringBuilder();
-
       Iterator<String> iterator = unregisteredMessageIDs.iterator();
       buffer.append("Unregistered message IDs detected:  ");
       buffer.append(iterator.next());
@@ -137,9 +145,28 @@ public class UnregisteredMessageIDsTestCase
         buffer.append(", ");
         buffer.append(iterator.next());
       }
-
-      assertTrue(unregisteredMessageIDs.isEmpty(), buffer.toString());
     }
+
+    if (! idsEndingWithPeriods.isEmpty())
+    {
+      if (buffer.length() > 0)
+      {
+        buffer.append(".  ");
+      }
+
+      Iterator<String> iterator = idsEndingWithPeriods.iterator();
+      buffer.append("Message IDs for messages ending with a period:  ");
+      buffer.append(iterator.next());
+
+      while (iterator.hasNext())
+      {
+        buffer.append(", ");
+        buffer.append(iterator.next());
+      }
+    }
+
+    assertTrue((unregisteredMessageIDs.isEmpty() &&
+               idsEndingWithPeriods.isEmpty()), buffer.toString());
   }
 }
 

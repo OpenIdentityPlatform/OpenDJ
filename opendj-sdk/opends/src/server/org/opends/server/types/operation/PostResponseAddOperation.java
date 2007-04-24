@@ -31,13 +31,13 @@ package org.opends.server.types.operation;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RawAttribute;
 
 
 
@@ -71,7 +71,7 @@ public interface PostResponseAddOperation
    * @return  The set of attributes in their raw, unparsed form as
    *          read from the client request.
    */
-  public List<LDAPAttribute> getRawAttributes();
+  public List<RawAttribute> getRawAttributes();
 
 
 

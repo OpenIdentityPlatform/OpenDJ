@@ -42,7 +42,6 @@ import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.Operation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.synchronization.common.ChangeNumberGenerator;
@@ -57,6 +56,8 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -84,7 +85,7 @@ public class SchemaSynchronizationTest extends SynchronizationTestCase
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
     schemaCheck = DirectoryServer.checkSchema();
-    
+
     // find  a free port for the changelog server
     ServerSocket socket = TestCaseUtils.bindFreePort();
     changelogPort = socket.getLocalPort();
@@ -176,11 +177,11 @@ public class SchemaSynchronizationTest extends SynchronizationTestCase
                  "The received synchronization message is not a MODIFY msg");
       ModifyOperation receivedModifyOperation = (ModifyOperation) receivedOp;
 
-      List<LDAPModification> rcvdRawMods =
+      List<RawModification> rcvdRawMods =
         receivedModifyOperation.getRawModifications();
 
       this.rcvdMods = new ArrayList<Modification>();
-      for (LDAPModification m : rcvdRawMods)
+      for (RawModification m : rcvdRawMods)
       {
         this.rcvdMods.add(m.toModification());
       }
@@ -291,11 +292,11 @@ public class SchemaSynchronizationTest extends SynchronizationTestCase
                "The received synchronization message is not a MODIFY msg");
     ModifyOperation receivedModifyOperation = (ModifyOperation) receivedOp;
 
-    List<LDAPModification> rcvdRawMods =
+    List<RawModification> rcvdRawMods =
       receivedModifyOperation.getRawModifications();
 
     this.rcvdMods = new ArrayList<Modification>();
-    for (LDAPModification m : rcvdRawMods)
+    for (RawModification m : rcvdRawMods)
     {
       this.rcvdMods.add(m.toModification());
     }

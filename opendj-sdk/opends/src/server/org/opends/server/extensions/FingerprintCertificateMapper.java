@@ -213,7 +213,7 @@ public class FingerprintCertificateMapper
 
       int    msgID   = MSGID_FCM_CANNOT_CALCULATE_FINGERPRINT;
       String message = getMessage(msgID, peerSubject,
-                                  stackTraceToSingleLineString(e));
+                                  getExceptionMessage(e));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
                                    msgID);
     }

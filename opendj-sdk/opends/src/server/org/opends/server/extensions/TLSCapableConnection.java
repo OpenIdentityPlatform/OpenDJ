@@ -28,8 +28,8 @@ package org.opends.server.extensions;
 
 
 
-import org.opends.server.core.Operation;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Operation;
 
 
 

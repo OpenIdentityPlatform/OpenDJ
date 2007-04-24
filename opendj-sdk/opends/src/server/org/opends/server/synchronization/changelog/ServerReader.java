@@ -28,7 +28,7 @@ package org.opends.server.synchronization.changelog;
 
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.synchronization.common.LogMessages.*;
+import static org.opends.server.messages.SynchronizationMessages.*;
 
 import java.io.IOException;
 

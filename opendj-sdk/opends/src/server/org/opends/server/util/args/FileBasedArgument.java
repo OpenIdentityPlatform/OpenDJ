@@ -193,7 +193,7 @@ public class FileBasedArgument
     {
       int msgID = MSGID_FILEARG_CANNOT_VERIFY_FILE_EXISTENCE;
       invalidReason.append(getMessage(msgID, valueString, getName(),
-                                      stackTraceToSingleLineString(e)));
+                                      getExceptionMessage(e)));
       return false;
     }
 
@@ -208,7 +208,7 @@ public class FileBasedArgument
     {
       int msgID = MSGID_FILEARG_CANNOT_OPEN_FILE;
       invalidReason.append(getMessage(msgID, valueString, getName(),
-                                      stackTraceToSingleLineString(e)));
+                                      getExceptionMessage(e)));
       return false;
     }
 
@@ -223,7 +223,7 @@ public class FileBasedArgument
     {
       int msgID = MSGID_FILEARG_CANNOT_READ_FILE;
       invalidReason.append(getMessage(msgID, valueString, getName(),
-                                      stackTraceToSingleLineString(e)));
+                                      getExceptionMessage(e)));
       return false;
     }
     finally

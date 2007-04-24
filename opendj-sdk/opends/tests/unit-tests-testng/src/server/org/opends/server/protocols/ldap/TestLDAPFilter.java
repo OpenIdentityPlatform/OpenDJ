@@ -29,13 +29,17 @@ package org.opends.server.protocols.ldap;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeTest;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertSame;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.FilterType;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.FilterType;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawFilter;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.TestCaseUtils;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 
 import java.util.ArrayList;
 
@@ -82,8 +86,8 @@ public class TestLDAPFilter extends LdapTestCase
                                         new ASN1OctetString("\\test*(Value)"));
     LDAPFilter presense = LDAPFilter.createPresenceFilter("login");
 
-    ArrayList<ASN1OctetString> any = new ArrayList<ASN1OctetString>(0);
-    ArrayList<ASN1OctetString> multiAny = new ArrayList<ASN1OctetString>(1);
+    ArrayList<ByteString> any = new ArrayList<ByteString>(0);
+    ArrayList<ByteString> multiAny = new ArrayList<ByteString>(1);
     multiAny.add(new ASN1OctetString("\\wid*(get)"));
     multiAny.add(new ASN1OctetString("*"));
 
@@ -132,13 +136,13 @@ public class TestLDAPFilter extends LdapTestCase
                                            new ASN1OctetString(""),
                                                 true);
 
-    ArrayList<LDAPFilter> list1 = new ArrayList<LDAPFilter>();
+    ArrayList<RawFilter> list1 = new ArrayList<RawFilter>();
     list1.add(equal);
     list1.add(approx);
 
     LDAPFilter and = LDAPFilter.createANDFilter(list1);
 
-    ArrayList<LDAPFilter> list2 = new ArrayList<LDAPFilter>();
+    ArrayList<RawFilter> list2 = new ArrayList<RawFilter>();
     list2.add(substring1);
     list2.add(extensible1);
     list2.add(and);

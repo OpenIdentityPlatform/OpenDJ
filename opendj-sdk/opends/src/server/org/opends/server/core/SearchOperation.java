@@ -49,7 +49,6 @@ import org.opends.server.controls.PersistentSearchControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPException;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -59,14 +58,18 @@ import org.opends.server.types.CancelledOperationException;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.FilterType;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
+import org.opends.server.types.RawFilter;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
@@ -82,9 +85,7 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.Access.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -149,9 +150,6 @@ public class SearchOperation
   // The time limit for the search operation.
   private int timeLimit;
 
-  // The raw, unprocessed filter as included in the request from the client.
-  private LDAPFilter rawFilter;
-
   // The set of attributes that should be returned in matching entries.
   private LinkedHashSet<String> attributes;
 
@@ -172,6 +170,9 @@ public class SearchOperation
 
   // The persistent search associated with this search operation.
   private PersistentSearch persistentSearch;
+
+  // The raw, unprocessed filter as included in the request from the client.
+  private RawFilter rawFilter;
 
   // The search filter for the search operation.
   private SearchFilter filter;
@@ -207,7 +208,7 @@ public class SearchOperation
                          int messageID, List<Control> requestControls,
                          ByteString rawBaseDN, SearchScope scope,
                          DereferencePolicy derefPolicy, int sizeLimit,
-                         int timeLimit, boolean typesOnly, LDAPFilter rawFilter,
+                         int timeLimit, boolean typesOnly, RawFilter rawFilter,
                          LinkedHashSet<String> attributes)
   {
     super(clientConnection, operationID, messageID, requestControls);
@@ -575,7 +576,7 @@ public class SearchOperation
    * @return  The raw, unprocessed search filter as included in the request from
    *          the client.
    */
-  public final LDAPFilter getRawFilter()
+  public final RawFilter getRawFilter()
   {
     return rawFilter;
   }
@@ -589,7 +590,7 @@ public class SearchOperation
    * @param  rawFilter  The raw, unprocessed search filter as included in the
    *                    request from the client.
    */
-  public final void setRawFilter(LDAPFilter rawFilter)
+  public final void setRawFilter(RawFilter rawFilter)
   {
     this.rawFilter = rawFilter;
 
@@ -2091,7 +2092,7 @@ searchProcessing:
         setResultCode(DirectoryServer.getServerErrorResultCode());
 
         int msgID = MSGID_SEARCH_BACKEND_EXCEPTION;
-        appendErrorMessage(getMessage(msgID, stackTraceToSingleLineString(e)));
+        appendErrorMessage(getMessage(msgID, getExceptionMessage(e)));
 
         if (persistentSearch != null)
         {
@@ -2271,7 +2272,7 @@ searchProcessing:
    * {@inheritDoc}
    */
   @Override()
-  boolean setCancelRequest(CancelRequest cancelRequest)
+  protected boolean setCancelRequest(CancelRequest cancelRequest)
   {
     this.cancelRequest = cancelRequest;
     return true;

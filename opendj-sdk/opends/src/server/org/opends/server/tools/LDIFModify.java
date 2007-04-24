@@ -39,8 +39,6 @@ import java.util.TreeMap;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.protocols.ldap.LDAPException;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -49,10 +47,12 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RawModification;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.DeleteChangeRecordEntry;
@@ -212,7 +212,7 @@ public class LDIFModify
               modifications.put(changeDN, mods);
             }
 
-            for (LDAPModification mod :
+            for (RawModification mod :
                  ((ModifyChangeRecordEntry) changeRecord).getModifications())
             {
               try

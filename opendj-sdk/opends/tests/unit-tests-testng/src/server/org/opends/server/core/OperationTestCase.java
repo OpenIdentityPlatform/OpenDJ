@@ -39,6 +39,7 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.protocols.ldap.LDAPStatistics;
 import org.opends.server.types.Control;
+import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 
 import static org.testng.Assert.*;
