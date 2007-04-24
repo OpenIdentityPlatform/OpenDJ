@@ -125,6 +125,23 @@ public class ConfigFromLDAP
   }
 
   /**
+   * Method to be called to close properly the connection.
+   */
+  public void closeConnection()
+  {
+    if (ctx != null)
+    {
+      try
+      {
+        ctx.close();
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+  }
+
+  /**
    * Reads the configuration and monitoring information of the server using
    * LDAP.
    * When calling this method the thread is blocked until all the configuration

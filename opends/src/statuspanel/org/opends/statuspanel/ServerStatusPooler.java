@@ -49,7 +49,7 @@ public class ServerStatusPooler
   private String pwd;
   private ServerStatusDescriptor lastDescriptor;
   private boolean stopPooling;
-  private Thread t;
+  private Thread poolingThread;
   private HashSet<ServerStatusChangeListener> listeners =
     new HashSet<ServerStatusChangeListener>();
   private boolean starting;
@@ -83,7 +83,7 @@ public class ServerStatusPooler
   public void startPooling()
   {
     stopPooling = false;
-    t = new Thread(new Runnable()
+    poolingThread = new Thread(new Runnable()
     {
       public void run()
       {
@@ -133,7 +133,25 @@ public class ServerStatusPooler
         }
       }
     });
-    t.start();
+    poolingThread.start();
+  }
+
+  /**
+   * Stop pooling the server status.  This method does not block the thread
+   * that called it.
+   *
+   */
+  public void stopPooling()
+  {
+    stopPooling = true;
+    try
+    {
+      onLineConf.closeConnection();
+      poolingThread.interrupt();
+    }
+    catch (Throwable t)
+    {
+    }
   }
 
   /**
@@ -218,7 +236,8 @@ public class ServerStatusPooler
   {
     this.dn = dn;
     this.pwd = pwd;
-    if ((ldapUrl != null) && (t != null) && t.isAlive() && !stopPooling)
+    if ((ldapUrl != null) && (poolingThread != null) &&
+        poolingThread.isAlive() && !stopPooling)
     {
       /* If we are pooling, stop the pooling update the connection information
        * and restart the pooling.  Set the stopPooling boolean to true to
@@ -227,17 +246,17 @@ public class ServerStatusPooler
        *
        */
       stopPooling = true;
-      t.interrupt();
+      poolingThread.interrupt();
       try
       {
-        t.join(5000);
+        poolingThread.join(5000);
       }
       catch (Throwable t)
       {
         /* This should not happen: this thread should not be interrupted. */
         t.printStackTrace();
       }
-      t = null;
+      poolingThread = null;
       onLineConf.setConnectionInfo(ldapUrl, dn, pwd);
       startPooling();
     }

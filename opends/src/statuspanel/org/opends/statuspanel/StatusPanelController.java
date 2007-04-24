@@ -178,6 +178,7 @@ StatusPanelButtonListener
    */
   public void quitClicked()
   {
+    serverStatusPooler.stopPooling();
     System.exit(0);
   }
 
