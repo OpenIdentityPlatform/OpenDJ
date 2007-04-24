@@ -56,7 +56,7 @@ public class DurationPropertyDefinitionTest {
     DurationPropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit((long) 1);
     DurationPropertyDefinition spd = buildTestDefinition(builder);
-    assert spd.getLowerLimit() == 1;
+    assertEquals(spd.getLowerLimit(), 1);
   }
 
   /**
@@ -64,7 +64,7 @@ public class DurationPropertyDefinitionTest {
    * @return data
    */
   @DataProvider(name = "longLimitData")
-  public Object[][] createlongLimitData() {
+  public Object[][] createLongLimitData() {
     return new Object[][]{
             {1L, 1L},
             // { null, 0 }
@@ -92,11 +92,47 @@ public class DurationPropertyDefinitionTest {
    * @param expectedValue to compare
    */
   @Test(dataProvider = "longLimitData")
-  public void testLowerLimit2(long limit, Long expectedValue) {
+  public void testLowerLimit2(long limit, long expectedValue) {
     DurationPropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(limit);
     DurationPropertyDefinition spd = buildTestDefinition(builder);
-    assert spd.getLowerLimit() == expectedValue;
+    assertEquals(spd.getLowerLimit(), expectedValue);
+  }
+  
+  /**
+   * Creates data for testing string-based limit values
+   * 
+   * @return data
+   */
+  @DataProvider(name = "stringLimitData")
+  public Object[][] createStringLimitData() {
+    return new Object[][] {
+        { "ms", "123", 123 },
+        { "ms", "123s", 123000 },
+        { "s", "123", 123000 },
+        { "s", "123s", 123000 },
+        { "m", "10", 600000 },
+        { "m", "10s", 10000 }
+    };
+  }
+  
+  /**
+   * Tests setting/getting of lower limit as String.
+   * 
+   * @param unit
+   *          The unit.
+   * @param value
+   *          The limit value.
+   * @param expected
+   *          The expected limit in ms.
+   */
+  @Test(dataProvider = "stringLimitData")
+  public void testLowerLimit3(String unit, String value, long expected) {
+    DurationPropertyDefinition.Builder builder = createTestBuilder();
+    builder.setBaseUnit(DurationUnit.getUnit(unit));
+    builder.setLowerLimit(value);
+    DurationPropertyDefinition spd = buildTestDefinition(builder);
+    assertEquals(spd.getLowerLimit(), expected);
   }
 
   /**
@@ -107,7 +143,7 @@ public class DurationPropertyDefinitionTest {
     DurationPropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit((long) 1);
     DurationPropertyDefinition spd = buildTestDefinition(builder);
-    assert spd.getLowerLimit() == 1;
+    assertEquals(spd.getLowerLimit(), 1);
   }
 
   /**
@@ -120,7 +156,7 @@ public class DurationPropertyDefinitionTest {
     DurationPropertyDefinition.Builder builder = createTestBuilder();
     builder.setUpperLimit(limit);
     DurationPropertyDefinition spd = buildTestDefinition(builder);
-    assert spd.getUpperLimit().equals(expectedValue);
+    assertEquals((long) spd.getUpperLimit(), expectedValue);
   }
 
   /**
@@ -179,13 +215,13 @@ public class DurationPropertyDefinitionTest {
    * @return data
    */
   @DataProvider(name = "validateValueData")
-  public Object[][] createvalidateValueData() {
+  public Object[][] createValidateValueData() {
     return new Object[][]{
-            {5L, 10L, false, 7L},
-            {5L, null, true, -1L},
-            {5L, 10L, false, 5L},
-            {5L, 10L, false, 10L},
-            {5L, null, false, 10000L}
+            {5000L, 10000L, false, 7L},
+            {5000L, null, true, -1L},
+            {5000L, 10000L, false, 5L},
+            {5000L, 10000L, false, 10L},
+            {5000L, null, false, 10000L}
     };
   }
 
@@ -213,10 +249,10 @@ public class DurationPropertyDefinitionTest {
   @DataProvider(name = "illegalValidateValueData")
   public Object[][] createIllegalValidateValueData() {
     return new Object[][]{
-            {5L, 10L, false, null},
-            {5L, 10L, false, 1L},
-            {5L, 10L, false, 11L},
-            {5L, 10L, false, -1L}
+            {5000L, 10000L, false, null},
+            {5000L, 10000L, false, 1L},
+            {5000L, 10000L, false, 11L},
+            {5000L, 10000L, false, -1L}
     };
   }
 
@@ -364,17 +400,13 @@ public class DurationPropertyDefinitionTest {
             // syntax tests
             {"unlimited", -1L},
             {"0h", 0L},
-            {"0.h", 0L},
             {"0.0h", 0L},
             {"0.00h", 0L},
             {"0 h", 0L},
-            {"0. h", 0L},
             {"0.00 h", 0L},
             {"1h", 1L},
-            {"1.h", 1L},
             {"1.1h", 1L},
             {"1 h", 1L},
-            {"1. h", 1L},
             {"1.1 h", 1L},
 
             // conversion tests
@@ -399,7 +431,7 @@ public class DurationPropertyDefinitionTest {
 //    if (spd.decodeValue(value) != expectedValue) {
 //      System.out.println(spd.decodeValue(value) + "!=" + expectedValue);
 //    }
-    assert(spd.decodeValue(value) == expectedValue);
+    assertEquals(spd.decodeValue(value), expectedValue);
   }
 
   /**
@@ -411,6 +443,10 @@ public class DurationPropertyDefinitionTest {
     return new Object[][]{
             {"a s"},
             {"1 x"},
+            {"0.h"},
+            {"0. h"},
+            {"1.h"},
+            {"1. h"},
             {"30 m"}, // unit too small violation
             {"60 m"}, // unit too small violation
             {"1 w"},  // unit too big violation

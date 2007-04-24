@@ -56,13 +56,13 @@
     </xsl:if>
     <xsl:if test="boolean(@upper-limit)">
       <xsl:value-of
-        select="concat('      builder.setUpperLimit(',
-                       @upper-limit, 'L);&#xa;')" />
+        select="concat('      builder.setUpperLimit(&quot;',
+                       @upper-limit, '&quot;);&#xa;')" />
     </xsl:if>
     <xsl:if test="boolean(@lower-limit)">
       <xsl:value-of
-        select="concat('      builder.setLowerLimit(',
-                       @lower-limit, 'L);&#xa;')" />
+        select="concat('      builder.setLowerLimit(&quot;',
+                       @lower-limit, '&quot;);&#xa;')" />
     </xsl:if>
   </xsl:template>
 </xsl:stylesheet>

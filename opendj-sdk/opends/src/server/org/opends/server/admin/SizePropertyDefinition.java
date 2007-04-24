@@ -130,7 +130,7 @@ public final class SizePropertyDefinition extends
      */
     public final void setLowerLimit(String lowerLimit)
         throws IllegalArgumentException {
-      setLowerLimit(SizeUnit.parseValue(lowerLimit));
+      setLowerLimit(SizeUnit.parseValue(lowerLimit, SizeUnit.BYTES));
     }
 
 
@@ -175,7 +175,7 @@ public final class SizePropertyDefinition extends
       if (upperLimit == null) {
         setUpperLimit((Long) null);
       } else {
-        setUpperLimit(SizeUnit.parseValue(upperLimit));
+        setUpperLimit(SizeUnit.parseValue(upperLimit, SizeUnit.BYTES));
       }
     }
 
@@ -344,7 +344,7 @@ public final class SizePropertyDefinition extends
     // Decode the value.
     Long i;
     try {
-      i = SizeUnit.parseValue(value);
+      i = SizeUnit.parseValue(value, SizeUnit.BYTES);
     } catch (NumberFormatException e) {
       throw new IllegalPropertyValueStringException(this, value);
     }

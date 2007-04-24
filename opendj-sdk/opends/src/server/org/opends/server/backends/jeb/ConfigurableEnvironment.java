@@ -276,7 +276,7 @@ public class ConfigurableEnvironment
         // JE durations are in microseconds so we must convert.
         DurationPropertyDefinition durationPropDefn =
              (DurationPropertyDefinition)propDefn;
-        value = 1000*durationPropDefn.getBaseUnit().getDuration(value);
+        value = 1000*durationPropDefn.getBaseUnit().toMilliSeconds(value);
 
         return String.valueOf(value);
       }
