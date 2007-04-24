@@ -93,9 +93,6 @@ public class LDIFDiffTestCase
 
     args = new String[] { "-?" };
     assertEquals(LDIFDiff.mainDiff(args, true), 0);
-
-    args = new String[] { "/?" };
-    assertEquals(LDIFDiff.mainDiff(args, true), 0);
   }
 
 

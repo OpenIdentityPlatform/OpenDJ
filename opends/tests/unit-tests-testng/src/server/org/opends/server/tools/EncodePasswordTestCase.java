@@ -768,9 +768,6 @@ public class EncodePasswordTestCase
 
     args = new String[] { "-?" };
     assertEquals(EncodePassword.encodePassword(args, false, null, null), 0);
-
-    args = new String[] { "/?" };
-    assertEquals(EncodePassword.encodePassword(args, false, null, null), 0);
   }
 }
 
