@@ -734,14 +734,14 @@ public class ArgumentParser
           }
         }
       }
-      else if (arg.startsWith("-") || arg.startsWith("/"))
+      else if (arg.startsWith("-"))
       {
         // This indicates that we are using the 1-character name to reference
         // the argument.  It may be in any of the following forms:
         // -n
         // -nvalue
         // -n value
-        if (arg.equals("-") || arg.equals("/"))
+        if (arg.equals("-"))
         {
           int    msgID   = MSGID_ARGPARSER_INVALID_DASH_AS_ARGUMENT;
           String message = getMessage(msgID);

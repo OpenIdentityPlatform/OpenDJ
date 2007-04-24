@@ -395,9 +395,6 @@ public class ListBackendsTestCase
 
     args = new String[] { "-?" };
     assertEquals(ListBackends.listBackends(args, false, null, null), 0);
-
-    args = new String[] { "/?" };
-    assertEquals(ListBackends.listBackends(args, false, null, null), 0);
   }
 }
 
