@@ -114,7 +114,6 @@ public abstract class Launcher {
    */
   protected void printUsage(String i18nMsg) {
     System.err.println(i18nMsg);
-    System.exit(QuickSetupCli.USER_DATA_ERROR);
   }
 
   /**
@@ -234,26 +233,24 @@ public abstract class Launcher {
 
   /**
    * The main method which is called by the uninstall command lines.
+   * @return int exit code that should be returned upon exit of this program
    */
-  public void launch() {
+  public int launch() {
+    int exitCode = 0;
     if (shouldPrintUsage()) {
       printUsage();
+      exitCode = QuickSetupCli.USER_DATA_ERROR;
     } else if (isCli()) {
-      int exitCode = launchCli(args, createCliApplication());
-      if (exitCode != 0) {
-        System.exit(exitCode);
-      }
+      exitCode = launchCli(args, createCliApplication());
     } else {
       willLaunchGui();
-      int exitCode = launchGui(args);
+      exitCode = launchGui(args);
       if (exitCode != 0) {
         guiLaunchFailed();
         exitCode = launchCli(args, createCliApplication());
-        if (exitCode != 0) {
-          System.exit(exitCode);
-        }
       }
     }
+    return exitCode;
   }
 
   /**
