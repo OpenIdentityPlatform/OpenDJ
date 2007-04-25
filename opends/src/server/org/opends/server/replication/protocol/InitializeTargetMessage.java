@@ -34,7 +34,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
 /**
- * This message is part of the synchronization protocol.
+ * This message is part of the replication protocol.
  * This message is sent by a server to one or several servers as the
  * first message of an export, before sending the entries.
  */

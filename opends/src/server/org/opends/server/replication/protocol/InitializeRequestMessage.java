@@ -34,7 +34,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
 /**
- * This message is part of the synchronization protocol.
+ * This message is part of the replication protocol.
  * This message is sent by a server to another server in order to
  * request this other server to do an export to the server sender
  * of this message.
@@ -49,7 +49,7 @@ public class InitializeRequestMessage extends RoutableMessage implements
   /**
    * Creates a InitializeRequestMessage message.
    *
-   * @param baseDn The base DN of the synchronization domain.
+   * @param baseDn The base DN of the replication domain.
    * @param destination destination of this message
    * @param senderID serverID of the server that will send this message
    */

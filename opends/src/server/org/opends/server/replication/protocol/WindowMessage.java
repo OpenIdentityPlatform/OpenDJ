@@ -36,7 +36,7 @@ import java.util.zip.DataFormatException;
  * to a changelog server to let them know who they are and what is their state
  * (their RUV)
  */
-public class WindowMessage extends SynchronizationMessage implements
+public class WindowMessage extends ReplicationMessage implements
     Serializable
 {
   private static final long serialVersionUID = 8442267608764026867L;

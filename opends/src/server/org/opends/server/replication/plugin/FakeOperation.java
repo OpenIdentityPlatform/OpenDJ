@@ -27,7 +27,7 @@
 package org.opends.server.replication.plugin;
 
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.protocol.SynchronizationMessage;
+import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.types.Modification;
 
 
@@ -65,14 +65,14 @@ public abstract class FakeOperation
   }
 
   /**
-   * Generate a SynchronizationMessage from this fake operation.
-   * The SynchronizationMessage is used to send the informations about
+   * Generate a ReplicationMessage from this fake operation.
+   * The ReplicationMessage is used to send the informations about
    * this operation to the other servers.
    *
-   * @return A SynchronizationMessage that can be used to send information
+   * @return A ReplicationMessage that can be used to send information
    *         about this operation to remote servers.
    */
-  abstract public SynchronizationMessage generateMessage();
+  abstract public ReplicationMessage generateMessage();
 
   /**
    * Add a modification to the list of modification included

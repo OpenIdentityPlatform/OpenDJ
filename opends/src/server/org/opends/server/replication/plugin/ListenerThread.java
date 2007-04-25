@@ -28,7 +28,7 @@ package org.opends.server.replication.plugin;
 
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.SynchronizationMessages.*;
+import static org.opends.server.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.api.DirectoryThread;
@@ -42,7 +42,7 @@ import org.opends.server.types.ErrorLogSeverity;
  */
 public class ListenerThread extends DirectoryThread
 {
-  private SynchronizationDomain listener;
+  private ReplicationDomain listener;
   private boolean shutdown = false;
 
   /**
@@ -50,9 +50,9 @@ public class ListenerThread extends DirectoryThread
    *
    * @param listener the Plugin that created this thread
    */
-  public ListenerThread(SynchronizationDomain listener)
+  public ListenerThread(ReplicationDomain listener)
   {
-     super("Synchronization Listener thread");
+     super("Replication Listener thread");
      this.listener = listener;
   }
 
@@ -83,7 +83,7 @@ public class ListenerThread extends DirectoryThread
        * catch all exceptions happening in listener.receive and listener.replay
        * so that the thread never dies even in case of problems.
        */
-      int msgID = MSGID_EXCEPTION_RECEIVING_SYNCHRONIZATION_MESSAGE;
+      int msgID = MSGID_EXCEPTION_RECEIVING_REPLICATION_MESSAGE;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.SYNCHRONIZATION,
           ErrorLogSeverity.SEVERE_ERROR, message, msgID);

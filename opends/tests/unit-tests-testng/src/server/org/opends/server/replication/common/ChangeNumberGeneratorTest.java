@@ -28,13 +28,13 @@ package org.opends.server.replication.common;
 
 import static org.testng.Assert.*;
 
-import org.opends.server.replication.SynchronizationTestCase;
+import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.Test;
 
-public class ChangeNumberGeneratorTest extends SynchronizationTestCase
+public class ChangeNumberGeneratorTest extends ReplicationTestCase
 {
   /**
    * Test the adjust method of ChangeNumberGenerator 

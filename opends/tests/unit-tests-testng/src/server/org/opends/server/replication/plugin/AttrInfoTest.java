@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.replication.SynchronizationTestCase;
+import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.plugin.AttrInfo;
 import org.opends.server.replication.plugin.ValueInfo;
@@ -45,7 +45,7 @@ import static org.testng.Assert.*;
  * Test AttrInfo and AttrInfoWithOptions
  */
 public class AttrInfoTest
-    extends SynchronizationTestCase
+    extends ReplicationTestCase
 {
   /**
    * Build some data for the AttrInfo test below.

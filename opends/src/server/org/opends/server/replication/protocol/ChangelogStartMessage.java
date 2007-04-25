@@ -37,7 +37,7 @@ import org.opends.server.types.DN;
 /**
  * Message sent by a changelog server to another changelog server at Startup.
  */
-public class ChangelogStartMessage extends SynchronizationMessage implements
+public class ChangelogStartMessage extends ReplicationMessage implements
     Serializable
 {
   private static final long serialVersionUID = -5871385537169856856L;

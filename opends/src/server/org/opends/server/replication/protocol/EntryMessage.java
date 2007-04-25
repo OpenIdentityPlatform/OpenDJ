@@ -31,7 +31,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 /**
- * This message is part of the synchronization protocol.
+ * This message is part of the replication protocol.
  * This message is sent by a server to one or several other servers and
  * contain one entry to be sent over the protocol in the context of
  * an import/export over the protocol.

@@ -32,11 +32,11 @@ import java.util.zip.DataFormatException;
 
 /**
  * The ProtocolSession interface should be implemented by a class that
- * implement the send/reception part of the Multimaster synchronization
+ * implement the send/reception part of the Multi-master replication
  * protocol.
  *
  * This interface is designed to make easy the move from one format
- * of the SynchronizationMessage on the wire to another format.
+ * of the ReplicationMessage on the wire to another format.
  */
 public interface ProtocolSession
 {
@@ -50,35 +50,35 @@ public interface ProtocolSession
   public abstract void close() throws IOException;
 
   /**
-   * This method is called when a SynchronizationMessage must be sent to
+   * This method is called when a ReplicationMessage must be sent to
    * the remote entity.
    *
    * It can be called by several threads and must implement appropriate
-   * synchronization (typically, this method or a part of it should be
+   * replication (typically, this method or a part of it should be
    * synchronized).
    *
-   * @param msg The SynchronizationMessage that must be sent.
+   * @param msg The ReplicationMessage that must be sent.
    * @throws IOException If an IO error happen during the publish process.
    */
-  public abstract void publish(SynchronizationMessage msg)
+  public abstract void publish(ReplicationMessage msg)
                   throws IOException;
 
   /**
-   * Attempt to receive a SynchronizationMessage.
+   * Attempt to receive a ReplicationMessage.
    * This method should block the calling thread until a
-   * SynchronizationMessage is available or until an error condition.
+   * ReplicationMessage is available or until an error condition.
    *
    * This method can only be called by a single thread and therefore does not
-   * neet to implement any synchronization.
+   * neet to implement any replication.
    *
-   * @return The SynchronizationMessage that was received.
+   * @return The ReplicationMessage that was received.
    * @throws IOException When error happened durin IO process.
    * @throws ClassNotFoundException When the data received does extend the
-   *         SynchronizationMessage class.
+   *         ReplicationMessage class.
    * @throws DataFormatException When the data received is not formatted as a
-   *         SynchronizationMessage.
+   *         ReplicationMessage.
    */
-  public abstract SynchronizationMessage receive()
+  public abstract ReplicationMessage receive()
                   throws IOException, ClassNotFoundException,
                          DataFormatException;
 
@@ -106,7 +106,7 @@ public interface ProtocolSession
 
 
   /**
-   * Gets the time the last synchronization message was published on this
+   * Gets the time the last replication message was published on this
    * session.
    * @return The timestamp in milliseconds of the last message published.
    */
@@ -115,7 +115,7 @@ public interface ProtocolSession
 
 
   /**
-   * Gets the time the last synchronization message was received on this
+   * Gets the time the last replication message was received on this
    * session.
    * @return The timestamp in milliseconds of the last message received.
    */

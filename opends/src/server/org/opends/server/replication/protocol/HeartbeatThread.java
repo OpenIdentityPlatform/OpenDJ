@@ -36,7 +36,7 @@ import java.io.IOException;
 
 /**
  * This thread publishes a heartbeat message on a given protocol session at
- * regular intervals when there are no other synchronization messages being
+ * regular intervals when there are no other replication messages being
  * published.
  */
 public class HeartbeatThread extends DirectoryThread

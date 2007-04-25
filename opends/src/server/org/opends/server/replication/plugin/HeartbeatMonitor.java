@@ -37,7 +37,7 @@ import org.opends.server.replication.protocol.ProtocolSession;
 
 /**
  * This class implements a thread to monitor heartbeat messages from the
- * synchronization server.  Each broker runs one of these threads.
+ * replication server.  Each broker runs one of these threads.
  */
 public class HeartbeatMonitor extends DirectoryThread
 {
@@ -50,7 +50,7 @@ public class HeartbeatMonitor extends DirectoryThread
 
 
   /**
-   * The time in milliseconds between heartbeats from the synchronization
+   * The time in milliseconds between heartbeats from the replication
    * server.  Zero means heartbeats are off.
    */
   private long heartbeatInterval;

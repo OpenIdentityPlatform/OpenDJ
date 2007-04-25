@@ -46,10 +46,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.messages.TaskMessages;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.replication.changelog.Changelog;
-import org.opends.server.replication.changelog.ChangelogFakeConfiguration;
 import org.opends.server.replication.plugin.ChangelogBroker;
-import org.opends.server.replication.plugin.SynchronizationDomain;
+import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.replication.protocol.DoneMessage;
 import org.opends.server.replication.protocol.EntryMessage;
 import org.opends.server.replication.protocol.ErrorMessage;
@@ -57,7 +55,9 @@ import org.opends.server.replication.protocol.InitializeRequestMessage;
 import org.opends.server.replication.protocol.InitializeTargetMessage;
 import org.opends.server.replication.protocol.RoutableMessage;
 import org.opends.server.replication.protocol.SocketSession;
-import org.opends.server.replication.protocol.SynchronizationMessage;
+import org.opends.server.replication.protocol.ReplicationMessage;
+import org.opends.server.replication.server.Changelog;
+import org.opends.server.replication.server.ChangelogFakeConfiguration;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -69,7 +69,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import static org.opends.server.messages.SynchronizationMessages.*;
+import static org.opends.server.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 /**
@@ -93,13 +93,10 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
  * InitializeTarget task
  */
 
-public class InitOnLineTest extends SynchronizationTestCase
+public class InitOnLineTest extends ReplicationTestCase
 {
   private static final int WINDOW_SIZE = 10;
   private static final int CHANGELOG_QUEUE_SIZE = 100;
-
-  private static final String SYNCHRONIZATION_STRESS_TEST =
-    "Synchronization Stress Test";
 
   /**
    * A "person" entry
@@ -125,7 +122,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   Changelog changelog1 = null;
   Changelog changelog2 = null;
   boolean emptyOldChanges = true;
-  SynchronizationDomain sd = null;
+  ReplicationDomain sd = null;
 
   private void log(String s)
   {
@@ -144,7 +141,6 @@ public class InitOnLineTest extends SynchronizationTestCase
 
   /**
    * Set up the environment for performing the tests in this Class.
-   * synchronization
    *
    * @throws Exception
    *           If the environment could not be set up.
@@ -180,10 +176,10 @@ public class InitOnLineTest extends SynchronizationTestCase
     synchroServerEntry = null;
 
     // Add config entries to the current DS server based on :
-    // Add the synchronization plugin: synchroPluginEntry & synchroPluginStringDN
+    // Add the replication plugin: synchroPluginEntry & synchroPluginStringDN
     // Add synchroServerEntry
     // Add changeLogEntry
-    configureSynchronization();
+    configureReplication();
 
     taskInitFromS2 = TestCaseUtils.makeEntry(
         "dn: ds-task-id=" + UUID.randomUUID() +
@@ -666,7 +662,7 @@ public class InitOnLineTest extends SynchronizationTestCase
       String[] updatedEntries)
   {
     // Expect the broker to receive the entries
-    SynchronizationMessage msg;
+    ReplicationMessage msg;
     short entriesReceived = 0;
     while (true)
     {
@@ -785,17 +781,17 @@ public class InitOnLineTest extends SynchronizationTestCase
         "Unable to add the synchronized server");
         entryList.add(synchroServerEntry.getDN());
 
-        sd = SynchronizationDomain.retrievesSynchronizationDomain(baseDn);
+        sd = ReplicationDomain.retrievesReplicationDomain(baseDn);
 
         // Clear the backend
-        SynchronizationDomain.clearJEBackend(false,
+        ReplicationDomain.clearJEBackend(false,
             sd.getBackend().getBackendID(),
             baseDn.toNormalizedString());
 
       }
       if (sd != null)
       {
-         log("SynchronizationDomain: Import/Export is running ? " + sd.ieRunning());
+         log("ReplicationDomain: Import/Export is running ? " + sd.ieRunning());
       }
     }
     catch(Exception e)
@@ -837,7 +833,7 @@ public class InitOnLineTest extends SynchronizationTestCase
       addTask(taskInitFromS2, ResultCode.SUCCESS, 0);
 
       // S2 should receive init msg
-      SynchronizationMessage msg;
+      ReplicationMessage msg;
       msg = server2.receive();
       if (!(msg instanceof InitializeRequestMessage))
       {
@@ -872,7 +868,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   @Test(enabled=false)
   public void InitializeExport() throws Exception
   {
-    String testCase = "Synchronization/InitializeExport";
+    String testCase = "Replication/InitializeExport";
 
     log("Starting "+testCase);
 
@@ -906,7 +902,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   @Test(enabled=false)
   public void InitializeTargetExport() throws Exception
   {
-    String testCase = "Synchronization/InitializeTargetExport";
+    String testCase = "Replication/InitializeTargetExport";
 
     log("Starting " + testCase);
 
@@ -946,7 +942,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   @Test(enabled=false)
   public void InitializeTargetExportAll() throws Exception
   {
-    String testCase = "Synchronization/InitializeTargetExportAll";
+    String testCase = "Replication/InitializeTargetExportAll";
 
     log("Starting " + testCase);
 
@@ -1165,7 +1161,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   @Test(enabled=false)
   public void InitializeTargetExportMultiSS() throws Exception
   {
-    String testCase = "Synchronization/InitializeTargetExportMultiSS";
+    String testCase = "Replication/InitializeTargetExportMultiSS";
 
     log("Starting " + testCase);
 
@@ -1211,7 +1207,7 @@ public class InitOnLineTest extends SynchronizationTestCase
   @Test(enabled=false)
   public void InitializeExportMultiSS() throws Exception
   {
-    String testCase = "Synchronization/InitializeExportMultiSS";
+    String testCase = "Replication/InitializeExportMultiSS";
     log("Starting "+testCase);
 
     // Create 2 changelogs
@@ -1282,7 +1278,7 @@ public class InitOnLineTest extends SynchronizationTestCase
 
     if (sd != null)
     {
-       log("SynchronizationDomain: Import/Export is running ? " + sd.ieRunning());
+       log("ReplicationDomain: Import/Export is running ? " + sd.ieRunning());
     }
 
     log("Successfully ending "+testCase);
@@ -1321,7 +1317,7 @@ public class InitOnLineTest extends SynchronizationTestCase
 
     if (sd != null)
     {
-       log("SynchronizationDomain: Import/Export is running ? " + sd.ieRunning());
+       log("ReplicationDomain: Import/Export is running ? " + sd.ieRunning());
     }
 
     log("Successfully ending "+testCase);
@@ -1430,7 +1426,7 @@ public class InitOnLineTest extends SynchronizationTestCase
 
     if (sd != null)
     {
-       log("SynchronizationDomain: Import/Export is running ? " + sd.ieRunning());
+       log("ReplicationDomain: Import/Export is running ? " + sd.ieRunning());
     }
 
     // Clean brokers

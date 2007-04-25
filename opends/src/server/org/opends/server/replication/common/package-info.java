@@ -38,7 +38,7 @@
  * <li>
  * <A HREF="ServerState.html"><B>ServerState</B></A>
  * This class is used to define and store the updatedness of any component
- * of the synchronization architecture (i.e : to know which changes
+ * of the replication architecture (i.e : to know which changes
  * it has already processed).
  * </li>
  * </ul>

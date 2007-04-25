@@ -86,7 +86,7 @@ public class PendingChange
 
   /**
    * Get the message associated to this PendingChange.
-   * @return the message if operation was a synchronization operation
+   * @return the message if operation was a replication operation
    * null if the operation was a local operation
    */
   public UpdateMessage getMsg()

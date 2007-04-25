@@ -30,7 +30,7 @@ import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.SynchronizationMessages.*;
+import static org.opends.server.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.Collection;
@@ -56,7 +56,7 @@ import org.opends.server.replication.protocol.ChangelogStartMessage;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ServerStartMessage;
 import org.opends.server.replication.protocol.SocketSession;
-import org.opends.server.replication.protocol.SynchronizationMessage;
+import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
 import org.opends.server.types.DN;
@@ -70,7 +70,7 @@ import org.opends.server.types.SearchScope;
 
 
 /**
- * The broker for Multimaster Synchronization.
+ * The broker for Multi-master Replication.
  */
 public class ChangelogBroker implements InternalSearchListener
 {
@@ -96,7 +96,7 @@ public class ChangelogBroker implements InternalSearchListener
   private int timeout = 0;
 
   /**
-   * The time in milliseconds between heartbeats from the synchronization
+   * The time in milliseconds between heartbeats from the replication
    * server.  Zero means heartbeats are off.
    */
   private long heartbeatInterval = 0;
@@ -114,7 +114,7 @@ public class ChangelogBroker implements InternalSearchListener
 
 
   /**
-   * Creates a new Changelog Broker for a particular SynchronizationDomain.
+   * Creates a new Changelog Broker for a particular ReplicationDomain.
    *
    * @param state The ServerState that should be used by this broker
    *              when negociating the session with the changelog servers.
@@ -411,7 +411,7 @@ public class ChangelogBroker implements InternalSearchListener
     if (heartbeatInterval > 0)
     {
       heartbeatMonitor =
-           new HeartbeatMonitor("Synchronization Heartbeat Monitor", session,
+           new HeartbeatMonitor("Replication Heartbeat Monitor", session,
                                 heartbeatInterval);
       heartbeatMonitor.start();
     }
@@ -460,7 +460,7 @@ public class ChangelogBroker implements InternalSearchListener
    * Publish a message to the other servers.
    * @param msg the message to publish
    */
-  public void publish(SynchronizationMessage msg)
+  public void publish(ReplicationMessage msg)
   {
     boolean done = false;
     ProtocolSession failingSession = session;
@@ -496,14 +496,14 @@ public class ChangelogBroker implements InternalSearchListener
    * @throws SocketTimeoutException if the timeout set by setSoTimeout
    *         has expired
    */
-  public SynchronizationMessage receive() throws SocketTimeoutException
+  public ReplicationMessage receive() throws SocketTimeoutException
   {
     while (shutdown == false)
     {
       ProtocolSession failingSession = session;
       try
       {
-        SynchronizationMessage msg = session.receive();
+        ReplicationMessage msg = session.receive();
         if (msg instanceof WindowMessage)
         {
           WindowMessage windowMsg = (WindowMessage) msg;

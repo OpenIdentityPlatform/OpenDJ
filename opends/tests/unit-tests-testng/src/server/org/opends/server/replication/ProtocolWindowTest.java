@@ -45,7 +45,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.plugin.ChangelogBroker;
 import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.SynchronizationMessage;
+import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -64,16 +64,16 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
- * Test the contructors, encoders and decoders of the synchronization AckMsg,
+ * Test the contructors, encoders and decoders of the Replication AckMsg,
  * ModifyMsg, ModifyDnMsg, AddMsg and Delete Msg
  */
-public class ProtocolWindowTest extends SynchronizationTestCase
+public class ProtocolWindowTest extends ReplicationTestCase
 {
   private static final int WINDOW_SIZE = 10;
   private static final int CHANGELOG_QUEUE_SIZE = 100;
 
-  private static final String SYNCHRONIZATION_STRESS_TEST =
-    "Synchronization Stress Test";
+  private static final String REPLICATION_STRESS_TEST =
+    "Replication Stress Test";
 
   /**
    * A "person" entry
@@ -94,7 +94,7 @@ public class ProtocolWindowTest extends SynchronizationTestCase
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
-        "Starting synchronization ProtocolWindowTest : saturateAndRestart" , 1);
+        "Starting Replication ProtocolWindowTest : saturateAndRestart" , 1);
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
@@ -125,17 +125,17 @@ public class ProtocolWindowTest extends SynchronizationTestCase
         "The Add Entry operation failed");
 
       // Check if the client has received the msg
-      SynchronizationMessage msg = broker.receive();
+      ReplicationMessage msg = broker.receive();
       assertTrue(msg instanceof AddMsg,
-        "The received synchronization message is not an ADD msg");
+        "The received Replication message is not an ADD msg");
       AddMsg addMsg =  (AddMsg) msg;
 
       Operation receivedOp = addMsg.createOperation(connection);
       assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
-        "The received synchronization message is not an ADD msg");
+        "The received Replication message is not an ADD msg");
 
       assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
-        "The received ADD synchronization message is not for the excepted DN");
+        "The received ADD Replication message is not for the excepted DN");
 
       // send (2 * window + changelog queue) modify operations
       // so that window + changelog queue get stuck in the changelog queue
@@ -166,7 +166,7 @@ public class ProtocolWindowTest extends SynchronizationTestCase
     }
     finally {
       broker.stop();
-      DirectoryServer.deregisterMonitorProvider(SYNCHRONIZATION_STRESS_TEST);
+      DirectoryServer.deregisterMonitorProvider(REPLICATION_STRESS_TEST);
     }
   }
 
@@ -229,7 +229,7 @@ public class ProtocolWindowTest extends SynchronizationTestCase
 
   /**
    * Set up the environment for performing the tests in this Class.
-   * synchronization
+   * Replication
    *
    * @throws Exception
    *           If the environment could not be set up.
@@ -315,7 +315,7 @@ public class ProtocolWindowTest extends SynchronizationTestCase
         + "userPassword: password\n" + "initials: AA\n";
     personEntry = TestCaseUtils.entryFromLdifString(personLdif);
 
-    configureSynchronization();
+    configureReplication();
   }
 
   /**

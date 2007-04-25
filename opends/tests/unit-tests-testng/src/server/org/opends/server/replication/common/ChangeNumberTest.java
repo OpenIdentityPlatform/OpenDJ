@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 
-import org.opends.server.replication.SynchronizationTestCase;
+import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.util.TimeThread;
@@ -40,7 +40,7 @@ import org.opends.server.util.TimeThread;
 /**
  * Test ChangeNumber and ChangeNumberGenerator
  */
-public class ChangeNumberTest extends SynchronizationTestCase
+public class ChangeNumberTest extends ReplicationTestCase
 {
 
   /**

@@ -41,7 +41,7 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.messages.TaskMessages;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.replication.plugin.SynchronizationDomain;
+import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -56,8 +56,8 @@ import org.opends.server.types.ResultCode;
 
 /**
  * This class provides an implementation of a Directory Server task that can
- * be used to import data over the synchronization protocol from another
- * server hosting the same synchronization domain.
+ * be used to import data over the replication protocol from another
+ * server hosting the same replication domain.
  */
 public class InitializeTask extends Task
 {
@@ -66,7 +66,7 @@ public class InitializeTask extends Task
   boolean skipSchemaValidation    = false;
   String  domainString            = null;
   short  source;
-  SynchronizationDomain domain = null;
+  ReplicationDomain domain = null;
   TaskState initState;
 
   // The total number of entries expected to be processed when this import
@@ -110,7 +110,7 @@ public class InitializeTask extends Task
           message, msgID);
     }
 
-    domain=SynchronizationDomain.retrievesSynchronizationDomain(domainDN);
+    domain=ReplicationDomain.retrievesReplicationDomain(domainDN);
 
 
     attrList = taskEntry.getAttribute(typeSourceScope);

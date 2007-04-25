@@ -1,0 +1,190 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
+ */
+package org.opends.server.replication.server;
+
+import java.util.SortedSet;
+
+import org.opends.server.admin.ManagedObjectDefinition;
+import org.opends.server.admin.PropertyProvider;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.client.ChangelogServerCfgClient;
+import org.opends.server.admin.std.server.ChangelogServerCfg;
+import org.opends.server.types.DN;
+
+/**
+ * This Class implements an object that can be used to instantiate
+ * The Changelog class for tests purpose.
+ */
+public class ChangelogFakeConfiguration implements ChangelogServerCfg
+{
+  int port;
+  String dirName;
+  int purgeDelay;
+  int serverId;
+  int queueSize;
+  int windowSize;
+  private SortedSet<String> servers;
+
+  public ChangelogFakeConfiguration(
+      int port, String dirName, int purgeDelay, int serverId,
+      int queueSize, int windowSize, SortedSet<String> servers)
+  {
+    this.port    = port;
+    this.dirName = dirName;
+    
+    if (purgeDelay == 0)
+    {
+      this.purgeDelay = 24*60*60;
+    }
+    else
+    {
+      this.purgeDelay = purgeDelay;
+    }
+
+    this.serverId = serverId;
+    
+    if (queueSize == 0)
+    {
+      this.queueSize = 10000;
+    }
+    else
+    {
+      this.queueSize = queueSize;
+    }
+
+    if (windowSize == 0)
+    {
+      this.windowSize = 100;
+    }
+    else
+    {
+      this.windowSize = windowSize;
+    }
+
+    this.servers = servers;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void addChangeListener(
+      ConfigurationChangeListener<ChangelogServerCfg> listener)
+  {
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ManagedObjectDefinition<? extends ChangelogServerCfgClient,
+                                 ? extends ChangelogServerCfg> definition()
+  {
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getChangelogDbDirectory()
+  {
+    return dirName;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getChangelogPort()
+  {
+    return port;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public long getChangelogPurgeDelay()
+  {
+    return purgeDelay;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public SortedSet<String> getChangelogServer()
+  {
+     return servers;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getChangelogServerId()
+  {
+    return serverId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getQueueSize()
+  {
+    return queueSize;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getWindowSize()
+  {
+    return windowSize;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void removeChangeListener(
+      ConfigurationChangeListener<ChangelogServerCfg> listener)
+  {
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN dn()
+  {
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public PropertyProvider properties()
+  {
+    return null;
+  }
+
+}

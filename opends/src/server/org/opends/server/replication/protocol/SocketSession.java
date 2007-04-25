@@ -35,7 +35,7 @@ import java.util.zip.DataFormatException;
 
 /**
  * This class Implement a protocol session using a basic socket and relying on
- * the innate encoding/decoding capabilities of the SynchronizationMessage
+ * the innate encoding/decoding capabilities of the ReplicationMessage
  * by using the getBytes() and generateMsg() methods of those classes.
  *
  * TODO : should have some versioning in the packets so that
@@ -89,7 +89,7 @@ public class SocketSession implements ProtocolSession
   /**
    * {@inheritDoc}
    */
-  public synchronized void publish(SynchronizationMessage msg)
+  public synchronized void publish(ReplicationMessage msg)
          throws IOException
   {
     byte[] buffer = msg.getBytes();
@@ -106,7 +106,7 @@ public class SocketSession implements ProtocolSession
   /**
    * {@inheritDoc}
    */
-  public SynchronizationMessage receive() throws IOException,
+  public ReplicationMessage receive() throws IOException,
       ClassNotFoundException, DataFormatException
   {
     /* Read the first 8 bytes containing the packet length */
@@ -143,7 +143,7 @@ public class SocketSession implements ProtocolSession
       /* We do not want the heartbeat to close the session when */
       /* we are processing a message even a time consuming one. */
       lastReceiveTime=0;
-      return SynchronizationMessage.generateMsg(buffer);
+      return ReplicationMessage.generateMsg(buffer);
     }
     catch (OutOfMemoryError e)
     {

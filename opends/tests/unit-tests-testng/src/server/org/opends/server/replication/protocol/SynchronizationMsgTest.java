@@ -44,7 +44,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.SynchronizationTestCase;
+import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.PendingChange;
@@ -64,7 +64,7 @@ import org.opends.server.replication.protocol.ModifyDnContext;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.replication.protocol.ServerStartMessage;
-import org.opends.server.replication.protocol.SynchronizationMessage;
+import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
 import org.opends.server.types.Attribute;
@@ -84,7 +84,7 @@ import org.testng.annotations.Test;
  * Test the contructors, encoders and decoders of the synchronization
  * AckMsg, ModifyMsg, ModifyDnMsg, AddMsg and Delete Msg
  */
-public class SynchronizationMsgTest extends SynchronizationTestCase
+public class SynchronizationMsgTest extends ReplicationTestCase
 {
   /**
    * Build some data for the ModifyMsg test below.
@@ -165,7 +165,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
     ModifyMsg msg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");
-    ModifyMsg generatedMsg = (ModifyMsg) SynchronizationMessage
+    ModifyMsg generatedMsg = (ModifyMsg) ReplicationMessage
         .generateMsg(msg.getBytes());
 
 
@@ -214,7 +214,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     assertTrue(msg.isAssured());
 
     // Check equals
-    ModifyMsg generatedMsg = (ModifyMsg) SynchronizationMessage
+    ModifyMsg generatedMsg = (ModifyMsg) ReplicationMessage
         .generateMsg(msg.getBytes());
     assertFalse(msg.equals(null));
     assertFalse(msg.equals(new Object()));
@@ -264,7 +264,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
       (short) 123, (short) 45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
     DeleteMsg msg = new DeleteMsg(op);
-    DeleteMsg generatedMsg = (DeleteMsg) SynchronizationMessage
+    DeleteMsg generatedMsg = (DeleteMsg) ReplicationMessage
         .generateMsg(msg.getBytes());
 
     assertEquals(msg.toString(), generatedMsg.toString());
@@ -314,7 +314,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     op.setAttachment(SYNCHROCONTEXT,
         new ModifyDnContext(cn, "uniqueid", "newparentId"));
     ModifyDNMsg msg = new ModifyDNMsg(op);
-    ModifyDNMsg generatedMsg = (ModifyDNMsg) SynchronizationMessage
+    ModifyDNMsg generatedMsg = (ModifyDNMsg) ReplicationMessage
         .generateMsg(msg.getBytes());
     Operation generatedOperation = generatedMsg.createOperation(connection);
     ModifyDNOperation mod2 = (ModifyDNOperation) generatedOperation;
@@ -381,7 +381,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     AddMsg msg = new AddMsg(cn, rawDN, "thisIsaUniqueID", "parentUniqueId",
                             objectClass, userAttributes,
                             operationalAttributes);
-    AddMsg generatedMsg = (AddMsg) SynchronizationMessage.generateMsg(msg
+    AddMsg generatedMsg = (AddMsg) ReplicationMessage.generateMsg(msg
         .getBytes());
     assertEquals(msg.getBytes(), generatedMsg.getBytes());
     assertEquals(msg.toString(), generatedMsg.toString());
@@ -453,7 +453,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
 
     // Check invalid bytes for constructor
     byte[] b = msg1.getBytes();
-    b[0] = SynchronizationMessage.MSG_TYPE_ADD_REQUEST ;
+    b[0] = ReplicationMessage.MSG_TYPE_ADD_REQUEST ;
     try
     {
       // This should generated an exception
@@ -466,7 +466,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
     }
 
     // Check that retrieved CN is OK
-    msg2 = (AckMessage) SynchronizationMessage.generateMsg(msg1.getBytes());
+    msg2 = (AckMessage) ReplicationMessage.generateMsg(msg1.getBytes());
   }
 
   @DataProvider(name="serverStart")
@@ -641,7 +641,7 @@ public class SynchronizationMsgTest extends SynchronizationTestCase
   /**
    * Test PendingChange
    */
-  private void testPendingChange(ChangeNumber cn, Operation op, SynchronizationMessage msg)
+  private void testPendingChange(ChangeNumber cn, Operation op, ReplicationMessage msg)
   {
     if (! (msg instanceof UpdateMessage))
     {

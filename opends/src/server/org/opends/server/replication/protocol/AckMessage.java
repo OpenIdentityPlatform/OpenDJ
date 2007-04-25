@@ -34,7 +34,7 @@ import org.opends.server.replication.common.ChangeNumber;
 /**
  * Used to send acks between LDAP and changelog servers.
  */
-public class AckMessage extends SynchronizationMessage
+public class AckMessage extends ReplicationMessage
 {
   // ChangeNumber of the update that was acked.
   private ChangeNumber changeNumber;

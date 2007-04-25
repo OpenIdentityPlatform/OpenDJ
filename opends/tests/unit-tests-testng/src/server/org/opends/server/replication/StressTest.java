@@ -47,7 +47,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.plugin.ChangelogBroker;
 import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.SynchronizationMessage;
+import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -67,13 +67,13 @@ import org.testng.annotations.Test;
 /**
  * Stress test for the synchronization code using the ChangelogBroker API.
  */
-public class StressTest extends SynchronizationTestCase
+public class StressTest extends ReplicationTestCase
 {
-  private static final String SYNCHRONIZATION_STRESS_TEST =
-    "Synchronization Stress Test";
+  private static final String REPLICATION_STRESS_TEST =
+    "Replication Stress Test";
 
   /**
-   * The Synchronization config manager entry
+   * The replication config manager entry
    */
   private String synchroStringDN;
 
@@ -104,7 +104,7 @@ public class StressTest extends SynchronizationTestCase
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
-        "Starting Synchronization StressTest : fromServertoBroker" , 1);
+        "Starting replication StressTest : fromServertoBroker" , 1);
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
     final int TOTAL_MESSAGES = 1000;
@@ -134,18 +134,18 @@ public class StressTest extends SynchronizationTestCase
       if (ResultCode.SUCCESS == addOp.getResultCode())
       {
         // Check if the client has received the msg
-        SynchronizationMessage msg = broker.receive();
+        ReplicationMessage msg = broker.receive();
 
         assertTrue(msg instanceof AddMsg,
-        "The received synchronization message is not an ADD msg");
+        "The received replication message is not an ADD msg");
         AddMsg addMsg =  (AddMsg) msg;
 
         Operation receivedOp = addMsg.createOperation(connection);
         assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
-        "The received synchronization message is not an ADD msg");
+        "The received replication message is not an ADD msg");
 
         assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
-        "The received ADD synchronization message is not for the excepted DN");
+        "The received ADD replication message is not for the excepted DN");
       }
 
       reader = new BrokerReader(broker);
@@ -180,14 +180,13 @@ public class StressTest extends SynchronizationTestCase
 
     }
     finally {
-      DirectoryServer.deregisterMonitorProvider(SYNCHRONIZATION_STRESS_TEST);
+      DirectoryServer.deregisterMonitorProvider(REPLICATION_STRESS_TEST);
       broker.stop();
     }
   }
 
   /**
    * Set up the environment for performing the tests in this Class.
-   * synchronization
    *
    * @throws Exception
    *           If the environment could not be set up.
@@ -268,7 +267,7 @@ public class StressTest extends SynchronizationTestCase
         + "userPassword: password\n" + "initials: AA\n";
     personEntry = TestCaseUtils.entryFromLdifString(personLdif);
 
-    configureSynchronization();
+    configureReplication();
   }
 
   /**
@@ -351,7 +350,7 @@ public class StressTest extends SynchronizationTestCase
       {
         while (true)
         {
-          SynchronizationMessage msg = broker.receive();
+          ReplicationMessage msg = broker.receive();
           if (msg == null)
             break;
           count ++;
@@ -423,7 +422,7 @@ public class StressTest extends SynchronizationTestCase
     @Override
     public String getMonitorInstanceName()
     {
-      return SYNCHRONIZATION_STRESS_TEST;
+      return REPLICATION_STRESS_TEST;
     }
 
     @Override

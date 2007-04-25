@@ -29,7 +29,7 @@ package org.opends.server.replication.protocol;
 import org.opends.server.replication.common.ChangeNumber;
 
 /**
- * This class describe the synchronization context that is attached to
+ * This class describe the replication context that is attached to
  * Modify operation.
  */
 public class ModifyContext extends OperationContext
