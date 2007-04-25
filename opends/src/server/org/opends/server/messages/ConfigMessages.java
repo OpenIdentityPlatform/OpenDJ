@@ -6573,6 +6573,17 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used if a an attempt is made to
+   * modify an entry in the config backend in a manner that will change its
+   * structural object class.
+   */
+  public static final int
+       MSGID_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 653;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6845,6 +6856,9 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_FILE_MODIFY_NO_SUCH_ENTRY,
                     "Entry %s cannot be modified because the specified entry " +
                     "does not exist");
+    registerMessage(MSGID_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED,
+                    "Configuration entry %s cannot be modified because the " +
+                    "change would alter its structural object class");
     registerMessage(MSGID_CONFIG_FILE_MODIFY_REJECTED_BY_CHANGE_LISTENER,
                     "Entry %s cannot be modified because one of the " +
                     "configuration change listeners registered for that " +
