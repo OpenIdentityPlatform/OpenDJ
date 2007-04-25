@@ -1408,6 +1408,17 @@ public class ConfigFileHandler
       }
 
 
+      // If the structural class is different between the current entry and the
+      // new entry, then reject the change.
+      if (! currentEntry.getEntry().getStructuralObjectClass().equals(
+                 entry.getStructuralObjectClass()))
+      {
+        int    msgID   = MSGID_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED;
+        String message = getMessage(msgID, String.valueOf(entryDN));
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+      }
+
+
       // Create a new config entry to use for the validation testing.
       ConfigEntry newEntry = new ConfigEntry(e, currentEntry.getParent());
 
