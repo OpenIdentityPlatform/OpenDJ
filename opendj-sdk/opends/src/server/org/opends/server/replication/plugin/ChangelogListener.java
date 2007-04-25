@@ -33,7 +33,7 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.ChangelogServerCfg;
 import org.opends.server.admin.std.server.MultimasterSynchronizationProviderCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.replication.changelog.Changelog;
+import org.opends.server.replication.server.Changelog;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 

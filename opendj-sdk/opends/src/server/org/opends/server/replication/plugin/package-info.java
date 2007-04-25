@@ -26,21 +26,21 @@
  */
 
 /**
- * This package contains the part of the Multimaster
- * synchronization code that works on the Directory Server side.
+ * This package contains the part of the Multi-master
+ * replication code that works on the Directory Server side.
  * <br>
  * The main classes of this core are :
  * <ul>
  * <li>
- * <A HREF="MultimasterSynchronization.html"><B>MultimasterSynchronization
+ * <A HREF="MultimasterReplication.html"><B>MultimasterReplication
  * </B></A>contains the synchronization provider
  * code and more generally all the code that makes the glue between the core
- * server and the synchronization code.
+ * server and the replication code.
  * </li>
  * <li>
- * <A HREF="SynchronizationDomain.html"><B>SynchronizationDomain</B></A>
+ * <A HREF="ReplicationDomain.html"><B>ReplicationDomain</B></A>
  * contains the bulk of the Directory Server side of the
- * synchronization code. Most notably it contains the root method for
+ * replication code. Most notably it contains the root method for
  * publishing a change, processing a change received from the changelog
  * service, handle conflict resolution, handle protocol messages from the
  * changelog server.

@@ -29,11 +29,11 @@ package org.opends.server.replication.protocol;
 import java.io.Serializable;
 
 /**
- * This is an abstract class of messages of the synchronization protocol
+ * This is an abstract class of messages of the replication protocol
  * for message that needs to contain information about the server that
  * send them and the destination servers to whitch they should be sent.
  */
-public abstract class RoutableMessage extends SynchronizationMessage implements
+public abstract class RoutableMessage extends ReplicationMessage implements
     Serializable
 {
 
@@ -47,7 +47,7 @@ public abstract class RoutableMessage extends SynchronizationMessage implements
    */
   public static final short UNKNOWN_SERVER      = -1;
   /**
-   * Specifies all servers in the synchronization domain.
+   * Specifies all servers in the replication domain.
    */
   public static final short ALL_SERVERS         = -2;
   /**

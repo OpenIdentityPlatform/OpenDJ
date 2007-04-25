@@ -37,10 +37,10 @@
  * implements the ProtocolSession interface that is
  * used by the changelog server and the directory server to communicate.
  * This is done by using the innate encoding/decoding capabilities of the
- * SynchronizationMessages objects. This class is used by both the
- * changelog and the synchronization package.
+ * ReplicationMessages objects. This class is used by both the
+ * changelog and the replication package.
  * </li>
- * <li><A HREF="SynchronizationMessage.html"><B>SynchronizationMessage</B></A>
+ * <li><A HREF="ReplicationMessage.html"><B>ReplicationMessage</B></A>
  * This class and the class that inherit from it contain the
  * messages that are used for communication between the changelog and the
  * Directory Server as well as the methods fro encoding/decoding them.

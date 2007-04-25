@@ -30,7 +30,7 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.Operation;
 
 /**
- * This class describe the Synchronization context that is attached
+ * This class describe the replication context that is attached
  * to each Operation using the SYNCHROCONTEXT key.
  */
 public abstract class OperationContext
@@ -38,7 +38,7 @@ public abstract class OperationContext
   /**
    * The identifier used to attach the context to operations.
    */
-  public static final String SYNCHROCONTEXT = "synchronizationContext";
+  public static final String SYNCHROCONTEXT = "replicationContext";
 
   /**
    * The change Number of the Operation.

@@ -248,7 +248,7 @@ public class Historical
      * operation so there is no need to check the historical information
      * for conflicts.
      * If this is a local operation, the this code is run during
-     * the pre-operation phase (TODO : should make sure that synchronization
+     * the pre-operation phase (TODO : should make sure that replication
      * is always run after all other plugins)
      * If this is a non-conflicting replicated operation, this code is run
      * during the handleConflictResolution().
@@ -939,7 +939,7 @@ public class Historical
   /**
    * Get the Entry Unique Id from an add operation.
    * This must be called after the entry uuid preop plugin (i.e no
-   * sooner than the synchronization provider pre-op)
+   * sooner than the replication provider pre-op)
    *
    * @param op The operation
    * @return The Entry Unique Id String form.

@@ -43,13 +43,13 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.SynchronizationTestCase;
+import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.plugin.FakeOperation;
 import org.opends.server.replication.plugin.FakeOperationComparator;
 import org.opends.server.replication.plugin.Historical;
 import org.opends.server.replication.protocol.ModifyContext;
-import org.opends.server.replication.protocol.SynchronizationMessage;
+import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -72,7 +72,7 @@ import org.opends.server.types.ObjectClass;
  */
 
 public class ModifyConflictTest
-    extends SynchronizationTestCase
+    extends ReplicationTestCase
 {
 
   /**
@@ -245,7 +245,7 @@ public class ModifyConflictTest
         FakeOperation fk = fks.iterator().next();
         assertTrue(new FakeOperationComparator().compare(fk, fk) == 0);
         assertTrue(new FakeOperationComparator().compare(null , fk) < 0);
-        SynchronizationMessage generatedMsg = fk.generateMessage() ;
+        ReplicationMessage generatedMsg = fk.generateMessage() ;
         if (generatedMsg instanceof UpdateMessage)
         {
           UpdateMessage new_name = (UpdateMessage) generatedMsg;

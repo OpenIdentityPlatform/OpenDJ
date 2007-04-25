@@ -44,7 +44,7 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.HeartbeatThread;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
-import org.opends.server.replication.protocol.SynchronizationMessage;
+import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -61,10 +61,10 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * Test synchronization update operations on the directory server and through
- * the synchronization server broker interface.
+ * Test synchronization of update operations on the directory server and through
+ * the replication server broker interface.
  */
-public class UpdateOperationTest extends SynchronizationTestCase
+public class UpdateOperationTest extends ReplicationTestCase
 {
   /**
    * An entry with a entryUUID
@@ -213,7 +213,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     personWithSecondUniqueID =
       TestCaseUtils.entryFromLdifString(entryWithSecondUUID);
 
-    configureSynchronization();
+    configureReplication();
   }
 
   /**
@@ -265,7 +265,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     // Check that the entry has not been created in the directory server.
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000, true);
     assertNull(resultEntry,
-        "The synchronization message was replayed while the server " +
+        "The replication message was replayed while the server " +
              "receive status was disabled");
 
     // Enable the directory server receive status.
@@ -283,7 +283,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     // Check that the entry has been created in the directory server.
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
     assertNotNull(resultEntry,
-        "The synchronization message was not replayed after the server " +
+        "The replication message was not replayed after the server " +
              "receive status was enabled");
 
     // Delete the entries to clean the database.
@@ -295,20 +295,20 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     // Check that the delete operation has been applied.
     assertNull(resultEntry,
-        "The DELETE synchronization message was not replayed");
+        "The DELETE replication message was not replayed");
     broker.stop();
   }
 
   /**
    * Tests whether the synchronization provider fails over when it loses
-   * the heartbeat from the synchronization server.
+   * the heartbeat from the replication server.
    */
   @Test(groups = "slow")
   public void lostHeartbeatFailover() throws Exception
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
-        "Starting synchronization test : lostHeartbeatFailover" , 1);
+        "Starting replication test : lostHeartbeatFailover" , 1);
 
     cleanRealEntries();
 
@@ -344,7 +344,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     // Check that the entry has been created in the directory server.
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
     assertNotNull(resultEntry,
-        "The ADD synchronization message was not replayed");
+        "The ADD replication message was not replayed");
 
     // Send a first modify operation message.
     List<Modification> mods = generatemods("telephonenumber", "01 02 45");
@@ -391,7 +391,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     // Check that the delete operation has been applied.
     assertNull(resultEntry,
-        "The DELETE synchronization message was not replayed");
+        "The DELETE replication message was not replayed");
     broker.stop();
   }
 
@@ -410,7 +410,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
-        "Starting synchronization test : namingConflicts" , 1);
+        "Starting replication test : namingConflicts" , 1);
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
@@ -447,7 +447,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     // Check that the entry has been created in the local DS.
     Entry resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
     assertNotNull(resultEntry,
-        "The send ADD synchronization message was not applied");
+        "The send ADD replication message was not applied");
     entryList.add(resultEntry.getDN());
 
     // send a modify operation with the correct unique ID but another DN
@@ -484,7 +484,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     // Check that the entry has been created in the local DS.
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
     assertNotNull(resultEntry,
-        "The ADD synchronization message was not applied");
+        "The ADD replication message was not applied");
     entryList.add(resultEntry.getDN());
 
     // send a modify operation with a wrong unique ID but the same DN
@@ -518,7 +518,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, false);
 
     assertNull(resultEntry,
-        "The DELETE synchronization message was not replayed");
+        "The DELETE replication message was not replayed");
 
     /*
      * Test that two adds with the same DN but a different unique ID result
@@ -536,7 +536,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     //  Check that the entry has been created in the local DS.
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
     assertNotNull(resultEntry,
-        "The ADD synchronization message was not applied");
+        "The ADD replication message was not applied");
     entryList.add(resultEntry.getDN());
 
     //  create an entry with the same DN and another unique ID
@@ -552,7 +552,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
         DN.decode("entryuuid=" + user1entrysecondUUID +" + " + user1dn),
         10000, true);
     assertNotNull(resultEntry,
-        "The ADD synchronization message was not applied");
+        "The ADD replication message was not applied");
 
     //  delete the entries to clean the database.
     delMsg =
@@ -567,7 +567,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     // check that the delete operation has been applied
     assertNull(resultEntry,
-        "The DELETE synchronization message was not replayed");
+        "The DELETE replication message was not replayed");
     /*
      * Check that and added entry is correctly added below it's
      * parent entry when this parent entry has been renamed.
@@ -587,7 +587,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
     resultEntry = getEntry(
         DN.decode("uid=new person,ou=People,dc=example,dc=com"), 10000, true);
     assertNotNull(resultEntry,
-        "The ADD synchronization message was not applied");
+        "The ADD replication message was not applied");
 
     /*
      * Check that when replaying delete the naming conflict code
@@ -607,7 +607,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     // check that the delete operation has not been applied
     assertNotNull(resultEntry,
-        "The DELETE synchronization message was replayed when it should not");
+        "The DELETE replication message was replayed when it should not");
 
 
     /*
@@ -693,7 +693,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     //  check that the delete operation has been applied
     assertNull(resultEntry,
-        "The DELETE synchronization message was not replayed");
+        "The DELETE replication message was not replayed");
 
     delMsg =
       new DeleteMsg("entryUUID = " + user1entrysecondUUID + "+" +
@@ -708,12 +708,12 @@ public class UpdateOperationTest extends SynchronizationTestCase
 
     // check that the delete operation has been applied
     assertNull(resultEntry,
-        "The DELETE synchronization message was not replayed");
+        "The DELETE replication message was not replayed");
 
     /*
      * When replaying add operations it is possible that the parent entry has
      * been renamed before and that another entry have taken the former dn of
-     * the parent entry. In such case the synchronization replay code should
+     * the parent entry. In such case the replication replay code should
      * detect that the parent has been renamed and should add the entry below
      * the new dn of the parent (thus changing the original dn with which the
      * entry had been created)
@@ -793,12 +793,12 @@ public class UpdateOperationTest extends SynchronizationTestCase
     resultEntry = getEntry(
         DN.decode("uid=new person,ou=baseDn1,"+baseDn), 10000, false);
     assertNull(resultEntry,
-        "The ADD synchronization message was applied under ou=baseDn1,"+baseDn);
+        "The ADD replication message was applied under ou=baseDn1,"+baseDn);
 
     resultEntry = getEntry(
         DN.decode("uid=new person,ou=baseDn2,"+baseDn), 10000, true);
     assertNotNull(resultEntry,
-        "The ADD synchronization message was NOT applied under ou=baseDn2,"+baseDn);
+        "The ADD replication message was NOT applied under ou=baseDn2,"+baseDn);
     entryList.add(resultEntry.getDN());
 
 
@@ -819,7 +819,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
-        "Starting synchronization test : updateOperations " + assured , 1);
+        "Starting replication test : updateOperations " + assured , 1);
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
@@ -850,17 +850,17 @@ public class UpdateOperationTest extends SynchronizationTestCase
       if (ResultCode.SUCCESS.equals(addOp.getResultCode()))
       {
         // Check if the client has received the msg
-        SynchronizationMessage msg = broker.receive();
+        ReplicationMessage msg = broker.receive();
         assertTrue(msg instanceof AddMsg,
-        "The received synchronization message is not an ADD msg");
+        "The received replication message is not an ADD msg");
         AddMsg addMsg =  (AddMsg) msg;
 
         Operation receivedOp = addMsg.createOperation(connection);
         assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
-        "The received synchronization message is not an ADD msg");
+        "The received replication message is not an ADD msg");
 
         assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
-        "The received ADD synchronization message is not for the excepted DN");
+        "The received ADD replication message is not for the excepted DN");
       }
 
       // Modify the entry
@@ -873,14 +873,14 @@ public class UpdateOperationTest extends SynchronizationTestCase
       modOp.run();
 
       // See if the client has received the msg
-      SynchronizationMessage msg = broker.receive();
+      ReplicationMessage msg = broker.receive();
       assertTrue(msg instanceof ModifyMsg,
-      "The received synchronization message is not a MODIFY msg");
+      "The received replication message is not a MODIFY msg");
       ModifyMsg modMsg = (ModifyMsg) msg;
 
       modMsg.createOperation(connection);
       assertTrue(DN.decode(modMsg.getDn()).compareTo(personEntry.getDN()) == 0,
-      "The received MODIFY synchronization message is not for the excepted DN");
+      "The received MODIFY replication message is not for the excepted DN");
 
       // Modify the entry DN
       DN newDN = DN.decode("uid= new person,ou=People,dc=example,dc=com") ;
@@ -898,7 +898,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
       // See if the client has received the msg
       msg = broker.receive();
       assertTrue(msg instanceof ModifyDNMsg,
-      "The received synchronization message is not a MODIFY DN msg");
+      "The received replication message is not a MODIFY DN msg");
       ModifyDNMsg moddnMsg = (ModifyDNMsg) msg;
       moddnMsg.createOperation(connection);
 
@@ -917,7 +917,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
       // See if the client has received the msg
       msg = broker.receive();
       assertTrue(msg instanceof DeleteMsg,
-      "The received synchronization message is not a MODIFY DN msg");
+      "The received replication message is not a MODIFY DN msg");
       DeleteMsg delMsg = (DeleteMsg) msg;
       delMsg.createOperation(connection);
       assertTrue(DN.decode(delMsg.getDn()).compareTo(DN
@@ -944,7 +944,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
        */
       Entry resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
       assertNotNull(resultEntry,
-      "The send ADD synchronization message was not applied for "+personWithUUIDEntry.getDN().toString());
+      "The send ADD replication message was not applied for "+personWithUUIDEntry.getDN().toString());
       entryList.add(resultEntry.getDN());
 
       /*
@@ -977,7 +977,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
           DN.decode("uid= new person,ou=People,dc=example,dc=com"), 10000, true);
 
       assertNotNull(resultEntry,
-      "The modify DN synchronization message was not applied");
+      "The modify DN replication message was not applied");
 
       /*
        * Test the Reception of Delete Msg
@@ -991,7 +991,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
           DN.decode("uid= new person,ou=People,dc=example,dc=com"), 10000, false);
 
       assertNull(resultEntry,
-      "The DELETE synchronization message was not replayed");
+      "The DELETE replication message was not replayed");
     }
     finally
     {
@@ -1082,7 +1082,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
-        "Starting synchronization test : deleteNoSuchObject" , 1);
+        "Starting replication test : deleteNoSuchObject" , 1);
 
     DN dn = DN.decode("cn=No Such Object,ou=People,dc=example,dc=com");
     Operation op =
@@ -1104,7 +1104,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
   {
     logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
-        "Starting synchronization test : infiniteReplayLoop" , 1);
+        "Starting replication test : infiniteReplayLoop" , 1);
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
@@ -1153,7 +1153,7 @@ public class UpdateOperationTest extends SynchronizationTestCase
                                          DirectoryStringSyntax.DECODER);
 
       // Register a short circuit that will fake a no-such-object result code
-      // on a delete.  This will cause a synchronization replay loop.
+      // on a delete.  This will cause a replication replay loop.
       ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE,
                                               "PreParse", 32);
       try
@@ -1178,11 +1178,11 @@ public class UpdateOperationTest extends SynchronizationTestCase
                                                   "PreParse");
       }
 
-      // If the synchronization replay loop was detected and broken then the
+      // If the replication replay loop was detected and broken then the
       // counter will still be updated even though the replay was unsuccessful.
       if (getReplayedUpdatesCount(baseDn) == initialCount)
       {
-        fail("Synchronization operation was not replayed");
+        fail("Operation was not replayed");
       }
     }
     finally

@@ -31,7 +31,7 @@ import static org.testng.Assert.assertEquals;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.SynchronizationTestCase;
+import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.PersistentServerState;
@@ -44,7 +44,7 @@ import org.testng.annotations.Test;
 /**
  * Test the PersistentServerState class.
  */
-public class PersistentServerStateTest extends SynchronizationTestCase
+public class PersistentServerStateTest extends ReplicationTestCase
 {
   /**
    * Set up the environment for performing the tests in this suite.

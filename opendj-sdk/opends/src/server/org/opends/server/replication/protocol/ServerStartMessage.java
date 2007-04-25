@@ -41,7 +41,7 @@ import org.opends.server.types.DN;
  * to a changelog server to let them know who they are and what is their state
  * (their RUV)
  */
-public class ServerStartMessage extends SynchronizationMessage implements
+public class ServerStartMessage extends ReplicationMessage implements
     Serializable
 {
   private static final long serialVersionUID = 8649393307038290287L;
@@ -57,7 +57,7 @@ public class ServerStartMessage extends SynchronizationMessage implements
   private ServerState serverState = null;
 
   /**
-   * The time in milliseconds between heartbeats from the synchronization
+   * The time in milliseconds between heartbeats from the replication
    * server.  Zero means heartbeats are off.
    */
   private long heartbeatInterval = 0;

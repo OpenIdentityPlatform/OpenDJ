@@ -30,7 +30,7 @@ import java.util.ArrayList;
 
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.ModifyMsg;
-import org.opends.server.replication.protocol.SynchronizationMessage;
+import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
 
@@ -79,7 +79,7 @@ public class ModifyFakeOperation extends FakeOperation
    * {@inheritDoc}
    */
   @Override
-  public SynchronizationMessage generateMessage()
+  public ReplicationMessage generateMessage()
   {
     return new ModifyMsg(super.getChangeNumber(), dn, mods, entryuuid);
   }

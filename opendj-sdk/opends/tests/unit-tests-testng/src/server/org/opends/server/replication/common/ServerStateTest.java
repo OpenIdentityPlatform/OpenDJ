@@ -30,7 +30,7 @@ import static org.testng.Assert.*;
 
 import java.util.Set;
 
-import org.opends.server.replication.SynchronizationTestCase;
+import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.util.TimeThread;
@@ -40,7 +40,7 @@ import org.testng.annotations.Test;
 /**
  * Test the ServerState
  */
-public class ServerStateTest extends SynchronizationTestCase
+public class ServerStateTest extends ReplicationTestCase
 {
 
   /**

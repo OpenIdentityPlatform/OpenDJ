@@ -293,7 +293,7 @@ public class MessageHandler
     TaskMessages.registerMessages();
     AdminMessages.registerMessages();
     AciMessages.registerMessages();
-    SynchronizationMessages.registerMessages();
+    ReplicationMessages.registerMessages();
   }
 
 

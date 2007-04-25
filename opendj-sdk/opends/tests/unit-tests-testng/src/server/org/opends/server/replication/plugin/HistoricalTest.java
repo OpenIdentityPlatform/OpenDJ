@@ -27,7 +27,7 @@
 
 package org.opends.server.replication.plugin;
 
-import org.opends.server.replication.SynchronizationTestCase;
+import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.plugin.ChangelogBroker;
 import org.opends.server.replication.plugin.Historical;
@@ -53,10 +53,10 @@ import java.util.ArrayList;
  * Tests the Historical class.
  */
 public class HistoricalTest
-     extends SynchronizationTestCase
+     extends ReplicationTestCase
 {
   /**
-   * Set up synchronization on the test backend.
+   * Set up replication on the test backend.
    * @throws Exception If an error occurs.
    */
   @BeforeClass
@@ -69,7 +69,7 @@ public class HistoricalTest
     // Create an internal connection.
     connection = InternalClientConnection.getRootConnection();
 
-    // The synchronization server.
+    // The replication server.
     String changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
     String changeLogLdif = "dn: " + changeLogStringDN + "\n"
          + "objectClass: top\n"
@@ -90,7 +90,7 @@ public class HistoricalTest
          + "ds-cfg-receive-status: true\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
-    configureSynchronization();
+    configureReplication();
   }
 
   /**
@@ -177,7 +177,7 @@ public class HistoricalTest
   /**
    * The scenario for this test case is that two modify operations occur at
    * two different servers at nearly the same time, each operation adding a
-   * different value for a single-valued attribute.  Synchronization then
+   * different value for a single-valued attribute.  Replication then
    * replays the operations and we expect the conflict to be resolved on both
    * servers by keeping whichever value was actually added first.
    * For the unit test, we employ a single directory server.  We use the
@@ -260,7 +260,7 @@ public class HistoricalTest
 
     // It would be nice to avoid these sleeps.
     // We need to preserve the replay order but the order could be changed
-    // due to the multi-threaded nature of the synchronization replay.
+    // due to the multi-threaded nature of the replication replay.
     // Putting a sentinel value in the modification is not foolproof since
     // the operation might not get replayed at all.
     Thread.sleep(2000);

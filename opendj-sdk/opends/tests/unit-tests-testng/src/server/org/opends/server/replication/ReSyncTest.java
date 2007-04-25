@@ -54,7 +54,7 @@ import org.testng.annotations.Test;
 /**
  * Test re-synchronization after after backup/restore and LDIF import.
  */
-public class ReSyncTest extends SynchronizationTestCase
+public class ReSyncTest extends ReplicationTestCase
 {
  /**
   * Set up the environment for performing the tests in this Class.
@@ -66,7 +66,7 @@ public class ReSyncTest extends SynchronizationTestCase
   public void setup() throws Exception
   {
    /*
-    * - Start a server and a changelog server, configure synchronization
+    * - Start a server and a changelog server, configure replication
     * - Do some changes.
     */
     TestCaseUtils.startServer();
@@ -111,9 +111,9 @@ public class ReSyncTest extends SynchronizationTestCase
         + "ds-cfg-directory-server-id: 123\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
-    configureSynchronization();
+    configureReplication();
 
-    // Give some time to the synchronization to setup 
+    // Give some time to the replication to setup 
     Thread.sleep(1000);
     
     // Create a dummy entry

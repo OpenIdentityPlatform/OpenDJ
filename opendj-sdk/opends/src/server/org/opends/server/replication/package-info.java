@@ -26,7 +26,6 @@
  */
 
 /**
- * This package contains the code for the synchronization feature
- * which provides a Multi-Master replication system.
+ * This package contains the code for the Multi-Master replication.
  */
 package org.opends.server.replication;

@@ -33,7 +33,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
 /**
- * An abstract class that all synchronization unit test should extend. 
+ * An abstract class that all control unit test should extend. 
  */
 @Test(groups = { "precommit", "controls" })
 public abstract class ControlsTestCase extends DirectoryServerTestCase

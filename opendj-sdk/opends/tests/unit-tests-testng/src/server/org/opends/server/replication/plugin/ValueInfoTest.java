@@ -27,7 +27,7 @@
 package org.opends.server.replication.plugin;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.replication.SynchronizationTestCase;
+import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.plugin.ValueInfo;
 import org.opends.server.types.AttributeType;
@@ -41,7 +41,7 @@ import static org.testng.Assert.*;
 /**
  * Test of ValueInfo
  */
-public class ValueInfoTest extends SynchronizationTestCase
+public class ValueInfoTest extends ReplicationTestCase
 {
   /**
    * Build some data for the ValueInfo test below.

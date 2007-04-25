@@ -30,12 +30,12 @@ package org.opends.server.replication.protocol;
 import java.util.zip.DataFormatException;
 
 /**
- * This message is sent at regular intervals by the synchronization server
+ * This message is sent at regular intervals by the replication server
  * when it is sending no other messages.  It allows the directory server to
  * detect a problem sooner when a synchronization server has crashed or has
  * been isolated from the network.
  */
-public class HeartbeatMessage extends SynchronizationMessage
+public class HeartbeatMessage extends ReplicationMessage
 {
   /**
    * Create a new HeartbeatMessage.

@@ -41,7 +41,7 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.messages.TaskMessages;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.replication.plugin.SynchronizationDomain;
+import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -66,7 +66,7 @@ public class InitializeTargetTask extends Task
   boolean isEncrypted             = false;
   boolean skipSchemaValidation    = false;
   String  domainString            = null;
-  SynchronizationDomain domain = null;
+  ReplicationDomain domain = null;
   short target;
   long total;
   long left;
@@ -103,7 +103,7 @@ public class InitializeTargetTask extends Task
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
           message, msgID);
     }
-    domain=SynchronizationDomain.retrievesSynchronizationDomain(domainDN);
+    domain=ReplicationDomain.retrievesReplicationDomain(domainDN);
 
     attrList = taskEntry.getAttribute(typeScope);
     String targetString = TaskUtils.getSingleValueString(attrList);

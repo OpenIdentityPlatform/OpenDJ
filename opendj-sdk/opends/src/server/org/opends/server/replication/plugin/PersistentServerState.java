@@ -28,7 +28,7 @@ package org.opends.server.replication.plugin;
 
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.SynchronizationMessages.*;
+import static org.opends.server.messages.ReplicationMessages.*;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -76,7 +76,7 @@ public class PersistentServerState extends ServerState
    /**
     * The attribute name used to store the state in the backend.
     */
-   protected static final String SYNCHRONIZATION_STATE = "ds-sync-state";
+   protected static final String REPLICATION_STATE = "ds-sync-state";
 
   /**
    * create a new ServerState.
@@ -139,7 +139,7 @@ public class PersistentServerState extends ServerState
      * save the ServerState
      */
     LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
-    attributes.add(SYNCHRONIZATION_STATE);
+    attributes.add(REPLICATION_STATE);
     InternalSearchOperation search = conn.processSearch(asn1BaseDn,
         SearchScope.BASE_OBJECT,
         DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
@@ -160,14 +160,14 @@ public class PersistentServerState extends ServerState
     if (search.getResultCode() == ResultCode.SUCCESS)
     {
       /*
-       * Read the serverState from the SYNCHRONIZATION_STATE attribute
+       * Read the serverState from the REPLICATION_STATE attribute
        */
       LinkedList<SearchResultEntry> result = search.getSearchEntries();
       resultEntry = result.getFirst();
       if (resultEntry != null)
       {
         AttributeType synchronizationStateType =
-          DirectoryServer.getAttributeType(SYNCHRONIZATION_STATE);
+          DirectoryServer.getAttributeType(REPLICATION_STATE);
         List<Attribute> attrs =
           resultEntry.getAttribute(synchronizationStateType);
         if (attrs != null)
@@ -213,7 +213,7 @@ public class PersistentServerState extends ServerState
       return ResultCode.SUCCESS;
 
     LDAPAttribute attr =
-      new LDAPAttribute(SYNCHRONIZATION_STATE, values);
+      new LDAPAttribute(REPLICATION_STATE, values);
     LDAPModification mod = new LDAPModification(ModificationType.REPLACE, attr);
     ArrayList<RawModification> mods = new ArrayList<RawModification>(1);
     mods.add(mod);

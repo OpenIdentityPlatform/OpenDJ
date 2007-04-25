@@ -44,7 +44,7 @@ import org.opends.server.types.Operation;
  * Abstract class that must be extended to define a message
  * used for sending Updates between servers.
  */
-public abstract class UpdateMessage extends SynchronizationMessage
+public abstract class UpdateMessage extends ReplicationMessage
                                     implements Serializable,
                                                Comparable<UpdateMessage>
 {
@@ -71,7 +71,7 @@ public abstract class UpdateMessage extends SynchronizationMessage
   /**
    * Creates a new UpdateMessage with the given informations.
    *
-   * @param ctx The Synchronization Context of the operation for which the
+   * @param ctx The replication Context of the operation for which the
    *            update message must be created,.
    * @param dn The dn of the entry on which the change
    *           that caused the creation of this object happened
@@ -180,7 +180,7 @@ public abstract class UpdateMessage extends SynchronizationMessage
 
   /**
    * Get a boolean indicating if the Update must be processed as an
-   * Asynchronous or as an assured synchronization.
+   * Asynchronous or as an assured replication.
    *
    * @return Returns the assuredFlag.
    */
