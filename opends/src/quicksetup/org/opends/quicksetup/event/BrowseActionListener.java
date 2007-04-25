@@ -74,6 +74,10 @@ public class BrowseActionListener implements ActionListener
      */
     OPEN_LDIF_FILE,
     /**
+     * The Browser is used to retrieve a .zip file.
+     */
+    OPEN_ZIP_FILE,
+    /**
      * The Browser is used to retrieve a generic file.
      */
     GENERIC_FILE
@@ -120,6 +124,18 @@ public class BrowseActionListener implements ActionListener
       fc.addChoosableFileFilter(ldifFiles);
       fc.setFileFilter(ldifFiles);
       break;
+
+    case OPEN_ZIP_FILE:
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fc.setDialogType(JFileChooser.OPEN_DIALOG);
+        fc.setDialogTitle(i18n.getMsg("open-zip-file-dialog-title"));
+        ExtensionFileFilter zipFiles =
+            new ExtensionFileFilter("zip",
+                i18n.getMsg("zip-files-description"));
+
+        fc.addChoosableFileFilter(zipFiles);
+        fc.setFileFilter(zipFiles);
+        break;
 
     case GENERIC_FILE:
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);

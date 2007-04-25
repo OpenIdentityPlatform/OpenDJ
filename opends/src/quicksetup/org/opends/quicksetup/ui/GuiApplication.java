@@ -28,6 +28,7 @@
 package org.opends.quicksetup.ui;
 
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.webstart.WebStartDownloader;
 
 import javax.swing.*;
 import java.awt.event.WindowEvent;
@@ -46,6 +47,9 @@ public abstract class GuiApplication extends Application {
 
   /** The currently displayed wizard step. */
   private WizardStep displayedStep;
+
+  /** Downloads .jar files for webstart application. */
+  protected WebStartDownloader loader;
 
   /**
    * Constructs an instance of an application.  Subclasses
@@ -319,4 +323,89 @@ public abstract class GuiApplication extends Application {
     return "finish-button-label";
   }
 
+  /**
+   * Begins downloading webstart jars in another thread
+   * for WebStart applications only.
+   */
+  protected void initLoader() {
+    loader = new WebStartDownloader();
+    loader.start(false);
+  }
+
+  /**
+   * Waits for the loader to be finished.  Every time we have an update in the
+   * percentage that is downloaded we notify the listeners of this.
+   *
+   * @param maxRatio is the integer value that tells us which is the max ratio
+   * that corresponds to the download.  It is used to calculate how the global
+   * installation ratio changes when the download ratio increases.  For instance
+   * if we suppose that the download takes 25 % of the total installation
+   * process, then maxRatio will be 25.  When the download is complete this
+   * method will send a notification to the ProgressUpdateListeners with a ratio
+   * of 25 %.
+   * @throws org.opends.quicksetup.QuickSetupException if something goes wrong
+   *
+   */
+  protected void waitForLoader(Integer maxRatio) throws QuickSetupException {
+    int lastPercentage = -1;
+    WebStartDownloader.Status lastStatus =
+      WebStartDownloader.Status.DOWNLOADING;
+    while (!loader.isFinished() && (loader.getException() == null))
+    {
+      // Pool until is over
+      int perc = loader.getDownloadPercentage();
+      WebStartDownloader.Status downloadStatus = loader.getStatus();
+      if ((perc != lastPercentage) || (downloadStatus != lastStatus))
+      {
+        lastPercentage = perc;
+        int ratio = (perc * maxRatio) / 100;
+        String summary;
+        switch (downloadStatus)
+        {
+        case VALIDATING:
+          String[] argsValidating =
+            { String.valueOf(perc),
+              String.valueOf(loader.getCurrentValidatingPercentage())};
+
+          summary = getMsg("validating-ratio", argsValidating);
+          break;
+        case UPGRADING:
+          String[] argsUpgrading =
+            { String.valueOf(perc),
+              String.valueOf(loader.getCurrentUpgradingPercentage())};
+          summary = getMsg("upgrading-ratio", argsUpgrading);
+          break;
+        default:
+          String[] arg =
+            { String.valueOf(perc) };
+
+          summary = getMsg("downloading-ratio", arg);
+        }
+        loader.setSummary(summary);
+        notifyListeners(ratio, summary, null);
+
+        try
+        {
+          Thread.sleep(300);
+        } catch (Exception ex)
+        {
+        }
+      }
+    }
+
+    if (loader.getException() != null)
+    {
+      throw loader.getException();
+    }
+  }
+
+  /**
+   * Gets the amount of addition pixels added to the height
+   * of the tallest panel in order to size the wizard for
+   * asthetic reasons.
+   * @return int height to add
+   */
+  public int getExtraDialogHeight() {
+    return 0;
+  }
 }

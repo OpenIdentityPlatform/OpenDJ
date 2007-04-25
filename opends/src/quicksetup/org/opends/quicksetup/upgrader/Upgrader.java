@@ -36,14 +36,6 @@ import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.quicksetup.ui.*;
-import org.opends.server.tools.BackUpDB;
-import org.opends.server.tools.LDIFDiff;
-import org.opends.server.util.*;
-import org.opends.server.types.*;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.config.ConfigException;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.DirectoryServer;
 
 import java.awt.event.WindowEvent;
 import java.util.*;
@@ -213,6 +205,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private RemoteBuildManager remoteBuildManager = null;
 
   /**
+   * Creates a default instance.
+   */
+  public Upgrader() {
+    if (Utils.isWebStart()) {
+      initLoader();
+    }
+  }
+
+  /**
    * {@inheritDoc}
    */
   public String getFrameTitle() {
@@ -253,6 +254,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
       }
     }
     return remoteBuildManager;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getExtraDialogHeight() {
+    return UIFactory.EXTRA_DIALOG_HEIGHT;
   }
 
   /**
@@ -302,19 +310,20 @@ public class Upgrader extends GuiApplication implements CliApplication {
   public String getSummary(ProgressStep step) {
     String txt = null;
     if (step == UpgradeProgressStep.FINISHED) {
-      String installPath = Utils.getPath(getInstallation().getRootDirectory());
-      String newVersion = null;
-      try {
-        newVersion = getInstallation().getBuildId();
-      } catch (QuickSetupException e) {
-        newVersion = getMsg("upgrade-build-id-unknown");
-      }
-      String[] args = {
-              formatter.getFormattedText(installPath),
-              newVersion };
-      txt = getFormattedSuccess(
-              getMsg("summary-upgrade-finished-successfully",
-              args));
+//    String installPath = Utils.getPath(getInstallation().getRootDirectory());
+//    String newVersion = null;
+//    try {
+//      newVersion = getInstallation().getBuildId();
+//    } catch (QuickSetupException e) {
+//      newVersion = getMsg("upgrade-build-id-unknown");
+//    }
+//    String[] args = {
+//            formatter.getFormattedText(installPath),
+//            newVersion };
+//    txt = getFormattedSuccess(
+//            getMsg("summary-upgrade-finished-successfully",
+//            args));
+      txt = "Upgrade completed successfully"; // TODO BETTER MESSAGE
     } else if (step == UpgradeProgressStep.FINISHED_WITH_ERRORS) {
       txt = getFormattedError(
               getMsg("summary-upgrade-finished-with-errors"));
@@ -433,8 +442,22 @@ public class Upgrader extends GuiApplication implements CliApplication {
             Installation.validateRootDirectory(serverLocation);
 
             // If we get here the value is acceptable
-            Installation installation = new Installation(serverLocation);
+            final Installation installation = new Installation(serverLocation);
             setInstallation(installation);
+
+            // The build ID is needed on the review panel and it is
+            // fairly time consuming to get.  So prime this cached
+            // value in a separate thread.
+            new Thread(new Runnable() {
+              public void run() {
+                try {
+                  installation.getBuildId();
+                } catch (QuickSetupException e) {
+                  LOG.log(Level.INFO, "error", e);
+                }
+              }
+            }).start();
+
             uud.setServerLocation(serverLocationString);
 
           } catch (IllegalArgumentException iae) {
@@ -457,6 +480,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 (Build)qs.getFieldValue(FieldName.UPGRADE_BUILD_TO_DOWNLOAD);
       } else {
         buildFile = (File)qs.getFieldValue(FieldName.UPGRADE_FILE);
+        if (buildFile == null) {
+          errorMsgs.add("You must specify a path to an OpenDS build file");
+        } else if (!buildFile.exists()) {
+          errorMsgs.add("File " + Utils.getPath(buildFile) +
+                  " does not exist.");
+          qs.displayFieldInvalid(FieldName.UPGRADE_FILE, true);
+        }
       }
       uud.setBuildToDownload(buildToDownload);
       uud.setInstallPackage(buildFile);
@@ -537,6 +567,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     try {
 
+      if (Utils.isWebStart()) {
+        try {
+          waitForLoader(15); // TODO: ratio
+        } catch (QuickSetupException e) {
+          LOG.log(Level.SEVERE, "Error downloading WebStart jars", e);
+          throw e;
+        }
+      }
+
       File buildZip;
       Build buildToDownload =
               getUpgradeUserData().getInstallPackageToDownload();
@@ -552,6 +591,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
             }
           }
           getRemoteBuildManager().download(buildToDownload, buildZip);
+          notifyListeners(formatter.getFormattedDone());
         } catch (ApplicationException e) {
           LOG.log(Level.INFO, "Error downloading build file", e);
           throw e;
@@ -817,7 +857,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
               msg, e);
-    } catch (LDIFException e) {
+    } catch (org.opends.server.util.LDIFException e) {
       String msg = "LDIF error applying configuration customization: " +
               e.getLocalizedMessage();
       LOG.log(Level.INFO, msg, e);
@@ -838,7 +878,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
               msg, e);
-    } catch (LDIFException e) {
+    } catch (org.opends.server.util.LDIFException e) {
       String msg = "LDIF error applying schema customization: " +
               e.getLocalizedMessage();
       LOG.log(Level.INFO, msg, e);
@@ -861,13 +901,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
               msg, e);
-    } catch (InitializationException e) {
+    } catch (org.opends.server.types.InitializationException e) {
       String msg = "Failed to start server due to initialization error:" +
               e.getLocalizedMessage();
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
               msg, e);
-    } catch (ConfigException e) {
+    } catch (org.opends.server.config.ConfigException e) {
       String msg = "Failed to start server due to configuration error: " +
               e.getLocalizedMessage();
       LOG.log(Level.INFO, msg, e);
@@ -877,31 +917,41 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   private void applyCustomizationLdifFile(File ldifFile)
-          throws IOException, LDIFException, ApplicationException {
+          throws IOException, org.opends.server.util.LDIFException,
+          ApplicationException
+  {
     try {
       startServerWithoutConnectionHandlers();
-      InternalClientConnection cc =
-              InternalClientConnection.getRootConnection();
-      LDIFImportConfig importCfg =
-              new LDIFImportConfig(Utils.getPath(ldifFile));
-      LDIFReader ldifReader = new LDIFReader(importCfg);
-      ChangeRecordEntry cre;
+      org.opends.server.protocols.internal.InternalClientConnection cc =
+              org.opends.server.protocols.internal.
+                      InternalClientConnection.getRootConnection();
+      org.opends.server.types.LDIFImportConfig importCfg =
+              new org.opends.server.types.LDIFImportConfig(
+                      Utils.getPath(ldifFile));
+      org.opends.server.util.LDIFReader ldifReader =
+              new org.opends.server.util.LDIFReader(importCfg);
+      org.opends.server.util.ChangeRecordEntry cre;
       while (null != (cre = ldifReader.readChangeRecord(false))) {
-        if (cre instanceof ModifyChangeRecordEntry) {
-          ModifyChangeRecordEntry mcre = (ModifyChangeRecordEntry) cre;
-          ByteString dnByteString =
-                  ByteStringFactory.create(mcre.getDN().toString());
-          ModifyOperation op =
+        if (cre instanceof org.opends.server.util.ModifyChangeRecordEntry) {
+          org.opends.server.util.ModifyChangeRecordEntry mcre =
+                  (org.opends.server.util.ModifyChangeRecordEntry) cre;
+          org.opends.server.types.ByteString dnByteString =
+                  org.opends.server.types.ByteStringFactory.create(
+                          mcre.getDN().toString());
+          org.opends.server.core.ModifyOperation op =
                   cc.processModify(dnByteString, mcre.getModifications());
-          ResultCode rc = op.getResultCode();
-          if (rc.equals(ResultCode.OBJECTCLASS_VIOLATION)) {
+          org.opends.server.types.ResultCode rc = op.getResultCode();
+          if (rc.equals(
+                  org.opends.server.types.ResultCode.
+                          OBJECTCLASS_VIOLATION)) {
             // try again without schema checking
-            DirectoryServer.setCheckSchema(false);
+            org.opends.server.core.DirectoryServer.setCheckSchema(false);
             op = cc.processModify(dnByteString, mcre.getModifications());
             rc = op.getResultCode();
           }
-          if (rc.equals(ResultCode.SUCCESS)) {
-            if (DirectoryServer.checkSchema()) {
+          if (rc.equals(org.opends.server.types.ResultCode.
+                  SUCCESS)) {
+            if (org.opends.server.core.DirectoryServer.checkSchema()) {
               notifyListeners(
                       getMsg("upgrade-mod",
                               modListToString(op.getModifications()))
@@ -911,9 +961,11 @@ public class Upgrader extends GuiApplication implements CliApplication {
                       getMsg("upgrade-mod-no-schema",
                               modListToString(op.getModifications()))
                       + formatter.getLineBreak());
-              DirectoryServer.setCheckSchema(true);
+              org.opends.server.core.DirectoryServer.setCheckSchema(true);
             }
-          } else if (rc.equals(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS)) {
+          } else if (rc.equals(
+                  org.opends.server.types.ResultCode.
+                          ATTRIBUTE_OR_VALUE_EXISTS)) {
             // ignore this error
             notifyListeners(
                     getMsg("upgrade-mod-ignore",
@@ -945,7 +997,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
   }
 
-  private String modListToString(List<Modification> modifications) {
+  private String modListToString(
+          List<org.opends.server.types.Modification> modifications) {
     StringBuilder modsMsg = new StringBuilder();
     for(int i = 0; i < modifications.size(); i++) {
       modsMsg.append(modifications.get(i).toString());
@@ -1054,7 +1107,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
             Utils.getPath(source) + " with " +
             Utils.getPath(target)));
 
-    int ret = LDIFDiff.mainDiff(args.toArray(new String[]{}), false);
+    int ret = org.opends.server.tools.LDIFDiff.mainDiff(
+            args.toArray(new String[]{}), false);
     if (ret != 0) {
       StringBuffer sb = new StringBuffer()
               .append("'ldif-diff' tool returned error code ")
@@ -1127,7 +1181,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
               ApplicationException.Type.FILE_SYSTEM_ERROR,
               "error backup up databases", e);
     }
-    int ret = BackUpDB.mainBackUpDB(args.toArray(new String[0]));
+    int ret = org.opends.server.tools.BackUpDB.mainBackUpDB(
+            args.toArray(new String[0]));
     if (ret != 0) {
       StringBuffer sb = new StringBuffer()
               .append("'backup utility returned error code ")

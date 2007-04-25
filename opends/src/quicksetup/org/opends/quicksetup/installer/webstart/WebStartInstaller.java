@@ -77,15 +77,12 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
   private HashMap<InstallProgressStep, String> hmSummary =
       new HashMap<InstallProgressStep, String>();
 
-  private WebStartDownloader loader;
-
   /**
    * WebStartInstaller constructor.
    */
   public WebStartInstaller()
   {
-    loader = new WebStartDownloader();
-    loader.start(false);
+    initLoader();
     status = InstallProgressStep.NOT_STARTED;
   }
 
@@ -191,7 +188,13 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
    */
   public String getSummary(ProgressStep status)
   {
-    return hmSummary.get(status);
+    String summary = null;
+    if (InstallProgressStep.DOWNLOADING.equals(status)) {
+      summary = loader.getSummary();
+    } else {
+      summary = hmSummary.get(status);
+    }
+    return summary;
   }
 
   /**
@@ -292,73 +295,6 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
 
     notifyListeners(getFormattedDone());
     return in;
-  }
-
-  /**
-   * Waits for the loader to be finished.  Every time we have an update in the
-   * percentage that is downloaded we notify the listeners of this.
-   *
-   * @param maxRatio is the integer value that tells us which is the max ratio
-   * that corresponds to the download.  It is used to calculate how the global
-   * installation ratio changes when the download ratio increases.  For instance
-   * if we suppose that the download takes 25 % of the total installation
-   * process, then maxRatio will be 25.  When the download is complete this
-   * method will send a notification to the ProgressUpdateListeners with a ratio
-   * of 25 %.
-   * @throws QuickSetupException if something goes wrong
-   *
-   */
-  private void waitForLoader(Integer maxRatio) throws QuickSetupException {
-    int lastPercentage = -1;
-    WebStartDownloader.Status lastStatus =
-      WebStartDownloader.Status.DOWNLOADING;
-    while (!loader.isFinished() && (loader.getException() == null))
-    {
-      // Pool until is over
-      int perc = loader.getDownloadPercentage();
-      WebStartDownloader.Status downloadStatus = loader.getStatus();
-      if ((perc != lastPercentage) || (downloadStatus != lastStatus))
-      {
-        lastPercentage = perc;
-        int ratio = (perc * maxRatio) / 100;
-        String summary;
-        switch (downloadStatus)
-        {
-        case VALIDATING:
-          String[] argsValidating =
-            { String.valueOf(perc),
-              String.valueOf(loader.getCurrentValidatingPercentage())};
-
-          summary = getMsg("validating-ratio", argsValidating);
-          break;
-        case UPGRADING:
-          String[] argsUpgrading =
-            { String.valueOf(perc),
-              String.valueOf(loader.getCurrentUpgradingPercentage())};
-          summary = getMsg("upgrading-ratio", argsUpgrading);
-          break;
-        default:
-          String[] arg =
-            { String.valueOf(perc) };
-
-          summary = getMsg("downloading-ratio", arg);
-        }
-        hmSummary.put(InstallProgressStep.DOWNLOADING, summary);
-        notifyListeners(ratio, summary, null);
-
-        try
-        {
-          Thread.sleep(300);
-        } catch (Exception ex)
-        {
-        }
-      }
-    }
-
-    if (loader.getException() != null)
-    {
-      throw loader.getException();
-    }
   }
 
   /**

@@ -29,7 +29,6 @@ package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.util.DynamicConstants;
 
 import javax.swing.*;
 import java.net.URL;
@@ -40,6 +39,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.io.*;
 import java.awt.*;
 
@@ -97,28 +97,17 @@ public class RemoteBuildManager {
   }
 
   /**
-   * Gets a list of builds found in the remote repository.
-   * @return List of Build objects representing remote builds
-   * @throws IOException if there was a problem contacting the build
-   * repository
-   */
-  public List<Build> listBuilds() throws IOException {
-    return listBuilds(null, null);
-  }
-
-  /**
    * Gets the list of builds from the build repository using a
    * progress monitor to keep the user informed about the status
    * of downloading the build page.
-   * @param c Component to act as parent of the progress monitor
-   * @param o message to display in the progress monitor
+   * @param in InputStream of build information
    * @return list of Build objects
    * @throws IOException if something goes wrong loading the list
    * from the build repository
    */
-  public List<Build> listBuilds(Component c, Object o) throws IOException {
+  public List<Build> listBuilds(InputStream in) throws IOException {
     List<Build> buildList = new ArrayList<Build>();
-    String dailyBuildsPage = downloadDailyBuildsPage(c, o);
+    String dailyBuildsPage = downloadDailyBuildsPage(in);
     Pattern p = Pattern.compile("\\d{14}");
     Matcher m = p.matcher(dailyBuildsPage);
     Set<String> buildIds = new HashSet<String>();
@@ -139,10 +128,10 @@ public class RemoteBuildManager {
     // way of getting this information.
     StringBuilder latestContextSb = new StringBuilder()
             .append("daily-builds/latest/OpenDS/build/package/OpenDS-")
-            .append(DynamicConstants.MAJOR_VERSION)
+            .append(org.opends.server.util.DynamicConstants.MAJOR_VERSION)
             .append(".")
-            .append(DynamicConstants.MINOR_VERSION)
-            .append(DynamicConstants.VERSION_QUALIFIER)
+            .append(org.opends.server.util.DynamicConstants.MINOR_VERSION)
+            .append(org.opends.server.util.DynamicConstants.VERSION_QUALIFIER)
             .append(".zip");
     Build latest = new Build(new URL(url, latestContextSb.toString()),
                             "Latest");
@@ -151,8 +140,16 @@ public class RemoteBuildManager {
     return buildList;
   }
 
-  private String downloadDailyBuildsPage(Component c, Object o)
-          throws IOException
+  /**
+   * Gets an input stream to download.
+   * @param c Component parent
+   * @param o Object message to display in the ProgressMonitor
+   * @return InputStream for the build list
+   * @throws IOException if something goes wrong
+   */
+  public InputStream getDailyBuildsInputStream(final Component c,
+                                               final Object o)
+    throws IOException
   {
     URL dailyBuildsUrl = new URL(url, "daily-builds");
     URLConnection conn;
@@ -171,16 +168,32 @@ public class RemoteBuildManager {
       ProgressMonitorInputStream pmis =
               new ProgressMonitorInputStream(c, o, conn.getInputStream());
       ProgressMonitor pm = pmis.getProgressMonitor();
-      pm.setMillisToDecideToPopup(0);
+      pm.setMaximum(conn.getContentLength());
+      // pm.setMillisToDecideToPopup(0);
+      // pm.setMillisToPopup(0);
       in = pmis;
     } else {
       in = conn.getInputStream();
     }
+    return in;
+  }
+
+  private String downloadDailyBuildsPage(InputStream in)
+          throws IOException
+  {
     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
     StringBuilder builder = new StringBuilder();
     String line;
     while (null != (line = reader.readLine())) {
       builder.append(line);
+
+      // FOR TESTING
+       try {
+          Thread.sleep(50);
+       } catch (InterruptedException e) {
+          LOG.log(Level.INFO, "error", e);
+       }
+
     }
     return builder.toString();
   }
@@ -230,6 +243,9 @@ public class RemoteBuildManager {
       while ((i = is.read(buf)) != -1) {
         fos.write(buf, 0, i);
         bytesRead += i;
+        if (app != null) {
+          app.notifyListeners(".");
+        }
       }
     } finally {
       if (is != null) {

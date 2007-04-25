@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.installer.webstart;
+package org.opends.quicksetup.webstart;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -69,6 +69,8 @@ public class WebStartDownloader implements DownloadServiceListener,
 
   private Status status = Status.DOWNLOADING;
 
+  private String summary = null;
+
   /**
    * This enumeration contains the different Status on which
    * the dowloading process of the jars can be.
@@ -89,6 +91,13 @@ public class WebStartDownloader implements DownloadServiceListener,
      */
     UPGRADING
     }
+
+  /**
+   * Creates a default instance.
+   */
+  public WebStartDownloader() {
+    this.summary = getMsg("downloading");
+  }
 
   /**
    * Starts the downloading of the jar files.  If forceDownload is set to
@@ -144,6 +153,22 @@ public class WebStartDownloader implements DownloadServiceListener,
       }
     });
     t.start();
+  }
+
+  /**
+   * Gets a summary message of the downloader's current progress.
+   * @return String for showing the user progress
+   */
+  public String getSummary() {
+    return this.summary;
+  }
+
+  /**
+   * Sets a summary message of the downloader's current progress.
+   * @param summary String for showing the user progress
+   */
+  public void setSummary(String summary) {
+    this.summary = summary;
   }
 
   /**
@@ -421,4 +446,10 @@ public class WebStartDownloader implements DownloadServiceListener,
   {
     return ResourceProvider.getInstance().getMsg(key, args);
   }
+
+  private String getMsg(String key)
+  {
+    return ResourceProvider.getInstance().getMsg(key);
+  }
+
 }

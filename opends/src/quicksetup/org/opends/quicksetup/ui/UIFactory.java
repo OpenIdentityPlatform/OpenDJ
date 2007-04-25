@@ -43,6 +43,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.BevelBorder;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -393,6 +394,12 @@ public class UIFactory
     Font.decode("Arial-ITALIC-12");
 
   /**
+   * Specifies the font for the secondary invalid field.
+   */
+  public static final Font SECONDARY_STATUS_FONT =
+    Font.decode("Arial-ITALIC-12");
+
+  /**
    * Specifies the font for read only text.
    */
   public static final Font READ_ONLY_FONT = Font.decode("Arial-PLAIN-12");
@@ -496,6 +503,7 @@ public class UIFactory
   static {
     UIManager.put("OptionPane.background",Color.WHITE);
     UIManager.put("Panel.background",Color.WHITE);
+    UIManager.put("ComboBox.background", Color.WHITE);
   }
 
   /**
@@ -564,6 +572,17 @@ public class UIFactory
      * Question icon.
      */
     HELP_SMALL,
+
+    /**
+     * Hourglass to display when the user must wait.
+     */
+    WAIT,
+
+    /**
+     * 8 x 8 Hourglass to display when the user must wait.
+     */
+    WAIT_TINY,
+
     /**
      * No icon.
      */
@@ -606,6 +625,12 @@ public class UIFactory
      * Secondary field invalid text style for the current step panel.
      */
     SECONDARY_FIELD_INVALID,
+
+    /**
+     * Status messages that appear near components.
+     */
+    SECONDARY_STATUS,
+
     /**
      * Textfield text style for the current step panel.
      */
@@ -676,8 +701,7 @@ public class UIFactory
    */
   static public JComboBox makeJComboBox() {
     JComboBox cbo = new JComboBox();
-    cbo.setOpaque(true);
-    cbo.setBackground(Color.WHITE);
+    cbo.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
     return cbo;
   }
 
@@ -942,6 +966,11 @@ public class UIFactory
     case SECONDARY_FIELD_INVALID:
       l.setFont(UIFactory.SECONDARY_FIELD_INVALID_FONT);
       l.setForeground(FIELD_INVALID_COLOR);
+      break;
+
+    case SECONDARY_STATUS:
+      l.setFont(UIFactory.SECONDARY_STATUS_FONT);
+      l.setForeground(FIELD_VALID_COLOR);
       break;
 
     case READ_ONLY:
@@ -1430,6 +1459,10 @@ public class UIFactory
       key = "error-large-icon";
       break;
 
+    case WAIT_TINY:
+      key = "wait-tiny";
+      break;
+
     default:
       throw new IllegalArgumentException("Unknown iconName: " + iconType);
     }
@@ -1504,6 +1537,10 @@ public class UIFactory
 
     case HELP_SMALL:
       description = getMsg("help-small-icon-description");
+      break;
+
+    case WAIT_TINY:
+      description = getMsg("help-wait-description");
       break;
 
     case NO_ICON:
@@ -1589,6 +1626,11 @@ public class UIFactory
     case HELP_SMALL:
       tooltip = null;
       break;
+
+    case WAIT_TINY:
+      tooltip = null;
+      break;
+
     case NO_ICON:
       tooltip = null;
       break;

@@ -27,15 +27,15 @@
 
 package org.opends.quicksetup.ui;
 
-import java.awt.CardLayout;
-import java.awt.Dimension;
+import java.awt.*;
 
 import java.util.HashMap;
 import java.util.Set;
 
 import org.opends.quicksetup.event.ButtonActionListener;
-import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.*;
+
+import javax.swing.*;
 
 /**
  * This is the class that contains the panel on the right-top part of the
@@ -53,6 +53,8 @@ import org.opends.quicksetup.*;
 public class CurrentStepPanel extends QuickSetupPanel
 {
   private static final long serialVersionUID = 5474803491510999334L;
+
+  private static final String LOADING_PANEL = "loading";
 
   private HashMap<WizardStep, QuickSetupStepPanel> hmPanels =
       new HashMap<WizardStep, QuickSetupStepPanel>();
@@ -140,12 +142,17 @@ public class CurrentStepPanel extends QuickSetupPanel
       add(getPanel(s), s.toString());
     }
 
+    // Add a special panel to display while panels are
+    // initializing themselves
+    JPanel loadingPanel = UIFactory.makeJPanel();
+    loadingPanel.setLayout(new GridBagLayout());
+    loadingPanel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+            getMsg("general-loading"), UIFactory.TextStyle.PRIMARY_FIELD_VALID),
+            new GridBagConstraints());
+    add(loadingPanel, LOADING_PANEL);
+
     // For aesthetical reasons we add a little bit of height
-    // TODO: remove this hack
-    if (getApplication() instanceof Installer)
-    {
-      minHeight += UIFactory.EXTRA_DIALOG_HEIGHT;
-    }
+    minHeight += getApplication().getExtraDialogHeight();
 
     setPreferredSize(new Dimension(minWidth, minHeight));
     setMinimumSize(new Dimension(minWidth, minHeight));
@@ -183,12 +190,25 @@ public class CurrentStepPanel extends QuickSetupPanel
    * @param userData the UserData object that must be used to populate
    * the panels.
    */
-  public void setDisplayedStep(WizardStep step, UserData userData)
+  public void setDisplayedStep(final WizardStep step, final UserData userData)
   {
-    CardLayout cl = (CardLayout) (getLayout());
-    getPanel(step).beginDisplay(userData);
-    cl.show(this, step.toString());
-    getPanel(step).endDisplay();
+    final CardLayout cl = (CardLayout) (getLayout());
+
+    // Show the 'loading...' panel and invoke begin
+    // display in another thread in case the panel
+    // taske a while to initialize.
+    cl.show(this, LOADING_PANEL);
+    new Thread(new Runnable() {
+      public void run() {
+        getPanel(step).beginDisplay(userData);
+        SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            cl.show(CurrentStepPanel.this, step.toString());
+            getPanel(step).endDisplay();
+          }
+        });
+      }
+    },"panel begin display thread").start();
   }
 
   /**

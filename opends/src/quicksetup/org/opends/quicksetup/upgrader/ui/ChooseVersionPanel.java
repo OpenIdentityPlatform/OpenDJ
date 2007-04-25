@@ -28,6 +28,7 @@
 package org.opends.quicksetup.upgrader.ui;
 
 import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.upgrader.Build;
 import org.opends.quicksetup.upgrader.RemoteBuildManager;
@@ -36,7 +37,12 @@ import org.opends.quicksetup.util.BackgroundTask;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -55,6 +61,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
   private JComboBox cboBuild = null;
   private JTextField tfFile = null;
   private boolean loadBuildListAttempted = false;
+  private RemoteBuildListComboBoxModelCreator bld = null;
 
   /**
    * Creates an instance.
@@ -63,6 +70,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
    */
   public ChooseVersionPanel(GuiApplication application) {
     super(application);
+    createBuildLoader();
   }
 
   /**
@@ -71,7 +79,32 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
   public void beginDisplay(UserData data) {
     super.beginDisplay(data);
     if (!loadBuildListAttempted) {
-      loadBuildList();
+
+      // Begin display is called outside the UI
+      // thread.  loadBuildList must be called
+      // inside the UI thread in order to properly
+      // set up the ProgressListenerInputStream
+      // displayed while downloading the build list.
+      // The enclosing thread and sleep statement is
+      // there to allow the card layout to switch to
+      // this panel before setting up the downloading.
+      int delay = 100;
+      ActionListener loadPerformer = new ActionListener() {
+        public void actionPerformed(ActionEvent evt) {
+          rbLocal.setSelected(true);
+          rbRemote.setEnabled(false);
+          cboBuild.setEnabled(false);
+          cboBuild.setRenderer(new BuildListLoadingComboBoxRenderer());
+          try {
+            loadBuildList();
+          } catch (IOException e) {
+            LOG.log(Level.INFO, "error", e);
+          }
+        }
+      };
+      Timer t = new Timer(delay, loadPerformer);
+      t.setRepeats(false);
+      t.start();
     }
   }
 
@@ -85,7 +118,10 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     } else if (FieldName.UPGRADE_BUILD_TO_DOWNLOAD.equals(fieldName)) {
       value = cboBuild.getSelectedItem();
     } else if (FieldName.UPGRADE_FILE.equals(fieldName)) {
-      value = new File(tfFile.getText());
+      String s = tfFile.getText();
+      if (s != null && s.length() > 0) {
+        value = new File(tfFile.getText());
+      }
     }
     return value;
   }
@@ -120,13 +156,21 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     tfFile = new JTextField();
     tfFile.setColumns(20);
 
+    JButton butBrowse = UIFactory.makeJButton(getMsg("browse-button-label"),
+            getMsg("browse-button-tooltip"));
+
+    BrowseActionListener l =
+            new BrowseActionListener(tfFile,
+                    BrowseActionListener.BrowseType.LOCATION_DIRECTORY,
+                    getMainWindow());
+    butBrowse.addActionListener(l);
+
     JPanel pnlBrowse = Utilities.createBrowseButtonPanel(
             UIFactory.makeJLabel(null,
                     getMsg("upgrade-choose-version-local-path"),
                     UIFactory.TextStyle.SECONDARY_FIELD_VALID),
             tfFile,
-            UIFactory.makeJButton(getMsg("browse-button-label"),
-                    getMsg("browse-button-tooltip")));
+            butBrowse);
 
     p.setLayout(new GridBagLayout());
     // p.setBorder(BorderFactory.createLineBorder(Color.RED));
@@ -201,9 +245,20 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     return getMsg("upgrade-choose-version-panel-instructions");
   }
 
-  private void loadBuildList() {
-    RemoteBuildListComboBoxModelCreator bld =
-            new RemoteBuildListComboBoxModelCreator();
+  private RemoteBuildListComboBoxModelCreator createBuildLoader() {
+    if (bld == null) {
+      RemoteBuildManager rbm =
+              ((Upgrader) getApplication()).getRemoteBuildManager();
+      try {
+        bld = new RemoteBuildListComboBoxModelCreator(rbm);
+      } catch (IOException e) {
+        LOG.log(Level.INFO, "error", e);
+      }
+    }
+    return bld;
+  }
+
+  private void loadBuildList() throws IOException {
     bld.startBackgroundTask();
   }
 
@@ -226,10 +281,49 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
      * Creates a default instance.
      */
     public BuildListErrorComboBoxRenderer() {
-      super("Error accessing build information",
-              UIFactory.getImageIcon(UIFactory.IconType.ERROR),
+      super("Unable to access remote build information",
+              UIFactory.getImageIcon(UIFactory.IconType.WARNING),
               SwingConstants.LEFT);
-      UIFactory.setTextStyle(this, UIFactory.TextStyle.SECONDARY_FIELD_INVALID);
+      UIFactory.setTextStyle(this, UIFactory.TextStyle.SECONDARY_STATUS);
+      setOpaque(true);
+      setBackground(Color.WHITE);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Component getListCellRendererComponent(JList jList,
+                                                  Object object,
+                                                  int i,
+                                                  boolean b,
+                                                  boolean b1) {
+      return this;
+    }
+  }
+
+  /**
+   * Renders the combo box when there has been an error downloading
+   * the build information.
+   */
+  private class BuildListLoadingComboBoxRenderer extends JLabel
+          implements ListCellRenderer {
+
+    /**
+     * The serial version identifier required to satisfy the compiler because
+     * this * class extends a class that implements the
+     * {@code java.io.Serializable} interface.  This value was generated using
+     * the {@code serialver} command-line utility included with the Java SDK.
+     */
+    private static final long serialVersionUID = -7075573664472711599L;
+
+    /**
+     * Creates a default instance.
+     */
+    public BuildListLoadingComboBoxRenderer() {
+      super("Loading remote build information...",
+              UIFactory.getImageIcon(UIFactory.IconType.WAIT_TINY),
+              SwingConstants.LEFT);
+      UIFactory.setTextStyle(this, UIFactory.TextStyle.SECONDARY_STATUS);
       setOpaque(true);
       setBackground(Color.WHITE);
     }
@@ -256,13 +350,21 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
           extends BackgroundTask<java.util.List<Build>> {
 
     private RemoteBuildManager rbm = null;
+    private InputStream in = null;
+
+    public RemoteBuildListComboBoxModelCreator(RemoteBuildManager rbm)
+      throws IOException
+    {
+      this.rbm = rbm;
+      this.in = rbm.getDailyBuildsInputStream(getMainWindow(),
+              "Reading build information");
+    }
 
     /**
      * {@inheritDoc}
      */
     public java.util.List<Build> processBackgroundTask() throws Exception {
-      rbm = ((Upgrader)getApplication()).getRemoteBuildManager();
-      return rbm.listBuilds(getMainWindow(), "Loading build information");
+      return rbm.listBuilds(in);
     }
 
     /**

@@ -28,10 +28,6 @@
 package org.opends.quicksetup.util;
 
 import org.opends.quicksetup.*;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.InitializationException;
-import org.opends.server.config.ConfigException;
 
 import javax.naming.NamingException;
 import java.util.ArrayList;
@@ -116,7 +112,9 @@ public class ServerController {
 
       int returnValue = process.waitFor();
 
-      int clientSideError = LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
+      int clientSideError =
+              org.opends.server.protocols.ldap.
+                      LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
       if ((returnValue == clientSideError) || (returnValue == 0)) {
         if (Utils.isWindows()) {
           /*
@@ -193,16 +191,20 @@ public class ServerController {
    * externally as if the server is online without connection handlers
    * listening.
    *
-   * @throws  ConfigException  If there is a problem with the Directory Server
-   *                           configuration that prevents a critical component
-   *                           from being instantiated.
+   * @throws org.opends.server.config.ConfigException
+   *         If there is a problem with the Directory Server
+   *         configuration that prevents a critical component
+   *         from being instantiated.
    *
-   * @throws  InitializationException  If some other problem occurs while
-   *                                   attempting to initialize and start the
-   *                                   Directory Server.
+   * @throws org.opends.server.types.InitializationException
+   *         If some other problem occurs while
+   *         attempting to initialize and start the
+   *         Directory Server.
    */
   public void startServerInProcess(boolean disableConnectionHandlers)
-          throws InitializationException, ConfigException {
+          throws
+          org.opends.server.types.InitializationException,
+          org.opends.server.config.ConfigException {
     System.setProperty(
             "org.opends.server.DisableConnectionHandlers",
             disableConnectionHandlers ? "true" : null);
@@ -213,7 +215,8 @@ public class ServerController {
    * Stops a server that had been running 'in process'.
    */
   public void stopServerInProcess() {
-    DirectoryServer.shutDown(ServerController.class.getName(),
+    org.opends.server.core.DirectoryServer.shutDown(
+            ServerController.class.getName(),
             "quicksetup requests shutdown");
   }
 
@@ -367,19 +370,24 @@ public class ServerController {
   /**
    * Starts the OpenDS server in this process.
    *
-   * @throws  ConfigException  If there is a problem with the Directory Server
-   *                           configuration that prevents a critical component
-   *                           from being instantiated.
+   * @throws org.opends.server.config.ConfigException
+   *  If there is a problem with the Directory Server
+   *  configuration that prevents a critical component
+   *  from being instantiated.
    *
-   * @throws  InitializationException  If some other problem occurs while
-   *                                   attempting to initialize and start the
-   *                                   Directory Server.
+   * @throws org.opends.server.types.InitializationException
+   *  If some other problem occurs while
+   *  attempting to initialize and start the
+   *  Directory Server.
    */
   public void startServerInProcess()
-          throws InitializationException, ConfigException
+          throws
+          org.opends.server.types.InitializationException,
+          org.opends.server.config.ConfigException
   {
     // Bootstrap and start the Directory Server.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
+    org.opends.server.core.DirectoryServer directoryServer =
+            org.opends.server.core.DirectoryServer.getInstance();
 
     directoryServer.bootstrapServer();
     String configClass = "org.opends.server.extensions.ConfigFileHandler";
