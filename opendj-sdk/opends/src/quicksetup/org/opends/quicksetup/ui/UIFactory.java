@@ -493,6 +493,11 @@ public class UIFactory
   private static final HashMap<IconType, ImageIcon> hmIcons =
       new HashMap<IconType, ImageIcon>();
 
+  static {
+    UIManager.put("OptionPane.background",Color.WHITE);
+    UIManager.put("Panel.background",Color.WHITE);
+  }
+
   /**
    * The following enumeration contains the different icons that we can have.
    *
@@ -839,7 +844,7 @@ public class UIFactory
       TextStyle style)
   {
     JRadioButton rb = new JRadioButton();
-
+    rb.setOpaque(false);
     if (text != null)
     {
       rb.setText(text);
@@ -867,7 +872,7 @@ public class UIFactory
       TextStyle style)
   {
     JCheckBox cb = new JCheckBox();
-
+    cb.setOpaque(false);
     if (text != null)
     {
       cb.setText(text);

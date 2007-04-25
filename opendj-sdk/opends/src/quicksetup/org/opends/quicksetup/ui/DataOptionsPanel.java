@@ -468,7 +468,6 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     for (DataOptions.Type type : hmRadioButtons.keySet())
     {
       rb = hmRadioButtons.get(type);
-      rb.setOpaque(false);
       rb.setSelected(type == defaultType);
       buttonGroup.add(rb);
     }

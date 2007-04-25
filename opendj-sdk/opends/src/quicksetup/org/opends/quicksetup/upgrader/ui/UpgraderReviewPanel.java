@@ -204,7 +204,6 @@ public class UpgraderReviewPanel extends ReviewPanel {
       checkBox =
           UIFactory.makeJCheckBox(getMsg("upgrade-review-panel-start-server"),
               getMsg("start-server-tooltip"), UIFactory.TextStyle.CHECKBOX);
-      checkBox.setOpaque(false);
       checkBox.setSelected(getApplication().getUserData().getStartServer());
     }
     return checkBox;

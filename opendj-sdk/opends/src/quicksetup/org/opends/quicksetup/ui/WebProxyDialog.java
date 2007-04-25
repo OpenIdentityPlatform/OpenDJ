@@ -305,7 +305,10 @@ public class WebProxyDialog extends JDialog
     gbc.gridy = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets.top = 0;
-    p.add(chkRequiresAuth = new JCheckBox("Required by proxy"), gbc);
+    p.add(chkRequiresAuth =
+            UIFactory.makeJCheckBox("Required by proxy","",
+                    UIFactory.TextStyle.SECONDARY_FIELD_VALID
+            ), gbc);
     chkRequiresAuth.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         tfUserName.setEnabled(chkRequiresAuth.isSelected());
