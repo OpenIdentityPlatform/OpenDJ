@@ -38,7 +38,6 @@ import javax.jnlp.UnavailableServiceException;
 
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.QuickSetupException;
-import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.util.Utils;
 
 /**
