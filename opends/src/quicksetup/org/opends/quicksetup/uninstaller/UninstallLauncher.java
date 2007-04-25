@@ -48,7 +48,7 @@ public class UninstallLauncher extends Launcher {
    * will pass to the org.opends.server.tools.InstallDS class.
    */
   public static void main(String[] args) {
-    System.exit(new UninstallLauncher(args).launch());
+    new UninstallLauncher(args).launch();
   }
 
   /**
