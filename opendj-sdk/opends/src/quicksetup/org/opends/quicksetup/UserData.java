@@ -28,7 +28,6 @@
 package org.opends.quicksetup;
 
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.util.SetupUtils;
 
 /**
  * Represents user specified input data to an application.
@@ -303,7 +302,7 @@ public class UserData {
 
     for (int i=0;i<65000 && (defaultJMXPort == -1);i+=1000)
     {
-      int port = i + SetupUtils.getDefaultJMXPort();
+      int port = i + org.opends.server.util.SetupUtils.getDefaultJMXPort();
       boolean isForbidden = false;
       if (forbiddenPorts != null)
       {

@@ -330,6 +330,13 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  public int getExtraDialogHeight() {
+    return UIFactory.EXTRA_DIALOG_HEIGHT;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public void previousClicked(WizardStep cStep, QuickSetup qs) {
     // do nothing;
   }
