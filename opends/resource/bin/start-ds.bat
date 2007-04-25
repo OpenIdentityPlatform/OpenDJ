@@ -48,7 +48,12 @@ goto setClassPath
 
 :noSetJavaHome
 echo Error: JAVA_HOME environment variable is not set.
-echo        Please set it to a valid Java 5 installation.
+echo        Please set it to a valid Java 5 (or later) installation.
+goto end
+
+:noValidJavaHome
+echo ERROR:  The detected Java version could not be used.  Please set 
+echo         JAVA_HOME to to a valid Java 5 (or later) installation.
 goto end
 
 :setClassPath
@@ -57,6 +62,10 @@ FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bat\setcp.bat" %%x
 set PATH=%SystemRoot%
 
 set SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=start-ds
+
+rem Test that the provided JDK is 1.5 compatible.
+"%JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
+if not %errorlevel% == 0 goto noValidJavaHome
 
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --checkStartability %*
 

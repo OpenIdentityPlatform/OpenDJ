@@ -67,7 +67,7 @@ then
       then
         export JAVA_BIN
       else
-        echo "Please set JAVA_HOME to the root of a Java 5.0 installation."
+        echo "Please set JAVA_HOME to the root of a Java 5 (or later) installation."
         exit 1
       fi
     fi
@@ -98,7 +98,6 @@ do
   CLASSPATH=${CLASSPATH}:${JAR}
 done
 export CLASSPATH
-
 
 # Launch the appropriate server utility.
 "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" "${@}"

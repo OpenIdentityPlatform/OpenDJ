@@ -58,7 +58,7 @@ goto setClassPath
 
 :noSetJavaHome
 echo Error: JAVA_HOME environment variable is not set.
-echo        Please set it to a valid Java 5 installation.
+echo        Please set it to a valid Java 5 (or later) installation.
 goto end
 
 :setClassPath
