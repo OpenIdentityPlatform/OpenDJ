@@ -41,7 +41,7 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.messages.TaskMessages;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.synchronization.plugin.SynchronizationDomain;
+import org.opends.server.replication.plugin.SynchronizationDomain;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;

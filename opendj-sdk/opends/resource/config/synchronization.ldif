@@ -15,7 +15,7 @@ objectClass: top
 objectClass: ds-cfg-synchronization-provider
 objectClass: ds-cfg-multimaster-synchronization-provider
 ds-cfg-synchronization-provider-enabled: true
-ds-cfg-synchronization-provider-class: org.opends.server.synchronization.plugin.MultimasterSynchronization
+ds-cfg-synchronization-provider-class: org.opends.server.replication.plugin.MultimasterSynchronization
 
 dn: cn=domains, cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
