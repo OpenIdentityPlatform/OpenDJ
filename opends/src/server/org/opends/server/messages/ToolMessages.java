@@ -6935,6 +6935,19 @@ public class ToolMessages
   public static final int MSGID_LDAPMODIFY_DESCRIPTION_FILENAME =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 874;
 
+
+
+  /**
+   * The message ID for the message that will be used if a template references
+   * a parent template that is not yet defined.  This takes three arguments,
+   * which are the parent template name, the line number on which it is
+   * referenced, and the child template name.
+   */
+  public static final int MSGID_MAKELDIF_TEMPLATE_INVALID_PARENT_TEMPLATE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 875;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -8497,6 +8510,11 @@ public class ToolMessages
                     "Unable to parse the number of entries for template %s " +
                     "as an integer for the subordinate template definition " +
                     "on line %d for branch %s");
+    registerMessage(MSGID_MAKELDIF_TEMPLATE_INVALID_PARENT_TEMPLATE,
+                    "The parent template %s referenced on line %d for " +
+                    "template %s is invalid because the referenced parent " +
+                    "template is not defined before the template that " +
+                    "extends it");
     registerMessage(MSGID_MAKELDIF_TEMPLATE_SUBORDINATE_TEMPLATE_NO_COLON,
                     "Subordinate template definition on line %d for template " +
                     "%s is missing a colon to separate the template name " +
