@@ -28,12 +28,7 @@
 package org.opends.quicksetup.upgrader.ui;
 
 import org.opends.quicksetup.UserData;
-import org.opends.quicksetup.ui.FieldName;
-import org.opends.quicksetup.ui.GuiApplication;
-import org.opends.quicksetup.ui.QuickSetupStepPanel;
-import org.opends.quicksetup.ui.UIFactory;
-import org.opends.quicksetup.ui.Utilities;
-import org.opends.quicksetup.ui.WebProxyDialog;
+import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.upgrader.Build;
 import org.opends.quicksetup.upgrader.RemoteBuildManager;
 import org.opends.quicksetup.upgrader.Upgrader;
@@ -42,11 +37,6 @@ import org.opends.quicksetup.util.BackgroundTask;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.SocketAddress;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -218,62 +208,6 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
   }
 
   /**
-   * Displays a dialog prompting the user for proxy information
-   * after which applys the new proxy information to the available
-   * RemoteBuildManager.
-   * @param parent Component that will server as parent to the dialog
-   */
-  void specifyProxy(final Component parent) {
-    Runnable proxySpecifier = new Runnable() {
-      public void run() {
-        String host = null;
-        Integer port = null;
-        RemoteBuildManager rbm =
-                ((Upgrader) getApplication()).getRemoteBuildManager();
-        Proxy proxy = rbm.getProxy();
-        if (proxy != null) {
-          SocketAddress address = proxy.address();
-          if (address instanceof InetSocketAddress) {
-            host = ((InetSocketAddress) address).getHostName();
-            port = ((InetSocketAddress) address).getPort();
-          }
-        }
-        String user = rbm.getProxyUserName();
-        char[] pw = rbm.getProxyPassword();
-        WebProxyDialog dlg;
-        if (parent instanceof Dialog) {
-          dlg = new WebProxyDialog((Dialog) parent, host, port, user, pw);
-        } else if (parent instanceof Frame) {
-          dlg = new WebProxyDialog((Frame) parent, host, port, user, pw);
-        } else {
-          dlg = new WebProxyDialog((Frame) null, host, port, user, pw);
-        }
-        dlg.setVisible(true);
-        SocketAddress address = dlg.getSocketAddress();
-        if (address != null) {
-          proxy = new Proxy(Proxy.Type.HTTP, address);
-          rbm.setProxy(proxy);
-          rbm.setProxyUserName(dlg.getUserName());
-          rbm.setProxyPassword(dlg.getPassword());
-        }
-      }
-    };
-    if (SwingUtilities.isEventDispatchThread()) {
-      proxySpecifier.run();
-    } else {
-      try {
-        SwingUtilities.invokeAndWait(proxySpecifier);
-      } catch (InterruptedException e) {
-        LOG.log(Level.INFO, "error", e);
-      } catch (InvocationTargetException e) {
-        LOG.log(Level.INFO, "error", e);
-      } catch (Throwable t) {
-        LOG.log(Level.INFO, "error", t);
-      }
-    }
-  }
-
-  /**
    * Renders the combo box when there has been an error downloading
    * the build information.
    */
@@ -343,7 +277,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
         try {
         String[] options = { "Retry", "Close" };
         int i = JOptionPane.showOptionDialog(getMainWindow(),
-                new BuildListDownloadErrorPanel(ChooseVersionPanel.this, rbm,
+                new BuildListDownloadErrorPanel(rbm,
                         throwable),
                 "Network Error",
                 JOptionPane.YES_NO_OPTION,

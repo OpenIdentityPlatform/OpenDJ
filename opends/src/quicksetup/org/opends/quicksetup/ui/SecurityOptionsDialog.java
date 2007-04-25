@@ -354,7 +354,6 @@ public class SecurityOptionsDialog extends JDialog
     cbEnableSSL = UIFactory.makeJCheckBox(getMsg("enable-ssl-label"),
         getMsg("enable-ssl-tooltip"), UIFactory.TextStyle.PRIMARY_FIELD_VALID);
     cbEnableSSL.addActionListener(l);
-    cbEnableSSL.setOpaque(false);
     String sPort = "";
     int port = securityOptions.getSslPort();
     if (port > 0)
@@ -368,12 +367,10 @@ public class SecurityOptionsDialog extends JDialog
         getMsg("enable-starttls-tooltip"),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     cbEnableStartTLS.addActionListener(l);
-    cbEnableStartTLS.setOpaque(false);
     rbUseSelfSignedCertificate = UIFactory.makeJRadioButton(
         getMsg("use-self-signed-label"),
         getMsg("use-self-signed-tooltip"),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    rbUseSelfSignedCertificate.setOpaque(false);
     rbUseSelfSignedCertificate.addActionListener(l);
     lSelfSignedName = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
         getMsg("self-signed-certificate-name-label"),
@@ -388,7 +385,6 @@ public class SecurityOptionsDialog extends JDialog
         getMsg("use-existing-certificate-label"),
         getMsg("use-existing-certificate-tooltip"),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    rbUseExistingCertificate.setOpaque(false);
     rbUseExistingCertificate.addActionListener(l);
     ButtonGroup group1 = new ButtonGroup();
     group1.add(rbUseSelfSignedCertificate);
@@ -402,19 +398,16 @@ public class SecurityOptionsDialog extends JDialog
         getMsg("jks-certificate-label"),
         getMsg("jks-certificate-tooltip"),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    rbJKS.setOpaque(false);
     rbJKS.addActionListener(l);
     rbPKCS11 = UIFactory.makeJRadioButton(
         getMsg("pkcs11-certificate-label"),
         getMsg("pkcs11-certificate-tooltip"),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    rbPKCS11.setOpaque(false);
     rbPKCS11.addActionListener(l);
     rbPKCS12 = UIFactory.makeJRadioButton(
         getMsg("pkcs12-certificate-label"),
         getMsg("pkcs12-certificate-tooltip"),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    rbPKCS12.setOpaque(false);
     rbPKCS12.addActionListener(l);
     ButtonGroup group2 = new ButtonGroup();
     group2.add(rbJKS);

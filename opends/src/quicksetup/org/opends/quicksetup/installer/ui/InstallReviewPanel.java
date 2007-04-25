@@ -325,7 +325,6 @@ public class InstallReviewPanel extends ReviewPanel {
       checkBox =
           UIFactory.makeJCheckBox(getMsg("start-server-label"),
               getMsg("start-server-tooltip"), UIFactory.TextStyle.CHECKBOX);
-      checkBox.setOpaque(false);
       checkBox.setSelected(getApplication().getUserData().getStartServer());
     }
     return checkBox;

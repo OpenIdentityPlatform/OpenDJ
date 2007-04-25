@@ -150,7 +150,6 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     {
       JCheckBox cb = UIFactory.makeJCheckBox(labels[i], tooltips[i],
           UIFactory.TextStyle.INSTRUCTIONS);
-      cb.setOpaque(false);
       cb.setSelected(true);
       hmCbs.put(fieldNames[i], cb);
     }
@@ -245,7 +244,6 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     JCheckBox cbOutsideDbs = UIFactory.makeJCheckBox(
         getMsg("delete-outside-dbs-label"),
         getMsg("delete-outside-dbs-tooltip"), UIFactory.TextStyle.INSTRUCTIONS);
-    cbOutsideDbs.setOpaque(false);
     cbOutsideDbs.setSelected(true);
     hmCbs.put(FieldName.EXTERNAL_DB_DIRECTORIES, cbOutsideDbs);
 
@@ -265,7 +263,6 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
         getMsg("delete-outside-logs-label"),
         getMsg("delete-outside-logs-tooltip"),
         UIFactory.TextStyle.INSTRUCTIONS);
-    cbOutsideLogs.setOpaque(false);
     cbOutsideLogs.setSelected(true);
     hmCbs.put(FieldName.EXTERNAL_LOG_FILES, cbOutsideLogs);
 
