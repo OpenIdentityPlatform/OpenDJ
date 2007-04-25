@@ -950,7 +950,8 @@ public class TemplateFile
 
         Template t = parseTemplateDefinition(templateLines, startLineNumber,
                                              templateFileIncludeTags,
-                                             templateFileConstants, warnings);
+                                             templateFileConstants,
+                                             templateFileTemplates, warnings);
         String lowerName = toLowerCase(t.getName());
         if (templateFileTemplates.containsKey(lowerName))
         {
@@ -1112,16 +1113,19 @@ public class TemplateFile
    * Parses the information contained in the provided set of lines as a MakeLDIF
    * template definition.
    *
-   * @param  templateLines    The set of lines containing the template
-   *                          definition.
-   * @param  startLineNumber  The line number in the template file on which the
-   *                          first of the template lines appears.
-   * @param  tags             The set of defined tags from the template file.
-   *                          Note that this does not include the tags that are
-   *                          always registered by default.
-   * @param  constants        The set of constants defined in the template file.
-   * @param  warnings         A list into which any warnings identified may be
-   *                          placed.
+   * @param  templateLines     The set of lines containing the template
+   *                           definition.
+   * @param  startLineNumber   The line number in the template file on which the
+   *                           first of the template lines appears.
+   * @param  tags              The set of defined tags from the template file.
+   *                           Note that this does not include the tags that are
+   *                           always registered by default.
+   * @param  constants         The set of constants defined in the template
+   *                           file.
+   * @param  definedTemplates  The set of templates already defined in the
+   *                           template file.
+   * @param  warnings          A list into which any warnings identified may be
+   *                           placed.
    *
    * @return  The decoded template definition.
    *
@@ -1135,6 +1139,8 @@ public class TemplateFile
                                            LinkedHashMap<String,Tag> tags,
                                            LinkedHashMap<String,String>
                                                 constants,
+                                           LinkedHashMap<String,Template>
+                                                definedTemplates,
                                            List<String> warnings)
           throws InitializationException, MakeLDIFException
   {
@@ -1146,7 +1152,7 @@ public class TemplateFile
     // "subordinateTemplate: ".  Keep reading until we find something that's
     // not one of those.
     int                arrayLineNumber    = 1;
-    String             parentTemplateName = null;
+    Template           parentTemplate     = null;
     AttributeType[]    rdnAttributes      = null;
     ArrayList<String>  subTemplateNames   = new ArrayList<String>();
     ArrayList<Integer> entriesPerTemplate = new ArrayList<Integer>();
@@ -1163,7 +1169,15 @@ public class TemplateFile
       }
       else if (lowerLine.startsWith("extends: "))
       {
-        parentTemplateName = line.substring(9).trim();
+        String parentTemplateName = line.substring(9).trim();
+        parentTemplate = definedTemplates.get(parentTemplateName.toLowerCase());
+        if (parentTemplate == null)
+        {
+          int msgID = MSGID_MAKELDIF_TEMPLATE_INVALID_PARENT_TEMPLATE;
+          String message = getMessage(msgID, parentTemplateName, lineNumber,
+                                      templateName);
+          throw new MakeLDIFException(msgID, message);
+        }
       }
       else if (lowerLine.startsWith("rdnattr: "))
       {
@@ -1242,9 +1256,21 @@ public class TemplateFile
       numEntriesPerTemplate[i] = entriesPerTemplate.get(i);
     }
 
+    TemplateLine[] parsedLines;
+    if (parentTemplate == null)
+    {
+      parsedLines = new TemplateLine[0];
+    }
+    else
+    {
+      TemplateLine[] parentLines = parentTemplate.getTemplateLines();
+      parsedLines = new TemplateLine[parentLines.length];
+      System.arraycopy(parentLines, 0, parsedLines, 0, parentLines.length);
+    }
+
     Template template = new Template(this, templateName, rdnAttributes,
                                      subordinateTemplateNames,
-                                     numEntriesPerTemplate);
+                                     numEntriesPerTemplate, parsedLines);
 
     for ( ; arrayLineNumber < templateLines.length; arrayLineNumber++)
     {
