@@ -53,12 +53,22 @@ goto callExtractor
 
 :noSetJavaHome
 echo Error: JAVA_HOME environment variable is not set.
-echo        Please set it to a valid Java 5 installation.
+echo        Please set it to a valid Java 5 (or later) installation.
+goto end
+
+:noValidJavaHome
+echo ERROR:  The detected Java version could not be used.  Please set 
+echo         JAVA_HOME to to a valid Java 5 (or later) installation.
 goto end
 
 set PATH=%SystemRoot%
 
+rem Test that the provided JDK is 1.5 compatible.
+"%JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
+if not %errorlevel% == 0 goto noValidJavaHome
+
 if "%*" == "" goto callWebStartUpgrade
+
 
 :callExtractor
 if EXIST .\tmp\upgrade rd .\tmp\upgrade /s /q
