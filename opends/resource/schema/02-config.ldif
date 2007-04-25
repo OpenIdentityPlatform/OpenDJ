@@ -518,7 +518,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.155
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.156 NAME 'ds-sync-hist'
-  ORDERING historicalCsnOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 ORDERING historicalCsnOrderingMatch
   USAGE directoryOperation X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.157
   NAME 'ds-cfg-receive-status'

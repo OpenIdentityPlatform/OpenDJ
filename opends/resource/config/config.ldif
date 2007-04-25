@@ -735,7 +735,7 @@ dn: cn=Historical CSN Ordering Matching Rule,cn=Matching Rules,cn=config
 objectClass: ds-cfg-ordering-matching-rule
 objectClass: top
 objectClass: ds-cfg-matching-rule
-ds-cfg-matching-rule-class: org.opends.server.synchronization.plugin.HistoricalCsnOrderingMatchingRule
+ds-cfg-matching-rule-class: org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRule
 ds-cfg-matching-rule-enabled: true
 cn: Historical CSN Ordering Matching Rule
 
