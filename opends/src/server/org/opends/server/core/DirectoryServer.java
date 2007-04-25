@@ -87,6 +87,7 @@ import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
+import com.sleepycat.je.JEVersion;
 
 
 
@@ -8618,6 +8619,8 @@ public class DirectoryServer
                          System.getProperty("java.home"));
       System.out.println("Class Path:             " +
                          System.getProperty("java.class.path"));
+      System.out.println("JE Version:             " +
+                         JEVersion.CURRENT_VERSION.toString());
       System.out.println("Current Directory:      " +
                          System.getProperty("user.dir"));
       System.out.println("Operating System:       " +
