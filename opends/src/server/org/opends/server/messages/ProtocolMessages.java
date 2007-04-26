@@ -4387,6 +4387,18 @@ public class ProtocolMessages
   public static final int MSGID_LDAPS_CONNHANDLER_DESCRIPTION_ENABLE =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 404;
 
+
+
+  /**
+   * The message ID for the message that will be used if a NOT filter does not
+   * contain exactly one filter component.  This takes three arguments, which
+   * are the filter string and the start and end position of the NOT filter.
+   */
+  public static final int MSGID_LDAP_FILTER_NOT_EXACTLY_ONE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 405;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -5168,6 +5180,10 @@ public class ProtocolMessages
                     "because the extensible match component starting at " +
                     "position %d did not have a colon to denote the end of " +
                     "the attribute type name");
+    registerMessage(MSGID_LDAP_FILTER_NOT_EXACTLY_ONE,
+                    "The provided search filter \"%s\" could not be decoded " +
+                    "because the NOT filter between positions %d and %d " +
+                    "did not contain exactly one filter component");
 
 
     registerMessage(MSGID_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE,

@@ -694,11 +694,8 @@ public class SearchFilter
     }
     else if (c == '!')
     {
-      SearchFilter notComponent = createFilterFromString(filterString,
-                                       startPos+1, endPos);
-      return new SearchFilter(FilterType.NOT, null, notComponent,
-                              null, null, null, null, null, null,
-                              null, false);
+      return decodeCompoundFilter(FilterType.NOT, filterString,
+                                  startPos+1, endPos);
     }
 
 
@@ -1014,7 +1011,7 @@ public class SearchFilter
    * the indicated range.
    *
    * @param  filterType    The filter type for this compound filter.
-   *                       It must be either an AND or an OR filter.
+   *                       It must be an AND, OR or NOT filter.
    * @param  filterString  The string containing the filter
    *                       information to decode.
    * @param  startPos      The position of the first character in the
@@ -1039,13 +1036,24 @@ public class SearchFilter
 
 
     // If the end pos is equal to the start pos, then there are no
-    // components.  This is valid and will be treated as a TRUE/FALSE
-    // filter.
+    // components.
     if (startPos == endPos)
     {
-      return new SearchFilter(filterType, filterComponents, null,
-                              null, null, null, null, null, null,
-                              null, false);
+      if (filterType == FilterType.NOT)
+      {
+        int    msgID   = MSGID_SEARCH_FILTER_NOT_EXACTLY_ONE;
+        String message = getMessage(msgID, filterString, startPos,
+                                    endPos);
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                     message, msgID);
+      }
+      else
+      {
+        // This is valid and will be treated as a TRUE/FALSE filter.
+        return new SearchFilter(filterType, filterComponents, null,
+                                null, null, null, null, null, null,
+                                null, false);
+      }
     }
 
 
@@ -1123,11 +1131,28 @@ public class SearchFilter
 
 
     // We should have everything we need, so return the list.
-    return new SearchFilter(filterType, filterComponents, null, null,
-                            null, null, null, null, null, null,
-                            false);
+    if (filterType == FilterType.NOT)
+    {
+      if (filterComponents.size() != 1)
+      {
+        int    msgID   = MSGID_SEARCH_FILTER_NOT_EXACTLY_ONE;
+        String message = getMessage(msgID, filterString, startPos,
+                                    endPos);
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                     message, msgID);
+      }
+      SearchFilter notComponent = filterComponents.get(0);
+      return new SearchFilter(filterType, null, notComponent, null,
+                              null, null, null, null, null, null,
+                              false);
+    }
+    else
+    {
+      return new SearchFilter(filterType, filterComponents, null,
+                              null, null, null, null, null, null,
+                              null, false);
+    }
   }
-
 
 
   /**

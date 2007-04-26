@@ -6031,6 +6031,16 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if a NOT filter does not
+   * contain exactly one filter component.  This takes three arguments, which
+   * are the filter string and the start and end position of the NOT filter.
+   */
+  public static final int MSGID_SEARCH_FILTER_NOT_EXACTLY_ONE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 602;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -6539,6 +6549,10 @@ public class CoreMessages
                     "because the extensible match component starting at " +
                     "position %d did not have a colon to denote the end of " +
                     "the attribute type name");
+    registerMessage(MSGID_SEARCH_FILTER_NOT_EXACTLY_ONE,
+                    "The provided search filter \"%s\" could not be decoded " +
+                    "because the NOT filter between positions %d and %d " +
+                    "did not contain exactly one filter component");
     registerMessage(MSGID_SEARCH_FILTER_INVALID_FILTER_TYPE,
                     "Unable to determine whether entry \"%s\" matches filter " +
                     "\"%s\" because it contained an unknown filter type %s");

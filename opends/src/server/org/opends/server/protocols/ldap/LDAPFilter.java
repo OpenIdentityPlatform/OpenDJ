@@ -395,9 +395,8 @@ public class LDAPFilter
     }
     else if (c == '!')
     {
-      LDAPFilter notComponent = decode(filterString, startPos+1, endPos);
-      return new LDAPFilter(FilterType.NOT, null, notComponent, null, null,
-                              null, null, null, null, false);
+      return decodeCompoundFilter(FilterType.NOT, filterString, startPos+1,
+                                  endPos);
     }
 
 
@@ -657,7 +656,7 @@ public class LDAPFilter
    * indicated range.
    *
    * @param  filterType    The filter type for this compound filter.  It must be
-   *                       either an AND or an OR filter.
+   *                       an AND, OR or NOT filter.
    * @param  filterString  The string containing the filter information to
    *                       decode.
    * @param  startPos      The position of the first character in the set of
@@ -680,11 +679,20 @@ public class LDAPFilter
 
 
     // If the end pos is equal to the start pos, then there are no components.
-    // This is valid and will be treated as a TRUE/FALSE filter.
     if (startPos == endPos)
     {
-      return new LDAPFilter(filterType, filterComponents, null, null, null,
-                            null, null, null, null, false);
+      if (filterType == FilterType.NOT)
+      {
+        int    msgID   = MSGID_LDAP_FILTER_NOT_EXACTLY_ONE;
+        String message = getMessage(msgID, filterString, startPos, endPos);
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      }
+      else
+      {
+        // This is valid and will be treated as a TRUE/FALSE filter.
+        return new LDAPFilter(filterType, filterComponents, null, null, null,
+                              null, null, null, null, false);
+      }
     }
 
 
@@ -752,8 +760,23 @@ public class LDAPFilter
 
 
     // We should have everything we need, so return the list.
-    return new LDAPFilter(filterType, filterComponents, null, null, null, null,
-                          null, null, null, false);
+    if (filterType == FilterType.NOT)
+    {
+      if (filterComponents.size() != 1)
+      {
+        int    msgID   = MSGID_LDAP_FILTER_NOT_EXACTLY_ONE;
+        String message = getMessage(msgID, filterString, startPos, endPos);
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      }
+      RawFilter notComponent = filterComponents.get(0);
+      return new LDAPFilter(filterType, null, notComponent, null, null,
+                            null, null, null, null, false);
+    }
+    else
+    {
+      return new LDAPFilter(filterType, filterComponents, null, null, null,
+                            null, null, null, null, false);
+    }
   }
 
 
