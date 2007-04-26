@@ -91,7 +91,8 @@
         STAFCmdParams=''
 
         if dsPath:
-          STAFCmd='%s/bin/configure-ds%s' % (dsPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/configure-ds%s' % (dsBinPath,fileExt)
                   
         if dsPort:
           STAFCmdParamsList.append('-p %s' % dsPort)
@@ -122,9 +123,9 @@
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
@@ -189,7 +190,8 @@
         STAFCmdParams=''
 
         if dsPath:
-          STAFCmd='%s/bin/start-ds%s' % (dsPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/start-ds%s' % (dsBinPath,fileExt)
                   
         if dsVersion:
           STAFCmdParamsList.append('-v')
@@ -214,9 +216,9 @@
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
@@ -380,7 +382,8 @@
         STAFCmdParams=''
 
         if dsPath:
-          STAFCmd='%s/bin/stop-ds%s' % (dsPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/stop-ds%s' % (dsBinPath,fileExt)
                   
         if dsHost:
           STAFCmdParamsList.append('-h %s' % dsHost)
@@ -453,9 +456,9 @@
         <location>'%s' % (location)</location>
         <command>'%s' % (STAFCmd)</command>
         <parms>'%s' % (STAFCmdParams)</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <stderr mode="'stdout'"/>
         <returnstdout/>
@@ -600,15 +603,15 @@
     
     <sequence>
       <message>
-        'import-ldif%s -l %s -n %s %s' % (fileExt,ldifFile,backEnd,extraParams)
+        '%s/import-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,extraParams)
       </message>
       <process name="'Offline Import'">
         <location>'%s' % location </location>
-        <command>'%s/bin/import-ldif%s' % (dsPath,fileExt)</command>
+        <command>'%s/import-ldif%s' % (dsBinPath,fileExt)</command>
         <parms>'-l %s -n %s %s' % (ldifFile,backEnd,extraParams)</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <stderr mode="'stdout'"/>
         <returnstdout/>
@@ -773,7 +776,8 @@
         STAFCmdParams=''
 
         if dsPath:
-          STAFCmd='%s/bin/import-ldif%s' % (dsPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/import-ldif%s' % (dsBinPath,fileExt)
 
         if dsLdifFile:
           STAFCmdParamsList.append('-l %s' % dsLdifFile)
@@ -843,9 +847,9 @@
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>         
         <stderr mode="'stdout'"/>
         <returnstdout/>
@@ -1315,11 +1319,11 @@
       </message>
       <process name="'Ldif Export'">
         <location>'%s' % location </location>
-        <command>'%s/bin/export-ldif%s' % (dsPath,fileExt)</command>
+        <command>'%s/export-ldif%s' % (dsBinPath,fileExt)</command>
         <parms>'-l %s -n %s %s' % (ldifFile,backEnd,extraParams)</parms>
         <workdir>'%s/bin' % dsPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <stderr mode="'stdout'"/>
         <returnstdout/>
@@ -1597,11 +1601,11 @@
       </message>
       <process name="'Offline Backup'">
         <location>'%s' % mylocation </location>
-        <command>'%s/bin/backup%s' % (dsPath,fileExt)</command>
+        <command>'%s/backup%s' % (dsBinPath,fileExt)</command>
         <parms>'-d %s -n %s %s' % (backupDir,backEnd,extraParams)</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-              ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+              ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <stderr mode="'stdout'"/>
         <returnstdout/>
@@ -1842,11 +1846,11 @@
       </message>
       <process name="'Offline restore'">
         <location>'%s' % mylocation </location>
-        <command>'%s/bin/restore%s' % (dsPath,fileExt)</command>
+        <command>'%s/restore%s' % (dsBinPath,fileExt)</command>
         <parms>'-d %s %s' % (backupDir,extraParams)</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <stderr mode="'stdout'"/>
         <returnstdout/>
@@ -2201,7 +2205,8 @@
         STAFCmdParams=''
 
         if dsPath:
-          STAFCmd='%s/bin/ldapmodify%s' % (dsPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapmodify%s' % (dsBinPath,fileExt)
 
         STAFCmdParamsList.append('-a')
 
@@ -2229,9 +2234,9 @@
         <location>'%s' % mylocation</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <stdin>'%s' % dsTaskLdif</stdin>
         <stderr mode="'stdout'"/>
@@ -2308,7 +2313,8 @@
         STAFCmdParams=''
 
         if dsPath:
-          STAFCmd='%s/bin/ldapsearch%s' % (dsPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapsearch%s' % (dsBinPath,fileExt)
 
         if dsHost:
           STAFCmdParamsList.append('-h %s' % dsHost)
@@ -2355,9 +2361,9 @@
             <location>'%s' % mylocation</location>
             <command>'%s' % STAFCmd</command>
             <parms>'%s' % STAFCmdParams</parms>
-            <workdir>'%s/bin' % dsPath</workdir>
+            <workdir>'%s' % dsBinPath</workdir>
             <envs>
-              ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+              ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
             </envs>
             <stderr mode="'stdout'"/>
             <returnstdout/>

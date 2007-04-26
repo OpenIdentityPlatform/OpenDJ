@@ -93,7 +93,8 @@
         STAFCmdParams=''
 
         if dsPath:
-          STAFCmd='%s/bin/ldapmodify%s' % (dsPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapmodify%s' % (dsBinPath,fileExt)
           
         STAFCmdParamsList.append('-a')
       </script>
@@ -119,9 +120,9 @@
         <location>'%s' % mylocation</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
@@ -204,7 +205,8 @@
         STAFCmdParams=''
 
         if dsPath:
-          STAFCmd='%s/bin/ldapmodify%s' % (dsPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapmodify%s' % (dsBinPath,fileExt)
 
       </script>
 
@@ -229,9 +231,9 @@
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
@@ -332,7 +334,8 @@
         STAFCmdParams=''
 
         if dsPath:
-          STAFCmd='%s/bin/ldapsearch%s' % (dsPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapsearch%s' % (dsBinPath,fileExt)
 
       </script>
 
@@ -366,9 +369,9 @@
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
@@ -451,11 +454,11 @@
       </message>
       <process name="'Search Base Object No Password'">
         <location>'%s' % location </location>
-        <command>'%s/bin/ldapsearch%s' % (dsPath,fileExt)</command>
+        <command>'%s/ldapsearch%s' % (dsBinPath,fileExt)</command>
         <parms>'-h %s -p %s -D "%s" %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter)</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <stderr mode="'stdout'"/>
         <returnstdout/>
@@ -517,11 +520,11 @@
       </message>
       <process name="'Anonymous Search Base Object'">
         <location>'%s' % location </location>
-        <command>'%s/bin/ldapsearch%s' % (dsPath,fileExt)</command>
+        <command>'%s/ldapsearch%s' % (dsBinPath,fileExt)</command>
         <parms>'-h %s -p %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <stderr mode="'stdout'"/>
         <returnstdout/>
@@ -597,7 +600,8 @@
         STAFCmdParams=''
 
         if dsPath:
-          STAFCmd='%s/bin/ldapdelete%s' % (dsPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapdelete%s' % (dsBinPath,fileExt)
           
       </script>
 
@@ -622,9 +626,9 @@
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
@@ -713,7 +717,8 @@
         STAFCmdParams=''
 
         if dsPath:
-          STAFCmd='%s/bin/ldapcompare%s' % (dsPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapcompare%s' % (dsBinPath,fileExt)
           
       </script>
 
@@ -740,9 +745,9 @@
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
