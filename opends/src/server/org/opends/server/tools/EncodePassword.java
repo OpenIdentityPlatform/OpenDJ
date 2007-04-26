@@ -319,7 +319,8 @@ public class EncodePassword
         return 1;
       }
 
-      if ((! encodedPassword.isPresent()) && (! schemeName.isPresent()))
+      if ((! encodedPassword.isPresent()) && (! encodedPasswordFile.isPresent())
+           && (! schemeName.isPresent()))
       {
         int    msgID   = MSGID_ENCPW_NO_SCHEME;
         String message = getMessage(msgID, schemeName.getLongIdentifier());
@@ -338,6 +339,11 @@ public class EncodePassword
     {
       compareMode = true;
       encodedPW = new ASN1OctetString(encodedPassword.getValue());
+    }
+    else if (encodedPasswordFile.hasValue())
+    {
+      compareMode = true;
+      encodedPW = new ASN1OctetString(encodedPasswordFile.getValue());
     }
     else
     {
