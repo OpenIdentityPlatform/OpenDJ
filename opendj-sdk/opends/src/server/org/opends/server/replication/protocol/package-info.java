@@ -26,7 +26,7 @@
  */
 
 /**
- * This package contains the code used by the changelog and by the
+ * This package contains the code used by the replication server and by the
  * code running on the Directory Server side to exchange their information.
  * <br>
  * <br>
@@ -35,15 +35,15 @@
  * <ul>
  * <li><A HREF="SocketSession.html"><B>SocketSession</B></A>
  * implements the ProtocolSession interface that is
- * used by the changelog server and the directory server to communicate.
+ * used by the replication server and the directory server to communicate.
  * This is done by using the innate encoding/decoding capabilities of the
  * ReplicationMessages objects. This class is used by both the
- * changelog and the replication package.
+ * server and the plugin package.
  * </li>
  * <li><A HREF="ReplicationMessage.html"><B>ReplicationMessage</B></A>
  * This class and the class that inherit from it contain the
- * messages that are used for communication between the changelog and the
- * Directory Server as well as the methods fro encoding/decoding them.
+ * messages that are used for communication between the replication server and
+ * the Directory Server as well as the methods fro encoding/decoding them.
  * </li>
  *  </ul>
  */

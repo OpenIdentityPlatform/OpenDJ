@@ -37,7 +37,7 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
 /**
- * Thread that is used to get messages from the Changelog servers
+ * Thread that is used to get messages from the Replication servers
  * and replay them in the current server.
  */
 public class ListenerThread extends DirectoryThread

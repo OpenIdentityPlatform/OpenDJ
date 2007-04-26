@@ -43,7 +43,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.replication.plugin.ChangelogBroker;
+import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.types.Attribute;
@@ -82,11 +82,11 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
   /**
    * Test the window mechanism by :
-   *  - creating a Changelog service client using the ChangelogBroker class.
+   *  - creating a ReplicationServer service client using the ReplicationBroker class.
    *  - set a small window size.
    *  - perform more than the window size operations.
-   *  - check that the Changelog has not sent more than window size operations.
-   *  - receive all messages from the ChangelogBroker, check that
+   *  - check that the ReplicationServer has not sent more than window size operations.
+   *  - receive all messages from the ReplicationBroker, check that
    *    the client receives the correct number of operations.
    */
   @Test(enabled=true, groups="slow")
@@ -98,12 +98,12 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
-    ChangelogBroker broker = openChangelogSession(baseDn, (short) 13,
+    ReplicationBroker broker = openChangelogSession(baseDn, (short) 13,
         WINDOW_SIZE, 8989, 1000, true);
 
     try {
 
-      /* Test that changelog monitor and synchro plugin monitor informations
+      /* Test that replicationServer monitor and synchro plugin monitor informations
        * publish the correct window size.
        * This allows both the check the monitoring code and to test that
        * configuration is working.
@@ -137,15 +137,15 @@ public class ProtocolWindowTest extends ReplicationTestCase
       assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
         "The received ADD Replication message is not for the excepted DN");
 
-      // send (2 * window + changelog queue) modify operations
-      // so that window + changelog queue get stuck in the changelog queue
+      // send (2 * window + replicationServer queue) modify operations
+      // so that window + replicationServer queue get stuck in the replicationServer queue
       int count = WINDOW_SIZE * 2 + CHANGELOG_QUEUE_SIZE;
       processModify(count);
 
-      // let some time to the message to reach the changelog client
+      // let some time to the message to reach the replicationServer client
       Thread.sleep(500);
 
-      // check that the changelog only sent WINDOW_SIZE messages
+      // check that the replicationServer only sent WINDOW_SIZE messages
       assertTrue(searchUpdateSent());
 
       int rcvCount=0;
@@ -171,7 +171,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
   }
 
   /**
-   * Check that the Changelog queue size has correctly been configured
+   * Check that the ReplicationServer queue size has correctly been configured
    * by reading the monitoring information.
    * @throws LDAPException
    */
@@ -202,7 +202,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
   }
 
   /**
-   * Search that the changelog has stopped sending changes after
+   * Search that the replicationServer has stopped sending changes after
    * having reach the limit of the window size.
    * And that the number of waiting changes is accurate.
    * Do this by checking the monitoring information.

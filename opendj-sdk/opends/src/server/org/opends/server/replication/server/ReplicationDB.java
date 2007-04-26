@@ -53,11 +53,11 @@ import com.sleepycat.je.Transaction;
  * and the dbHandler class.
  * This is the only class that should have code using the BDB interfaces.
  */
-public class ChangelogDB
+public class ReplicationDB
 {
   private Database db = null;
-  private ChangelogDbEnv dbenv = null;
-  private Changelog changelog;
+  private ReplicationDbEnv dbenv = null;
+  private ReplicationServer replicationServer;
   private Short serverId;
   private DN baseDn;
 
@@ -66,18 +66,19 @@ public class ChangelogDB
    * to store and retrieve changes from an LDAP server.
    * @param serverId Identifier of the LDAP server.
    * @param baseDn baseDn of the LDAP server.
-   * @param changelog the Changelog that needs to be shutdown
+   * @param replicationServer the ReplicationServer that needs to be shutdown
    * @param dbenv the Db encironemnet to use to create the db
    * @throws DatabaseException if a database problem happened
    */
-  public ChangelogDB(Short serverId, DN baseDn, Changelog changelog,
-                     ChangelogDbEnv dbenv)
+  public ReplicationDB(Short serverId, DN baseDn,
+                     ReplicationServer replicationServer,
+                     ReplicationDbEnv dbenv)
                      throws DatabaseException
   {
     this.serverId = serverId;
     this.baseDn = baseDn;
     this.dbenv = dbenv;
-    this.changelog = changelog;
+    this.replicationServer = replicationServer;
     db = dbenv.getOrAddDb(serverId, baseDn);
 
   }
@@ -97,8 +98,8 @@ public class ChangelogDB
 
       for (UpdateMessage change : changes)
       {
-        DatabaseEntry key = new ChangelogKey(change.getChangeNumber());
-        DatabaseEntry data = new ChangelogData(change);
+        DatabaseEntry key = new ReplicationKey(change.getChangeNumber());
+        DatabaseEntry data = new ReplicationData(change);
 
         try
         {
@@ -110,7 +111,7 @@ public class ChangelogDB
           logError(ErrorLogCategory.SYNCHRONIZATION,
                    ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
-          changelog.shutdown();
+          replicationServer.shutdown();
         }
       }
 
@@ -124,7 +125,7 @@ public class ChangelogDB
       logError(ErrorLogCategory.SYNCHRONIZATION,
                ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
-      changelog.shutdown();
+      replicationServer.shutdown();
       if (txn != null)
       {
         try
@@ -132,7 +133,7 @@ public class ChangelogDB
           txn.abort();
         } catch (DatabaseException e1)
         {
-          // can't do much more. The Changelog server is shuting down.
+          // can't do much more. The ReplicationServer is shuting down.
         }
       }
     }
@@ -159,33 +160,34 @@ public class ChangelogDB
   }
 
   /**
-   * Create a cursor that can be used to search or iterate on this Changelog DB.
+   * Create a cursor that can be used to search or iterate on this
+   * ReplicationServer DB.
    *
    * @param changeNumber The ChangeNumber from which the cursor must start.
    * @throws DatabaseException If a database error prevented the cursor
    *                           creation.
-   * @throws Exception if the ChangelogCursor creation failed.
-   * @return The ChangelogCursor.
+   * @throws Exception if the ReplServerDBCursor creation failed.
+   * @return The ReplServerDBCursor.
    */
-  public ChangelogCursor openReadCursor(ChangeNumber changeNumber)
+  public ReplServerDBCursor openReadCursor(ChangeNumber changeNumber)
                 throws DatabaseException, Exception
   {
-    return new ChangelogCursor(changeNumber);
+    return new ReplServerDBCursor(changeNumber);
   }
 
   /**
    * Create a cursor that can be used to delete some record from this
-   * Changelog database.
+   * ReplicationServer database.
    *
    * @throws DatabaseException If a database error prevented the cursor
    *                           creation.
-   * @throws Exception if the ChangelogCursor creation failed.
-   * @return The ChangelogCursor.
+   * @throws Exception if the ReplServerDBCursor creation failed.
+   * @return The ReplServerDBCursor.
    */
-  public ChangelogCursor openDeleteCursor()
+  public ReplServerDBCursor openDeleteCursor()
                 throws DatabaseException, Exception
   {
-    return new ChangelogCursor();
+    return new ReplServerDBCursor();
   }
 
   /**
@@ -237,7 +239,7 @@ public class ChangelogDB
       logError(ErrorLogCategory.SYNCHRONIZATION,
                ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
-      changelog.shutdown();
+      replicationServer.shutdown();
       return null;
     }
   }
@@ -278,7 +280,7 @@ public class ChangelogDB
       logError(ErrorLogCategory.SYNCHRONIZATION,
                ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
-      changelog.shutdown();
+      replicationServer.shutdown();
       return null;
     }
   }
@@ -293,10 +295,10 @@ public class ChangelogDB
   }
 
   /**
-   * This Class implements a cursor that can be used to browse a changelog
-   * database.
+   * This Class implements a cursor that can be used to browse a
+   * replicationServer database.
    */
-  public class ChangelogCursor
+  public class ReplServerDBCursor
   {
     private Cursor cursor = null;
     private Transaction txn = null;
@@ -304,20 +306,21 @@ public class ChangelogDB
     DatabaseEntry data = new DatabaseEntry();
 
     /**
-     * Creates a ChangelogCursor that can be used for browsing a changelog db.
+     * Creates a ReplServerDBCursor that can be used for browsing a
+     * replicationServer db.
      *
      * @param startingChangeNumber The ChangeNumber from which the cursor must
      *        start.
      * @throws Exception When the startingChangeNumber does not exist.
      */
-    private ChangelogCursor(ChangeNumber startingChangeNumber)
+    private ReplServerDBCursor(ChangeNumber startingChangeNumber)
             throws Exception
     {
       cursor = db.openCursor(txn, null);
 
       if (startingChangeNumber != null)
       {
-        key = new ChangelogKey(startingChangeNumber);
+        key = new ReplicationKey(startingChangeNumber);
         data = new DatabaseEntry();
 
         if (cursor.getSearchKey(key, data, LockMode.DEFAULT) !=
@@ -342,14 +345,14 @@ public class ChangelogDB
       }
     }
 
-    private ChangelogCursor() throws DatabaseException
+    private ReplServerDBCursor() throws DatabaseException
     {
       txn = dbenv.beginTransaction();
       cursor = db.openCursor(txn, null);
     }
 
     /**
-     * Close the Changelog Cursor.
+     * Close the ReplicationServer Cursor.
      */
     public void close()
     {
@@ -366,7 +369,7 @@ public class ChangelogDB
         logError(ErrorLogCategory.SYNCHRONIZATION,
                  ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        changelog.shutdown();
+        replicationServer.shutdown();
       }
       if (txn != null)
       {
@@ -380,7 +383,7 @@ public class ChangelogDB
           logError(ErrorLogCategory.SYNCHRONIZATION,
                    ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
-          changelog.shutdown();
+          replicationServer.shutdown();
         }
       }
     }
@@ -432,11 +435,11 @@ public class ChangelogDB
           return null;
         }
         try {
-          currentChange = ChangelogData.generateChange(data.getData());
+          currentChange = ReplicationData.generateChange(data.getData());
         } catch (Exception e) {
           /*
-           * An error happening trying to convert the data from the changelog
-           * database to an Update Message.
+           * An error happening trying to convert the data from the
+           * replicationServer database to an Update Message.
            * This can only happen if the database is corrupted.
            * There is not much more that we can do at this point except trying
            * to continue with the next record.

@@ -94,7 +94,7 @@ public class ReplicationMonitor extends MonitorProvider
     attributes.add(attr);
 
     /* get the base dn */
-    attr = new Attribute("connected-to", domain.getChangelogServer());
+    attr = new Attribute("connected-to", domain.getReplicationServer());
     attributes.add(attr);
 
     /* get number of lost connections */

@@ -26,34 +26,44 @@
  */
 package org.opends.server.replication.server;
 
-import com.sleepycat.je.DatabaseEntry;
 
-import org.opends.server.replication.protocol.ReplicationMessage;
-import org.opends.server.replication.protocol.UpdateMessage;
+
+import org.opends.server.types.IdentifiedException;
+
+
 
 /**
- * SuperClass of DatabaseEntry used for data stored in the Changelog Databases.
+ * This class define an Exception that must be used when some error
+ * condition was detected in the replicationServer database that cannot be
+ * recovered automatically.
  */
-public class ChangelogData extends DatabaseEntry
+public class ReplicationDBException extends IdentifiedException
 {
+  private int messageID;
+
+  private static final long serialVersionUID = -8812600147768060090L;
+
   /**
-   * Creates a new ChangelogData object from an UpdateMessage.
-   * @param change the UpdateMessage used to create the ChangelogData.
+   * Creates a new ReplicationServer db exception with the provided message.
+   * This Exception must be used when the full replicationServer service is
+   * compromised by the exception
+   *
+   * @param  messageID  The unique message ID for the provided message.
+   * @param  message    The message to use for this exception.
    */
-  public ChangelogData(UpdateMessage change)
+  public ReplicationDBException(int messageID, String message)
   {
-    this.setData(change.getBytes());
+    super(message);
+
+    this.messageID = messageID;
   }
 
   /**
-   * Generate an UpdateMessage from its byte[] form.
-   * @param data The DatabaseEntry used to generate the UpdateMessage.
-   * @return The generated change.
-   * @throws Exception When the data was not a valid Update Message.
+   * Returns the message Id associated to this Exception.
+   * @return the message ID associated to this Exception.
    */
-  public static UpdateMessage generateChange(byte[] data)
-                                             throws Exception
+  public int getMessageID()
   {
-    return (UpdateMessage) ReplicationMessage.generateMsg(data);
+    return messageID;
   }
 }

@@ -44,7 +44,7 @@ public abstract class ReplicationMessage
   static final byte MSG_TYPE_MODIFYDN_REQUEST = 4;
   static final byte MSG_TYPE_ACK = 5;
   static final byte MSG_TYPE_SERVER_START = 6;
-  static final byte MSG_TYPE_CHANGELOG_START = 7;
+  static final byte MSG_TYPE_REPL_SERVER_START = 7;
   static final byte MSG_TYPE_WINDOW = 8;
   static final byte MSG_TYPE_HEARTBEAT = 9;
   static final byte MSG_TYPE_INITIALIZE_REQUEST = 10;
@@ -64,7 +64,7 @@ public abstract class ReplicationMessage
    * MSG_TYPE_MODIFY_DN_REQUEST
    * MSG_TYPE_ACK
    * MSG_TYPE_SERVER_START
-   * MSG_TYPE_CHANGELOG_START
+   * MSG_TYPE_REPL_SERVER_START
    * MSG_TYPE_WINDOW
    * MSG_TYPE_HEARTBEAT
    * MSG_TYPE_INITIALIZE
@@ -110,8 +110,8 @@ public abstract class ReplicationMessage
       case MSG_TYPE_SERVER_START:
         msg = new ServerStartMessage(buffer);
       break;
-      case MSG_TYPE_CHANGELOG_START:
-        msg = new ChangelogStartMessage(buffer);
+      case MSG_TYPE_REPL_SERVER_START:
+        msg = new ReplServerStartMessage(buffer);
       break;
       case MSG_TYPE_WINDOW:
         msg = new WindowMessage(buffer);

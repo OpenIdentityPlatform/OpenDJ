@@ -76,12 +76,7 @@ public class MultimasterReplication
                   BackupTaskListener, RestoreTaskListener, ImportTaskListener,
                   ExportTaskListener
 {
-  static String CHANGELOG_DN = "cn=Changelog Server," +
-    "cn=Multimaster Synchronization, cn=Synchronization Providers, cn=config";
-  static String SYNCHRONIZATION_CLASS =
-    "ds-cfg-synchronization-provider-config";
-
-  private ChangelogListener changelog = null;
+  private ReplicationServerListener replicationServer = null;
   private static Map<DN, ReplicationDomain> domains =
     new HashMap<DN, ReplicationDomain>() ;
 
@@ -94,7 +89,7 @@ public class MultimasterReplication
       MultimasterSynchronizationProviderCfg configuration)
   throws ConfigException
   {
-    changelog = new ChangelogListener(configuration);
+    replicationServer = new ReplicationServerListener(configuration);
 
     // Register as an add and delete listener with the root configuration so we
     // can be notified if Multimaster domain entries are added or removed.
@@ -348,9 +343,9 @@ public class MultimasterReplication
       domain.shutdown();
     }
 
-    // shutdown the Changelog Service if necessary
-    if (changelog != null)
-      changelog.shutdown();
+    // shutdown the ReplicationServer Service if necessary
+    if (replicationServer != null)
+      replicationServer.shutdown();
 
     DirectoryServer.deregisterBackupTaskListener(this);
     DirectoryServer.deregisterRestoreTaskListener(this);

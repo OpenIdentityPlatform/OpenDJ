@@ -67,8 +67,8 @@ public abstract class RoutableMessage extends ReplicationMessage implements
 
   /**
    * Creates a routable message.
-   * @param senderID changelog server id
-   * @param destination changelog server id
+   * @param senderID replication server id
+   * @param destination replication server id
    */
   public RoutableMessage(short senderID, short destination)
   {

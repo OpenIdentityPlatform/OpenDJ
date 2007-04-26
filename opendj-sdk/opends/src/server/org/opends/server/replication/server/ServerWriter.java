@@ -49,7 +49,7 @@ public class ServerWriter extends DirectoryThread
 {
   private ProtocolSession session;
   private ServerHandler handler;
-  private ChangelogCache changelogCache;
+  private ReplicationCache replicationCache;
 
   /**
    * Create a ServerWriter.
@@ -59,21 +59,21 @@ public class ServerWriter extends DirectoryThread
    * @param session the ProtocolSession that will be used to send updates.
    * @param serverId the Identifier of the server.
    * @param handler handler for which the ServerWriter is created.
-   * @param changelogCache The ChangelogCache of this ServerWriter.
+   * @param replicationCache The ReplicationCache of this ServerWriter.
    */
   public ServerWriter(ProtocolSession session, short serverId,
-                      ServerHandler handler, ChangelogCache changelogCache)
+                      ServerHandler handler, ReplicationCache replicationCache)
   {
     super(handler.toString() + " writer");
 
     this.session = session;
     this.handler = handler;
-    this.changelogCache = changelogCache;
+    this.replicationCache = replicationCache;
   }
 
   /**
    * Run method for the ServerWriter.
-   * Loops waiting for changes from the ChangelogCache and forward them
+   * Loops waiting for changes from the ReplicationCache and forward them
    * to the other servers
    */
   public void run()
@@ -81,7 +81,7 @@ public class ServerWriter extends DirectoryThread
     try {
       while (true)
       {
-        UpdateMessage update = changelogCache.take(this.handler);
+        UpdateMessage update = replicationCache.take(this.handler);
         if (update == null)
           return;       /* this connection is closing */
         session.publish(update);
@@ -131,7 +131,7 @@ public class ServerWriter extends DirectoryThread
       {
        // Can't do much more : ignore
       }
-      changelogCache.stopServer(handler);
+      replicationCache.stopServer(handler);
     }
   }
 }

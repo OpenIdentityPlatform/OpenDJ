@@ -33,33 +33,34 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.ChangelogServerCfg;
 import org.opends.server.admin.std.server.MultimasterSynchronizationProviderCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.replication.server.Changelog;
+import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 
 /**
  * This class is used to create and object that can
  * register in the admin framework as a listener for changes, add and delete
- * on the Changelog Server configuration objects.
+ * on the ReplicationServer configuration objects.
  *
  */
-public class ChangelogListener
+public class ReplicationServerListener
        implements ConfigurationAddListener<ChangelogServerCfg>,
        ConfigurationDeleteListener<ChangelogServerCfg>
 {
-  Changelog changelog = null;
+  ReplicationServer replicationServer = null;
 
   /**
-   * Build a Changelog Listener from the given Multimaster configuration.
+   * Build a ReplicationServer Listener from the given Multimaster
+   * configuration.
    *
    * @param configuration The configuration that will be used to listen
-   *                      for changelog configuration changes.
+   *                      for replicationServer configuration changes.
    *
-   * @throws ConfigException if the ChangelogListener can't register for
+   * @throws ConfigException if the ReplicationServerListener can't register for
    *                         listening to changes on the provided configuration
    *                         object.
    */
-  public ChangelogListener(
+  public ReplicationServerListener(
       MultimasterSynchronizationProviderCfg configuration)
       throws ConfigException
   {
@@ -69,7 +70,7 @@ public class ChangelogListener
     if (configuration.hasChangelogServer())
     {
       ChangelogServerCfg server = configuration.getChangelogServer();
-      changelog = new Changelog(server);
+      replicationServer = new ReplicationServer(server);
     }
   }
 
@@ -81,7 +82,7 @@ public class ChangelogListener
   {
     try
     {
-      changelog = new Changelog(configuration);
+      replicationServer = new ReplicationServer(configuration);
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
     } catch (ConfigException e)
     {
@@ -97,17 +98,17 @@ public class ChangelogListener
   public boolean isConfigurationAddAcceptable(
       ChangelogServerCfg configuration, List<String> unacceptableReasons)
   {
-    return Changelog.isConfigurationAcceptable(
+    return ReplicationServer.isConfigurationAcceptable(
       configuration, unacceptableReasons);
   }
 
   /**
-   * Shutdown the Changelog servers.
+   * Shutdown the Replication servers.
    */
   public void shutdown()
   {
-    if (changelog != null)
-      changelog.shutdown();
+    if (replicationServer != null)
+      replicationServer.shutdown();
   }
 
   /**
@@ -116,11 +117,11 @@ public class ChangelogListener
   public ConfigChangeResult applyConfigurationDelete(
       ChangelogServerCfg configuration)
   {
-    // There can be only one changelog, just shutdown the changelog
-    // currently configured.
-    if (changelog != null)
+    // There can be only one replicationServer, just shutdown the
+    // replicationServer currently configured.
+    if (replicationServer != null)
     {
-      changelog.shutdown();
+      replicationServer.shutdown();
     }
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }

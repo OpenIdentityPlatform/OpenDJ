@@ -41,9 +41,9 @@
  * <A HREF="ReplicationDomain.html"><B>ReplicationDomain</B></A>
  * contains the bulk of the Directory Server side of the
  * replication code. Most notably it contains the root method for
- * publishing a change, processing a change received from the changelog
+ * publishing a change, processing a change received from the replicationServer
  * service, handle conflict resolution, handle protocol messages from the
- * changelog server.
+ * replicationServer.
  * </li>
  * </ul>
  */

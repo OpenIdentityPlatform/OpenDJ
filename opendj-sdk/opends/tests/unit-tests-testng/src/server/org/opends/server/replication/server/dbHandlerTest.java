@@ -34,8 +34,8 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.replication.server.Changelog;
-import org.opends.server.replication.server.ChangelogDbEnv;
+import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ReplicationDbEnv;
 import org.opends.server.replication.server.DbHandler;
 import org.opends.server.types.DN;
 import org.testng.annotations.Test;
@@ -51,16 +51,16 @@ public class dbHandlerTest extends ReplicationTestCase
   {
     TestCaseUtils.startServer();
 
-    //  find  a free port for the changelog server
+    //  find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();
     int changelogPort = socket.getLocalPort();
     socket.close();
 
-    // configure a Changelog server.
-    ChangelogFakeConfiguration conf =
-      new ChangelogFakeConfiguration(changelogPort, null, 0,
+    // configure a ReplicationServer.
+    ReplServerFakeConfiguration conf =
+      new ReplServerFakeConfiguration(changelogPort, null, 0,
                                      2, 0, 100, null);
-    Changelog changelog = new Changelog(conf);
+    ReplicationServer replicationServer = new ReplicationServer(conf);
 
     // create or clean a directory for the dbHandler
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
@@ -73,10 +73,10 @@ public class dbHandlerTest extends ReplicationTestCase
     }
     testRoot.mkdirs();
 
-    ChangelogDbEnv dbEnv = new ChangelogDbEnv(path, changelog);
+    ReplicationDbEnv dbEnv = new ReplicationDbEnv(path, replicationServer);
 
     DbHandler handler =
-      new DbHandler((short) 1, DN.decode("o=test"), changelog, dbEnv);
+      new DbHandler((short) 1, DN.decode("o=test"), replicationServer, dbEnv);
 
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short)1, 0);
     ChangeNumber changeNumber1 = gen.NewChangeNumber();
@@ -116,7 +116,7 @@ public class dbHandlerTest extends ReplicationTestCase
 
     handler.shutdown();
     dbEnv.shutdown();
-    changelog.shutdown();
+    replicationServer.shutdown();
 
     TestCaseUtils.deleteDirectory(testRoot);
   }

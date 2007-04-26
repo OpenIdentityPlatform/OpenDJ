@@ -52,7 +52,7 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 
 /**
  * This class is used to exchange Add operation between LDAP servers
- * and changelog servers.
+ * and replication servers.
  */
 public class AddMsg extends UpdateMessage
 {

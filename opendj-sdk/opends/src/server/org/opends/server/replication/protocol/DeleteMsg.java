@@ -38,7 +38,7 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.Operation;
 
 /**
- * Object used when sending delete information to Changelogs.
+ * Object used when sending delete information to replication servers.
  */
 public class DeleteMsg extends UpdateMessage
 {

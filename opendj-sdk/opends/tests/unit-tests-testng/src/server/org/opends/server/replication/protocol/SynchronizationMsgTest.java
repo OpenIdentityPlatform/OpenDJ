@@ -51,7 +51,7 @@ import org.opends.server.replication.plugin.PendingChange;
 import org.opends.server.replication.protocol.AckMessage;
 import org.opends.server.replication.protocol.AddContext;
 import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.ChangelogStartMessage;
+import org.opends.server.replication.protocol.ReplServerStartMessage;
 import org.opends.server.replication.protocol.DeleteContext;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.DoneMessage;
@@ -510,16 +510,16 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
   /**
    * Test that changelogStartMessage encoding and decoding works
-   * by checking that : msg == new ChangelogStartMessage(msg.getBytes()).
+   * by checking that : msg == new ReplServerStartMessage(msg.getBytes()).
    */
   @Test(dataProvider="changelogStart")
   public void ChangelogStartMessageTest(short serverId, DN baseDN, int window,
          String url, ServerState state) throws Exception
   {
     state.update(new ChangeNumber((long)1, 1,(short)1));
-    ChangelogStartMessage msg = new ChangelogStartMessage(serverId,
+    ReplServerStartMessage msg = new ReplServerStartMessage(serverId,
         url, baseDN, window, state);
-    ChangelogStartMessage newMsg = new ChangelogStartMessage(msg.getBytes());
+    ReplServerStartMessage newMsg = new ReplServerStartMessage(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());

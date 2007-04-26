@@ -52,13 +52,13 @@ import com.sleepycat.je.Transaction;
 
 /**
  * This class is used to represent a Db environement that can be used
- * to create ChangelogDB.
+ * to create ReplicationDB.
  */
-public class ChangelogDbEnv
+public class ReplicationDbEnv
 {
   private Environment dbEnvironment = null;
   private Database stateDb = null;
-  private Changelog changelog = null;
+  private ReplicationServer replicationServer = null;
 
   /**
    * Initialize this class.
@@ -66,20 +66,21 @@ public class ChangelogDbEnv
    * It also reads the currently known databases from the "changelogstate"
    * database.
    * @param path Path where the backing files must be created.
-   * @param changelog the Changelog that creates this ChangelogDbEnv.
+   * @param replicationServer the ReplicationServer that creates this
+   *                          ReplicationDbEnv.
    * @throws DatabaseException If a DatabaseException occured that prevented
    *                           the initialization to happen.
-   * @throws ChangelogDBException If a changelog internal error caused
-   *                              a failure of the changelog processing.
+   * @throws ReplicationDBException If a replicationServer internal error caused
+   *                              a failure of the replicationServer processing.
    */
-  public ChangelogDbEnv(String path, Changelog changelog)
-         throws DatabaseException, ChangelogDBException
+  public ReplicationDbEnv(String path, ReplicationServer replicationServer)
+         throws DatabaseException, ReplicationDBException
   {
-    this.changelog = changelog;
+    this.replicationServer = replicationServer;
     EnvironmentConfig envConfig = new EnvironmentConfig();
 
     /* Create the DB Environment that will be used for all
-     * the Changelog activities related to the db
+     * the ReplicationServer activities related to the db
      */
     envConfig.setAllowCreate(true);
     envConfig.setTransactional(true);
@@ -109,10 +110,10 @@ public class ChangelogDbEnv
    * for each of them.
    *
    * @throws DatabaseException in case of underlying DatabaseException
-   * @throws ChangelogDBException when the information from the database
+   * @throws ReplicationDBException when the information from the database
    *                              cannot be decoded correctly.
    */
-  private void start() throws DatabaseException, ChangelogDBException
+  private void start() throws DatabaseException, ReplicationDBException
   {
     Cursor cursor = stateDb.openCursor(null, null);
     DatabaseEntry key = new DatabaseEntry();
@@ -140,17 +141,18 @@ public class ChangelogDbEnv
                      message, msgID);
           }
           DbHandler dbHandler =
-            new DbHandler(serverId, baseDn, changelog, this);
-          changelog.getChangelogCache(baseDn).newDb(serverId, dbHandler);
+            new DbHandler(serverId, baseDn, replicationServer, this);
+          replicationServer.getReplicationCache(baseDn).newDb(serverId,
+                                                            dbHandler);
         } catch (NumberFormatException e)
         {
           // should never happen
-          throw new ChangelogDBException(0,
-              "changelog state database has a wrong format");
+          throw new ReplicationDBException(0,
+              "replicationServer state database has a wrong format");
         } catch (UnsupportedEncodingException e)
         {
           // should never happens
-          throw new ChangelogDBException(0, "need UTF-8 support");
+          throw new ReplicationDBException(0, "need UTF-8 support");
         }
         status = cursor.getNext(key, data, LockMode.DEFAULT);
       }
