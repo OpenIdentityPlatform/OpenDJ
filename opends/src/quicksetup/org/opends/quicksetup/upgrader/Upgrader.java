@@ -93,10 +93,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     INITIALIZING("summary-upgrade-initializing"),
 
-    STARTING_SERVER("summary-starting"),
-
-    STOPPING_SERVER("summary-stopping"),
-
     CALCULATING_SCHEMA_CUSTOMIZATIONS(
             "summary-upgrade-calculating-schema-customization"),
 
@@ -300,7 +296,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public Integer getRatio(ProgressStep step) {
-    return 100 * ((UpgradeProgressStep) step).ordinal() /
+    return ((UpgradeProgressStep) step).ordinal() /
             EnumSet.allOf(UpgradeWizardStep.class).size();
   }
 
@@ -310,23 +306,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
   public String getSummary(ProgressStep step) {
     String txt = null;
     if (step == UpgradeProgressStep.FINISHED) {
-//    String installPath = Utils.getPath(getInstallation().getRootDirectory());
-//    String newVersion = null;
-//    try {
-//      newVersion = getInstallation().getBuildId();
-//    } catch (QuickSetupException e) {
-//      newVersion = getMsg("upgrade-build-id-unknown");
-//    }
-//    String[] args = {
-//            formatter.getFormattedText(installPath),
-//            newVersion };
-//    txt = getFormattedSuccess(
-//            getMsg("summary-upgrade-finished-successfully",
-//            args));
-      txt = "Upgrade completed successfully"; // TODO BETTER MESSAGE
+      txt = getFinalSuccessMessage();
     } else if (step == UpgradeProgressStep.FINISHED_WITH_ERRORS) {
-      txt = getFormattedError(
-              getMsg("summary-upgrade-finished-with-errors"));
+      txt = getMsg(((UpgradeProgressStep) step).getSummaryMesssageKey());
+      if (!Utils.isCli()) {
+        txt = formatter.getFormattedError(txt, true);
+      }
     } else {
       txt = getMsg(((UpgradeProgressStep) step).getSummaryMesssageKey());
     }
@@ -591,7 +576,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
             }
           }
           getRemoteBuildManager().download(buildToDownload, buildZip);
-          notifyListeners(formatter.getFormattedDone());
+          notifyListeners(formatter.getFormattedDone() +
+                  formatter.getLineBreak());
         } catch (ApplicationException e) {
           LOG.log(Level.INFO, "Error downloading build file", e);
           throw e;
@@ -621,17 +607,11 @@ public class Upgrader extends GuiApplication implements CliApplication {
         throw e;
       }
 
-      try {
-        setCurrentProgressStep(UpgradeProgressStep.INITIALIZING);
-        initialize();
-      } catch (ApplicationException e) {
-        LOG.log(Level.INFO, "Error initializing upgrader", e);
-        throw e;
-      }
-
+      // If the server has never been started and schema changes
+      // have been made, the server will have never had the chance
+      // to write schema.current.
       if (!getInstallation().getStatus().isServerRunning()) {
         try {
-          setCurrentProgressStep(UpgradeProgressStep.STARTING_SERVER);
           startServerWithoutConnectionHandlers();
           getServerController().stopServerInProcess();
         } catch (ApplicationException e) {
@@ -643,7 +623,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       if (getInstallation().getStatus().isServerRunning()) {
         try {
-          setCurrentProgressStep(UpgradeProgressStep.STOPPING_SERVER);
           new ServerController(this).stopServer();
         } catch (ApplicationException e) {
           LOG.log(Level.INFO, "Error stopping server", e);
@@ -690,9 +669,24 @@ public class Upgrader extends GuiApplication implements CliApplication {
         setCurrentProgressStep(
                 UpgradeProgressStep.UPGRADING_COMPONENTS);
         upgradeComponents();
+        notifyListeners(formatter.getFormattedDone() +
+                formatter.getLineBreak());
       } catch (ApplicationException e) {
         LOG.log(Level.INFO,
                 "Error upgrading components", e);
+        throw e;
+      }
+
+      //********************************************
+      //*  The two steps following this step require
+      //*  the server to be started 'in process'.
+      // *******************************************
+      try {
+        startServerWithoutConnectionHandlers();
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO,
+                "Error starting server in process in order to apply custom" +
+                        "schema and/or configuration", e);
         throw e;
       }
 
@@ -716,12 +710,21 @@ public class Upgrader extends GuiApplication implements CliApplication {
         throw e;
       }
 
+      try {
+        getServerController().stopServerInProcess();
+      } catch (Throwable t) {
+        LOG.log(Level.INFO,
+                "Error applying configuration customizations", t);
+        throw new ApplicationException(ApplicationException.Type.BUG,
+                "Error stopping server in process", t);
+      }
+
       // This allows you to test whether or not he upgrader can successfully
       // abort an upgrade once changes have been made to the installation
       // path's filesystem.
       if ("true".equals(
               System.getProperty(
-                      "org.opends.upgrader.Upgrader.CreateError.CreateError")))
+                      "org.opends.upgrader.Upgrader.CreateError")))
       {
         throw new ApplicationException(
                 null, "ARTIFICIAL ERROR FOR TESTING ABORT PROCESS", null);
@@ -772,7 +775,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 getStagedVersion(),
                 status,
                 note);
-
       } catch (ApplicationException e) {
         System.err.print("Error cleaning up after upgrade: " +
                 e.getLocalizedMessage());
@@ -780,11 +782,36 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
 
     // Decide final status based on presense of error
+
+    // It would be nice if this were simpler.
+
     if (runException == null) {
-      setCurrentProgressStep(UpgradeProgressStep.FINISHED);
+      if (!Utils.isCli()) {
+
+        // This seems to be the preferred way to print
+        // a message to the top of the progress panel without
+        // having it show up in the Details section which we
+        // don't want since it is in HTML
+        this.currentProgressStep = UpgradeProgressStep.FINISHED;
+        notifyListeners(null);
+
+      } else {
+        notifyListeners(getFinalSuccessMessage());
+
+        // Don't do this until we've printed out last message
+        // as doing so tells the CLI that it is finished and
+        // System.exit gets called in QuickSetupCli
+        this.currentProgressStep = UpgradeProgressStep.FINISHED;
+      }
+
     } else {
-      setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_ERRORS);
-      notifyListeners(formatter.getFormattedError(runException, true));
+      if (!Utils.isCli()) {
+        notifyListeners(formatter.getFormattedError(runException, true));
+        setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_ERRORS);
+      } else {
+        runException.printStackTrace();
+        this.currentProgressStep = UpgradeProgressStep.FINISHED_WITH_ERRORS;
+      }
     }
 
   }
@@ -916,12 +943,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
   }
 
+  /**
+   * Applies configuration or schema customizations.
+   * NOTE: Assumes that the server is running in process.
+   * @param ldifFile LDIF file to apply
+   * @throws IOException
+   * @throws org.opends.server.util.LDIFException
+   * @throws ApplicationException
+   */
   private void applyCustomizationLdifFile(File ldifFile)
           throws IOException, org.opends.server.util.LDIFException,
           ApplicationException
   {
     try {
-      startServerWithoutConnectionHandlers();
       org.opends.server.protocols.internal.InternalClientConnection cc =
               org.opends.server.protocols.internal.
                       InternalClientConnection.getRootConnection();
@@ -992,8 +1026,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
     } catch (Throwable t) {
       throw new ApplicationException(ApplicationException.Type.BUG,
               t.getMessage(), t);
-    } finally {
-      getServerController().stopServerInProcess();
     }
   }
 
@@ -1324,7 +1356,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   private void setCurrentProgressStep(UpgradeProgressStep step) {
     this.currentProgressStep = step;
-    String msg = getMsg(step.getSummaryMesssageKey());
+    String msg = getSummary(step);
     notifyListeners(getFormattedProgress(msg) + getLineBreak());
   }
 
@@ -1333,6 +1365,28 @@ public class Upgrader extends GuiApplication implements CliApplication {
       cliHelper = new UpgraderCliHelper();
     }
     return cliHelper;
+  }
+
+  private String getFinalSuccessMessage() {
+    String txt;
+    String installPath = Utils.getPath(getInstallation().getRootDirectory());
+    String newVersion = null;
+    try {
+      newVersion = getInstallation().getBuildId();
+    } catch (QuickSetupException e) {
+      newVersion = getMsg("upgrade-build-id-unknown");
+    }
+    String[] args = {
+            formatter.getFormattedText(installPath),
+            newVersion};
+    if (Utils.isCli()) {
+      txt = getMsg("summary-upgrade-finished-successfully-cli", args);
+    } else {
+      txt = getFormattedSuccess(
+              getMsg("summary-upgrade-finished-successfully",
+                      args));
+    }
+    return txt;
   }
 
   private File getStageDirectory()
