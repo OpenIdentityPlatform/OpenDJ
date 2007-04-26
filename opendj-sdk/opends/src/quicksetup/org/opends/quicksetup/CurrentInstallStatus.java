@@ -215,23 +215,37 @@ public class CurrentInstallStatus
   }
 
   /**
-   * Returns if the server is running on the given path.
+   * Returns if the server is running on the given path.  The location
+   * of the 'locks' directory which is required for this method is
+   * determined by getting the installation path from the classpath.
    * NOTE: this method is to be called only when the OpenDS.jar class has
    * already been loaded as it uses classes in that jar.
    * @return <CODE>true</CODE> if the server is running and <CODE>false</CODE>
    * otherwise.
    */
-  public static boolean isServerRunning()
+  public static boolean isServerRunning() {
+    File locksDir = new File(Utils.getInstallPathFromClasspath(),
+            org.opends.server.util.ServerConstants.LOCKS_DIRECTORY);
+    return isServerRunning(locksDir);
+  }
+
+  /**
+   * Returns if the server is running on the given path.
+   * NOTE: this method is to be called only when the OpenDS.jar class has
+   * already been loaded as it uses classes in that jar.
+   * @param locksDir File representing the location of the server's 'locks'
+   * directory
+   * @return <CODE>true</CODE> if the server is running and <CODE>false</CODE>
+   * otherwise.
+   */
+  public static boolean isServerRunning(File locksDir)
   {
     boolean isServerRunning;
     if (!lockPathInitialized)
     {
-      String lockDirectory = Utils.getPath(Utils.getInstallPathFromClasspath(),
-      org.opends.server.util.ServerConstants.LOCKS_DIRECTORY);
-
       System.setProperty(
         org.opends.server.util.ServerConstants.PROPERTY_LOCK_DIRECTORY,
-        lockDirectory);
+        Utils.getPath(locksDir));
       lockPathInitialized = true;
     }
     String lockFile =
