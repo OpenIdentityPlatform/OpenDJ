@@ -745,6 +745,8 @@
       <fileset dir="${pdir}/bin">
       </fileset>
     </chmod>
+    <chmod file="${pdir}/lib/_client-script.sh" perm="755" />
+    <chmod file="${pdir}/lib/_server-script.sh" perm="755" />
   </target>
 
 
