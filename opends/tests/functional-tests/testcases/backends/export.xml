@@ -44,839 +44,1885 @@
       
           <call function="'testSuite_Preamble'"/>
                   
-          <!--- Test Suite information
-            #@TestSuiteName       Backend Export Tests
-            #@TestSuitePurpose    Verify that the basic export functionality is working in the Directory Server.
-            #@TestSuiteID         Export Tests
+         <!--- Test Suite information
+            #@TestSuiteName       Backend: Export: Export Tests
+            #@TestSuitePurpose    Verify that the export functionality is working in the Directory Server.
+            #@TestSuiteID         Backend Export Tests
             #@TestSuiteGroup      Export
             #@TestGroup           Backend
             #@TestScript          export.xml
             #@TestHTMLLink        http://opends.dev.java.net/
-          -->
-    
-          <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 1
-            #@TestID              Export1
-            #@TestPurpose         Export the data in OpenDS.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, and ldifFile
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 1'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export1: Export the data in OpenDS'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export1.ldif' % STAGED_DATA_DIR
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>
+         -->    
                 
-          <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 2
-            #@TestID              Export2
-            #@TestPurpose         Export the data in OpenDS by appending to an ldif file.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and append
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 2'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export2: Export the data in OpenDS by appending to an ldif file'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export1.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-a'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>
                 
-          <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 3
-            #@TestID              Export3
-            #@TestPurpose         Export the data in OpenDS with one includeAttribute parameter.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and includeAttribute
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 3'">
-        
-                  <sequence>
+         <!-- Create a second instance to import data that was exported from the first instance -->
+         <message>
+           'Creating another instance for verifing the exports'
+         </message>
+         
+         <script>
+            DsInstancePort = int(DIRECTORY_INSTANCE_PORT)+1
+            DsInstanceSSLPort = int(DIRECTORY_INSTANCE_SSL_PORT)+1
+            DsInstanceDir = '%s/server2' % DIRECTORY_INSTANCE_DIR
+         </script>
+               
+	 <call function="'createInstance'">
+	   { 'dsHost'    : '%s' % DIRECTORY_INSTANCE_HOST,
+	     'dsDir'     : DsInstanceDir,
+             'dsPort'    : DsInstancePort,
+             'dsSslPort' : DsInstanceSSLPort,
+             'dsBindDN'  : '%s' % DIRECTORY_INSTANCE_DN,
+             'dsBindPwd' : '%s' % DIRECTORY_INSTANCE_PSWD,
+             'dsBaseDN'  : '%s' % DIRECTORY_INSTANCE_SFX }
+	  </call>
           
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export3: Export the data in OpenDSwith one includeAttribute parameter '
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export3.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-i telephonenumber'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>
-                
-          <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 4
-            #@TestID              Export4
-            #@TestPurpose         Export the data in OpenDS with three includeAttribute parameters.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and includeAttribute
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 4'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export4: Export the data in OpenDS with three includeAttribute parameters'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export4.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-i telephonenumber -i mail -i roomnumber'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>   
-       
-          <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 5
-            #@TestID              Export5
-            #@TestPurpose         Export the data in OpenDS with one excludeAttribute parameter.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and excludeAttribute
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 5'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export5: Export the data in OpenDS with one excludeAttribute parameter'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export5.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-e telephonenumber'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>  
-     
-          <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 6
-            #@TestID              Export6
-            #@TestPurpose         Export the data in OpenDS with three excludeAttribute parameters.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and excludeAttribute
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 6'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export6: Export the data in OpenDS with three excludeAttribute parameters'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export6.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-e telephonenumber -e mail -e roomnumber'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>
-                
-          <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 7
-            #@TestID              Export7
-            #@TestPurpose         Export the data in OpenDS with one includeFilter parameter.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and includeFilter
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 7'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export7: Export the data in OpenDS with one includeFilter parameter'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export7.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-I "(&amp;(uid=jwalker)(roomnumber=*))'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>
-                
-           <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 8
-            #@TestID              Export8
-            #@TestPurpose         Export the data in OpenDS with three includeFilter parameters.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and includeFilter
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 8'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export8: Export the data in OpenDS with three includeFilter parameters'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export8.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-I "(&amp;(uid=jwalker)(roomnumber=*))" -I "(&amp;(uid=jwalker)(l=Cupertino))" -I "(&amp;(uid=jwallace)(roomnumber=*))"'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase> 
-     
-           <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 9
-            #@TestID              Export9
-            #@TestPurpose         Export the data in OpenDS with one excludeFilter parameter.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and excludeFilter
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 9'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export9: Export the data in OpenDS with one excludeFilter parameter'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export9.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-E "(&amp;(uid=jwalker)(roomnumber=*))"'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase> 
-                
-            <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 10
-            #@TestID              Export10
-            #@TestPurpose         Export the data in OpenDS with three excludeFilter parameters.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and excludeFilter
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 10'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export10: Export the data in OpenDS with three excludeFilter parameters'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export10.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-E "(&amp;(uid=jwalker)(roomnumber=*))" -E "(&amp;(uid=jwalker)(l=Cupertino))" -E "(&amp;(uid=jwallace)(roomnumber=*))"'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>
-     
-            <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 11
-            #@TestID              Export11
-            #@TestPurpose         Export the data in OpenDS with one includeBranch parameter.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and includeBranch
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 11'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export11: Export the data in OpenDS with one includeBranch parameter'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export11.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-b "o=backend tests,dc=example,dc=com"'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>  
-                
-             <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 12
-            #@TestID              Export12
-            #@TestPurpose         Export the data in OpenDS with one excludeBranch parameter.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and excludeBranch
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 12'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export12: Export the data in OpenDS with one excludeBranch parameter'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export12.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-B "ou=People,o=backend tests,dc=example,dc=com"'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>
-                
-             <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 13
-            #@TestID              Export13
-            #@TestPurpose         Export the data in OpenDS with one includeAttribute, excludeFilter, and includeBranch parameters.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, includeAttribute, excludeFilter, and includeBranch
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 13'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export13: Export the data in OpenDS with one includeAttribute, excludeFilter, and includeBranch parameters'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export13.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-E "(&amp;(uid=jwalker)(roomnumber=*))" -i telephonenumber -b "o=backend tests,dc=example,dc=com"'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>
-                
-             <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 14
-            #@TestID              Export14
-            #@TestPurpose         Export the data in OpenDS with one excludeAttribute, includeFilter, and excludeBranch parameters.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, excludeAttribute, includeFilter, and excludeBranch
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 14'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export14: Export the data in OpenDS with one excludeAttribute, includeFilter, and excludeBranch parameters'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export14.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-I "(&amp;(uid=jwalker)(roomnumber=*))" -e telephonenumber -B "ou=groups,o=backend tests,dc=example,dc=com"'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>
-                
-              <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 15
-            #@TestID              Export15
-            #@TestPurpose         Export the data in OpenDS in compressed format.
-            #@TestPreamble
-            #@TestSteps           Client calls exportLDIF with the parameters
-                                  default backend, ldifFile, and compressLDIF
-            #@TestPostamble
-            #@TestResult Success if exportLDIF returns 0
-          -->
-            
-                 <testcase name="'Backend: Export 15'">
-        
-                  <sequence>
-          
-                    <call function="'testCase_Preamble'"/>
-                    <message>
-                      'Backend Export15: Export the data in OpenDS in compressed format'
-                    </message>
-                    <call function="'exportLdif'">
-                      { 
-                        'ldifFile'       : '%s/backends/Export15.ldif' % STAGED_DATA_DIR,
-                        'extraParams' : '-c'
-                      }
-                    </call>
-          
-                    <call function="'checktestRC'">
-                      { 'returncode' : RC ,
-                        'result'     : STAXResult }
-                    </call>
-                         
-                    <call function="'testCase_Postamble'"/>
-          
-                  </sequence>
-          
-                </testcase>
-      
-          <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Export 1
-            #@TestID              Export1
-            #@TestPurpose         
-            #@TestPreamble
-            #@TestSteps           
-            #@TestPostamble
-            #@TestResult
-          -->
-          
+          <!-- Set the server backup the way it was before the backend tests -->
+          <call function="'main_quickstart'" />
           
           
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: LDIF Default
+            #@TestName            Backend: Export: LDIF Default 
             #@TestID              LDIF Default
             #@TestPurpose         Verify an export of a LDIF file on the default backend.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+               
+                <testcase name="'Backend: Export: Export default backend'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export default backend'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_default.ldif' % STAGED_DATA_DIR,
+                        'backEnd'        : '%s' % DIRECTORY_INSTANCE_BE
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                         
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_default.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
     
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                    
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase> 
+                
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: LDIF Non Default
+            #@TestName            Backend: Export: LDIF Non Default
             #@TestID              LDIF Non Default
             #@TestPurpose         Verify an export of a LDIF file on a differrent backend to the default.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  non-default backend, and ldifFile           
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if Success if exportLDIF, importLDIF returns 0
           -->
+                 <testcase name="'Backend: Export: Export non-default backend'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export non-default backend'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_schema.ldif' % STAGED_DATA_DIR,
+                        'backEnd'        : 'schema'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_schema.ldif' % STAGED_DATA_DIR,
+                        'backEnd'     : 'schema',
+                        'dsPath'      : '%s/server2/%s' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
+                      }
+                    </call>
     
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
+   
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Fractional Include Branch
+            #@TestName            Backend: Export: Fractional Include Branch
             #@TestID              Fractional Include Branch
             #@TestPurpose         Verify an export of a LDIF file specifying a branch that should be included in the export.
             #@TestPreamble
-            #@TestSteps
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and -b option. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Fractional Include Branch'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Fractional Include Branch'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_IncludeBranch.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-b "dc=com"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_IncludeBranch.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                    
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>         
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Fractional Include Branches
+            #@TestName            Backend: Export: Fractional Include Branches
             #@TestID              Fractional Include Branches
             #@TestPurpose         Verify an export of a LDIF file specifying multiple branches that should be included in the export.
             #@TestPreamble
-            #@TestSteps
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and two -b options. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Fractional Include Branches'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Fractional Include Branches'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_IncludeBranches.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-b "dc=com" -b "dc=example,dc=com"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_IncludeBranches.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                    
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Fractional Exclude Branch
+            #@TestName            Backend: Export: Fractional Exclude Branch
             #@TestID              Fractional Exclude Branch
             #@TestPurpose         Verify an export of a LDIF file specifying a branch that should be excluded in the export.
             #@TestPreamble
-            #@TestSteps
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and -B option. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Fractional Exclude Branch'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Fractional Exclude Branch'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_ExcludeBranch.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-B "dc=example,dc=com"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_ExcludeBranch.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'missingEntries'  :  ['uid=tmorris,ou=People,dc=example,dc=com',
+                                              'uid=kvaughan,ou=People,dc=example,dc=com'],
+                        'expectedEntries' : ['dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                    
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
+  
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Fractional Exclude Branches
+            #@TestName            Backend: Export: Fractional Exclude Branches
             #@TestID              Fractional Exclude Branches
             #@TestPurpose         Verify an export of a LDIF file specifying multiple branches that should be excluded in the export.
             #@TestPreamble
-            #@TestSteps
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and two -B options. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+          
+                <testcase name="'Backend: Export: Export Fractional Exclude Branches'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Fractional Exclude Branches'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_ExcludeBranches.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-B "ou=People,dc=example,dc=com" -B "dc=example,dc=com"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                                          
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_ExcludeBranches.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
     
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'missingEntries'  :  ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com'],
+                        'expectedEntries' : ['dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                    
+                    <call function="'testCase_Postamble'"/>
+                    
+                  </sequence>
+          
+                </testcase>
+                
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Fractional Branches Mix
+            #@TestName            Backend: Export: Fractional Branches Mix
             #@TestID              Fractional Branches Mix
             #@TestPurpose         Verify an export of a LDIF file specifying a mix of include and exclude branches.
             #@TestPreamble
-            #@TestSteps
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, both -b and -B options. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Fractional Branches Mix'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Fractional Branches Mix'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_MixBranches.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-b "dc=com" -B "ou=People,dc=example,dc=com"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_MixBranches.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'missingEntries'  : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com'],
+                        'expectedEntries' : ['dc=com','dc=example,dc=com'],                    
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Fractional Include Attribute
+            #@TestName            Backend: Export: Fractional Include Attribute
             #@TestID              Fractional Include Attribute
             #@TestPurpose         Verify an export of a LDIF file specifying an attribute that should be included in the export.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and -i option. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Fractional Include Attribute'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Fractional Include Attribute'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_IncludeAttr.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-i dc'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_IncludeAttr.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['dc=com','dc=example,dc=com'],
+                        'missingEntries'  : ['ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Fractional Include Attributes
+            #@TestName            Backend: Export: Fractional Include Attributes
             #@TestID              Fractional Include Attributes
             #@TestPurpose         Verify an export of a LDIF file specifying multiple attributes that should be included in the export.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and five -i options. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Fractional Include Attributes'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Fractional Include Attributes'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_IncludeAttrs.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-i dc -i cn -i ou -i sn -i uid'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_IncludeAttrs.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries'   : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                               'uid=kvaughan,ou=People,dc=example,dc=com',
+                                               'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'missingAttributes' : ['userpassword'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Fractional Exclude Attribute
+            #@TestName            Backend: Export: Fractional Exclude Attribute
             #@TestID              Fractional Exclude Attribute
             #@TestPurpose         Verify an export of a LDIF file specifying an attribute that should be excluded in the export.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and -e option. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Fractional Exclude Attribute'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Fractional Exclude Attribute'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_ExcludeAttr.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-e userpassword'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_ExcludeAttr.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries'   : ['uid=tmorris,ou=People,dc=example,dc=com'],
+                        'missingAttributes' : ['userpassword'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Fractional Exclude Attributes
+            #@TestName            Backend: Export: Fractional Exclude Attributes
             #@TestID              Fractional Exclude Attributes
             #@TestPurpose         Verify an export of a LDIF file specifying multiple attribute that should be excluded in the export.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and three -e options. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Fractional Exclude Attributes'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Fractional Exclude Attributes'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_ExcludeAttrs.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-e userpassword -e mail -e roomnumber'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_ExcludeAttrs.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+     
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries'   : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                               'uid=kvaughan,ou=People,dc=example,dc=com',
+                                               'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'missingAttributes' : ['userpassword','mail','roomnumber'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Fractional Mix
+            #@TestName            Backend: Export: Fractional Mix
             #@TestID              Fractional Mix
             #@TestPurpose         Verify an export of a LDIF file specifying a mix of fractional attributes and branches.
             #@TestPreamble
-            #@TestSteps
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and mixed -i, -b, and -B options. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Fractional Mix'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Fractional Mix'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_FractionalMix.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-i dc -i cn -i ou -i sn -i uid -b "dc=com" -b "dc=example,dc=com" -b "ou=People,dc=example,dc=com" -B "ou=Departed,ou=People,dc=example,dc=com"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_FractionalMix.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'missingAttributes' : ['userpassword'],                     
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Filtered Include
+            #@TestName            Backend: Export: Filtered Include
             #@TestID              Filtered Include
             #@TestPurpose         Verify an export of a LDIF file specifying a search filter control which entries are included in the export.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and -I option. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Filtered Include'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Filtered Include'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_FilteredInclude.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-I "objectclass=*"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_FilteredInclude.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Filtered Includes
+            #@TestName            Backend: Export: Filtered Includes
             #@TestID              Filtered Includes
             #@TestPurpose         Verify an export of a LDIF file specifying a search filter control which entries are included in the export.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and two -I options. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Filtered Includes'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Filtered Includes'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_FilteredIncludes.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-I "objectclass=domain" -I "objectclass=organizationalunit"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_FilteredIncludes.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['dc=example,dc=com', 'dc=com'],
+                        'missingEntries'  : ['uid=scarter,ou=People,dc=example,dc=com',
+                                             'uid=dmiller,ou=People,dc=example,dc=com',
+                                             'uid=rhunt,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
+                
+                <!--- Test Case information
+            #@TestMarker          Backend Export Tests
+            #@TestName            Backend: Export: Filtered Exclude
+            #@TestID              Filtered Exclude
+            #@TestPurpose         Verify an export of a LDIF file specifying search filter control which entries are excluded in the export.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, an ldifFile, and -E option. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+          -->
+                <testcase name="'Backend: Export: Export Filtered Exclude'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Filtered Exclude'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_FilteredExclude.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-E "objectclass=person"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_FilteredExclude.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['dc=example,dc=com',
+                                             'ou=People,dc=example,dc=com'],
+                        'missingEntries'  : ['uid=scarter,ou=People,dc=example,dc=com',
+                                             'uid=dmiller,ou=People,dc=example,dc=com',
+                                             'uid=rhunt,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Filtered Excludes
+            #@TestName            Backend: Export: Filtered Excludes
             #@TestID              Filtered Excludes
             #@TestPurpose         Verify an export of a LDIF file specifying multiple search filters control which entries are excluded in the export.
             #@TestPreamble
-            #@TestSteps
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Filtered Excludes'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Filtered Excludes'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_FilteredExcludes.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-E "objectclass=person" -E "objectclass=organizationalunit"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_FilteredExcludes.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['dc=example,dc=com',
+                                             'dc=com'],
+                        'missingEntries'  : ['uid=scarter,ou=People,dc=example,dc=com',
+                                             'uid=dmiller,ou=People,dc=example,dc=com',
+                                             'uid=rhunt,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Filtered Includes
+            #@TestName            Backend: Export: Filtered Includes
             #@TestID              Filtered Includes
             #@TestPurpose         Verify an export of a LDIF file specifying multiple search filters control which entries are included in the export.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Filtered Includes'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Filtered Includes'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_FilteredIncludes.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-I "objectclass=domain" -I "objectclass=organizationalunit"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_FilteredIncludes.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['dc=example,dc=com',
+                                             'ou=People,dc=example,dc=com'],
+                        'missingEntries'  : ['uid=scarter,ou=People,dc=example,dc=com',
+                                             'uid=dmiller,ou=People,dc=example,dc=com',
+                                             'uid=rhunt,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Filtered Excludes Complex
+            #@TestName            Backend: Export: Filtered Includes Complex
+            #@TestID              Filtered Includes Complex
+            #@TestPurpose         Verify an export of a LDIF file specifying complex search filters control which entries are included in the export.
+            #@TestPreamble
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
+            #@TestPostamble
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+          -->
+                <testcase name="'Backend: Export: Export Filtered Includes Complex'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Filtered Includes Complex'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_FilteredComplexIncludes.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-I "|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_FilteredComplexIncludes.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
+    
+          <!--- Test Case information
+            #@TestMarker          Backend Export Tests
+            #@TestName            Backend: Export: Filtered Excludes Complex
             #@TestID              Filtered Excludes Complex
             #@TestPurpose         Verify an export of a LDIF file specifying complex search filters control which entries are excluded in the export.
             #@TestPreamble
-            #@TestSteps
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Filtered Excludes Complex'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Filtered Excludes Complex'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_FilteredComplexExcludes.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-E "&amp;(objectclass=person)(ou=Departed)"'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_FilteredComplexExcludes.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Filtered Excludes Complex
-            #@TestID              Filtered Excludes Complex
-            #@TestPurpose         Verify an export of a LDIF file specifying complex search filters control which entries are excluded in the export.
-            #@TestPreamble
-            #@TestSteps           
-            #@TestPostamble
-            #@TestResult
-          -->
-    
-          <!--- Test Case information
-            #@TestMarker          Backend Export Tests
-            #@TestName            Export: Fractional Filtered Mix
+            #@TestName            Backend: Export: Fractional Filtered Mix
             #@TestID              Fractional Filtered Mix
             #@TestPurpose         Verify an export of a LDIF file specifying a mix of fractional and filtered.
             #@TestPreamble
-            #@TestSteps
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Fractional Filtered Mix'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Fractional Filtered Mix'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_FilteredMix.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-E "&amp;(objectclass=person)(ou=Departed)" -b "dc=com" -e userpassword'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Append To LDIF
+            #@TestName            Backend: Export: Append To LDIF
             #@TestID              Append To LDIF
             #@TestPurpose         Verify an export of a LDIF file specifying that the export process should append to the existing LDIF file.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Append To LDIF'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Append To LDIF'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/Export_FilteredMix.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-a'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Compress LDIF
+            #@TestName            Backend: Export: Compress LDIF
             #@TestID              Compress LDIF
             #@TestPurpose         Verify an export where the LDIF file is compressed.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Compress LDIF'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Compress LDIF'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/ExportCompressed.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-c'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'       : '%s/backends/ExportCompressed.ldif' % STAGED_DATA_DIR,
+                        'dsPath'         : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'extraParams'    : '-c'}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Encrypt LDIF
+            #@TestName            Backend: Export: Encrypt LDIF
             #@TestID              Encrypt LDIF
             #@TestPurpose         Verify an export where the LDIF file is encrypted.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Encrypt LDIF'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Encrypt LDIF'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/ExportEncrypted.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-y'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/ExportEncrypted.ldif' % STAGED_DATA_DIR,
+                        'extraParams' : '-y',
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
@@ -891,27 +1937,98 @@
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Wrap Column
+            #@TestName            Backend: Export: Wrap Column
             #@TestID              Wrap Column
             #@TestPurpose         Verify an export of a LDIF file containing wrapped columns
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
+                <testcase name="'Backend: Export: Export Wrap Column'">
+        
+                  <sequence>
+          
+                    <call function="'testCase_Preamble'"/>
+                    <message>
+                      'Backend: Export: Export Wrap Column'
+                    </message>
+                    <call function="'exportLdif'">
+                      { 
+                        'ldifFile'       : '%s/backends/ExportWrapCol.ldif' % STAGED_DATA_DIR,
+                        'extraParams'    : '-w 25'
+                      }
+                    </call>
+          
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+                    
+                    <call function="'importLdif'">
+                      { 'ldifFile'    : '%s/backends/ExportWrapCol.ldif' % STAGED_DATA_DIR,
+                        'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+    
+                    <call function="'checktestRC'">
+                      { 'returncode' : RC ,
+                        'result'     : STAXResult }
+                    </call>
+    
+                    <!-- StartDS -->
+                    <call function="'StartDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
+                    </call>
+          
+                    <!-- Wait for DS to start -->
+                    <call function="'isAlive'">
+                      { 'location'         : mylocation,
+                        'noOfLoops'        : 1 ,
+                        'noOfMilliSeconds' : 2000,
+                        'dsPath'           : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsInstancePort'   : DsInstancePort}
+                    </call>
+                    
+                    <call function="'checkImport'">
+                      { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
+                                             'uid=kvaughan,ou=People,dc=example,dc=com',
+                                             'uid=kwinters,ou=People,dc=example,dc=com'],
+                        'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'   : DsInstancePort,
+                        'startDS'  : 'no'}
+                    </call>
+                    
+                    <!-- StopDS -->
+                    <call function="'StopDsWithScript'">
+                      { 'location'  : mylocation,
+                        'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                        'dsPort'    : DsInstancePort,
+                        'dsBindDN'  : mydn,
+                        'dsBindPwd' : mypswd}
+                    </call>
+                         
+                    <call function="'testCase_Postamble'"/>
+          
+                  </sequence>
+          
+                </testcase>
           
           <!--- Test Case information
             #@TestMarker          Backend Export Tests
-            #@TestName            Export: Error Codes
+            #@TestName            Backend: Export: Error Codes
             #@TestID              Error Codes
             #@TestPurpose         Verify an export fails with an error code.
             #@TestPreamble
-            #@TestSteps           
+            #@TestSteps           Client calls exportLDIF with the parameters
+                                  default backend, and ldifFile. Import the ldifFile to 
+                                  a second instance, then do a search to verify the import.
             #@TestPostamble
-            #@TestResult
+            #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
           -->
-    
-          <call function="'testSuite_Postamble'"/>
+                 <!-- Need to know what the error codes are -->
     
         </sequence>
     
