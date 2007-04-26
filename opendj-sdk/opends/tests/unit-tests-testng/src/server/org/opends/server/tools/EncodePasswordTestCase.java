@@ -29,7 +29,6 @@ package org.opends.server.tools;
 
 
 import java.io.File;
-import java.io.FileWriter;
 import java.util.ArrayList;
 
 import org.testng.annotations.BeforeClass;
@@ -37,18 +36,11 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Entry;
-import org.opends.server.types.OperatingSystem;
-import org.opends.server.types.ResultCode;
-import org.opends.server.util.Base64;
 
 import static org.testng.Assert.*;
 
-import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -61,8 +53,11 @@ public class EncodePasswordTestCase
   // The path to the Directory Server configuration file.
   private String configFilePath;
 
-  // The path to the temporary file containing a password.
+  // The path to the temporary file containing a clear-text password.
   private String passwordFilePath;
+
+  // The path to the temporary file containing an encoded password.
+  private String encodedPasswordFilePath;
 
 
 
@@ -81,6 +76,9 @@ public class EncodePasswordTestCase
                      "config" + File.separator + "config.ldif";
 
     passwordFilePath = TestCaseUtils.createTempFile("password");
+
+    encodedPasswordFilePath =
+         TestCaseUtils.createTempFile("{SHA}C5wmJdwh7wX2rU3fR8XyA4N6oyw=");
   }
 
 
@@ -453,6 +451,25 @@ public class EncodePasswordTestCase
       "--clearPassword", "password",
       "--storageScheme", "CLEAR",
       "--encodedPassword", "password"
+    };
+
+    assertEquals(EncodePassword.encodePassword(args, false, null, null), 0);
+  }
+
+
+
+  /**
+   * Tests the EncodePassword tool by performing a comparison of clear-text
+   * with a valid matching encoded password.
+   */
+  @Test()
+  public void testCompareMatchingEncodedPasswordsFromFile()
+  {
+    String[] args =
+    {
+      "--configFile", configFilePath,
+      "--clearPasswordFile", passwordFilePath,
+      "--encodedPasswordFile", encodedPasswordFilePath
     };
 
     assertEquals(EncodePassword.encodePassword(args, false, null, null), 0);
