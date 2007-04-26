@@ -67,7 +67,9 @@ public class TestLDAPFilter extends LdapTestCase
       { "(&(givenname=bob)|(sn=pep)dob=12))", null },
       { "(:=bob)", null },
       { "(=sally)", null },
-      { "(cn=billy bob", null }
+      { "(cn=billy bob", null },
+      { "(|(!(title=sweep*)(l=Paris*)))", null },
+      { "(|(!))", null },
 
     };
   }

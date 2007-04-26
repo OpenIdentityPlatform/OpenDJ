@@ -281,11 +281,12 @@ public class SearchFilterTests extends DirectoryServerTestCase {
             {"(!(sn=test)"},
             {"(&(sn=test)))"},
             {"(|(sn=test)))"},
-            // TODO: open a bug for this.
-//            {"(!(sn=test)))"},
+            {"(!(sn=test)))"},
             {"(sn=\\A)"},
             {"(sn=\\1H)"},
             {"(sn=\\H1)"},
+            {"(!(sn=test)(cn=test))"},
+            {"(!)"},
     };
   }
 

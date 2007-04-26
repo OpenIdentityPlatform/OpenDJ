@@ -1092,7 +1092,7 @@ public class AciMessages {
              MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_FILTER,
              "The provided Access Control Instruction (ACI) " +
              "targattrfilters expression value " +
-             "%s is invalid because the one or more of the specified" +
+             "%s is invalid because one or more of the specified " +
              "filters are invalid for the following reason: " +
              "%s");
 
@@ -1100,7 +1100,7 @@ public class AciMessages {
              MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_FILTER_LISTS_ATTR_FILTER,
              "The provided Access Control Instruction (ACI) " +
              "targattrfilters expression value " +
-             "%s is invalid because the one or more of the specified" +
+             "%s is invalid because one or more of the specified " +
              "filters are invalid because of non-matching attribute" +
              "type names in the filter");
 
