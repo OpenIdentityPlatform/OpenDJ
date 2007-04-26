@@ -493,7 +493,7 @@ ServiceReturnCode doStartApplication()
 {
   ServiceReturnCode returnValue;
   // init out params
-  char* relativePath = "\\bin\\start-ds.bat";
+  char* relativePath = "\\bat\\start-ds.bat";
   char command[COMMAND_SIZE];
   if (strlen(relativePath)+strlen(_instanceDir)+1 < COMMAND_SIZE)
   {
@@ -549,7 +549,7 @@ ServiceReturnCode doStopApplication()
 {
   ServiceReturnCode returnValue;
   // init out params
-  char* relativePath = "\\bin\\stop-ds.bat";
+  char* relativePath = "\\bat\\stop-ds.bat";
   char command[COMMAND_SIZE];
   if (strlen(relativePath)+strlen(_instanceDir)+1 < COMMAND_SIZE)
   {
