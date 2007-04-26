@@ -239,7 +239,8 @@ public abstract class Launcher {
     if (shouldPrintUsage()) {
       printUsage();
     } else if (isCli()) {
-      System.exit(launchCli(args, createCliApplication()));
+      int exitCode = launchCli(args, createCliApplication());
+      System.exit(exitCode);
     } else {
       willLaunchGui();
       int exitCode = launchGui(args);
