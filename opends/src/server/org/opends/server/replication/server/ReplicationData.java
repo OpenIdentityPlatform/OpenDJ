@@ -26,44 +26,35 @@
  */
 package org.opends.server.replication.server;
 
+import com.sleepycat.je.DatabaseEntry;
 
-
-import org.opends.server.types.IdentifiedException;
-
-
+import org.opends.server.replication.protocol.ReplicationMessage;
+import org.opends.server.replication.protocol.UpdateMessage;
 
 /**
- * This class define an Exception that must be used when some error
- * condition was detected in the changelog database that cannot be recovered
- * automatically.
+ * SuperClass of DatabaseEntry used for data stored in the ReplicationServer
+ * Databases.
  */
-public class ChangelogDBException extends IdentifiedException
+public class ReplicationData extends DatabaseEntry
 {
-  private int messageID;
-
-  private static final long serialVersionUID = -8812600147768060090L;
-
   /**
-   * Creates a new Changelog db exception with the provided message.
-   * This Exception must be used when the full changelog service is
-   * compromised by the exception
-   *
-   * @param  messageID  The unique message ID for the provided message.
-   * @param  message    The message to use for this exception.
+   * Creates a new ReplicationData object from an UpdateMessage.
+   * @param change the UpdateMessage used to create the ReplicationData.
    */
-  public ChangelogDBException(int messageID, String message)
+  public ReplicationData(UpdateMessage change)
   {
-    super(message);
-
-    this.messageID = messageID;
+    this.setData(change.getBytes());
   }
 
   /**
-   * Returns the message Id associated to this Exception.
-   * @return the message ID associated to this Exception.
+   * Generate an UpdateMessage from its byte[] form.
+   * @param data The DatabaseEntry used to generate the UpdateMessage.
+   * @return The generated change.
+   * @throws Exception When the data was not a valid Update Message.
    */
-  public int getMessageID()
+  public static UpdateMessage generateChange(byte[] data)
+                                             throws Exception
   {
-    return messageID;
+    return (UpdateMessage) ReplicationMessage.generateMsg(data);
   }
 }

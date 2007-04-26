@@ -30,12 +30,12 @@ import org.opends.server.replication.common.ChangeNumber;
 
 /**
  * This class is used to store acks for update messages coming from
- * other changelog servers.
+ * other replication servers.
  */
-public class ChangelogAckMessageList extends AckMessageList
+public class ReplServerAckMessageList extends AckMessageList
 {
-  private short changelogServerId;
-  private ChangelogCache changelogCache;
+  private short replicationServerId;
+  private ReplicationCache replicationCache;
 
   /**
    * Creates a new AckMessageList for a given ChangeNumber.
@@ -43,40 +43,41 @@ public class ChangelogAckMessageList extends AckMessageList
    * @param changeNumber The ChangeNumber for which the ack list is created.
    * @param numExpectedAcks The number of acks waited before acking the
    *                        original change.
-   * @param changelogServerId The Identifier of the changelog server
+   * @param replicationServerId The Identifier of the replication server
    *                          from which the change was received.
-   * @param changelogCache The ChangelogCache from which he change was received.
+   * @param replicationCache The ReplicationCache from which he change
+   *                         was received.
    */
-  public ChangelogAckMessageList(ChangeNumber changeNumber,
+  public ReplServerAckMessageList(ChangeNumber changeNumber,
                                  int numExpectedAcks,
-                                 short changelogServerId,
-                                 ChangelogCache changelogCache)
+                                 short replicationServerId,
+                                 ReplicationCache replicationCache)
   {
     super(changeNumber, numExpectedAcks);
-    this.changelogServerId = changelogServerId;
-    this.changelogCache = changelogCache;
+    this.replicationServerId = replicationServerId;
+    this.replicationCache = replicationCache;
   }
 
   /**
-   * Get the Identifier of the changelog server from which we received the
+   * Get the Identifier of the replication server from which we received the
    * change.
-   * @return Returns the Identifier of the changelog server from which we
+   * @return Returns the Identifier of the replication server from which we
    *         received the change.
    */
-  public short getChangelogServerId()
+  public short getReplicationServerId()
   {
-    return changelogServerId;
+    return replicationServerId;
   }
 
   /**
-   * Get the changelogCache of the changelog server from which we received the
-   * change.
-   * @return Returns the changelogCache of the changelog server from which we
-   *         received the change .
+   * Get the replicationCache of the replication server from which we received
+   * the change.
+   * @return Returns the replicationCache of the replication server from which
+   *         we received the change .
    */
-  public ChangelogCache getChangelogCache()
+  public ReplicationCache getChangelogCache()
   {
-    return changelogCache;
+    return replicationCache;
   }
 
 

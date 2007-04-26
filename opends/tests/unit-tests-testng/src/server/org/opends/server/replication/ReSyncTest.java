@@ -66,12 +66,12 @@ public class ReSyncTest extends ReplicationTestCase
   public void setup() throws Exception
   {
    /*
-    * - Start a server and a changelog server, configure replication
+    * - Start a server and a replicationServer, configure replication
     * - Do some changes.
     */
     TestCaseUtils.startServer();
 
-    // find  a free port for the changelog server
+    // find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();
     int changelogPort = socket.getLocalPort();
     socket.close();

@@ -26,30 +26,31 @@
  */
 package org.opends.server.replication.server;
 
-import java.util.Comparator;
+import java.io.UnsupportedEncodingException;
+
+import com.sleepycat.je.DatabaseEntry;
 
 import org.opends.server.replication.common.ChangeNumber;
 
 /**
- * This Class define a Comparator that allows to know which ChangelogIterator
- * contain the next UpdateMessage in the order defined by the ChangeNumber
- * of the UpdateMessage.
+ * Superclass of DatabaseEntry.
+ * Useful to create ReplicationServer keys from ChangeNumbers.
  */
-public class ChangelogIteratorComparator
-              implements Comparator<ChangelogIterator>
+public class ReplicationKey extends DatabaseEntry
 {
   /**
-   * Compare the ChangeNumber of the ChangelogIterators.
-   *
-   * @param o1 first ChangelogIterator.
-   * @param o2 second ChangelogIterator.
-   * @return result of the comparison.
+   * Creates a new ReplicationKey from the given ChangeNumber.
+   * @param changeNumber The changeNumber to use.
    */
-  public int compare(ChangelogIterator o1, ChangelogIterator o2)
+  public ReplicationKey(ChangeNumber changeNumber)
   {
-    ChangeNumber csn1 = o1.getChange().getChangeNumber();
-    ChangeNumber csn2 = o2.getChange().getChangeNumber();
-
-    return ChangeNumber.compare(csn1, csn2);
+    try
+    {
+      this.setData(changeNumber.toString().getBytes("UTF-8"));
+    } catch (UnsupportedEncodingException e)
+    {
+      // Should never happens, UTF-8 is always supported
+      // TODO : add better logging
+    }
   }
 }

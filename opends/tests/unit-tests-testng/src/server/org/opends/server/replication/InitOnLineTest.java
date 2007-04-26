@@ -46,7 +46,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.messages.TaskMessages;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.replication.plugin.ChangelogBroker;
+import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.replication.protocol.DoneMessage;
 import org.opends.server.replication.protocol.EntryMessage;
@@ -56,8 +56,8 @@ import org.opends.server.replication.protocol.InitializeTargetMessage;
 import org.opends.server.replication.protocol.RoutableMessage;
 import org.opends.server.replication.protocol.SocketSession;
 import org.opends.server.replication.protocol.ReplicationMessage;
-import org.opends.server.replication.server.Changelog;
-import org.opends.server.replication.server.ChangelogFakeConfiguration;
+import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -118,9 +118,9 @@ public class InitOnLineTest extends ReplicationTestCase
   int changelogPort = 8989;
 
   private DN baseDn;
-  ChangelogBroker server2 = null;
-  Changelog changelog1 = null;
-  Changelog changelog2 = null;
+  ReplicationBroker server2 = null;
+  ReplicationServer changelog1 = null;
+  ReplicationServer changelog2 = null;
   boolean emptyOldChanges = true;
   ReplicationDomain sd = null;
 
@@ -626,7 +626,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * @param destinationServerID The target server.
    * @param requestorID The initiator server.
    */
-  private void makeBrokerPublishEntries(ChangelogBroker broker,
+  private void makeBrokerPublishEntries(ReplicationBroker broker,
       short senderID, short destinationServerID, short requestorID)
   {
     // Send entries
@@ -658,7 +658,7 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
-  void receiveUpdatedEntries(ChangelogBroker broker, short serverID,
+  void receiveUpdatedEntries(ReplicationBroker broker, short serverID,
       String[] updatedEntries)
   {
     // Expect the broker to receive the entries
@@ -715,11 +715,11 @@ public class InitOnLineTest extends ReplicationTestCase
   }
 
   /**
-   * Creates a new changelog server.
-   * @param changelogId The serverID of the changelog to create.
-   * @return The new changelog server.
+   * Creates a new replicationServer.
+   * @param changelogId The serverID of the replicationServer to create.
+   * @return The new replicationServer.
    */
-  private Changelog createChangelogServer(short changelogId)
+  private ReplicationServer createChangelogServer(short changelogId)
   {
     try
     {
@@ -732,13 +732,13 @@ public class InitOnLineTest extends ReplicationTestCase
       {
         int chPort = getChangelogPort(changelogId);
 
-        ChangelogFakeConfiguration conf =
-          new ChangelogFakeConfiguration(chPort, null, 0, changelogId, 0, 100,
+        ReplServerFakeConfiguration conf =
+          new ReplServerFakeConfiguration(chPort, null, 0, changelogId, 0, 100,
                                          null);
-        Changelog changelog = new Changelog(conf);
+        ReplicationServer replicationServer = new ReplicationServer(conf);
         Thread.sleep(1000);
 
-        return changelog;
+        return replicationServer;
       }
     }
     catch (Exception e)
@@ -750,12 +750,12 @@ public class InitOnLineTest extends ReplicationTestCase
 
   /**
    * Create a synchronized suffix in the current server providing the
-   * changelog serverID.
+   * replication Server ID.
    * @param changelogID
    */
   private void connectServer1ToChangelog(short changelogID)
   {
-    // Connect DS to the changelog
+    // Connect DS to the replicationServer
     try
     {
       // suffix synchronized
@@ -820,7 +820,7 @@ public class InitOnLineTest extends ReplicationTestCase
     {
       changelog1 = createChangelogServer(changelog1ID);
 
-      // Connect DS to the changelog
+      // Connect DS to the replicationServer
       connectServer1ToChangelog(changelog1ID);
 
       if (server2 == null)
@@ -874,7 +874,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
     changelog1 = createChangelogServer(changelog1ID);
 
-    // Connect DS to the changelog
+    // Connect DS to the replicationServer
     connectServer1ToChangelog(changelog1ID);
 
     addTestEntriesToDB();
@@ -959,7 +959,7 @@ public class InitOnLineTest extends ReplicationTestCase
       server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
         server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
-    ChangelogBroker server3 = openChangelogSession(DN.decode("dc=example,dc=com"),
+    ReplicationBroker server3 = openChangelogSession(DN.decode("dc=example,dc=com"),
         server3ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
     Thread.sleep(1000);
@@ -1217,7 +1217,7 @@ public class InitOnLineTest extends ReplicationTestCase
     changelog2 = createChangelogServer(changelog2ID);
     Thread.sleep(3000);
 
-    // Connect DS to the changelog 1
+    // Connect DS to the replicationServer 1
     connectServer1ToChangelog(changelog1ID);
 
     // Put entries in DB
@@ -1435,7 +1435,7 @@ public class InitOnLineTest extends ReplicationTestCase
       server2.stop();
 
       TestCaseUtils.sleep(100); // give some time to the broker to disconnect
-      // fromthe changelog server.
+      // from the replicationServer.
       server2 = null;
     }
     super.cleanRealEntries();

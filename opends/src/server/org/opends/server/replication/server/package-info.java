@@ -26,17 +26,17 @@
  */
 
 /**
- * This package contains the code for the changelog service part
+ * This package contains the code for the Replication Server part
  * of the Multimaster replication feature.
  * <br>
  *
- * A changelog server is responsible for :
+ * A replication server is responsible for :
  * <br>
  * <ul>
  * <li>listen for connections from ldap servers.</li>
- * <li>Connect/manage connection to other changelog servers.</li>
+ * <li>Connect/manage connection to other replication servers.</li>
  * <li>Receive changes from ldap servers.</li>
- * <li>Forward changes to ldap server and other changelog servers.</li>
+ * <li>Forward changes to ldap server and other replication servers.</li>
  * <li>Save changes to stable storage (includes trimming of older operations).
  * </li>
  * </ul>
@@ -46,19 +46,19 @@
  * <ul>
  * <li><A HREF="SocketSession.html"><B>SocketSession</B></A>
  * implements the ProtocolSession interface that is
- * used by the changelog server and the directory server to communicate.
+ * used by the replication server and the directory server to communicate.
  * This is done by using the innate encoding/decoding capabilities of the
  * ReplicationMessages objects. This class is used by both the
- * changelog and the replication package.
+ * replicationServer and the replication package.
  * </li>
- * <li><A HREF="ChangelogCache.html"><B>ChangelogCache</B></A>
- * implements the multiplexing part of the changelog
+ * <li><A HREF="ReplicationCache.html"><B>ReplicationCache</B></A>
+ * implements the multiplexing part of the replication
  * server. It contains method for forwarding all the received messages to
  * the ServerHandler and to the dbHandler objects.<br>
  * </li>
  * <li><A HREF="ServerHandler.html"><B>ServerHandler</B></A>
  * contains the code related to handler of remote
- * server. It can manage changelog servers of directory servers (may be it
+ * server. It can manage replication servers of directory servers (may be it
  * shoudl be splitted in two different classes, one for each of these).<br>
  * </li>
  * <li><A HREF="ServerWriter.html"><B>ServerWriter</B></A>

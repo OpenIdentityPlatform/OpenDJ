@@ -38,7 +38,7 @@ import java.util.concurrent.locks.Lock;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.plugin.ChangelogBroker;
+import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.HeartbeatThread;
@@ -232,16 +232,16 @@ public class UpdateOperationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     /*
-     * Open a session to the changelog server using the broker API.
+     * Open a session to the replicationServer using the broker API.
      * This must use a different serverId to that of the directory server.
      */
-    ChangelogBroker broker =
+    ReplicationBroker broker =
       openChangelogSession(baseDn, (short) 2, 100, 8989, 1000, true);
 
 
     /*
      * Create a Change number generator to generate new changenumbers
-     * when we need to send operation messages to the changelog server.
+     * when we need to send operation messages to the replicationServer.
      */
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 2, 0);
 
@@ -315,16 +315,16 @@ public class UpdateOperationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     /*
-     * Open a session to the changelog server using the broker API.
+     * Open a session to the replicationServer using the broker API.
      * This must use a different serverId to that of the directory server.
      */
-    ChangelogBroker broker =
+    ReplicationBroker broker =
       openChangelogSession(baseDn, (short) 2, 100, 8989, 1000, true);
 
 
     /*
      * Create a Change number generator to generate new changenumbers
-     * when we need to send operation messages to the changelog server.
+     * when we need to send operation messages to the replicationServer.
      */
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 2, 0);
 
@@ -398,10 +398,10 @@ public class UpdateOperationTest extends ReplicationTestCase
   /**
    * Tests the naming conflict resolution code.
    * In this test, the local server act both as an LDAP server and
-   * a changelog server that are inter-connected.
+   * a replicationServer that are inter-connected.
    *
-   * The test creates an other session to the changelog server using
-   * directly the ChangelogBroker API.
+   * The test creates an other session to the replicationServer using
+   * directly the ReplicationBroker API.
    * It then uses this session to siomulate conflicts and therefore
    * test the naming conflict resolution code.
    */
@@ -415,15 +415,15 @@ public class UpdateOperationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     /*
-     * Open a session to the changelog server using the Changelog broker API.
+     * Open a session to the replicationServer using the ReplicationServer broker API.
      * This must use a serverId different from the LDAP server ID
      */
-    ChangelogBroker broker =
+    ReplicationBroker broker =
       openChangelogSession(baseDn, (short) 2, 100, 8989, 1000, true);
 
     /*
      * Create a Change number generator to generate new changenumbers
-     * when we need to send operations messages to the changelog server.
+     * when we need to send operations messages to the replicationServer.
      */
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 2, 0);
 
@@ -812,7 +812,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   }
 
   /**
-   * Tests done using directly the ChangelogBroker interface.
+   * Tests done using directly the ReplicationBroker interface.
    */
   @Test(enabled=false, dataProvider="assured")
   public void updateOperations(boolean assured) throws Exception
@@ -825,14 +825,14 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     cleanRealEntries();
 
-    ChangelogBroker broker =
+    ReplicationBroker broker =
       openChangelogSession(baseDn, (short) 27, 100, 8989, 1000, true);
     try {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 27, 0);
 
       /*
        * Test that operations done on this server are sent to the
-       * changelog server and forwarded to our changelog broker session.
+       * replicationServer and forwarded to our replicationServer broker session.
        */
 
       // Create an Entry (add operation)
@@ -925,7 +925,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       "The received DELETE message is not for the excepted DN");
 
       /*
-       * Now check that when we send message to the Changelog server
+       * Now check that when we send message to the ReplicationServer
        * and that they are received and correctly replayed by the server.
        *
        * Start by testing the Add message reception
@@ -1109,7 +1109,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     Thread.sleep(2000);
-    ChangelogBroker broker =
+    ReplicationBroker broker =
       openChangelogSession(baseDn, (short) 11, 100, 8989, 1000, true);
     try
     {

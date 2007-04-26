@@ -38,7 +38,7 @@ import org.opends.server.types.DN;
 
 /**
  * This message is used by LDAP server when they first connect.
- * to a changelog server to let them know who they are and what is their state
+ * to a replication server to let them know who they are and what is their state
  * (their RUV)
  */
 public class ServerStartMessage extends ReplicationMessage implements

@@ -43,7 +43,8 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
  * ServerState class.
  * This object is used to store the last update seem on this server
  * from each server.
- * It is exchanged with the changelog servers at connection establishment time.
+ * It is exchanged with the replication servers at connection establishment
+ * time.
  */
 public class ServerState implements Iterable<Short>
 {

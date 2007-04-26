@@ -44,7 +44,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.plugin.ChangelogBroker;
+import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.types.Attribute;
@@ -84,7 +84,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
     TestCaseUtils.startServer();
     schemaCheck = DirectoryServer.checkSchema();
 
-    // find  a free port for the changelog server
+    // find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();
     changelogPort = socket.getLocalPort();
     socket.close();
@@ -124,7 +124,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
   }
 
   /**
-   * Checks that changes done to the schema are pushed to the changelog
+   * Checks that changes done to the schema are pushed to the replicationServer
    * clients.
    */
   @Test()
@@ -136,7 +136,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     final DN baseDn = DN.decode("cn=schema");
 
-    ChangelogBroker broker =
+    ReplicationBroker broker =
       openChangelogSession(baseDn, (short) 2, 100, changelogPort, 5000, true);
 
     try
@@ -210,7 +210,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
   }
 
   /**
-   * Checks that changes to the schema pushed to the changelog
+   * Checks that changes to the schema pushed to the replicationServer
    * are received and correctly replayed by replication plugin.
    */
   @Test(dependsOnMethods = { "pushSchemaChange" })
@@ -222,7 +222,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     final DN baseDn = DN.decode("cn=schema");
 
-    ChangelogBroker broker =
+    ReplicationBroker broker =
       openChangelogSession(baseDn, (short) 2, 100, changelogPort, 5000, true);
 
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short)2, 0);
@@ -241,7 +241,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
   /**
    * Checks that changes done to the schema files are pushed to the
-   * Changelog servers and that the ServerState is updated in the schema
+   * ReplicationServers and that the ServerState is updated in the schema
    * file.
    * FIXME: This test is disabled because it has side effects.
    * It causes schema tests in org.opends.server.core.AddOperationTestCase
@@ -256,7 +256,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     final DN baseDn = DN.decode("cn=schema");
 
-    ChangelogBroker broker =
+    ReplicationBroker broker =
       openChangelogSession(baseDn, (short) 3, 100, changelogPort, 5000, true);
 
     // create a schema change Notification

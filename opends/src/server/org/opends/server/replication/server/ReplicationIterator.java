@@ -30,19 +30,19 @@ import com.sleepycat.je.DatabaseException;
 
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMessage;
-import org.opends.server.replication.server.ChangelogDB.ChangelogCursor;
+import org.opends.server.replication.server.ReplicationDB.ReplServerDBCursor;
 
 /**
  * This class allows to iterate through the changes received from a given
  * LDAP Server Identifier.
  */
-public class ChangelogIterator
+public class ReplicationIterator
 {
   private UpdateMessage currentChange = null;
-  private ChangelogCursor cursor = null;
+  private ReplServerDBCursor cursor = null;
 
   /**
-   * Creates a new ChangelogIterator.
+   * Creates a new ReplicationIterator.
    * @param id the Identifier of the server on which the iterator applies.
    * @param db The db where the iterator must be created.
    * @param changeNumber The ChangeNumber after which the iterator must start.
@@ -50,8 +50,9 @@ public class ChangelogIterator
    *         with changeNumber number.
    * @throws DatabaseException if a database problem happened.
    */
-  public ChangelogIterator(short id, ChangelogDB db, ChangeNumber changeNumber)
-                           throws Exception, DatabaseException
+  public ReplicationIterator(
+          short id, ReplicationDB db, ChangeNumber changeNumber)
+          throws Exception, DatabaseException
   {
     cursor = db.openReadCursor(changeNumber);
     if (cursor == null)
@@ -74,7 +75,7 @@ public class ChangelogIterator
   }
 
   /**
-   * Go to the next change in the ChangelogDB or in the server Queue.
+   * Go to the next change in the ReplicationDB or in the server Queue.
    * @return false if the iterator is already on the last change before
    *         this call.
    */

@@ -29,7 +29,7 @@ package org.opends.server.replication.plugin;
 
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.plugin.ChangelogBroker;
+import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.plugin.Historical;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.TestCaseUtils;
@@ -199,10 +199,10 @@ public class HistoricalTest
          DirectoryServer.getAttributeType("entryuuid");
 
     /*
-     * Open a session to the changelog server using the broker API.
+     * Open a session to the replicationServer using the broker API.
      * This must use a different serverId to that of the directory server.
      */
-    ChangelogBroker broker =
+    ReplicationBroker broker =
       openChangelogSession(baseDn, (short) 2, 100, 8989, 1000, true);
 
 
@@ -310,7 +310,7 @@ public class HistoricalTest
   }
 
   private static
-  void publishModify(ChangelogBroker broker, ChangeNumber changeNum,
+  void publishModify(ReplicationBroker broker, ChangeNumber changeNum,
                      DN dn, String entryuuid, Modification mod)
   {
     List<Modification> mods = new ArrayList<Modification>(1);

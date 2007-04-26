@@ -32,7 +32,7 @@ import java.util.zip.DataFormatException;
 
 /**
  * This message is part of the replication protocol.
- * This message is sent by a server or a changelog server when an error
+ * This message is sent by a server or a replication server when an error
  * is detected in the context of a total update.
  */
 public class ErrorMessage extends RoutableMessage implements
@@ -63,7 +63,7 @@ public class ErrorMessage extends RoutableMessage implements
   /**
    * Create a InitializeMessage.
    *
-   * @param destination changelog server id
+   * @param destination replication server id
    * @param msgID error message ID
    * @param details details of the error
    */

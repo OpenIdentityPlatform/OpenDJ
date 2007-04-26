@@ -32,7 +32,7 @@ import java.util.zip.DataFormatException;
 import org.opends.server.replication.common.ChangeNumber;
 
 /**
- * Used to send acks between LDAP and changelog servers.
+ * Used to send acks between LDAP and replication servers.
  */
 public class AckMessage extends ReplicationMessage
 {

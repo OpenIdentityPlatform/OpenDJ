@@ -40,7 +40,7 @@ import java.util.concurrent.locks.Lock;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.ChangelogBroker;
+import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.plugin.PersistentServerState;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.core.DeleteOperation;
@@ -115,10 +115,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * Open a changelog session to the local Changelog server.
+   * Open a replicationServer session to the local ReplicationServer.
    *
    */
-  protected ChangelogBroker openChangelogSession(
+  protected ReplicationBroker openChangelogSession(
       final DN baseDn, short serverId, int window_size,
       int port, int timeout, boolean emptyOldChanges)
           throws Exception, SocketException
@@ -129,7 +129,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     else
        state = new ServerState();
 
-    ChangelogBroker broker = new ChangelogBroker(
+    ReplicationBroker broker = new ReplicationBroker(
         state, baseDn, serverId, 0, 0, 0, 0, window_size, 0);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
@@ -137,7 +137,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     if (timeout != 0)
       broker.setSoTimeout(timeout);
     TestCaseUtils.sleep(100); // give some time to the broker to connect
-                              // to the changelog server.
+                              // to the replicationServer.
     if (emptyOldChanges)
     {
       /*
@@ -162,15 +162,15 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * Open a new session to the Changelog Server
+   * Open a new session to the ReplicationServer
    * starting with a given ServerState.
    */
-  protected ChangelogBroker openChangelogSession(
+  protected ReplicationBroker openChangelogSession(
       final DN baseDn, short serverId, int window_size,
       int port, int timeout, ServerState state)
           throws Exception, SocketException
   {
-    ChangelogBroker broker = new ChangelogBroker(
+    ReplicationBroker broker = new ReplicationBroker(
         state, baseDn, serverId, 0, 0, 0, 0, window_size, 0);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
@@ -182,10 +182,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * Open a changelog session with flow control to the local Changelog server.
+   * Open a replicationServer session with flow control to the local
+   * ReplicationServer.
    *
    */
-  protected ChangelogBroker openChangelogSession(
+  protected ReplicationBroker openChangelogSession(
       final DN baseDn, short serverId, int window_size,
       int port, int timeout, int maxSendQueue, int maxRcvQueue,
       boolean emptyOldChanges)
@@ -197,7 +198,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     else
        state = new ServerState();
 
-    ChangelogBroker broker = new ChangelogBroker(
+    ReplicationBroker broker = new ReplicationBroker(
         state, baseDn, serverId, maxRcvQueue, 0,
         maxSendQueue, 0, window_size, 0);
     ArrayList<String> servers = new ArrayList<String>(1);
@@ -336,7 +337,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       "Unable to add the Multimaster replication plugin");
       
 
-    // Add the changelog server
+    // Add the replication server
     DirectoryServer.getConfigHandler().addEntry(changeLogEntry, null);
     assertNotNull(DirectoryServer.getConfigEntry(changeLogEntry.getDN()),
        "Unable to add the changeLog server");

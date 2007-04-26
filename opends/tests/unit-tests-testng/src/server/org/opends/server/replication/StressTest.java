@@ -45,7 +45,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.plugin.ChangelogBroker;
+import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.types.Attribute;
@@ -65,7 +65,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
- * Stress test for the synchronization code using the ChangelogBroker API.
+ * Stress test for the synchronization code using the ReplicationBroker API.
  */
 public class StressTest extends ReplicationTestCase
 {
@@ -97,7 +97,7 @@ public class StressTest extends ReplicationTestCase
   // WORKAROUND FOR BUG #639 - END -
 
   /**
-   * Stress test from LDAP server to client using the ChangelogBroker API.
+   * Stress test from LDAP server to client using the ReplicationBroker API.
    */
   @Test(enabled=true, groups="slow")
   public void fromServertoBroker() throws Exception
@@ -109,7 +109,7 @@ public class StressTest extends ReplicationTestCase
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
     final int TOTAL_MESSAGES = 1000;
 
-    ChangelogBroker broker =
+    ReplicationBroker broker =
       openChangelogSession(baseDn, (short) 18, 100, 8989, 5000, true);
     Monitor monitor = new Monitor("stress test monitor");
     DirectoryServer.registerMonitorProvider(monitor);
@@ -117,7 +117,7 @@ public class StressTest extends ReplicationTestCase
     try {
       /*
        * Test that operations done on this server are sent to the
-       * changelog server and forwarded to our changelog broker session.
+       * replicationServer and forwarded to our replicationServer broker session.
        */
 
       // Create an Entry (add operation) that will be later used in the test.
@@ -320,12 +320,12 @@ public class StressTest extends ReplicationTestCase
   }
 
   /**
-   * Continuously reads messages from a changelog broker until there is nothing
+   * Continuously reads messages from a replicationServer broker until there is nothing
    * left. Count the number of received messages.
    */
   private class BrokerReader extends Thread
   {
-    private ChangelogBroker broker;
+    private ReplicationBroker broker;
     private int count = 0;
     private Boolean finished = false;
 
@@ -333,7 +333,7 @@ public class StressTest extends ReplicationTestCase
      * Creates a new Stress Test Reader
      * @param broker
      */
-    public BrokerReader(ChangelogBroker broker)
+    public BrokerReader(ReplicationBroker broker)
     {
       this.broker = broker;
     }

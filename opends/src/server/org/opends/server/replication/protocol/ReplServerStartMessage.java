@@ -35,9 +35,10 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 
 /**
- * Message sent by a changelog server to another changelog server at Startup.
+ * Message sent by a replication server to another replication server
+ * at Startup.
  */
-public class ChangelogStartMessage extends ReplicationMessage implements
+public class ReplServerStartMessage extends ReplicationMessage implements
     Serializable
 {
   private static final long serialVersionUID = -5871385537169856856L;
@@ -50,15 +51,15 @@ public class ChangelogStartMessage extends ReplicationMessage implements
   private int windowSize;
 
   /**
-   * Create a ChangelogStartMessage.
+   * Create a ReplServerStartMessage.
    *
-   * @param serverId changelog server id
-   * @param serverURL changelog server URL
-   * @param baseDn base DN for which the ChangelogStartMessage is created.
+   * @param serverId replication server id
+   * @param serverURL replication server URL
+   * @param baseDn base DN for which the ReplServerStartMessage is created.
    * @param windowSize The window size.
    * @param serverState our ServerState for this baseDn.
    */
-  public ChangelogStartMessage(short serverId, String serverURL, DN baseDn,
+  public ReplServerStartMessage(short serverId, String serverURL, DN baseDn,
                                int windowSize,
                                ServerState serverState)
   {
@@ -73,22 +74,23 @@ public class ChangelogStartMessage extends ReplicationMessage implements
   }
 
   /**
-   * Creates a new ChangelogStartMessage by decoding the provided byte array.
+   * Creates a new ReplServerStartMessage by decoding the provided byte array.
    * @param in A byte array containing the encoded information for the
-   *             ChangelogStartMessage
+   *             ReplServerStartMessage
    * @throws DataFormatException If the in does not contain a properly
-   *                             encoded ChangelogStartMessage.
+   *                             encoded ReplServerStartMessage.
    */
-  public ChangelogStartMessage(byte[] in) throws DataFormatException
+  public ReplServerStartMessage(byte[] in) throws DataFormatException
   {
-    /* The ChangelogStartMessage is encoded in the form :
+    /* The ReplServerStartMessage is encoded in the form :
      * <baseDn><ServerId><ServerUrl><windowsize><ServerState>
      */
     try
     {
       /* first byte is the type */
-      if (in[0] != MSG_TYPE_CHANGELOG_START)
-        throw new DataFormatException("input is not a valid ChangelogStartMsg");
+      if (in[0] != MSG_TYPE_REPL_SERVER_START)
+        throw new DataFormatException(
+              "input is not a valid ReplServerStartMsg");
       int pos = 1;
 
       /* read the dn
@@ -149,9 +151,9 @@ public class ChangelogStartMessage extends ReplicationMessage implements
   }
 
   /**
-   * Get the base DN from this ChangelogStartMessage.
+   * Get the base DN from this ReplServerStartMessage.
    *
-   * @return the base DN from this ChangelogStartMessage.
+   * @return the base DN from this ReplServerStartMessage.
    */
   public DN getBaseDn()
   {
@@ -181,7 +183,7 @@ public class ChangelogStartMessage extends ReplicationMessage implements
   @Override
   public byte[] getBytes()
   {
-    /* The ChangelogStartMessage is stored in the form :
+    /* The ReplServerStartMessage is stored in the form :
      * <operation type><basedn><serverid><serverURL><windowsize><serverState>
      */
     try {
@@ -198,7 +200,7 @@ public class ChangelogStartMessage extends ReplicationMessage implements
       byte[] resultByteArray = new byte[length];
 
       /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_CHANGELOG_START;
+      resultByteArray[0] = MSG_TYPE_REPL_SERVER_START;
       int pos = 1;
 
       /* put the baseDN and a terminating 0 */

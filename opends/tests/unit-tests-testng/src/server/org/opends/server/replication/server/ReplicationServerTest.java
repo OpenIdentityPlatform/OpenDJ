@@ -43,14 +43,14 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.ChangelogBroker;
+import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyDnContext;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ReplicationMessage;
-import org.opends.server.replication.server.Changelog;
+import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -63,18 +63,18 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
- * Tests for the changelog service code.
+ * Tests for the replicationServer code.
  */
 
-public class ChangelogTest extends ReplicationTestCase
+public class ReplicationServerTest extends ReplicationTestCase
 {
   /**
-   * The changelog server that will be used in this test.
+   * The replicationServer that will be used in this test.
    */
-  private Changelog changelog = null;
+  private ReplicationServer replicationServer = null;
 
   /**
-   * The port of the changelog server.
+   * The port of the replicationServer.
    */
   private int changelogPort;
 
@@ -88,26 +88,26 @@ public class ChangelogTest extends ReplicationTestCase
 
   /**
    * Before starting the tests, start the server and configure a
-   * changelog server.
+   * replicationServer.
    */
   @BeforeClass()
   public void configure() throws Exception
   {
     TestCaseUtils.startServer();
 
-    //  find  a free port for the changelog server
+    //  find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();
     changelogPort = socket.getLocalPort();
     socket.close();
 
-    ChangelogFakeConfiguration conf =
-      new ChangelogFakeConfiguration(changelogPort, null, 0, 1, 0, 0, null); 
-    changelog = new Changelog(conf);
+    ReplServerFakeConfiguration conf =
+      new ReplServerFakeConfiguration(changelogPort, null, 0, 1, 0, 0, null); 
+    replicationServer = new ReplicationServer(conf);
   }
 
   /**
-   * Basic test of the changelog code :
-   *  Connect 2 clients to the changelog server and exchange messages
+   * Basic test of the replicationServer code :
+   *  Connect 2 clients to the replicationServer and exchange messages
    *  between the clients.
    *
    * Note : Other tests in this file depends on this test and may need to
@@ -116,12 +116,12 @@ public class ChangelogTest extends ReplicationTestCase
   @Test()
   public void changelogBasic() throws Exception
   {
-    ChangelogBroker server1 = null;
-    ChangelogBroker server2 = null;
+    ReplicationBroker server1 = null;
+    ReplicationBroker server2 = null;
 
     try {
       /*
-       * Open a sender session and a receiver session to the changelog
+       * Open a sender session and a receiver session to the replicationServer
        */
       server1 = openChangelogSession(
           DN.decode("dc=example,dc=com"), (short) 1, 100, changelogPort,
@@ -148,9 +148,9 @@ public class ChangelogTest extends ReplicationTestCase
       /*
        * Create a ChangeNumber between firstChangeNumberServer1 and  
        * secondChangeNumberServer1 that will not be used to create a
-       * change sent to the changelog server but that will be used
+       * change sent to the replicationServer but that will be used
        * in the Server State when opening a connection to the 
-       * Changelog Server to make sure that the Changelog server is 
+       * ReplicationServer to make sure that the ReplicationServer is 
        * able to accept such clients.
        */
       unknownChangeNumberServer1 = new ChangeNumber(time+1, 1, (short) 1);
@@ -167,10 +167,10 @@ public class ChangelogTest extends ReplicationTestCase
       {
         DeleteMsg del = (DeleteMsg) msg2;
         assertTrue(del.toString().equals(msg.toString()),
-            "Changelog basic : incorrect message body received.");
+            "ReplicationServer basic : incorrect message body received.");
       }
       else
-        fail("Changelog basic : incorrect message type received.");
+        fail("ReplicationServer basic : incorrect message type received.");
 
       /*
        * Send and receive a second Delete Msg
@@ -182,10 +182,10 @@ public class ChangelogTest extends ReplicationTestCase
       {
         DeleteMsg del = (DeleteMsg) msg2;
         assertTrue(del.toString().equals(msg.toString()),
-            "Changelog basic : incorrect message body received.");
+            "ReplicationServer basic : incorrect message body received.");
       }
       else
-        fail("Changelog basic : incorrect message type received.");
+        fail("ReplicationServer basic : incorrect message type received.");
 
       /*
        * Send and receive a Delete Msg from server 1 to server 2
@@ -199,10 +199,10 @@ public class ChangelogTest extends ReplicationTestCase
       {
         DeleteMsg del = (DeleteMsg) msg2;
         assertTrue(del.toString().equals(msg.toString()),
-            "Changelog basic : incorrect message body received.");
+            "ReplicationServer basic : incorrect message body received.");
       }
       else
-        fail("Changelog basic : incorrect message type received.");
+        fail("ReplicationServer basic : incorrect message type received.");
 
       /*
        * Send and receive a second Delete Msg
@@ -214,10 +214,10 @@ public class ChangelogTest extends ReplicationTestCase
       {
         DeleteMsg del = (DeleteMsg) msg2;
         assertTrue(del.toString().equals(msg.toString()),
-            "Changelog basic : incorrect message body received.");
+            "ReplicationServer basic : incorrect message body received.");
       }
       else
-        fail("Changelog basic : incorrect message type received.");
+        fail("ReplicationServer basic : incorrect message type received.");
     }
     finally
     {
@@ -235,7 +235,7 @@ public class ChangelogTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void newClient() throws Exception
   {
-    ChangelogBroker broker = null;
+    ReplicationBroker broker = null;
 
     try {
       broker =
@@ -244,7 +244,7 @@ public class ChangelogTest extends ReplicationTestCase
 
       ReplicationMessage msg2 = broker.receive();
       if (!(msg2 instanceof DeleteMsg))
-        fail("Changelog basic transmission failed");
+        fail("ReplicationServer basic transmission failed");
       else
       {
         DeleteMsg del = (DeleteMsg) msg2;
@@ -269,10 +269,10 @@ public class ChangelogTest extends ReplicationTestCase
   private void newClientWithChanges(
       ServerState state, ChangeNumber nextChangeNumber) throws Exception
   {
-    ChangelogBroker broker = null;
+    ReplicationBroker broker = null;
 
     /*
-     * Connect to the changelog server using the state created above.
+     * Connect to the replicationServer using the state created above.
      */
     try {
       broker =
@@ -281,7 +281,7 @@ public class ChangelogTest extends ReplicationTestCase
 
       ReplicationMessage msg2 = broker.receive();
       if (!(msg2 instanceof DeleteMsg))
-        fail("Changelog basic transmission failed");
+        fail("ReplicationServer basic transmission failed");
       else
       {
         DeleteMsg del = (DeleteMsg) msg2;
@@ -317,7 +317,7 @@ public class ChangelogTest extends ReplicationTestCase
   
   /**
    * Test with a client that has already seen a Change that the
-   * Changelog server has not seen.
+   * ReplicationServer has not seen.
    */
   @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void newClientWithUnknownChanges() throws Exception
@@ -383,12 +383,12 @@ public class ChangelogTest extends ReplicationTestCase
 
   /**
    * Test that newClient() and newClientWithFirstChange() still works
-   * after stopping and restarting the changelog server.
+   * after stopping and restarting the replicationServer.
    */
   @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void stopChangelog() throws Exception
   {
-    changelog.shutdown();
+    replicationServer.shutdown();
     configure();
     newClient();
     newClientWithFirstChanges();
@@ -397,10 +397,10 @@ public class ChangelogTest extends ReplicationTestCase
   }
 
   /**
-   * Stress test from client using the ChangelogBroker API
-   * to the changelog server.
+   * Stress test from client using the ReplicationBroker API
+   * to the replicationServer.
    * This test allow to investigate the behaviour of the
-   * Changelog server when it needs to distribute the load of
+   * ReplicationServer when it needs to distribute the load of
    * updates from a single LDAP server to a number of LDAP servers.
    *
    * This test i sconfigured by a relatively low stress
@@ -409,7 +409,7 @@ public class ChangelogTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void oneWriterMultipleReader() throws Exception
   {
-    ChangelogBroker server = null;
+    ReplicationBroker server = null;
     int TOTAL_MSG = 1000;     // number of messages to send during the test
     int CLIENT_THREADS = 2;   // number of threads that will try to read
                               // the messages
@@ -417,7 +417,7 @@ public class ChangelogTest extends ReplicationTestCase
       new ChangeNumberGenerator((short)5 , (long) 0);
 
     BrokerReader client[] = new BrokerReader[CLIENT_THREADS];
-    ChangelogBroker clientBroker[] = new ChangelogBroker[CLIENT_THREADS];
+    ReplicationBroker clientBroker[] = new ReplicationBroker[CLIENT_THREADS];
 
     try
     {
@@ -449,7 +449,7 @@ public class ChangelogTest extends ReplicationTestCase
 
       /*
        * Simple loop creating changes and sending them
-       * to the changelog server.
+       * to the replicationServer.
        */
       for (int i = 0; i< TOTAL_MSG; i++)
       {
@@ -477,11 +477,11 @@ public class ChangelogTest extends ReplicationTestCase
   }
 
   /**
-   * Stress test from client using the ChangelogBroker API
-   * to the changelog server.
+   * Stress test from client using the ReplicationBroker API
+   * to the replicationServer.
    *
    * This test allow to investigate the behaviour of the
-   * Changelog server when it needs to distribute the load of
+   * ReplicationServer when it needs to distribute the load of
    * updates from multiple LDAP server to a number of LDAP servers.
    *
    * This test is sconfigured for a relatively low stress
@@ -490,7 +490,7 @@ public class ChangelogTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void multipleWriterMultipleReader() throws Exception
   {
-    ChangelogBroker server = null;
+    ReplicationBroker server = null;
     final int TOTAL_MSG = 1000;   // number of messages to send during the test
     final int THREADS = 2;       // number of threads that will produce
                                // and read the messages.
@@ -508,7 +508,7 @@ public class ChangelogTest extends ReplicationTestCase
         short serverId = (short) (10+i);
         ChangeNumberGenerator gen =
           new ChangeNumberGenerator(serverId , (long) 0);
-        ChangelogBroker broker =
+        ReplicationBroker broker =
           openChangelogSession( DN.decode("dc=example,dc=com"), serverId,
             100, changelogPort, 1000, 1000, 0, true);
 
@@ -542,23 +542,23 @@ public class ChangelogTest extends ReplicationTestCase
 
 
   /**
-   * Chaining tests of the changelog code with 2 changelog servers involved
+   * Chaining tests of the replication Server code with 2 replication servers involved
    * 2 tests are done here (itest=0 or itest=1)
    *
    * Test 1
-   * - Create changelog server 1
-   * - Create changelog server 2 connected with changelog server 1
-   * - Create and connect client 1 to changelog server 1
-   * - Create and connect client 2 to changelog server 2
+   * - Create replication server 1
+   * - Create replication server 2 connected with replication server 1
+   * - Create and connect client 1 to replication server 1
+   * - Create and connect client 2 to replication server 2
    * - Make client1 publish changes
    * - Check that client 2 receives the changes published by client 1
    *
    * Test 2
-   * - Create changelog server 1
-   * - Create and connect client1 to changelog server 1
+   * - Create replication server 1
+   * - Create and connect client1 to replication server 1
    * - Make client1 publish changes
-   * - Create changelog server 2 connected with changelog server 1
-   * - Create and connect client 2 to changelog server 2
+   * - Create replication server 2 connected with replication server 1
+   * - Create and connect client 2 to replication server 2
    * - Check that client 2 receives the changes published by client 1
    *
    */
@@ -567,11 +567,11 @@ public class ChangelogTest extends ReplicationTestCase
   {
     for (int itest = 0; itest <2; itest++)
     {
-      ChangelogBroker broker2 = null;
+      ReplicationBroker broker2 = null;
       boolean emptyOldChanges = true;
 
-      // - Create 2 connected changelog servers
-      Changelog[] changelogs = new Changelog[2];
+      // - Create 2 connected replicationServer
+      ReplicationServer[] changelogs = new ReplicationServer[2];
       int[] changelogPorts = new int[2];
       int[] changelogIds = new int[2];
       short[] brokerIds = new short[2];
@@ -593,19 +593,19 @@ public class ChangelogTest extends ReplicationTestCase
       {
         changelogs[i] = null;
 
-        // for itest=0, create the 2 connected changelog servers
-        // for itest=1, create the 1rst changelog server, the second
+        // for itest=0, create the 2 connected replicationServer
+        // for itest=1, create the 1rst replicationServer, the second
         // one will be created later
         SortedSet<String> servers = new TreeSet<String>();
         servers.add(
           "localhost:" + ((i == 0) ? changelogPorts[1] : changelogPorts[0]));
-        ChangelogFakeConfiguration conf =
-          new ChangelogFakeConfiguration(changelogPorts[i], "changelogDb"+i, 0,
+        ReplServerFakeConfiguration conf =
+          new ReplServerFakeConfiguration(changelogPorts[i], "changelogDb"+i, 0,
                                          changelogIds[i], 0, 100, servers); 
-        changelog = new Changelog(conf);
+        replicationServer = new ReplicationServer(conf);
       }
 
-      ChangelogBroker broker1 = null;
+      ReplicationBroker broker1 = null;
 
       try
       {
@@ -672,10 +672,10 @@ public class ChangelogTest extends ReplicationTestCase
           
           SortedSet<String> servers = new TreeSet<String>();
           servers.add("localhost:"+changelogPorts[0]);
-          ChangelogFakeConfiguration conf =
-            new ChangelogFakeConfiguration(changelogPorts[1], null, 0,
+          ReplServerFakeConfiguration conf =
+            new ReplServerFakeConfiguration(changelogPorts[1], null, 0,
                                            changelogIds[1], 0, 0, null); 
-          changelogs[1] = new Changelog(conf);
+          changelogs[1] = new ReplicationServer(conf);
 
           // Connect broker 2 to changelog2
           broker2 = openChangelogSession(DN.decode("dc=example,dc=com"),
@@ -724,7 +724,7 @@ public class ChangelogTest extends ReplicationTestCase
           }
           else
           {
-            fail("Changelog transmission failed: no expected message class.");
+            fail("ReplicationServer transmission failed: no expected message class.");
             break;
           }
         }
@@ -747,30 +747,30 @@ public class ChangelogTest extends ReplicationTestCase
   }
 
   /**
-   * After the tests stop the changelog server.
+   * After the tests stop the replicationServer.
    */
   @AfterClass()
   public void shutdown() throws Exception
   {
-    if (changelog != null)
-      changelog.shutdown();
+    if (replicationServer != null)
+      replicationServer.shutdown();
   }
 
   /**
    * This class allows to creater reader thread.
-   * They continuously reads messages from a changelog broker until
+   * They continuously reads messages from a replication broker until
    * there is nothing left.
    * They Count the number of received messages.
    */
   private class BrokerReader extends Thread
   {
-    private ChangelogBroker broker;
+    private ReplicationBroker broker;
 
     /**
      * Creates a new Stress Test Reader
      * @param broker
      */
-    public BrokerReader(ChangelogBroker broker)
+    public BrokerReader(ReplicationBroker broker)
     {
       this.broker = broker;
     }
@@ -798,15 +798,15 @@ public class ChangelogTest extends ReplicationTestCase
 
   /**
    * This class allows to create writer thread that can
-   * be used as producers for the Changelog stress tests.
+   * be used as producers for the ReplicationServer stress tests.
    */
   private class BrokerWriter extends Thread
   {
     int count;
-    private ChangelogBroker broker;
+    private ReplicationBroker broker;
     ChangeNumberGenerator gen;
 
-    public BrokerWriter(ChangelogBroker broker, ChangeNumberGenerator gen,
+    public BrokerWriter(ReplicationBroker broker, ChangeNumberGenerator gen,
         int count)
     {
       this.broker = broker;
@@ -822,7 +822,7 @@ public class ChangelogTest extends ReplicationTestCase
     {
       /*
        * Simple loop creating changes and sending them
-       * to the changelog server.
+       * to the replicationServer.
        */
       while (count>0)
       {

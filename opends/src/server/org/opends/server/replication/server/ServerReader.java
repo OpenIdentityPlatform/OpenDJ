@@ -48,13 +48,13 @@ import org.opends.server.types.ErrorLogSeverity;
 
 
 /**
- * This class implement the part of the changelog that is reading
+ * This class implement the part of the replicationServer that is reading
  * the connection from the LDAP servers to get all the updates that
  * were done on this replica and forward them to other servers.
  *
  * A single thread is dedicated to this work.
  * It waits in a blocking mode on the connection from the LDAP server
- * and upon receiving an update puts in into the changelog cache
+ * and upon receiving an update puts in into the replicationServer cache
  * from where the other servers will grab it.
  */
 public class ServerReader extends DirectoryThread
@@ -62,24 +62,24 @@ public class ServerReader extends DirectoryThread
   private short serverId;
   private ProtocolSession session;
   private ServerHandler handler;
-  private ChangelogCache changelogCache;
+  private ReplicationCache replicationCache;
 
   /**
-   * Constructor for the LDAP server reader part of the changelog.
+   * Constructor for the LDAP server reader part of the replicationServer.
    *
    * @param session The ProtocolSession from which to read the data.
    * @param serverId The server ID of the server from which we read changes.
    * @param handler The server handler for this server reader.
-   * @param changelogCache The ChangelogCache for this server reader.
+   * @param replicationCache The ReplicationCache for this server reader.
    */
   public ServerReader(ProtocolSession session, short serverId,
-                      ServerHandler handler, ChangelogCache changelogCache)
+                      ServerHandler handler, ReplicationCache replicationCache)
   {
     super(handler.toString() + " reader");
     this.session = session;
     this.serverId = serverId;
     this.handler = handler;
-    this.changelogCache = changelogCache;
+    this.replicationCache = replicationCache;
   }
 
   /**
@@ -90,7 +90,7 @@ public class ServerReader extends DirectoryThread
     /*
      * TODO : catch exceptions in case of bugs
      * wait on input stream
-     * grab all incoming messages and publish them to the changelogCache
+     * grab all incoming messages and publish them to the replicationCache
      */
     try
     {
@@ -108,13 +108,13 @@ public class ServerReader extends DirectoryThread
         {
           AckMessage ack = (AckMessage) msg;
           handler.checkWindow();
-          changelogCache.ack(ack, serverId);
+          replicationCache.ack(ack, serverId);
         }
         else if (msg instanceof UpdateMessage)
         {
           UpdateMessage update = (UpdateMessage) msg;
           handler.decAndCheckWindow();
-          changelogCache.put(update, handler);
+          replicationCache.put(update, handler);
         }
         else if (msg instanceof WindowMessage)
         {
@@ -190,7 +190,7 @@ public class ServerReader extends DirectoryThread
       {
        // ignore
       }
-      changelogCache.stopServer(handler);
+      replicationCache.stopServer(handler);
     }
   }
 }

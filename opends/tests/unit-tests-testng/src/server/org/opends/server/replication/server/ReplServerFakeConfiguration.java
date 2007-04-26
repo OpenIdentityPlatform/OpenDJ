@@ -37,9 +37,9 @@ import org.opends.server.types.DN;
 
 /**
  * This Class implements an object that can be used to instantiate
- * The Changelog class for tests purpose.
+ * The ReplicationServer class for tests purpose.
  */
-public class ChangelogFakeConfiguration implements ChangelogServerCfg
+public class ReplServerFakeConfiguration implements ChangelogServerCfg
 {
   int port;
   String dirName;
@@ -49,7 +49,7 @@ public class ChangelogFakeConfiguration implements ChangelogServerCfg
   int windowSize;
   private SortedSet<String> servers;
 
-  public ChangelogFakeConfiguration(
+  public ReplServerFakeConfiguration(
       int port, String dirName, int purgeDelay, int serverId,
       int queueSize, int windowSize, SortedSet<String> servers)
   {
