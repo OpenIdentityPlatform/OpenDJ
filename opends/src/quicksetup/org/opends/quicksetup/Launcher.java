@@ -239,10 +239,7 @@ public abstract class Launcher {
     if (shouldPrintUsage()) {
       printUsage();
     } else if (isCli()) {
-      int exitCode = launchCli(args, createCliApplication());
-      if (exitCode != 0) {
-        System.exit(exitCode);
-      }
+      System.exit(launchCli(args, createCliApplication()));
     } else {
       willLaunchGui();
       int exitCode = launchGui(args);
