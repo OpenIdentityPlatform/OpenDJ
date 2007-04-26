@@ -44,8 +44,8 @@ if "%*" == "" goto callWebStartUpgrade
 goto callExtractor
 
 :noJavaHome
-if not exist "%DIR_HOME%\bat\set-java-home.bat" goto noSetJavaHome
-call "%DIR_HOME%\bat\set-java-home.bat"
+if not exist "%DIR_HOME%\lib\set-java-home.bat" goto noSetJavaHome
+call "%DIR_HOME%\lib\set-java-home.bat"
 set JAVA_BIN=%JAVA_HOME%\bin\java.exe
 set jAVAWS_BIN=%JAVA_HOME%\bin\javaws.exe
 if "%*" == "" goto callWebStartUpgrade
@@ -73,7 +73,7 @@ if "%*" == "" goto callWebStartUpgrade
 :callExtractor
 if EXIST .\tmp\upgrade rd .\tmp\upgrade /s /q
 set CLASSPATH=""
-FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bat\setcp.bat" %%x
+FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
 "%JAVA_BIN%" org.opends.quicksetup.upgrader.BuildExtractor %*
 if %ERRORLEVEL%==0 goto callUpgrader
 goto end
@@ -87,7 +87,7 @@ goto end
 
 :callUpgrader
 set CLASSPATH=""
-FOR %%x in ("%DIR_HOME%\tmp\upgrade\lib\*.jar") DO call "%DIR_HOME%\bat\setcp.bat" %%x
+FOR %%x in ("%DIR_HOME%\tmp\upgrade\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
 "%JAVA_BIN%" org.opends.quicksetup.upgrader.UpgradeLauncher %*
 if EXIST .\tmp\upgrade rd .\tmp\upgrade /s /q
 goto end
