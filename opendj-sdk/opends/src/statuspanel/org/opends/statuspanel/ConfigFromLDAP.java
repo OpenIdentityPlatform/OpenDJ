@@ -283,7 +283,8 @@ public class ConfigFromLDAP
     }
     if (ctx == null)
     {
-      ctx = Utils.createLdapContext(ldapUrl, dn, pwd, 3000, null);
+      ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
+          Utils.getDefaultLDAPTimeout(), null);
     }
     return ctx;
   }
