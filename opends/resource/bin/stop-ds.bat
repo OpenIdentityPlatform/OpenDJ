@@ -44,8 +44,8 @@ set JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 
 :noJavaHome
-if not exist "%DIR_HOME%\bat\set-java-home.bat" goto noSetJavaHome
-call "%DIR_HOME%\bat\set-java-home.bat"
+if not exist "%DIR_HOME%\lib\set-java-home.bat" goto noSetJavaHome
+call "%DIR_HOME%\lib\set-java-home.bat"
 set JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 
@@ -60,7 +60,7 @@ echo         JAVA_HOME to to a valid Java 5 (or later) installation.
 goto end
 
 :setClassPath
-FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\bat\setcp.bat" %%x
+FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
 
 rem Test that the provided JDK is 1.5 compatible.
 "%JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
@@ -96,7 +96,7 @@ if not %errorlevel% == 0 goto end
 goto startUsingSystemCall
 
 :stopUsingProtocol
-call "%~dP0\_client-script.bat" %*
+call "%DIR_HOME%\lib\_client-script.bat" %*
 goto end
 
 :stopAsWindowsService

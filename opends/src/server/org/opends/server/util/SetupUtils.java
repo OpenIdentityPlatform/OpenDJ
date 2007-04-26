@@ -203,19 +203,12 @@ public class SetupUtils
     }
 
 
-    File binDirectory;
-    if (isWindows())
-    {
-      binDirectory = new File(serverRoot, "bat");
-    }
-    else
-    {
-      binDirectory = new File(serverRoot, "bin");
-    }
+    File libDirectory = new File(serverRoot, "lib");
+
     File setJavaHomeFile;
     if (isWindows())
     {
-      setJavaHomeFile = new File(binDirectory, "set-java-home.bat");
+      setJavaHomeFile = new File(libDirectory, "set-java-home.bat");
       if (setJavaHomeFile.exists())
       {
         return setJavaHomeFile;
@@ -229,7 +222,7 @@ public class SetupUtils
     }
     else
     {
-      setJavaHomeFile = new File(binDirectory, "set-java-home");
+      setJavaHomeFile = new File(libDirectory, "set-java-home");
       if (setJavaHomeFile.exists())
       {
         return setJavaHomeFile;

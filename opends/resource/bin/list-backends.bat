@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.ListBackends"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=list-backends"
-call "%~dP0\_server-script.bat" %*
+call "%~dP0\..\lib\_server-script.bat" %*
 

@@ -31,4 +31,4 @@ OPENDS_INVOKE_CLASS="org.opends.statuspanel.StatusCli"
 export OPENDS_INVOKE_CLASS
 
 SCRIPT_DIR=`dirname "${0}"`
-"${SCRIPT_DIR}/_server-script.sh" "${@}"
+"${SCRIPT_DIR}/../lib/_server-script.sh" "${@}"

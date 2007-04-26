@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.BackUpDB"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=backup"
-call "%~dP0\_server-script.bat" %*
+call "%~dP0\..\lib\_server-script.bat" %*
 

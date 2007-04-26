@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.ConfigureWindowsService"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=windows-service"
-call "%~dP0\_client-script.bat" %*
+call "%~dP0\..\lib\_client-script.bat" %*
 

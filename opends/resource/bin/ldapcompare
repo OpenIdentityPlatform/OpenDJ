@@ -34,4 +34,4 @@ SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=ldapcompare"
 export SCRIPT_NAME_ARG
 
 SCRIPT_DIR=`dirname "${0}"`
-"${SCRIPT_DIR}/_client-script.sh" "${@}"
+"${SCRIPT_DIR}/../lib/_client-script.sh" "${@}"

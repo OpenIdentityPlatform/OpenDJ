@@ -25,6 +25,4 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 Note that all the batch files under the 'bin' directory have been moved to the
-'bat' directory.  For the moment a copy of the batch files is still included
-under 'bin' directory.  However these files will be removed in next builds and
-so only a copy of the batch files will be provided under the 'bat' directory.
+'bat' directory.

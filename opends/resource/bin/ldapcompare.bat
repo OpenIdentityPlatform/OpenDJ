@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDAPCompare"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=ldapcompare"
-call "%~dP0\_client-script.bat" %*
+call "%~dP0\..\lib\_client-script.bat" %*
 

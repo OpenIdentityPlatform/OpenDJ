@@ -56,9 +56,9 @@ if test -z "${JAVA_BIN}"
 then
   if test -z "${JAVA_HOME}"
   then
-    if test -f "${INSTANCE_ROOT}/bin/set-java-home"
+    if test -f "${INSTANCE_ROOT}/lib/set-java-home"
     then
-      . "${INSTANCE_ROOT}/bin/set-java-home"
+      . "${INSTANCE_ROOT}/lib/set-java-home"
       JAVA_BIN="${JAVA_HOME}/bin/java"
       export JAVA_BIN
     else

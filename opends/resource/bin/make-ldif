@@ -34,5 +34,5 @@ SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=make-ldif"
 export SCRIPT_NAME_ARG
 
 SCRIPT_DIR=`dirname "${0}"`
-"${SCRIPT_DIR}/_server-script.sh" \
+"${SCRIPT_DIR}/../lib/_server-script.sh" \
      --resourcePath "${SCRIPT_DIR}/../config/MakeLDIF" "${@}"
