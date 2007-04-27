@@ -34,11 +34,11 @@ import javax.swing.*;
 import java.net.URL;
 import java.net.Proxy;
 import java.net.URLConnection;
+import java.net.MalformedURLException;
 import java.util.*;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.io.*;
 import java.awt.*;
 
@@ -50,26 +50,13 @@ public class RemoteBuildManager {
   static private final Logger LOG =
           Logger.getLogger(RemoteBuildManager.class.getName());
 
-  /**
-   * Describes build types.
-   */
-  enum BuildType {
-
-    /**
-     * Nightly build descriptor.
-     */
-    NIGHTLY,
-
-    /**
-     * Weekly build descriptor.
-     */
-    WEEKLY
-
-  }
-
   private Application app;
 
-  private URL url;
+  /**
+   * This URL is expected to point at a list of the builds parsable by
+   * the <code>RemoteBuildsPageParser</code>.
+   */
+  private URL buildListUrl;
 
   private Proxy proxy;
 
@@ -80,11 +67,11 @@ public class RemoteBuildManager {
   /**
    * Creates an instance.
    * @param app using this tool
-   * @param url base context for an OpenDS build repository
+   * @param url base context for an OpenDS build list
    */
   public RemoteBuildManager(Application app, URL url) {
     this.app = app;
-    this.url = url;
+    this.buildListUrl = url;
   }
 
   /**
@@ -92,7 +79,7 @@ public class RemoteBuildManager {
    * @return URL representing base context of the build repo
    */
   public URL getBaseContext() {
-    return this.url;
+    return this.buildListUrl;
   }
 
   /**
@@ -105,38 +92,9 @@ public class RemoteBuildManager {
    * from the build repository
    */
   public List<Build> listBuilds(InputStream in) throws IOException {
-    List<Build> buildList = new ArrayList<Build>();
     String dailyBuildsPage = downloadDailyBuildsPage(in);
-    Pattern p = Pattern.compile("\\d{14}");
-    Matcher m = p.matcher(dailyBuildsPage);
-    Set<String> buildIds = new HashSet<String>();
-    while (m.find()) {
-      buildIds.add(dailyBuildsPage.substring(m.start(), m.end()));
-    }
-
-//    for (String buildId : buildIds) {
-//      // TODO:  this needs to be changed
-//      URL buildUrl =
-//              new URL(url, "daily-builds/" +
-//                      buildId +
-//                      "/OpenDS/build/package/OpenDS-0.1.zip");
-//      buildList.add(new Build(url, buildId));
-//    }
-
-    // This is encoded in build.xml.  We might need a more dynamic
-    // way of getting this information.
-    StringBuilder latestContextSb = new StringBuilder()
-            .append("daily-builds/latest/OpenDS/build/package/OpenDS-")
-            .append(org.opends.server.util.DynamicConstants.MAJOR_VERSION)
-            .append(".")
-            .append(org.opends.server.util.DynamicConstants.MINOR_VERSION)
-            .append(org.opends.server.util.DynamicConstants.VERSION_QUALIFIER)
-            .append(".zip");
-    Build latest = new Build(new URL(url, latestContextSb.toString()),
-                            "Latest");
-    buildList.add(latest);
-    Collections.sort(buildList);
-    return buildList;
+    return Collections.unmodifiableList(
+      RemoteBuildsPageParser.parseBuildList(dailyBuildsPage));
   }
 
   /**
@@ -150,12 +108,11 @@ public class RemoteBuildManager {
                                                final Object o)
     throws IOException
   {
-    URL dailyBuildsUrl = new URL(url, "daily-builds");
     URLConnection conn;
     if (proxy == null) {
-      conn = dailyBuildsUrl.openConnection();
+      conn = buildListUrl.openConnection();
     } else {
-      conn = dailyBuildsUrl.openConnection(proxy);
+      conn = buildListUrl.openConnection(proxy);
     }
     String proxyAuthString = createProxyAuthString();
     if (proxyAuthString != null) {
@@ -184,7 +141,7 @@ public class RemoteBuildManager {
     StringBuilder builder = new StringBuilder();
     String line;
     while (null != (line = reader.readLine())) {
-      builder.append(line);
+      builder.append(line).append('\n');
     }
     return builder.toString();
   }
@@ -322,6 +279,104 @@ public class RemoteBuildManager {
   }
 
   /**
+   * Parser for the web page that lists available builds.  This pag is expected
+   * to be a tab-delimited text document where each line represents a build with
+   * the following fields:
+   * 1.  A build display name (e.g. OpenDS 0.1 Build 036)
+   * 2.  A URL where the build's .zip file can be downloaded
+   * 3.  A category string for the build (e.g. Weekly Build, Daily Build)
+   */
+  static private class RemoteBuildsPageParser {
+
+    /**
+     * Parses a string representing the build information list into a list
+     * of builds sorted by usefulness meaning that release builds are first,
+     * followed by weekly builds and finally daily builds.
+     * @param page String representing the build info page
+     * @return List of Builds
+     */
+    static public List<Build> parseBuildList(String page) {
+      List<Build> builds = new ArrayList<Build>();
+      if (page != null) {
+        BufferedReader reader = new BufferedReader(new StringReader(page));
+        String line;
+        try {
+          while (null != (line = reader.readLine())) {
+            try {
+              Build build = parseBuildLine(line);
+              builds.add(build);
+            } catch (IllegalArgumentException iae) {
+              StringBuffer msg = new StringBuffer()
+                      .append("Error parsing line '")
+                      .append(line)
+                      .append("': ")
+                      .append(iae.getMessage());
+              LOG.log(Level.INFO, msg.toString());
+            }
+          }
+        } catch (IOException e) {
+          LOG.log(Level.INFO, "error", e);
+        }
+      } else {
+        LOG.log(Level.WARNING, "build list page is null");
+      }
+      return builds;
+    }
+
+    static private Build parseBuildLine(String line)
+            throws IllegalArgumentException {
+      String displayName = null;
+      String downloadUrlString = null;
+      String categoryString = null;
+      URL downloadUrl;
+      Build.Category category;
+      StringTokenizer st = new StringTokenizer(line, "\t");
+      if (st.hasMoreTokens()) {
+        displayName = st.nextToken();
+      }
+      if (st.hasMoreTokens()) {
+        downloadUrlString = st.nextToken();
+      }
+      if (st.hasMoreTokens()) {
+        categoryString = st.nextToken();
+      }
+      if (displayName == null ||
+              downloadUrlString == null ||
+              categoryString == null) {
+        StringBuffer msg = new StringBuffer()
+                .append("Line '")
+                .append(line)
+                .append("' is incomplete or is not correctly delimited")
+                .append("with tab characters");
+        throw new IllegalArgumentException(msg.toString());
+      } else {
+
+        try {
+          downloadUrl = new URL(downloadUrlString);
+        } catch (MalformedURLException e) {
+          StringBuffer msg = new StringBuffer()
+                  .append("URL '")
+                  .append(downloadUrlString)
+                  .append("' is invalid");
+          throw new IllegalArgumentException(msg.toString());
+        }
+        category = Build.Category.fromString(categoryString);
+        if (category == null) {
+          StringBuffer msg = new StringBuffer()
+                  .append("Category '")
+                  .append(categoryString)
+                  .append("' is invalid; must be one of ");
+          for (Build.Category c : EnumSet.allOf(Build.Category.class)) {
+            msg.append("'").append(c.getKey()).append("' ");
+          }
+          throw new IllegalArgumentException(msg.toString());
+        }
+      }
+      return new Build(displayName, downloadUrl, category);
+    }
+  }
+
+  /**
    * For testing only.
    * @param args command line arguments
    */
@@ -335,8 +390,8 @@ public class RemoteBuildManager {
 //
 //      System.setProperties(systemSettings);
 //
-//      URL url = new URL("http://builds.opends.org");
-//      RemoteBuildManager rbm = new RemoteBuildManager(null, url);
+//      URL buildListUrl = new URL("http://builds.opends.org");
+//      RemoteBuildManager rbm = new RemoteBuildManager(null, buildListUrl);
 //      //List<Build> builds = rbm.listBuilds();
 //      //for (Build build : builds) {
 //      //  System.out.println("build " + build);

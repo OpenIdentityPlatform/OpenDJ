@@ -28,23 +28,81 @@
 package org.opends.quicksetup.upgrader;
 
 import java.net.URL;
+import java.util.EnumSet;
 
 /**
    * Representation of an OpenDS build package.
  */
 public class Build implements Comparable<Build> {
 
-  private URL url;
-  private String id;
+  /**
+   * Describes build types.
+   */
+  enum Category {
+
+    /**
+     * Daily build descriptor.
+     */
+    DAILY("Daily Build"),
+
+    /**
+     * Weekly build descriptor.
+     */
+    WEEKLY("Weekly Build"),
+
+    /**
+     * Release build descriptor.
+     */
+    RELEASE("Release Build");
+
+    /**
+     * Creates a Category from its 'key' String value.
+     * @param s String representing a key
+     * @return the Category corresponding to the input <code>key</code>; null
+     * if the input string is not a category key
+     */
+    public static Category fromString(String s) {
+      Category category = null;
+      for (Category c : EnumSet.allOf(Category.class)) {
+        if (c.key.equals(s)) {
+          category = c;
+          break;
+        }
+      }
+      return category;
+    }
+
+    String key;
+
+    private Category(String key) {
+      this.key = key;
+    }
+
+    /**
+     * Gets the string that represents this category in
+     * the build information page.
+     * @return String key
+     */
+    public String getKey() {
+      return key;
+    }
+
+  }
+
+  private URL downloadUrl;
+  private String displayName;
+  private Category category;
 
   /**
    * Creates an instance.
-   * @param url where the build package can be accessed
-   * @param id of the new build
+   * @param displayName where the build package can be accessed
+   * @param downloadUrl of the new build
+   * @param category build category
    */
-  Build(URL url, String id) {
-    this.url = url;
-    this.id = id;
+  Build(String displayName, URL downloadUrl, Category category) {
+    this.displayName = displayName;
+    this.downloadUrl = downloadUrl;
+    this.category = category;
   }
 
   /**
@@ -52,16 +110,7 @@ public class Build implements Comparable<Build> {
    * @return URL representing access to the build package
    */
   public URL getUrl() {
-    return url;
-  }
-
-  /**
-   * Gets the builds ID number, a 14 digit number representing the time
-   * the build was created.
-   * @return String represenging the build
-   */
-  public String getId() {
-    return id;
+    return this.downloadUrl;
   }
 
   /**
@@ -69,7 +118,15 @@ public class Build implements Comparable<Build> {
    * @return String representing this build
    */
   public String getDisplayName() {
-    return getId();
+    return this.displayName;
+  }
+
+  /**
+   * Gets the category of this build.
+   * @return Category indicating the type of this build.
+   */
+  public Category getCategory() {
+    return this.category;
   }
 
   /**
@@ -83,7 +140,47 @@ public class Build implements Comparable<Build> {
    * {@inheritDoc}
    */
   public int compareTo(Build o) {
-    return getDisplayName().compareTo(o.getDisplayName());
+    if (o == null) throw new NullPointerException();
+    int c = getCategory().compareTo(o.getCategory());
+    if (c == 0) {
+      c = getDisplayName().compareTo(o.getDisplayName());
+    }
+    return c;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public int hashCode() {
+    int hc = 11;
+    Category cat = getCategory();
+    if (cat != null) {
+      hc = 31 * hc + cat.hashCode();
+    }
+    String disp = getDisplayName();
+    if (disp != null) {
+      hc = 31 * hc + disp.hashCode();
+    }
+    return hc;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    boolean eq = false;
+    if (obj != null && obj instanceof Build) {
+      Category thisCat = getCategory();
+      Category thatCat = ((Build)obj).getCategory();
+      if ((thisCat != null && thisCat.equals(thatCat)) ||
+          (thisCat == null && thatCat == null)) {
+        String thisDisp = getDisplayName();
+        String thatDisp = ((Build)obj).getDisplayName();
+        eq = ((thisDisp != null && thisDisp.equals(thatDisp)) ||
+                (thisDisp == null && thatDisp == null));
+      }
+    }
+    return eq;
+  }
 }
