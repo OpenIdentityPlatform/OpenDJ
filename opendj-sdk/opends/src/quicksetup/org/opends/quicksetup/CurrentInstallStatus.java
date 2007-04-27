@@ -109,7 +109,7 @@ public class CurrentInstallStatus
       }
       else if (isInstalled)
       {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("<ul>");
         for (String msg : msgs)
         {
@@ -412,7 +412,7 @@ public class CurrentInstallStatus
   {
     if (configFileContents == null)
     {
-      StringBuffer buf = new StringBuffer();
+      StringBuilder buf = new StringBuilder();
       try
       {
         Installation installation = getInstallationFromClassPath();

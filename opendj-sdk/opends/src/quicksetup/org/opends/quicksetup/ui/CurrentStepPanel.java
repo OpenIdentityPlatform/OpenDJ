@@ -120,7 +120,6 @@ public class CurrentStepPanel extends QuickSetupPanel
    */
   private void createLayout(GuiApplication app)
   {
-
     Set<? extends WizardStep> steps = app.getWizardSteps();
     if (steps != null) {
       for (WizardStep step : steps) {
@@ -194,21 +193,30 @@ public class CurrentStepPanel extends QuickSetupPanel
   {
     final CardLayout cl = (CardLayout) (getLayout());
 
-    // Show the 'loading...' panel and invoke begin
-    // display in another thread in case the panel
-    // taske a while to initialize.
-    cl.show(this, LOADING_PANEL);
-    new Thread(new Runnable() {
-      public void run() {
-        getPanel(step).beginDisplay(userData);
-        SwingUtilities.invokeLater(new Runnable() {
-          public void run() {
-            cl.show(CurrentStepPanel.this, step.toString());
-            getPanel(step).endDisplay();
-          }
-        });
-      }
-    },"panel begin display thread").start();
+    if (getPanel(step).blockingBeginDisplay())
+    {
+      // Show the 'loading...' panel and invoke begin
+      // display in another thread in case the panel
+      // taske a while to initialize.
+      cl.show(this, LOADING_PANEL);
+      new Thread(new Runnable() {
+        public void run() {
+          getPanel(step).beginDisplay(userData);
+          SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              cl.show(CurrentStepPanel.this, step.toString());
+              getPanel(step).endDisplay();
+            }
+          });
+        }
+      },"panel begin display thread").start();
+    }
+    else
+    {
+      getPanel(step).beginDisplay(userData);
+      cl.show(CurrentStepPanel.this, step.toString());
+      getPanel(step).endDisplay();
+    }
   }
 
   /**

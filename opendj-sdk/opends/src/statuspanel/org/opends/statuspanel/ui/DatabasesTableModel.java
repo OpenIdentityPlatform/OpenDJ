@@ -55,7 +55,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
     getMsg("basedn-column"),
     getMsg("backendid-column"),
     getMsg("number-entries-column"),
-    getMsg("synchronized-column"),
+    getMsg("replicated-column"),
     getMsg("missing-changes-column"),
     getMsg("age-of-oldest-missing-change-column")
   };
@@ -123,7 +123,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
 
       if (result == 0)
       {
-        result = compareSync(desc1, desc2);
+        result = compareRepl(desc1, desc2);
       }
 
       if (result == 0)
@@ -153,7 +153,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
 
       if (result == 0)
       {
-        result = compareSync(desc1, desc2);
+        result = compareRepl(desc1, desc2);
       }
 
       if (result == 0)
@@ -182,7 +182,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
 
       if (result == 0)
       {
-        result = compareSync(desc1, desc2);
+        result = compareRepl(desc1, desc2);
       }
 
       if (result == 0)
@@ -197,7 +197,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
     }
     else if (sortColumn == 3)
     {
-      result = compareSync(desc1, desc2);
+      result = compareRepl(desc1, desc2);
 
       if (result == 0)
       {
@@ -245,7 +245,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
 
       if (result == 0)
       {
-        result = compareSync(desc1, desc2);
+        result = compareRepl(desc1, desc2);
       }
 
       if (result == 0)
@@ -274,7 +274,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
 
       if (result == 0)
       {
-        result = compareSync(desc1, desc2);
+        result = compareRepl(desc1, desc2);
       }
 
       if (result == 0)
@@ -328,7 +328,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
     }
     else if (col == 3)
     {
-      v = getStringForSyncState(desc);
+      v = getStringForReplState(desc);
     }
     else if (col == 4)
     {
@@ -423,7 +423,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
     return desc1.getDn().compareTo(desc2.getDn());
   }
 
-  private int compareSync(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
+  private int compareRepl(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
   {
     return (String.valueOf(desc1.getType()).compareTo(
         String.valueOf(desc2.getType())));
@@ -473,7 +473,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
   /**
    * Returns the Object describing the number of missing changes of a given Base
    * DN.  The Object will be a String unless the base DN is
-   * synchronized and we could not find a valid value (in this case we return
+   * replicated and we could not find a valid value (in this case we return
    * an Integer with the invalid value).
    * @param rep the Base DN object to handle.
    * @return the Object describing the number of missing changes of
@@ -482,7 +482,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
   private Object getValueForMissingChanges(BaseDNDescriptor rep)
   {
     Object v;
-    if (rep.getType() == BaseDNDescriptor.Type.SYNCHRONIZED)
+    if (rep.getType() == BaseDNDescriptor.Type.REPLICATED)
     {
       v = new Integer(rep.getMissingChanges());
     }
@@ -496,7 +496,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
   /**
    * Returns the Object describing the age of oldest missing change of
    * a given Base DN.  The Object will be a String unless the base DN is
-   * synchronized and we could not find a valid value (in this case we return
+   * replicated and we could not find a valid value (in this case we return
    * an Integer with the invalid value).
    * @param rep the Base DN object to handle.
    * @return the Object describing the age of oldest missing change of
@@ -505,7 +505,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
   private Object getValueForOldestMissingChange(BaseDNDescriptor rep)
   {
     Object v;
-    if (rep.getType() == BaseDNDescriptor.Type.SYNCHRONIZED)
+    if (rep.getType() == BaseDNDescriptor.Type.REPLICATED)
     {
       int age = rep.getAgeOfOldestMissingChange();
       if (age >= 0)
@@ -538,22 +538,22 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
   }
 
   /**
-   * Returns the localized String describing the synchronization state of
+   * Returns the localized String describing the replication state of
    * a given Base DN.
    * @param rep the Base DN object to handle.
-   * @return the localized String describing the synchronization state of
+   * @return the localized String describing the replication state of
    * a given Base DN.
    */
-  private String getStringForSyncState(BaseDNDescriptor rep)
+  private String getStringForReplState(BaseDNDescriptor rep)
   {
     String s;
-    if (rep.getType() == BaseDNDescriptor.Type.SYNCHRONIZED)
+    if (rep.getType() == BaseDNDescriptor.Type.REPLICATED)
     {
-      s = getMsg("suffix-synchronized-label");
+      s = getMsg("suffix-replicated-label");
     }
     else
     {
-      s = getMsg("suffix-not-synchronized-label");
+      s = getMsg("suffix-not-replicated-label");
     }
     return s;
   }

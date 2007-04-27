@@ -51,9 +51,21 @@ public enum Step implements WizardStep
   SERVER_SETTINGS("server-settings-step"),
 
   /**
+   * Data Replication panel (standalone or replicated).
+   */
+  REPLICATION_OPTIONS("data-replication-step"),
+  /**
+   * Global Administrator creation panel.
+   */
+  CREATE_GLOBAL_ADMINISTRATOR("create-global-administrator-step"),
+  /**
+   * Suffixes to Replicate.
+   */
+  SUFFIXES_OPTIONS("suffixes-step"),
+  /**
    * Data Options panel (suffix dn, LDIF path, etc.).
    */
-  DATA_OPTIONS("data-options-step"),
+  NEW_SUFFIX_OPTIONS("data-options-step"),
 
   /**
    * Review panel for the install.

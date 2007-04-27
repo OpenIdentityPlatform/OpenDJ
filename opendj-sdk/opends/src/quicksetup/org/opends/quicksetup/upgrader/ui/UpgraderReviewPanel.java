@@ -78,6 +78,14 @@ public class UpgraderReviewPanel extends ReviewPanel {
   /**
    * {@inheritDoc}
    */
+  public boolean blockingBeginDisplay()
+  {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   protected String getTitle() {
     return getMsg("upgrade-review-panel-title");
   }
@@ -93,8 +101,6 @@ public class UpgraderReviewPanel extends ReviewPanel {
    * {@inheritDoc}
    */
   protected JPanel createFieldsPanel() {
-    UpgradeUserData uud = (UpgradeUserData)getUserData();
-
     JPanel p = UIFactory.makeJPanel();
 
     LabelFieldDescriptor serverDescriptor = new LabelFieldDescriptor(

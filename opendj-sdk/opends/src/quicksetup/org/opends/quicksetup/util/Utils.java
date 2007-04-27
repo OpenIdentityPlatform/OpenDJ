@@ -1170,6 +1170,7 @@ public class Utils
   }
 
   /**
+
    * Returns the max size in character of a line to be displayed in the command
    * line.
    * @return the max size in character of a line to be displayed in the command

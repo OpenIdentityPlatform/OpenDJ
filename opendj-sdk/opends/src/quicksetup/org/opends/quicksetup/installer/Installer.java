@@ -37,11 +37,26 @@ import java.security.cert.CertificateEncodingException;
 import java.util.*;
 import java.awt.event.WindowEvent;
 
+import javax.naming.NamingException;
+import javax.naming.NoPermissionException;
+import javax.naming.ldap.InitialLdapContext;
+
+import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.ADSContextException;
+import org.opends.admin.ads.ReplicaDescriptor;
+import org.opends.admin.ads.ServerDescriptor;
+import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.*;
 import org.opends.server.util.CertificateManager;
+import org.opends.quicksetup.installer.ui.DataOptionsPanel;
+import org.opends.quicksetup.installer.ui.DataReplicationPanel;
+import org.opends.quicksetup.installer.ui.GlobalAdministratorPanel;
 import org.opends.quicksetup.installer.ui.InstallReviewPanel;
+import org.opends.quicksetup.installer.ui.InstallWelcomePanel;
+import org.opends.quicksetup.installer.ui.ServerSettingsPanel;
+import org.opends.quicksetup.installer.ui.SuffixesToReplicatePanel;
 import org.opends.server.util.SetupUtils;
 
 import javax.naming.ldap.Rdn;
@@ -88,6 +103,17 @@ public abstract class Installer extends GuiApplication {
 
   private List<WizardStep> lstSteps = new ArrayList<WizardStep>();
 
+  private final HashSet<WizardStep> SUBSTEPS = new HashSet<WizardStep>();
+  {
+    SUBSTEPS.add(Step.CREATE_GLOBAL_ADMINISTRATOR);
+//  TODO: remove this comment once the replication code is in place.
+    SUBSTEPS.add(Step.SUFFIXES_OPTIONS);
+    //SUBSTEPS.add(Step.NEW_SUFFIX_OPTIONS);
+  }
+
+  private HashMap<WizardStep, WizardStep> hmPreviousSteps =
+    new HashMap<WizardStep, WizardStep>();
+
   /**
    * An static String that contains the class name of ConfigFileHandler.
    */
@@ -100,7 +126,12 @@ public abstract class Installer extends GuiApplication {
   public Installer() {
     lstSteps.add(WELCOME);
     lstSteps.add(SERVER_SETTINGS);
-    lstSteps.add(DATA_OPTIONS);
+    /*
+    lstSteps.add(REPLICATION_OPTIONS);
+    lstSteps.add(CREATE_GLOBAL_ADMINISTRATOR);
+    lstSteps.add(SUFFIXES_OPTIONS);
+    */
+    lstSteps.add(NEW_SUFFIX_OPTIONS);
     lstSteps.add(REVIEW);
     lstSteps.add(PROGRESS);
   }
@@ -159,14 +190,57 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
-  public void previousClicked(WizardStep cStep) {
-    if (cStep == WELCOME) {
-      throw new IllegalStateException(
-          "Cannot click on previous from progress step");
-    } else if (cStep == PROGRESS) {
-      throw new IllegalStateException(
-          "Cannot click on previous from progress step");
+  public boolean isSubStep(WizardStep step)
+  {
+    return SUBSTEPS.contains(step);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isVisible(WizardStep step)
+  {
+    boolean isVisible;
+    if (step == CREATE_GLOBAL_ADMINISTRATOR)
+    {
+       isVisible = getUserData().mustCreateAdministrator();
     }
+    else if (step == NEW_SUFFIX_OPTIONS)
+    {
+      SuffixesToReplicateOptions suf =
+        getUserData().getSuffixesToReplicateOptions();
+      if (suf != null)
+      {
+        isVisible = suf.getType() !=
+          SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES;
+      }
+      else
+      {
+        isVisible = false;
+      }
+    }
+    else if (step == SUFFIXES_OPTIONS)
+    {
+      DataReplicationOptions repl =
+        getUserData().getReplicationOptions();
+      if (repl != null)
+      {
+        isVisible =
+          (repl.getType() != DataReplicationOptions.Type.STANDALONE) &&
+          (repl.getType() != DataReplicationOptions.Type.FIRST_IN_TOPOLOGY);
+      }
+      else
+      {
+        isVisible = false;
+      }
+    }
+    else
+    {
+      isVisible = true;
+    }
+    // TODO: to delete the following line once the replication code works.
+    isVisible = true;
+    return isVisible;
   }
 
   /**
@@ -284,7 +358,13 @@ public abstract class Installer extends GuiApplication {
         p = new InstallWelcomePanel(this);
     } else if (step == SERVER_SETTINGS) {
         p = new ServerSettingsPanel(this);
-    } else if (step == DATA_OPTIONS) {
+    } else if (step == REPLICATION_OPTIONS) {
+      p = new DataReplicationPanel(this);
+    } else if (step == CREATE_GLOBAL_ADMINISTRATOR) {
+      p = new GlobalAdministratorPanel(this);
+    } else if (step == SUFFIXES_OPTIONS) {
+      p = new SuffixesToReplicatePanel(this);
+    } else if (step == NEW_SUFFIX_OPTIONS) {
         p = new DataOptionsPanel(this);
     } else if (step == REVIEW) {
         p = new InstallReviewPanel(this);
@@ -338,7 +418,13 @@ public abstract class Installer extends GuiApplication {
    * {@inheritDoc}
    */
   public void previousClicked(WizardStep cStep, QuickSetup qs) {
-    // do nothing;
+    if (cStep == WELCOME) {
+      throw new IllegalStateException(
+          "Cannot click on previous from progress step");
+    } else if (cStep == PROGRESS) {
+      throw new IllegalStateException(
+          "Cannot click on previous from progress step");
+    }
   }
 
   /**
@@ -349,7 +435,7 @@ public abstract class Installer extends GuiApplication {
   }
 
   /** Indicates the current progress step. */
-  protected InstallProgressStep status =
+  private InstallProgressStep status =
           InstallProgressStep.NOT_STARTED;
 
   /**
@@ -359,7 +445,6 @@ public abstract class Installer extends GuiApplication {
                                       UserData userData,
                                       WizardStep step) {
     if (!installStatus.isInstalled() || forceToDisplaySetup) {
-
       // Set the default button for the frame
       if (step == REVIEW) {
         dlg.setFocusOnButton(ButtonName.FINISH);
@@ -400,9 +485,49 @@ public abstract class Installer extends GuiApplication {
    */
   public WizardStep getNextWizardStep(WizardStep step) {
     WizardStep next = null;
-    int i = lstSteps.indexOf(step);
-    if (i != -1 && i + 1 < lstSteps.size()) {
-      next = lstSteps.get(i + 1);
+    if (step == Step.REPLICATION_OPTIONS)
+    {
+      if (getUserData().mustCreateAdministrator())
+      {
+        next = Step.CREATE_GLOBAL_ADMINISTRATOR;
+      }
+      else
+      {
+        switch (getUserData().getReplicationOptions().getType())
+        {
+        case FIRST_IN_TOPOLOGY:
+          next = Step.NEW_SUFFIX_OPTIONS;
+          break;
+        case STANDALONE:
+          next = Step.NEW_SUFFIX_OPTIONS;
+          break;
+        default:
+          next = Step.SUFFIXES_OPTIONS;
+        }
+      }
+    }
+    else if (step == Step.SUFFIXES_OPTIONS)
+    {
+      switch (getUserData().getSuffixesToReplicateOptions().
+          getType())
+      {
+      case REPLICATE_WITH_EXISTING_SUFFIXES:
+        next = Step.REVIEW;
+        break;
+      default:
+        next = Step.NEW_SUFFIX_OPTIONS;
+      }
+    }
+    else
+    {
+      int i = lstSteps.indexOf(step);
+      if (i != -1 && i + 1 < lstSteps.size()) {
+        next = lstSteps.get(i + 1);
+      }
+    }
+    if (next != null)
+    {
+      hmPreviousSteps.put(next, step);
     }
     return next;
   }
@@ -410,11 +535,36 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  public LinkedHashSet<WizardStep> getOrderedSteps()
+  {
+    LinkedHashSet<WizardStep> orderedSteps = new LinkedHashSet<WizardStep>();
+    orderedSteps.add(WELCOME);
+    orderedSteps.add(SERVER_SETTINGS);
+    // TODO: remove this comment once the replication code is in place.
+    /*
+    orderedSteps.add(REPLICATION_OPTIONS);
+    orderedSteps.add(CREATE_GLOBAL_ADMINISTRATOR);
+    orderedSteps.add(SUFFIXES_OPTIONS);
+    */
+    orderedSteps.add(NEW_SUFFIX_OPTIONS);
+    orderedSteps.add(REVIEW);
+    orderedSteps.add(PROGRESS);
+    return orderedSteps;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public WizardStep getPreviousWizardStep(WizardStep step) {
-    WizardStep prev = null;
-    int i = lstSteps.indexOf(step);
-    if (i != -1 && i > 0) {
-      prev = lstSteps.get(i - 1);
+    //  Try with the steps calculated in method getNextWizardStep.
+    WizardStep prev = hmPreviousSteps.get(step);
+
+    if (prev == null)
+    {
+      int i = lstSteps.indexOf(step);
+      if (i != -1 && i > 0) {
+        prev = lstSteps.get(i - 1);
+      }
     }
     return prev;
   }
@@ -432,8 +582,8 @@ public abstract class Installer extends GuiApplication {
     try
     {
       return SetupUtils.createTemplateFile(
-                  getUserData().getDataOptions().getBaseDn(),
-                  getUserData().getDataOptions().getNumberEntries());
+                  getUserData().getNewSuffixOptions().getBaseDn(),
+                  getUserData().getNewSuffixOptions().getNumberEntries());
     }
     catch (IOException ioe)
     {
@@ -527,8 +677,11 @@ public abstract class Installer extends GuiApplication {
     argList.add("-w");
     argList.add(getUserData().getDirectoryManagerPwd());
 
-    argList.add("-b");
-    argList.add(getUserData().getDataOptions().getBaseDn());
+    if (createNotReplicatedSuffix())
+    {
+      argList.add("-b");
+      argList.add(getUserData().getNewSuffixOptions().getBaseDn());
+    }
 
     String[] args = new String[argList.size()];
     argList.toArray(args);
@@ -665,12 +818,12 @@ public abstract class Installer extends GuiApplication {
    */
   protected void createBaseEntry() throws QuickSetupException {
     String[] arg =
-      { getUserData().getDataOptions().getBaseDn() };
+      { getUserData().getNewSuffixOptions().getBaseDn() };
     notifyListeners(getFormattedWithPoints(
         getMsg("progress-creating-base-entry", arg)));
 
     InstallerHelper helper = new InstallerHelper();
-    String baseDn = getUserData().getDataOptions().getBaseDn();
+    String baseDn = getUserData().getNewSuffixOptions().getBaseDn();
     File tempFile = helper.createBaseEntryTempFile(baseDn);
 
     ArrayList<String> argList = new ArrayList<String>();
@@ -718,7 +871,7 @@ public abstract class Installer extends GuiApplication {
    */
   protected void importLDIF() throws QuickSetupException {
     String[] arg =
-      { getUserData().getDataOptions().getLDIFPath() };
+      { getUserData().getNewSuffixOptions().getLDIFPath() };
     notifyListeners(getFormattedProgress(getMsg("progress-importing-ldif", arg))
         + getLineBreak());
 
@@ -731,7 +884,7 @@ public abstract class Installer extends GuiApplication {
     argList.add("-n");
     argList.add(getBackendName());
     argList.add("-l");
-    argList.add(getUserData().getDataOptions().getLDIFPath());
+    argList.add(getUserData().getNewSuffixOptions().getLDIFPath());
 
     String[] args = new String[argList.size()];
     argList.toArray(args);
@@ -762,7 +915,7 @@ public abstract class Installer extends GuiApplication {
    */
   protected void importAutomaticallyGenerated() throws QuickSetupException {
     File templatePath = createTemplateFile();
-    int nEntries = getUserData().getDataOptions().getNumberEntries();
+    int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
     String[] arg =
       { String.valueOf(nEntries) };
     notifyListeners(getFormattedProgress(getMsg(
@@ -886,11 +1039,28 @@ public abstract class Installer extends GuiApplication {
   public void updateUserData(WizardStep cStep, QuickSetup qs)
           throws UserDataException
   {
-    if (cStep == SERVER_SETTINGS) {
+    if (cStep == SERVER_SETTINGS)
+    {
       updateUserDataForServerSettingsPanel(qs);
-    } else if (cStep == DATA_OPTIONS) {
-      updateUserDataForDataOptionsPanel(qs);
-    } else if (cStep == REVIEW) {
+    }
+    else if (cStep == REPLICATION_OPTIONS)
+    {
+      updateUserDataForReplicationOptionsPanel(qs);
+    }
+    else if (cStep == CREATE_GLOBAL_ADMINISTRATOR)
+    {
+      updateUserDataForCreateAdministratorPanel(qs);
+    }
+    else if (cStep == SUFFIXES_OPTIONS)
+    {
+      updateUserDataForSuffixesOptionsPanel(qs);
+    }
+    else if (cStep == NEW_SUFFIX_OPTIONS)
+    {
+      updateUserDataForNewSuffixOptionsPanel(qs);
+    }
+    else if (cStep ==  REVIEW)
+    {
       updateUserDataForReviewPanel(qs);
     }
   }
@@ -902,6 +1072,324 @@ public abstract class Installer extends GuiApplication {
   protected String getBackendName()
   {
     return "userRoot";
+  }
+
+  /**
+   * Sets the current status of the installation process.
+   * @param status the current status of the installation process.
+   */
+  protected void setStatus(InstallProgressStep status)
+  {
+    this.status = status;
+  }
+
+  /**
+   * This methods updates the data on the server based on the contents of the
+   * UserData object provided in the constructor.
+   * @throws QuickSetupException if something goes wrong.
+   */
+  protected void createData() throws QuickSetupException
+  {
+    if (createNotReplicatedSuffix())
+    {
+      switch (getUserData().getNewSuffixOptions().getType())
+      {
+      case CREATE_BASE_ENTRY:
+        status = InstallProgressStep.CREATING_BASE_ENTRY;
+        notifyListeners(getTaskSeparator());
+        createBaseEntry();
+        break;
+      case IMPORT_FROM_LDIF_FILE:
+        status = InstallProgressStep.IMPORTING_LDIF;
+        notifyListeners(getTaskSeparator());
+        importLDIF();
+        break;
+      case IMPORT_AUTOMATICALLY_GENERATED_DATA:
+        status = InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED;
+        notifyListeners(getTaskSeparator());
+        importAutomaticallyGenerated();
+        break;
+      }
+    }
+    else
+    {
+      /* We must replicate some suffixes: for the moment just create them. */
+      /* TODO: replicate them. */
+      Set<SuffixDescriptor> suffixesToReplicate =
+        getUserData().getSuffixesToReplicateOptions().getAvailableSuffixes();
+      for (SuffixDescriptor suffix: suffixesToReplicate)
+      {
+        notifyListeners(getFormattedWithPoints("Creating Suffix"));
+
+        ArrayList<String> argList = new ArrayList<String>();
+        argList.add("-C");
+        argList.add(CONFIG_CLASS_NAME);
+
+        argList.add("-c");
+        argList.add(getInstallation().getCurrentConfigurationFile().toString());
+
+        argList.add("-b");
+        argList.add(suffix.getDN());
+
+        String[] args = new String[argList.size()];
+        argList.toArray(args);
+        try
+        {
+          InstallerHelper helper = new InstallerHelper();
+          int result = helper.invokeConfigureServer(args);
+
+          if (result != 0)
+          {
+            throw new QuickSetupException(
+                QuickSetupException.Type.CONFIGURATION_ERROR,
+                getMsg("error-configuring"), null);
+          }
+        } catch (Throwable t)
+        {
+          throw new QuickSetupException(
+              QuickSetupException.Type.CONFIGURATION_ERROR,
+              getThrowableMsg("error-configuring", null, t), t);
+        }
+        notifyListeners(getFormattedDone());
+
+        // TO REMOVE
+        notifyListeners(
+            getFormattedProgress("One day we will replicate the suffixes!"));
+      }
+    }
+  }
+
+  /**
+   * This methods updates the ADS contents (and creates the according suffixes).
+   * @throws QuickSetupException if something goes wrong.
+   */
+  protected void updateADS() throws QuickSetupException
+  {
+    if (true) return;
+    /* First check if the remote server contains an ADS: if it is the case the
+     * best is to update its contents with the new data and then configure the
+     * local server to be replicated with the remote server.
+     */
+    DataReplicationOptions repl =
+      getUserData().getReplicationOptions();
+    boolean remoteServer =
+      repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY;
+    if (remoteServer)
+    {
+      // Try to connect
+      AuthenticationData auth = repl.getAuthenticationData();
+      String ldapUrl = getLdapUrl(auth);
+      String dn = auth.getDn();
+      String pwd = auth.getPwd();
+      InitialLdapContext ctx = null;
+      try
+      {
+        ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
+            Utils.getDefaultLDAPTimeout(), null);
+
+        ADSContext adsContext = new ADSContext(ctx);
+        if (adsContext.hasAdminData())
+        {
+          /* Add global administrator if the user specified one. */
+          if (getUserData().mustCreateAdministrator())
+          {
+            try
+            {
+              String[] arg = {getHostDisplay(auth)};
+              notifyListeners(getFormattedWithPoints(
+                  getMsg("creating-administrator", arg)));
+              adsContext.createAdministrator(getAdministratorProperties());
+              notifyListeners(getFormattedDone());
+            }
+            catch (ADSContextException ade)
+            {
+              if (ade.getError() ==
+                ADSContextException.ErrorType.ALREADY_REGISTERED)
+              {
+                notifyListeners(getFormattedWarning(
+                    getMsg("administrator-already-registered")));
+              }
+              else
+              {
+                throw ade;
+              }
+            }
+          }
+
+          Map<ADSContext.ServerProperty, Object> serverProperties =
+            getNewServerProperties();
+
+          /* Register new server data. */
+          adsContext.registerServer(serverProperties);
+
+          /* Configure local server to have an ADS and replicate it */
+          // TODO
+          notifyListeners(getFormattedProgress(
+              "Here we create the new server ADS and we replicate it.\n"));
+        }
+        else
+        {
+          /* TODO: We need to integrate in remote framework to make this work.
+           */
+          /*
+          adsContext.createAdminData();
+          adsContext.createAdministrator(getAdministratorProperties());
+          adsContext.registerServer(
+              getRemoteServerProperties(adsContext.getDirContext()));
+          adsContext.registerServer(getNewServerProperties());
+          */
+          notifyListeners(getFormattedProgress(
+              "Here we update the server in "+getHostDisplay(auth)+"\n"));
+
+          /* Configure local server to have an ADS and replicate it */
+          // TODO
+          notifyListeners(getFormattedProgress(
+              "Here we create the new server ADS and we replicate it.\n"));
+
+        }
+      }
+      catch (NoPermissionException x)
+      {
+        String[] arg = {getHostDisplay(auth)};
+        throw new QuickSetupException(
+            QuickSetupException.Type.CONFIGURATION_ERROR,
+            getMsg("cannot-connect-to-remote-permissions", arg), x);
+      }
+      catch (NamingException ne)
+      {
+        String[] arg = {getHostDisplay(auth)};
+        throw new QuickSetupException(
+            QuickSetupException.Type.CONFIGURATION_ERROR,
+            getMsg("cannot-connect-to-remote-generic", arg), ne);
+      }
+      catch (ADSContextException ace)
+      {
+        String[] args = {getHostDisplay(auth), ace.toString()};
+        throw new QuickSetupException(
+            QuickSetupException.Type.CONFIGURATION_ERROR,
+            getMsg("remote-ads-exception", args), ace);
+      }
+      finally
+      {
+        if (ctx != null)
+        {
+          try
+          {
+            ctx.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+      }
+    }
+    else
+    {
+      notifyListeners(getFormattedWithPoints(getMsg("creating-ads")));
+      Map<ADSContext.ServerProperty, Object> serverProperties =
+        getNewServerProperties();
+      try
+      {
+        ADSContext.createOfflineAdminData(serverProperties,
+            getUserData().getServerLocation(), getBackendName());
+      }
+      catch (ADSContextException ace)
+      {
+        throw new QuickSetupException(
+            QuickSetupException.Type.CONFIGURATION_ERROR,
+            getMsg("local-ads-exception"), ace);
+      }
+      notifyListeners(getFormattedDone());
+    }
+  }
+
+  /**
+   * Tells whether we must create a suffix that we are not going to replicate
+   * with other servers or not.
+   * @return <CODE>true</CODE> if we must create a new suffix and
+   * <CODE>false</CODE> otherwise.
+   */
+  private boolean createNotReplicatedSuffix()
+  {
+    boolean createSuffix;
+
+    DataReplicationOptions repl =
+      getUserData().getReplicationOptions();
+
+    SuffixesToReplicateOptions suf =
+      getUserData().getSuffixesToReplicateOptions();
+
+    createSuffix =
+      (repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY) ||
+      (repl.getType() == DataReplicationOptions.Type.STANDALONE) ||
+      (suf.getType() ==
+        SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY);
+
+    return createSuffix;
+  }
+
+  private String getLdapUrl(AuthenticationData auth)
+  {
+    return "ldap://"+auth.getHostName()+":"+auth.getPort();
+  }
+
+  private String getHostDisplay(AuthenticationData auth)
+  {
+    return auth.getHostName()+":"+auth.getPort();
+  }
+
+  private Map<ADSContext.ServerProperty, Object> getNewServerProperties()
+  {
+    Map<ADSContext.ServerProperty, Object> serverProperties =
+      new HashMap<ADSContext.ServerProperty, Object>();
+    // TODO: this might not work
+    try
+    {
+      serverProperties.put(ADSContext.ServerProperty.HOSTNAME,
+          java.net.InetAddress.getLocalHost().getHostName());
+    }
+    catch (Throwable t)
+    {
+      t.printStackTrace();
+    }
+    serverProperties.put(ADSContext.ServerProperty.PORT,
+        String.valueOf(getUserData().getServerPort()));
+    serverProperties.put(ADSContext.ServerProperty.LDAP_ENABLED, "true");
+
+    // TODO: even if the user does not configure SSL maybe we should choose
+    // a secure port that is not being used and that we can actually use.
+    serverProperties.put(ADSContext.ServerProperty.SECURE_PORT, "636");
+    serverProperties.put(ADSContext.ServerProperty.LDAPS_ENABLED, "false");
+
+    serverProperties.put(ADSContext.ServerProperty.JMX_PORT,
+        String.valueOf(getUserData().getServerJMXPort()));
+    serverProperties.put(ADSContext.ServerProperty.JMX_ENABLED, "true");
+
+    serverProperties.put(ADSContext.ServerProperty.INSTANCE_PATH,
+        getUserData().getServerLocation());
+
+    String serverID = serverProperties.get(ADSContext.ServerProperty.HOSTNAME)+
+    ":"+getUserData().getServerPort();
+    /* TODO: do we want to ask this specifically to the user? */
+    serverProperties.put(ADSContext.ServerProperty.ID, serverID);
+
+    serverProperties.put(ADSContext.ServerProperty.HOST_OS,
+        Utils.getOSString());
+    return serverProperties;
+  }
+
+  private Map<ADSContext.AdministratorProperty, Object>
+  getAdministratorProperties()
+  {
+    Map<ADSContext.AdministratorProperty, Object> adminProperties =
+      new HashMap<ADSContext.AdministratorProperty, Object>();
+    adminProperties.put(ADSContext.AdministratorProperty.UID,
+        getUserData().getGlobalAdministratorUID());
+    adminProperties.put(ADSContext.AdministratorProperty.UID,
+        getUserData().getGlobalAdministratorPassword());
+    adminProperties.put(ADSContext.AdministratorProperty.DESCRIPTION,
+        getMsg("global-administrator-description"));
+    return adminProperties;
   }
 
   /**
@@ -1186,11 +1674,392 @@ public abstract class Installer extends GuiApplication {
    *           valid.
    *
    */
-  private void updateUserDataForDataOptionsPanel(QuickSetup qs)
+  private void updateUserDataForReplicationOptionsPanel(QuickSetup qs)
       throws UserDataException {
+    boolean hasGlobalAdministrators = false;
+    String host = null;
+    Integer port = null;
+    String dn = null;
+    String pwd = null;
     ArrayList<String> errorMsgs = new ArrayList<String>();
 
-    DataOptions dataOptions = null;
+    DataReplicationOptions.Type type = (DataReplicationOptions.Type)
+      qs.getFieldValue(FieldName.REPLICATION_OPTIONS);
+    host = qs.getFieldStringValue(FieldName.REMOTE_SERVER_HOST);
+    dn = qs.getFieldStringValue(FieldName.REMOTE_SERVER_DN);
+    pwd = qs.getFieldStringValue(FieldName.REMOTE_SERVER_PWD);
+
+    switch (type)
+    {
+    case IN_EXISTING_TOPOLOGY:
+    {
+      // Check host name
+      if ((host == null) || (host.length() == 0))
+      {
+        errorMsgs.add(getMsg("empty-remote-host"));
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
+      }
+      else
+      {
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, false);
+      }
+
+      // Check port
+      String sPort = qs.getFieldStringValue(FieldName.REMOTE_SERVER_PORT);
+      try
+      {
+        port = Integer.parseInt(sPort);
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, false);
+      }
+      catch (Throwable t)
+      {
+        errorMsgs.add(getMsg("invalid-remote-port"));
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
+      }
+
+      // Check dn
+      if ((dn == null) || (dn.length() == 0))
+      {
+        errorMsgs.add(getMsg("empty-remote-dn"));
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
+      }
+      else
+      {
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, false);
+      }
+
+      // Check password
+      if ((pwd == null) || (pwd.length() == 0))
+      {
+        errorMsgs.add(getMsg("empty-remote-pwd"));
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
+      }
+      else
+      {
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, false);
+      }
+
+      if (errorMsgs.size() == 0)
+      {
+        // Try to connect
+        String ldapUrl = "ldap://"+host+":"+port;
+        InitialLdapContext ctx = null;
+        try
+        {
+          try
+          {
+            ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
+                Utils.getDefaultLDAPTimeout(), null);
+          }
+          catch (Throwable t)
+          {
+            // Try using a global administrator
+            dn = ADSContext.getAdministratorDN(dn);
+            ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
+                Utils.getDefaultLDAPTimeout(), null);
+          }
+
+          ADSContext adsContext = new ADSContext(ctx);
+          if (adsContext.hasAdminData())
+          {
+            /* Check if there are already global administrators */
+            Set administrators = adsContext.readAdministratorRegistry();
+            if (administrators.size() > 0)
+            {
+              hasGlobalAdministrators = true;
+            }
+            updateUserDataWithSuffixesInADS(adsContext);
+          }
+          else
+          {
+            getUserData().setSuffixesToReplicateOptions(
+                new SuffixesToReplicateOptions(
+                    SuffixesToReplicateOptions.Type.
+                    REPLICATE_WITH_EXISTING_SUFFIXES,
+                    staticSuffixes(),
+                    staticSuffixes()));
+          }
+        }
+        catch (NoPermissionException x)
+        {
+          String[] arg = {host+":"+port};
+          errorMsgs.add(getMsg("cannot-connect-to-remote-permissions", arg));
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
+        }
+        catch (NamingException ne)
+        {
+          String[] arg = {host+":"+port};
+          errorMsgs.add(getMsg("cannot-connect-to-remote-generic", arg));
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
+        }
+        catch (ADSContextException ace)
+        {
+          String[] args = {host+":"+port, ace.toString()};
+          errorMsgs.add(getMsg("remote-ads-exception", args));
+        }
+        finally
+        {
+          if (ctx != null)
+          {
+            try
+            {
+              ctx.close();
+            }
+            catch (Throwable t)
+            {
+            }
+          }
+        }
+      }
+      break;
+    }
+    case STANDALONE:
+    {
+      Set<SuffixDescriptor> available;
+      SuffixesToReplicateOptions repl =
+        getUserData().getSuffixesToReplicateOptions();
+
+      if (repl != null)
+      {
+        available = repl.getAvailableSuffixes();
+      }
+      else
+      {
+        available = new HashSet<SuffixDescriptor>();
+      }
+
+      Set<SuffixDescriptor> chosen;
+      if (repl != null)
+      {
+        chosen = repl.getSuffixes();
+      }
+      else
+      {
+        chosen = new HashSet<SuffixDescriptor>();
+      }
+
+      getUserData().setSuffixesToReplicateOptions(
+          new SuffixesToReplicateOptions(
+              SuffixesToReplicateOptions.Type.NO_SUFFIX_TO_REPLICATE,
+              available,
+              chosen));
+      break;
+    }
+    case FIRST_IN_TOPOLOGY:
+    {
+      Set<SuffixDescriptor> available;
+      SuffixesToReplicateOptions repl =
+        getUserData().getSuffixesToReplicateOptions();
+
+      if (repl != null)
+      {
+        available = repl.getAvailableSuffixes();
+      }
+      else
+      {
+        available = new HashSet<SuffixDescriptor>();
+      }
+
+      Set<SuffixDescriptor> chosen;
+      if (repl != null)
+      {
+        chosen = repl.getSuffixes();
+      }
+      else
+      {
+        chosen = new HashSet<SuffixDescriptor>();
+      }
+      getUserData().setSuffixesToReplicateOptions(
+          new SuffixesToReplicateOptions(
+              SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY,
+              available,
+              chosen));
+      break;
+    }
+    default:
+      throw new IllegalStateException("Do not know what to do with type: "+
+          type);
+    }
+
+    if (errorMsgs.size() == 0)
+    {
+      AuthenticationData auth = new AuthenticationData();
+      auth.setHostName(host);
+      if (port != null)
+      {
+        auth.setPort(port);
+      }
+      auth.setDn(dn);
+      auth.setPwd(pwd);
+
+      DataReplicationOptions repl = new DataReplicationOptions(type,
+          auth);
+      getUserData().setReplicationOptions(repl);
+
+      getUserData().createAdministrator(!hasGlobalAdministrators &&
+      type == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY);
+
+    }
+    if (errorMsgs.size() > 0)
+    {
+      throw new UserDataException(Step.REPLICATION_OPTIONS,
+          Utils.getStringFromCollection(errorMsgs, "\n"));
+    }
+  }
+
+  /**
+   * Validate the data provided by the user in the create global administrator
+   * panel and update the UserInstallData object according to that content.
+   *
+   * @throws an
+   *           UserInstallDataException if the data provided by the user is not
+   *           valid.
+   *
+   */
+  private void updateUserDataForCreateAdministratorPanel(QuickSetup qs)
+  throws UserDataException
+  {
+    ArrayList<String> errorMsgs = new ArrayList<String>();
+
+    // Check the Global Administrator UID
+    String uid = qs.getFieldStringValue(FieldName.GLOBAL_ADMINISTRATOR_UID);
+
+    if ((uid == null) || (uid.trim().length() == 0))
+    {
+      errorMsgs.add(getMsg("empty-administrator-uid"));
+      qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_UID, true);
+    }
+    else
+    {
+      getUserData().setGlobalAdministratorUID(uid);
+      qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_UID, false);
+    }
+
+    // Check the provided passwords
+    String pwd1 = qs.getFieldStringValue(FieldName.GLOBAL_ADMINISTRATOR_PWD);
+    String pwd2 = qs.getFieldStringValue(
+        FieldName.GLOBAL_ADMINISTRATOR_PWD_CONFIRM);
+    if (pwd1 == null)
+    {
+      pwd1 = "";
+    }
+
+    boolean pwdValid = true;
+    if (!pwd1.equals(pwd2))
+    {
+      errorMsgs.add(getMsg("not-equal-pwd"));
+      qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD_CONFIRM, true);
+      pwdValid = false;
+
+    }
+    if (pwd1.length() < MIN_DIRECTORY_MANAGER_PWD)
+    {
+      errorMsgs.add(getMsg(("pwd-too-short"), new String[]
+        { String.valueOf(MIN_DIRECTORY_MANAGER_PWD) }));
+      qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD, true);
+      if ((pwd2 == null) || (pwd2.length() < MIN_DIRECTORY_MANAGER_PWD))
+      {
+        qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD_CONFIRM,
+            true);
+      }
+      pwdValid = false;
+    }
+
+    if (pwdValid)
+    {
+      getUserData().setDirectoryManagerPwd(pwd1);
+      qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD, false);
+      qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD_CONFIRM, false);
+    }
+
+    if (errorMsgs.size() > 0)
+    {
+      throw new UserDataException(Step.CREATE_GLOBAL_ADMINISTRATOR,
+          Utils.getStringFromCollection(errorMsgs, "\n"));
+    }
+  }
+
+  /**
+   * Validate the data provided by the user in the replicate suffixes options
+   * panel and update the UserInstallData object according to that content.
+   *
+   * @throws an
+   *           UserInstallDataException if the data provided by the user is not
+   *           valid.
+   *
+   */
+  private void updateUserDataForSuffixesOptionsPanel(QuickSetup qs)
+  throws UserDataException
+  {
+    ArrayList<String> errorMsgs = new ArrayList<String>();
+    if (qs.getFieldValue(FieldName.SUFFIXES_TO_REPLICATE_OPTIONS) ==
+      SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES)
+    {
+      Set s = (Set)qs.getFieldValue(FieldName.SUFFIXES_TO_REPLICATE);
+      if (s.size() == 0)
+      {
+        errorMsgs.add(getMsg("no-suffixes-chosen-to-replicate"));
+        qs.displayFieldInvalid(FieldName.SUFFIXES_TO_REPLICATE, true);
+      }
+      else
+      {
+        Set<SuffixDescriptor> chosen = new HashSet<SuffixDescriptor>();
+        for (Object o: s)
+        {
+          chosen.add((SuffixDescriptor)o);
+        }
+        qs.displayFieldInvalid(FieldName.SUFFIXES_TO_REPLICATE, false);
+        Set<SuffixDescriptor> available = getUserData().
+        getSuffixesToReplicateOptions().getAvailableSuffixes();
+
+        SuffixesToReplicateOptions options =
+          new SuffixesToReplicateOptions(
+          SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES,
+              available,
+              chosen);
+        getUserData().setSuffixesToReplicateOptions(options);
+      }
+    }
+    else
+    {
+      Set<SuffixDescriptor> available = getUserData().
+      getSuffixesToReplicateOptions().getAvailableSuffixes();
+      Set<SuffixDescriptor> chosen = getUserData().
+      getSuffixesToReplicateOptions().getSuffixes();
+      SuffixesToReplicateOptions options =
+        new SuffixesToReplicateOptions(
+            SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY,
+            available,
+            chosen);
+      getUserData().setSuffixesToReplicateOptions(options);
+    }
+
+    if (errorMsgs.size() > 0)
+    {
+      throw new UserDataException(Step.SUFFIXES_OPTIONS,
+          Utils.getStringFromCollection(errorMsgs, "\n"));
+    }
+  }
+
+  /**
+   * Validate the data provided by the user in the new suffix data options panel
+   * and update the UserInstallData object according to that content.
+   *
+   * @throws an
+   *           UserInstallDataException if the data provided by the user is not
+   *           valid.
+   *
+   */
+  private void updateUserDataForNewSuffixOptionsPanel(QuickSetup qs)
+      throws UserDataException
+  {
+    ArrayList<String> errorMsgs = new ArrayList<String>();
+
+    NewSuffixOptions dataOptions = null;
 
     // Check the base dn
     boolean validBaseDn = false;
@@ -1214,8 +2083,8 @@ public abstract class Installer extends GuiApplication {
     }
 
     // Check the data options
-    DataOptions.Type type =
-        (DataOptions.Type) qs.getFieldValue(FieldName.DATA_OPTIONS);
+    NewSuffixOptions.Type type =
+        (NewSuffixOptions.Type) qs.getFieldValue(FieldName.DATA_OPTIONS);
 
     switch (type)
     {
@@ -1231,7 +2100,7 @@ public abstract class Installer extends GuiApplication {
         qs.displayFieldInvalid(FieldName.LDIF_PATH, true);
       } else if (validBaseDn)
       {
-        dataOptions = new DataOptions(type, baseDn, ldifPath);
+        dataOptions = new NewSuffixOptions(type, baseDn, ldifPath);
         qs.displayFieldInvalid(FieldName.LDIF_PATH, false);
       }
       break;
@@ -1274,7 +2143,7 @@ public abstract class Installer extends GuiApplication {
       if (startErrors == errorMsgs.size() && validBaseDn)
       {
         // No validation errors
-        dataOptions = new DataOptions(type, baseDn, new Integer(nEntries));
+        dataOptions = new NewSuffixOptions(type, baseDn, new Integer(nEntries));
       }
       break;
 
@@ -1283,21 +2152,22 @@ public abstract class Installer extends GuiApplication {
       qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, false);
       if (validBaseDn)
       {
-        dataOptions = new DataOptions(type, baseDn);
+        dataOptions = new NewSuffixOptions(type, baseDn);
       }
     }
 
     if (dataOptions != null)
     {
-      getUserData().setDataOptions(dataOptions);
+      getUserData().setNewSuffixOptions(dataOptions);
     }
 
     if (errorMsgs.size() > 0)
     {
-      throw new UserDataException(Step.DATA_OPTIONS,
+      throw new UserDataException(Step.NEW_SUFFIX_OPTIONS,
           Utils.getStringFromCollection(errorMsgs, "\n"));
     }
   }
+
 
   /**
    * Update the userData object according to the content of the review
@@ -1322,6 +2192,142 @@ public abstract class Installer extends GuiApplication {
   private long getRequiredInstallSpace()
   {
     return 15 * 1024 * 1024;
+  }
+
+  private Map<ADSContext.ServerProperty, Object> getRemoteServerProperties(
+      InitialLdapContext ctx) throws NamingException
+  {
+    // TODO: use administration framework.
+    return new HashMap<ADSContext.ServerProperty, Object>();
+  }
+
+  /**
+   * Update the UserInstallData object according to the content of the review
+   * panel.
+   */
+  private void updateUserDataWithSuffixesInADS(ADSContext adsContext)
+  {
+    SuffixesToReplicateOptions suf =
+      getUserData().getSuffixesToReplicateOptions();
+    SuffixesToReplicateOptions.Type type;
+    Set<SuffixDescriptor> suffixes = null;
+    if (suf == null)
+    {
+      type = SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
+    }
+    else
+    {
+      type = suf.getType();
+    }
+    // TODO: get the suffixes using the adsContext.
+    if (suffixes == null)
+    {
+      suffixes = new HashSet<SuffixDescriptor>();
+    }
+    suffixes = staticSuffixes();
+    getUserData().setSuffixesToReplicateOptions(
+        new SuffixesToReplicateOptions(type, suffixes, suffixes));
+  }
+
+  private Set<SuffixDescriptor> staticSuffixes()
+  {
+    ServerDescriptor server1 = new ServerDescriptor();
+    Map<ADSContext.ServerProperty, Object> serverProp1 =
+      new HashMap<ADSContext.ServerProperty, Object>();
+    serverProp1.put(ADSContext.ServerProperty.HOSTNAME, "potato.france");
+    serverProp1.put(ADSContext.ServerProperty.PORT, "389");
+    serverProp1.put(ADSContext.ServerProperty.SECURE_PORT, "689");
+    serverProp1.put(ADSContext.ServerProperty.LDAP_ENABLED, "true");
+    serverProp1.put(ADSContext.ServerProperty.LDAPS_ENABLED, "false");
+    serverProp1.put(ADSContext.ServerProperty.INSTANCE_PATH, "/tmp/jvl1");
+    server1.setAdsProperties(serverProp1);
+
+    ServerDescriptor server2 = new ServerDescriptor();
+    Map<ADSContext.ServerProperty, Object> serverProp2 =
+      new HashMap<ADSContext.ServerProperty, Object>();
+    serverProp2.put(ADSContext.ServerProperty.HOSTNAME, "skalariak.france");
+    serverProp2.put(ADSContext.ServerProperty.PORT, "389");
+    serverProp2.put(ADSContext.ServerProperty.SECURE_PORT, "689");
+    serverProp2.put(ADSContext.ServerProperty.LDAP_ENABLED, "false");
+    serverProp2.put(ADSContext.ServerProperty.LDAPS_ENABLED, "true");
+    serverProp2.put(ADSContext.ServerProperty.INSTANCE_PATH, "/tmp/jvl2");
+    server2.setAdsProperties(serverProp2);
+
+    SuffixDescriptor suffix1 = new SuffixDescriptor();
+    suffix1.setDN("dc=example,dc=com");
+    Set<ReplicaDescriptor> replicas1 = new HashSet<ReplicaDescriptor>();
+
+    SuffixDescriptor suffix2 = new SuffixDescriptor();
+    suffix2.setDN("dc=for real,dc=com");
+    Set<ReplicaDescriptor> replicas2 = new HashSet<ReplicaDescriptor>();
+
+    SuffixDescriptor suffix3 = new SuffixDescriptor();
+    suffix3.setDN("dc=s3,dc=com");
+    Set<ReplicaDescriptor> replicas3 = new HashSet<ReplicaDescriptor>();
+
+    SuffixDescriptor suffix4 = new SuffixDescriptor();
+    suffix4.setDN("dc=s4,dc=com");
+    Set<ReplicaDescriptor> replicas4 = new HashSet<ReplicaDescriptor>();
+
+
+    ReplicaDescriptor replica1 = new ReplicaDescriptor();
+    replica1.setSuffix(suffix1);
+    replica1.setServer(server1);
+    replica1.setEntries(1002);
+    replicas1.add(replica1);
+
+    ReplicaDescriptor replica2 = new ReplicaDescriptor();
+    replica2.setSuffix(suffix1);
+    replica2.setServer(server2);
+    replica2.setEntries(1003);
+    replicas1.add(replica2);
+
+    suffix1.setReplicas(replicas1);
+
+    ReplicaDescriptor replica3 = new ReplicaDescriptor();
+    replica3.setSuffix(suffix2);
+    replica3.setServer(server2);
+    replicas2.add(replica3);
+
+    suffix2.setReplicas(replicas2);
+
+    ReplicaDescriptor replica5 = new ReplicaDescriptor();
+    replica5.setSuffix(suffix3);
+    replica5.setServer(server1);
+    replica5.setEntries(1003);
+    replicas3.add(replica5);
+
+    ReplicaDescriptor replica6 = new ReplicaDescriptor();
+    replica6.setSuffix(suffix3);
+    replica6.setServer(server2);
+    replica6.setEntries(1003);
+    replicas3.add(replica6);
+
+    suffix3.setReplicas(replicas3);
+
+    ReplicaDescriptor replica7 = new ReplicaDescriptor();
+    replica7.setSuffix(suffix4);
+    replica7.setServer(server1);
+    replica7.setEntries(1003);
+    replicas4.add(replica7);
+
+    ReplicaDescriptor replica8 = new ReplicaDescriptor();
+    replica8.setSuffix(suffix3);
+    replica8.setServer(server2);
+    replica8.setEntries(1003);
+    replicas4.add(replica8);
+
+    suffix4.setReplicas(replicas4);
+
+    Set<SuffixDescriptor> suffixes = new HashSet<SuffixDescriptor>();
+    suffixes.add(suffix1);
+    suffixes.add(suffix2);
+    suffixes.add(suffix3);
+    suffixes.add(suffix4);
+
+    //suffixes.clear();
+
+    return suffixes;
   }
 
   /**

@@ -39,6 +39,7 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ObjectClass;
@@ -65,9 +66,9 @@ public class ConfigFromFile
     DirectoryServer.getObjectClass("ds-cfg-root-dn", true);
   private final ObjectClass syncProviderOc =
     DirectoryServer.getObjectClass("ds-cfg-synchronization-provider", true);
-  private final ObjectClass syncConfigOc =
-    DirectoryServer.getObjectClass("ds-cfg-synchronization-provider-config",
-    true);
+  private final ObjectClass replicationConfigOc =
+    DirectoryServer.getObjectClass("ds-cfg-replication-domain-config", true);
+  private DN replicationDomainDN;
 
   private HashSet<ListenerDescriptor> listeners =
     new HashSet<ListenerDescriptor>();
@@ -75,8 +76,8 @@ public class ConfigFromFile
     new HashSet<DatabaseDescriptor>();
   private HashSet<String> administrativeUsers = new HashSet<String>();
   private String errorMessage;
-  private boolean synchronizationConfigured = false;
-  private HashSet<String> synchronizedSuffixes = new HashSet<String>();
+  private boolean replicationConfigured = false;
+  private HashSet<String> replicatedSuffixes = new HashSet<String>();
 
   /**
    * Default constructor.
@@ -97,8 +98,8 @@ public class ConfigFromFile
     listeners.clear();
     databases.clear();
     administrativeUsers.clear();
-    synchronizationConfigured = false;
-    synchronizedSuffixes.clear();
+    replicationConfigured = false;
+    replicatedSuffixes.clear();
     try
     {
       Installation installation =
@@ -111,7 +112,7 @@ public class ConfigFromFile
       {
         updateConfig(entry);
       }
-      updateSynchronization();
+      updateReplication();
     }
     catch (IOException ioe)
     {
@@ -263,9 +264,9 @@ public class ConfigFromFile
    {
      updateConfigWithSyncProviderEntry(entry);
    }
-   else if (entry.hasObjectClass(syncConfigOc))
+   else if (entry.hasObjectClass(replicationConfigOc))
    {
-     updateConfigWithSyncConfig(entry);
+     updateConfigWithReplConfig(entry);
    }
   }
 
@@ -405,7 +406,7 @@ public class ConfigFromFile
   }
 
   /**
-   * Updates the synchronization configuration data we expose to the user with
+   * Updates the replication configuration data we expose to the user with
    * the provided entry object.
    * @param entry the entry to analyze.
    */
@@ -414,24 +415,24 @@ public class ConfigFromFile
     if ("true".equalsIgnoreCase(getFirstValue(entry,
         "ds-cfg-synchronization-provider-enabled")))
     {
-      synchronizationConfigured = true;
+      replicationConfigured = true;
     }
     else
     {
-      synchronizationConfigured = false;
+      replicationConfigured = false;
     }
   }
 
 
   /**
-   * Updates the databases suffixes with the list of synchronized suffixes
+   * Updates the databases suffixes with the list of replicated suffixes
    * found.
    */
-  private void updateSynchronization()
+  private void updateReplication()
   {
-    if (synchronizationConfigured)
+    if (replicationConfigured)
     {
-      for (String suffixDn: synchronizedSuffixes)
+      for (String suffixDn: replicatedSuffixes)
       {
         BaseDNDescriptor replica = null;
         for (DatabaseDescriptor db: databases)
@@ -452,20 +453,37 @@ public class ConfigFromFile
         }
         if (replica != null)
         {
-          replica.setType(BaseDNDescriptor.Type.SYNCHRONIZED);
+          replica.setType(BaseDNDescriptor.Type.REPLICATED);
         }
       }
     }
   }
 
   /**
-   * Updates the synchronization configuration data we expose to the user with
+   * Updates the replication configuration data we expose to the user with
    * the provided entry object.
    * @param entry the entry to analyze.
    */
-  private void updateConfigWithSyncConfig(Entry entry)
+  private void updateConfigWithReplConfig(Entry entry)
   {
-    synchronizedSuffixes.addAll(getValues(entry, "ds-cfg-synchronization-dn"));
+    if (replicationDomainDN == null)
+    {
+      try
+      {
+        replicationDomainDN = DN.decode(
+            "cn=domains,cn=Multimaster Synchronization,"+
+            "cn=Synchronization Providers,cn=config");
+      }
+      catch (Throwable t)
+      {
+        // Bug
+        throw new IllegalStateException("Bug: "+t, t);
+      }
+    }
+    if (entry.getDN().isDescendantOf(replicationDomainDN))
+    {
+      replicatedSuffixes.addAll(getValues(entry, "ds-cfg-replication-dn"));
+    }
   }
 
   /**
@@ -517,11 +535,11 @@ public class ConfigFromFile
   }
 
   /**
-   * Create a non synchronized base DN descriptor.
+   * Create a non replicated base DN descriptor.
    */
   private BaseDNDescriptor getBaseDNDescriptor(Entry entry, String baseDn)
   {
-    return new BaseDNDescriptor(BaseDNDescriptor.Type.NOT_SYNCHRONIZED,
+    return new BaseDNDescriptor(BaseDNDescriptor.Type.NOT_REPLICATED,
         baseDn, null, -1, -1);
   }
 }

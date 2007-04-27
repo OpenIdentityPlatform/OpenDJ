@@ -76,6 +76,14 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
   /**
    * {@inheritDoc}
    */
+  public boolean blockingBeginDisplay()
+  {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public void beginDisplay(UserData data) {
     super.beginDisplay(data);
     if (!loadBuildListAttempted) {
