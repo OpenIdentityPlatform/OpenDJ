@@ -619,14 +619,36 @@ email.server.pwd=${email.server.pwd.input}
     </copy>
     <echo>You may access the tests report at</echo>
     <echo>${tests.run.dir}/${tests.run.time}/report/results.html</echo>
-    <condition property="email.send">
-      <equals arg1="${email.enabled}" arg2="y" 
-              casesensitive="false" trim="true"/>
-    </condition>
     <antcall target="send-mail"/>
   </target>
 
-  <target name="send-mail" if="email.send">
+  <target name="send-mail-prepare">
+    <condition property="test.successful">
+      <available file="${staf.tmp.dir}/results.html"/>
+    </condition>
+    <condition property="email.send">
+      <equals arg1="${email.enabled}" arg2="y"
+              casesensitive="false" trim="true"/>
+    </condition>
+  </target>
+
+  <target name="send-mail-get-percentage" depends="send-mail-prepare" if="test.successful">
+    <echo>test report found.Proceeding...</echo>
+    <delete file="${staf.tmp.dir}/percentage.properties"/>
+    <copy file="${staf.tmp.dir}/results.html" tofile="${staf.tmp.dir}/percentage.properties">
+      <filterchain>
+        <linecontains>
+         <contains value='font size="+2'/>
+        </linecontains>
+        <tokenfilter>
+          <replaceregex pattern=".*font size=.+2..(\d+)%./font.*" replace="test.percentage=\1"/>
+        </tokenfilter>
+      </filterchain>
+    </copy>
+    <property file="${staf.tmp.dir}/percentage.properties"/>
+  </target>
+
+  <target name="send-mail" if="email.send" depends="send-mail-get-percentage">
     <condition property="email.send.noauth">
       <or>
         <not>
@@ -644,7 +666,7 @@ email.server.pwd=${email.server.pwd.input}
       <available file="${staf.tmp.dir}/results.html"/>
     </condition>
     <condition property="email.subject"
-               value="FT - Run - ${daily.date} - ${os.name} - ${os.arch}"
+               value="FT - Run - ${daily.date} - ${os.name} - ${os.arch} - ${test.percentage}%"
                else="FT - Failed -${daily.date} - ${os.name} - ${os.arch}">
       <available file="${staf.tmp.dir}/results.html"/>
     </condition>
@@ -655,22 +677,20 @@ email.server.pwd=${email.server.pwd.input}
     <mail from="${email.from}" 
           tolist="${email.to}" 
           subject="${email.subject}"
-          files="${staf.tmp.dir}/results.html"
           mailhost="${email.server.host}"
           mailport="${email.server.port}"
-          messagefile="${staf.tmp.dir}/results.html"
+          messagefile="${email.file}"
           messagemimetype="text/html" />
   </target>
   <target name="send-mail-withauth" unless="email.send.noauth">
     <mail from="${email.from}" 
           tolist="${email.to}" 
           subject="${email.subject}"
-          files="${staf.tmp.dir}/results.html"
           mailhost="${email.server.host}"
           mailport="${email.server.port}"
           user="${email.server.user}"
           password="${email.server.pwd}"
-          messagefile="${staf.tmp.dir}/results.html"
+          messagefile="${email.file}"
           messagemimetype="text/html" />
   </target>
   
