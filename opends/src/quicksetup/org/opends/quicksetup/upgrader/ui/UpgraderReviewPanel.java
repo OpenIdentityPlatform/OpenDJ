@@ -71,8 +71,15 @@ public class UpgraderReviewPanel extends ReviewPanel {
    */
   public void beginDisplay(UserData data) {
     tcServerLocation.setText(getServerToUpgrade());
-    tcOldBuild.setText(getOldBuildId());
-    tcNewBuild.setText(getNewBuildId());
+
+    // Unfortunately these string are different.  The
+    // old build string is the build ID (14 digit number)
+    // and the new build is the build display name that
+    // appears in the available builds information page.
+    // It is currently not feasible to correlate these.
+    tcOldBuild.setText(getOldBuildString());
+    tcNewBuild.setText(getNewBuildString());
+
   }
 
   /**
@@ -175,7 +182,7 @@ public class UpgraderReviewPanel extends ReviewPanel {
     return getUserData().getServerLocation();
   }
 
-  private String getOldBuildId() {
+  private String getOldBuildString() {
     String oldVersion;
     try {
       oldVersion = getApplication().getInstallation().getBuildId();
@@ -186,12 +193,17 @@ public class UpgraderReviewPanel extends ReviewPanel {
     return oldVersion;
   }
 
-  private String getNewBuildId() {
+  /**
+   * Gets the string by which the new build is known in the
+   * available builds page.
+   * @return String indicating the new build
+   */
+  private String getNewBuildString() {
     String newVersion;
     UpgradeUserData uud = (UpgradeUserData)getUserData();
     Build build = uud.getInstallPackageToDownload();
     if (build != null) {
-      newVersion = build.getId();
+      newVersion = build.getDisplayName();
     } else {
       // TODO: figure out the build from the zip somehow
       newVersion = getMsg("upgrade-build-id-unknown");

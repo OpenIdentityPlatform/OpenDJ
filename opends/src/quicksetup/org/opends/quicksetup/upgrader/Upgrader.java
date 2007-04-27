@@ -240,10 +240,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
   public RemoteBuildManager getRemoteBuildManager() {
     if (remoteBuildManager == null) {
       try {
-        // TODO: make this configurable.
-        // The slash at the end of the URL was/is important in getting the
-        // correct redirection from the web server
-        URL buildRepo = new URL("http://builds.opends.org/");
+        String listUrlString =
+                System.getProperty("org.opends.quicksetup.upgrader.BuildList");
+        if (listUrlString == null) {
+          listUrlString = "http://www.opends.org/upgrade-builds";
+        }
+        URL buildRepo = new URL(listUrlString);
         remoteBuildManager = new RemoteBuildManager(this, buildRepo);
       } catch (MalformedURLException e) {
         LOG.log(Level.INFO, "error", e);
