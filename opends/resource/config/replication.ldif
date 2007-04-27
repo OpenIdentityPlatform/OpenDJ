@@ -17,12 +17,12 @@ objectClass: ds-cfg-multimaster-synchronization-provider
 ds-cfg-synchronization-provider-enabled: true
 ds-cfg-synchronization-provider-class: org.opends.server.replication.plugin.MultimasterReplication
 
-dn: cn=domains, cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
+dn: cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
 cn: domains
 
-dn: cn=example, cn=domains, cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
+dn: cn=example,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-replication-domain-config
 cn: example
@@ -32,7 +32,7 @@ ds-cfg-replication-server: localhost:8990
 ds-cfg-directory-server-id: 1
 ds-cfg-receive-status: true
 
-dn: cn=Replication Server, cn=Multimaster Synchronization, cn=Synchronization Providers, cn=config
+dn: cn=Replication Server,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-replication-server-config
 cn: Replication Server
