@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup.ui;
 
+import org.opends.quicksetup.util.Utils;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -115,6 +117,7 @@ public class WebProxyDialog extends JDialog
         tfHost.requestFocusInWindow();
       }
     });
+    Utils.centerOnComponent(this, getParent());
     pack();
   }
 
