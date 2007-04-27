@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.logging.Logger;
-import java.util.logging.Level;
 import java.io.*;
 import java.awt.*;
 
@@ -186,14 +185,6 @@ public class RemoteBuildManager {
     String line;
     while (null != (line = reader.readLine())) {
       builder.append(line);
-
-      // FOR TESTING
-       try {
-          Thread.sleep(50);
-       } catch (InterruptedException e) {
-          LOG.log(Level.INFO, "error", e);
-       }
-
     }
     return builder.toString();
   }

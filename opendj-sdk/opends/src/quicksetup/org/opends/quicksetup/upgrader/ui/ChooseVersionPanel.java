@@ -70,7 +70,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
    */
   public ChooseVersionPanel(GuiApplication application) {
     super(application);
-    createBuildLoader();
+    getBuildLoader();
   }
 
   /**
@@ -245,7 +245,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     return getMsg("upgrade-choose-version-panel-instructions");
   }
 
-  private RemoteBuildListComboBoxModelCreator createBuildLoader() {
+  private RemoteBuildListComboBoxModelCreator getBuildLoader() {
     if (bld == null) {
       RemoteBuildManager rbm =
               ((Upgrader) getApplication()).getRemoteBuildManager();
@@ -356,15 +356,25 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
       throws IOException
     {
       this.rbm = rbm;
-      this.in = rbm.getDailyBuildsInputStream(getMainWindow(),
-              "Reading build information");
+
+      // This is a lengthy operation that must be
+      // performed in the event thread.  So try
+      // to do this work now during construction
+      // rather than when the panel becomes visible
+      // for the first time.  If we fail we'll try
+      // again later.
+      try {
+        getInputStream();
+      } catch (IOException e) {
+        LOG.log(Level.INFO, "Error obtaining build list input stream", e);
+      }
     }
 
     /**
      * {@inheritDoc}
      */
     public java.util.List<Build> processBackgroundTask() throws Exception {
-      return rbm.listBuilds(in);
+      return rbm.listBuilds(getInputStream());
     }
 
     /**
@@ -423,6 +433,14 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
           }
         });
       }
+    }
+
+    private InputStream getInputStream() throws IOException {
+      if (this.in == null) {
+        this.in = rbm.getDailyBuildsInputStream(getMainWindow(),
+                "Reading build information");
+      }
+      return this.in;
     }
   }
 

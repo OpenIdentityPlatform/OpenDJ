@@ -110,7 +110,9 @@ class BuildListDownloadErrorPanel extends JPanel {
     CustomHTMLEditorKit ek = new CustomHTMLEditorKit();
     ek.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
-        specifyProxy(getParent());
+        Component dlg = SwingUtilities.getAncestorOfClass(Window.class,
+                BuildListDownloadErrorPanel.this);
+        specifyProxy(dlg);
 
         // Since the proxy info may change we need
         // to regenerate the text
