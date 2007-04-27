@@ -38,7 +38,10 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.controls.PagedResultsControl;
+import org.opends.server.controls.ServerSideSortRequestControl;
+import org.opends.server.controls.ServerSideSortResponseControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -60,6 +63,7 @@ import org.opends.server.util.ServerConstants;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -72,8 +76,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugJEAccess;
 import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
-import static org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
-import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * Storage container for LDAP entries.  Each base DN of a JE backend is given
@@ -548,6 +551,7 @@ public class EntryContainer
 
     List<Control> controls = searchOperation.getRequestControls();
     PagedResultsControl pageRequest = null;
+    ServerSideSortRequestControl sortRequest = null;
     if (controls != null)
     {
       for (Control control : controls)
@@ -561,6 +565,26 @@ public class EntryContainer
             {
               pageRequest = new PagedResultsControl(control.isCritical(),
                                                     control.getValue());
+            }
+            catch (LDAPException e)
+            {
+              if (debugEnabled())
+              {
+                debugCaught(DebugLogLevel.ERROR, e);
+              }
+              throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                           e.getMessage(), e.getMessageID(), e);
+            }
+          }
+        }
+        else if (control.getOID().equals(OID_SERVER_SIDE_SORT_REQUEST_CONTROL))
+        {
+          // Ignore all but the first sort request control.
+          if (sortRequest == null)
+          {
+            try
+            {
+              sortRequest = ServerSideSortRequestControl.decodeControl(control);
             }
             catch (LDAPException e)
             {
@@ -729,11 +753,52 @@ public class EntryContainer
 
     if (entryIDList.isDefined())
     {
+      if (sortRequest != null)
+      {
+        try
+        {
+          entryIDList = EntryIDSetSorter.sort(this, entryIDList,
+                                              searchOperation,
+                                              sortRequest.getSortOrder());
+          searchOperation.addResponseControl(
+               new ServerSideSortResponseControl(LDAPResultCode.SUCCESS, null));
+        }
+        catch (DirectoryException de)
+        {
+          searchOperation.addResponseControl(
+               new ServerSideSortResponseControl(
+                        de.getResultCode().getIntValue(), null));
+
+          if (sortRequest.isCritical())
+          {
+            throw de;
+          }
+        }
+      }
+
       searchIndexed(entryIDList, candidatesAreInScope, searchOperation,
                     pageRequest);
     }
     else
     {
+      if (sortRequest != null)
+      {
+        // FIXME -- Add support for sorting unindexed searches using indexes
+        //          like DSEE currently does.
+        searchOperation.addResponseControl(
+             new ServerSideSortResponseControl(
+                      LDAPResultCode.UNWILLING_TO_PERFORM, null));
+
+        if (sortRequest.isCritical())
+        {
+          int msgID = MSGID_JEB_SEARCH_CANNOT_SORT_UNINDEXED;
+          String message = getMessage(msgID);
+          throw new DirectoryException(
+                         ResultCode.UNAVAILABLE_CRITICAL_EXTENSION, message,
+                         msgID);
+        }
+      }
+
       searchNotIndexed(searchOperation, pageRequest);
     }
   }
@@ -1107,16 +1172,12 @@ public class EntryContainer
     if (continueSearch)
     {
       List<Lock> lockList = new ArrayList<Lock>();
-      for (EntryID id : entryIDList)
+      Iterator<EntryID> iterator = entryIDList.iterator(begin);
+      while (iterator.hasNext())
       {
+        EntryID id = iterator.next();
         Entry entry = null;
         Entry cacheEntry = null;
-
-        // Skip entry IDs in pages already returned.
-        if (begin != null && id.compareTo(begin) < 0)
-        {
-          continue;
-        }
 
         // Try the entry cache first. Note no need to take a lock.
         lockList.clear();

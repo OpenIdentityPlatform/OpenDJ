@@ -1095,6 +1095,23 @@ public class JebMessages
        CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 138;
 
   /**
+   * The message ID to use if an error occurs while attempting to retrieve an
+   * entry to examine while sorting.  This takes two arguments, which are a
+   * string representation of the entry ID and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 139;
+
+  /**
+   * The message ID of an error indicating that the base entry of a search
+   * operation does not exist.  This message takes one string argument which is
+   * the DN of the search base entry.
+   */
+  public static final int MSGID_JEB_SEARCH_CANNOT_SORT_UNINDEXED =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 140;
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1193,6 +1210,9 @@ public class JebMessages
                     "There is no index configured for attribute type '%s'");
     registerMessage(MSGID_JEB_SEARCH_NO_SUCH_OBJECT,
                     "The search base entry '%s' does not exist");
+    registerMessage(MSGID_JEB_SEARCH_CANNOT_SORT_UNINDEXED,
+                    "The search results cannot be sorted because the given " +
+                    "search request is not indexed");
     registerMessage(MSGID_JEB_ADD_NO_SUCH_OBJECT,
                     "The entry '%s' cannot be added because its parent " +
                     "entry does not exist");
@@ -1394,5 +1414,10 @@ public class JebMessages
     registerMessage(MSGID_JEB_REBUILD_BACKEND_ONLINE,
                     "Rebuilding system index(es) must be done with the " +
                     "backend containing the base DN disabled");
+
+
+    registerMessage(MSGID_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY,
+                    "Unable to examine the entry with ID %s for sorting " +
+                    "purposes:  %s");
   }
 }

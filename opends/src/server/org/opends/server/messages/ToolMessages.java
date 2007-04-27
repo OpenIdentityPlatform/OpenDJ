@@ -6949,6 +6949,25 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description of the
+   * sortOrder option for the ldapsearch tool.  It does not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_SORT_ORDER =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 876;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided sort order
+   * is invalid.  This takes a single argument, which is a message explaining
+   * the problem that occurred.
+   */
+  public static final int MSGID_LDAP_SORTCONTROL_INVALID_ORDER =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 877;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7368,6 +7387,8 @@ public class ToolMessages
     registerMessage(MSGID_DESCRIPTION_MATCHED_VALUES_FILTER,
                     "Use the LDAP matched values control with the provided " +
                     "filter");
+    registerMessage(MSGID_DESCRIPTION_SORT_ORDER,
+                    "Sort the results using the provided sort order");
     registerMessage(MSGID_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE,
                     "The assertion value was indicated to be base64-encoded, " +
                     "but an error occurred while trying to decode the value");
@@ -7659,6 +7680,8 @@ public class ToolMessages
                     "control was invalid:  %s");
     registerMessage(MSGID_LDAP_MATCHEDVALUES_INVALID_FILTER,
                     "The provided matched values filter was invalid:  %s");
+    registerMessage(MSGID_LDAP_SORTCONTROL_INVALID_ORDER,
+                    "The provided sort order was invalid:  %s");
     registerMessage(MSGID_LDAPMODIFY_PREREAD_NO_VALUE,
                     "The pre-read response control did not include a value");
     registerMessage(MSGID_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE,

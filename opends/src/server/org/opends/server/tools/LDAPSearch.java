@@ -45,6 +45,7 @@ import org.opends.server.controls.MatchedValuesFilter;
 import org.opends.server.controls.PagedResultsControl;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.controls.PersistentSearchControl;
+import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.Base64;
 import org.opends.server.util.PasswordReader;
@@ -602,6 +603,7 @@ public class LDAPSearch
     StringArgument    pSearchInfo              = null;
     StringArgument    saslOptions              = null;
     StringArgument    searchScope              = null;
+    StringArgument    sortOrder                = null;
     StringArgument    trustStorePath           = null;
     StringArgument    trustStorePassword       = null;
 
@@ -787,6 +789,11 @@ public class LDAPSearch
                                      "{filter}", null, null,
                                      MSGID_DESCRIPTION_MATCHED_VALUES_FILTER);
       argParser.addArgument(matchedValuesFilter);
+
+      sortOrder = new StringArgument("sortorder", 'S', "sortOrder", false,
+                                     false, true, "{sortOrder}", null, null,
+                                     MSGID_DESCRIPTION_SORT_ORDER);
+      argParser.addArgument(sortOrder);
 
       controlStr =
            new StringArgument("control", 'J', "control", false, true, true,
@@ -1260,6 +1267,23 @@ public class LDAPSearch
       searchOptions.getControls().add(new LDAPControl(mvc));
     }
 
+    if (sortOrder.isPresent())
+    {
+      try
+      {
+        searchOptions.getControls().add(
+             new LDAPControl(new ServerSideSortRequestControl(
+                                      sortOrder.getValue())));
+      }
+      catch (LDAPException le)
+      {
+        int    msgID   = MSGID_LDAP_SORTCONTROL_INVALID_ORDER;
+        String message = getMessage(msgID, le.getErrorMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+    }
+
     // Set the connection options.
     connectionOptions.setSASLExternal(saslExternal.isPresent());
     if(saslOptions.isPresent())
@@ -1535,6 +1559,5 @@ public class LDAPSearch
       }
     }
   }
-
 }
 

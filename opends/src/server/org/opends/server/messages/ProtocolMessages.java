@@ -4379,6 +4379,8 @@ public class ProtocolMessages
   public static final int MSGID_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 403;
 
+
+
   /**
    * The message ID for the message that will be used as the description of the
    * configuration attribute specifying whether to enable the LDAPS
@@ -4396,6 +4398,114 @@ public class ProtocolMessages
    */
   public static final int MSGID_LDAP_FILTER_NOT_EXACTLY_ONE =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 405;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server-side sort
+   * request control does not have a value.  It does not take any arguments.
+   */
+  public static final int MSGID_SORTREQ_CONTROL_NO_VALUE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 406;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server-side sort
+   * request control references an undefined attribute type.  This takes a
+   * single argument, which is the name of the attribute type.
+   */
+  public static final int MSGID_SORTREQ_CONTROL_UNDEFINED_ATTR =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 407;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server-side sort
+   * request control references an undefined matching rule.  This takes a
+   * single argument, which is the name of the matching rule.
+   */
+  public static final int MSGID_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 408;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server-side sort
+   * request control value sequence has an element with an invalid type.  This
+   * takes a single argument, which is the hex representation of the unsupported
+   * type value.
+   */
+  public static final int MSGID_SORTREQ_CONTROL_INVALID_SEQ_ELEMENT_TYPE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 409;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * decoding the server-side sort request control value.  This takes a single
+   * argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_SORTREQ_CONTROL_CANNOT_DECODE_VALUE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 410;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server-side sort
+   * response control does not have a value.  It does not take any arguments.
+   */
+  public static final int MSGID_SORTRES_CONTROL_NO_VALUE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 411;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * decoding the server-side sort response control value.  This takes a single
+   * argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_SORTRES_CONTROL_CANNOT_DECODE_VALUE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 412;
+
+
+
+  /**
+   * The message ID for the message that will be used if a sort order string
+   * has a zero-length attribute name.  This takes a single argument, which is
+   * the sort order string.
+   */
+  public static final int MSGID_SORTREQ_CONTROL_NO_ATTR_NAME =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 413;
+
+
+
+  /**
+   * The message ID for the message that will be used if a sort order string
+   * has a zero-length matching rule name.  This takes a single argument, which
+   * is the sort order string.
+   */
+  public static final int MSGID_SORTREQ_CONTROL_NO_MATCHING_RULE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 414;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server-side sort
+   * control does not have any sort keys.  This does not take any arguments.
+   */
+  public static final int MSGID_SORTREQ_CONTROL_NO_SORT_KEYS =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 415;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server-side sort
+   * control includes an attribute for which no ordering rule is available.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 416;
 
 
 
@@ -6285,6 +6395,55 @@ public class ProtocolMessages
     registerMessage(MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR,
             "Cannot decode the provided address mask because the it has an" +
             "invalid format");
+
+
+    registerMessage(MSGID_SORTREQ_CONTROL_NO_VALUE,
+                    "Unable to decode the provided control as a server-side " +
+                    "sort request control because it does not include a " +
+                    "control value");
+    registerMessage(MSGID_SORTREQ_CONTROL_UNDEFINED_ATTR,
+                    "Unable to process the provided server-side sort " +
+                    "request control because it references attribute " +
+                    "type %s which is not defined in the server schema");
+    registerMessage(MSGID_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE,
+                    "Unable to process the provided server-side sort request " +
+                    "control because it references undefined ordering " +
+                    "matching rule %s");
+    registerMessage(MSGID_SORTREQ_CONTROL_INVALID_SEQ_ELEMENT_TYPE,
+                    "Unable to process the provided server-side sort request " +
+                    "control because the value sequence contains an element " +
+                    "with an unsupported type of %s");
+    registerMessage(MSGID_SORTREQ_CONTROL_CANNOT_DECODE_VALUE,
+                    "Unable to process the provided server-side sort request " +
+                    "control because an error occurred while attempting to " +
+                    "decode the control value:  %s");
+    registerMessage(MSGID_SORTREQ_CONTROL_NO_ATTR_NAME,
+                    "Unable to process the provided server-side sort " +
+                    "request control because the sort order string \"%s\" " +
+                    "included a sort key with no attribute name");
+    registerMessage(MSGID_SORTREQ_CONTROL_NO_MATCHING_RULE,
+                    "Unable to process the provided server-side sort " +
+                    "request control because the sort order string \"%s\" " +
+                    "included a sort key with a colon but no matching rule " +
+                    "name");
+    registerMessage(MSGID_SORTREQ_CONTROL_NO_SORT_KEYS,
+                    "Unable to process the provided server-side sort " +
+                    "request control because it did not contain any sort keys");
+    registerMessage(MSGID_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR,
+                    "Unable to process the provided server-side sort " +
+                    "request control because it included attribute %s which " +
+                    "does not have a default ordering matching rule and no " +
+                    "ordering rule was specified in the sort key");
+
+
+    registerMessage(MSGID_SORTRES_CONTROL_NO_VALUE,
+                    "Unable to decode the provided control as a server-side " +
+                    "sort response control because it does not include a " +
+                    "control value");
+    registerMessage(MSGID_SORTRES_CONTROL_CANNOT_DECODE_VALUE,
+                    "Unable to process the provided server-side sort " +
+                    "response control because an error occurred while " +
+                    "attempting to decode the control value:  %s");
   }
 }
 
