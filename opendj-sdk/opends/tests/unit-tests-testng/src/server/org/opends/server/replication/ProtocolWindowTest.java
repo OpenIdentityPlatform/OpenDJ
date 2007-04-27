@@ -30,6 +30,7 @@ package org.opends.server.replication;
 import static org.opends.server.loggers.Error.logError;
 import static org.testng.Assert.*;
 
+import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -70,7 +71,7 @@ import org.testng.annotations.Test;
 public class ProtocolWindowTest extends ReplicationTestCase
 {
   private static final int WINDOW_SIZE = 10;
-  private static final int CHANGELOG_QUEUE_SIZE = 100;
+  private static final int REPLICATION_QUEUE_SIZE = 100;
 
   private static final String REPLICATION_STRESS_TEST =
     "Replication Stress Test";
@@ -79,6 +80,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
    * A "person" entry
    */
   protected Entry personEntry;
+  private int replServerPort;
 
   /**
    * Test the window mechanism by :
@@ -98,8 +100,8 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
-    ReplicationBroker broker = openChangelogSession(baseDn, (short) 13,
-        WINDOW_SIZE, 8989, 1000, true);
+    ReplicationBroker broker = openReplicationSession(baseDn, (short) 13,
+        WINDOW_SIZE, replServerPort, 1000, true);
 
     try {
 
@@ -110,7 +112,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
        */
       Thread.sleep(1500);
       assertTrue(checkWindows(WINDOW_SIZE));
-      assertTrue(checkChangelogQueueSize(CHANGELOG_QUEUE_SIZE));
+      assertTrue(checkChangelogQueueSize(REPLICATION_QUEUE_SIZE));
 
       // Create an Entry (add operation) that will be later used in the test.
       Entry tmp = personEntry.duplicate(false);
@@ -139,7 +141,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
       // send (2 * window + replicationServer queue) modify operations
       // so that window + replicationServer queue get stuck in the replicationServer queue
-      int count = WINDOW_SIZE * 2 + CHANGELOG_QUEUE_SIZE;
+      int count = WINDOW_SIZE * 2 + REPLICATION_QUEUE_SIZE;
       processModify(count);
 
       // let some time to the message to reach the replicationServer client
@@ -221,7 +223,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
         new ASN1OctetString("cn=monitor"),
         SearchScope.WHOLE_SUBTREE,
         LDAPFilter.decode("(waiting-changes=" +
-            (CHANGELOG_QUEUE_SIZE + WINDOW_SIZE) + ")"));
+            (REPLICATION_QUEUE_SIZE + WINDOW_SIZE) + ")"));
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
 
     return (op.getEntriesSent() == 1);
@@ -274,26 +276,31 @@ public class ProtocolWindowTest extends ReplicationTestCase
     synchroPluginStringDN = "cn=Multimaster Synchronization, "
         + synchroStringDN;
 
+    // find  a free port for the replicationServer
+    ServerSocket socket = TestCaseUtils.bindFreePort();
+    replServerPort = socket.getLocalPort();
+    socket.close();
+    
     // Change log
-    String changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
-    String changeLogLdif = "dn: " + changeLogStringDN + "\n"
+    String replServerLdif =
+      "dn: " + "cn=Replication Server, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-        + "cn: Changelog Server\n" + "ds-cfg-changelog-port: 8989\n"
-        + "ds-cfg-changelog-server-id: 1\n"
+        + "objectClass: ds-cfg-replication-server-config\n"
+        + "cn: Replication Server\n"
+        + "ds-cfg-replication-server-port: " + replServerPort + "\n"
+        + "ds-cfg-replication-server-id: 1\n"
         + "ds-cfg-window-size: " + WINDOW_SIZE + "\n"
-        + "ds-cfg-changelog-max-queue-size: " + CHANGELOG_QUEUE_SIZE;
-    changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
+        + "ds-cfg-replication-max-queue-size: " + REPLICATION_QUEUE_SIZE;
+    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
-    String synchroServerStringDN =
-      "cn=example, cn=domains, " + synchroPluginStringDN;
-    String synchroServerLdif = "dn: " + synchroServerStringDN + "\n"
+    String synchroServerLdif =
+      "dn: " + "cn=example, cn=domains, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-provider-config\n"
+        + "objectClass: ds-cfg-replication-domain-config\n"
         + "cn: example\n"
-        + "ds-cfg-synchronization-dn: ou=People,dc=example,dc=com\n"
-        + "ds-cfg-changelog-server: localhost:8989\n"
+        + "ds-cfg-replication-dn: ou=People,dc=example,dc=com\n"
+        + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-directory-server-id: 1\n"
         + "ds-cfg-receive-status: true\n"
         + "ds-cfg-window-size: " + WINDOW_SIZE;

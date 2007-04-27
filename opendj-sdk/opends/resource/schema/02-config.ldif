@@ -525,15 +525,15 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.157
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.158
-  NAME 'ds-cfg-changelog-port'
+  NAME ( 'ds-cfg-replication-server-port' 'ds-cfg-changelog-port' )
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.290
-  NAME 'ds-cfg-changelog-max-queue-size'
+  NAME ( 'ds-cfg-replication-max-queue-size' 'ds-cfg-changelog-max-queue-size' )
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.278
-  NAME 'ds-cfg-changelog-server-id'
+  NAME ( 'ds-cfg-replication-server-id' 'ds-cfg-changelog-server-id' )
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.279
@@ -541,7 +541,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.279
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.160
-  NAME 'ds-cfg-changelog-server'
+  NAME ( 'ds-cfg-replication-server' 'ds-cfg-changelog-server' )
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.161
@@ -774,7 +774,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.225
   NAME 'ds-task-restart-server' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.226
-  NAME 'ds-cfg-synchronization-dn'
+  NAME ( 'ds-cfg-replication-dn' 'ds-cfg-synchronization-dn' )
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.227 NAME 'ds-sync-state'
@@ -1046,7 +1046,8 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.305
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.306
-  NAME 'ds-cfg-changelog-db-directory'
+  NAME ( 'ds-cfg-replication-db-directory'
+         'ds-cfg-changelog-db-directory' )
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.307
@@ -1088,7 +1089,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.318
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.319
-  NAME 'ds-cfg-changelog-purge-delay'
+  NAME ( 'ds-cfg-replication-purge-delay' 'ds-cfg-changelog-purge-delay' )
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.321
@@ -1448,9 +1449,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.57
   MUST ( ds-cfg-synchronization-provider-class $
   ds-cfg-synchronization-provider-enabled ) X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.58 NAME
-  'ds-cfg-synchronization-provider-config' SUP top
-  STRUCTURAL MUST ( ds-cfg-changelog-server $ ds-cfg-directory-server-id
-  $ ds-cfg-synchronization-dn )
+  ( 'ds-cfg-replication-domain-config'
+    'ds-cfg-synchronization-provider-config' ) SUP top
+  STRUCTURAL MUST ( ds-cfg-replication-server $ ds-cfg-directory-server-id
+  $ ds-cfg-replication-dn )
   MAY ( cn $ ds-cfg-receive-status $ ds-cfg-max-receive-queue $
   ds-cfg-max-receive-delay $ ds-cfg-max-send-queue $ ds-cfg-max-send-delay $
   ds-cfg-window-size $ ds-cfg-heartbeat-interval )
@@ -1507,11 +1509,12 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.64
   ds-task-import-is-encrypted )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.65 NAME
-  'ds-cfg-synchronization-changelog-server-config' SUP top
-  STRUCTURAL MUST (ds-cfg-changelog-server-id $ ds-cfg-changelog-port )
-  MAY ( ds-cfg-changelog-server $ cn $ ds-cfg-window-size $
-  ds-cfg-changelog-max-queue-size $ds-cfg-changelog-db-directory )
-  X-ORIGIN 'OpenDS Directory Server' )
+  ( 'ds-cfg-replication-server-config'
+    'ds-cfg-synchronization-changelog-server-config' ) SUP top STRUCTURAL
+    MUST (ds-cfg-replication-server-id $ ds-cfg-replication-server-port )
+    MAY ( ds-cfg-replication-server $ cn $ ds-cfg-window-size $
+          ds-cfg-replication-max-queue-size $ ds-cfg-replication-db-directory )
+    X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.66 NAME 'ds-backup-directory'
   SUP top STRUCTURAL MUST ( ds-backup-directory-path $ ds-backup-backend-dn )
   X-ORIGIN 'OpenDS Directory Server' )

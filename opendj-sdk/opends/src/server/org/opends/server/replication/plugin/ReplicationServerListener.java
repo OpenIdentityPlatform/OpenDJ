@@ -30,8 +30,8 @@ import java.util.List;
 
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.server.ChangelogServerCfg;
 import org.opends.server.admin.std.server.MultimasterSynchronizationProviderCfg;
+import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.ConfigChangeResult;
@@ -44,8 +44,8 @@ import org.opends.server.types.ResultCode;
  *
  */
 public class ReplicationServerListener
-       implements ConfigurationAddListener<ChangelogServerCfg>,
-       ConfigurationDeleteListener<ChangelogServerCfg>
+       implements ConfigurationAddListener<ReplicationServerCfg>,
+       ConfigurationDeleteListener<ReplicationServerCfg>
 {
   ReplicationServer replicationServer = null;
 
@@ -64,12 +64,12 @@ public class ReplicationServerListener
       MultimasterSynchronizationProviderCfg configuration)
       throws ConfigException
   {
-    configuration.addChangelogServerAddListener(this);
-    configuration.addChangelogServerDeleteListener(this);
+    configuration.addReplicationServerAddListener(this);
+    configuration.addReplicationServerDeleteListener(this);
 
-    if (configuration.hasChangelogServer())
+    if (configuration.hasReplicationServer())
     {
-      ChangelogServerCfg server = configuration.getChangelogServer();
+      ReplicationServerCfg server = configuration.getReplicationServer();
       replicationServer = new ReplicationServer(server);
     }
   }
@@ -78,7 +78,7 @@ public class ReplicationServerListener
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationAdd(
-      ChangelogServerCfg configuration)
+      ReplicationServerCfg configuration)
   {
     try
     {
@@ -96,7 +96,7 @@ public class ReplicationServerListener
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(
-      ChangelogServerCfg configuration, List<String> unacceptableReasons)
+      ReplicationServerCfg configuration, List<String> unacceptableReasons)
   {
     return ReplicationServer.isConfigurationAcceptable(
       configuration, unacceptableReasons);
@@ -115,7 +115,7 @@ public class ReplicationServerListener
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationDelete(
-      ChangelogServerCfg configuration)
+      ReplicationServerCfg configuration)
   {
     // There can be only one replicationServer, just shutdown the
     // replicationServer currently configured.
@@ -130,7 +130,7 @@ public class ReplicationServerListener
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(
-      ChangelogServerCfg configuration, List<String> unacceptableReasons)
+      ReplicationServerCfg configuration, List<String> unacceptableReasons)
   {
     return true;
   }

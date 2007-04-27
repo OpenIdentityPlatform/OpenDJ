@@ -69,7 +69,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
   private ArrayList<Modification> rcvdMods = null;
 
-  private int changelogPort;
+  private int replServerPort;
 
   /**
    * Set up the environment for performing the tests in this Class.
@@ -86,7 +86,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     // find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();
-    changelogPort = socket.getLocalPort();
+    replServerPort = socket.getLocalPort();
     socket.close();
 
     // Create an internal connection
@@ -100,25 +100,25 @@ public class SchemaReplicationTest extends ReplicationTestCase
         + synchroStringDN;
 
     // Change log
-    String changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
-    String changeLogLdif = "dn: " + changeLogStringDN + "\n"
+    String replServerLdif =
+      "dn: " + "cn=Replication Server, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-        + "cn: Changelog Server\n"
-        + "ds-cfg-changelog-port: " + changelogPort + "\n"
-        + "ds-cfg-changelog-server-id: 1\n";
-    changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
+        + "objectClass: ds-cfg-replication-server-config\n"
+        + "cn: Replication Server\n"
+        + "ds-cfg-replication-server-port: " + replServerPort + "\n"
+        + "ds-cfg-replication-server-id: 1\n";
+    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
-    String synchroServerLdif =
+    String domainLdif =
       "dn: cn=example, cn=domains, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-provider-config\n"
+        + "objectClass: ds-cfg-replication-domain-config\n"
         + "cn: example\n"
         + "ds-cfg-synchronization-dn: cn=schema\n"
-        + "ds-cfg-changelog-server: localhost:" + changelogPort + "\n"
+        + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-directory-server-id: 1\n";
-    synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
+    synchroServerEntry = TestCaseUtils.entryFromLdifString(domainLdif);
 
     configureReplication();
   }
@@ -137,7 +137,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openChangelogSession(baseDn, (short) 2, 100, changelogPort, 5000, true);
+      openReplicationSession(baseDn, (short) 2, 100, replServerPort, 5000, true);
 
     try
     {
@@ -223,7 +223,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openChangelogSession(baseDn, (short) 2, 100, changelogPort, 5000, true);
+      openReplicationSession(baseDn, (short) 2, 100, replServerPort, 5000, true);
 
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short)2, 0);
 
@@ -257,7 +257,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openChangelogSession(baseDn, (short) 3, 100, changelogPort, 5000, true);
+      openReplicationSession(baseDn, (short) 3, 100, replServerPort, 5000, true);
 
     // create a schema change Notification
     AttributeType attrType =

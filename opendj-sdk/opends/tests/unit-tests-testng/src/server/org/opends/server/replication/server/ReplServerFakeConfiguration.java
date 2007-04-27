@@ -31,15 +31,15 @@ import java.util.SortedSet;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.client.ChangelogServerCfgClient;
-import org.opends.server.admin.std.server.ChangelogServerCfg;
+import org.opends.server.admin.std.client.ReplicationServerCfgClient;
+import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.types.DN;
 
 /**
  * This Class implements an object that can be used to instantiate
  * The ReplicationServer class for tests purpose.
  */
-public class ReplServerFakeConfiguration implements ChangelogServerCfg
+public class ReplServerFakeConfiguration implements ReplicationServerCfg
 {
   int port;
   String dirName;
@@ -92,7 +92,7 @@ public class ReplServerFakeConfiguration implements ChangelogServerCfg
    * {@inheritDoc}
    */
   public void addChangeListener(
-      ConfigurationChangeListener<ChangelogServerCfg> listener)
+      ConfigurationChangeListener<ReplicationServerCfg> listener)
   {
 
   }
@@ -100,8 +100,8 @@ public class ReplServerFakeConfiguration implements ChangelogServerCfg
   /**
    * {@inheritDoc}
    */
-  public ManagedObjectDefinition<? extends ChangelogServerCfgClient,
-                                 ? extends ChangelogServerCfg> definition()
+  public ManagedObjectDefinition<? extends ReplicationServerCfgClient,
+                                 ? extends ReplicationServerCfg> definition()
   {
     return null;
   }
@@ -109,7 +109,7 @@ public class ReplServerFakeConfiguration implements ChangelogServerCfg
   /**
    * {@inheritDoc}
    */
-  public String getChangelogDbDirectory()
+  public String getReplicationDbDirectory()
   {
     return dirName;
   }
@@ -117,7 +117,7 @@ public class ReplServerFakeConfiguration implements ChangelogServerCfg
   /**
    * {@inheritDoc}
    */
-  public int getChangelogPort()
+  public int getReplicationPort()
   {
     return port;
   }
@@ -125,7 +125,7 @@ public class ReplServerFakeConfiguration implements ChangelogServerCfg
   /**
    * {@inheritDoc}
    */
-  public long getChangelogPurgeDelay()
+  public long getReplicationPurgeDelay()
   {
     return purgeDelay;
   }
@@ -133,7 +133,7 @@ public class ReplServerFakeConfiguration implements ChangelogServerCfg
   /**
    * {@inheritDoc}
    */
-  public SortedSet<String> getChangelogServer()
+  public SortedSet<String> getReplicationServer()
   {
      return servers;
   }
@@ -141,7 +141,7 @@ public class ReplServerFakeConfiguration implements ChangelogServerCfg
   /**
    * {@inheritDoc}
    */
-  public int getChangelogServerId()
+  public int getReplicationServerId()
   {
     return serverId;
   }
@@ -166,7 +166,7 @@ public class ReplServerFakeConfiguration implements ChangelogServerCfg
    * {@inheritDoc}
    */
   public void removeChangeListener(
-      ConfigurationChangeListener<ChangelogServerCfg> listener)
+      ConfigurationChangeListener<ReplicationServerCfg> listener)
   {
 
   }

@@ -29,7 +29,6 @@ package org.opends.server.replication.server;
 import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ReplicationMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import java.io.File;
@@ -46,7 +45,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.ChangelogServerCfg;
+import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.config.ConfigAttribute;
@@ -73,7 +72,7 @@ import com.sleepycat.je.DatabaseException;
  */
 public class ReplicationServer
   implements Runnable, ConfigurableComponent,
-             ConfigurationChangeListener<ChangelogServerCfg>
+             ConfigurationChangeListener<ReplicationServerCfg>
 {
   private short serverId;
   private String serverURL;
@@ -95,7 +94,7 @@ public class ReplicationServer
 
   private String localURL = "null";
   private boolean shutdown = false;
-  private short changelogServerId;
+  private short replicationServerId;
   private DN configDn;
   private List<ConfigAttribute> configAttributes =
           new ArrayList<ConfigAttribute>();
@@ -112,19 +111,19 @@ public class ReplicationServer
    * @param configuration The configuration of this replication server.
    * @throws ConfigException When Configuration is invalid.
    */
-  public ReplicationServer(ChangelogServerCfg configuration)
+  public ReplicationServer(ReplicationServerCfg configuration)
          throws ConfigException
   {
     shutdown = false;
     runListen = true;
-    int changelogPort = configuration.getChangelogPort();
-    changelogServerId = (short) configuration.getChangelogServerId();
-    replicationServers = configuration.getChangelogServer();
+    int replicationPort = configuration.getReplicationPort();
+    replicationServerId = (short) configuration.getReplicationServerId();
+    replicationServers = configuration.getReplicationServer();
     if (replicationServers == null)
       replicationServers = new ArrayList<String>();
     queueSize = configuration.getQueueSize();
-    trimAge = configuration.getChangelogPurgeDelay();
-    dbDirname = configuration.getChangelogDbDirectory();
+    trimAge = configuration.getReplicationPurgeDelay();
+    dbDirname = configuration.getReplicationDbDirectory();
     rcvWindow = configuration.getWindowSize();
     if (dbDirname == null)
     {
@@ -145,7 +144,7 @@ public class ReplicationServer
           e.getMessage() + " " + getFileForPath(dbDirname));
     }
 
-    initialize(changelogServerId, changelogPort);
+    initialize(replicationServerId, replicationPort);
     configuration.addChangeListener(this);
   }
 
@@ -248,7 +247,7 @@ public class ReplicationServer
        */
       for (ReplicationCache replicationCache: baseDNs.values())
       {
-        Set<String> connectedChangelogs = replicationCache.getChangelogs();
+        Set<String> connectedReplServers = replicationCache.getChangelogs();
         /*
          * check that all replication server in the config are in the connected
          * Set. If not create the connection
@@ -256,7 +255,7 @@ public class ReplicationServer
         for (String serverURL : replicationServers)
         {
           if ((serverURL.compareTo(this.serverURL) != 0) &&
-              (!connectedChangelogs.contains(serverURL)))
+              (!connectedReplServers.contains(serverURL)))
           {
             this.connect(serverURL, replicationCache.getBaseDn());
           }
@@ -474,9 +473,9 @@ public class ReplicationServer
    * @return true if the configuration is acceptable, false other wise.
    */
   public static boolean isConfigurationAcceptable(
-      ChangelogServerCfg configuration, List<String> unacceptableReasons)
+      ReplicationServerCfg configuration, List<String> unacceptableReasons)
   {
-    int port = configuration.getChangelogPort();
+    int port = configuration.getReplicationPort();
 
     try
     {
@@ -499,7 +498,7 @@ public class ReplicationServer
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-      ChangelogServerCfg configuration)
+      ReplicationServerCfg configuration)
   {
     // TODO : implement this
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
@@ -509,7 +508,7 @@ public class ReplicationServer
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      ChangelogServerCfg configuration, List<String> unacceptableReasons)
+      ReplicationServerCfg configuration, List<String> unacceptableReasons)
   {
     // TODO : implement this
     return true;

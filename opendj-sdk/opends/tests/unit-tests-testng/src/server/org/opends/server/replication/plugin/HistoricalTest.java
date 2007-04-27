@@ -46,6 +46,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import static org.testng.Assert.assertEquals;
 
+import java.net.ServerSocket;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -55,6 +56,8 @@ import java.util.ArrayList;
 public class HistoricalTest
      extends ReplicationTestCase
 {
+  private int replServerPort;
+
   /**
    * Set up replication on the test backend.
    * @throws Exception If an error occurs.
@@ -68,24 +71,30 @@ public class HistoricalTest
 
     // Create an internal connection.
     connection = InternalClientConnection.getRootConnection();
+    
+    // find  a free port for the replicationServer
+    ServerSocket socket = TestCaseUtils.bindFreePort();
+    replServerPort = socket.getLocalPort();
+    socket.close();
 
     // The replication server.
-    String changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
-    String changeLogLdif = "dn: " + changeLogStringDN + "\n"
+    String replServerStringDN = "cn=Replication Server, " + synchroPluginStringDN;
+    String replServerLdif = "dn: " + replServerStringDN + "\n"
          + "objectClass: top\n"
-         + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-         + "cn: Changelog Server\n" + "ds-cfg-changelog-port: 8989\n"
-         + "ds-cfg-changelog-server-id: 1\n";
-    changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
+         + "objectClass: ds-cfg-replication-server-config\n"
+         + "cn: replication Server\n"
+         + "ds-cfg-replication-server-port: " + replServerPort + "\n"
+         + "ds-cfg-replication-server-id: 1\n";
+    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // The suffix to be synchronized.
     String synchroServerStringDN = "o=test, cn=domains, " + synchroPluginStringDN;
     String synchroServerLdif = "dn: " + synchroServerStringDN + "\n"
          + "objectClass: top\n"
-         + "objectClass: ds-cfg-synchronization-provider-config\n"
+         + "objectClass: ds-cfg-replication-domain-config\n"
          + "cn: example\n"
-         + "ds-cfg-synchronization-dn: o=test\n"
-         + "ds-cfg-changelog-server: localhost:8989\n"
+         + "ds-cfg-replication-dn: o=test\n"
+         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
          + "ds-cfg-directory-server-id: 1\n"
          + "ds-cfg-receive-status: true\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
@@ -203,7 +212,7 @@ public class HistoricalTest
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openChangelogSession(baseDn, (short) 2, 100, 8989, 1000, true);
+      openReplicationSession(baseDn, (short)2, 100, replServerPort, 1000, true);
 
 
     // Clear the backend.
