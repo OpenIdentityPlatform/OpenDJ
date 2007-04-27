@@ -54,6 +54,37 @@ public class IDSetIterator implements Iterator<EntryID>
   }
 
   /**
+   * Create a new iterator for a given array of entry IDs.
+   * @param entryIDList An array of IDs in order or ID.
+   * @param begin The entry ID of the first entry that should be returned, or
+   *              {@code null} if it should start at the beginning of the list.
+   */
+  public IDSetIterator(long[] entryIDList, EntryID begin)
+  {
+    this.entryIDList = entryIDList;
+
+    if (begin == null)
+    {
+      i = 0;
+    }
+    else
+    {
+      for (i=0; i < entryIDList.length; i++)
+      {
+        if (entryIDList[i] == begin.longValue())
+        {
+          break;
+        }
+      }
+
+      if (i >= entryIDList.length)
+      {
+        i = 0;
+      }
+    }
+  }
+
+  /**
    * Returns <tt>true</tt> if the iteration has more elements. (In other
    * words, returns <tt>true</tt> if <tt>next</tt> would return an element
    * rather than throwing an exception.)

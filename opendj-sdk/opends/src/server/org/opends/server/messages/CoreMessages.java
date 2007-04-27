@@ -6041,6 +6041,57 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if a sort key string
+   * has an invalid order indicator.  This takes a single argument, which is the
+   * sort key string.
+   */
+  public static final int MSGID_SORTKEY_INVALID_ORDER_INDICATOR =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 603;
+
+
+
+  /**
+   * The message ID for the message that will be used if a sort key string
+   * has an undefined attribute type.  This takes two arguments, which are the
+   * sort key string and the name of the attribute type.
+   */
+  public static final int MSGID_SORTKEY_UNDEFINED_TYPE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 604;
+
+
+
+  /**
+   * The message ID for the message that will be used if a sort key string
+   * has an attribute type with no ordering matching rule.  This takes two
+   * arguments, which are the sort key string and the name of the attribute
+   * type.
+   */
+  public static final int MSGID_SORTKEY_NO_ORDERING_RULE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 605;
+
+
+
+  /**
+   * The message ID for the message that will be used if a sort key string
+   * has an undefined ordering rule.  This takes two arguments, which are the
+   * sort key string and the name of the ordering rule.
+   */
+  public static final int MSGID_SORTKEY_UNDEFINED_ORDERING_RULE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 606;
+
+
+
+  /**
+   * The message ID for the message that will be used if a sort order string
+   * does not include any sort keys.  This takes a single argument, which is the
+   * sort order string.
+   */
+  public static final int MSGID_SORTORDER_DECODE_NO_KEYS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 607;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -8219,6 +8270,28 @@ public class CoreMessages
     registerMessage(MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to use the " +
                     "proxied authorization control");
+
+
+    registerMessage(MSGID_SORTKEY_INVALID_ORDER_INDICATOR,
+                    "The provided sort key value %s is invalid because it " +
+                    "does not start with either '+' (to indicate sorting in " +
+                    "ascending order) or '-' (to indicate sorting in " +
+                    "descending order)");
+    registerMessage(MSGID_SORTKEY_UNDEFINED_TYPE,
+                    "The provided sort key value %s is invalid because it " +
+                    "references undefined attribute type %s");
+    registerMessage(MSGID_SORTKEY_NO_ORDERING_RULE,
+                    "The provided sort key value %s is invalid because " +
+                    "attribute type %s does not have a default ordering " +
+                    "matching rule and no specific rule was provided");
+    registerMessage(MSGID_SORTKEY_UNDEFINED_ORDERING_RULE,
+                    "The provided sort key value %s is invalid because " +
+                    "it references undefined ordering matching rule %s");
+
+
+    registerMessage(MSGID_SORTORDER_DECODE_NO_KEYS,
+                    "The provided sort order string \"%s\" is invalid " +
+                    "because it does not contain any sort keys");
   }
 }
 

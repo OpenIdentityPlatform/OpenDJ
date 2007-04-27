@@ -612,4 +612,26 @@ public class EntryIDSet implements Iterable<EntryID>
     }
   }
 
+  /**
+   * Create an iterator over the set or an empty iterator
+   * if the set is not defined.
+   *
+   * @param  begin  The entry ID of the first entry to return in the list.
+   *
+   * @return An EntryID iterator.
+   */
+  public Iterator<EntryID> iterator(EntryID begin)
+  {
+    if (values == null)
+    {
+      // The set is not defined.
+      return new IDSetIterator(new long[0]);
+    }
+    else
+    {
+      // The set is defined.
+      return new IDSetIterator(values, begin);
+    }
+  }
+
 }

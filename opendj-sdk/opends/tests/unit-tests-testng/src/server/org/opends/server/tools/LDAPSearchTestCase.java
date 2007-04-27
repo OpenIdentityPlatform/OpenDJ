@@ -1692,6 +1692,587 @@ public class LDAPSearchTestCase
 
 
   /**
+   * Tests the use of both the server-side sort control and the simple paged
+   * results control.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortWithPagedResults()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    TestCaseUtils.addEntries(
+      "dn: uid=albert.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Albert",
+      "sn: Zimmerman",
+      "cn: Albert Zimmerman",
+      "",
+      "dn: uid=albert.smith,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.smith",
+      "givenName: Albert",
+      "sn: Smith",
+      "cn: Albert Smith",
+      "",
+      "dn: uid=aaron.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Aaron",
+      "givenName: Zeke",
+      "sn: Zimmerman",
+      "cn: Aaron Zimmerman",
+      "",
+      "dn: uid=mary.jones,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: mary.jones",
+      "givenName: Mary",
+      "sn: Jones",
+      "cn: Mary Jones",
+      "",
+      "dn: uid=margaret.jones,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: margaret.jones",
+      "givenName: Margaret",
+      "givenName: Maggie",
+      "sn: Jones",
+      "sn: Smith",
+      "cn: Maggie Jones-Smith",
+      "",
+      "dn: uid=aaccf.johnson,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: aaccf.johnson",
+      "givenName: Aaccf",
+      "sn: Johnson",
+      "cn: Aaccf Johnson",
+      "",
+      "dn: uid=sam.zweck,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: sam.zweck",
+      "givenName: Sam",
+      "sn: Zweck",
+      "cn: Sam Zweck",
+      "",
+      "dn: uid=lowercase.mcgee,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: lowercase.mcgee",
+      "givenName: lowercase",
+      "sn: mcgee",
+      "cn: lowercase mcgee",
+      "",
+      "dn: uid=zorro,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: zorro",
+      "sn: Zorro",
+      "cn: Zorro");
+
+    String[] pagedArgs =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "givenName",
+      "--simplePageSize", "2",
+      "--countEntries",
+      "(objectClass=*)"
+    };
+
+    String[] unpagedArgs =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "givenName",
+      "--countEntries",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(pagedArgs, false, null, System.err),
+                 LDAPSearch.mainSearch(unpagedArgs, false, null, System.err));
+  }
+
+
+
+  /**
+   * Tests the use of the server-side sort control with valid sort criteria.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortValidGivenNameAscending()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    TestCaseUtils.addEntries(
+      "dn: uid=albert.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Albert",
+      "sn: Zimmerman",
+      "cn: Albert Zimmerman",
+      "",
+      "dn: uid=albert.smith,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.smith",
+      "givenName: Albert",
+      "sn: Smith",
+      "cn: Albert Smith",
+      "",
+      "dn: uid=aaron.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Aaron",
+      "givenName: Zeke",
+      "sn: Zimmerman",
+      "cn: Aaron Zimmerman");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "givenName",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests the use of the server-side sort control with valid sort criteria.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortValidGivenNameDescending()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    TestCaseUtils.addEntries(
+      "dn: uid=albert.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Albert",
+      "sn: Zimmerman",
+      "cn: Albert Zimmerman",
+      "",
+      "dn: uid=albert.smith,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.smith",
+      "givenName: Albert",
+      "sn: Smith",
+      "cn: Albert Smith",
+      "",
+      "dn: uid=aaron.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Aaron",
+      "givenName: Zeke",
+      "sn: Zimmerman",
+      "cn: Aaron Zimmerman");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "-givenName",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests the use of the server-side sort control with valid sort criteria.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortValidGivenNameAscendingCaseExactOrderingMatch()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    TestCaseUtils.addEntries(
+      "dn: uid=albert.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Albert",
+      "sn: Zimmerman",
+      "cn: Albert Zimmerman",
+      "",
+      "dn: uid=albert.smith,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.smith",
+      "givenName: Albert",
+      "sn: Smith",
+      "cn: Albert Smith",
+      "",
+      "dn: uid=aaron.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Aaron",
+      "givenName: Zeke",
+      "sn: Zimmerman",
+      "cn: Aaron Zimmerman");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "givenName:caseExactOrderingMatch",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests the use of the server-side sort control with valid sort criteria.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortValidSnAscendingGivenNameAscending()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    TestCaseUtils.addEntries(
+      "dn: uid=albert.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Albert",
+      "sn: Zimmerman",
+      "cn: Albert Zimmerman",
+      "",
+      "dn: uid=albert.smith,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.smith",
+      "givenName: Albert",
+      "sn: Smith",
+      "cn: Albert Smith",
+      "",
+      "dn: uid=aaron.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Aaron",
+      "givenName: Zeke",
+      "sn: Zimmerman",
+      "cn: Aaron Zimmerman");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "sn,givenName",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests the use of the server-side sort control with valid sort criteria.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortValidSnAscendingGivenNameDescending()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    TestCaseUtils.addEntries(
+      "dn: uid=albert.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Albert",
+      "sn: Zimmerman",
+      "cn: Albert Zimmerman",
+      "",
+      "dn: uid=albert.smith,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.smith",
+      "givenName: Albert",
+      "sn: Smith",
+      "cn: Albert Smith",
+      "",
+      "dn: uid=aaron.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Aaron",
+      "givenName: Zeke",
+      "sn: Zimmerman",
+      "cn: Aaron Zimmerman");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "sn,-givenName",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
+   * Tests the use of the server-side sort control with an empty sort order.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortEmptySortOrder()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the use of the server-side sort control with a sort order containing
+   * a key with no attribute type.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortSortOrderMissingType()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "-,sn",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the use of the server-side sort control with a sort order containing
+   * a key with a colon but no matching rule.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortSortOrderMissingMatchingRule()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "-sn:",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the use of the server-side sort control with an undefined attribute.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortUndefinedAttribute()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "undefined",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the use of the server-side sort control with an undefined ordering
+   * rule.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortUndefinedOrderingRule()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "givenName:undefined",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
    * Tests the LDAPSearch tool with the "--help" option.
    */
   @Test()

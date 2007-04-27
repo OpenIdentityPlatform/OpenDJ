@@ -1819,6 +1819,22 @@ public class ServerConstants
 
 
   /**
+   * The OID for the server-side sort request control.
+   */
+  public static final String OID_SERVER_SIDE_SORT_REQUEST_CONTROL =
+       "1.2.840.113556.1.4.473";
+
+
+
+  /**
+   * The OID for the server-side sort response control.
+   */
+  public static final String OID_SERVER_SIDE_SORT_RESPONSE_CONTROL =
+       "1.2.840.113556.1.4.474";
+
+
+
+  /**
    * The IANA-assigned OID for the feature allowing the use of LDAP true and
    * false filters.
    */

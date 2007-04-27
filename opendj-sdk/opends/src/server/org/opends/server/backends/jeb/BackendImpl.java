@@ -55,9 +55,7 @@ import static org.opends.server.loggers.Error.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.*;
-import static org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
-import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
-import static org.opends.server.util.ServerConstants.OID_MANAGE_DSAIT_CONTROL;
+import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.admin.std.meta.JEBackendCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -112,6 +110,7 @@ public class BackendImpl
     supportedControls.add(OID_SUBTREE_DELETE_CONTROL);
     supportedControls.add(OID_PAGED_RESULTS_CONTROL);
     supportedControls.add(OID_MANAGE_DSAIT_CONTROL);
+    supportedControls.add(OID_SERVER_SIDE_SORT_REQUEST_CONTROL);
   }
 
 
