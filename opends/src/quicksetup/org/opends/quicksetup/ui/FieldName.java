@@ -82,6 +82,46 @@ public enum FieldName
    */
   NUMBER_ENTRIES,
   /**
+   * The value associated with this is a DataReplicationOptions.Type.
+   */
+  REPLICATION_OPTIONS,
+  /**
+   * The value associated with this is a SuffixesToReplicateOptions.Type.
+   */
+  SUFFIXES_TO_REPLICATE_OPTIONS,
+  /**
+   * The value associated with this is a Set of SuffixDescriptor.
+   */
+  SUFFIXES_TO_REPLICATE,
+  /**
+   * The value associated with this is a String.
+   */
+  REMOTE_SERVER_DN,
+  /**
+   * The value associated with this is a String.
+   */
+  REMOTE_SERVER_PWD,
+  /**
+   * The value associated with this is a String.
+   */
+  REMOTE_SERVER_HOST,
+  /**
+   * The value associated with this is a String.
+   */
+  REMOTE_SERVER_PORT,
+  /**
+   * The value associated with this is a String.
+   */
+  GLOBAL_ADMINISTRATOR_UID,
+  /**
+   * The value associated with this is a String.
+   */
+  GLOBAL_ADMINISTRATOR_PWD,
+  /**
+   * The value associated with this is a String.
+   */
+  GLOBAL_ADMINISTRATOR_PWD_CONFIRM,
+  /**
    * The value associated with this is a Boolean.
    */
   SERVER_START,

@@ -180,5 +180,4 @@ public class InstallLauncher extends Launcher {
 
     return org.opends.server.tools.InstallDS.installMain(newArgs);
   }
-
 }

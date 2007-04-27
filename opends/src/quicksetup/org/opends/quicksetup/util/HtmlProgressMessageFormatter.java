@@ -208,7 +208,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     String html = getHtml(text);
     String points = SPACE + getHtml(getMsg("progress-points")) + SPACE;
 
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     buf.append(UIFactory.applyFontToHtml(html, UIFactory.PROGRESS_FONT))
         .append(
             UIFactory.applyFontToHtml(points, UIFactory.PROGRESS_POINTS_FONT));
@@ -251,7 +251,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
             UIFactory.PROGRESS_FONT);
     String closeDiv = "</div>";
 
-    StringBuffer stackBuf = new StringBuffer();
+    StringBuilder stackBuf = new StringBuilder();
     stackBuf.append(getHtmlStack(ex));
     Throwable root = ex.getCause();
     while (root != null)
@@ -263,7 +263,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     String stackText =
         UIFactory.applyFontToHtml(stackBuf.toString(), UIFactory.STACK_FONT);
 
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
 
     String msg = ex.getMessage();
     if (msg != null)
@@ -361,7 +361,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   private String getHtml(String text)
   {
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
     if (text != null) {
       text = text.replaceAll("\r\n", "\n");
       String[] lines = text.split("[\n\r\u0085\u2028\u2029]");
@@ -388,7 +388,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   private String escape(String rawString)
   {
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
     for (int i = 0; i < rawString.length(); i++)
     {
       char c = rawString.charAt(i);
@@ -451,7 +451,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   private String getHtmlStack(Throwable ex)
   {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     StackTraceElement[] stack = ex.getStackTrace();
     for (int i = 0; i < stack.length; i++)
     {
@@ -500,7 +500,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   private String getErrorWithStackHtml(String openDiv, String hideText,
       String showText, String stackText, String closeDiv, boolean hide)
   {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
 
     String params =
         getUrlParams(openDiv, hideText, showText, stackText, closeDiv, hide);
@@ -539,7 +539,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   private String getUrlParams(String openDiv, String hideText,
       String showText, String stackText, String closeDiv, boolean hide)
   {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     buf.append(openDiv + PARAM_SEPARATOR);
     buf.append(hideText + PARAM_SEPARATOR);
     buf.append(showText + PARAM_SEPARATOR);

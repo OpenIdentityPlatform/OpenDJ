@@ -1184,6 +1184,7 @@ public class UIFactory
     return buf.toString();
   }
 
+
   /**
    * Returns a table created with the provided model and renderers.
    * @param tableModel the table model.

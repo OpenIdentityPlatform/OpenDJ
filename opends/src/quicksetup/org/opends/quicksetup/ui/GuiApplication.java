@@ -32,6 +32,7 @@ import org.opends.quicksetup.webstart.WebStartDownloader;
 
 import javax.swing.*;
 import java.awt.event.WindowEvent;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -176,6 +177,52 @@ public abstract class GuiApplication extends Application {
    * @return Step the previous step
    */
   abstract public WizardStep getPreviousWizardStep(WizardStep step);
+
+  /**
+   * Indicates whether or not the provided <code>step</code> is a sub step or
+   * not.
+   * @param step WizardStep for which the return value indicates whether
+   * or not is a sub step.
+   * @return boolean where true indicates the provided <code>step</code> is a
+   * substep.
+   */
+  public boolean isSubStep(WizardStep step)
+  {
+    return false;
+  }
+
+  /**
+   * Indicates whether or not the provided <code>step</code> is visible or
+   * not.
+   * @param step WizardStep for which the return value indicates whether
+   * or not is visible.
+   * @return boolean where true indicates the provided <code>step</code> is
+   * visible.
+   */
+  public boolean isVisible(WizardStep step)
+  {
+    return false;
+  }
+
+  /**
+   * Returns the list of all the steps in an ordered manner.  This is required
+   * because in the case of an application with substeps the user of the other
+   * interfaces is not enough.  This is a default implementation that uses
+   * the getNextWizardStep method to calculate the list that work for
+   * applications with no substeps.
+   * @return a list containing ALL the steps (including substeps) in an ordered
+   * manner.
+   */
+  public LinkedHashSet<WizardStep> getOrderedSteps()
+  {
+    LinkedHashSet<WizardStep> orderedSteps = new LinkedHashSet<WizardStep>();
+    WizardStep step = getFirstWizardStep();
+    orderedSteps.add(step);
+    while (null != (step = getNextWizardStep(step))) {
+      orderedSteps.add(step);
+    }
+    return orderedSteps;
+  }
 
   /**
    * Indicates whether or not the user is allowed to return to a previous

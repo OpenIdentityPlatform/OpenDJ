@@ -42,13 +42,13 @@ public class BaseDNDescriptor
   public enum Type
   {
     /**
-     * The base DN is not synchronized.
+     * The base DN is not replicated.
      */
-    NOT_SYNCHRONIZED,
+    NOT_REPLICATED,
     /**
-     * The base DN is synchronized.
+     * The base DN is replicated.
      */
-    SYNCHRONIZED
+    REPLICATED
   };
 
   private int missingChanges;
@@ -59,8 +59,8 @@ public class BaseDNDescriptor
 
   /**
    * Constructor for this class.
-   * @param type the type of synchronization.
-   * @param baseDn the base DN associated with the Synchronization.
+   * @param type the type of replication.
+   * @param baseDn the base DN associated with the Replication.
    * @param db the database containing this base DN.
    * @param ageOfOldestMissingChange the number of missing changes.
    * @param missingChanges the number of missing changes.
@@ -118,9 +118,9 @@ public class BaseDNDescriptor
   }
 
   /**
-   * Returns the number of missing changes in the synchronization topology for
+   * Returns the number of missing changes in the replication topology for
    * this base DN.
-   * @return the number of missing changes in the synchronization topology for
+   * @return the number of missing changes in the replication topology for
    * this base DN.
    */
   public int getMissingChanges()
@@ -130,9 +130,9 @@ public class BaseDNDescriptor
 
   /**
    * Returns the age of the oldest missing change in seconds in the
-   * synchronization topology for this base DN.
+   * replication topology for this base DN.
    * @return the age of the oldest missing change in seconds in the
-   * synchronization topology for this base DN.
+   * replication topology for this base DN.
    */
   public int getAgeOfOldestMissingChange()
   {

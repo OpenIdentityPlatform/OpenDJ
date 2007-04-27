@@ -27,14 +27,18 @@
 
 package org.opends.quicksetup.installer.ui;
 
-import org.opends.quicksetup.DataOptions;
+import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.installer.DataReplicationOptions;
+import org.opends.quicksetup.installer.NewSuffixOptions;
+import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.*;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * This is the panel that contains the Review Panel.
@@ -80,10 +84,19 @@ public class InstallReviewPanel extends ReviewPanel {
         getSecurityOptionsString(userData.getSecurityOptions(), false));
     setFieldValue(FieldName.DIRECTORY_MANAGER_DN, userData
         .getDirectoryManagerDn());
-    setFieldValue(FieldName.DIRECTORY_BASE_DN, userData.getDataOptions()
-        .getBaseDn());
-    setFieldValue(FieldName.DATA_OPTIONS, getDisplayString(userData
-        .getDataOptions()));
+    setFieldValue(FieldName.DATA_OPTIONS, getDataDisplayString(userData));
+    if (userData.mustCreateAdministrator())
+    {
+      setFieldValue(FieldName.GLOBAL_ADMINISTRATOR_UID,
+          String.valueOf(userData.getGlobalAdministratorUID()));
+      getField(FieldName.GLOBAL_ADMINISTRATOR_UID).setVisible(true);
+      getLabel(FieldName.GLOBAL_ADMINISTRATOR_UID).setVisible(true);
+    }
+    else
+    {
+      getField(FieldName.GLOBAL_ADMINISTRATOR_UID).setVisible(false);
+      getLabel(FieldName.GLOBAL_ADMINISTRATOR_UID).setVisible(false);
+    }
   }
 
   /**
@@ -147,8 +160,8 @@ public class InstallReviewPanel extends ReviewPanel {
         LabelFieldDescriptor.FieldType.READ_ONLY,
         LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
-    hm.put(FieldName.DIRECTORY_BASE_DN, new LabelFieldDescriptor(
-        getMsg("base-dn-label"), getMsg("base-dn-tooltip"),
+    hm.put(FieldName.GLOBAL_ADMINISTRATOR_UID, new LabelFieldDescriptor(
+        getMsg("global-administrator-uid-label"), null,
         LabelFieldDescriptor.FieldType.READ_ONLY,
         LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
@@ -208,35 +221,70 @@ public class InstallReviewPanel extends ReviewPanel {
    * @param options the DataOptions of the user.
    * @return the localized string describing the DataOptions chosen by the user.
    */
-  private String getDisplayString(DataOptions options)
+  private String getDataDisplayString(UserData userInstallData)
   {
     String msg;
 
-    switch (options.getType())
+    boolean createSuffix = false;
+
+    DataReplicationOptions repl =
+      userInstallData.getReplicationOptions();
+
+    SuffixesToReplicateOptions suf =
+      userInstallData.getSuffixesToReplicateOptions();
+
+    createSuffix =
+      repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY ||
+      repl.getType() == DataReplicationOptions.Type.STANDALONE ||
+      suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
+
+    if (createSuffix)
     {
-    case CREATE_BASE_ENTRY:
-      msg = getMsg("review-create-base-entry-label", new String[]
-        { options.getBaseDn() });
+      String arg2;
 
-      break;
+      NewSuffixOptions options = userInstallData.getNewSuffixOptions();
+      switch (options.getType())
+      {
+      case CREATE_BASE_ENTRY:
+        arg2 = getMsg("review-create-base-entry-label",
+            new String[] { options.getBaseDn() });
 
-    case LEAVE_DATABASE_EMPTY:
-      msg = getMsg("review-leave-database-empty-label");
-      break;
+        break;
 
-    case IMPORT_FROM_LDIF_FILE:
-      msg = getMsg("review-import-ldif", new String[]
-        { options.getLDIFPath() });
-      break;
+      case LEAVE_DATABASE_EMPTY:
+        arg2 = getMsg("review-leave-database-empty-label");
+        break;
 
-    case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-      msg = getMsg("review-import-automatically-generated", new String[]
-        { String.valueOf(options.getNumberEntries()) });
-      break;
+      case IMPORT_FROM_LDIF_FILE:
+        arg2 = getMsg("review-import-ldif",
+            new String[] { options.getLDIFPath() });
+        break;
 
-    default:
-      throw new IllegalArgumentException("Unknow type: " + options.getType());
+      case IMPORT_AUTOMATICALLY_GENERATED_DATA:
+        arg2 = getMsg("review-import-automatically-generated",
+            new String[] { String.valueOf(options.getNumberEntries()) });
+        break;
 
+      default:
+        throw new IllegalArgumentException("Unknow type: " + options.getType());
+      }
+
+      msg = getMsg("review-create-suffix",
+          new String[] {options.getBaseDn(), arg2});
+    }
+    else
+    {
+      StringBuilder buf = new StringBuilder();
+      Set<SuffixDescriptor> suffixes = suf.getSuffixes();
+      for (SuffixDescriptor suffix : suffixes)
+      {
+        if (buf.length() > 0)
+        {
+          buf.append("\n");
+        }
+        buf.append(suffix.getDN());
+      }
+      msg = getMsg("review-replicate-suffix", new String[] {buf.toString()});
     }
 
     return msg;
@@ -260,8 +308,7 @@ public class InstallReviewPanel extends ReviewPanel {
           {
             FieldName.SERVER_LOCATION, FieldName.SERVER_PORT,
             FieldName.SECURITY_OPTIONS, FieldName.DIRECTORY_MANAGER_DN,
-            FieldName.DIRECTORY_BASE_DN,
-            FieldName.DATA_OPTIONS
+            FieldName.GLOBAL_ADMINISTRATOR_UID, FieldName.DATA_OPTIONS
           };
     }
     else
@@ -270,8 +317,8 @@ public class InstallReviewPanel extends ReviewPanel {
         new FieldName[]
           {
             FieldName.SERVER_PORT, FieldName.SECURITY_OPTIONS,
-            FieldName.DIRECTORY_MANAGER_DN,
-            FieldName.DIRECTORY_BASE_DN, FieldName.DATA_OPTIONS
+            FieldName.DIRECTORY_MANAGER_DN, FieldName.GLOBAL_ADMINISTRATOR_UID,
+            FieldName.DATA_OPTIONS
           };
     }
 
@@ -304,13 +351,7 @@ public class InstallReviewPanel extends ReviewPanel {
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
 
       gbc.gridwidth = GridBagConstraints.REMAINDER;
-      panel.add(auxPanel, gbc);
-
-      gbc.insets = UIFactory.getEmptyInsets();
-      gbc.gridwidth = GridBagConstraints.REMAINDER;
-      gbc.weightx = 1.0;
-      auxPanel.add(getField(fieldNames[i]), gbc);
-    }
+      panel.add(getField(fieldNames[i]), gbc);    }
 
     return panel;
   }

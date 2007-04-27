@@ -342,7 +342,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
         {
           InitialLdapContext ctx =
             Utils.createLdapContext(installStatus.getLdapUrl(), tfDn.getText(),
-              tfPwd.getText(), 3000, null);
+              tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null);
 
           /*
            * Search for the config to check that it is the directory manager.

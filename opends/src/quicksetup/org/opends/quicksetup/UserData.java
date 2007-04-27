@@ -27,22 +27,50 @@
 
 package org.opends.quicksetup;
 
+import java.util.HashSet;
+
+import org.opends.admin.ads.SuffixDescriptor;
+import org.opends.quicksetup.installer.AuthenticationData;
+import org.opends.quicksetup.installer.DataReplicationOptions;
+import org.opends.quicksetup.installer.NewSuffixOptions;
+import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.util.Utils;
 
 /**
- * Represents user specified input data to an application.
+ * This class is used to provide a data model for the different parameters
+ * that the user can provide in the installation wizard.
+ *
+ * @see DataOptions.
+ *
  */
-public class UserData {
-
+public class UserData
+{
   private String serverLocation;
+
   private int serverPort;
+
   private String directoryManagerDn;
+
   private String directoryManagerPwd;
-  private DataOptions dataOptions;
+
+  private String globalAdministratorUID;
+
+  private String globalAdministratorPassword;
+
   private SecurityOptions securityOptions;
   private int serverJMXPort;
+
   private boolean startServer;
+
   private boolean stopServer;
+
+  private NewSuffixOptions newSuffixOptions;
+
+  private DataReplicationOptions replicationOptions;
+
+  private boolean createAdministrator;
+
+  private SuffixesToReplicateOptions suffixesToReplicateOptions;
 
   /**
    * Creates a user data object with default values.
@@ -50,7 +78,9 @@ public class UserData {
   public UserData() {
     startServer = true;
 
-    DataOptions defaultDataOptions = new DefaultDataOptions();
+    NewSuffixOptions defaultNewSuffixOptions = new NewSuffixOptions(
+        NewSuffixOptions.Type.CREATE_BASE_ENTRY, "dc=example,dc=com");
+    setNewSuffixOptions(defaultNewSuffixOptions);
 
     setServerLocation(Utils.getDefaultServerLocation());
     // See what we can propose as port
@@ -62,7 +92,21 @@ public class UserData {
 
     setDirectoryManagerDn("cn=Directory Manager");
 
-    setDataOptions(defaultDataOptions);
+    setNewSuffixOptions(defaultNewSuffixOptions);
+    AuthenticationData data = new AuthenticationData();
+    data.setDn("cn=Directory Manager");
+    data.setPort(389);
+    DataReplicationOptions repl = new DataReplicationOptions(
+        DataReplicationOptions.Type.STANDALONE, data);
+    setReplicationOptions(repl);
+    setGlobalAdministratorUID("admin");
+
+    SuffixesToReplicateOptions suffixes =
+      new SuffixesToReplicateOptions(
+          SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES,
+          new HashSet<SuffixDescriptor>(),
+          new HashSet<SuffixDescriptor>());
+    setSuffixesToReplicateOptions(suffixes);
     SecurityOptions sec = SecurityOptions.createNoCertificateOptions();
     sec.setSslPort(getDefaultSslPort());
     sec.setCertificateUserName(getDefaultSelfSignedName());
@@ -106,6 +150,24 @@ public class UserData {
   }
 
   /**
+   * Sets the server JMX port.
+   * @param serverJMXPort the new server JMX port.
+   */
+  public void setServerJMXPort(int serverJMXPort)
+  {
+    this.serverJMXPort = serverJMXPort;
+  }
+
+  /**
+   * Returns the server JMX port.
+   * @return the server JMX port.
+   */
+  public int getServerJMXPort()
+  {
+    return serverJMXPort;
+  }
+
+  /**
    * Returns the Directory Manager DN.
    * @return the Directory Manager DN.
    */
@@ -139,46 +201,6 @@ public class UserData {
   public void setDirectoryManagerPwd(String directoryManagerPwd)
   {
     this.directoryManagerPwd = directoryManagerPwd;
-  }
-
-  /**
-   * Returns the DataOptions object representing the data in the Data Options
-   * panel.
-   * @return the DataOptions object representing the data in the Data Options
-   * panel.
-   */
-  public DataOptions getDataOptions()
-  {
-    return dataOptions;
-  }
-
-  /**
-   * Sets the DataOptions object representing the data in the Data Options
-   * panel.
-   * @param dataOptions the DataOptions object representing the data in the Data
-   * Options panel.
-   */
-  public void setDataOptions(DataOptions dataOptions)
-  {
-    this.dataOptions = dataOptions;
-  }
-
-  /**
-   * Sets the server JMX port.
-   * @param serverJMXPort the new server JMX port.
-   */
-  public void setServerJMXPort(int serverJMXPort)
-  {
-    this.serverJMXPort = serverJMXPort;
-  }
-
-  /**
-   * Returns the server JMX port.
-   * @return the server JMX port.
-   */
-  public int getServerJMXPort()
-  {
-    return serverJMXPort;
   }
 
   /**
@@ -220,6 +242,127 @@ public class UserData {
   public boolean getStopServer()
   {
     return stopServer;
+  }
+
+  /**
+   * Returns the NewSuffixOptions object representing the data in the New Suffix
+   * Data Options panel.
+   * @return the NewSuffixOptions object representing the data in the New Suffix
+   * Data Options panel.
+   */
+  public NewSuffixOptions getNewSuffixOptions()
+  {
+    return newSuffixOptions;
+  }
+
+  /**
+   * Sets the NewSuffixOptions object representing the data in the New Suffix
+   * Data Options panel.
+   * @param newSuffixOptions the NewSuffixOptions object representing the data
+   * in the New Suffix Data Options panel.
+   */
+  public void setNewSuffixOptions(NewSuffixOptions newSuffixOptions)
+  {
+    this.newSuffixOptions = newSuffixOptions;
+  }
+
+  /**
+   * Returns the DataReplicationOptions object representing the data in the
+   * Data Replication panel.
+   * @return the DataReplicationOptions object representing the data in the
+   * Data Replication panel.
+   */
+  public DataReplicationOptions getReplicationOptions()
+  {
+    return replicationOptions;
+  }
+
+  /**
+   * Sets the DataReplicationOptions object representing the data in the
+   * Data Replication panel.
+   * @param replicationOptions the DataReplicationOptions object
+   * representing the data in the Data Replication panel.
+   */
+  public void setReplicationOptions(
+      DataReplicationOptions replicationOptions)
+  {
+    this.replicationOptions = replicationOptions;
+  }
+
+  /**
+   * Returns whether must create a global administrator or not.
+   * @return <CODE>true</CODE> if we must create a global administrator and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean mustCreateAdministrator()
+  {
+    return createAdministrator;
+  }
+
+  /**
+   * Sets whether must create a global administrator or not.
+   * @param createAdministrator whether we must create a global administrator or
+   * not.
+   */
+  public void createAdministrator(boolean createAdministrator)
+  {
+    this.createAdministrator = createAdministrator;
+  }
+
+  /**
+   * Returns the UID of the global administrator.
+   * @return the UID of the global administrator.
+   */
+  public String getGlobalAdministratorUID()
+  {
+    return globalAdministratorUID;
+  }
+
+  /**
+   * Sets the UID of the global administrator.
+   * @param globalAdministratorUID the UID of the global administrator.
+   */
+  public void setGlobalAdministratorUID(String globalAdministratorUID)
+  {
+    this.globalAdministratorUID = globalAdministratorUID;
+  }
+
+  /**
+   * Returns the password of the global administrator.
+   * @return the password of the global administrator.
+   */
+  public String getGlobalAdministratorPassword()
+  {
+    return globalAdministratorPassword;
+  }
+
+  /**
+   * Sets the password of the global administrator.
+   * @param globalAdministratorPwd the password of the global administrator.
+   */
+  public void setGlobalAdministratorPassword(String globalAdministratorPwd)
+  {
+    this.globalAdministratorPassword = globalAdministratorPwd;
+  }
+
+  /**
+   * Sets the suffixes to replicate options.
+   * @param suffixesToReplicateOptions the suffixes to replicate options
+   * object.
+   */
+  public void setSuffixesToReplicateOptions(
+      SuffixesToReplicateOptions suffixesToReplicateOptions)
+  {
+    this.suffixesToReplicateOptions = suffixesToReplicateOptions;
+  }
+
+  /**
+   * Returns the suffixes to replicate options.
+   * @return the suffixes to replicate options.
+   */
+  public SuffixesToReplicateOptions getSuffixesToReplicateOptions()
+  {
+    return suffixesToReplicateOptions;
   }
 
   /**
@@ -318,7 +461,6 @@ public class UserData {
     }
     return defaultJMXPort;
   }
-
   /**
    * Provides the default name for the self signed certificate that will be
    * created.

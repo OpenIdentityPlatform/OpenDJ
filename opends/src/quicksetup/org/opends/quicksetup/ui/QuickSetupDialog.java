@@ -44,7 +44,6 @@ import org.opends.quicksetup.*;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.ProgressDescriptor;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
@@ -176,10 +175,9 @@ public class QuickSetupDialog
   public void setDisplayedStep(WizardStep step, UserData userData)
   {
     displayedStep = step;
-
-    // First call the panels to do the required updates on their layout
+    //  First call the panels to do the required updates on their layout
     getButtonsPanel().setDisplayedStep(step);
-    getStepsPanel().setDisplayedStep(step);
+    getStepsPanel().setDisplayedStep(step, userData);
     getCurrentStepPanel().setDisplayedStep(step, userData);
   }
 
@@ -424,17 +422,6 @@ public class QuickSetupDialog
       buttonsPanel = new ButtonsPanel(application);
     }
     return buttonsPanel;
-  }
-
-  /* Different commodity methods to retrieve localized messages */
-  private String getMsg(String key)
-  {
-    return getI18n().getMsg(key);
-  }
-
-  private ResourceProvider getI18n()
-  {
-    return ResourceProvider.getInstance();
   }
 
   /**

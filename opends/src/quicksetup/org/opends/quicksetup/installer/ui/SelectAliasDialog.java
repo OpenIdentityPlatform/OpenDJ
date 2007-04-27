@@ -22,10 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.ui;
+package org.opends.quicksetup.installer.ui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -46,6 +46,7 @@ import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 
 /**

@@ -25,10 +25,13 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.ui;
+package org.opends.quicksetup.installer.ui;
 
 import java.awt.Component;
 
+import org.opends.quicksetup.ui.GuiApplication;
+import org.opends.quicksetup.ui.QuickSetupStepPanel;
+import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
 

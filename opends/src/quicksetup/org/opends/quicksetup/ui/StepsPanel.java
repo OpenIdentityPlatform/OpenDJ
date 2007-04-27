@@ -30,13 +30,14 @@ package org.opends.quicksetup.ui;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 
 import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.WizardStep;
 
 /**
@@ -55,6 +56,8 @@ public class StepsPanel extends QuickSetupPanel
 
   HashMap<WizardStep, JLabel> hmIcons = new HashMap<WizardStep, JLabel>();
 
+  HashMap<WizardStep, JPanel> hmSubPanels = new HashMap<WizardStep, JPanel>();
+
   /**
    * Creates a StepsPanel.
    * @param app Application whose steps this class represents
@@ -70,8 +73,9 @@ public class StepsPanel extends QuickSetupPanel
    * as parameter.
    *
    * @param step the step in the wizard.
+   * @param userData the data provided by the user.
    */
-  public void setDisplayedStep(WizardStep step)
+  public void setDisplayedStep(WizardStep step, UserData userData)
   {
     for (WizardStep s : getApplication().getWizardSteps())
     {
@@ -79,7 +83,8 @@ public class StepsPanel extends QuickSetupPanel
       {
         getIcon(s).setVisible(true);
         UIFactory.setTextStyle(getLabel(s), UIFactory.TextStyle.CURRENT_STEP);
-      } else
+      }
+      else
       {
         if (getIcon(s) != null)
         {
@@ -90,6 +95,11 @@ public class StepsPanel extends QuickSetupPanel
           UIFactory.setTextStyle(getLabel(s),
               UIFactory.TextStyle.NOT_CURRENT_STEP);
         }
+      }
+
+      if (getApplication().isSubStep(s))
+      {
+        setStepVisible(s, getApplication().isVisible(s));
       }
     }
   }
@@ -112,19 +122,15 @@ public class StepsPanel extends QuickSetupPanel
     gbc.anchor = GridBagConstraints.WEST;
 
     HashMap<WizardStep, String> hmText = new HashMap<WizardStep, String>();
-    ArrayList<WizardStep> orderedSteps = new ArrayList<WizardStep>();
-
-    WizardStep step = app.getFirstWizardStep();
-    hmText.put(step, getMsg(step.getMessageKey()));
-    orderedSteps.add(step);
-    while (null != (step = app.getNextWizardStep(step))) {
-      hmText.put(step, getMsg(step.getMessageKey()));
-      orderedSteps.add(step);
-    }
-
+    LinkedHashSet<WizardStep> orderedSteps = app.getOrderedSteps();
+    boolean first = true;
     for (WizardStep s : orderedSteps)
     {
-      if (s != orderedSteps.get(0))
+      hmText.put(s, getMsg(s.getMessageKey()));
+
+      JPanel subPanel = new JPanel(new GridBagLayout());
+      subPanel.setOpaque(false);
+      if (!first)
       {
         gbc.insets.top = UIFactory.TOP_INSET_STEP;
       }
@@ -137,25 +143,49 @@ public class StepsPanel extends QuickSetupPanel
       JLabel iconLabel =
           UIFactory.makeJLabel(UIFactory.IconType.CURRENT_STEP, null,
               UIFactory.TextStyle.NO_STYLE);
+      if (getApplication().isSubStep(s))
+      {
+        gbcAux.insets.left = UIFactory.LEFT_INSET_SUBSTEP;
+      }
+      else
+      {
+        gbcAux.insets.left = 0;
+      }
+
       auxPanel.add(iconLabel, gbcAux);
       int width = (int) iconLabel.getPreferredSize().getWidth();
+      if (getApplication().isSubStep(s))
+      {
+        width += UIFactory.LEFT_INSET_SUBSTEP;
+      }
+      gbcAux.insets.left = 0;
       auxPanel.add(Box.createHorizontalStrut(width), gbcAux);
 
       hmIcons.put(s, iconLabel);
 
-      gbc.gridwidth = GridBagConstraints.RELATIVE;
-      mainPanel.add(auxPanel, gbc);
+      gbc.gridwidth = 3;
+      gbc.weightx = 0.0;
+      subPanel.add(auxPanel, gbc);
 
       JLabel stepLabel =
           UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, hmText.get(s),
               UIFactory.TextStyle.CURRENT_STEP);
       hmLabels.put(s, stepLabel);
       gbc.insets.left = UIFactory.LEFT_INSET_STEP;
+      gbc.gridwidth = GridBagConstraints.RELATIVE;
+      subPanel.add(stepLabel, gbc);
+      gbc.insets = UIFactory.getEmptyInsets();
       gbc.gridwidth = GridBagConstraints.REMAINDER;
-      mainPanel.add(stepLabel, gbc);
+      gbc.weightx = 1.0;
+      subPanel.add(Box.createHorizontalGlue(), gbc);
+
+      mainPanel.add(subPanel, gbc);
+      hmSubPanels.put(s, subPanel);
 
       stepLabel.setLabelFor(this);
       iconLabel.setLabelFor(stepLabel);
+
+      first = false;
     }
 
     gbc.insets.left = 0;
@@ -200,5 +230,25 @@ public class StepsPanel extends QuickSetupPanel
   private JLabel getIcon(WizardStep step)
   {
     return hmIcons.get(step);
+  }
+
+  /**
+   * Returns the sub-panel associated with the given step.
+   * @param step the step for which we want to retrieve the sub-panel.
+   * @return the sub-panel associated with the given step.
+   */
+  private JPanel getSubPanel(WizardStep step)
+  {
+    return hmSubPanels.get(step);
+  }
+
+  private void setStepVisible(WizardStep step, boolean visible)
+  {
+    JPanel subPanel = getSubPanel(step);
+    // Check done to minimize possible flickering.
+    if (visible != subPanel.isVisible())
+    {
+      subPanel.setVisible(visible);
+    }
   }
 }

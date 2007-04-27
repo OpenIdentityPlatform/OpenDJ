@@ -940,7 +940,7 @@ class StatusCli
       labelWidth = Math.max(labelWidth, labels[i].length());
     }
 
-    String synchronizedLabel = getMsg("suffix-synchronized-label", false);
+    String replicatedLabel = getMsg("suffix-replicated-label", false);
     for (int i=0; i<tableModel.getRowCount(); i++)
     {
       if (i > 0)
@@ -1007,7 +1007,7 @@ class StatusCli
         {
           // If the suffix is not replicated we do not have to display these
           // lines.
-          if (!synchronizedLabel.equals(tableModel.getValueAt(i, 3)))
+          if (!replicatedLabel.equals(tableModel.getValueAt(i, 3)))
           {
             doWrite = false;
           }

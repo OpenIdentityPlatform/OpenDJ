@@ -59,8 +59,8 @@ public class ConfigFromLDAP
     new HashSet<DatabaseDescriptor>();
   private HashSet<String> administrativeUsers = new HashSet<String>();
   private String errorMessage;
-  private boolean synchronizationConfigured = false;
-  private HashSet<String> synchronizedSuffixes = new HashSet<String>();
+  private boolean replicationConfigured = false;
+  private HashSet<String> replicatedSuffixes = new HashSet<String>();
   private HashMap<String, Integer> hmMissingChanges =
     new HashMap<String, Integer>();
   private HashMap<String, Integer> hmAgeOfOldestMissingChanges =
@@ -157,8 +157,8 @@ public class ConfigFromLDAP
     listeners.clear();
     databases.clear();
     administrativeUsers.clear();
-    synchronizationConfigured = false;
-    synchronizedSuffixes.clear();
+    replicationConfigured = false;
+    replicatedSuffixes.clear();
     hmMissingChanges.clear();
     hmAgeOfOldestMissingChanges.clear();
     javaVersion = null;
@@ -169,7 +169,7 @@ public class ConfigFromLDAP
       InitialLdapContext ctx = getDirContext();
       updateAdministrativeUsers(ctx);
       updateListeners(ctx);
-      updateSynchronization(ctx);
+      updateReplication(ctx);
       updateDatabases(ctx);
       javaVersion = getJavaVersion(ctx);
       openConnections = getOpenConnections(ctx);
@@ -341,12 +341,12 @@ public class ConfigFromLDAP
   }
 
   /**
-   * Updates the synchronization configuration data we expose to the user with
+   * Updates the replication configuration data we expose to the user with
    * the provided InitialLdapContext.
    * @param ctx the InitialLdapContext to use to update the configuration.
    * @throws NamingException if there was an error.
    */
-  private void updateSynchronization(InitialLdapContext ctx)
+  private void updateReplication(InitialLdapContext ctx)
   throws NamingException
   {
     SearchControls ctls = new SearchControls();
@@ -371,7 +371,7 @@ public class ConfigFromLDAP
         if ("true".equalsIgnoreCase(getFirstValue(sr,
           "ds-cfg-synchronization-provider-enabled")))
         {
-          synchronizationConfigured = true;
+          replicationConfigured = true;
         }
       }
     }
@@ -383,9 +383,9 @@ public class ConfigFromLDAP
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-cfg-synchronization-dn"
+            "ds-cfg-replication-dn"
         });
-    filter = "(objectclass=ds-cfg-synchronization-provider-config)";
+    filter = "(objectclass=ds-cfg-replication-domain-config)";
 
     jndiName = new LdapName(
       "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
@@ -398,7 +398,7 @@ public class ConfigFromLDAP
       {
         SearchResult sr = (SearchResult)syncProviders.next();
 
-        synchronizedSuffixes.addAll(getValues(sr, "ds-cfg-synchronization-dn"));
+        replicatedSuffixes.addAll(getValues(sr, "ds-cfg-replication-dn"));
       }
     }
     catch (NameNotFoundException nse)
@@ -415,7 +415,7 @@ public class ConfigFromLDAP
 
     jndiName = new LdapName("cn=monitor");
 
-    if (synchronizedSuffixes.size() > 0)
+    if (replicatedSuffixes.size() > 0)
     {
       try
       {
@@ -427,7 +427,7 @@ public class ConfigFromLDAP
 
           String dn = getFirstValue(sr, "base-dn");
 
-          for (String baseDn: synchronizedSuffixes)
+          for (String baseDn: replicatedSuffixes)
           {
 
             if (Utils.areDnsEqual(dn, baseDn))
@@ -632,8 +632,8 @@ public class ConfigFromLDAP
   }
 
   /**
-   * Create the base DN descriptor.  Assumes that the synchronizedSuffixes Set
-   * and synchronizationConfigured have already been initialized.
+   * Create the base DN descriptor.  Assumes that the replicatedSuffixes Set
+   * and replicationConfigured have already been initialized.
    */
   private BaseDNDescriptor getBaseDNDescriptor(InitialLdapContext ctx,
       String baseDn)
@@ -645,9 +645,9 @@ public class ConfigFromLDAP
     String mapSuffixDn = null;
 
     boolean replicated = false;
-    if (synchronizationConfigured)
+    if (replicationConfigured)
     {
-      for (String suffixDn: synchronizedSuffixes)
+      for (String suffixDn: replicatedSuffixes)
       {
         if (Utils.areDnsEqual(baseDn, suffixDn))
         {
@@ -659,7 +659,7 @@ public class ConfigFromLDAP
     }
     if (replicated)
     {
-      type = BaseDNDescriptor.Type.SYNCHRONIZED;
+      type = BaseDNDescriptor.Type.REPLICATED;
 
       Integer missing = hmMissingChanges.get(mapSuffixDn);
       Integer age = hmAgeOfOldestMissingChanges.get(mapSuffixDn);
@@ -676,7 +676,7 @@ public class ConfigFromLDAP
     }
     else
     {
-      type = BaseDNDescriptor.Type.NOT_SYNCHRONIZED;
+      type = BaseDNDescriptor.Type.NOT_REPLICATED;
     }
 
     return new BaseDNDescriptor(type, baseDn, null, ageOfOldestMissingChange,

@@ -33,7 +33,6 @@ import java.io.IOException;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.tools.ConfigureWindowsService;
 
 /**
  * This is the only class that uses classes in org.opends.server (excluding the
@@ -94,9 +93,11 @@ public class InstallerHelper implements JnlpProperties {
     "error-enabling-windows-service");
 
     switch (code) {
-      case ConfigureWindowsService.SERVICE_ENABLE_SUCCESS:
+      case
+      org.opends.server.tools.ConfigureWindowsService.SERVICE_ENABLE_SUCCESS:
         break;
-      case ConfigureWindowsService.SERVICE_ALREADY_ENABLED:
+      case
+      org.opends.server.tools.ConfigureWindowsService.SERVICE_ALREADY_ENABLED:
         break;
       default:
         throw new QuickSetupException(

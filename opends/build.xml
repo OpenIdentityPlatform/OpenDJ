@@ -77,6 +77,7 @@
   <property name="quicksetup.src.dir" location="src/quicksetup"       />
   <property name="quicksetup.classes.dir"
             location="${build.dir}/quicksetup/classes"                />
+	<property name="ads.src.dir" location="src/ads"       />
 
   <!-- Properties for use with the Status Panel.                      -->
   <property name="statuspanel.src.dir" location="src/statuspanel"       />
@@ -370,6 +371,12 @@
       <formatter type="plain" />
     </checkstyle>
 
+  	<checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+  	  failOnViolation="true">
+  	  <fileset dir="${ads.src.dir}" includes="**/*.java" />
+  	  <formatter type="plain" />
+  	</checkstyle>
+  	
     <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
       <fileset dir="${quicksetup.src.dir}" includes="**/*.java" />
@@ -412,8 +419,7 @@
        depends="cleaninit,compilequicksetup,weave,compilestatuspanel"
        description="Recompile the Directory Server source files.">
   </target>
-
-
+	
 
   <!-- Compile the Directory Server source files. -->
   <target name="compile"
@@ -472,6 +478,18 @@
   <target name="compilequicksetup" depends="buildtools,weave"
           description="Compile the Quick Setup source files.">
     <mkdir dir="${quicksetup.classes.dir}" />
+  	<javac srcdir="${ads.src.dir}" destdir="${quicksetup.classes.dir}"
+				optimize="true" debug="on" debuglevel="lines,source" source="1.5"
+  	  	target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
+  	  	memoryMaximumSize="${MEM}">
+  	  	<compilerarg value="-Xlint:all" />
+  		  <classpath>
+  	  	  <fileset dir="${build.dir}/build-tools">
+  	  			<include name="build-tools.jar" />
+  	  		</fileset>
+  	  		<pathelement path="${classes.dir}"/>
+  	    </classpath>
+  	</javac>
     <javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
                debug="on" debuglevel="${build.debuglevel}" source="1.5"
                target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"

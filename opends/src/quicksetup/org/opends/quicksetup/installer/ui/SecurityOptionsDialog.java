@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.ui;
+package org.opends.quicksetup.installer.ui;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -59,6 +59,7 @@ import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.installer.Installer;
+import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.CertificateManager;
@@ -133,15 +134,7 @@ public class SecurityOptionsDialog extends JDialog
       }
     });
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    UIFactory.IconType ic;
-    if (Utils.isMacOS())
-    {
-      ic = UIFactory.IconType.MINIMIZED_MAC;
-    }
-    else
-    {
-      ic = UIFactory.IconType.MINIMIZED;
-    }
+
     Utils.centerOnComponent(this, parent);
   }
 

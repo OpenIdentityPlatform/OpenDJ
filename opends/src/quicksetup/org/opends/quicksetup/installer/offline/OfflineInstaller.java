@@ -71,6 +71,7 @@ public class OfflineInstaller extends Installer
     initMaps();
     PrintStream origErr = System.err;
     PrintStream origOut = System.out;
+
     try
     {
       PrintStream err = new ErrorPrintStream();
@@ -78,56 +79,41 @@ public class OfflineInstaller extends Installer
       System.setErr(err);
       System.setOut(out);
 
-      status = InstallProgressStep.CONFIGURING_SERVER;
+      setStatus(InstallProgressStep.CONFIGURING_SERVER);
       configureServer();
 
-      switch (getUserData().getDataOptions().getType())
-      {
-      case CREATE_BASE_ENTRY:
-        status = InstallProgressStep.CREATING_BASE_ENTRY;
-        notifyListeners(getTaskSeparator());
-        createBaseEntry();
-        break;
-      case IMPORT_FROM_LDIF_FILE:
-        status = InstallProgressStep.IMPORTING_LDIF;
-        notifyListeners(getTaskSeparator());
-        importLDIF();
-        break;
-      case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-        status = InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED;
-        notifyListeners(getTaskSeparator());
-        importAutomaticallyGenerated();
-        break;
-      }
+      createData();
+
+      updateADS();
 
       writeJavaHome();
 
       if (Utils.isWindows())
       {
           notifyListeners(getTaskSeparator());
-          status = InstallProgressStep.ENABLING_WINDOWS_SERVICE;
+          setStatus(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
           enableWindowsService();
       }
 
       if (getUserData().getStartServer())
       {
         notifyListeners(getTaskSeparator());
-        status = InstallProgressStep.STARTING_SERVER;
+        setStatus(InstallProgressStep.STARTING_SERVER);
         new ServerController(this).startServer();
       }
 
-      status = InstallProgressStep.FINISHED_SUCCESSFULLY;
+      setStatus(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
 
     } catch (QuickSetupException ex)
     {
-      status = InstallProgressStep.FINISHED_WITH_ERROR;
+      setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
       String html = getFormattedError(ex, true);
       notifyListeners(html);
     }
     catch (Throwable t)
     {
-      status = InstallProgressStep.FINISHED_WITH_ERROR;
+      setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
       QuickSetupException ex = new QuickSetupException(
           QuickSetupException.Type.BUG, getThrowableMsg("bug-msg", t), t);
       String msg = getFormattedError(ex, true);
@@ -182,7 +168,7 @@ public class OfflineInstaller extends Installer
         new ArrayList<InstallProgressStep>();
     totalTime += hmTime.get(InstallProgressStep.CONFIGURING_SERVER);
     steps.add(InstallProgressStep.CONFIGURING_SERVER);
-    switch (getUserData().getDataOptions().getType())
+    switch (getUserData().getNewSuffixOptions().getType())
     {
     case CREATE_BASE_ENTRY:
       steps.add(InstallProgressStep.CREATING_BASE_ENTRY);

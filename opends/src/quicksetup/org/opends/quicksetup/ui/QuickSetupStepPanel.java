@@ -108,6 +108,17 @@ implements HyperlinkListener
   }
 
   /**
+   * Tells whether the method beginDisplay can be long and so should be called
+   * outside the event thread.
+   * @return <CODE>true</CODE> if the method beginDisplay can be long and so
+   * should be called outside the event thread and <CODE>true</CODE> otherwise.
+   */
+  public boolean blockingBeginDisplay()
+  {
+    return false;
+  }
+
+  /**
    * Called when a progress change must be reflected in the panels.  Only
    * ProgressPanel overwrites this method and for all the others it stays empty.
    * @param descriptor the descriptor of the Installation progress.
