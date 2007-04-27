@@ -29,20 +29,19 @@ package org.opends.server.core;
 
 
 import java.util.ArrayList;
+import java.util.List;
 
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.PasswordPolicyCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -56,7 +55,8 @@ import static org.opends.server.util.StaticUtils.*;
  * the server is running.
  */
 public class PasswordPolicyConfigManager
-       implements ConfigAddListener, ConfigDeleteListener
+       implements ConfigurationAddListener<PasswordPolicyCfg>,
+       ConfigurationDeleteListener<PasswordPolicyCfg>
 {
 
 
@@ -85,44 +85,23 @@ public class PasswordPolicyConfigManager
   public void initializePasswordPolicies()
          throws ConfigException, InitializationException
   {
+    // Get the root configuration object.
+    ServerManagementContext managementContext =
+         ServerManagementContext.getInstance();
+    RootCfg rootConfiguration =
+         managementContext.getRootConfiguration();
+
+    // Register as an add and delete listener with the root configuration so we
+    // can be notified if any password ploicies entries are added or removed.
+    rootConfiguration.addPasswordPolicyAddListener(this);
+    rootConfiguration.addPasswordPolicyDeleteListener(this);
+
     // First, get the configuration base entry.
-    ConfigEntry baseEntry;
-    try
-    {
-      DN policyBase = DN.decode(DN_PWPOLICY_CONFIG_BASE);
-      baseEntry = DirectoryServer.getConfigHandler().getConfigEntry(policyBase);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CONFIG_PWPOLICY_CANNOT_GET_BASE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new ConfigException(msgID, message, e);
-    }
-
-    if (baseEntry == null)
-    {
-      // The password policy base entry does not exist.  This is not
-      // acceptable, so throw an exception.
-      int    msgID   = MSGID_CONFIG_PWPOLICY_BASE_DOES_NOT_EXIST;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
-    }
-
-
-    // Register add and delete listeners with the policy base entry.  We
-    // don't care about modifications to it.
-    baseEntry.registerAddListener(this);
-    baseEntry.registerDeleteListener(this);
-
+    String[] passwordPoliciesName = rootConfiguration.listPasswordPolicys() ;
 
     // See if the base entry has any children.  If not, then that means that
     // there are no policies defined, so that's a problem.
-    if (! baseEntry.hasChildren())
+    if (passwordPoliciesName.length == 0)
     {
       int    msgID   = MSGID_CONFIG_PWPOLICY_NO_POLICIES;
       String message = getMessage(msgID);
@@ -141,32 +120,39 @@ public class PasswordPolicyConfigManager
 
     // Iterate through the child entries and process them as password policy
     // configuration entries.
-    for (ConfigEntry childEntry : baseEntry.getChildren().values())
+    for (String passwordPolicyName : passwordPoliciesName)
     {
+      PasswordPolicyCfg passwordPolicyConfiguration =
+        rootConfiguration.getPasswordPolicy(passwordPolicyName);
+
       try
       {
-        PasswordPolicy policy = new PasswordPolicy(childEntry);
-        DirectoryServer.registerPasswordPolicy(childEntry.getDN(), policy);
+        PasswordPolicy policy = new PasswordPolicy(passwordPolicyConfiguration);
+        PasswordPolicyConfig config = new PasswordPolicyConfig(policy);
+        DirectoryServer.registerPasswordPolicy(
+            passwordPolicyConfiguration.dn(), config);
+        passwordPolicyConfiguration.addChangeListener(config);
       }
       catch (ConfigException ce)
       {
-        int    msgID   = MSGID_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG;
-        String message = getMessage(msgID, String.valueOf(childEntry.getDN()),
-                                    ce.getMessage());
+        int msgID = MSGID_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG;
+        String message = getMessage(msgID, String
+            .valueOf(passwordPolicyConfiguration.dn()), ce.getMessage());
         throw new ConfigException(msgID, message, ce);
       }
       catch (InitializationException ie)
       {
         int    msgID   = MSGID_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG;
-        String message = getMessage(msgID, String.valueOf(childEntry.getDN()),
-                                    ie.getMessage());
+        String message = getMessage(msgID, String
+            .valueOf(passwordPolicyConfiguration.dn()), ie.getMessage());
         throw new InitializationException(msgID, message, ie);
       }
       catch (Exception e)
       {
         int    msgID   = MSGID_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG;
-        String message = getMessage(msgID, String.valueOf(childEntry.getDN()),
-                                    stackTraceToSingleLineString(e));
+        String message = getMessage(msgID, String
+            .valueOf(passwordPolicyConfiguration.dn()),
+            stackTraceToSingleLineString(e));
         throw new InitializationException(msgID, message, e);
       }
     }
@@ -186,49 +172,39 @@ public class PasswordPolicyConfigManager
 
 
   /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * add is acceptable to this add listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested add.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed entry is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
-  public boolean configAddIsAcceptable(ConfigEntry configEntry,
-                                       StringBuilder unacceptableReason)
+  public boolean isConfigurationAddAcceptable(PasswordPolicyCfg configuration,
+                                       List<String> unacceptableReason)
   {
     // See if we can create a password policy from the provided configuration
     // entry.  If so, then it's acceptable.
     try
     {
-      new PasswordPolicy(configEntry);
+      new PasswordPolicy(configuration);
     }
     catch (ConfigException ce)
     {
       int    msgID   = MSGID_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG;
-      String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
+      String message = getMessage(msgID, String.valueOf(configuration.dn()),
                                   ce.getMessage());
-      unacceptableReason.append(message);
+      unacceptableReason.add(message);
       return false;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG;
-      String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
+      String message = getMessage(msgID, String.valueOf(configuration.dn()),
                                   ie.getMessage());
-      unacceptableReason.append(message);
+      unacceptableReason.add(message);
       return false;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG;
-      String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
+      String message = getMessage(msgID, String.valueOf(configuration.dn()),
                                   stackTraceToSingleLineString(e));
-      unacceptableReason.append(message);
+      unacceptableReason.add(message);
       return false;
     }
 
@@ -240,17 +216,12 @@ public class PasswordPolicyConfigManager
 
 
   /**
-   * Attempts to apply a new configuration based on the provided added entry.
-   *
-   * @param  configEntry  The new configuration entry that contains the
-   *                      configuration to apply.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
+  public ConfigChangeResult applyConfigurationAdd(
+      PasswordPolicyCfg configuration)
   {
-    DN                configEntryDN       = configEntry.getDN();
+    DN                configEntryDN       = configuration.dn();
     ArrayList<String> messages            = new ArrayList<String>();
 
 
@@ -258,14 +229,17 @@ public class PasswordPolicyConfigManager
     // entry.  If so, then register it with the Directory Server.
     try
     {
-      PasswordPolicy policy = new PasswordPolicy(configEntry);
-      DirectoryServer.registerPasswordPolicy(configEntryDN, policy);
+      PasswordPolicy policy = new PasswordPolicy(configuration);
+      PasswordPolicyConfig config = new PasswordPolicyConfig(policy);
+
+      DirectoryServer.registerPasswordPolicy(configEntryDN, config);
+      configuration.addChangeListener(config);
       return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);
     }
     catch (ConfigException ce)
     {
       int msgID = MSGID_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG;
-      messages.add(getMessage(msgID, String.valueOf(configEntry.getDN()),
+      messages.add(getMessage(msgID, String.valueOf(configuration.dn()),
                               ce.getMessage()));
 
       return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false,
@@ -274,7 +248,7 @@ public class PasswordPolicyConfigManager
     catch (InitializationException ie)
     {
       int msgID = MSGID_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG;
-      messages.add(getMessage(msgID, String.valueOf(configEntry.getDN()),
+      messages.add(getMessage(msgID, String.valueOf(configuration.dn()),
                               ie.getMessage()));
 
       return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
@@ -283,7 +257,7 @@ public class PasswordPolicyConfigManager
     catch (Exception e)
     {
       int msgID = MSGID_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG;
-      messages.add(getMessage(msgID, String.valueOf(configEntry.getDN()),
+      messages.add(getMessage(msgID, String.valueOf(configuration.dn()),
                               stackTraceToSingleLineString(e)));
 
       return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
@@ -294,20 +268,10 @@ public class PasswordPolicyConfigManager
 
 
   /**
-   * Indicates whether it is acceptable to remove the provided configuration
-   * entry.
-   *
-   * @param  configEntry         The configuration entry that will be removed
-   *                             from the configuration.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed delete is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry may be removed from the
-   *          configuration, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
-  public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
+  public boolean isConfigurationDeleteAcceptable(
+      PasswordPolicyCfg configuration, List<String> unacceptableReason)
   {
     // We'll allow the policy to be removed as long as it isn't the default.
     // FIXME: something like a referential integrity check is needed to ensure
@@ -315,11 +279,11 @@ public class PasswordPolicyConfigManager
     // directly or via a virtual attribute).
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
     if ((defaultPolicyDN != null) &&
-        defaultPolicyDN.equals(configEntry.getDN()))
+        defaultPolicyDN.equals(configuration.dn()))
     {
       int msgID = MSGID_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY;
       String message = getMessage(msgID, String.valueOf(defaultPolicyDN));
-      unacceptableReason.append(message);
+      unacceptableReason.add(message);
       return false;
     }
     else
@@ -331,21 +295,17 @@ public class PasswordPolicyConfigManager
 
 
   /**
-   * Attempts to apply a new configuration based on the provided deleted entry.
-   *
-   * @param  configEntry  The new configuration entry that has been deleted.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
+  public ConfigChangeResult applyConfigurationDelete(
+      PasswordPolicyCfg configuration)
   {
     // We'll allow the policy to be removed as long as it isn't the default.
     // FIXME: something like a referential integrity check is needed to ensure
     //  a policy is not removed when referenced by a user entry (either
     // directly or via a virtual attribute).
     ArrayList<String> messages = new ArrayList<String>(1);
-    DN policyDN = configEntry.getDN();
+    DN policyDN = configuration.dn();
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
     if ((defaultPolicyDN != null) && defaultPolicyDN.equals(policyDN))
     {
@@ -355,8 +315,13 @@ public class PasswordPolicyConfigManager
       return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false,
                                     messages);
     }
-
     DirectoryServer.deregisterPasswordPolicy(policyDN);
+    PasswordPolicyConfig config =
+      DirectoryServer.getPasswordPolicyConfig(policyDN);
+    if (config != null)
+    {
+      configuration.removeChangeListener(config);
+    }
 
     int msgID = MSGID_CONFIG_PWPOLICY_REMOVED_POLICY;
     messages.add(getMessage(msgID, String.valueOf(policyDN)));

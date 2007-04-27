@@ -38,6 +38,9 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
+import org.opends.server.admin.std.server.PasswordPolicyCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
@@ -2111,7 +2114,11 @@ public class PasswordPolicyTestCase
     ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
     ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
 
-    new PasswordPolicy(configEntry);
+    PasswordPolicyCfg configuration =
+      AdminTestCaseUtils.getConfiguration(PasswordPolicyCfgDefn.getInstance(),
+          configEntry.getEntry());
+
+    new PasswordPolicy(configuration);
   }
 
 
