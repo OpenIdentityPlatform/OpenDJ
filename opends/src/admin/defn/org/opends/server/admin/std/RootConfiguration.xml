@@ -116,5 +116,13 @@
       </ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
+  <adm:relation name="password-policy">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Password Policies,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
   <adm:product-name>OpenDS Directory Server</adm:product-name>
 </adm:root-managed-object>

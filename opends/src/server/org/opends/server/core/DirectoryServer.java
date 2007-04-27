@@ -4932,6 +4932,24 @@ public class DirectoryServer
   }
 
 
+  /**
+   * Retrieves the password policy registered for the provided configuration
+   * entry.
+   *
+   * @param  configEntryDN  The DN of the configuration entry for which to
+   *                        retrieve the associated password policy.
+   *
+   * @return  The password policy config registered for the provided
+   *          configuration entry, or <CODE>null</CODE> if there is
+   *          no such policy.
+   */
+  public static PasswordPolicyConfig getPasswordPolicyConfig(DN configEntryDN)
+  {
+    Validator.ensureNotNull(configEntryDN);
+
+    return directoryServer.passwordPolicies.get(configEntryDN);
+  }
+
 
   /**
    * Registers the provided password policy with the Directory Server.  If a
@@ -4940,14 +4958,13 @@ public class DirectoryServer
    *
    * @param  configEntryDN  The DN of the configuration entry that defines the
    *                        password policy.
-   * @param  policy         The password policy to register with the server.
+   * @param  config         The password policy config to register with the
+   *                        server.
    */
   public static void registerPasswordPolicy(DN configEntryDN,
-                                            PasswordPolicy policy)
+                                            PasswordPolicyConfig config)
   {
-    Validator.ensureNotNull(configEntryDN, policy);
-
-    PasswordPolicyConfig config = new PasswordPolicyConfig(policy);
+    Validator.ensureNotNull(configEntryDN, config);
 
     directoryServer.passwordPolicies.put(configEntryDN, config);
   }
@@ -4972,7 +4989,6 @@ public class DirectoryServer
 
     PasswordPolicyConfig config
             = directoryServer.passwordPolicies.remove(configEntryDN);
-    if (null != config) config.finalizePasswordPolicyConfig();
   }
 
 
