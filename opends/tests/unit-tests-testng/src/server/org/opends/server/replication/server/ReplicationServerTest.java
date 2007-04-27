@@ -123,10 +123,10 @@ public class ReplicationServerTest extends ReplicationTestCase
       /*
        * Open a sender session and a receiver session to the replicationServer
        */
-      server1 = openChangelogSession(
+      server1 = openReplicationSession(
           DN.decode("dc=example,dc=com"), (short) 1, 100, changelogPort,
           1000, true);
-      server2 = openChangelogSession(
+      server2 = openReplicationSession(
           DN.decode("dc=example,dc=com"), (short) 2, 100, changelogPort,
           1000, true);
 
@@ -239,7 +239,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     try {
       broker =
-        openChangelogSession(DN.decode("dc=example,dc=com"), (short) 3,
+        openReplicationSession(DN.decode("dc=example,dc=com"), (short) 3,
                              100, changelogPort, 1000, false);
 
       ReplicationMessage msg2 = broker.receive();
@@ -276,7 +276,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      */
     try {
       broker =
-        openChangelogSession(DN.decode("dc=example,dc=com"), (short) 3,
+        openReplicationSession(DN.decode("dc=example,dc=com"), (short) 3,
                              100, changelogPort, 1000, state);
 
       ReplicationMessage msg2 = broker.receive();
@@ -424,7 +424,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       /*
        * Open a sender session
        */
-      server = openChangelogSession(
+      server = openReplicationSession(
           DN.decode("dc=example,dc=com"), (short) 5, 100, changelogPort,
           1000, 1000, 0, true);
 
@@ -435,7 +435,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        */
       for (int i =0; i< CLIENT_THREADS; i++)
       {
-        clientBroker[i] = openChangelogSession(
+        clientBroker[i] = openReplicationSession(
             DN.decode("dc=example,dc=com"), (short) (100+i), 100, changelogPort,
             1000, true);
         client[i] = new BrokerReader(clientBroker[i]);
@@ -509,7 +509,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         ChangeNumberGenerator gen =
           new ChangeNumberGenerator(serverId , (long) 0);
         ReplicationBroker broker =
-          openChangelogSession( DN.decode("dc=example,dc=com"), serverId,
+          openReplicationSession( DN.decode("dc=example,dc=com"), serverId,
             100, changelogPort, 1000, 1000, 0, true);
 
         producer[i] = new BrokerWriter(broker, gen, TOTAL_MSG/THREADS);
@@ -613,12 +613,12 @@ public class ReplicationServerTest extends ReplicationTestCase
         //              and client2 to changelog2
         // For itest=1, only create and connect client1 to changelog1
         //              client2 will be created later
-        broker1 = openChangelogSession(DN.decode("dc=example,dc=com"),
+        broker1 = openReplicationSession(DN.decode("dc=example,dc=com"),
              brokerIds[0], 100, changelogPorts[0], 1000, !emptyOldChanges);
 
         if (itest == 0)
         {
-          broker2 = openChangelogSession(DN.decode("dc=example,dc=com"),
+          broker2 = openReplicationSession(DN.decode("dc=example,dc=com"),
              brokerIds[1], 100, changelogPorts[0], 1000, !emptyOldChanges);
         }
 
@@ -678,7 +678,7 @@ public class ReplicationServerTest extends ReplicationTestCase
           changelogs[1] = new ReplicationServer(conf);
 
           // Connect broker 2 to changelog2
-          broker2 = openChangelogSession(DN.decode("dc=example,dc=com"),
+          broker2 = openReplicationSession(DN.decode("dc=example,dc=com"),
               brokerIds[1], 100, changelogPorts[1], 2000, !emptyOldChanges);
         }
 

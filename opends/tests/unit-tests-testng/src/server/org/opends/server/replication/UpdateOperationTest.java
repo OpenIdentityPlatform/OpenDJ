@@ -30,6 +30,7 @@ package org.opends.server.replication;
 import static org.opends.server.loggers.Error.logError;
 import static org.testng.Assert.*;
 
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -84,6 +85,7 @@ public class UpdateOperationTest extends ReplicationTestCase
    * A "person" entry
    */
   protected Entry personEntry;
+  private int replServerPort;
 
   /**
    * Set up the environment for performing the tests in this Class.
@@ -133,24 +135,29 @@ public class UpdateOperationTest extends ReplicationTestCase
     synchroPluginStringDN = "cn=Multimaster Synchronization, "
         + synchroStringDN;
 
-    // Change log
-    String changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
-    String changeLogLdif = "dn: " + changeLogStringDN + "\n"
+    // find  a free port for the replicationServer
+    ServerSocket socket = TestCaseUtils.bindFreePort();
+    replServerPort = socket.getLocalPort();
+    socket.close();
+    
+    // replication server
+    String replServerLdif =
+      "dn: cn=Replication Server, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-        + "cn: Changelog Server\n" + "ds-cfg-changelog-port: 8989\n"
-        + "ds-cfg-changelog-server-id: 1\n";
-    changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
+        + "objectClass: ds-cfg-replication-server-config\n"
+        + "cn: Replication Server\n"
+        + "ds-cfg-replication-server-port: " + replServerPort + "\n"
+        + "ds-cfg-replication-server-id: 1\n";
+    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
-    String synchroServerStringDN =
-      "cn=example, cn=domains, " + synchroPluginStringDN;
-    String synchroServerLdif = "dn: " + synchroServerStringDN + "\n"
+    String synchroServerLdif =
+      "dn: cn=example, cn=domains, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-provider-config\n"
+        + "objectClass: ds-cfg-replication-domain-config\n"
         + "cn: example\n"
         + "ds-cfg-synchronization-dn: ou=People,dc=example,dc=com\n"
-        + "ds-cfg-changelog-server: localhost:8989\n"
+        + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-directory-server-id: 1\n" + "ds-cfg-receive-status: true\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
@@ -236,7 +243,7 @@ public class UpdateOperationTest extends ReplicationTestCase
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openChangelogSession(baseDn, (short) 2, 100, 8989, 1000, true);
+      openReplicationSession(baseDn, (short)2, 100, replServerPort, 1000, true);
 
 
     /*
@@ -319,7 +326,7 @@ public class UpdateOperationTest extends ReplicationTestCase
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openChangelogSession(baseDn, (short) 2, 100, 8989, 1000, true);
+      openReplicationSession(baseDn, (short)2, 100, replServerPort, 1000, true);
 
 
     /*
@@ -419,7 +426,7 @@ public class UpdateOperationTest extends ReplicationTestCase
      * This must use a serverId different from the LDAP server ID
      */
     ReplicationBroker broker =
-      openChangelogSession(baseDn, (short) 2, 100, 8989, 1000, true);
+      openReplicationSession(baseDn, (short)2, 100, replServerPort, 1000, true);
 
     /*
      * Create a Change number generator to generate new changenumbers
@@ -826,7 +833,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     cleanRealEntries();
 
     ReplicationBroker broker =
-      openChangelogSession(baseDn, (short) 27, 100, 8989, 1000, true);
+      openReplicationSession(baseDn, (short) 27, 100, 8989, 1000, true);
     try {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 27, 0);
 
@@ -1110,7 +1117,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     Thread.sleep(2000);
     ReplicationBroker broker =
-      openChangelogSession(baseDn, (short) 11, 100, 8989, 1000, true);
+      openReplicationSession(baseDn, (short) 11, 100, 8989, 1000, true);
     try
     {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 11, 0);

@@ -535,7 +535,7 @@ public class MultimasterReplication
   public ConfigChangeResult applyConfigurationDelete(
       MultimasterDomainCfg configuration)
   {
-    DN dn = configuration.getSynchronizationDN();
+    DN dn = configuration.getReplicationDN();
     ReplicationDomain domain = domains.remove(dn);
     if (domain != null)
       domain.shutdown();

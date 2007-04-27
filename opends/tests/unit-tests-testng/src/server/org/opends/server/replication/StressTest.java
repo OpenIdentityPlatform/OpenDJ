@@ -32,6 +32,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -72,21 +73,6 @@ public class StressTest extends ReplicationTestCase
   private static final String REPLICATION_STRESS_TEST =
     "Replication Stress Test";
 
-  /**
-   * The replication config manager entry
-   */
-  private String synchroStringDN;
-
-  /**
-   * The Server synchro entry
-   */
-  private String synchroServerStringDN;
-
-  /**
-   * The Change log entry
-   */
-  private String changeLogStringDN;
-
   private BrokerReader reader = null;
 
   /**
@@ -94,7 +80,8 @@ public class StressTest extends ReplicationTestCase
    */
   protected Entry personEntry;
 
-  // WORKAROUND FOR BUG #639 - END -
+  private int replServerPort;
+
 
   /**
    * Stress test from LDAP server to client using the ReplicationBroker API.
@@ -110,7 +97,7 @@ public class StressTest extends ReplicationTestCase
     final int TOTAL_MESSAGES = 1000;
 
     ReplicationBroker broker =
-      openChangelogSession(baseDn, (short) 18, 100, 8989, 5000, true);
+      openReplicationSession(baseDn, (short) 18, 100, replServerPort, 5000, true);
     Monitor monitor = new Monitor("stress test monitor");
     DirectoryServer.registerMonitorProvider(monitor);
 
@@ -225,29 +212,35 @@ public class StressTest extends ReplicationTestCase
     }
 
     // top level synchro provider
-    synchroStringDN = "cn=Synchronization Providers,cn=config";
+    String synchroStringDN = "cn=Synchronization Providers,cn=config";
 
     // Multimaster Synchro plugin
     synchroPluginStringDN = "cn=Multimaster Synchronization, "
         + synchroStringDN;
 
+    // find  a free port for the replicationServer
+    ServerSocket socket = TestCaseUtils.bindFreePort();
+    replServerPort = socket.getLocalPort();
+    socket.close();
+    
     // Change log
-    changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
-    String changeLogLdif = "dn: " + changeLogStringDN + "\n"
+    String replServerLdif =
+      "dn: cn=Replication Server, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-        + "cn: Changelog Server\n" + "ds-cfg-changelog-port: 8989\n"
-        + "ds-cfg-changelog-server-id: 1\n";
-    changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
+        + "objectClass: ds-cfg-replication-server-config\n"
+        + "cn: Replication Server\n"
+        + "ds-cfg-replication-server-port: " + replServerPort + "\n"
+        + "ds-cfg-replication-server-id: 1\n";
+    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
-    synchroServerStringDN = "cn=example, cn=domains, " + synchroPluginStringDN;
-    String synchroServerLdif = "dn: " + synchroServerStringDN + "\n"
+    String synchroServerLdif =
+      "dn: " + "cn=example, cn=domains, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-provider-config\n"
+        + "objectClass: ds-cfg-replication-domain-config\n"
         + "cn: example\n"
-        + "ds-cfg-synchronization-dn: ou=People,dc=example,dc=com\n"
-        + "ds-cfg-changelog-server: localhost:8989\n"
+        + "ds-cfg-replication-dn: ou=People,dc=example,dc=com\n"
+        + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-directory-server-id: 1\n" + "ds-cfg-receive-status: true\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 

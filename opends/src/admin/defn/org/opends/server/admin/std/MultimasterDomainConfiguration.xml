@@ -13,14 +13,14 @@
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.58</ldap:oid>
-      <ldap:name>ds-cfg-synchronization-provider-config</ldap:name>
+      <ldap:name>ds-cfg-replication-domain-config</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property name="changelog-server" multi-valued="true"
+  <adm:property name="replication-server" multi-valued="true"
     mandatory="true">
     <adm:synopsis>
-      Specifies the addresses of the changelog server to which this
+      Specifies the addresses of the replication server to which this
       <adm:user-friendly-name />
       should try to connect at startup time.
     </adm:synopsis>
@@ -36,7 +36,7 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.160</ldap:oid>
-        <ldap:name>ds-cfg-changelog-server</ldap:name>
+        <ldap:name>ds-cfg-replication-server</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -61,7 +61,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="synchronization-dn" mandatory="true"
+  <adm:property name="replication-dn" mandatory="true"
     multi-valued="false" read-only="true">
     <adm:synopsis>
       Specifies the base dn of the Multimaster Domain
@@ -72,14 +72,14 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.226</ldap:oid>
-        <ldap:name>ds-cfg-synchronization-dn</ldap:name>
+        <ldap:name>ds-cfg-replication-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
   <adm:property name="max-receive-queue" mandatory="false"
     multi-valued="false">
     <adm:synopsis>
-      Specifies the maximum length of the receive queue on the changelog
+      Specifies the maximum length of the receive queue on the replication
       server before flow control must be activated.
     </adm:synopsis>
     <adm:default-behavior>
@@ -100,7 +100,7 @@
   <adm:property name="max-receive-delay" mandatory="false"
     multi-valued="false">
     <adm:synopsis>
-      Specifies the maximum delay on the changelog server before flow
+      Specifies the maximum delay on the replication server before flow
       control must be activated.
     </adm:synopsis>
     <adm:default-behavior>
@@ -122,7 +122,7 @@
   <adm:property name="max-send-queue" mandatory="false"
     multi-valued="false">
     <adm:synopsis>
-      Specifies the maximum length of the send queue on the changelog
+      Specifies the maximum length of the send queue on the replication
       server before flow control must be activated.
     </adm:synopsis>
     <adm:default-behavior>
@@ -143,7 +143,7 @@
   <adm:property name="max-send-delay" mandatory="false"
     multi-valued="false">
     <adm:synopsis>
-      Specifies the maximum send delay on the changelog server before
+      Specifies the maximum send delay on the replication server before
       flow control must be activated.
     </adm:synopsis>
     <adm:default-behavior>
@@ -166,7 +166,7 @@
     multi-valued="false">
     <adm:synopsis>
       Specifies the window size that will this Domain must use when
-      communicating with changelog servers.
+      communicating with replication servers.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -187,14 +187,14 @@
     multi-valued="false">
     <adm:synopsis>
       Specifies the heartbeat interval that this Domain must use when
-      communicating with changelog servers. The Domain will expect
-      regular heatbeat coming from the changelog server with this
+      communicating with replication servers. The Domain will expect
+      regular heatbeat coming from the replication server with this
       interval if they are not received it will close its connection and
-      connect to another changelog server.
+      connect to another replication server.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>1000s</adm:value>
+        <adm:value>1000ms</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>

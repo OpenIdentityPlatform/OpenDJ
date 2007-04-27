@@ -178,7 +178,7 @@ public class InitOnLineTest extends ReplicationTestCase
     // Add config entries to the current DS server based on :
     // Add the replication plugin: synchroPluginEntry & synchroPluginStringDN
     // Add synchroServerEntry
-    // Add changeLogEntry
+    // Add replServerEntry
     configureReplication();
 
     taskInitFromS2 = TestCaseUtils.makeEntry(
@@ -220,8 +220,8 @@ public class InitOnLineTest extends ReplicationTestCase
     + "ds-cfg-changelog-server-id: 1\n"
     + "ds-cfg-window-size: " + WINDOW_SIZE + "\n"
     + "ds-cfg-changelog-max-queue-size: " + CHANGELOG_QUEUE_SIZE;
-    changeLogEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
-    changeLogEntry = null;
+    replServerEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
+    replServerEntry = null;
 
   }
 
@@ -824,7 +824,7 @@ public class InitOnLineTest extends ReplicationTestCase
       connectServer1ToChangelog(changelog1ID);
 
       if (server2 == null)
-        server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
+        server2 = openReplicationSession(DN.decode("dc=example,dc=com"),
           server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
       Thread.sleep(2000);
@@ -880,7 +880,7 @@ public class InitOnLineTest extends ReplicationTestCase
     addTestEntriesToDB();
 
     if (server2 == null)
-      server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
+      server2 = openReplicationSession(DN.decode("dc=example,dc=com"),
         server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
     Thread.sleep(3000);
@@ -916,7 +916,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
     // S1 is the server we are running in, S2 is simulated by a broker
     if (server2 == null)
-      server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
+      server2 = openReplicationSession(DN.decode("dc=example,dc=com"),
         server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
     Thread.sleep(1000);
@@ -956,10 +956,10 @@ public class InitOnLineTest extends ReplicationTestCase
 
     // S1 is the server we are running in, S2 and S3 are simulated by brokers
     if (server2==null)
-      server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
+      server2 = openReplicationSession(DN.decode("dc=example,dc=com"),
         server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
-    ReplicationBroker server3 = openChangelogSession(DN.decode("dc=example,dc=com"),
+    ReplicationBroker server3 = openReplicationSession(DN.decode("dc=example,dc=com"),
         server3ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
     Thread.sleep(1000);
@@ -997,7 +997,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // S1 is the server we are running in, S2 is simulated by a broker
       if (server2==null)
-        server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
+        server2 = openReplicationSession(DN.decode("dc=example,dc=com"),
           server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
       // Creates config to synchronize suffix
@@ -1180,7 +1180,7 @@ public class InitOnLineTest extends ReplicationTestCase
     // connected to changelog2
     if (server2 == null)
     {
-      server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
+      server2 = openReplicationSession(DN.decode("dc=example,dc=com"),
         server2ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
     }
 
@@ -1226,7 +1226,7 @@ public class InitOnLineTest extends ReplicationTestCase
     // Connect a broker acting as server 2 to changelog2
     if (server2 == null)
     {
-      server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
+      server2 = openReplicationSession(DN.decode("dc=example,dc=com"),
         server2ID, 100, getChangelogPort(changelog2ID),
         1000, emptyOldChanges);
     }
@@ -1359,7 +1359,7 @@ public class InitOnLineTest extends ReplicationTestCase
     // Connect a broker acting as server 2 to changelog2
     if (server2 == null)
     {
-      server2 = openChangelogSession(DN.decode("dc=example,dc=com"),
+      server2 = openReplicationSession(DN.decode("dc=example,dc=com"),
         server2ID, 100, getChangelogPort(changelog1ID),
         1000, emptyOldChanges);
     }

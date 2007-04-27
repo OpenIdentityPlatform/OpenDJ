@@ -24,10 +24,10 @@
       <ldap:rdn-sequence>cn=domains</ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="changelog-server">
+  <adm:relation name="replication-server">
     <adm:one-to-zero-or-one />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>cn=changelog server</ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=replication server</ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
 </adm:managed-object>

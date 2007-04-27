@@ -277,9 +277,9 @@ public class ReplicationDomain extends DirectoryThread
     super("replication flush");
 
     // Read the configuration parameters.
-    replicationServers = configuration.getChangelogServer();
+    replicationServers = configuration.getReplicationServer();
     serverId = (short) configuration.getServerId();
-    baseDN = configuration.getSynchronizationDN();
+    baseDN = configuration.getReplicationDN();
     maxReceiveQueue = configuration.getMaxReceiveQueue();
     maxReceiveDelay = (int) configuration.getMaxReceiveDelay();
     maxSendQueue = configuration.getMaxSendQueue();
@@ -2786,7 +2786,7 @@ public class ReplicationDomain extends DirectoryThread
   {
     // Check that there is not already a domain with the same DN
     // TODO : Check that the server id is a short
-    DN dn = configuration.getSynchronizationDN();
+    DN dn = configuration.getReplicationDN();
     if (MultimasterReplication.findDomain(dn,null) != null)
     {
       String message = getMessage(MSGID_SYNC_INVALID_DN, dn.toString());
@@ -2805,7 +2805,7 @@ public class ReplicationDomain extends DirectoryThread
     // server id and base dn are readonly.
     // The other parameters needs to be renegociated with the ReplicationServer.
     // so that requires restarting the session with the ReplicationServer.
-    replicationServers = configuration.getChangelogServer();
+    replicationServers = configuration.getReplicationServer();
     maxReceiveQueue = configuration.getMaxReceiveQueue();
     maxReceiveDelay = (int) configuration.getMaxReceiveDelay();
     maxSendQueue = configuration.getMaxSendQueue();

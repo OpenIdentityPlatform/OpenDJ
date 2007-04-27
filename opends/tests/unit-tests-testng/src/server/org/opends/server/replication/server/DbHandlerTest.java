@@ -44,7 +44,7 @@ import static org.testng.Assert.*;
 /**
  * Test the dbHandler class
  */
-public class dbHandlerTest extends ReplicationTestCase
+public class DbHandlerTest extends ReplicationTestCase
 {
   @Test()
   void testDbHandlerTrim() throws Exception

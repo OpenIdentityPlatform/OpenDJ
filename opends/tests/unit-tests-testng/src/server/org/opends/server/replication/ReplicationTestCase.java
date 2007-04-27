@@ -84,7 +84,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   protected Entry synchroServerEntry;
 
-  protected Entry changeLogEntry;
+  protected Entry replServerEntry;
 
   /**
    * schema check flag
@@ -118,7 +118,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * Open a replicationServer session to the local ReplicationServer.
    *
    */
-  protected ReplicationBroker openChangelogSession(
+  protected ReplicationBroker openReplicationSession(
       final DN baseDn, short serverId, int window_size,
       int port, int timeout, boolean emptyOldChanges)
           throws Exception, SocketException
@@ -165,7 +165,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * Open a new session to the ReplicationServer
    * starting with a given ServerState.
    */
-  protected ReplicationBroker openChangelogSession(
+  protected ReplicationBroker openReplicationSession(
       final DN baseDn, short serverId, int window_size,
       int port, int timeout, ServerState state)
           throws Exception, SocketException
@@ -186,7 +186,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * ReplicationServer.
    *
    */
-  protected ReplicationBroker openChangelogSession(
+  protected ReplicationBroker openReplicationSession(
       final DN baseDn, short serverId, int window_size,
       int port, int timeout, int maxSendQueue, int maxRcvQueue,
       boolean emptyOldChanges)
@@ -338,10 +338,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       
 
     // Add the replication server
-    DirectoryServer.getConfigHandler().addEntry(changeLogEntry, null);
-    assertNotNull(DirectoryServer.getConfigEntry(changeLogEntry.getDN()),
-       "Unable to add the changeLog server");
-    configEntryList.add(changeLogEntry.getDN());
+    DirectoryServer.getConfigHandler().addEntry(replServerEntry, null);
+    assertNotNull(DirectoryServer.getConfigEntry(replServerEntry.getDN()),
+       "Unable to add the replication server");
+    configEntryList.add(replServerEntry.getDN());
 
     // We also have a replicated suffix (replication domain)
     DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
