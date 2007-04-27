@@ -125,6 +125,7 @@ mkdir -p "${INSTALL_DIR}/lib"
 # in the archive.
 echo "Copying static content into place ..."
 cp -Rp "${SCRIPT_DIR}/images" "${INSTALL_DIR}"
+find "${INSTALL_DIR}/images" -type d -name '.svn' -exec rm -rf {} \;
 
 
 # Copy the appropriate OpenDS library files and make sure they are signed.
