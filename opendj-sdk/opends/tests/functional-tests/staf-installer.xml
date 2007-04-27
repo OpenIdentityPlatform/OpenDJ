@@ -282,7 +282,9 @@
   <target name="gui"
           depends="status-do"
           description="brings up the stax gui" >
-    
+    <!--
+    <echo>${java.home}/bin/java -classpath ${staf.install.dir}/services/stax/STAXMon.jar${path.separator}${staf.lib.dir}/JSTAF.jar</echo>
+    -->
     <exec
       dir="${staf.install.dir}"
       executable="${java.home}/bin/java"
@@ -509,6 +511,9 @@ email.server.pwd=${email.server.pwd.input}
       <tstamp>
         <format property="tests.run.time" pattern="yyyy.MM.dd-HH.mm.ss"/>
       </tstamp>
+      <!-- clean up some -->
+      <delete dir="${staf.logs.dir}"/>
+      <delete dir="${staf.tmp.dir}"/>
       <!-- make all the necessary directories for this test run -->
       <mkdir dir="${staf.tmp.dir}"/>
       <mkdir dir="${tests.run.dir}/${tests.run.time}"/>
@@ -605,9 +610,7 @@ email.server.pwd=${email.server.pwd.input}
     <copy todir="${tests.run.dir}/${tests.run.time}/staf-logs">
       <fileset dir="${staf.home}/logs"/>
     </copy>
-    <!--
     <delete dir="${staf.home}/logs" />
-    -->
     <echo>Saving report</echo>
     <copy todir="${tests.run.dir}/${tests.run.time}/report">
       <fileset dir="${staf.tmp.dir}">
@@ -635,13 +638,23 @@ email.server.pwd=${email.server.pwd.input}
         </not>
       </or>
     </condition>
+    <condition property="email.file" 
+               value="${staf.tmp.dir}/results.html" 
+               else="staf-installer/failure.html">
+      <available file="${staf.tmp.dir}/results.html"/>
+    </condition>
+    <condition property="email.subject"
+               value="FT - Run - ${daily.date} - ${os.name} - ${os.arch}"
+               else="FT - Failed -${daily.date} - ${os.name} - ${os.arch}">
+      <available file="${staf.tmp.dir}/results.html"/>
+    </condition>
     <antcall target="send-mail-noauth"/>
     <antcall target="send-mail-withauth"/>
   </target>
   <target name="send-mail-noauth" if="email.send.noauth">
     <mail from="${email.from}" 
           tolist="${email.to}" 
-          subject="FT - ${daily.date} - ${os.name} - ${os.arch}"
+          subject="${email.subject}"
           files="${staf.tmp.dir}/results.html"
           mailhost="${email.server.host}"
           mailport="${email.server.port}"
@@ -651,7 +664,7 @@ email.server.pwd=${email.server.pwd.input}
   <target name="send-mail-withauth" unless="email.send.noauth">
     <mail from="${email.from}" 
           tolist="${email.to}" 
-          subject="FT - ${daily.date} - ${os.name} - ${os.arch}"
+          subject="${email.subject}"
           files="${staf.tmp.dir}/results.html"
           mailhost="${email.server.host}"
           mailport="${email.server.port}"
@@ -964,4 +977,24 @@ email.server.pwd=${email.server.pwd.input}
     <echoproperties/>
   </target>
   
+  <target name="get-dtd" depends="status-do">
+    <property name="stax.dtd" value="${staf.home}/stax.dtd"/>
+    <exec
+      dir="${staf.bin.dir}"
+      executable="${staf.executable}"
+      output="${stax.dtd}"
+      >
+      <arg line="LOCAL STAX get dtd"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="LD_LIBRARY_PATH" value="${staf.lib.dir}"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+    </exec>
+    <replace file="${stax.dtd}">
+      <replacetoken>Response
+--------
+</replacetoken>
+      <replacevalue></replacevalue>
+    </replace>
+  </target>
 </project>
