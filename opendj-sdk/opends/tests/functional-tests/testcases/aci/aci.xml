@@ -109,6 +109,10 @@
           <call function="'multiple_aci_tests'" />
   
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_modify_rdn.xml' % (TESTS_DIR)"/>
+          <call function="'aci_modify_rdn'" />
+  
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/aci/aci_teardown.xml' % (TESTS_DIR)"/>
           <call function="'aci_teardown'" />
   
