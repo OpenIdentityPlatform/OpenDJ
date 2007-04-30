@@ -6092,6 +6092,36 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the string representation of the result code that will
+   * be used for search operations containing the VLV request control that do
+   * not also include the server-side sort control.
+   */
+  public static final int MSGID_RESULT_SORT_CONTROL_MISSING =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 608;
+
+
+
+  /**
+   * The message ID for the string representation of the result code that will
+   * be used for search operations containing the VLV request control with an
+   * invalid offset or target count.
+   */
+  public static final int MSGID_RESULT_OFFSET_RANGE_ERROR =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 609;
+
+
+
+  /**
+   * The message ID for the string representation of the result code that will
+   * be used for operations that failed because the request would have impacted
+   * information in multiple servers or repositories.
+   */
+  public static final int MSGID_RESULT_VIRTUAL_LIST_VIEW_ERROR =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 610;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -6219,6 +6249,8 @@ public class CoreMessages
     registerMessage(MSGID_RESULT_UNAVAILABLE, "Unavailable");
     registerMessage(MSGID_RESULT_UNWILLING_TO_PERFORM, "Unwilling to Perform");
     registerMessage(MSGID_RESULT_LOOP_DETECT, "Loop Detected");
+    registerMessage(MSGID_RESULT_SORT_CONTROL_MISSING, "Sort Control Missing");
+    registerMessage(MSGID_RESULT_OFFSET_RANGE_ERROR, "Offset Range Error");
     registerMessage(MSGID_RESULT_NAMING_VIOLATION, "Naming Violation");
     registerMessage(MSGID_RESULT_OBJECTCLASS_VIOLATION,
                     "ObjectClass Violation");
@@ -6230,6 +6262,8 @@ public class CoreMessages
                     "ObjectClass Modifications Prohibited");
     registerMessage(MSGID_RESULT_AFFECTS_MULTIPLE_DSAS,
                     "Affects Multiple DSAs");
+    registerMessage(MSGID_RESULT_VIRTUAL_LIST_VIEW_ERROR,
+                    "Virtual List View Error");
     registerMessage(MSGID_RESULT_OTHER, "Other");
     registerMessage(MSGID_RESULT_CLIENT_SIDE_SERVER_DOWN, "Server Down");
     registerMessage(MSGID_RESULT_CLIENT_SIDE_LOCAL_ERROR, "Local Error");

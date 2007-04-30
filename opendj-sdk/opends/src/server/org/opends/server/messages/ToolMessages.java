@@ -6968,6 +6968,98 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description of the
+   * virtualListView option for the ldapsearch tool.  It does not take any
+   * arguments.
+   */
+  public static final int MSGID_DESCRIPTION_VLV =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 878;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user requests a VLV
+   * operation without also requesting a server-side sort.  This takes two
+   * arguments, which are the long identifiers for the virtualListView and
+   * sortOrder arguments.
+   */
+  public static final int MSGID_LDAPSEARCH_VLV_REQUIRES_SORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 879;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user requests a VLV
+   * operation with an invalid descriptor.  This does not take any arguments.
+   */
+  public static final int MSGID_LDAPSEARCH_VLV_INVALID_DESCRIPTOR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 880;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * requested server-side sort operation was not successful.  This takes a
+   * single argument, which is a string representation of the associated sort
+   * control result code.
+   */
+  public static final int MSGID_LDAPSEARCH_SORT_ERROR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 881;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * server-side sort response control could not be decoded.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LDAPSEARCH_CANNOT_DECODE_SORT_RESPONSE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 882;
+
+
+
+  /**
+   * The message ID for the message that will be used display the target offset
+   * for the VLV result set.  This takes a single argument, which is the target
+   * offset.
+   */
+  public static final int MSGID_LDAPSEARCH_VLV_TARGET_OFFSET =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 883;
+
+
+
+  /**
+   * The message ID for the message that will be used display the content count
+   * for the VLV result set.  This takes a single argument, which is the content
+   * count.
+   */
+  public static final int MSGID_LDAPSEARCH_VLV_CONTENT_COUNT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 884;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * requested virtual list view operation was not successful.  This takes a
+   * single argument, which is a string representation of the associated sort
+   * control result code.
+   */
+  public static final int MSGID_LDAPSEARCH_VLV_ERROR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 885;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * virtual list view response control could not be decoded.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LDAPSEARCH_CANNOT_DECODE_VLV_RESPONSE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_WARNING | 886;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7389,6 +7481,9 @@ public class ToolMessages
                     "filter");
     registerMessage(MSGID_DESCRIPTION_SORT_ORDER,
                     "Sort the results using the provided sort order");
+    registerMessage(MSGID_DESCRIPTION_VLV,
+                    "Use the virtual list view control to retrieve the " +
+                    "specified results page");
     registerMessage(MSGID_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE,
                     "The assertion value was indicated to be base64-encoded, " +
                     "but an error occurred while trying to decode the value");
@@ -7682,6 +7777,23 @@ public class ToolMessages
                     "The provided matched values filter was invalid:  %s");
     registerMessage(MSGID_LDAP_SORTCONTROL_INVALID_ORDER,
                     "The provided sort order was invalid:  %s");
+    registerMessage(MSGID_LDAPSEARCH_VLV_REQUIRES_SORT,
+                    "If the --%s argument is provided, then the --%s " +
+                    "argument must also be given");
+    registerMessage(MSGID_LDAPSEARCH_VLV_INVALID_DESCRIPTOR,
+                    "The provided virtual list view descriptor was invalid.  " +
+                    "It must be a value in the form " +
+                    "'beforeCount:afterCount:offset:contentCount' (where " +
+                    "offset specifies the index of the target entry and " +
+                    "contentCount specifies the estimated total number of " +
+                    "results or zero if it is not known), or " +
+                    "'beforeCount:afterCount:assertionValue' (where the " +
+                    "entry should be the first entry whose primary sort " +
+                    "value is greater than or equal to the provided " +
+                    "assertionValue).  In either case, beforeCount is the " +
+                    "number of entries to return before the target value and " +
+                    "afterCount is the number of entries to return after " +
+                    "the target value");
     registerMessage(MSGID_LDAPMODIFY_PREREAD_NO_VALUE,
                     "The pre-read response control did not include a value");
     registerMessage(MSGID_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE,
@@ -8886,6 +8998,18 @@ public class ToolMessages
                     "#   The account is locked");
     registerMessage(MSGID_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK,
                     "#   Time until the account is unlocked:  %s");
+    registerMessage(MSGID_LDAPSEARCH_SORT_ERROR,
+                    "# Server-side sort failed:  %s");
+    registerMessage(MSGID_LDAPSEARCH_CANNOT_DECODE_SORT_RESPONSE,
+                    "# Unable to decode the server-side sort response:  %s");
+    registerMessage(MSGID_LDAPSEARCH_VLV_TARGET_OFFSET,
+                    "# VLV Target Offset:  %d");
+    registerMessage(MSGID_LDAPSEARCH_VLV_CONTENT_COUNT,
+                    "# VLV Content Count:  %d");
+    registerMessage(MSGID_LDAPSEARCH_VLV_ERROR,
+                    "# Virtual list view processing failed:  %s");
+    registerMessage(MSGID_LDAPSEARCH_CANNOT_DECODE_VLV_RESPONSE,
+                    "# Unable to decode the virtual list view response:  %s");
     registerMessage(MSGID_LDAPSEARCH_MATCHING_ENTRY_COUNT,
                     "# Total number of matching entries:  %d");
 

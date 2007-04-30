@@ -46,6 +46,9 @@ import org.opends.server.controls.PagedResultsControl;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.controls.PersistentSearchControl;
 import org.opends.server.controls.ServerSideSortRequestControl;
+import org.opends.server.controls.ServerSideSortResponseControl;
+import org.opends.server.controls.VLVRequestControl;
+import org.opends.server.controls.VLVResponseControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.Base64;
 import org.opends.server.util.PasswordReader;
@@ -63,6 +66,7 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
@@ -300,6 +304,66 @@ public class LDAPSearch
                 resultCode = searchOp.getResultCode();
                 errorMessage = searchOp.getErrorMessage();
                 matchedDN = searchOp.getMatchedDN();
+
+                for (LDAPControl c : responseMessage.getControls())
+                {
+                  if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
+                  {
+                    try
+                    {
+                      ServerSideSortResponseControl sortResponse =
+                           ServerSideSortResponseControl.decodeControl(
+                                c.getControl());
+                      int rc = sortResponse.getResultCode();
+                      if (rc != LDAPResultCode.SUCCESS)
+                      {
+                        int    msgID = MSGID_LDAPSEARCH_SORT_ERROR;
+                        String msg   = getMessage(msgID,
+                                                  LDAPResultCode.toString(rc));
+                        err.println(msg);
+                      }
+                    }
+                    catch (Exception e)
+                    {
+                      int msgID = MSGID_LDAPSEARCH_CANNOT_DECODE_SORT_RESPONSE;
+                      String msg   = getMessage(msgID, getExceptionMessage(e));
+                      err.println(msg);
+                    }
+                  }
+                  else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
+                  {
+                    try
+                    {
+                      VLVResponseControl vlvResponse =
+                           VLVResponseControl.decodeControl(c.getControl());
+                      int rc = vlvResponse.getVLVResultCode();
+                      if (rc == LDAPResultCode.SUCCESS)
+                      {
+                        int msgID = MSGID_LDAPSEARCH_VLV_TARGET_OFFSET;
+                        String msg = getMessage(msgID,
+                                          vlvResponse.getTargetPosition());
+                        out.println(msg);
+
+                        msgID = MSGID_LDAPSEARCH_VLV_CONTENT_COUNT;
+                        msg = getMessage(msgID, vlvResponse.getContentCount());
+                        out.println(msg);
+                      }
+                      else
+                      {
+                        int msgID = MSGID_LDAPSEARCH_VLV_ERROR;
+                        String msg = getMessage(msgID,
+                                                LDAPResultCode.toString(rc));
+                        err.println(msg);
+                      }
+                    }
+                    catch (Exception e)
+                    {
+                      int msgID = MSGID_LDAPSEARCH_CANNOT_DECODE_VLV_RESPONSE;
+                      String msg   = getMessage(msgID, getExceptionMessage(e));
+                      err.println(msg);
+                    }
+                  }
+                }
 
                 break;
               default:
@@ -606,6 +670,7 @@ public class LDAPSearch
     StringArgument    sortOrder                = null;
     StringArgument    trustStorePath           = null;
     StringArgument    trustStorePassword       = null;
+    StringArgument    vlvDescriptor            = null;
 
 
     // Create the command-line argument parser for use with this program.
@@ -794,6 +859,13 @@ public class LDAPSearch
                                      false, true, "{sortOrder}", null, null,
                                      MSGID_DESCRIPTION_SORT_ORDER);
       argParser.addArgument(sortOrder);
+
+      vlvDescriptor =
+           new StringArgument("vlvdescriptor", 'G', "virtualListView", false,
+                              false, true,
+                              "{before:after:index:count | before:after:value}",
+                              null, null, MSGID_DESCRIPTION_VLV);
+      argParser.addArgument(vlvDescriptor);
 
       controlStr =
            new StringArgument("control", 'J', "control", false, true, true,
@@ -1279,6 +1351,69 @@ public class LDAPSearch
       {
         int    msgID   = MSGID_LDAP_SORTCONTROL_INVALID_ORDER;
         String message = getMessage(msgID, le.getErrorMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+    }
+
+    if (vlvDescriptor.isPresent())
+    {
+      if (! sortOrder.isPresent())
+      {
+        int    msgID   = MSGID_LDAPSEARCH_VLV_REQUIRES_SORT;
+        String message = getMessage(msgID, vlvDescriptor.getLongIdentifier(),
+                                    sortOrder.getLongIdentifier());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+
+      StringTokenizer tokenizer =
+           new StringTokenizer(vlvDescriptor.getValue(), ":");
+      int numTokens = tokenizer.countTokens();
+      if (numTokens == 3)
+      {
+        try
+        {
+          int beforeCount = Integer.parseInt(tokenizer.nextToken());
+          int afterCount  = Integer.parseInt(tokenizer.nextToken());
+          ASN1OctetString assertionValue =
+               new ASN1OctetString(tokenizer.nextToken());
+          searchOptions.getControls().add(
+               new LDAPControl(new VLVRequestControl(beforeCount, afterCount,
+                                                     assertionValue)));
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_LDAPSEARCH_VLV_INVALID_DESCRIPTOR;
+          String message = getMessage(msgID);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+      else if (numTokens == 4)
+      {
+        try
+        {
+          int beforeCount  = Integer.parseInt(tokenizer.nextToken());
+          int afterCount   = Integer.parseInt(tokenizer.nextToken());
+          int offset       = Integer.parseInt(tokenizer.nextToken());
+          int contentCount = Integer.parseInt(tokenizer.nextToken());
+          searchOptions.getControls().add(
+               new LDAPControl(new VLVRequestControl(beforeCount, afterCount,
+                                                     offset, contentCount)));
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_LDAPSEARCH_VLV_INVALID_DESCRIPTOR;
+          String message = getMessage(msgID);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+      else
+      {
+        int    msgID   = MSGID_LDAPSEARCH_VLV_INVALID_DESCRIPTOR;
+        String message = getMessage(msgID);
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }

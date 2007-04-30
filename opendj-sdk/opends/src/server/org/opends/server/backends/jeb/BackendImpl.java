@@ -111,6 +111,7 @@ public class BackendImpl
     supportedControls.add(OID_PAGED_RESULTS_CONTROL);
     supportedControls.add(OID_MANAGE_DSAIT_CONTROL);
     supportedControls.add(OID_SERVER_SIDE_SORT_REQUEST_CONTROL);
+    supportedControls.add(OID_VLV_REQUEST_CONTROL);
   }
 
 

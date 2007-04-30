@@ -287,6 +287,22 @@ public class LDAPResultCode
 
 
   /**
+   * The LDAP result code for operations that fail because the request included
+   * a VLV request control without a server-side sort control.
+   */
+  public static final int SORT_CONTROL_MISSING = 60;
+
+
+
+  /**
+   * The LDAP result code for operations that fail because the request included
+   * a VLV request control with an invalid offset.
+   */
+  public static final int OFFSET_RANGE_ERROR = 61;
+
+
+
+  /**
    * The LDAP result code for operations that fail due to a naming violation.
    */
   public static final int NAMING_VIOLATION = 64;
@@ -339,6 +355,14 @@ public class LDAPResultCode
    * operation would have required interaction with multiple DSAs.
    */
   public static final int AFFECTS_MULTIPLE_DSAS = 71;
+
+
+
+  /**
+   * The LDAP result code for operations that fail due to an error in
+   * virtual list view processing.
+   */
+  public static final int VIRTUAL_LIST_VIEW_ERROR = 76;
 
 
 
@@ -664,6 +688,12 @@ public class LDAPResultCode
       case LOOP_DETECT:
         msgID = MSGID_RESULT_LOOP_DETECT;
         break;
+      case SORT_CONTROL_MISSING:
+        msgID = MSGID_RESULT_SORT_CONTROL_MISSING;
+        break;
+      case OFFSET_RANGE_ERROR:
+        msgID = MSGID_RESULT_OFFSET_RANGE_ERROR;
+        break;
       case NAMING_VIOLATION:
         msgID = MSGID_RESULT_NAMING_VIOLATION;
         break;
@@ -684,6 +714,9 @@ public class LDAPResultCode
         break;
       case AFFECTS_MULTIPLE_DSAS:
         msgID = MSGID_RESULT_AFFECTS_MULTIPLE_DSAS;
+        break;
+      case VIRTUAL_LIST_VIEW_ERROR:
+        msgID = MSGID_RESULT_VIRTUAL_LIST_VIEW_ERROR;
         break;
       case CLIENT_SIDE_SERVER_DOWN:
         msgID = MSGID_RESULT_CLIENT_SIDE_SERVER_DOWN;

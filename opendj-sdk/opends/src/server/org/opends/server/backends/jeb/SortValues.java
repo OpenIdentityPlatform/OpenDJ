@@ -165,6 +165,28 @@ public class SortValues
 
 
   /**
+   * Compares the first element in this set of sort values with the provided
+   * assertion value to determine whether the assertion value is greater than or
+   * equal to the initial sort value.  This is used during VLV processing to
+   * find the offset by assertion value.
+   *
+   * @param  assertionValue  The assertion value to compare against the first
+   *                         sort value.
+   *
+   * @return  A negative value if the provided assertion value should come
+   *          before the first sort value, zero if the provided assertion value
+   *          is equal to the first sort value, or a positive value if the
+   *          provided assertion value should come after the first sort value.
+   */
+  public int compareTo(AttributeValue assertionValue)
+  {
+    SortKey sortKey = sortOrder.getSortKeys()[0];
+    return sortKey.compareValues(values[0], assertionValue);
+  }
+
+
+
+  /**
    * Retrieves a string representation of this sort values object.
    *
    * @return  A string representation of this sort values object.
@@ -193,7 +215,7 @@ public class SortValues
     {
       if (i > 0)
       {
-        buffer.append(", ");
+        buffer.append(",");
       }
 
       if (sortKeys[i].ascending())
@@ -207,9 +229,18 @@ public class SortValues
 
       buffer.append(sortKeys[i].getAttributeType().getNameOrOID());
       buffer.append("=");
-      buffer.append(values[i].getStringValue());
+      if (values[i] == null)
+      {
+        buffer.append("null");
+      }
+      else
+      {
+        buffer.append(values[i].getStringValue());
+      }
     }
 
+    buffer.append(", id=");
+    buffer.append(entryID.toString());
     buffer.append(")");
   }
 }

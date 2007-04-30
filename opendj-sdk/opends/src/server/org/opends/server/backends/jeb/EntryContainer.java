@@ -42,6 +42,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.controls.PagedResultsControl;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.ServerSideSortResponseControl;
+import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -552,6 +553,7 @@ public class EntryContainer
     List<Control> controls = searchOperation.getRequestControls();
     PagedResultsControl pageRequest = null;
     ServerSideSortRequestControl sortRequest = null;
+    VLVRequestControl vlvRequest = null;
     if (controls != null)
     {
       for (Control control : controls)
@@ -575,6 +577,14 @@ public class EntryContainer
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                            e.getMessage(), e.getMessageID(), e);
             }
+
+            if (vlvRequest != null)
+            {
+              int    msgID   = MSGID_JEB_SEARCH_CANNOT_MIX_PAGEDRESULTS_AND_VLV;
+              String message = getMessage(msgID);
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message, msgID);
+            }
           }
         }
         else if (control.getOID().equals(OID_SERVER_SIDE_SORT_REQUEST_CONTROL))
@@ -594,6 +604,34 @@ public class EntryContainer
               }
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                            e.getMessage(), e.getMessageID(), e);
+            }
+          }
+        }
+        else if (control.getOID().equals(OID_VLV_REQUEST_CONTROL))
+        {
+          // Ignore all but the first VLV request control.
+          if (vlvRequest == null)
+          {
+            try
+            {
+              vlvRequest = VLVRequestControl.decodeControl(control);
+            }
+            catch (LDAPException e)
+            {
+              if (debugEnabled())
+              {
+                debugCaught(DebugLogLevel.ERROR, e);
+              }
+              throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                           e.getMessage(), e.getMessageID(), e);
+            }
+
+            if (pageRequest != null)
+            {
+              int    msgID   = MSGID_JEB_SEARCH_CANNOT_MIX_PAGEDRESULTS_AND_VLV;
+              String message = getMessage(msgID);
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message, msgID);
             }
           }
         }
@@ -759,7 +797,8 @@ public class EntryContainer
         {
           entryIDList = EntryIDSetSorter.sort(this, entryIDList,
                                               searchOperation,
-                                              sortRequest.getSortOrder());
+                                              sortRequest.getSortOrder(),
+                                              vlvRequest);
           searchOperation.addResponseControl(
                new ServerSideSortResponseControl(LDAPResultCode.SUCCESS, null));
         }
