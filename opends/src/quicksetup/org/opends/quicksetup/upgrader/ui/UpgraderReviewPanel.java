@@ -185,7 +185,8 @@ public class UpgraderReviewPanel extends ReviewPanel {
   private String getOldBuildString() {
     String oldVersion;
     try {
-      oldVersion = getApplication().getInstallation().getBuildId();
+      oldVersion = getApplication().getInstallation().
+              getBuildInformation().getBuildId();
     } catch (ApplicationException e) {
       LOG.log(Level.INFO, "error", e);
       oldVersion = getMsg("upgrade-build-id-unknown");

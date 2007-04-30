@@ -29,8 +29,6 @@ package org.opends.quicksetup;
 
 import java.io.*;
 import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
 import org.opends.quicksetup.util.Utils;
 
@@ -209,7 +207,9 @@ public class Installation {
           throws IllegalArgumentException {
     // TODO:  i18n
     String failureReason = null;
-    if (!rootDirectory.exists()) {
+    if (rootDirectory == null) {
+      failureReason = "root directory is null";
+    } else if (!rootDirectory.exists()) {
       failureReason = "is not a directory";
     } else if (!rootDirectory.isDirectory()) {
       failureReason = "does not exist";
@@ -230,7 +230,7 @@ public class Installation {
     }
     if (failureReason != null) {
       throw new IllegalArgumentException("Install root '" +
-              Utils.getPath(rootDirectory) +
+              (rootDirectory != null ? Utils.getPath(rootDirectory) : "null") +
               "' is not an OpenDS installation root: " +
               " " + failureReason);
     }
@@ -244,7 +244,7 @@ public class Installation {
 
   private Configuration baseConfiguration;
 
-  private String buildId;
+  private BuildInformation buildInformation;
 
   /**
    * Creates a new instance from a root directory specified as a string.
@@ -278,14 +278,10 @@ public class Installation {
    * Sets the root directory of this installation.
    *
    * @param rootDirectory File of this installation
-   * @throws NullPointerException if root directory is null
    */
-  public void setRootDirectory(File rootDirectory) throws NullPointerException {
-    if (rootDirectory == null) {
-      throw new NullPointerException("Install root cannot be null");
-    }
+  public void setRootDirectory(File rootDirectory) {
 
-    // Hold off on doing more validation of rootDirectory since
+    // Hold off on doing validation of rootDirectory since
     // some applications (like the Installer) create an Installation
     // before the actual bits have been laid down on the filesyste.
 
@@ -456,46 +452,6 @@ public class Installation {
   }
 
   /**
-   * Gets the build ID which is the 14 digit number code like 20070420110336.
-   * @return String representing the build ID
-   * @throws ApplicationException if something goes wrong
-   */
-  public String getBuildId() throws ApplicationException {
-    if (buildId == null) {
-      List<String> args = new ArrayList<String>();
-      args.add(Utils.getPath(getServerStartCommandFile()));
-      args.add("-V"); // verbose
-      ProcessBuilder pb = new ProcessBuilder(args);
-      InputStream is = null;
-      try {
-        Process process = pb.start();
-        is = process.getInputStream();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        String line = null;
-        Pattern p = Pattern.compile("(Build )(\\d{14})");
-        while (null != (line = reader.readLine())) {
-          Matcher m = p.matcher(line);
-          if (m.matches()) {
-            buildId = line.substring(m.start(2), m.end(2));
-          }
-        }
-      } catch (IOException e) {
-        throw new ApplicationException(ApplicationException.Type.START_ERROR,
-                "Error attempting to determine build ID", e);
-      } finally {
-        if (is != null) {
-          try {
-            is.close();
-          } catch (IOException e) {
-            // ignore;
-          }
-        }
-      }
-    }
-    return buildId;
-  }
-
-  /**
    * Returns the path to the configuration file of the directory server.  Note
    * that this method assumes that this code is being run locally.
    *
@@ -539,15 +495,6 @@ public class Installation {
    */
   public File getBackupDirectory() {
     return new File(getRootDirectory(), BACKUPS_PATH_RELATIVE);
-  }
-
-  /**
-   * Returns the path to the LDIF files under the install path.
-   *
-   * @return the path to the LDIF files under the install path.
-   */
-  public File geLdifDirectory() {
-    return new File(getRootDirectory(), LDIFS_PATH_RELATIVE);
   }
 
   /**
@@ -724,5 +671,19 @@ public class Installation {
               UNIX_STATUSPANEL_FILE_NAME);
     }
     return statusPanelCommandFile;
+  }
+
+  /**
+   * Gets information about the build that was used to produce the bits
+   * for this installation.
+   * @return BuildInformation object describing this installation
+   * @throws ApplicationException if there is a problem obtaining the
+   * build information
+   */
+  public BuildInformation getBuildInformation() throws ApplicationException {
+    if (buildInformation == null) {
+      buildInformation = BuildInformation.create(this);
+    }
+    return buildInformation;
   }
 }

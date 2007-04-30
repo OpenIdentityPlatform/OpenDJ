@@ -192,7 +192,7 @@ public class WelcomePanel extends QuickSetupStepPanel {
       String buildId = null;
       Installation installation = getApplication().getInstallation();
       try {
-        buildId = installation.getBuildId();
+        buildId = installation.getBuildInformation().getBuildId();
       } catch (Exception e) {
         buildId = getMsg("upgrade-build-id-unknown");
       }

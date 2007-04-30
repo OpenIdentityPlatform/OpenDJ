@@ -33,6 +33,7 @@ import org.opends.quicksetup.installer.InstallerHelper;
 import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.List;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -224,19 +225,26 @@ public class ServerController {
 
   /**
    * This methods starts the server.
+   * @return OperationOutput object containing output from the start server
+   * command invocation.
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
-  public void startServer() throws ApplicationException {
-    startServer(true);
+  public OperationOutput startServer() throws ApplicationException {
+    return startServer(true);
   }
 
   /**
    * This methods starts the server.
    * @param verify boolean indicating whether this method will attempt to
    * connect to the server after starting to verify that it is listening.
+   * @return OperationOutput object containing output from the start server
+   * command invocation.
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
-  private void startServer(boolean verify) throws ApplicationException {
+  private OperationOutput startServer(boolean verify)
+          throws ApplicationException
+  {
+    OperationOutput output = new OperationOutput();
     application.notifyListeners(
             application.getFormattedProgress(
                     application.getMsg("progress-starting")) +
@@ -275,7 +283,7 @@ public class ServerController {
       StartReader errReader = new StartReader(err, startedId, true);
       StartReader outputReader = new StartReader(out, startedId, false);
 
-      while (!errReader.isFinished() && !outputReader.isFinished())
+      while (!errReader.isFinished() || !outputReader.isFinished())
       {
         try
         {
@@ -284,6 +292,17 @@ public class ServerController {
         {
         }
       }
+
+      // Collect any errors found in the output
+      List<String> errors = errReader.getErrors();
+      if (outputReader.getErrors() != null) {
+        if (errors == null) {
+          errors = new ArrayList<String>();
+        }
+        errors.addAll(outputReader.getErrors());
+      }
+      output.setErrors(errors);
+
       // Check if something wrong occurred reading the starting of the server
       ApplicationException ex = errReader.getException();
       if (ex == null)
@@ -292,6 +311,11 @@ public class ServerController {
       }
       if (ex != null)
       {
+        // This is meaningless right now since we throw
+        // the exception below, but in case we change out
+        // minds later or add the ability to return exceptions
+        // in the output only instead of throwing...
+        output.setException(ex);
         throw ex;
 
       } else if (verify)
@@ -369,6 +393,7 @@ public class ServerController {
       throw new ApplicationException(ApplicationException.Type.START_ERROR,
           application.getThrowableMsg("error-starting-server", ioe), ioe);
     }
+    return output;
   }
 
   /**
@@ -481,6 +506,8 @@ public class ServerController {
   {
     private ApplicationException ex;
 
+    private List<String> errors;
+
     private boolean isFinished;
 
     private boolean isFirstLine;
@@ -530,6 +557,16 @@ public class ServerController {
               {
                 isFinished = true;
               }
+
+              // Collect lines that would seem to indicate all is
+              // not well with the server
+              if (line.indexOf("severity=SEVERE_ERROR") != -1) {
+                if (errors == null) {
+                  errors = new ArrayList<String>();
+                }
+                errors.add(line);
+              }
+
               line = reader.readLine();
             }
           } catch (IOException ioe)
@@ -561,6 +598,10 @@ public class ServerController {
     public ApplicationException getException()
     {
       return ex;
+    }
+
+    public List<String> getErrors() {
+      return errors;
     }
 
     /**

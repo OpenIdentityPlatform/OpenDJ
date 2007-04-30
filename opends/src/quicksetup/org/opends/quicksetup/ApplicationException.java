@@ -89,6 +89,11 @@ public class ApplicationException extends Exception
     APPLICATION,
 
     /**
+     * Error invoking an OpenDS tool.
+     */
+    TOOL_ERROR,
+
+    /**
      * A bug (for instance when we throw an IllegalStateException).
      */
     BUG
