@@ -941,7 +941,9 @@ public class MonitorBackend
   public boolean supportsLDIFExport()
   {
     // We can export all the monitor entries as a point-in-time snapshot.
-    return true;
+    // TODO implementation of export is incomplete
+    // TODO export-ldif reports nonsense for upTime etc.
+    return false;
   }
 
 
@@ -953,6 +955,68 @@ public class MonitorBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
+    // TODO export-ldif reports nonsense for upTime etc.
+
+    configEntryDN = configEntry.getDN();
+
+
+    // Get the set of user-defined attributes for the configuration entry.  Any
+    // attributes that we don't recognize will be included directly in the base
+    // monitor entry.
+    userDefinedAttributes = new ArrayList<Attribute>();
+    for (List<Attribute> attrs :
+         configEntry.getEntry().getUserAttributes().values())
+    {
+      for (Attribute a : attrs)
+      {
+        if (! isMonitorConfigAttribute(a))
+        {
+          userDefinedAttributes.add(a);
+        }
+      }
+    }
+    for (List<Attribute> attrs :
+         configEntry.getEntry().getOperationalAttributes().values())
+    {
+      for (Attribute a : attrs)
+      {
+        if (! isMonitorConfigAttribute(a))
+        {
+          userDefinedAttributes.add(a);
+        }
+      }
+    }
+
+
+    // Create the set of base DNs that we will handle.  In this case, it's just
+    // the DN of the base monitor entry.
+    try
+    {
+      baseMonitorDN = DN.decode(DN_MONITOR_ROOT);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      int msgID = MSGID_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN;
+      String message = getMessage(msgID, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, msgID, e);
+    }
+
+    // Construct the set of objectclasses to include in the base monitor entry.
+    monitorObjectClasses = new LinkedHashMap<ObjectClass,String>(2);
+    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
+    monitorObjectClasses.put(topOC, OC_TOP);
+
+    ObjectClass monitorOC = DirectoryServer.getObjectClass(OC_MONITOR_ENTRY,
+                                                           true);
+    monitorObjectClasses.put(monitorOC, OC_MONITOR_ENTRY);
+
+
     // Create the LDIF writer.
     LDIFWriter ldifWriter;
     try
@@ -1011,6 +1075,7 @@ public class MonitorBackend
     {
       try
       {
+        // TODO implementation of export is incomplete
       }
       catch (Exception e)
       {

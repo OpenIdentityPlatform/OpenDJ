@@ -1970,7 +1970,8 @@ writeConfigArchive:
    */
   public boolean supportsLDIFExport()
   {
-    return true;
+    // TODO We would need export-ldif to initialize this backend.
+    return false;
   }
 
 
@@ -1992,6 +1993,8 @@ writeConfigArchive:
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
+    // TODO We would need export-ldif to initialize this backend.
+
     LDIFWriter writer;
     try
     {
