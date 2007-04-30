@@ -5815,6 +5815,16 @@ public class DirectoryServer
         newBackends.put(backendID, backend);
         directoryServer.backends = newBackends;
 
+        for (String oid : backend.getSupportedControls())
+        {
+          registerSupportedControl(oid);
+        }
+
+        for (String oid : backend.getSupportedFeatures())
+        {
+          registerSupportedFeature(oid);
+        }
+
         BackendMonitor monitor = new BackendMonitor(backend);
         monitor.initializeMonitorProvider(null);
         backend.setBackendMonitor(monitor);
