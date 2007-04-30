@@ -28,6 +28,7 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.quicksetup.BuildInformation;
 
 /**
  * This class can answer questions important upgrade/reversion questions
@@ -35,18 +36,18 @@ import org.opends.quicksetup.i18n.ResourceProvider;
  */
 public class UpgradeOracle {
 
-  private Integer currentVersion;
-  private Integer newVersion;
+  private BuildInformation currentBuildInfo;
+  private BuildInformation newBuildInfo;
 
   /**
    * Creates a new instance that can analyze a hypothetical upgrade/reversion
    * operation from one version to another.
-   * @param currentVersion Integer representing the current version
-   * @param newVersion Integer representing the proposed next version
+   * @param current BuildInformation representing the current version
+   * @param neu BuildInformation representing the proposed next version
    */
-  public UpgradeOracle(Integer currentVersion, Integer newVersion) {
-    this.currentVersion = currentVersion;
-    this.newVersion = newVersion;
+  public UpgradeOracle(BuildInformation current, BuildInformation neu) {
+    this.currentBuildInfo = current;
+    this.newBuildInfo = neu;
   }
 
   /**
@@ -56,7 +57,7 @@ public class UpgradeOracle {
    *         false indicates that this would be a reversion.
    */
   public boolean isUpgrade() {
-    return newVersion > currentVersion;
+    return currentBuildInfo.compareTo(newBuildInfo) < 0;
   }
 
   /**
@@ -66,7 +67,7 @@ public class UpgradeOracle {
    *         false indicates that this would be an upgrade.
    */
   public boolean isReversion() {
-    return newVersion < currentVersion;
+    return currentBuildInfo.compareTo(newBuildInfo) < 0;
   }
 
   /**
@@ -76,14 +77,7 @@ public class UpgradeOracle {
    * an operation will succeed
    */
   public boolean isSupported() {
-    boolean supported;
-    if (// newVersion.equals(currentVersion) || // support this for reinstall?
-        newVersion < 1565) {
-      supported = false;
-    }else {
-      supported = true;
-    }
-    return supported;
+    return isUpgrade();
   }
 
   /**
@@ -95,8 +89,8 @@ public class UpgradeOracle {
    */
   public String getSummaryMessage() {
     String msg;
-    String[] args = { currentVersion.toString(),
-            newVersion.toString() };
+    String[] args = { currentBuildInfo.toString(),
+            currentBuildInfo.toString() };
     ResourceProvider rp = ResourceProvider.getInstance();
     if (isSupported()) {
       if (isUpgrade()) {
@@ -109,8 +103,10 @@ public class UpgradeOracle {
     } else {
       if (isUpgrade()) {
         msg = rp.getMsg("upgrade-hypothetical-upgrade-failure", args);
-      } else {
+      } else if (isReversion()) {
         msg = rp.getMsg("upgrade-hypothetical-reversion-failure", args);
+      } else {
+        msg = rp.getMsg("upgrade-hypothetical-versions-the-same", args);
       }
     }
     return msg;

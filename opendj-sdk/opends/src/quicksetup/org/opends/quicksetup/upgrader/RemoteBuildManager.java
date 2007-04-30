@@ -68,10 +68,13 @@ public class RemoteBuildManager {
    * Creates an instance.
    * @param app using this tool
    * @param url base context for an OpenDS build list
+   * @param proxy Proxy to use for connections; can be null if not proxy is
+   * to be used
    */
-  public RemoteBuildManager(Application app, URL url) {
+  public RemoteBuildManager(Application app, URL url, Proxy proxy) {
     this.app = app;
     this.buildListUrl = url;
+    this.proxy = proxy;
   }
 
   /**

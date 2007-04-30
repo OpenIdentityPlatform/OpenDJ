@@ -35,6 +35,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.ZipExtractor;
+import org.opends.quicksetup.util.OperationOutput;
 import org.opends.quicksetup.ui.*;
 
 import java.awt.event.WindowEvent;
@@ -44,6 +45,9 @@ import java.util.logging.Logger;
 import java.io.*;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.Proxy;
+import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 
 import static org.opends.quicksetup.Installation.*;
 
@@ -92,6 +96,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
     EXTRACTING("summary-upgrade-extracting"),
 
     INITIALIZING("summary-upgrade-initializing"),
+
+    CHECK_SERVER_HEALTH("summary-upgrade-check-server-health"),
 
     CALCULATING_SCHEMA_CUSTOMIZATIONS(
             "summary-upgrade-calculating-schema-customization"),
@@ -246,9 +252,24 @@ public class Upgrader extends GuiApplication implements CliApplication {
           listUrlString = "http://www.opends.org/upgrade-builds";
         }
         URL buildRepo = new URL(listUrlString);
-        remoteBuildManager = new RemoteBuildManager(this, buildRepo);
+
+        // See if system properties dictate use of a proxy
+        Proxy proxy = null;
+        String proxyHost = System.getProperty("http.proxyHost");
+        String proxyPort = System.getProperty("http.proxyPort");
+        if (proxyHost != null && proxyPort != null) {
+          try {
+            SocketAddress addr =
+                    new InetSocketAddress(proxyHost, new Integer(proxyPort));
+            proxy = new Proxy(Proxy.Type.HTTP, addr);
+          } catch (NumberFormatException nfe) {
+            LOG.log(Level.INFO, "Illegal proxy port number " + proxyPort);
+          }
+        }
+
+        remoteBuildManager = new RemoteBuildManager(this, buildRepo, proxy);
       } catch (MalformedURLException e) {
-        LOG.log(Level.INFO, "error", e);
+        LOG.log(Level.INFO, "", e);
       }
     }
     return remoteBuildManager;
@@ -438,7 +459,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
             new Thread(new Runnable() {
               public void run() {
                 try {
-                  installation.getBuildId();
+                  installation.getBuildInformation().getBuildId();
                 } catch (ApplicationException e) {
                   LOG.log(Level.INFO, "error", e);
                 }
@@ -609,27 +630,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
         throw e;
       }
 
-      // If the server has never been started and schema changes
-      // have been made, the server will have never had the chance
-      // to write schema.current.
-      if (!getInstallation().getStatus().isServerRunning()) {
-        try {
-          startServerWithoutConnectionHandlers();
-          getServerController().stopServerInProcess();
-        } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "Error starting server to insure configuration" +
-                  " changes have been written to the filesystem", e);
-          throw e;
-        }
-      }
-
-      if (getInstallation().getStatus().isServerRunning()) {
-        try {
-          new ServerController(this).stopServer();
-        } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "Error stopping server", e);
-          throw e;
-        }
+      try {
+        setCurrentProgressStep(UpgradeProgressStep.CHECK_SERVER_HEALTH);
+        checkServerHealth();
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO, "Server failed initial health check", e);
+        throw e;
       }
 
       try {
@@ -819,12 +825,41 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   /**
-   * Abort this upgrade and repair the installation.
-   *
-   * @param lastStep ProgressStep indicating how much work we will have to
-   *                 do to get the installation back like we left it
-   * @throws ApplicationException of something goes wrong
+   * Stops and starts the server checking for serious errors.  Also
+   * has the side effect of having the server write schema.current
+   * if it has never done so.
    */
+  private void checkServerHealth() throws ApplicationException {
+    Installation installation = getInstallation();
+    ServerController control = new ServerController(this, installation);
+    try {
+      if (installation.getStatus().isServerRunning()) {
+        control.stopServer();
+      }
+      OperationOutput op = control.startServer();
+      List<String> errors = op.getErrors();
+      if (errors != null) {
+        throw new ApplicationException(
+                ApplicationException.Type.APPLICATION,
+                "The server currently starts with errors with must" +
+                        "be resolved before an upgrade can occur: " +
+                        Utils.listToString(errors, " "),
+                null);
+      }
+      control.stopServer();
+    } catch (Exception e) {
+      throw new ApplicationException(ApplicationException.Type.APPLICATION,
+              "Server health check failed", e);
+    }
+  }
+
+    /**
+    * Abort this upgrade and repair the installation.
+    *
+    * @param lastStep ProgressStep indicating how much work we will have to
+    *                 do to get the installation back like we left it
+    * @throws ApplicationException of something goes wrong
+    */
   private void abort(ProgressStep lastStep) throws ApplicationException {
     UpgradeProgressStep lastUpgradeStep = (UpgradeProgressStep) lastStep;
     EnumSet<UpgradeProgressStep> stepsStarted =
@@ -866,11 +901,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   private void verifyUpgrade() throws ApplicationException {
-    try {
-      new ServerController(this).startServer();
-    } catch (ApplicationException e) {
-      LOG.log(Level.INFO, "Error starting server: " +
-              e.getLocalizedMessage(), e);
+    ServerController sc = new ServerController(this);
+    OperationOutput op = sc.startServer();
+    if (op.getErrors() != null) {
+      throw new ApplicationException(ApplicationException.Type.APPLICATION,
+              "Upgraded server failed verification test by signaling " +
+                      "errors during startup: " +
+                      Utils.listToString(op.getErrors(), " "), null);
     }
   }
 
@@ -1253,24 +1290,24 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * day' types of changes to the codebase.
    */
   private void insureUpgradability() throws ApplicationException {
-    Integer currentVersion;
-    Integer newVersion;
+    BuildInformation currentVersion;
+    BuildInformation newVersion;
 
     try {
-      currentVersion = getInstallation().getSvnRev();
+      currentVersion = getInstallation().getBuildInformation();
     } catch (ApplicationException e) {
       LOG.log(Level.INFO, "error", e);
       throw ApplicationException.createFileSystemException(
-              "Could not determine current version number: " +
+              "Could not determine current build information: " +
               e.getLocalizedMessage(), e);
     }
 
     try {
-      newVersion = getStagedInstallation().getSvnRev();
+      newVersion = getStagedInstallation().getBuildInformation();
     } catch (Exception e) {
       LOG.log(Level.INFO, "error", e);
       throw ApplicationException.createFileSystemException(
-              "Could not determine upgrade version number: " +
+              "Could not determine upgrade build information: " +
               e.getLocalizedMessage(), e);
     }
 
@@ -1346,7 +1383,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     String installPath = Utils.getPath(getInstallation().getRootDirectory());
     String newVersion = null;
     try {
-      newVersion = getInstallation().getBuildId();
+      newVersion = getInstallation().getBuildInformation().getBuildId();
     } catch (ApplicationException e) {
       newVersion = getMsg("upgrade-build-id-unknown");
     }
