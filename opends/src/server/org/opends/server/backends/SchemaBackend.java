@@ -872,14 +872,7 @@ public class SchemaBackend
                          ATTR_SYNCHRONIZATION_STATE_LC, valueSet);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
-    if (synchronizationStateType.isOperational() && (! showAllAttributes))
-    {
-      operationalAttrs.put(synchronizationStateType, attrList);
-    }
-    else
-    {
-      userAttrs.put(synchronizationStateType, attrList);
-    }
+    operationalAttrs.put(synchronizationStateType, attrList);
 
     // Add all the user-defined attributes.
     for (Attribute a : userDefinedAttributes)
