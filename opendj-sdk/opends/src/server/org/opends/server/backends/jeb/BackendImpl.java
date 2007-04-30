@@ -224,34 +224,6 @@ public class BackendImpl
     config = new Config();
     config.initializeConfig(backendCfg, baseDNs);
 
-    for (DN dn : baseDNs)
-    {
-      try
-      {
-        DirectoryServer.registerBaseDN(dn, this, false, false);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
-        String message = getMessage(msgID, String.valueOf(dn),
-                                    String.valueOf(e));
-        throw new InitializationException(msgID, message, e);
-      }
-    }
-
-/*
-    {
-      String message = getMessage(MSGID_JEB_SUFFIXES_NOT_SPECIFIED);
-      throw new InitializationException(MSGID_JEB_SUFFIXES_NOT_SPECIFIED,
-                                        message);
-    }
-*/
-
     // Open the database environment
     try
     {
@@ -268,12 +240,6 @@ public class BackendImpl
                                   e.getMessage());
       throw new InitializationException(MSGID_JEB_OPEN_ENV_FAIL, message, e);
     }
-
-    // Register a monitor provider for the environment.
-    MonitorProvider monitorProvider =
-        rootContainer.getMonitorProvider();
-    monitorProviders.add(monitorProvider);
-    DirectoryServer.registerMonitorProvider(monitorProvider);
 
     try
     {
@@ -313,6 +279,32 @@ public class BackendImpl
       throw new InitializationException(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
                                         message, databaseException);
     }
+
+    for (DN dn : baseDNs)
+    {
+      try
+      {
+        DirectoryServer.registerBaseDN(dn, this, false, false);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
+        String message = getMessage(msgID, String.valueOf(dn),
+                                    String.valueOf(e));
+        throw new InitializationException(msgID, message, e);
+      }
+    }
+
+    // Register a monitor provider for the environment.
+    MonitorProvider monitorProvider =
+        rootContainer.getMonitorProvider();
+    monitorProviders.add(monitorProvider);
+    DirectoryServer.registerMonitorProvider(monitorProvider);
 
     // Register this backend as a change listener.
     currentConfig = backendCfg;
