@@ -162,6 +162,23 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   static private final Logger LOG = Logger.getLogger(Upgrader.class.getName());
 
+  /**
+   * If set to true, an error is introduced during the
+   * upgrade process for testing.
+   */
+  static private final String SYS_PROP_CREATE_ERROR =
+          "org.opends.upgrader.Upgrader.CreateError";
+
+  /**
+   * If set to true, if the upgrader encounters an error
+   * during upgrade, the abort method that backs out
+   * changes is made a no-op leaving the server in the
+   * erroneous state.
+   */
+  static private final String SYS_PROP_NO_ABORT =
+          "org.opends.upgrader.Upgrader.NoAbort";
+
+
   // Root files that will be ignored during backup
   static private final String[] ROOT_FILES_TO_IGNORE_DURING_BACKUP = {
           CHANGELOG_PATH_RELATIVE, // changelogDb
@@ -731,8 +748,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       // abort an upgrade once changes have been made to the installation
       // path's filesystem.
       if ("true".equals(
-              System.getProperty(
-                      "org.opends.upgrader.Upgrader.CreateError")))
+              System.getProperty(SYS_PROP_CREATE_ERROR)))
       {
         throw new ApplicationException(
                 null, "ARTIFICIAL ERROR FOR TESTING ABORT PROCESS", null);
@@ -853,14 +869,22 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
   }
 
-    /**
-    * Abort this upgrade and repair the installation.
-    *
-    * @param lastStep ProgressStep indicating how much work we will have to
-    *                 do to get the installation back like we left it
-    * @throws ApplicationException of something goes wrong
-    */
+  /**
+   * Abort this upgrade and repair the installation.
+   *
+   * @param lastStep ProgressStep indicating how much work we will have to
+   *                 do to get the installation back like we left it
+   * @throws ApplicationException of something goes wrong
+   */
   private void abort(ProgressStep lastStep) throws ApplicationException {
+
+    // This can be used to bypass the aborted upgrade cleanup
+    // process so that an autopsy can be performed on the
+    // crippled server.
+    if ("true".equals(System.getProperty(SYS_PROP_NO_ABORT))) {
+      return;
+    }
+
     UpgradeProgressStep lastUpgradeStep = (UpgradeProgressStep) lastStep;
     EnumSet<UpgradeProgressStep> stepsStarted =
             EnumSet.range(UpgradeProgressStep.NOT_STARTED, lastUpgradeStep);
@@ -877,6 +901,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       try {
         backupDirectory = getFilesBackupDirectory();
         FileManager fm = new FileManager(this);
+        boolean restoreError = false;
         for (String fileName : backupDirectory.list()) {
           File f = new File(backupDirectory, fileName);
 
@@ -886,12 +911,21 @@ public class Upgrader extends GuiApplication implements CliApplication {
           try {
             fm.move(f, root, null);
           } catch (Throwable t) {
+            restoreError = true;
             notifyListeners("The following could not be restored after the" +
                     "failed upgrade attempt.  You should restore this " +
                     "file/directory manually: '" + f + "' to '" + root + "'");
           }
         }
-        fm.deleteRecursively(backupDirectory);
+        if (!restoreError) {
+          fm.deleteRecursively(backupDirectory);
+        }
+
+        // Restart the server after putting the files
+        // back like we found them.
+        getServerController().stopServer();
+        getServerController().startServer();
+
       } catch (IOException e) {
         LOG.log(Level.INFO, "Error getting backup directory", e);
       }
