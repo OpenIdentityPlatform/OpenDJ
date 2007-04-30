@@ -246,12 +246,19 @@ public class SchemaBackend
   }
 
 
-
   /**
-   * {@inheritDoc}
+   * Initialization shared by multiple backend methods.
+   * @param  configEntry  The configuration entry that contains the
+   *                      information to use to initialize this
+   *                      backend.
+   * @param  baseDNs      The set of base DNs that have been
+   *                      configured for this backend.
+   * @throws  ConfigException  If an unrecoverable problem arises in
+   *                           the process of performing the
+   *                           initialization.
    */
-  public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
-         throws ConfigException, InitializationException
+  private void initializeCommon(ConfigEntry configEntry, DN[] baseDNs)
+       throws ConfigException
   {
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
@@ -262,8 +269,8 @@ public class SchemaBackend
       throw new ConfigException(msgID, message);
     }
 
-    configEntryDN = configEntry.getDN();
     SchemaBackendCfg cfg = getSchemaBackendCfg(configEntry);
+    configEntryDN = configEntry.getDN();
 
     // Get all of the attribute types that we will use for schema elements.
     attributeTypesType =
@@ -294,6 +301,27 @@ public class SchemaBackend
          DirectoryServer.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC, true);
     modifyTimestampType =
          DirectoryServer.getAttributeType(OP_ATTR_MODIFY_TIMESTAMP_LC, true);
+
+    // Construct the set of objectclasses to include in the schema entry.
+    schemaObjectClasses = new LinkedHashMap<ObjectClass,String>(3);
+    schemaObjectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+
+    ObjectClass subentryOC = DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC,
+                                                            true);
+    schemaObjectClasses.put(subentryOC, OC_LDAP_SUBENTRY);
+
+    ObjectClass subschemaOC = DirectoryServer.getObjectClass(OC_SUBSCHEMA,
+                                                             true);
+    schemaObjectClasses.put(subschemaOC, OC_SUBSCHEMA);
+
+
+    // Define empty sets for the supported controls and features.
+    supportedControls = new HashSet<String>(0);
+    supportedFeatures = new HashSet<String>(0);
+
+
+    configEntryDN = configEntry.getDN();
+    this.baseDNs = baseDNs;
 
     creatorsName  = new AttributeValue(creatorsNameType, baseDNs[0].toString());
     modifiersName =
@@ -340,9 +368,20 @@ public class SchemaBackend
     showAllAttributes = cfg.isShowAllAttributes();
 
 
+    currentConfig = cfg;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
+         throws ConfigException, InitializationException
+  {
+    initializeCommon(configEntry, baseDNs);
+
     // Register each of the suffixes with the Directory Server.  Also, register
     // the first one as the schema base.
-    this.baseDNs = baseDNs;
     DirectoryServer.setSchemaDN(baseDNs[0]);
     for (int i=0; i < baseDNs.length; i++)
     {
@@ -363,24 +402,6 @@ public class SchemaBackend
         throw new InitializationException(msgID, message, e);
       }
     }
-
-
-    // Construct the set of objectclasses to include in the schema entry.
-    schemaObjectClasses = new LinkedHashMap<ObjectClass,String>(3);
-    schemaObjectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
-
-    ObjectClass subentryOC = DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC,
-                                                            true);
-    schemaObjectClasses.put(subentryOC, OC_LDAP_SUBENTRY);
-
-    ObjectClass subschemaOC = DirectoryServer.getObjectClass(OC_SUBSCHEMA,
-                                                             true);
-    schemaObjectClasses.put(subschemaOC, OC_SUBSCHEMA);
-
-
-    // Define an empty sets for the supported controls and features.
-    supportedControls = new HashSet<String>(0);
-    supportedFeatures = new HashSet<String>(0);
 
 
     // Identify any differences that may exist between the concatenated schema
@@ -494,8 +515,7 @@ public class SchemaBackend
 
 
     // Register with the Directory Server as a configurable component.
-    currentConfig = cfg;
-    cfg.addSchemaChangeListener(this);
+    currentConfig.addSchemaChangeListener(this);
   }
 
 
@@ -4134,6 +4154,16 @@ public class SchemaBackend
                          LDIFExportConfig exportConfig)
          throws DirectoryException
   {
+    try
+    {
+      initializeCommon(configEntry, baseDNs);
+    }
+    catch (ConfigException e)
+    {
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   e.getMessage(), e.getMessageID());
+    }
+
     // Create the LDIF writer.
     LDIFWriter ldifWriter;
     try
