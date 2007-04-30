@@ -1112,6 +1112,37 @@ public class JebMessages
        CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 140;
 
   /**
+   * The message ID to use if a VLV request has a negative start position.  This
+   * does not take any arguments.
+   */
+  public static final int MSGID_ENTRYIDSORTER_NEGATIVE_START_POS =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 141;
+
+  /**
+   * The message ID to use if a VLV request has an offset beyond the end of the
+   * entry set.  This takes two arguments, which are the provided offset and the
+   * list size.
+   */
+  public static final int MSGID_ENTRYIDSORTER_OFFSET_TOO_LARGE =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 142;
+
+  /**
+   * The message ID to use if a VLV request specifies a target value that is
+   * larger than all values in the sort list.  This does not take any arguments.
+   */
+  public static final int MSGID_ENTRYIDSORTER_TARGET_VALUE_NOT_FOUND =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 143;
+
+
+  /**
+   * The message ID of an error indicating that the search request included both
+   * the paged results control and the VLV control.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_JEB_SEARCH_CANNOT_MIX_PAGEDRESULTS_AND_VLV =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 144;
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1208,6 +1239,11 @@ public class JebMessages
                     "allow it to be replaced");
     registerMessage(MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED,
                     "There is no index configured for attribute type '%s'");
+    registerMessage(MSGID_JEB_SEARCH_CANNOT_MIX_PAGEDRESULTS_AND_VLV,
+                    "The requested search operation included both the simple " +
+                    "paged results control and the virtual list view " +
+                    "control.  These controls are mutually exclusive and " +
+                    "cannot be used together");
     registerMessage(MSGID_JEB_SEARCH_NO_SUCH_OBJECT,
                     "The search base entry '%s' does not exist");
     registerMessage(MSGID_JEB_SEARCH_CANNOT_SORT_UNINDEXED,
@@ -1419,5 +1455,17 @@ public class JebMessages
     registerMessage(MSGID_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY,
                     "Unable to examine the entry with ID %s for sorting " +
                     "purposes:  %s");
+    registerMessage(MSGID_ENTRYIDSORTER_NEGATIVE_START_POS,
+                    "Unable to process the virtual list view request because " +
+                    "the target start position was before the beginning of " +
+                    "the result set");
+    registerMessage(MSGID_ENTRYIDSORTER_OFFSET_TOO_LARGE,
+                    "Unable to process the virtual list view request because " +
+                    "the target offset %d was greater than the total number " +
+                    "of results in the list (%d)");
+    registerMessage(MSGID_ENTRYIDSORTER_TARGET_VALUE_NOT_FOUND,
+                    "Unable to prcess the virtual list view request because " +
+                    "no entry was found in the result set with a sort value " +
+                    "greater than or equal to the provided assertion value");
   }
 }

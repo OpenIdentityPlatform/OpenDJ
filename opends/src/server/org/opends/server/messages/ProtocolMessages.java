@@ -4510,6 +4510,74 @@ public class ProtocolMessages
 
 
   /**
+   * The message ID for the message that will be used if the VLV request control
+   * does not have a value.  It does not take any arguments.
+   */
+  public static final int MSGID_VLVREQ_CONTROL_NO_VALUE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 417;
+
+
+
+  /**
+   * The message ID for the message that will be used if the VLV request control
+   * has an invalid number of elements.  This takes a single argument, which is
+   * the number of elements contained in the control sequence.
+   */
+  public static final int MSGID_VLVREQ_CONTROL_INVALID_ELEMENT_COUNT =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 418;
+
+
+
+  /**
+   * The message ID for the message that will be used if the VLV request control
+   * has an invalid BER target type.  It takes a single argument, which is the
+   * hex representation of the BER target type.
+   */
+  public static final int MSGID_VLVREQ_CONTROL_INVALID_TARGET_TYPE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 419;
+
+
+
+  /**
+   * The message ID for the message that will be used if the VLV request control
+   * value cannot be decoded.  It takes a single argument, which is a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_VLVREQ_CONTROL_CANNOT_DECODE_VALUE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 420;
+
+
+
+  /**
+   * The message ID for the message that will be used if the VLV response
+   * control does not have a value.  It does not take any arguments.
+   */
+  public static final int MSGID_VLVRES_CONTROL_NO_VALUE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 421;
+
+
+
+  /**
+   * The message ID for the message that will be used if the VLV response
+   * control has an invalid number of elements.  This takes a single argument,
+   * which is the number of elements contained in the control sequence.
+   */
+  public static final int MSGID_VLVRES_CONTROL_INVALID_ELEMENT_COUNT =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 422;
+
+
+
+  /**
+   * The message ID for the message that will be used if the VLV response
+   * control value cannot be decoded.  It takes a single argument, which is a
+   * message explaining the problem that occurred.
+   */
+  public static final int MSGID_VLVRES_CONTROL_CANNOT_DECODE_VALUE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 423;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6444,6 +6512,34 @@ public class ProtocolMessages
                     "Unable to process the provided server-side sort " +
                     "response control because an error occurred while " +
                     "attempting to decode the control value:  %s");
-  }
+
+
+    registerMessage(MSGID_VLVREQ_CONTROL_NO_VALUE,
+                    "Unable to decode the provided control as a VLV request " +
+                    "control because it does not include a control value");
+    registerMessage(MSGID_VLVREQ_CONTROL_INVALID_ELEMENT_COUNT,
+                    "Unable to decode the provided control as a VLV request " +
+                    "control because it contains an invalid number of " +
+                    "elements:  %d");
+    registerMessage(MSGID_VLVREQ_CONTROL_INVALID_TARGET_TYPE,
+                    "Unable to decode the provided control as a VLV request " +
+                    "control because the target element type %s is invalid");
+    registerMessage(MSGID_VLVREQ_CONTROL_CANNOT_DECODE_VALUE,
+                    "Unable to process the provided VLV request control " +
+                    "because an error occurred while attempting to decode " +
+                    "the control value:  %s");
+
+
+    registerMessage(MSGID_VLVRES_CONTROL_NO_VALUE,
+                    "Unable to decode the provided control as a VLV response " +
+                    "control because it does not include a control value");
+    registerMessage(MSGID_VLVRES_CONTROL_INVALID_ELEMENT_COUNT,
+                    "Unable to decode the provided control as a VLV response " +
+                    "control because it contains an invalid number of " +
+                    "elements:  %d");
+    registerMessage(MSGID_VLVRES_CONTROL_CANNOT_DECODE_VALUE,
+                    "Unable to process the provided VLV response control " +
+                    "because an error occurred while attempting to decode " +
+                    "the control value:  %s");  }
 }
 

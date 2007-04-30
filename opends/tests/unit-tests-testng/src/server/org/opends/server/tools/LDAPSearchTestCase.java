@@ -2273,6 +2273,271 @@ public class LDAPSearchTestCase
 
 
   /**
+   * Tests the use of the virtual list view control without the server-side sort
+   * control.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testVLVWithoutSort()
+         throws Exception
+  {
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-G", "0:9:1:0",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the use of the server-side sort control with both the simple paged
+   * results and virtual list view controls.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortWithVLVAndPagedResults()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "sn,givenName",
+      "--simplePageSize", "2",
+      "-G", "0:3:1:0",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the use of the virtual list view control with an invalid descriptor
+   * with no colons.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testVLVInvalidDescriptorNoColons()
+         throws Exception
+  {
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "sn,givenName",
+      "-G", "invalid",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the use of the virtual list view control with an invalid descriptor
+   * with two colons.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testVLVInvalidDescriptorTwoColons()
+         throws Exception
+  {
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "sn,givenName",
+      "-G", "invalid:9:invalid",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the use of the virtual list view control with an invalid descriptor
+   * with three colons.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testVLVInvalidDescriptorThreeColons()
+         throws Exception
+  {
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "sn,givenName",
+      "-G", "invalid:9:1:0",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the use of both the server-side sort control and the virtual list
+   * view control.
+   *
+   * @throws  Exception  If an unexpectd problem occurs.
+   */
+  @Test()
+  public void testSortWithVLV()
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
+    TestCaseUtils.addEntries(
+      "dn: uid=albert.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Albert",
+      "sn: Zimmerman",
+      "cn: Albert Zimmerman",
+      "",
+      "dn: uid=albert.smith,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.smith",
+      "givenName: Albert",
+      "sn: Smith",
+      "cn: Albert Smith",
+      "",
+      "dn: uid=aaron.zimmerman,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: albert.zimmerman",
+      "givenName: Aaron",
+      "givenName: Zeke",
+      "sn: Zimmerman",
+      "cn: Aaron Zimmerman",
+      "",
+      "dn: uid=mary.jones,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: mary.jones",
+      "givenName: Mary",
+      "sn: Jones",
+      "cn: Mary Jones",
+      "",
+      "dn: uid=margaret.jones,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: margaret.jones",
+      "givenName: Margaret",
+      "givenName: Maggie",
+      "sn: Jones",
+      "sn: Smith",
+      "cn: Maggie Jones-Smith",
+      "",
+      "dn: uid=aaccf.johnson,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: aaccf.johnson",
+      "givenName: Aaccf",
+      "sn: Johnson",
+      "cn: Aaccf Johnson",
+      "",
+      "dn: uid=sam.zweck,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: sam.zweck",
+      "givenName: Sam",
+      "sn: Zweck",
+      "cn: Sam Zweck",
+      "",
+      "dn: uid=lowercase.mcgee,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: lowercase.mcgee",
+      "givenName: lowercase",
+      "sn: mcgee",
+      "cn: lowercase mcgee",
+      "",
+      "dn: uid=zorro,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: zorro",
+      "sn: Zorro",
+      "cn: Zorro");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "dc=example,dc=com",
+      "-s", "sub",
+      "-S", "givenName",
+      "-G", "1:3:1:0",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
    * Tests the LDAPSearch tool with the "--help" option.
    */
   @Test()

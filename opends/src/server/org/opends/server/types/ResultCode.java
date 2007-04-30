@@ -341,6 +341,24 @@ public enum ResultCode
 
 
   /**
+   * The result code that indicates that a search request included a
+   * VLV request control without a server-side sort control.
+   */
+  SORT_CONTROL_MISSING(LDAPResultCode.SORT_CONTROL_MISSING,
+                       MSGID_RESULT_SORT_CONTROL_MISSING),
+
+
+
+  /**
+   * The result code that indicates that a search request included a
+   * VLV request control with an invalid offset.
+   */
+  OFFSET_RANGE_ERROR(LDAPResultCode.OFFSET_RANGE_ERROR,
+                     MSGID_RESULT_OFFSET_RANGE_ERROR),
+
+
+
+  /**
    * The result code that indicates that the requested operation
    * failed because it would have violated the server's naming
    * configuration.
@@ -406,6 +424,16 @@ public enum ResultCode
    */
   AFFECTS_MULTIPLE_DSAS(LDAPResultCode.AFFECTS_MULTIPLE_DSAS,
                         MSGID_RESULT_AFFECTS_MULTIPLE_DSAS),
+
+
+
+  /**
+   * The result code that indicates that the operation could not be
+   * processed because there was an error while processing the virtual
+   * list view control.
+   */
+  VIRTUAL_LIST_VIEW_ERROR(LDAPResultCode.VIRTUAL_LIST_VIEW_ERROR,
+                          MSGID_RESULT_VIRTUAL_LIST_VIEW_ERROR),
 
 
 
@@ -761,6 +789,10 @@ public enum ResultCode
         return UNWILLING_TO_PERFORM;
       case LDAPResultCode.LOOP_DETECT:
         return LOOP_DETECT;
+      case LDAPResultCode.SORT_CONTROL_MISSING:
+        return SORT_CONTROL_MISSING;
+      case LDAPResultCode.OFFSET_RANGE_ERROR:
+        return OFFSET_RANGE_ERROR;
       case LDAPResultCode.NAMING_VIOLATION:
         return NAMING_VIOLATION;
       case LDAPResultCode.OBJECTCLASS_VIOLATION:
@@ -775,6 +807,8 @@ public enum ResultCode
         return OBJECTCLASS_MODS_PROHIBITED;
       case LDAPResultCode.AFFECTS_MULTIPLE_DSAS:
         return AFFECTS_MULTIPLE_DSAS;
+      case LDAPResultCode.VIRTUAL_LIST_VIEW_ERROR:
+        return VIRTUAL_LIST_VIEW_ERROR;
       case LDAPResultCode.CLIENT_SIDE_SERVER_DOWN:
         return CLIENT_SIDE_SERVER_DOWN;
       case LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR:

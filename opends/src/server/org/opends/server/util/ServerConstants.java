@@ -1851,6 +1851,22 @@ public class ServerConstants
 
 
 
+  /**
+   * The OID for the virtual list view request control.
+   */
+  public static final String OID_VLV_REQUEST_CONTROL =
+       "2.16.840.1.113730.3.4.9";
+
+
+
+  /**
+   * The OID for the virtual list view request control.
+   */
+  public static final String OID_VLV_RESPONSE_CONTROL =
+       "2.16.840.1.113730.3.4.10";
+
+
+
 
   /**
    * The block length in bytes used when generating an HMAC-MD5 digest.
