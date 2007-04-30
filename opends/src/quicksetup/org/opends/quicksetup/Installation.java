@@ -342,10 +342,10 @@ public class Installation {
    * configuration is stored in config/upgrade/config.ldif.[svn rev].
    *
    * @return Configuration object representing the base configuration.
-   * @throws QuickSetupException if there was a problem determining the
+   * @throws ApplicationException if there was a problem determining the
    * svn rev number.
    */
-  public Configuration getBaseConfiguration() throws QuickSetupException {
+  public Configuration getBaseConfiguration() throws ApplicationException {
     if (baseConfiguration == null) {
       baseConfiguration = new Configuration(getBaseConfigurationFile());
     }
@@ -390,10 +390,10 @@ public class Installation {
    * customizations.
    *
    * @return File object with no
-   * @throws QuickSetupException if there was a problem determining the
+   * @throws ApplicationException if there was a problem determining the
    *                             svn revision number
    */
-  public File getBaseSchemaFile() throws QuickSetupException {
+  public File getBaseSchemaFile() throws ApplicationException {
     return new File(getConfigurationUpgradeDirectory(),
                   "schema.ldif." + getSvnRev().toString());
   }
@@ -404,10 +404,10 @@ public class Installation {
    * customizations.
    *
    * @return File object with no
-   * @throws QuickSetupException if there was a problem determining the
+   * @throws ApplicationException if there was a problem determining the
    *                             svn revision number
    */
-  public File getBaseConfigurationFile() throws QuickSetupException {
+  public File getBaseConfigurationFile() throws ApplicationException {
     return new File(getConfigurationUpgradeDirectory(),
             BASE_CONFIG_FILE_PREFIX + getSvnRev().toString());
   }
@@ -417,10 +417,10 @@ public class Installation {
    * configuration file config/upgrade/config.ldif.[svn rev #].
    *
    * @return Integer representing the svn number
-   * @throws QuickSetupException if for some reason the number could not
+   * @throws ApplicationException if for some reason the number could not
    *                             be determined
    */
-  public Integer getSvnRev() throws QuickSetupException {
+  public Integer getSvnRev() throws ApplicationException {
     Integer rev = null;
     File configUpgradeDir = getConfigurationUpgradeDirectory();
     if (configUpgradeDir.exists()) {
@@ -448,8 +448,9 @@ public class Installation {
     }
     if (rev == null) {
       // TODO: i18n
-      throw new QuickSetupException(QuickSetupException.Type.FILE_SYSTEM_ERROR,
-              "Could not determine SVN rev", null);
+      throw new ApplicationException(
+          ApplicationException.Type.FILE_SYSTEM_ERROR,
+          "Could not determine SVN rev", null);
     }
     return rev;
   }
@@ -457,9 +458,9 @@ public class Installation {
   /**
    * Gets the build ID which is the 14 digit number code like 20070420110336.
    * @return String representing the build ID
-   * @throws QuickSetupException if something goes wrong
+   * @throws ApplicationException if something goes wrong
    */
-  public String getBuildId() throws QuickSetupException {
+  public String getBuildId() throws ApplicationException {
     if (buildId == null) {
       List<String> args = new ArrayList<String>();
       args.add(Utils.getPath(getServerStartCommandFile()));
@@ -479,7 +480,7 @@ public class Installation {
           }
         }
       } catch (IOException e) {
-        throw new QuickSetupException(QuickSetupException.Type.START_ERROR,
+        throw new ApplicationException(ApplicationException.Type.START_ERROR,
                 "Error attempting to determine build ID", e);
       } finally {
         if (is != null) {

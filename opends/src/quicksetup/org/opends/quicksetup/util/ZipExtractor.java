@@ -27,7 +27,7 @@
 
 package org.opends.quicksetup.util;
 
-import org.opends.quicksetup.QuickSetupException;
+import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.i18n.ResourceProvider;
 
@@ -102,18 +102,18 @@ public class ZipExtractor {
   /**
    * Performs the zip extraction.
    * @param destination File where the zip file will be extracted
-   * @throws QuickSetupException if something goes wrong
+   * @throws ApplicationException if something goes wrong
    */
-  public void extract(File destination) throws QuickSetupException {
+  public void extract(File destination) throws ApplicationException {
     extract(Utils.getPath(destination));
   }
 
   /**
    * Performs the zip extraction.
    * @param destination File where the zip file will be extracted
-   * @throws QuickSetupException if something goes wrong
+   * @throws ApplicationException if something goes wrong
    */
-  public void extract(String destination) throws QuickSetupException {
+  public void extract(String destination) throws ApplicationException {
 
     ZipInputStream zipIn = new ZipInputStream(is);
     int nEntries = 1;
@@ -156,8 +156,8 @@ public class ZipExtractor {
                     Utils.getThrowableMsg(ResourceProvider.getInstance(),
                       "error-copying", arg, ioe);
 
-            throw new QuickSetupException(
-                    QuickSetupException.Type.FILE_SYSTEM_ERROR,
+            throw new ApplicationException(
+                    ApplicationException.Type.FILE_SYSTEM_ERROR,
                     errorMsg, ioe);
           }
         }
@@ -199,8 +199,8 @@ public class ZipExtractor {
       String errorMsg =
               Utils.getThrowableMsg(ResourceProvider.getInstance(),
                       "error-zip-stream", arg, ioe);
-      throw new QuickSetupException(QuickSetupException.Type.FILE_SYSTEM_ERROR,
-          errorMsg, ioe);
+      throw new ApplicationException(
+          ApplicationException.Type.FILE_SYSTEM_ERROR, errorMsg, ioe);
     }
   }
 

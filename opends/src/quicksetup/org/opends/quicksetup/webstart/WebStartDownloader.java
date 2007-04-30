@@ -37,7 +37,7 @@ import javax.jnlp.ServiceManager;
 import javax.jnlp.UnavailableServiceException;
 
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.QuickSetupException;
+import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -52,7 +52,7 @@ import org.opends.quicksetup.util.Utils;
  */
 public class WebStartDownloader implements DownloadServiceListener,
         JnlpProperties {
-  private QuickSetupException ex;
+  private ApplicationException ex;
 
   private boolean isFinished;
 
@@ -121,12 +121,12 @@ public class WebStartDownloader implements DownloadServiceListener,
         {
           // This is a bug
           ex =
-              new QuickSetupException(QuickSetupException.Type.BUG,
+              new ApplicationException(ApplicationException.Type.BUG,
                       getExceptionMsg(
                   "bug-msg", mfe), mfe);
         } catch (IOException ioe)
         {
-          StringBuffer buf = new StringBuffer();
+          StringBuilder buf = new StringBuilder();
           String[] jars = getJarUrls();
           for (int i = 0; i < jars.length; i++)
           {
@@ -139,13 +139,13 @@ public class WebStartDownloader implements DownloadServiceListener,
           String[] arg =
             { buf.toString() };
           ex =
-              new QuickSetupException(QuickSetupException.Type.DOWNLOAD_ERROR,
+              new ApplicationException(ApplicationException.Type.DOWNLOAD_ERROR,
                   getExceptionMsg("downloading-error", arg, ioe), ioe);
         } catch (Throwable t)
         {
           // This is a bug
           ex =
-              new QuickSetupException(QuickSetupException.Type.BUG,
+              new ApplicationException(ApplicationException.Type.BUG,
                       getExceptionMsg(
                   "bug-msg", t), t);
         }
@@ -334,12 +334,12 @@ public class WebStartDownloader implements DownloadServiceListener,
   }
 
   /**
-   * Returns the QuickSetupException that has occurred during the download or
+   * Returns the ApplicationException that has occurred during the download or
    * <CODE>null</CODE> if no exception occurred.
-   * @return the QuickSetupException that has occurred during the download or
+   * @return the ApplicationException that has occurred during the download or
    * <CODE>null</CODE> if no exception occurred.
    */
-  public QuickSetupException getException()
+  public ApplicationException getException()
   {
     return ex;
   }
@@ -350,9 +350,8 @@ public class WebStartDownloader implements DownloadServiceListener,
   public void downloadFailed(URL url, String version)
   {
     ex =
-        new QuickSetupException(QuickSetupException.Type.DOWNLOAD_ERROR, getMsg(
-            "downloading-error", new String[]
-              { url.toString() }), null);
+        new ApplicationException(ApplicationException.Type.DOWNLOAD_ERROR,
+            getMsg("downloading-error", new String[] { url.toString() }), null);
   }
 
   /**

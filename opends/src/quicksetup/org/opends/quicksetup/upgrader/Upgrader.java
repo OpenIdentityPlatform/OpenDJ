@@ -439,7 +439,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
               public void run() {
                 try {
                   installation.getBuildId();
-                } catch (QuickSetupException e) {
+                } catch (ApplicationException e) {
                   LOG.log(Level.INFO, "error", e);
                 }
               }
@@ -557,7 +557,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       if (Utils.isWebStart()) {
         try {
           waitForLoader(15); // TODO: ratio
-        } catch (QuickSetupException e) {
+        } catch (ApplicationException e) {
           LOG.log(Level.SEVERE, "Error downloading WebStart jars", e);
           throw e;
         }
@@ -868,7 +868,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private void verifyUpgrade() throws ApplicationException {
     try {
       new ServerController(this).startServer();
-    } catch (QuickSetupException e) {
+    } catch (ApplicationException e) {
       LOG.log(Level.INFO, "Error starting server: " +
               e.getLocalizedMessage(), e);
     }
@@ -916,34 +916,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
   }
 
-  private void startServerWithoutConnectionHandlers()
-          throws ApplicationException {
-    try {
-      ServerController control = new ServerController(this);
-      if (getInstallation().getStatus().isServerRunning()) {
-        control.stopServer();
-      }
-      control.startServerInProcess(true);
-    } catch (IOException e) {
-      String msg = "Failed to determine server state: " +
-              e.getLocalizedMessage();
-      LOG.log(Level.INFO, msg, e);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              msg, e);
-    } catch (org.opends.server.types.InitializationException e) {
-      String msg = "Failed to start server due to initialization error:" +
-              e.getLocalizedMessage();
-      LOG.log(Level.INFO, msg, e);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              msg, e);
-    } catch (org.opends.server.config.ConfigException e) {
-      String msg = "Failed to start server due to configuration error: " +
-              e.getLocalizedMessage();
-      LOG.log(Level.INFO, msg, e);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              msg, e);
-    }
-  }
 
   /**
    * Applies configuration or schema customizations.
@@ -1286,7 +1258,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     try {
       currentVersion = getInstallation().getSvnRev();
-    } catch (QuickSetupException e) {
+    } catch (ApplicationException e) {
       LOG.log(Level.INFO, "error", e);
       throw ApplicationException.createFileSystemException(
               "Could not determine current version number: " +
@@ -1375,7 +1347,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     String newVersion = null;
     try {
       newVersion = getInstallation().getBuildId();
-    } catch (QuickSetupException e) {
+    } catch (ApplicationException e) {
       newVersion = getMsg("upgrade-build-id-unknown");
     }
     String[] args = {
@@ -1429,7 +1401,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     if (this.currentVersion == null) {
       try {
         currentVersion = getInstallation().getSvnRev();
-      } catch (QuickSetupException e) {
+      } catch (ApplicationException e) {
         LOG.log(Level.INFO, "error trying to determine current version", e);
       }
     }

@@ -28,6 +28,7 @@
 package org.opends.quicksetup.util;
 
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.installer.InstallerHelper;
 
 import javax.naming.NamingException;
 import java.util.ArrayList;
@@ -223,9 +224,9 @@ public class ServerController {
 
   /**
    * This methods starts the server.
-   * @throws org.opends.quicksetup.QuickSetupException if something goes wrong.
+   * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
-  public void startServer() throws QuickSetupException {
+  public void startServer() throws ApplicationException {
     startServer(true);
   }
 
@@ -233,9 +234,9 @@ public class ServerController {
    * This methods starts the server.
    * @param verify boolean indicating whether this method will attempt to
    * connect to the server after starting to verify that it is listening.
-   * @throws org.opends.quicksetup.QuickSetupException if something goes wrong.
+   * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
-  private void startServer(boolean verify) throws QuickSetupException {
+  private void startServer(boolean verify) throws ApplicationException {
     application.notifyListeners(
             application.getFormattedProgress(
                     application.getMsg("progress-starting")) +
@@ -284,7 +285,7 @@ public class ServerController {
         }
       }
       // Check if something wrong occurred reading the starting of the server
-      QuickSetupException ex = errReader.getException();
+      ApplicationException ex = errReader.getException();
       if (ex == null)
       {
         ex = outputReader.getException();
@@ -349,13 +350,15 @@ public class ServerController {
           if (Utils.isWindows())
           {
 
-            throw new QuickSetupException(QuickSetupException.Type.START_ERROR,
+            throw new ApplicationException(
+                ApplicationException.Type.START_ERROR,
                 application.getMsg("error-starting-server-in-windows", arg),
                     null);
           }
           else
           {
-            throw new QuickSetupException(QuickSetupException.Type.START_ERROR,
+            throw new ApplicationException(
+                ApplicationException.Type.START_ERROR,
                 application.getMsg("error-starting-server-in-unix", arg), null);
           }
         }
@@ -363,7 +366,7 @@ public class ServerController {
 
     } catch (IOException ioe)
     {
-      throw new QuickSetupException(QuickSetupException.Type.START_ERROR,
+      throw new ApplicationException(ApplicationException.Type.START_ERROR,
           application.getThrowableMsg("error-starting-server", ioe), ioe);
     }
   }
@@ -476,7 +479,7 @@ public class ServerController {
    */
   private class StartReader
   {
-    private QuickSetupException ex;
+    private ApplicationException ex;
 
     private boolean isFinished;
 
@@ -533,14 +536,14 @@ public class ServerController {
           {
             String errorMsg = application.getThrowableMsg(errorTag, ioe);
             ex =
-                new QuickSetupException(QuickSetupException.Type.START_ERROR,
+                new ApplicationException(ApplicationException.Type.START_ERROR,
                     errorMsg, ioe);
 
           } catch (Throwable t)
           {
             String errorMsg = application.getThrowableMsg(errorTag, t);
             ex =
-                new QuickSetupException(QuickSetupException.Type.START_ERROR,
+                new ApplicationException(ApplicationException.Type.START_ERROR,
                     errorMsg, t);
           }
           isFinished = true;
@@ -550,12 +553,12 @@ public class ServerController {
     }
 
     /**
-     * Returns the QuickSetupException that occurred reading the Start error and
-     * output or <CODE>null</CODE> if no exception occurred.
+     * Returns the ApplicationException that occurred reading the Start error
+     * and output or <CODE>null</CODE> if no exception occurred.
      * @return the exception that occurred reading or <CODE>null</CODE> if
      * no exception occurred.
      */
-    public QuickSetupException getException()
+    public ApplicationException getException()
     {
       return ex;
     }

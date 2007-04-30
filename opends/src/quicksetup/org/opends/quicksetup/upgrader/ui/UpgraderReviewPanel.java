@@ -33,7 +33,7 @@ import org.opends.quicksetup.ui.LabelFieldDescriptor;
 import org.opends.quicksetup.upgrader.Upgrader;
 import org.opends.quicksetup.upgrader.UpgradeUserData;
 import org.opends.quicksetup.upgrader.Build;
-import org.opends.quicksetup.QuickSetupException;
+import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.UserData;
 
 import javax.swing.*;
@@ -186,7 +186,7 @@ public class UpgraderReviewPanel extends ReviewPanel {
     String oldVersion;
     try {
       oldVersion = getApplication().getInstallation().getBuildId();
-    } catch (QuickSetupException e) {
+    } catch (ApplicationException e) {
       LOG.log(Level.INFO, "error", e);
       oldVersion = getMsg("upgrade-build-id-unknown");
     }
