@@ -124,7 +124,7 @@ public class BuildExtractor extends Application implements Runnable {
   }
 
   private void expandZipFile(File buildFile)
-          throws ApplicationException, IOException, QuickSetupException {
+          throws ApplicationException, IOException {
     ZipExtractor extractor = new ZipExtractor(buildFile,
             1, 10, // TODO figure out these values
             Utils.getNumberZipEntries(), this);

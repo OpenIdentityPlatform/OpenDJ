@@ -28,12 +28,15 @@
 package org.opends.quicksetup.ui;
 
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.webstart.WebStartDownloader;
 
 import javax.swing.*;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -390,10 +393,10 @@ public abstract class GuiApplication extends Application {
    * process, then maxRatio will be 25.  When the download is complete this
    * method will send a notification to the ProgressUpdateListeners with a ratio
    * of 25 %.
-   * @throws org.opends.quicksetup.QuickSetupException if something goes wrong
+   * @throws org.opends.quicksetup.ApplicationException if something goes wrong
    *
    */
-  protected void waitForLoader(Integer maxRatio) throws QuickSetupException {
+  protected void waitForLoader(Integer maxRatio) throws ApplicationException {
     int lastPercentage = -1;
     WebStartDownloader.Status lastStatus =
       WebStartDownloader.Status.DOWNLOADING;
@@ -454,5 +457,39 @@ public abstract class GuiApplication extends Application {
    */
   public int getExtraDialogHeight() {
     return 0;
+  }
+
+  /**
+   * Starts the server to be able to update its configuration but not allowing
+   * it to listen to external connections.
+   * @throws ApplicationException if the server could not be started.
+   */
+  protected void startServerWithoutConnectionHandlers()
+  throws ApplicationException {
+    try {
+      ServerController control = new ServerController(this);
+      if (getInstallation().getStatus().isServerRunning()) {
+        control.stopServer();
+      }
+      control.startServerInProcess(true);
+    } catch (IOException e) {
+      String msg = "Failed to determine server state: " +
+      e.getLocalizedMessage();
+      LOG.log(Level.INFO, msg, e);
+      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
+          msg, e);
+    } catch (org.opends.server.types.InitializationException e) {
+      String msg = "Failed to start server due to initialization error:" +
+      e.getLocalizedMessage();
+      LOG.log(Level.INFO, msg, e);
+      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
+          msg, e);
+    } catch (org.opends.server.config.ConfigException e) {
+      String msg = "Failed to start server due to configuration error: " +
+      e.getLocalizedMessage();
+      LOG.log(Level.INFO, msg, e);
+      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
+          msg, e);
+    }
   }
 }

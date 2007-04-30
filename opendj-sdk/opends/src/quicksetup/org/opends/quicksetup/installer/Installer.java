@@ -576,9 +576,9 @@ public abstract class Installer extends GuiApplication {
    * the base dn and the number of entries to be generated.
    *
    * @return the file object pointing to the create template file.
-   * @throws QuickSetupException if an error occurs.
+   * @throws ApplicationException if an error occurs.
    */
-  protected File createTemplateFile() throws QuickSetupException {
+  protected File createTemplateFile() throws ApplicationException {
     try
     {
       return SetupUtils.createTemplateFile(
@@ -588,17 +588,17 @@ public abstract class Installer extends GuiApplication {
     catch (IOException ioe)
     {
       String failedMsg = getThrowableMsg("error-creating-temp-file", null, ioe);
-      throw new QuickSetupException(QuickSetupException.Type.FILE_SYSTEM_ERROR,
-          failedMsg, ioe);
+      throw new ApplicationException(
+          ApplicationException.Type.FILE_SYSTEM_ERROR, failedMsg, ioe);
     }
   }
 
   /**
    * This methods configures the server based on the contents of the UserData
    * object provided in the constructor.
-   * @throws QuickSetupException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-  protected void configureServer() throws QuickSetupException {
+  protected void configureServer() throws ApplicationException {
     notifyListeners(getFormattedWithPoints(getMsg("progress-configuring")));
 
     ArrayList<String> argList = new ArrayList<String>();
@@ -692,14 +692,14 @@ public abstract class Installer extends GuiApplication {
 
       if (result != 0)
       {
-        throw new QuickSetupException(
-            QuickSetupException.Type.CONFIGURATION_ERROR,
+        throw new ApplicationException(
+            ApplicationException.Type.CONFIGURATION_ERROR,
             getMsg("error-configuring"), null);
       }
     } catch (Throwable t)
     {
-      throw new QuickSetupException(
-          QuickSetupException.Type.CONFIGURATION_ERROR,
+      throw new ApplicationException(
+          ApplicationException.Type.CONFIGURATION_ERROR,
           getThrowableMsg("error-configuring", null, t), t);
     }
 
@@ -805,8 +805,8 @@ public abstract class Installer extends GuiApplication {
     }
     catch (Throwable t)
     {
-      throw new QuickSetupException(
-          QuickSetupException.Type.CONFIGURATION_ERROR,
+      throw new ApplicationException(
+          ApplicationException.Type.CONFIGURATION_ERROR,
           getThrowableMsg("error-configuring-certificate", null, t), t);
     }
   }
@@ -814,9 +814,9 @@ public abstract class Installer extends GuiApplication {
   /**
    * This methods creates the base entry for the suffix based on the contents of
    * the UserData object provided in the constructor.
-   * @throws QuickSetupException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-  protected void createBaseEntry() throws QuickSetupException {
+  protected void createBaseEntry() throws ApplicationException {
     String[] arg =
       { getUserData().getNewSuffixOptions().getBaseDn() };
     notifyListeners(getFormattedWithPoints(
@@ -850,14 +850,14 @@ public abstract class Installer extends GuiApplication {
 
       if (result != 0)
       {
-        throw new QuickSetupException(
-            QuickSetupException.Type.CONFIGURATION_ERROR,
+        throw new ApplicationException(
+            ApplicationException.Type.CONFIGURATION_ERROR,
             getMsg("error-creating-base-entry"), null);
       }
     } catch (Throwable t)
     {
-      throw new QuickSetupException(
-          QuickSetupException.Type.CONFIGURATION_ERROR,
+      throw new ApplicationException(
+          ApplicationException.Type.CONFIGURATION_ERROR,
           getThrowableMsg("error-creating-base-entry", null, t), t);
     }
 
@@ -867,9 +867,9 @@ public abstract class Installer extends GuiApplication {
   /**
    * This methods imports the contents of an LDIF file based on the contents of
    * the UserData object provided in the constructor.
-   * @throws QuickSetupException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-  protected void importLDIF() throws QuickSetupException {
+  protected void importLDIF() throws ApplicationException {
     String[] arg =
       { getUserData().getNewSuffixOptions().getLDIFPath() };
     notifyListeners(getFormattedProgress(getMsg("progress-importing-ldif", arg))
@@ -896,14 +896,14 @@ public abstract class Installer extends GuiApplication {
 
       if (result != 0)
       {
-        throw new QuickSetupException(
-            QuickSetupException.Type.CONFIGURATION_ERROR,
+        throw new ApplicationException(
+            ApplicationException.Type.CONFIGURATION_ERROR,
             getMsg("error-importing-ldif"), null);
       }
     } catch (Throwable t)
     {
-      throw new QuickSetupException(
-          QuickSetupException.Type.CONFIGURATION_ERROR,
+      throw new ApplicationException(
+          ApplicationException.Type.CONFIGURATION_ERROR,
           getThrowableMsg("error-importing-ldif", null, t), t);
     }
   }
@@ -911,9 +911,9 @@ public abstract class Installer extends GuiApplication {
   /**
    * This methods imports automatically generated data based on the contents
    * of the UserData object provided in the constructor.
-   * @throws QuickSetupException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-  protected void importAutomaticallyGenerated() throws QuickSetupException {
+  protected void importAutomaticallyGenerated() throws ApplicationException {
     File templatePath = createTemplateFile();
     int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
     String[] arg =
@@ -946,23 +946,23 @@ public abstract class Installer extends GuiApplication {
       if (result != 0)
       {
         String[] msgArgs = { Utils.stringArrayToString(args, " ") };
-        throw new QuickSetupException(
-            QuickSetupException.Type.CONFIGURATION_ERROR,
+        throw new ApplicationException(
+            ApplicationException.Type.CONFIGURATION_ERROR,
             getMsg("error-import-automatically-generated", msgArgs), null);
       }
     } catch (Throwable t)
     {
-      throw new QuickSetupException(
-          QuickSetupException.Type.CONFIGURATION_ERROR,
+      throw new ApplicationException(
+          ApplicationException.Type.CONFIGURATION_ERROR,
           getThrowableMsg("error-import-automatically-generated", null, t), t);
     }
   }
 
   /**
    * This methods enables this server as a Windows service.
-   * @throws QuickSetupException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-  protected void enableWindowsService() throws QuickSetupException {
+  protected void enableWindowsService() throws ApplicationException {
       notifyListeners(getFormattedProgress(
         getMsg("progress-enabling-windows-service")));
       InstallerHelper helper = new InstallerHelper();
@@ -1086,9 +1086,9 @@ public abstract class Installer extends GuiApplication {
   /**
    * This methods updates the data on the server based on the contents of the
    * UserData object provided in the constructor.
-   * @throws QuickSetupException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-  protected void createData() throws QuickSetupException
+  protected void createData() throws ApplicationException
   {
     if (createNotReplicatedSuffix())
     {
@@ -1117,8 +1117,15 @@ public abstract class Installer extends GuiApplication {
       /* TODO: replicate them. */
       Set<SuffixDescriptor> suffixesToReplicate =
         getUserData().getSuffixesToReplicateOptions().getAvailableSuffixes();
+      boolean startedServer = false;
+      if (suffixesToReplicate.size() > 0)
+      {
+        startServerWithoutConnectionHandlers();
+        startedServer = true;
+      }
       for (SuffixDescriptor suffix: suffixesToReplicate)
       {
+        // TODO: localize
         notifyListeners(getFormattedWithPoints("Creating Suffix"));
 
         ArrayList<String> argList = new ArrayList<String>();
@@ -1140,30 +1147,34 @@ public abstract class Installer extends GuiApplication {
 
           if (result != 0)
           {
-            throw new QuickSetupException(
-                QuickSetupException.Type.CONFIGURATION_ERROR,
+            throw new ApplicationException(
+                ApplicationException.Type.CONFIGURATION_ERROR,
                 getMsg("error-configuring"), null);
           }
         } catch (Throwable t)
         {
-          throw new QuickSetupException(
-              QuickSetupException.Type.CONFIGURATION_ERROR,
+          throw new ApplicationException(
+              ApplicationException.Type.CONFIGURATION_ERROR,
               getThrowableMsg("error-configuring", null, t), t);
         }
         notifyListeners(getFormattedDone());
 
-        // TO REMOVE
+        // TODO: localize
         notifyListeners(
             getFormattedProgress("One day we will replicate the suffixes!"));
+      }
+      if (startedServer)
+      {
+        getServerController().stopServerInProcess();
       }
     }
   }
 
   /**
    * This methods updates the ADS contents (and creates the according suffixes).
-   * @throws QuickSetupException if something goes wrong.
+   * @throws ApplicationException if something goes wrong.
    */
-  protected void updateADS() throws QuickSetupException
+  protected void updateADS() throws ApplicationException
   {
     if (true) return;
     /* First check if the remote server contains an ADS: if it is the case the
@@ -1251,22 +1262,22 @@ public abstract class Installer extends GuiApplication {
       catch (NoPermissionException x)
       {
         String[] arg = {getHostDisplay(auth)};
-        throw new QuickSetupException(
-            QuickSetupException.Type.CONFIGURATION_ERROR,
+        throw new ApplicationException(
+            ApplicationException.Type.CONFIGURATION_ERROR,
             getMsg("cannot-connect-to-remote-permissions", arg), x);
       }
       catch (NamingException ne)
       {
         String[] arg = {getHostDisplay(auth)};
-        throw new QuickSetupException(
-            QuickSetupException.Type.CONFIGURATION_ERROR,
+        throw new ApplicationException(
+            ApplicationException.Type.CONFIGURATION_ERROR,
             getMsg("cannot-connect-to-remote-generic", arg), ne);
       }
       catch (ADSContextException ace)
       {
         String[] args = {getHostDisplay(auth), ace.toString()};
-        throw new QuickSetupException(
-            QuickSetupException.Type.CONFIGURATION_ERROR,
+        throw new ApplicationException(
+            ApplicationException.Type.CONFIGURATION_ERROR,
             getMsg("remote-ads-exception", args), ace);
       }
       finally
@@ -1295,8 +1306,8 @@ public abstract class Installer extends GuiApplication {
       }
       catch (ADSContextException ace)
       {
-        throw new QuickSetupException(
-            QuickSetupException.Type.CONFIGURATION_ERROR,
+        throw new ApplicationException(
+            ApplicationException.Type.CONFIGURATION_ERROR,
             getMsg("local-ads-exception"), ace);
       }
       notifyListeners(getFormattedDone());

@@ -31,7 +31,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.opends.quicksetup.QuickSetupException;
+import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.InstallProgressStep;
@@ -105,7 +105,7 @@ public class OfflineInstaller extends Installer
       setStatus(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
 
-    } catch (QuickSetupException ex)
+    } catch (ApplicationException ex)
     {
       setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
       String html = getFormattedError(ex, true);
@@ -114,8 +114,8 @@ public class OfflineInstaller extends Installer
     catch (Throwable t)
     {
       setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
-      QuickSetupException ex = new QuickSetupException(
-          QuickSetupException.Type.BUG, getThrowableMsg("bug-msg", t), t);
+      ApplicationException ex = new ApplicationException(
+          ApplicationException.Type.BUG, getThrowableMsg("bug-msg", t), t);
       String msg = getFormattedError(ex, true);
       notifyListeners(msg);
     }
