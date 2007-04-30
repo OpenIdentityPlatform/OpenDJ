@@ -92,12 +92,12 @@ public class PasswordPolicyConfigManager
          managementContext.getRootConfiguration();
 
     // Register as an add and delete listener with the root configuration so we
-    // can be notified if any password ploicies entries are added or removed.
+    // can be notified if any password policy entries are added or removed.
     rootConfiguration.addPasswordPolicyAddListener(this);
     rootConfiguration.addPasswordPolicyDeleteListener(this);
 
     // First, get the configuration base entry.
-    String[] passwordPoliciesName = rootConfiguration.listPasswordPolicys() ;
+    String[] passwordPoliciesName = rootConfiguration.listPasswordPolicies() ;
 
     // See if the base entry has any children.  If not, then that means that
     // there are no policies defined, so that's a problem.
