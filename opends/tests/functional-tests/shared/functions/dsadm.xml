@@ -1314,16 +1314,16 @@
     </function-map-args>
 
     <sequence>
-      <message>
-        'export-ldif%s -l %s -n %s %s' % (fileExt,ldifFile,backEnd,extraParams)
+      <message> 
+        '%s/bin/export-ldif%s -l %s -n %s %s' % (dsPath,fileExt,ldifFile,backEnd,extraParams)
       </message>
       <process name="'Ldif Export'">
         <location>'%s' % location </location>
-        <command>'%s/export-ldif%s' % (dsBinPath,fileExt)</command>
+        <command>'%s/bin/export-ldif%s' % (dsPath,fileExt)</command>
         <parms>'-l %s -n %s %s' % (ldifFile,backEnd,extraParams)</parms>
         <workdir>'%s/bin' % dsPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <stderr mode="'stdout'"/>
         <returnstdout/>
