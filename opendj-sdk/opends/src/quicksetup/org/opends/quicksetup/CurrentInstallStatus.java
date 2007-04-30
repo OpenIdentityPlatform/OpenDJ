@@ -220,6 +220,19 @@ public class CurrentInstallStatus
    * determined by getting the installation path from the classpath.
    * NOTE: this method is to be called only when the OpenDS.jar class has
    * already been loaded as it uses classes in that jar.
+   * 
+   * LIMITATIONS:
+   * If the locks directory does not exist the mechanism fails if the server is
+   * stopped.  However if the server.lock does not exist AND the server is not
+   * running the mechanism should work most of the times (see failing case 3).
+   * 
+   * The cases where this mechanism does not work are:
+   * 
+   * 1. The user deletes/renames the locks directory.
+   * 2. The user deletes/renames the server.lock file AND the server is running.
+   * 3. The server is not running but the user that is running the code does not
+   * have file system access rights.
+   * 4. The server is not running and another process has a lock on the file.
    * @return <CODE>true</CODE> if the server is running and <CODE>false</CODE>
    * otherwise.
    */
