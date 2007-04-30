@@ -103,14 +103,10 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
        new HashMap<DN, ImportContext>();
 
   /**
-   * The import threads created to process the entry queue.
+   * The number of entries imported.
    */
-  private ArrayList<ImportThread> threads;
+  private int importedCount;
 
-  /**
-   * The current number of entries rejected.
-   */
-  private int rejectedCount = 0;
 
   /**
    * The number of milliseconds between job progress reports.
@@ -252,6 +248,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
 
       try
       {
+        importedCount = 0;
         int     passNumber = 1;
         boolean moreData   = true;
         while (moreData)
@@ -315,11 +312,11 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     float rate = 0;
     if (importTime > 0)
     {
-      rate = 1000f*getImportedCount() / importTime;
+      rate = 1000f*importedCount / importTime;
     }
 
     msgID = MSGID_JEB_IMPORT_FINAL_STATUS;
-    message = getMessage(msgID, reader.getEntriesRead(), getImportedCount(),
+    message = getMessage(msgID, reader.getEntriesRead(), importedCount,
                          reader.getEntriesIgnored(),
                          reader.getEntriesRejected(), importTime/1000, rate);
     logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
@@ -471,6 +468,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       }
     }
 
+    ArrayList<ImportThread> threads;
     try
     {
       // Create one set of worker threads for each base DN.
@@ -538,8 +536,6 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
               {
                 debugCaught(DebugLogLevel.ERROR, e);
               }
-              // Update stats.
-              rejectedCount++;
             }
             catch (DirectoryException e)
             {
@@ -547,8 +543,6 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
               {
                 debugCaught(DebugLogLevel.ERROR, e);
               }
-              // Update stats.
-              rejectedCount++;
             }
           } while (true);
 
@@ -582,7 +576,18 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         }
 
         // Wait for each thread to stop.
-        joinThreads();
+        for (ImportThread t : threads)
+        {
+          try
+          {
+            t.join();
+            importedCount += t.getImportedCount();
+          }
+          catch (InterruptedException ie)
+          {
+            // No action needed?
+          }
+        }
       }
     }
     finally
@@ -660,9 +665,6 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           int msgID = MSGID_JEB_IMPORT_ENTRY_EXISTS;
           String msg = getMessage(msgID);
           importContext.getLDIFReader().rejectLastEntry(msg);
-
-          // Update stats.
-          rejectedCount++;
           return;
         }
       }
@@ -681,9 +683,6 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
             int msgID = MSGID_JEB_IMPORT_PARENT_NOT_FOUND;
             String msg = getMessage(msgID, parentDN.toString());
             importContext.getLDIFReader().rejectLastEntry(msg);
-
-            // Update stats.
-            rejectedCount++;
             return;
           }
         }
@@ -768,47 +767,6 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
   }
 
   /**
-   * Wait for all worker threads to exit.
-   */
-  private void joinThreads()
-  {
-    for (ImportThread t : threads)
-    {
-      try
-      {
-        t.join();
-      }
-      catch (InterruptedException ie)
-      {
-        // No action needed?
-      }
-    }
-  }
-
-  /**
-   * Get the number of entries imported so far.
-   * @return The number of entries imported.
-   */
-  private int getImportedCount()
-  {
-    int count = 0;
-    for (ImportThread t : threads)
-    {
-      count += t.getImportedCount();
-    }
-    return count;
-  }
-
-  /**
-   * Get the number of entries rejected so far.
-   * @return The number of entries rejected.
-   */
-  private int getRejectedCount()
-  {
-    return rejectedCount;
-  }
-
-  /**
    * Method invoked when the given thread terminates due to the given uncaught
    * exception. <p>Any exception thrown by this method will be ignored by the
    * Java Virtual Machine.
@@ -861,10 +819,10 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
   class ProgressTask extends TimerTask
   {
     /**
-     * The number of entries that had been imported at the time of the
+     * The number of entries that had been read at the time of the
      * previous progress report.
      */
-    private int previousCount = 0;
+    private long previousCount = 0;
 
     /**
      * The time in milliseconds of the previous progress report.
@@ -897,8 +855,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
      */
     public void run()
     {
-      int latestCount = getImportedCount();
-      int deltaCount = (latestCount - previousCount);
+      long latestCount = reader.getEntriesRead();
+      long deltaCount = (latestCount - previousCount);
       long latestTime = System.currentTimeMillis();
       long deltaTime = latestTime - previousTime;
 
