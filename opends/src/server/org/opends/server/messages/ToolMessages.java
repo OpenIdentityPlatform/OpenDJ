@@ -7060,6 +7060,16 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used if one of the LDIF files
+   * to be imported cannot be read.  This takes one argument, which is the
+   * pathname of a file that cannot be read.
+   */
+  public static final int MSGID_LDIFIMPORT_CANNOT_READ_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 887;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -9281,6 +9291,9 @@ public class ToolMessages
                     "shared lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the rebuild process " +
                     "exits, so no further action should be required");
+
+    registerMessage(MSGID_LDIFIMPORT_CANNOT_READ_FILE,
+                    "The specified LDIF file %s cannot be read");
   }
 }
 
