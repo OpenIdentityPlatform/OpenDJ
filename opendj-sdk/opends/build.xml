@@ -205,7 +205,8 @@
     </path>
 
     <tstamp>
-      <format property="timestamp" pattern="yyyyMMddHHmmss" />
+      <format property="timestamp" pattern="yyyyMMddHHmmss'Z'"
+           timezone="UTC" />
     </tstamp>
 
     <condition property="DEBUG_BUILD" value="false">
