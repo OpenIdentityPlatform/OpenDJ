@@ -61,7 +61,7 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.Error.*;
-import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -858,6 +858,20 @@ public class ImportLDIF
     if (ldifFiles.isPresent())
     {
       ArrayList<String> fileList = new ArrayList<String>(ldifFiles.getValues());
+      int badFileCount = 0;
+      for (String pathname : fileList)
+      {
+        File f = new File(pathname);
+        if (!f.canRead())
+        {
+          int    msgID   = MSGID_LDIFIMPORT_CANNOT_READ_FILE;
+          String message = getMessage(msgID, pathname);
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+          badFileCount++;
+        }
+      }
+      if (badFileCount > 0) return 1;
       importConfig = new LDIFImportConfig(fileList);
     }
     else
