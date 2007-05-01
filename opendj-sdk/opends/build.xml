@@ -154,7 +154,7 @@
 
   <!-- The build target that should be used for nightly builds. -->
   <target name="nightly"
-       depends="enableweave,checkstyle,dsml,javadoc,coverage,testall"
+       depends="checkstyle,dsml,javadoc,coverage,testall"
        description="Perform all processing needed for nightly builds.">
   </target>
 
@@ -171,7 +171,7 @@
 
   <!-- The build target that should be used to build everything. -->
   <target name="all"
-       depends="enableweave,checkstyle,clean,copyrightdates,eolstyle,dsml,javadoc,testallwithcoverage"
+       depends="checkstyle,clean,copyrightdates,eolstyle,dsml,javadoc,testallwithcoverage"
        description="Build using all defined targets.">
   </target>
 
@@ -274,7 +274,7 @@
       java.vendor, java.vm.version, JVM_VENDOR, DEBUG_BUILD, REVISION_NUMBER,
       WEAVE_ENABLED
       If you change the name of any of those properties in this build.xml
-      you'll need to relfect the same change in the .stubs file
+      you'll need to reflect the same change in the .stubs file
     -->
     <copy file="${dynconstants.stubfile}"
           tofile="${dynconstants.file}"
@@ -1112,7 +1112,7 @@
 
   <!-- Execute all of the Directory Server TestNG unit tests in text mode. -->
   <target name="testall"
-          depends="enableweave,enableTestNGAssertions,prepdefaultalltest,testinit,runtests"
+          depends="enableTestNGAssertions,prepdefaultalltest,testinit,runtests"
           description="Run all of the TestNG tests (including 'slow' ones) with assertions enabled.  See 'testwithcoverage' for properties you can set.">
   </target>
 
@@ -1120,7 +1120,7 @@
 
   <!-- Execute the Directory Server TestNG unit tests in text mode. -->
   <target name="test"
-          depends="enableweave,testinit,runtests"
+          depends="testinit,runtests"
           description="Execute the Directory Server TestNG unit tests in text mode.  Set '-Dorg.opends.test.suppressOutput=false' to see the output from the unit tests.  Set '-Dtest.failures=true' to run only the tests that failed previously.">
   </target>
 
@@ -1338,6 +1338,11 @@
 
 
 
+  <!--
+   ! Previously a dependency of the nightly, all, testall and test targets.
+   ! Weaving is now disabled by default due to the excessive need for memory
+   ! during weaving.
+   ! -->
   <target name="enableweave">
     <condition property="WEAVE_ENABLED" value="true">
       <not>
@@ -1422,13 +1427,13 @@
     <condition property="antcmd" value="ant.bat">
       <os family="windows" />
     </condition>
-    
+
     <condition property="antcmd" value="ant">
       <not>
         <isset property="antcmd" />
       </not>
     </condition>
-    
+
     <exec executable="${ant.home}/bin/${antcmd}">
       <arg value="-buildfile" />
       <arg value="${ant.file}" />
