@@ -1,0 +1,201 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Portions Copyright 2007 Sun Microsystems, Inc.
+#
+
+dn: o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+o: RDN Wildcard Tests
+objectclass: top
+objectclass: organization
+
+dn: ou=aci branch, o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: aci branch
+
+dn: ou=branch level one, ou=aci branch, o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: branch level one
+
+dn: uid=amiller, ou=branch level one, ou=aci branch, o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+cn: Abe Miller
+sn: Miller
+givenname: Abe
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: amiller
+mail: amiller@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: ou=branch level two, ou=branch level one, ou=aci branch, o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: branch level two
+
+dn: uid=bmiller, ou=branch level two, ou=branch level one, ou=aci branch, o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+cn: Ben Miller
+sn: Miller
+givenname: Ben
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: bmiller
+mail: bmiller@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: ou=branch level three, ou=branch level two, ou=branch level one, ou=aci branch, o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: branch level three
+
+dn: uid=scarter, ou=branch level three, ou=branch level two, ou=branch level one, ou=aci branch, o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+cn: Sam Carter
+sn: Carter
+givenname: Sam
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: scarter
+mail: scarter@example.com
+telephonenumber: +1 408 555 4798
+facsimiletelephonenumber: +1 408 555 9751
+roomnumber: 4612
+userpassword: sprain
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=tmorris, ou=branch level three, ou=branch level two, ou=branch level one, ou=aci branch, o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+cn: Ted Morris
+sn: Morris
+givenname: Ted
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Santa Clara
+uid: tmorris
+mail: tmorris@example.com
+telephonenumber: +1 408 555 9187
+facsimiletelephonenumber: +1 408 555 8473
+roomnumber: 4117
+userpassword: irrefutable
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=kvaughan, ou=branch level three, ou=branch level two, ou=branch level one, ou=aci branch, o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+cn: Kirsten Vaughan
+sn: Vaughan
+givenname: Kirsten
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Human Resources
+ou: People
+l: Sunnyvale
+uid: kvaughan
+mail: kvaughan@example.com
+telephonenumber: +1 408 555 5625
+facsimiletelephonenumber: +1 408 555 3372
+roomnumber: 2871
+userpassword: bribery
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=abergin, ou=branch level three, ou=branch level two, ou=branch level one, ou=aci branch, o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+cn: Andy Bergin
+sn: Bergin
+givenname: Andy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+uid: abergin
+mail: abergin@example.com
+facsimiletelephonenumber: +1 408 555 7472
+userpassword: inflict
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=dmiller, ou=branch level three, ou=branch level two, ou=branch level one, ou=aci branch, o=RDN Wildcard Tests, o=ACI Tests, dc=example,dc=com
+cn: David Miller
+sn: Miller
+givenname: David
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: dmiller
+mail: dmiller@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+

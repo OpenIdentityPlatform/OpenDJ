@@ -1,0 +1,2097 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="aci_rdn_wildcards"/>
+
+  <function name="aci_rdn_wildcards">
+
+    <sequence>
+
+      <block name="'aci-rdn-wildcards'">
+      
+        <sequence>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+                Place suite-specific test information here.
+                #@TestSuiteName             ACI RDN Wildcard Tests
+                #@TestSuitePurpose          Test the basic ACI Target Support. (targetattr="*" and allow(read)) 
+                #@TestSuiteGroup            Basic ACI Target Tests
+                #@TestScript                aci_target.xml
+          -->
+    
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Preamble
+                #@TestIssue                 445
+                #@TestPurpose               Add additional entries
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager adds additional entries.
+                #@TestStep                  Client search for level one entry
+                #@TestStep                  Client search for level two entry
+                #@TestStep                  Client search for level three entry
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all operations.
+                                            Entries are returned for steps 2, 3, and 4.                              
+          -->
+          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+          <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: RDN Wildcards: Preamble'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                   'ACI: RDN Wildcards: Preamble - Adding Entries For RDN Wildcard Tests'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeAdded'   : '%s/aci/aci_rdn_wildcards/aci_startup_rdn_wildcard_tests.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: RDN Wildcards: Preamble - user searching targeted entry, level one'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=amiller, ou=branch level one, ou=aci branch,o=RDN Wildcard Tests,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid' ,
+                  'extraParams'      : '-T'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: RDN Wildcards: Preamble - user searching targeted entry, level two'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=bmiller, ou=branch level two, ou=branch level one, ou=aci branch,o=RDN Wildcard Tests,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid' ,
+                  'extraParams'      : '-T'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: RDN Wildcards: Preamble - user searching targeted entry, level three'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=dmiller,ou=branch level three, ou=branch level two, ou=branch level one, ou=aci branch,o=RDN Wildcard Tests,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid' ,
+                  'extraParams'      : '-T'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestString'">
+                  { 'returnString'       : returnString ,
+                    'expectedString'     : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+ 
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test whole-type wildcard for single entry
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations, and
+                                            and entry is returned only for the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with whole-type wildcard, single entry'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, single entry, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, single entry, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, single entry, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, single entry, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test whole-type wildcard for several entries
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, several entries, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            level two and level three entries 
+                                            are returned in step 2, and the appropriate entry
+                                            is returned in the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with whole-type wildcard, several entries'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'uid=*miller'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test whole-type wildcard for several entries, shorthand
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name with shorthand, several entries, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            level two and level three entries 
+                                            are returned in step 2, and the appropriate entry
+                                            is returned in the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, shorthand'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci3.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, shorthand, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, shorthand, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'uid=*miller'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, shorthand, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, shorthand, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test whole-rdn wildcard for single entry
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            and the appropriate entry
+                                            is returned in the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci4.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test whole-rdn wildcard for single entry, two level allow
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            and the appropriate entrries
+                                            are returned in the step 1 and the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level allow'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci5.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level allow, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level allow, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level allow, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level allow, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test multiple-whole-rdn wildcard for single entry, two level deny
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            and the appropriate entry
+                                            is returned in the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, two level deny'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci6.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, two level deny, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, two level deny, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, two level deny, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, two level deny, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test whole-rdn wildcard for single entry, two level deny
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            and the appropriate entry
+                                            is returned in the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level deny'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci7.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level deny, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level deny, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level deny, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level deny, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test multiple-whole-rdn wildcard for single entry, three level deny
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            and the appropriate entry
+                                            is returned in the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, three level deny'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci8.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, three level deny, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, three level deny, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, three level deny, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, three level deny, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test whole-rdn wildcard for single entry, three level deny
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            and the appropriate entry
+                                            is returned in the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, three level deny'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci9.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, three level deny, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, three level deny, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, three level deny, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, three level deny, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test whole-type and multiple-whole-rdn wildcard for several entries, shorthand
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name with shorthand, several entries, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            and the appropriate entry
+                                            is returned in the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with whole-type and multiple-whole-rdn wildcard, several entries, shorthand'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci10.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type and multiple-whole-rdn wildcard, several entries, shorthand, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type and multiple-whole-rdn wildcard, several entries, shorthand, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'uid=*miller'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=bmiller,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type and multiple-whole-rdn wildcard, several entries, shorthand, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with whole-type and multiple-whole-rdn wildcard, several entries, shorthand, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test several multiple-whole-rdn wildcards for single entry, three level deny
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            and the appropriate entry
+                                            is returned in the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards, three level deny'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci11.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards, three level deny, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards, three level deny, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards, three level deny, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards, three level deny, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test several multiple-whole-rdn wildcards with bad branch
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            and the appropriate entry
+                                            is returned in the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards with bad branch'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci12.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards with bad branch, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards with bad branch, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards with bad branch, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards with bad branch, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test multiple-whole-rdn wildcard syntax, multiple spaces
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            and the appropriate entry
+                                            is returned in the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, multiple spaces'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci21.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, multiple spaces, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, multiple spaces, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, multiple spaces, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, multiple spaces, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test multiple-whole-rdn wildcard syntax, extra internal space
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with multiple-whole-rdn wildcard syntax, extra internal space
+                #@TestPreamble              none
+                #@TestStep                  Admin adds an aci to the dn of one existing branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, extra internal space'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci22.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, extra internal space, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+             <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test multiple-whole-rdn wildcard syntax, extra wildcard
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wmultiple-whole-rdn wildcard syntax, extra wildcard
+                #@TestPreamble              none
+                #@TestStep                  Admin adds an aci to the dn of one existing branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, extra wildcard'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci23.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, extra wildcard, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+               <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+             <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test usrdn syntax, single wildcard for branch
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with single wildcard in branch name, deny
+                #@TestPreamble              none
+                #@TestStep                  Admin adds an aci to the dn of one existing branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with usrdn syntax, single wildcard for branch'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci24.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with usrdn syntax, single wildcard for branch, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+               <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+             <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test usrdn syntax, double wildcard notation for branch
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with double wildcard notation, deny
+                #@TestPreamble              none
+                #@TestStep                  Admin adds an aci to the dn of one existing branch.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with usrdn syntax, double wildcard notation for branch'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci25.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with usrdn syntax, double wildcard notation for branch, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+               <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+             <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI RDN Wildcard Tests
+                #@TestName                  Test usrdn syntax, wildcard notation for uid
+                #@TestIssue                 1379
+                #@TestPurpose               Target set equal to a dn with wildcard as attribute name, deny
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry with the targeted branch dn.
+                #@TestStep                  Client searches entry with the targeted branch dn with prohibited user.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0 
+                                            for all ldap operations,
+                                            and the appropriate entry
+                                            is returned in step 2 and the last step.
+            -->
+            <testcase name="'ACI: RDN Wildcards: DN with usrdn syntax, wildcard notation for uid'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci26.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_rdn_wildcards/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: RDN Wildcards: DN with usrdn syntax, wildcard notation for uid, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with usrdn syntax, wildcard notation for uid, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with usrdn syntax, wildcard notation for uid, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid' ,
+                    'extraParams'      : '-T' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with usrdn syntax, wildcard notation for uid, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: RDN Wildcards: DN with usrdn syntax, wildcard notation for uid, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'  ,
+                    'extraParams'      : '-T'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=dmiller,ou=branch level three,ou=branch level two,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Modify RDN Tests
+              #@TestName                  Postamble
+              #@TestIssue                 1379
+              #@TestPurpose               Remove entries
+              #@TestPreamble              none
+              #@TestStep                  Directory Manager removes entries that were used for testing.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0.
+            -->
+            <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+            <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: RDN Wildcards: Postamble'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+                <message>
+                   'ACI: RDN Wildcards: Postamble - delete branch, o=Modify RDN Tests'
+                </message>
+    
+                <call function="'DeleteEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
+                    'extraParams'      : '-x'}
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+       
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>
