@@ -1330,7 +1330,7 @@
                       'testString'         : 'dn: uid=amiller,ou=branch level one,ou=aci branch,o=RDN Wildcard Tests' }
                 </call>
                 
-                <if expr="returnCode != '0'">
+                <if expr="returnCode != '1'">
                     <tcstatus result="'fail'"/>
                 </if>
     
