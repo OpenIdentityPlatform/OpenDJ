@@ -657,7 +657,6 @@ public class PatternDN
         // Initial piece.
         subInitial = new PatternRDN[to];
         subInitial = rdnComponents.subList(0, to).toArray(subInitial);
-        i++;
       }
 
       int from;
