@@ -69,6 +69,11 @@ public class QuickSetupCli {
    */
   static public int BUG = 5;
 
+  /**
+   * Return code for errors that are non-specified.
+   */
+  static public int UNKNOWN = 100;
+
   /** Platform dependent filesystem separator. */
   public static String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -152,9 +157,9 @@ public class QuickSetupCli {
             returnValue = BUG;
             break;
 
-            default:
-              throw new IllegalStateException(
-                  "Unknown ApplicationException type: "+ue.getType());
+          default:
+            returnValue = UNKNOWN;
+            break;
           }
         }
         else

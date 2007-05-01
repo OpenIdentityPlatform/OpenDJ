@@ -34,6 +34,7 @@ import org.opends.quicksetup.webstart.WebStartDownloader;
 import javax.swing.*;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -492,4 +493,17 @@ public abstract class GuiApplication extends Application {
           msg, e);
     }
   }
+
+  /**
+   * Conditionally notifies listeners of the log file if it
+   * has been initialized.
+   */
+  protected void notifyListenersOfLog() {
+    File logFile = QuickSetupLog.getLogFile();
+    if (logFile != null) {
+      notifyListeners(getMsg("general-see-for-details", logFile.getPath()) +
+                  formatter.getLineBreak());
+    }
+  }
+
 }

@@ -30,13 +30,26 @@ package org.opends.quicksetup.upgrader;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.util.Utils;
+
+import java.util.logging.Logger;
+import java.io.File;
 
 /**
  * This class is called by the upgrade and upgrade.bat
  * command line utilities to launch an upgrade process.
  */
 public class UpgradeLauncher extends Launcher {
+
+  /** Prefix for log files. */
+  static public final String LOG_FILE_PREFIX = "opends-upgrade-";
+
+  /** Suffix for log files. */
+  static public final String LOG_FILE_SUFFIX = ".log";
+
+  static private final Logger LOG =
+          Logger.getLogger(UpgradeLauncher.class.getName());
 
   /**
    * The main method which is called by the setup command lines.
@@ -46,6 +59,13 @@ public class UpgradeLauncher extends Launcher {
    * will pass to the org.opends.server.tools.InstallDS class.
    */
   public static void main(String[] args) {
+    try {
+      QuickSetupLog.initLogFileHandler(
+              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
+    } catch (Throwable t) {
+      System.err.println("Unable to initialize log");
+      t.printStackTrace();
+    }
     new UpgradeLauncher(args).launch();
   }
 
