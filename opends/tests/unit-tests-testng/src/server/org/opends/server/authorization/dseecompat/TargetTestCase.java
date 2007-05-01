@@ -131,6 +131,10 @@ public class TargetTestCase extends DirectoryServerTestCase
               "uid=dmiller, ou=branch level three, ou=branch level two, " +
                    "ou=branch level one, ou=aci branches, dc=example,dc=com"
          },
+         {
+              "uid=dmiller, **, dc=example,dc=com",
+              "uid=dmiller, dc=example,dc=com"
+         },
     };
   }
 
