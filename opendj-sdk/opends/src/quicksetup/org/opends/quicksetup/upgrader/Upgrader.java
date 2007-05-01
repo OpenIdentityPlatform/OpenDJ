@@ -227,6 +227,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * Creates a default instance.
    */
   public Upgrader() {
+    try {
+      if (!QuickSetupLog.isInitialized())
+        QuickSetupLog.initLogFileHandler(
+                File.createTempFile(
+                        UpgradeLauncher.LOG_FILE_PREFIX,
+                        UpgradeLauncher.LOG_FILE_SUFFIX));
+    } catch (IOException e) {
+      System.err.println("Failed to initialize log");
+    }
     if (Utils.isWebStart()) {
       initLoader();
     }
@@ -615,7 +624,17 @@ public class Upgrader extends GuiApplication implements CliApplication {
                               Utils.getPath(buildZip), null);
             }
           }
-          getRemoteBuildManager().download(buildToDownload, buildZip);
+          LOG.log(Level.FINE, "Preparing to download " +
+                  buildToDownload.getUrl() +
+                  " to " + Utils.getPath(buildZip));
+          try {
+            getRemoteBuildManager().download(buildToDownload, buildZip);
+          } catch (IOException e) {
+            throw new ApplicationException(
+                    ApplicationException.Type.APPLICATION,
+                    "Failed to download build package .zip " +
+                    "file from " + buildToDownload.getUrl(), e);
+          }
           notifyListeners(formatter.getFormattedDone() +
                   formatter.getLineBreak());
         } catch (ApplicationException e) {
@@ -812,6 +831,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
     if (runException == null) {
       if (!Utils.isCli()) {
 
+        notifyListenersOfLog();
+
         // This seems to be the preferred way to print
         // a message to the top of the progress panel without
         // having it show up in the Details section which we
@@ -831,6 +852,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
     } else {
       if (!Utils.isCli()) {
         notifyListeners(formatter.getFormattedError(runException, true));
+        notifyListenersOfLog();
+        notifyListeners(null);
         setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_ERRORS);
       } else {
         runException.printStackTrace();
@@ -865,7 +888,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
       control.stopServer();
     } catch (Exception e) {
       throw new ApplicationException(ApplicationException.Type.APPLICATION,
-              "Server health check failed", e);
+              "Server health check failed.  Make sure the server is capable " +
+                      "of starting without errors before running the upgrade " +
+                      "tool.", e);
     }
   }
 

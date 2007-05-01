@@ -32,12 +32,16 @@ import org.opends.quicksetup.i18n.ResourceProvider;
 
 import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.util.logging.Logger;
 
 /**
  * Responsible for providing initial evaluation of command line arguments
  * and determining whether to launch a CLI, GUI, or print a usage statement.
  */
 public abstract class Launcher {
+
+  static private final Logger LOG = Logger.getLogger(Launcher.class.getName());
 
   /** Arguments with which this launcher was invoked. */
   protected String[] args;
@@ -103,6 +107,20 @@ public abstract class Launcher {
   protected String getMsg(String key)
   {
     return org.opends.server.util.StaticUtils.wrapText(getI18n().getMsg(key),
+        Utils.getCommandLineMaxLineWidth());
+  }
+
+  /**
+   * Creates an internationaized message based on the input key and
+   * properly formatted for the terminal.
+   * @param key for the message in the bundle
+   * @param args String... arguments for the message
+   * @return String message properly formatted for the terminal
+   */
+  protected String getMsg(String key, String... args)
+  {
+    return org.opends.server.util.StaticUtils.wrapText(
+            getI18n().getMsg(key, args),
         Utils.getCommandLineMaxLineWidth());
   }
 
@@ -240,6 +258,7 @@ public abstract class Launcher {
       printUsage();
     } else if (isCli()) {
       int exitCode = launchCli(args, createCliApplication());
+      preExit();
       System.exit(exitCode);
     } else {
       willLaunchGui();
@@ -248,9 +267,18 @@ public abstract class Launcher {
         guiLaunchFailed();
         exitCode = launchCli(args, createCliApplication());
         if (exitCode != 0) {
+          preExit();
           System.exit(exitCode);
         }
       }
+    }
+  }
+
+  private void preExit() {
+    File logFile = QuickSetupLog.getLogFile();
+    if (logFile != null) {
+      System.out.println(getMsg("general-see-for-details",
+            QuickSetupLog.getLogFile().getPath()));
     }
   }
 
