@@ -1143,6 +1143,14 @@ public class JebMessages
        CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 144;
 
   /**
+   * The message ID of an error indicating that unindexed searches are not
+   * allowed without the unindexed search prilvilege. This does not take
+   * any arguments.
+   */
+  public static final int MSGID_JEB_SEARCH_UNINDEXED_INSUFFICIENT_PRIVILEGES =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 145;
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1467,5 +1475,8 @@ public class JebMessages
                     "Unable to prcess the virtual list view request because " +
                     "no entry was found in the result set with a sort value " +
                     "greater than or equal to the provided assertion value");
+    registerMessage(MSGID_JEB_SEARCH_UNINDEXED_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to perform an " +
+                    "unindexed search");
   }
 }

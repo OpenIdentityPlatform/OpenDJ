@@ -214,7 +214,15 @@ public enum Privilege
    * The privilege that provides the ability to rebuild one or more
    * indexes in a backend that supports indexing.
    */
-  INDEX_REBUILD("index-rebuild");
+  INDEX_REBUILD("index-rebuild"),
+
+
+
+  /**
+   * The privilege that provides the ability to perform an unindexed
+   * search in the JE backend.
+   */
+  UNINDEXED_SEARCH("unindexed-search");
 
 
 
@@ -274,6 +282,7 @@ public enum Privilege
     PRIV_MAP.put("update-schema", UPDATE_SCHEMA);
     PRIV_MAP.put("privilege-change", PRIVILEGE_CHANGE);
     PRIV_MAP.put("index-rebuild", INDEX_REBUILD);
+    PRIV_MAP.put("unindexed-search", UNINDEXED_SEARCH);
 
     PRIV_NAMES.add("bypass-acl");
     PRIV_NAMES.add("modify-acl");
@@ -297,6 +306,7 @@ public enum Privilege
     PRIV_NAMES.add("update-schema");
     PRIV_NAMES.add("privilege-change");
     PRIV_NAMES.add("index-rebuild");
+    PRIV_NAMES.add("unindexed-search");
 
     DEFAULT_ROOT_PRIV_SET.add(BYPASS_ACL);
     DEFAULT_ROOT_PRIV_SET.add(MODIFY_ACL);
@@ -315,6 +325,7 @@ public enum Privilege
     DEFAULT_ROOT_PRIV_SET.add(UPDATE_SCHEMA);
     DEFAULT_ROOT_PRIV_SET.add(PRIVILEGE_CHANGE);
     DEFAULT_ROOT_PRIV_SET.add(INDEX_REBUILD);
+    DEFAULT_ROOT_PRIV_SET.add(UNINDEXED_SEARCH);
   }
 
 
