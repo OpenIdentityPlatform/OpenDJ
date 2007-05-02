@@ -125,9 +125,9 @@ else
   fi
 fi
 
-if [ -r "./tmp/upgrade" ]
+if [ -r "${INSTANCE_ROOT}/tmp/upgrade" ]
 then
-  rm -fr "./tmp/upgrade"
+  rm -fr "${INSTANCE_ROOT}/tmp/upgrade"
 fi
 
 # Launch the build extractor.
@@ -144,7 +144,7 @@ export CLASSPATH
 
 if test ${?} -eq 0
 then
-  if [ -r "./tmp/upgrade" ]
+  if [ -r "${INSTANCE_ROOT}/tmp/upgrade" ]
   then
 
     # Configure the appropriate CLASSPATH.
@@ -159,9 +159,9 @@ then
     "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
 
     # Clean up if necessary
-    if [ -r "./tmp/upgrade" ]
+    if [ -r "${INSTANCE_ROOT}/tmp/upgrade" ]
     then
-      rm -fr "./tmp/upgrade"
+      rm -fr "${INSTANCE_ROOT}/tmp/upgrade"
     fi
   else
     JAVAWS_VM_ARGS="-Dorg.opends.quicksetup.upgrader.Root=$INSTANCE_ROOT"
