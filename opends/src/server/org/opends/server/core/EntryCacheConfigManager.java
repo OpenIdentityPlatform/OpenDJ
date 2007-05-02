@@ -28,24 +28,19 @@ package org.opends.server.core;
 
 
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
 
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.EntryCache;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.extensions.DefaultEntryCache;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
+import org.opends.server.config.ConfigException;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
@@ -55,6 +50,16 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
+import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.EntryCacheCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.meta.EntryCacheCfgDefn;
+
+
 
 /**
  * This class defines a utility that will be used to manage the configuration
@@ -62,9 +67,17 @@ import static org.opends.server.util.StaticUtils.*;
  * defined, but if it is absent or disabled, then a default cache will be used.
  */
 public class EntryCacheConfigManager
-       implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
+       implements
+          ConfigurationChangeListener <EntryCacheCfg>,
+          ConfigurationAddListener    <EntryCacheCfg>,
+          ConfigurationDeleteListener <EntryCacheCfg>
 {
+  // The current entry cache registered in the server
+  private EntryCache _entryCache = null;
 
+  // The default entry cache to use when no entry cache has been configured
+  // or when the configured entry cache could not be initialized.
+  private EntryCache _defaultEntryCache = null;
 
 
   /**
@@ -76,19 +89,36 @@ public class EntryCacheConfigManager
   }
 
 
-
   /**
    * Initializes the configuration associated with the Directory Server entry
    * cache.  This should only be called at Directory Server startup.  If an
    * error occurs, then a message will be logged and the default entry cache
    * will be installed.
    *
+   * @throws  ConfigException  If a configuration problem causes the entry
+   *                           cache initialization process to fail.
+   *
    * @throws  InitializationException  If a problem occurs while trying to
    *                                   install the default entry cache.
    */
   public void initializeEntryCache()
-         throws InitializationException
+         throws ConfigException, InitializationException
   {
+    // Get the root configuration object.
+    ServerManagementContext managementContext =
+      ServerManagementContext.getInstance();
+    RootCfg rootConfiguration =
+      managementContext.getRootConfiguration();
+
+    // Register as an add and delete listener with the root configuration so we
+    // can be notified if any entry cache entry is added or removed.
+    // If entry cache configuration is using a one-to-zero-or-one relation
+    // then uncomment the lines below (see issue #1558).
+    /*
+    // rootConfiguration.addEntryCacheAddListener(this);
+    // rootConfiguration.addEntryCacheDeleteListener(this);
+    */
+
     // First, install a default entry cache so that there will be one even if
     // we encounter a problem later.
     try
@@ -96,6 +126,7 @@ public class EntryCacheConfigManager
       DefaultEntryCache defaultCache = new DefaultEntryCache();
       defaultCache.initializeEntryCache(null);
       DirectoryServer.setEntryCache(defaultCache);
+      _defaultEntryCache = defaultCache;
     }
     catch (Exception e)
     {
@@ -109,377 +140,336 @@ public class EntryCacheConfigManager
       throw new InitializationException(msgID, message, e);
     }
 
+    // If the entry cache configuration is not present then keep the
+    // default entry cache already installed.
+    // If entry cache configuration is using a one-to-zero-or-one relation
+    // then uncomment the lines below (see issue #1558).
+    /*
+    //    if (!rootConfiguration.hasEntryCache())
+    //    {
+    //      logError(
+    //          ErrorLogCategory.CONFIGURATION,
+    //          ErrorLogSeverity.SEVERE_WARNING,
+    //          MSGID_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY
+    //          );
+    //      return;
+    //    }
+    */
 
-    // Get the entry cache configuration entry.  If it is not present, then
-    // register an add listener and install the default cache.
-    DN configEntryDN;
-    ConfigEntry configEntry;
-    try
+    // Get the entry cache configuration.
+    EntryCacheCfg configuration = rootConfiguration.getEntryCache();
+
+    // At this point, we have a configuration entry. Register a change
+    // listener with it so we can be notified of changes to it over time.
+    configuration.addChangeListener(this);
+
+    // Initialize the entry cache.
+    if (configuration.isEnabled())
     {
-      configEntryDN = DN.decode(DN_ENTRY_CACHE_CONFIG);
-      configEntry   = DirectoryServer.getConfigEntry(configEntryDN);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_ENTRYCACHE_CANNOT_GET_CONFIG_ENTRY,
-               stackTraceToSingleLineString(e));
-      return;
-    }
-
-    if (configEntry == null)
-    {
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_WARNING,
-               MSGID_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY);
-
+      // Load the entry cache implementation class and install the entry
+      // cache with the server.
+      String className = configuration.getEntryCacheClass();
       try
       {
-        ConfigEntry parentEntry = DirectoryServer
-            .getConfigEntry(configEntryDN.getParentDNInSuffix());
-        if (parentEntry != null)
-        {
-          parentEntry.registerAddListener(this);
-        }
+        loadAndInstallEntryCache (className, configuration);
       }
-      catch (Exception e)
+      catch (InitializationException ie)
       {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 MSGID_CONFIG_ENTRYCACHE_CANNOT_REGISTER_ADD_LISTENER,
-                 stackTraceToSingleLineString(e));
+        logError(
+            ErrorLogCategory.CONFIGURATION,
+            ErrorLogSeverity.SEVERE_ERROR,
+            ie.getMessage(),
+            ie.getMessageID());
       }
+    }
+  }
 
-      return;
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      EntryCacheCfg configuration,
+      List<String>  unacceptableReasons
+      )
+  {
+    // returned status -- all is fine by default
+    boolean status = true;
+
+    if (configuration.isEnabled())
+    {
+      // Get the name of the class and make sure we can instantiate it as an
+      // entry cache.
+      String className = configuration.getEntryCacheClass();
+      try
+      {
+        // Load the class but don't initialize it.
+        loadEntryCache(className, null);
+      }
+      catch (InitializationException ie)
+      {
+        unacceptableReasons.add(ie.getMessage());
+        status = false;
+      }
     }
 
+    return status;
+  }
 
-    // At this point, we have a configuration entry.  Register a change listener
-    // with it so we can be notified of changes to it over time.  We will also
-    // want to register a delete listener with its parent to allow us to
-    // determine if the entry is deleted.
-    configEntry.registerChangeListener(this);
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+      EntryCacheCfg configuration
+      )
+  {
+    // Returned result.
+    ConfigChangeResult changeResult = new ConfigChangeResult(
+        ResultCode.SUCCESS, false, new ArrayList<String>()
+        );
+
+    // If the new configuration has the entry cache disabled, then install
+    // the default entry cache with the server.
+    if (! configuration.isEnabled())
+    {
+      DirectoryServer.setEntryCache (_defaultEntryCache);
+
+      // If an entry cache was installed then clean it.
+      if (_entryCache != null)
+      {
+        _entryCache.finalizeEntryCache();
+        _entryCache = null;
+      }
+      return changeResult;
+    }
+
+    // At this point, new configuration is enabled...
+    // If the current entry cache is already enabled then we don't do
+    // anything unless the class has changed in which case we should
+    // indicate that administrative action is required.
+    String newClassName = configuration.getEntryCacheClass();
+    if (_entryCache !=null)
+    {
+      String curClassName = _entryCache.getClass().getName();
+      boolean classIsNew = (! newClassName.equals (curClassName));
+      if (classIsNew)
+      {
+        changeResult.setAdminActionRequired (true);
+      }
+      return changeResult;
+    }
+
+    // New entry cache is enabled and there were no previous one.
+    // Instantiate the new class and initalize it.
     try
     {
-      DN parentDN = configEntryDN.getParentDNInSuffix();
-      ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-      if (parentEntry != null)
+      loadAndInstallEntryCache (newClassName, configuration);
+    }
+    catch (InitializationException ie)
+    {
+      changeResult.addMessage (ie.getMessage());
+      changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
+      return changeResult;
+    }
+
+    return changeResult;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationAddAcceptable(
+      EntryCacheCfg configuration,
+      List<String>  unacceptableReasons
+      )
+  {
+    // returned status -- all is fine by default
+    boolean status = true;
+
+    if (configuration.isEnabled())
+    {
+      // Get the name of the class and make sure we can instantiate it as
+      // an entry cache.
+      String className = configuration.getEntryCacheClass();
+      try
       {
-        parentEntry.registerDeleteListener(this);
+        // Load the class but don't initialize it.
+        loadEntryCache(className, null);
+      }
+      catch (InitializationException ie)
+      {
+        unacceptableReasons.add (ie.getMessage());
+        status = false;
       }
     }
-    catch (Exception e)
+
+    return status;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationAdd(
+      EntryCacheCfg configuration
+      )
+  {
+    // Returned result.
+    ConfigChangeResult changeResult = new ConfigChangeResult(
+        ResultCode.SUCCESS, false, new ArrayList<String>()
+        );
+
+    // Register a change listener with it so we can be notified of changes
+    // to it over time.
+    configuration.addChangeListener(this);
+
+    if (configuration.isEnabled())
     {
-      if (debugEnabled())
+      // Instantiate the class as an entry cache and initialize it.
+      String className = configuration.getEntryCacheClass();
+      try
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        loadAndInstallEntryCache (className, configuration);
       }
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_WARNING,
-               MSGID_CONFIG_ENTRYCACHE_CANNOT_REGISTER_DELETE_LISTENER,
-               stackTraceToSingleLineString(e));
-    }
-
-
-    // See if the entry indicates whether the cache should be enabled.
-    int msgID = MSGID_CONFIG_ENTRYCACHE_DESCRIPTION_CACHE_ENABLED;
-    BooleanConfigAttribute enabledStub =
-         new BooleanConfigAttribute(ATTR_ENTRYCACHE_ENABLED, getMessage(msgID),
-                                    false);
-    try
-    {
-      BooleanConfigAttribute enabledAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(enabledStub);
-      if (enabledAttr == null)
+      catch (InitializationException ie)
       {
-        // The attribute is not present, so the entry cache will be disabled.
-        // Log a warning message and return.
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING,
-                 MSGID_CONFIG_ENTRYCACHE_NO_ENABLED_ATTR);
-        return;
-      }
-      else if (! enabledAttr.activeValue())
-      {
-        // The entry cache is explicitly disabled.  Log a mild warning and
-        // return.
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_WARNING,
-                 MSGID_CONFIG_ENTRYCACHE_DISABLED);
-        return;
+        changeResult.addMessage (ie.getMessage());
+        changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
+        return changeResult;
       }
     }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_ENTRYCACHE_UNABLE_TO_DETERMINE_ENABLED_STATE,
-               stackTraceToSingleLineString(e));
-      return;
+    return changeResult;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationDeleteAcceptable(
+      EntryCacheCfg configuration,
+      List<String>  unacceptableReasons
+      )
+  {
+    // NYI
+
+    // If we've gotten to this point, then it is acceptable as far as we are
+    // concerned.  If it is unacceptable according to the configuration, then
+    // the entry cache itself will make that determination.
+    return true;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationDelete(
+      EntryCacheCfg configuration
+      )
+  {
+    // Returned result.
+    ConfigChangeResult changeResult = new ConfigChangeResult(
+        ResultCode.SUCCESS, false, new ArrayList<String>()
+        );
+
+    // If the entry cache was installed then replace it with the
+    // default entry cache, and clean it.
+    if (_entryCache != null)
+    {
+      DirectoryServer.setEntryCache (_defaultEntryCache);
+      _entryCache.finalizeEntryCache();
+      _entryCache = null;
     }
 
-
-    // See if it specifies the class name for the entry cache implementation.
-    String className;
-    msgID = MSGID_CONFIG_ENTRYCACHE_DESCRIPTION_CACHE_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_ENTRYCACHE_CLASS, getMessage(msgID),
-                                   true, false, false);
-    try
-    {
-      StringConfigAttribute classAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      if (classAttr == null)
-      {
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 MSGID_CONFIG_ENTRYCACHE_NO_CLASS_ATTR);
-        return;
-      }
-      else
-      {
-        className = classAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_ENTRYCACHE_CANNOT_DETERMINE_CLASS,
-               stackTraceToSingleLineString(e));
-      return;
-    }
+    return changeResult;
+  }
 
 
-    // Try to load the class and instantiate it as an entry cache.
-    Class cacheClass;
-    try
-    {
-      cacheClass = DirectoryServer.loadClass(className);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
+  /**
+   * Loads the specified class, instantiates it as an entry cache,
+   * and optionally initializes that instance. Any initialize entry
+   * cache is registered in the server.
+   *
+   * @param  className      The fully-qualified name of the entry cache
+   *                        class to load, instantiate, and initialize.
+   * @param  configuration  The configuration to use to initialize the
+   *                        entry cache, or {@code null} if the
+   *                        entry cache should not be initialized.
+   *
+   * @throws  InitializationException  If a problem occurred while attempting
+   *                                   to initialize the entry cache.
+   */
+  private void loadAndInstallEntryCache(
+    String        className,
+    EntryCacheCfg configuration
+    )
+    throws InitializationException
+  {
+    // Load the entry cache class...
+    EntryCache entryCache = loadEntryCache (className, configuration);
 
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_ENTRYCACHE_CANNOT_LOAD_CLASS,
-               String.valueOf(className), stackTraceToSingleLineString(e));
-      return;
-    }
-
-    EntryCache entryCache;
-    try
-    {
-      entryCache = (EntryCache) cacheClass.newInstance();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_ENTRYCACHE_CANNOT_INSTANTIATE_CLASS,
-               String.valueOf(className), stackTraceToSingleLineString(e));
-      return;
-    }
-
-
-    // Try to initialize the cache with the contents of the configuration entry.
-    try
-    {
-      entryCache.initializeEntryCache(configEntry);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE,
-               String.valueOf(className), stackTraceToSingleLineString(e));
-      return;
-    }
-
-
-    // Install the new cache with the server.  We don't need to do anything to
-    // get rid of the previous default cache since it doesn't consume any
-    // resources.
+    // ... and install the entry cache in the server.
     DirectoryServer.setEntryCache(entryCache);
+    _entryCache = entryCache;
   }
-
 
 
   /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * modification is acceptable to this change listener.
+   * Loads the specified class, instantiates it as an entry cache,
+   * and optionally initializes that instance.
    *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested update.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed change is not acceptable.
+   * @param  className      The fully-qualified name of the entry cache
+   *                        class to load, instantiate, and initialize.
+   * @param  configuration  The configuration to use to initialize the
+   *                        entry cache, or {@code null} if the
+   *                        entry cache should not be initialized.
    *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
+   * @return  The possibly initialized entry cache.
+   *
+   * @throws  InitializationException  If a problem occurred while attempting
+   *                                   to initialize the entry cache.
    */
-  public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
+  private EntryCache<? extends EntryCacheCfg> loadEntryCache(
+    String        className,
+    EntryCacheCfg configuration
+    )
+    throws InitializationException
   {
-    // NYI
+    try
+    {
+      EntryCacheCfgDefn                   definition;
+      ClassPropertyDefinition             propertyDefinition;
+      Class<? extends EntryCache>         cacheClass;
+      EntryCache<? extends EntryCacheCfg> cache;
 
+      definition = EntryCacheCfgDefn.getInstance();
+      propertyDefinition = definition.getEntryCacheClassPropertyDefinition();
+      cacheClass = propertyDefinition.loadClass(className, EntryCache.class);
+      cache = (EntryCache<? extends EntryCacheCfg>) cacheClass.newInstance();
 
-    // If we've gotten to this point, then it is acceptable as far as we are
-    // concerned.  If it is unacceptable according to the configuration, then
-    // the entry cache itself will make that determination.
-    return true;
+      if (configuration != null)
+      {
+        Method method = cache.getClass().getMethod(
+            "initializeEntryCache",
+            configuration.definition().getServerConfigurationClass()
+            );
+        method.invoke(cache, configuration);
+      }
+
+      return cache;
+    }
+    catch (Exception e)
+    {
+      int msgID = MSGID_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE;
+      String message = getMessage(
+          msgID, className,
+          String.valueOf(configuration.dn()),
+          stackTraceToSingleLineString(e)
+          );
+      throw new InitializationException(msgID, message, e);
+    }
   }
 
-
-
-  /**
-   * Attempts to apply a new configuration to this Directory Server component
-   * based on the provided changed entry.
-   *
-   * @param  configEntry  The configuration entry that containing the updated
-   *                      configuration for this component.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
-  {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-
-
-    // NYI
-
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-
-
-  /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * add is acceptable to this add listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested add.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed entry is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
-   */
-  public boolean configAddIsAcceptable(ConfigEntry configEntry,
-                                       StringBuilder unacceptableReason)
-  {
-    // NYI
-
-
-    // If we've gotten to this point, then it is acceptable as far as we are
-    // concerned.  If it is unacceptable according to the configuration, then
-    // the entry cache itself will make that determination.
-    return true;
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration based on the provided added entry.
-   *
-   * @param  configEntry  The new configuration entry that contains the
-   *                      configuration to apply.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
-  {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-
-
-    // NYI
-
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-
-
-  /**
-   * Indicates whether it is acceptable to remove the provided configuration
-   * entry.
-   *
-   * @param  configEntry         The configuration entry that will be removed
-   *                             from the configuration.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed delete is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry may be removed from the
-   *          configuration, or <CODE>false</CODE> if not.
-   */
-  public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
-  {
-    // NYI
-
-
-    // If we've gotten to this point, then it is acceptable as far as we are
-    // concerned.  If it is unacceptable according to the configuration, then
-    // the entry cache itself will make that determination.
-    return true;
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration based on the provided deleted entry.
-   *
-   * @param  configEntry  The new configuration entry that has been deleted.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
-  {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-
-
-    // NYI
-
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
 }
-

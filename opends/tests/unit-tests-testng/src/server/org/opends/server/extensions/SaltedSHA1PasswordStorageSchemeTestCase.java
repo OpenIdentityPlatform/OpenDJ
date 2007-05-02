@@ -30,6 +30,9 @@ package org.opends.server.extensions;
 
 import org.testng.annotations.Test;
 
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -70,7 +73,14 @@ public class SaltedSHA1PasswordStorageSchemeTestCase
   {
     SaltedSHA1PasswordStorageScheme scheme =
          new SaltedSHA1PasswordStorageScheme();
-    scheme.initializePasswordStorageScheme(configEntry);
+
+    PasswordStorageSchemeCfg configuration =
+      AdminTestCaseUtils.getConfiguration(
+          PasswordStorageSchemeCfgDefn.getInstance(),
+          configEntry.getEntry()
+          );
+
+    scheme.initializePasswordStorageScheme(configuration);
     return scheme;
   }
 
@@ -89,7 +99,14 @@ public class SaltedSHA1PasswordStorageSchemeTestCase
   {
     SaltedSHA1PasswordStorageScheme scheme =
          new SaltedSHA1PasswordStorageScheme();
-    scheme.initializePasswordStorageScheme(configEntry);
+
+    PasswordStorageSchemeCfg configuration =
+      AdminTestCaseUtils.getConfiguration(
+          PasswordStorageSchemeCfgDefn.getInstance(),
+          configEntry.getEntry()
+          );
+
+    scheme.initializePasswordStorageScheme(configuration);
 
     String passwordString = scheme.encodeOffline(plaintext.value());
     String[] pwComps = UserPasswordSyntax.decodeUserPassword(passwordString);

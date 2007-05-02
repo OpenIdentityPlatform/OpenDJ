@@ -28,8 +28,8 @@ package org.opends.server.extensions;
 
 
 
+import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringFactory;
@@ -53,7 +53,7 @@ import static org.opends.server.messages.MessageHandler.*;
  * value from the casual observer.
  */
 public class Base64PasswordStorageScheme
-       extends PasswordStorageScheme
+       extends PasswordStorageScheme <PasswordStorageSchemeCfg>
 {
 
 
@@ -75,8 +75,10 @@ public class Base64PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public void initializePasswordStorageScheme(ConfigEntry configEntry)
-         throws ConfigException, InitializationException
+  public void initializePasswordStorageScheme(
+      PasswordStorageSchemeCfg configuration
+      )
+      throws ConfigException, InitializationException
   {
     // No initialization is required.
   }

@@ -28,18 +28,25 @@ package org.opends.server.extensions;
 
 
 
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.messages.ExtensionsMessages.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.
+       ErrorLogAccountStatusNotificationHandlerCfgDefn;
+import org.opends.server.admin.std.server.
+       ErrorLogAccountStatusNotificationHandlerCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.MultiChoiceConfigAttribute;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -47,15 +54,6 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.Error.*;
-import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -65,29 +63,19 @@ import static org.opends.server.util.StaticUtils.*;
  * logging facility.
  */
 public class ErrorLogAccountStatusNotificationHandler
-       extends AccountStatusNotificationHandler
-       implements ConfigurableComponent
+       extends
+          AccountStatusNotificationHandler
+          <ErrorLogAccountStatusNotificationHandlerCfg>
+       implements
+          ConfigurationChangeListener
+          <ErrorLogAccountStatusNotificationHandlerCfg>
 {
-
-
-
   /**
    * The set of names for the account status notification types that may be
    * logged by this notification handler.
    */
   private static final HashSet<String> NOTIFICATION_TYPE_NAMES =
        new HashSet<String>();
-
-
-
-  // The DN of the configuration entry for this notification handler.
-  private DN configEntryDN;
-
-  // The set of notification types that should generate log messages.
-  private HashSet<AccountStatusNotificationType> notificationTypes;
-
-
-
 
   static
   {
@@ -99,88 +87,34 @@ public class ErrorLogAccountStatusNotificationHandler
   }
 
 
+  // The DN of the configuration entry for this notification handler.
+  private DN configEntryDN;
+
+  // The set of notification types that should generate log messages.
+  private HashSet<AccountStatusNotificationType> notificationTypes;
+
+
 
   /**
-   * Initializes this account status notification handler based on the
-   * information in the provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this account status notification
-   *                      handler.
-   *
-   * @throws  ConfigException  If the provided entry does not contain a valid
-   *                           configuration for this account status
-   *                           notification handler.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
-  public void initializeStatusNotificationHandler(ConfigEntry configEntry)
-       throws ConfigException, InitializationException
+  public void initializeStatusNotificationHandler(
+      ErrorLogAccountStatusNotificationHandlerCfg configuration
+      )
+      throws ConfigException, InitializationException
   {
-    configEntryDN = configEntry.getDN();
+    configuration.addErrorLogChangeListener (this);
+    configEntryDN = configuration.dn();
 
-
-    // Initialize the set of notification types that should generate log
-    // messages.
-    int msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_DESCRIPTION_NOTIFICATION_TYPES;
-    MultiChoiceConfigAttribute typesStub =
-         new MultiChoiceConfigAttribute(ATTR_ACCT_NOTIFICATION_TYPE,
-                                        getMessage(msgID), true, true, false,
-                                        NOTIFICATION_TYPE_NAMES);
-    try
-    {
-      MultiChoiceConfigAttribute typesAttr =
-           (MultiChoiceConfigAttribute)
-           configEntry.getConfigAttribute(typesStub);
-      notificationTypes = new HashSet<AccountStatusNotificationType>();
-      for (String s : typesAttr.activeValues())
-      {
-        AccountStatusNotificationType t =
-             AccountStatusNotificationType.typeForName(s);
-        if (t == null)
-        {
-          msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_INVALID_TYPE;
-          String message = getMessage(msgID, String.valueOf(configEntryDN), s);
-          throw new ConfigException(msgID, message);
-        }
-        else
-        {
-          notificationTypes.add(t);
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_CANNOT_GET_NOTIFICATION_TYPES;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
-    }
-
-
-    DirectoryServer.registerConfigurableComponent(this);
-    DirectoryServer.registerAccountStatusNotificationHandler(configEntryDN,
-                                                             this);
+    // Read configuration and apply changes.
+    boolean applyChanges = true;
+    processNotificationHandlerConfig (configuration, applyChanges);
   }
 
 
 
   /**
-   * Performs any processing that may be necessary in conjunction with the
-   * provided account status notification type.
-   *
-   * @param  notificationType  The type for this account status notification.
-   * @param  userDN            The DN of the user entry to which this
-   *                           notification applies.
-   * @param  messageID         The unique ID for this notification.
-   * @param  message           The human-readable message for this notification.
+   * {@inheritDoc}
    */
   public void handleStatusNotification(AccountStatusNotificationType
                                             notificationType,
@@ -240,158 +174,172 @@ public class ErrorLogAccountStatusNotificationHandler
 
 
   /**
-   * Indicates whether the provided configuration entry has an
-   * acceptable configuration for this component.  If it does not,
-   * then detailed information about the problem(s) should be added to
-   * the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to
-   *                              make the determination.
-   * @param  unacceptableReasons  A list that can be used to hold
-   *                              messages about why the provided
-   *                              entry does not have an acceptable
-   *                              configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an
-   *          acceptable configuration for this component, or
-   *          <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                      List<String> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(
+      ErrorLogAccountStatusNotificationHandlerCfg configuration,
+      List<String> unacceptableReasons
+      )
   {
-    // Initialize the set of notification types that should generate log
-    // messages.
-    int msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_DESCRIPTION_NOTIFICATION_TYPES;
-    MultiChoiceConfigAttribute typesStub =
-         new MultiChoiceConfigAttribute(ATTR_ACCT_NOTIFICATION_TYPE,
-                                        getMessage(msgID), true, true, false,
-                                        NOTIFICATION_TYPE_NAMES);
-    try
-    {
-      MultiChoiceConfigAttribute typesAttr =
-           (MultiChoiceConfigAttribute)
-           configEntry.getConfigAttribute(typesStub);
-      HashSet<AccountStatusNotificationType> types =
-           new HashSet<AccountStatusNotificationType>();
-      for (String s : typesAttr.activeValues())
-      {
-        AccountStatusNotificationType t =
-             AccountStatusNotificationType.typeForName(s);
-        if (t == null)
-        {
-          msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_INVALID_TYPE;
-          String message = getMessage(msgID, String.valueOf(configEntryDN), s);
-          unacceptableReasons.add(message);
-          return false;
-        }
-        else
-        {
-          types.add(t);
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
+    // Make sure that we can process the defined notification handler.
+    // If so, then we'll accept the new configuration.
+    boolean applyChanges = false;
+    boolean isAcceptable = processNotificationHandlerConfig (
+        configuration, applyChanges
+        );
 
-      msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_CANNOT_GET_NOTIFICATION_TYPES;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      unacceptableReasons.add(message);
-      return false;
-    }
-
-
-    // If we've gotten here, then everything is OK.
-    return true;
+    return isAcceptable;
   }
 
 
 
   /**
-   * Makes a best-effort attempt to apply the configuration contained
-   * in the provided entry.  Information about the result of this
-   * processing should be added to the provided message list.
-   * Information should always be added to this list if a
-   * configuration change could not be applied.  If detailed results
-   * are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not
-   * changed) should also be included.
+   * Makes a best-effort attempt to apply the configuration contained in the
+   * provided entry.  Information about the result of this processing should be
+   * added to the provided message list.  Information should always be added to
+   * this list if a configuration change could not be applied.  If detailed
+   * results are requested, then information about the changes applied
+   * successfully (and optionally about parameters that were not changed) should
+   * also be included.
    *
-   * @param  configEntry      The entry containing the new
-   *                          configuration to apply for this
-   *                          component.
-   * @param  detailedResults  Indicates whether detailed information
-   *                          about the processing should be added to
-   *                          the list.
+   * @param  configuration    The entry containing the new configuration to
+   *                          apply for this component.
+   * @param  detailedResults  Indicates whether detailed information about the
+   *                          processing should be added to the list.
    *
-   * @return  Information about the result of the configuration
-   *          update.
+   * @return  Information about the result of the configuration update.
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange (
+      ErrorLogAccountStatusNotificationHandlerCfg configuration,
+      boolean detailedResults
+      )
+  {
+    ConfigChangeResult changeResult = applyConfigurationChange (configuration);
+    return changeResult;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange (
+      ErrorLogAccountStatusNotificationHandlerCfg configuration
+      )
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
     ArrayList<String> messages = new ArrayList<String>();
-
+    ConfigChangeResult changeResult = new ConfigChangeResult(
+        resultCode, adminActionRequired, messages
+        );
 
     // Initialize the set of notification types that should generate log
     // messages.
-    HashSet<AccountStatusNotificationType> types =
-         new HashSet<AccountStatusNotificationType>();
-    int msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_DESCRIPTION_NOTIFICATION_TYPES;
-    MultiChoiceConfigAttribute typesStub =
-         new MultiChoiceConfigAttribute(ATTR_ACCT_NOTIFICATION_TYPE,
-                                        getMessage(msgID), true, true, false,
-                                        NOTIFICATION_TYPE_NAMES);
-    try
-    {
-      MultiChoiceConfigAttribute typesAttr =
-           (MultiChoiceConfigAttribute)
-           configEntry.getConfigAttribute(typesStub);
-      for (String s : typesAttr.activeValues())
-      {
-        AccountStatusNotificationType t =
-             AccountStatusNotificationType.typeForName(s);
-        if (t == null)
-        {
-          resultCode = ResultCode.UNWILLING_TO_PERFORM;
+    boolean applyChanges = false;
+    processNotificationHandlerConfig (
+        configuration, applyChanges
+        );
 
-          msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_INVALID_TYPE;
-          messages.add(getMessage(msgID, String.valueOf(configEntryDN), s));
-        }
-        else
-        {
-          types.add(t);
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      resultCode = DirectoryServer.getServerErrorResultCode();
-
-      msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_CANNOT_GET_NOTIFICATION_TYPES;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              getExceptionMessage(e)));
-    }
-
-
-    if (resultCode == ResultCode.SUCCESS)
-    {
-      this.notificationTypes = types;
-    }
-
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return changeResult;
   }
+
+
+  /**
+   * Parses the provided configuration and configure the notification handler.
+   *
+   * @param configuration  The new configuration containing the changes.
+   * @param applyChanges   If true then take into account the new configuration.
+   *
+   * @return  The mapping between strings of character set values and the
+   *          minimum number of characters required from those sets.
+   */
+  public boolean processNotificationHandlerConfig(
+      ErrorLogAccountStatusNotificationHandlerCfg configuration,
+      boolean                                     applyChanges
+      )
+  {
+    // false if the configuration is not acceptable
+    boolean isAcceptable = true;
+
+    // The set of notification types that should generate log messages.
+    HashSet<AccountStatusNotificationType> newNotificationTypes =
+        new HashSet<AccountStatusNotificationType>();
+
+    // Initialize the set of notification types that should generate log
+    // messages.
+    for (ErrorLogAccountStatusNotificationHandlerCfgDefn.
+         AccountStatusNotificationType configNotificationType:
+         configuration.getAccountStatusNotificationType())
+    {
+      newNotificationTypes.add (getNotificationType (configNotificationType));
+    }
+
+    if (applyChanges && isAcceptable)
+    {
+      notificationTypes = newNotificationTypes;
+    }
+
+    return isAcceptable;
+  }
+
+
+  /**
+   * Gets the OpenDS notification type object that corresponds to the
+   * configuration counterpart.
+   *
+   * @param  notificationType  The configuration notification type for which
+   *                           to retrieve the OpenDS notification type.
+   */
+  private AccountStatusNotificationType getNotificationType(
+      ErrorLogAccountStatusNotificationHandlerCfgDefn.
+         AccountStatusNotificationType configNotificationType
+      )
+  {
+    AccountStatusNotificationType nt = null;
+
+    switch (configNotificationType)
+    {
+    case ACCOUNT_TEMPORARILY_LOCKED:
+         nt = AccountStatusNotificationType.ACCOUNT_TEMPORARILY_LOCKED;
+         break;
+    case ACCOUNT_PERMANENTLY_LOCKED:
+         nt = AccountStatusNotificationType.ACCOUNT_PERMANENTLY_LOCKED;
+         break;
+    case ACCOUNT_UNLOCKED:
+         nt = AccountStatusNotificationType.ACCOUNT_UNLOCKED;
+         break;
+    case ACCOUNT_IDLE_LOCKED:
+         nt = AccountStatusNotificationType.ACCOUNT_IDLE_LOCKED;
+         break;
+    case ACCOUNT_RESET_LOCKED:
+         nt = AccountStatusNotificationType.ACCOUNT_RESET_LOCKED;
+         break;
+    case ACCOUNT_DISABLED:
+         nt = AccountStatusNotificationType.ACCOUNT_DISABLED;
+         break;
+    case ACCOUNT_ENABLED:
+         nt = AccountStatusNotificationType.ACCOUNT_ENABLED;
+         break;
+    case ACCOUNT_EXPIRED:
+         nt = AccountStatusNotificationType.ACCOUNT_EXPIRED;
+         break;
+    case PASSWORD_EXPIRED:
+         nt = AccountStatusNotificationType.PASSWORD_EXPIRED;
+         break;
+    case PASSWORD_EXPIRING:
+         nt = AccountStatusNotificationType.PASSWORD_EXPIRING;
+         break;
+    case PASSWORD_RESET:
+         nt = AccountStatusNotificationType.PASSWORD_RESET;
+         break;
+    case PASSWORD_CHANGED:
+         nt = AccountStatusNotificationType.PASSWORD_CHANGED;
+         break;
+    }
+
+    return nt;
+  }
+
 }
 

@@ -28,7 +28,7 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
@@ -41,8 +41,12 @@ import org.opends.server.types.InitializationException;
  * implemented by a Directory Server module that implements a password
  * storage scheme.  Each subclass may only implement a single password
  * storage scheme type.
+ *
+ * @param  <T>  The type of configuration handled by this
+ *              password storage scheme
  */
-public abstract class PasswordStorageScheme
+public abstract class
+       PasswordStorageScheme <T extends PasswordStorageSchemeCfg>
 {
   /**
    * Initializes this password storage scheme handler based on the
@@ -50,9 +54,9 @@ public abstract class PasswordStorageScheme
    * register itself with the Directory Server for the particular
    * storage scheme that it will manage.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      password storage scheme handler.
+   * @param  configuration  The configuration entry that contains the
+   *                        information to use to initialize this
+   *                        password storage scheme handler.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -64,7 +68,7 @@ public abstract class PasswordStorageScheme
    *                                   configuration.
    */
   public abstract void initializePasswordStorageScheme(
-                            ConfigEntry configEntry)
+         T configuration)
          throws ConfigException, InitializationException;
 
 

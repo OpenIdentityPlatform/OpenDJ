@@ -26,6 +26,9 @@
  */
 package org.opends.server.schema;
 
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
@@ -73,8 +76,16 @@ public class AuthPasswordEqualityMatchingRuleTest extends
     SaltedMD5PasswordStorageScheme scheme = new SaltedMD5PasswordStorageScheme();
     
     ConfigEntry configEntry =
-       DirectoryServer.getConfigEntry(DN.decode("cn=Salted MD5,cn=Password Storage Schemes,cn=config"));
-    scheme.initializePasswordStorageScheme(configEntry);
+       DirectoryServer.getConfigEntry(
+           DN.decode("cn=Salted MD5,cn=Password Storage Schemes,cn=config"));
+
+    PasswordStorageSchemeCfg configuration =
+      AdminTestCaseUtils.getConfiguration(
+          PasswordStorageSchemeCfgDefn.getInstance(),
+          configEntry.getEntry()
+          );
+
+    scheme.initializePasswordStorageScheme(configuration);
     
     ByteString encodedAuthPassword = scheme.encodeAuthPassword(bytePassword);
     StringBuilder[] authPWComponents =

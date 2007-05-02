@@ -242,4 +242,43 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
+  <adm:property name="include-filter" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      The set of filters that define the entries that should be
+      included in the cache.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.43</ldap:oid>
+        <ldap:name>ds-cfg-include-filter</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="exclude-filter" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      The set of filters that define the entries that should be
+      excluded from the cache.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.38</ldap:oid>
+        <ldap:name>ds-cfg-exclude-filter</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
 </adm:package>

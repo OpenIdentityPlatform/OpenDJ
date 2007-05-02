@@ -32,8 +32,8 @@ import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
@@ -66,7 +66,7 @@ import static org.opends.server.util.StaticUtils.*;
  * vulnerable to dictionary attacks than salted variants.
  */
 public class MD5PasswordStorageScheme
-       extends PasswordStorageScheme
+       extends PasswordStorageScheme <PasswordStorageSchemeCfg>
 {
   /**
    * The fully-qualified name of this class.
@@ -101,8 +101,10 @@ public class MD5PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public void initializePasswordStorageScheme(ConfigEntry configEntry)
-         throws ConfigException, InitializationException
+  public void initializePasswordStorageScheme(
+      PasswordStorageSchemeCfg configuration
+      )
+      throws ConfigException, InitializationException
   {
     try
     {

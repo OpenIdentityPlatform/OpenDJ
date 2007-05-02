@@ -36,6 +36,11 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AccountStatusNotificationHandler;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.
+       ErrorLogAccountStatusNotificationHandlerCfgDefn;
+import org.opends.server.admin.std.server.
+       ErrorLogAccountStatusNotificationHandlerCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -149,7 +154,12 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
 
     ErrorLogAccountStatusNotificationHandler handler =
          new ErrorLogAccountStatusNotificationHandler();
-    handler.initializeStatusNotificationHandler(configEntry);
+    ErrorLogAccountStatusNotificationHandlerCfg configuration =
+      AdminTestCaseUtils.getConfiguration(
+          ErrorLogAccountStatusNotificationHandlerCfgDefn.getInstance(),
+          configEntry.getEntry()
+          );
+    handler.initializeStatusNotificationHandler(configuration);
   }
 
 

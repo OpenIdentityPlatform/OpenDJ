@@ -28,7 +28,8 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.
+       AccountStatusNotificationHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationType;
@@ -44,16 +45,21 @@ import org.opends.server.types.InitializationException;
  * the status of a user account.  The account status notification
  * handler may be used to notify the user and/or administrators of the
  * change.
+ *
+ * @param  <T>  The type of configuration handled by this notification
+ *              handler.
  */
-public abstract class AccountStatusNotificationHandler
+public abstract class
+       AccountStatusNotificationHandler
+       <T extends AccountStatusNotificationHandlerCfg>
 {
   /**
    * Initializes this account status notification handler based on the
    * information in the provided configuration entry.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      account status notification handler.
+   * @param  configuration  The configuration entry that contains the
+   *                        information to use to initialize this
+   *                        account status notification handler.
    *
    * @throws  ConfigException  If the provided entry does not contain
    *                           a valid configuration for this account
@@ -65,7 +71,7 @@ public abstract class AccountStatusNotificationHandler
    *                                   configuration.
    */
   public abstract void initializeStatusNotificationHandler(
-                            ConfigEntry configEntry)
+         T configuration)
          throws ConfigException, InitializationException;
 
 

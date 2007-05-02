@@ -99,6 +99,30 @@
       </ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
+  <adm:relation name="entry-cache">
+  	<adm:one-to-one />
+  	<adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Entry Cache,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="account-status-notification-handler">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Account Status Notification Handlers,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="password-storage-scheme">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Password Storage Schemes,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
   <adm:relation name="backend">
     <adm:one-to-many />
     <adm:profile name="ldap">

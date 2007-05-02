@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object
+  name="fifo-entry-cache"
+  plural-name="fifo-entry-caches"
+  package="org.opends.server.admin.std"
+  extends="entry-cache"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap"
+  >
+
+  <adm:synopsis>
+    <adm:user-friendly-name />
+    defines a Directory Server entry cache that uses a FIFO to keep
+    track of the entries.  Entries that have been in the cache the longest are
+    the most likely candidates for purging if space is needed.  In contrast to
+    other cache structures, the selection of entries to purge is not based on
+    how frequently or recently the entries have been accessed.  This requires
+    significantly less locking (it will only be required when an entry is added
+    or removed from the cache, rather than each time an entry is accessed).
+
+    Cache sizing is based on the percentage of free memory within the JVM, such
+    that if enough memory is free, then adding an entry to the cache will not
+    require purging, but if more than a specified percentage of the available
+    memory within the JVM is already consumed, then one or more entries will need
+    to be removed in order to make room for a new entry.  It is also possible to
+    configure a maximum number of entries for the cache.  If this is specified,
+    then the number of entries will not be allowed to exceed this value, but it
+    may not be possible to hold this many entries if the available memory fills
+    up first.
+
+    Other configurable parameters for this cache include the maximum length of
+    time to block while waiting to acquire a lock, and a set of filters that may
+    be used to define criteria for determining which entries are stored in the
+    cache.  If a filter list is provided, then only entries matching at least
+    one of the given filters will be stored in the cache.
+  </adm:synopsis>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.16</ldap:oid>
+      <ldap:name>ds-cfg-fifo-entry-cache</ldap:name>
+      <ldap:superior>ds-cfg-entry-cache</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property name="lock-timeout" mandatory="false">
+    <adm:synopsis>
+      The length of time in milliseconds to wait while
+      attempting to acquire a read or write lock.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>2000.0ms</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="0" allow-unlimited="true"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.58</ldap:oid>
+        <ldap:name>ds-cfg-lock-timeout</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="max-memory-percent" mandatory="false">
+    <adm:synopsis>
+      The maximum memory usage for the entry cache as a percentage
+      of the total JVM memory.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>90</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:size lower-limit="1" upper-limit="100"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.66</ldap:oid>
+        <ldap:name>ds-cfg-max-memory-percent</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="max-entries" mandatory="false">
+    <adm:synopsis>
+      The maximum number of entries that we will allow in the cache.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0x7fffffffffffffffL</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:size lower-limit="0" allow-unlimited="true"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.65</ldap:oid>
+        <ldap:name>ds-cfg-max-entries</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property-reference name="include-filter" />
+  <adm:property-reference name="exclude-filter" />
+
+</adm:managed-object>
+

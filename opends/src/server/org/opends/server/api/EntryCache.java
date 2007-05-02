@@ -31,12 +31,12 @@ package org.opends.server.api;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockType;
+import org.opends.server.admin.std.server.EntryCacheCfg;
 
 
 
@@ -62,15 +62,19 @@ import org.opends.server.types.LockType;
  *       the behavior of the default cache that will be used if none
  *       is configured).</LI>
  * </UL>
+ *
+ * @param  <T>  The type of configuration handled by this entry
+ *              cache.
  */
 public abstract class EntryCache
+       <T extends EntryCacheCfg>
 {
   /**
    * Initializes this entry cache implementation so that it will be
    * available for storing and retrieving entries.
    *
-   * @param  configEntry  The configuration entry containing the
-   *                      settings to use for this entry cache.
+   * @param  configuration  The configuration to use to initialize
+   *                        the entry cache.
    *
    * @throws  ConfigException  If there is a problem with the provided
    *                           configuration entry that would prevent
@@ -81,7 +85,7 @@ public abstract class EntryCache
    *                                   not related to the
    *                                   configuration.
    */
-  public abstract void initializeEntryCache(ConfigEntry configEntry)
+  public abstract void initializeEntryCache(T configuration)
          throws ConfigException, InitializationException;
 
 

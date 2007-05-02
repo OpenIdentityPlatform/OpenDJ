@@ -28,38 +28,29 @@ package org.opends.server.core;
 
 
 
+import static org.opends.server.messages.ConfigMessages.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.api.ConfigHandler;
-import org.opends.server.api.ConfigurableComponent;
+import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.Error.*;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -70,18 +61,14 @@ import static org.opends.server.util.StaticUtils.*;
  * removals, or modifications to any schemes while the server is running.
  */
 public class PasswordStorageSchemeConfigManager
-       implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
+       implements
+          ConfigurationChangeListener <PasswordStorageSchemeCfg>,
+          ConfigurationAddListener    <PasswordStorageSchemeCfg>,
+          ConfigurationDeleteListener <PasswordStorageSchemeCfg>
 {
-
-
-
   // A mapping between the DNs of the config entries and the associated password
   // storage schemes.
   private ConcurrentHashMap<DN,PasswordStorageScheme> storageSchemes;
-
-  // The configuration handler for the Directory Server.
-  private ConfigHandler configHandler;
-
 
 
   /**
@@ -89,7 +76,6 @@ public class PasswordStorageSchemeConfigManager
    */
   public PasswordStorageSchemeConfigManager()
   {
-    configHandler  = DirectoryServer.getConfigHandler();
     storageSchemes = new ConcurrentHashMap<DN,PasswordStorageScheme>();
   }
 
@@ -110,99 +96,35 @@ public class PasswordStorageSchemeConfigManager
   public void initializePasswordStorageSchemes()
          throws ConfigException, InitializationException
   {
-    // First, get the configuration base entry.
-    ConfigEntry baseEntry;
-    try
+    // Get the root configuration object.
+    ServerManagementContext managementContext =
+      ServerManagementContext.getInstance();
+    RootCfg rootConfiguration =
+      managementContext.getRootConfiguration();
+
+    // Register as an add and delete listener with the root configuration so we
+    // can be notified if any entry cache entry is added or removed.
+    rootConfiguration.addPasswordStorageSchemeAddListener (this);
+    rootConfiguration.addPasswordStorageSchemeDeleteListener (this);
+
+    // Initialize existing password storage schemes.
+    for (String schemeName: rootConfiguration.listPasswordStorageSchemes())
     {
-      DN schemeBase = DN.decode(DN_PWSCHEME_CONFIG_BASE);
-      baseEntry = configHandler.getConfigEntry(schemeBase);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      // Get the password storage scheme's configuration.
+      PasswordStorageSchemeCfg config =
+        rootConfiguration.getPasswordStorageScheme (schemeName);
+
+      // Register as a change listener for this password storage scheme
+      // entry so that we will be notified of any changes that may be
+      // made to it.
+      config.addChangeListener (this);
+
+      // Ignore this password storage scheme if it is disabled.
+      if (config.isEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CONFIG_PWSCHEME_CANNOT_GET_BASE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new ConfigException(msgID, message, e);
-    }
-
-    if (baseEntry == null)
-    {
-      // The password storage scheme base entry does not exist.  This is not
-      // acceptable, so throw an exception.
-      int    msgID   = MSGID_CONFIG_PWSCHEME_BASE_DOES_NOT_EXIST;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
-    }
-
-
-    // Register add and delete listeners with the storage scheme base entry.  We
-    // don't care about modifications to it.
-    baseEntry.registerAddListener(this);
-    baseEntry.registerDeleteListener(this);
-
-
-    // See if the base entry has any children.  If not, then we don't need to do
-    // anything else.
-    if (! baseEntry.hasChildren())
-    {
-      return;
-    }
-
-
-    // Iterate through the child entries and process them as password storage
-    // scheme configuration entries.
-    for (ConfigEntry childEntry : baseEntry.getChildren().values())
-    {
-      childEntry.registerChangeListener(this);
-
-      StringBuilder unacceptableReason = new StringBuilder();
-      if (! configAddIsAcceptable(childEntry, unacceptableReason))
-      {
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 MSGID_CONFIG_PWSCHEME_ENTRY_UNACCEPTABLE,
-                 childEntry.getDN().toString(), unacceptableReason.toString());
-        continue;
-      }
-
-      try
-      {
-        ConfigChangeResult result = applyConfigurationAdd(childEntry);
-        if (result.getResultCode() != ResultCode.SUCCESS)
-        {
-          StringBuilder buffer = new StringBuilder();
-
-          List<String> resultMessages = result.getMessages();
-          if ((resultMessages == null) || (resultMessages.isEmpty()))
-          {
-            buffer.append(getMessage(MSGID_CONFIG_UNKNOWN_UNACCEPTABLE_REASON));
-          }
-          else
-          {
-            Iterator<String> iterator = resultMessages.iterator();
-
-            buffer.append(iterator.next());
-            while (iterator.hasNext())
-            {
-              buffer.append(EOL);
-              buffer.append(iterator.next());
-            }
-          }
-
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR,
-                   MSGID_CONFIG_PWSCHEME_CANNOT_CREATE_SCHEME,
-                   childEntry.getDN().toString(), buffer.toString());
-        }
-      }
-      catch (Exception e)
-      {
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 MSGID_CONFIG_PWSCHEME_CANNOT_CREATE_SCHEME,
-                 childEntry.getDN().toString(), String.valueOf(e));
+        // Load the password storage scheme implementation class.
+        String className = config.getSchemeClass();
+        loadAndInstallPasswordStorageScheme (className, config);
       }
     }
   }
@@ -210,720 +132,192 @@ public class PasswordStorageSchemeConfigManager
 
 
   /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * modification is acceptable to this change listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested update.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed change is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
-  public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
+  public boolean isConfigurationChangeAcceptable(
+      PasswordStorageSchemeCfg configuration,
+      List<String>             unacceptableReasons
+      )
   {
-    // Make sure that the entry has an appropriate objectclass for a password
-    // storage scheme.
-    if (! configEntry.hasObjectClass(OC_PASSWORD_STORAGE_SCHEME))
+    // returned status -- all is fine by default
+    boolean status = true;
+
+    if (configuration.isEnabled())
     {
-      int    msgID   = MSGID_CONFIG_PWSCHEME_INVALID_OBJECTCLASS;
-      String message = getMessage(msgID, configEntry.getDN().toString());
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // Make sure that the entry specifies the storage scheme class name.
-    StringConfigAttribute classNameAttr;
-    try
-    {
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_PWSCHEME_CLASS,
-                    getMessage(MSGID_CONFIG_PWSCHEME_DESCRIPTION_CLASS_NAME),
-                    true, false, true);
-      classNameAttr = (StringConfigAttribute)
-                      configEntry.getConfigAttribute(classStub);
-
-      if (classNameAttr == null)
+      // Get the name of the class and make sure we can instantiate it as
+      // a password storage scheme.
+      String className = configuration.getSchemeClass();
+      try
       {
-        int msgID = MSGID_CONFIG_PWSCHEME_NO_CLASS_NAME;
-        String message = getMessage(msgID, configEntry.getDN().toString());
-        unacceptableReason.append(message);
-        return false;
+        // Load the class but don't initialize it.
+        loadPasswordStorageScheme (className, null);
+      }
+      catch (InitializationException ie)
+      {
+        unacceptableReasons.add(ie.getMessage());
+        status = false;
       }
     }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_CLASS_NAME;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-    Class schemeClass;
-    try
-    {
-      schemeClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_CLASS_NAME;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-    try
-    {
-      PasswordStorageScheme scheme =
-           (PasswordStorageScheme) schemeClass.newInstance();
-    }
-    catch(Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_CLASS;
-      String message = getMessage(msgID, schemeClass.getName(),
-                                  String.valueOf(configEntry.getDN()),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // See if this password storage scheme should be enabled.
-    BooleanConfigAttribute enabledAttr;
-    try
-    {
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_PWSCHEME_ENABLED,
-                    getMessage(MSGID_CONFIG_PWSCHEME_DESCRIPTION_ENABLED),
-                               false);
-      enabledAttr = (BooleanConfigAttribute)
-                    configEntry.getConfigAttribute(enabledStub);
-
-      if (enabledAttr == null)
-      {
-        int msgID = MSGID_CONFIG_PWSCHEME_NO_ENABLED_ATTR;
-        String message = getMessage(msgID, configEntry.getDN().toString());
-        unacceptableReason.append(message);
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_ENABLED_VALUE;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // If we've gotten here then the password storage scheme entry appears to be
-    // acceptable.
-    return true;
+    return status;
   }
 
 
 
   /**
-   * Attempts to apply a new configuration to this Directory Server component
-   * based on the provided changed entry.
-   *
-   * @param  configEntry  The configuration entry that containing the updated
-   *                      configuration for this component.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
+  public ConfigChangeResult applyConfigurationChange(
+      PasswordStorageSchemeCfg configuration
+      )
   {
-    DN                configEntryDN       = configEntry.getDN();
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    // Returned result.
+    ConfigChangeResult changeResult = new ConfigChangeResult(
+        ResultCode.SUCCESS, false, new ArrayList<String>()
+        );
 
+    // Get the configuration entry DN and the associated
+    // password storage scheme class.
+    DN configEntryDN = configuration.dn();
+    PasswordStorageScheme storageScheme = storageSchemes.get(
+        configEntryDN
+        );
 
-    // Make sure that the entry has an appropriate objectclass for a password
-    // storage scheme.
-    if (! configEntry.hasObjectClass(OC_PASSWORD_STORAGE_SCHEME))
+    // If the new configuration has the password storage scheme disabled,
+    // then remove it from the mapping list and clean it.
+    if (! configuration.isEnabled())
     {
-      int    msgID   = MSGID_CONFIG_PWSCHEME_INVALID_OBJECTCLASS;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-      resultCode = ResultCode.UNWILLING_TO_PERFORM;
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      if (storageScheme != null)
+      {
+        uninstallPasswordStorageScheme (configEntryDN);
+      }
+
+      return changeResult;
     }
 
+    // At this point, new configuration is enabled...
+    // If the current password storage scheme is already enabled then we
+    // don't do anything unless the class has changed in which case we
+    // should indicate that administrative action is required.
+    String newClassName = configuration.getSchemeClass();
+    if (storageScheme != null)
+    {
+      String curClassName = storageScheme.getClass().getName();
+      boolean classIsNew = (! newClassName.equals (curClassName));
+      if (classIsNew)
+      {
+        changeResult.setAdminActionRequired (true);
+      }
+      return changeResult;
+    }
 
-    // Get the corresponding password storage scheme if it is active.
-    PasswordStorageScheme scheme = storageSchemes.get(configEntryDN);
-
-
-    // See if this scheme should be enabled or disabled.
-    boolean needsEnabled = false;
-    BooleanConfigAttribute enabledAttr;
+    // New entry cache is enabled and there were no previous one.
+    // Instantiate the new class and initalize it.
     try
     {
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_PWSCHEME_ENABLED,
-                    getMessage(MSGID_CONFIG_PWSCHEME_DESCRIPTION_ENABLED),
-                               false);
-      enabledAttr = (BooleanConfigAttribute)
-                    configEntry.getConfigAttribute(enabledStub);
-
-      if (enabledAttr == null)
-      {
-        int msgID = MSGID_CONFIG_PWSCHEME_NO_ENABLED_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-        resultCode = ResultCode.UNWILLING_TO_PERFORM;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-      if (enabledAttr.activeValue())
-      {
-        if (scheme == null)
-        {
-          needsEnabled = true;
-        }
-        else
-        {
-          // The scheme is already active, so no action is required.
-        }
-      }
-      else
-      {
-        if (scheme == null)
-        {
-          // The scheme is already disabled, so no action is required and we
-          // can short-circuit out of this processing.
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-        else
-        {
-          // The scheme is active, so it needs to be disabled.  Do this and
-          // return that we were successful.
-          storageSchemes.remove(configEntryDN);
-          scheme.finalizePasswordStorageScheme();
-
-          String lowerName = toLowerCase(scheme.getStorageSchemeName());
-          DirectoryServer.deregisterPasswordStorageScheme(lowerName);
-
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-      }
+      loadAndInstallPasswordStorageScheme (newClassName, configuration);
     }
-    catch (Exception e)
+    catch (InitializationException ie)
     {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_ENABLED_VALUE;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      changeResult.addMessage (ie.getMessage());
+      changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
+      return changeResult;
     }
 
-
-    // Make sure that the entry specifies the storage scheme class name.  If it
-    // has changed, then we will not try to dynamically apply it.
-    String className;
-    try
-    {
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_PWSCHEME_CLASS,
-                    getMessage(MSGID_CONFIG_PWSCHEME_DESCRIPTION_CLASS_NAME),
-                    true, false, true);
-      StringConfigAttribute classNameAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-
-      if (classNameAttr == null)
-      {
-        int msgID = MSGID_CONFIG_PWSCHEME_NO_CLASS_NAME;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-      className = classNameAttr.pendingValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_CLASS_NAME;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    boolean classChanged = false;
-    String  oldClassName = null;
-    if (scheme != null)
-    {
-      oldClassName = scheme.getClass().getName();
-      classChanged = (! className.equals(oldClassName));
-    }
-
-
-    if (classChanged)
-    {
-      // This will not be applied dynamically.  Add a message to the response
-      // and indicate that admin action is required.
-      adminActionRequired = true;
-      messages.add(getMessage(MSGID_CONFIG_PWSCHEME_CLASS_ACTION_REQUIRED,
-                              String.valueOf(oldClassName),
-                              String.valueOf(className),
-                              String.valueOf(configEntryDN)));
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    if (needsEnabled)
-    {
-      try
-      {
-        Class schemeClass = DirectoryServer.loadClass(className);
-        scheme = (PasswordStorageScheme) schemeClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int msgID = MSGID_CONFIG_PWSCHEME_INVALID_CLASS;
-        messages.add(getMessage(msgID, className,
-                                String.valueOf(configEntryDN),
-                                String.valueOf(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-      try
-      {
-        scheme.initializePasswordStorageScheme(configEntry);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int msgID = MSGID_CONFIG_PWSCHEME_INITIALIZATION_FAILED;
-        messages.add(getMessage(msgID, className,
-                                String.valueOf(configEntryDN),
-                                String.valueOf(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-
-      storageSchemes.put(configEntryDN, scheme);
-      DirectoryServer.registerPasswordStorageScheme(scheme);
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // If we've gotten here, then there haven't been any changes to anything
-    // that we care about.
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return changeResult;
   }
 
 
 
   /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * add is acceptable to this add listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested add.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed entry is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
-  public boolean configAddIsAcceptable(ConfigEntry configEntry,
-                                       StringBuilder unacceptableReason)
+  public boolean isConfigurationAddAcceptable(
+      PasswordStorageSchemeCfg configuration,
+      List<String>             unacceptableReasons
+      )
   {
+    // returned status -- all is fine by default
+    boolean status = true;
+
     // Make sure that no entry already exists with the specified DN.
-    DN configEntryDN = configEntry.getDN();
+    DN configEntryDN = configuration.dn();
     if (storageSchemes.containsKey(configEntryDN))
     {
       int    msgID   = MSGID_CONFIG_PWSCHEME_EXISTS;
       String message = getMessage(msgID, String.valueOf(configEntryDN));
-      unacceptableReason.append(message);
-      return false;
+      unacceptableReasons.add (message);
+      status = false;
     }
-
-
-    // Make sure that the entry has an appropriate objectclass for a password
-    // storage scheme.
-    if (! configEntry.hasObjectClass(OC_PASSWORD_STORAGE_SCHEME))
+    // If configuration is enabled then check that password storage scheme
+    // class can be instantiated.
+    else if (configuration.isEnabled())
     {
-      int    msgID   = MSGID_CONFIG_PWSCHEME_INVALID_OBJECTCLASS;
-      String message = getMessage(msgID, configEntry.getDN().toString());
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // Make sure that the entry specifies the password storage scheme class.
-    StringConfigAttribute classNameAttr;
-    try
-    {
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_PWSCHEME_CLASS,
-                    getMessage(MSGID_CONFIG_PWSCHEME_DESCRIPTION_CLASS_NAME),
-                    true, false, true);
-      classNameAttr = (StringConfigAttribute)
-                      configEntry.getConfigAttribute(classStub);
-
-      if (classNameAttr == null)
+      // Get the name of the class and make sure we can instantiate it as
+      // an entry cache.
+      String className = configuration.getSchemeClass();
+      try
       {
-        int msgID = MSGID_CONFIG_PWSCHEME_NO_CLASS_NAME;
-        String message = getMessage(msgID, configEntry.getDN().toString());
-        unacceptableReason.append(message);
-        return false;
+        // Load the class but don't initialize it.
+        loadPasswordStorageScheme (className, null);
       }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      catch (InitializationException ie)
       {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_CLASS_NAME;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-    Class schemeClass;
-    try
-    {
-      schemeClass = DirectoryServer.loadClass(classNameAttr.pendingValue());
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_CLASS_NAME;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-    PasswordStorageScheme storageScheme;
-    try
-    {
-      storageScheme = (PasswordStorageScheme) schemeClass.newInstance();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_CLASS;
-      String message = getMessage(msgID, schemeClass.getName(),
-                                  String.valueOf(configEntryDN),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // If the storage scheme is a configurable component, then make sure that
-    // its configuration is valid.
-    if (storageScheme instanceof ConfigurableComponent)
-    {
-      ConfigurableComponent cc = (ConfigurableComponent) storageScheme;
-      LinkedList<String> errorMessages = new LinkedList<String>();
-      if (! cc.hasAcceptableConfiguration(configEntry, errorMessages))
-      {
-        if (errorMessages.isEmpty())
-        {
-          int msgID = MSGID_CONFIG_PWSCHEME_UNACCEPTABLE_CONFIG;
-          unacceptableReason.append(getMessage(msgID,
-                                               String.valueOf(configEntryDN)));
-        }
-        else
-        {
-          Iterator<String> iterator = errorMessages.iterator();
-          unacceptableReason.append(iterator.next());
-          while (iterator.hasNext())
-          {
-            unacceptableReason.append("  ");
-            unacceptableReason.append(iterator.next());
-          }
-        }
-
-        return false;
+        unacceptableReasons.add (ie.getMessage());
+        status = false;
       }
     }
 
-
-    // See if this storage scheme should be enabled.
-    BooleanConfigAttribute enabledAttr;
-    try
-    {
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_PWSCHEME_ENABLED,
-                    getMessage(MSGID_CONFIG_PWSCHEME_DESCRIPTION_ENABLED),
-                               false);
-      enabledAttr = (BooleanConfigAttribute)
-                    configEntry.getConfigAttribute(enabledStub);
-
-      if (enabledAttr == null)
-      {
-        int msgID = MSGID_CONFIG_PWSCHEME_NO_ENABLED_ATTR;
-        String message = getMessage(msgID, configEntry.getDN().toString());
-        unacceptableReason.append(message);
-        return false;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_ENABLED_VALUE;
-      String message = getMessage(msgID, configEntry.getDN().toString(),
-                                  String.valueOf(e));
-      unacceptableReason.append(message);
-      return false;
-    }
-
-
-    // If we've gotten here then the storage scheme entry appears to be
-    // acceptable.
-    return true;
+    return status;
   }
 
 
 
   /**
-   * Attempts to apply a new configuration based on the provided added entry.
-   *
-   * @param  configEntry  The new configuration entry that contains the
-   *                      configuration to apply.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
+  public ConfigChangeResult applyConfigurationAdd(
+      PasswordStorageSchemeCfg configuration
+      )
   {
-    DN                configEntryDN       = configEntry.getDN();
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
+    // Returned result.
+    ConfigChangeResult changeResult = new ConfigChangeResult(
+        ResultCode.SUCCESS, false, new ArrayList<String>()
+        );
 
+    // Register a change listener with it so we can be notified of changes
+    // to it over time.
+    configuration.addChangeListener(this);
 
-    // Make sure that the entry has an appropriate objectclass for a password
-    // storage scheme.
-    if (! configEntry.hasObjectClass(OC_PASSWORD_STORAGE_SCHEME))
+    if (configuration.isEnabled())
     {
-      int    msgID   = MSGID_CONFIG_PWSCHEME_INVALID_OBJECTCLASS;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-      resultCode = ResultCode.UNWILLING_TO_PERFORM;
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // See if this storage scheme should be enabled or disabled.
-    BooleanConfigAttribute enabledAttr;
-    try
-    {
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_PWSCHEME_ENABLED,
-                    getMessage(MSGID_CONFIG_PWSCHEME_DESCRIPTION_ENABLED),
-                               false);
-      enabledAttr = (BooleanConfigAttribute)
-                    configEntry.getConfigAttribute(enabledStub);
-
-      if (enabledAttr == null)
+      // Instantiate the class as password storage scheme
+      // and initialize it.
+      String className = configuration.getSchemeClass();
+      try
       {
-        // The attribute doesn't exist, so it will be disabled by default.
-        int msgID = MSGID_CONFIG_PWSCHEME_NO_ENABLED_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-        resultCode = ResultCode.SUCCESS;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
+        loadAndInstallPasswordStorageScheme (className, configuration);
       }
-      else if (! enabledAttr.activeValue())
+      catch (InitializationException ie)
       {
-        // It is explicitly configured as disabled, so we don't need to do
-        // anything.
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
+        changeResult.addMessage (ie.getMessage());
+        changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
+        return changeResult;
       }
     }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_ENABLED_VALUE;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // Make sure that the entry specifies the storage scheme class name.
-    String className;
-    try
-    {
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_PWSCHEME_CLASS,
-                    getMessage(MSGID_CONFIG_PWSCHEME_DESCRIPTION_CLASS_NAME),
-                    true, false, true);
-      StringConfigAttribute classNameAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-
-      if (classNameAttr == null)
-      {
-        int msgID = MSGID_CONFIG_PWSCHEME_NO_CLASS_NAME;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN)));
-        resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
-      }
-
-      className = classNameAttr.pendingValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_CLASS_NAME;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    // Load and initialize the storage scheme class, and register it with the
-    // Directory Server.
-    PasswordStorageScheme storageScheme;
-    try
-    {
-      Class schemeClass = DirectoryServer.loadClass(className);
-      storageScheme = (PasswordStorageScheme) schemeClass.newInstance();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INVALID_CLASS;
-      messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-    try
-    {
-      storageScheme.initializePasswordStorageScheme(configEntry);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_CONFIG_PWSCHEME_INITIALIZATION_FAILED;
-      messages.add(getMessage(msgID, className, String.valueOf(configEntryDN),
-                              String.valueOf(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-    storageSchemes.put(configEntryDN, storageScheme);
-    DirectoryServer.registerPasswordStorageScheme(storageScheme);
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return changeResult;
   }
 
 
 
   /**
-   * Indicates whether it is acceptable to remove the provided configuration
-   * entry.
-   *
-   * @param  configEntry         The configuration entry that will be removed
-   *                             from the configuration.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed delete is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry may be removed from the
-   *          configuration, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
-  public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
+  public boolean isConfigurationDeleteAcceptable(
+      PasswordStorageSchemeCfg configuration,
+      List<String>             unacceptableReasons
+      )
   {
     // A delete should always be acceptable, so just return true.
     return true;
@@ -932,33 +326,139 @@ public class PasswordStorageSchemeConfigManager
 
 
   /**
-   * Attempts to apply a new configuration based on the provided deleted entry.
-   *
-   * @param  configEntry  The new configuration entry that has been deleted.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
+  public ConfigChangeResult applyConfigurationDelete(
+      PasswordStorageSchemeCfg configuration
+      )
   {
-    DN         configEntryDN       = configEntry.getDN();
-    ResultCode resultCode          = ResultCode.SUCCESS;
-    boolean    adminActionRequired = false;
+    // Returned result.
+    ConfigChangeResult changeResult = new ConfigChangeResult(
+        ResultCode.SUCCESS, false, new ArrayList<String>()
+        );
+
+    uninstallPasswordStorageScheme (configuration.dn());
+
+    return changeResult;
+  }
 
 
-    // See if the entry is registered as a password storage scheme.  If so,
-    // deregister it and stop the storage scheme.
-    PasswordStorageScheme storageScheme = storageSchemes.remove(configEntryDN);
-    if (storageScheme != null)
+
+  /**
+   * Loads the specified class, instantiates it as a password storage scheme,
+   * and optionally initializes that instance. Any initialized password
+   * storage scheme is registered in the server.
+   *
+   * @param  className      The fully-qualified name of the password storage
+   *                        scheme class to load, instantiate, and initialize.
+   * @param  configuration  The configuration to use to initialize the
+   *                        password storage scheme, or {@code null} if the
+   *                        password storage scheme should not be initialized.
+   *
+   * @throws  InitializationException  If a problem occurred while attempting
+   *                                   to initialize the class.
+   */
+  private void loadAndInstallPasswordStorageScheme(
+       String className,
+       PasswordStorageSchemeCfg configuration
+       )
+       throws InitializationException
+  {
+    // Load the password storage scheme class...
+    PasswordStorageScheme
+        <? extends PasswordStorageSchemeCfg> schemeClass;
+    schemeClass = loadPasswordStorageScheme (className, configuration);
+
+    // ... and install the password storage scheme in the server.
+    DN configEntryDN = configuration.dn();
+    storageSchemes.put (configEntryDN, schemeClass);
+    DirectoryServer.registerPasswordStorageScheme (schemeClass);
+  }
+
+
+  /**
+   * Loads the specified class, instantiates it as a password storage scheme,
+   * and optionally initializes that instance.
+   *
+   * @param  className      The fully-qualified name of the class
+   *                        to load, instantiate, and initialize.
+   * @param  configuration  The configuration to use to initialize the
+   *                        class, or {@code null} if the
+   *                        class should not be initialized.
+   *
+   * @return  The possibly initialized password storage scheme.
+   *
+   * @throws  InitializationException  If a problem occurred while attempting
+   *                                   to initialize the class.
+   */
+  private PasswordStorageScheme <? extends PasswordStorageSchemeCfg>
+    loadPasswordStorageScheme(
+       String className,
+       PasswordStorageSchemeCfg configuration
+       )
+       throws InitializationException
+  {
+    try
     {
-      String lowerName = toLowerCase(storageScheme.getStorageSchemeName());
-      DirectoryServer.deregisterPasswordStorageScheme(lowerName);
+      PasswordStorageSchemeCfgDefn definition;
+      ClassPropertyDefinition propertyDefinition;
+      Class<? extends PasswordStorageScheme> schemeClass;
+      PasswordStorageScheme<? extends PasswordStorageSchemeCfg>
+          passwordStorageScheme;
 
-      storageScheme.finalizePasswordStorageScheme();
+      definition = PasswordStorageSchemeCfgDefn.getInstance();
+      propertyDefinition = definition.getSchemeClassPropertyDefinition();
+      schemeClass = propertyDefinition.loadClass(
+          className,
+          PasswordStorageScheme.class
+          );
+      passwordStorageScheme =
+        (PasswordStorageScheme<? extends PasswordStorageSchemeCfg>)
+            schemeClass.newInstance();
+
+      if (configuration != null)
+      {
+        Method method = passwordStorageScheme.getClass().getMethod(
+            "initializePasswordStorageScheme",
+            configuration.definition().getServerConfigurationClass()
+            );
+        method.invoke(passwordStorageScheme, configuration);
+      }
+
+      return passwordStorageScheme;
     }
+    catch (Exception e)
+    {
+      int msgID = MSGID_CONFIG_PWSCHEME_INITIALIZATION_FAILED;
+      String message = getMessage(
+          msgID, className,
+          String.valueOf(configuration.dn()),
+          stackTraceToSingleLineString(e)
+          );
+      throw new InitializationException(msgID, message, e);
+    }
+  }
 
 
-    return new ConfigChangeResult(resultCode, adminActionRequired);
+  /**
+   * Remove a password storage that has been installed in the server.
+   *
+   * @param configEntryDN  the DN of the configuration enry associated to
+   *                       the password storage scheme to remove
+   */
+  private void uninstallPasswordStorageScheme(
+      DN configEntryDN
+      )
+  {
+    PasswordStorageScheme scheme =
+        storageSchemes.remove (configEntryDN);
+    if (scheme != null)
+    {
+      DirectoryServer.deregisterPasswordStorageScheme (
+          scheme.getStorageSchemeName().toLowerCase()
+          );
+      scheme.finalizePasswordStorageScheme();
+    }
   }
 }
 
