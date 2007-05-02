@@ -457,5 +457,28 @@ public class ToolConstants
    * displayed in usage information.
    */
   public static final String OPTION_VALUE_SASLOPTION = "{name=value}";
+
+  /**
+   * The value for the short option geteffectiverights control authzid.
+   */
+   public static final char OPTION_SHORT_EFFECTIVERIGHTSUSER = 'g';
+
+  /**
+   * The value for the long option geteffectiverights  control authzid.
+   */
+   public static final String OPTION_LONG_EFFECTIVERIGHTSUSER =
+          "getEffectiveRightsAuthzid";
+
+  /**
+   * The value for the short option geteffectiveights control attributes.
+   */
+   public static final char OPTION_SHORT_EFFECTIVERIGHTSATTR = 'e';
+
+  /**
+   * The value for the long option geteffectiverights control specific
+   * attribute list.
+   */
+   public static final String OPTION_LONG_EFFECTIVERIGHTSATTR =
+          "getEffectiveRightsAttribute";
 }
 

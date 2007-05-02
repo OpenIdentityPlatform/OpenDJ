@@ -1786,6 +1786,12 @@ public class ServerConstants
   public static final String OID_PROXIED_AUTH_V2 = "2.16.840.1.113730.3.4.18";
 
 
+   /**
+   * The OID for the get effective rights control.
+   */
+  public static final String OID_GET_EFFECTIVE_RIGHTS =
+                                                    "1.3.6.1.4.1.42.2.27.9.5.2";
+
 
   /**
    * The OID for the real attributes only control.

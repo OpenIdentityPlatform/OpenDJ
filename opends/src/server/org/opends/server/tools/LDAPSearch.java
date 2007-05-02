@@ -71,10 +71,7 @@ import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultReferenceProtocolOp;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -671,6 +668,8 @@ public class LDAPSearch
     StringArgument    trustStorePath           = null;
     StringArgument    trustStorePassword       = null;
     StringArgument    vlvDescriptor            = null;
+    StringArgument    effectiveRightsUser      = null;
+    StringArgument    effectiveRightsAttrs     = null;
 
 
     // Create the command-line argument parser for use with this program.
@@ -872,6 +871,21 @@ public class LDAPSearch
                     "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
                     null, null, MSGID_DESCRIPTION_CONTROLS);
       argParser.addArgument(controlStr);
+      effectiveRightsUser =
+              new StringArgument("effectiveRightsUser",
+                      OPTION_SHORT_EFFECTIVERIGHTSUSER,
+                      OPTION_LONG_EFFECTIVERIGHTSUSER, false, false, true,
+                      "{authzid}", null, null,
+                      MSGID_DESCRIPTION_EFFECTIVERIGHTS_USER );
+      argParser.addArgument(effectiveRightsUser);
+
+      effectiveRightsAttrs =
+              new StringArgument("effectiveRightsAttrs",
+                      OPTION_SHORT_EFFECTIVERIGHTSATTR,
+                      OPTION_LONG_EFFECTIVERIGHTSATTR, false, true, true,
+                      "{attribute}", null, null,
+                      MSGID_DESCRIPTION_EFFECTIVERIGHTS_ATTR );
+      argParser.addArgument(effectiveRightsAttrs);
 
       version = new IntegerArgument("version", 'V', "version", false, false,
                                     true, "{version}", 3, null,
@@ -1155,6 +1169,34 @@ public class LDAPSearch
         }
         searchOptions.getControls().add(ctrl);
       }
+    }
+
+    if(effectiveRightsUser.isPresent()) {
+      String authzID=effectiveRightsUser.getValue();
+      if (!authzID.startsWith("dn:")) {
+        int  msgID   = MSGID_EFFECTIVERIGHTS_INVALID_AUTHZID;
+        String message = getMessage(msgID, authzID);
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        err.println(argParser.getUsage());
+        return 1;
+      }
+      ASN1OctetString v=null;
+      ASN1OctetString effectiveRightsUserVal =
+              new ASN1OctetString(authzID);
+      ASN1Sequence sequence=null;
+      ArrayList<ASN1Element> attrElements =
+              new ArrayList<ASN1Element>();
+      for(String a : effectiveRightsAttrs.getValues())
+        attrElements.add(new ASN1OctetString(a));
+      ASN1Sequence attrSeq=new ASN1Sequence(attrElements);
+      ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
+      elements.add(effectiveRightsUserVal);
+      elements.add(attrSeq);
+      sequence= new ASN1Sequence(elements);
+      LDAPControl effectiveRightsControl =
+              new LDAPControl(OID_GET_EFFECTIVE_RIGHTS, false,
+                      new ASN1OctetString(sequence.encode()));
+      searchOptions.getControls().add(effectiveRightsControl);
     }
 
     if (proxyAuthzID.isPresent())

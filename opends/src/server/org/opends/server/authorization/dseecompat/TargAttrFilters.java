@@ -246,10 +246,12 @@ public class TargAttrFilters {
      * operation.
      * @param matchCtx The target match context containing the information
      * needed to match.
+     * @param aci  The ACI currently being evaluted for a target match.
      * @return True if this TargAttrFitlers object is applicable to this
      * target match context.
      */
-    public boolean isApplicableMod(AciTargetMatchContext matchCtx) {
+    public boolean isApplicableMod(AciTargetMatchContext matchCtx,
+                                   Aci aci) {
         //Get the targFitlerList corresponding to this context's rights.
         TargAttrFilterList attrFilterList=getTargAttrFilterList(matchCtx);
         //If the list is empty return true and go on to the targattr check
@@ -270,6 +272,12 @@ public class TargAttrFilters {
             attrMatched=matchFilterAttributeValue(attrType, value, filter);
             //This flag causes any targattr checks to be bypassed in AciTargets.
             matchCtx.setTargAttrFiltersMatch(true);
+            //Doing a geteffectiverights eval, save the ACI and the name
+            //in the context.
+            if(matchCtx.isGetEffectiveRightsEval()) {
+              matchCtx.setTargAttrFiltersAciName(aci.getName());
+              matchCtx.addTargAttrFiltersMatchAci(aci);
+            }
             if(op.equals(EnumTargetOperator.NOT_EQUALITY))
                 attrMatched = !attrMatched;
         }

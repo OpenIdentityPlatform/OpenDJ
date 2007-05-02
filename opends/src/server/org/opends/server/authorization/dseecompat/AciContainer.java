@@ -32,11 +32,18 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Group;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.SearchOperation;
 import org.opends.server.extensions.TLSConnectionSecurityProvider;
 import org.opends.server.types.Operation;
 import java.net.InetAddress;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.HashMap;
+
+import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.authorization.dseecompat.AciHandler.*;
+import org.opends.server.controls.GetEffectiveRights;
+import static org.opends.server.util.ServerConstants.OID_GET_EFFECTIVE_RIGHTS;
 
 /**
  *  The AciContainer class contains all of the needed information to perform
@@ -94,6 +101,7 @@ implements AciTargetMatchContext, AciEvalContext {
      * The entry being evaluated (resource entry).
      */
     private Entry resourceEntry;
+    private Entry saveResourceEntry;
 
     /*
      * The client connection information.
@@ -145,12 +153,86 @@ implements AciTargetMatchContext, AciEvalContext {
      */
     private boolean seenEntry=false;
 
-    /**
+    /*
+     *  True if geteffectiverights evaluation is in progress.
+     */
+    private boolean isGetEffectiveRightsEval=false;
+
+     /*
+     *  True if the operation has a geteffectiverights control.
+     */
+    private boolean hasGetEffectiveRightsControl=false;
+
+    /*
+     * The geteffectiverights authzID in DN format.
+     */
+    private DN authzid=null;
+
+    /*
+     * True if the authZid should be used as the client DN, only used in
+     * geteffectiverights evaluation.
+     */
+    private boolean useAuthzid=false;
+
+    /*
+     * The list of specific attributes to get rights for, in addition to
+     * any attributes requested in the search.
+     */
+    private List<AttributeType> specificAttrs=null;
+
+    /*
+     * The entry with all of its attributes available. Used in
+     * geteffectiverights read entry level evaluation.
+     */
+    private Entry fullEntry=null;
+
+    /*
+     * Table of ACIs that have targattrfilter keywords that matched. Used
+     * in geteffectiverights attributeLevel write evaluation.
+     */
+    private HashMap<Aci,Aci> targAttrFilterAcis=new HashMap<Aci, Aci>();
+
+    /*
+     * The name of a ACI that decided an evaluation and contained a
+     * targattrfilter keyword. Used in geteffectiverights attributeLevel
+     * write evaluation.
+     */
+    private String targAttrFiltersAciName=null;
+
+    /*
+     * Value that is used to store the allow/deny result of a deciding ACI
+     * containing a targattrfilter keyword.  Used in geteffectiverights
+     * attributeLevel write evaluation.
+     */
+    private int targAttrMatch=0;
+
+    /*
+     * The ACI that decided the last evaluation. Used in geteffectiverights
+     * loginfo processing.
+     */
+    private Aci decidingAci=null;
+
+    /*
+     * The reason the last evaluation decision was made. Used both
+     * in geteffectiverights loginfo processing and attributeLevel write
+     * evaluation.
+     */
+    private EnumEvalReason evalReason=null;
+
+    /*
+     * A summary string holding the last evaluation information in textual
+     * format. Used in geteffectiverights loginfo processing.
+     */
+    private String summaryString=null;
+
+  /**
      * This constructor is used by all currently supported LDAP operations.
      *
      * @param operation The Operation object being evaluated and target
      * matching.
+     *
      * @param rights The rights array to use in evaluation and target matching.
+     *
      * @param entry The current entry being evaluated and target matched.
      */
     protected AciContainer(Operation operation, int rights, Entry entry) {
@@ -167,16 +249,34 @@ implements AciTargetMatchContext, AciEvalContext {
       if(origAuthorizationEntry != null)
          this.proxiedAuthorization=true;
       this.authorizationEntry=operation.getAuthorizationEntry();
-
+      //Only need to process the geteffectiverights control once, -- for a
+      //SearchOperation with read right. It is saved in the operation
+      //attachment after that.
+      if(operation instanceof SearchOperation && (rights == ACI_READ)) {
+        GetEffectiveRights getEffectiveRightsControl =
+              (GetEffectiveRights)
+                      operation.getAttachment(OID_GET_EFFECTIVE_RIGHTS);
+        if(getEffectiveRightsControl != null) {
+          hasGetEffectiveRightsControl=true;
+          if(getEffectiveRightsControl.getAuthzDN() == null)
+            this.authzid=getClientDN();
+          else
+            this.authzid=getEffectiveRightsControl.getAuthzDN();
+          this.specificAttrs=getEffectiveRightsControl.getAttributes();
+          fullEntry=(Entry)operation.getAttachment(ALL_ATTRS_RESOURCE_ENTRY);
+        }
+      }
       //Reference the current authorization entry, so it can be put back
       //if an access proxy check was performed.
       this.saveAuthorizationEntry=this.authorizationEntry;
+      this.saveResourceEntry=this.resourceEntry;
       this.rights = rights;
     }
 
   /**
    * Returns true if an entry has already been processed by an access proxy
    * check.
+   *
    * @return True if an entry has already been processed by an access proxy
    * check.
    */
@@ -187,6 +287,7 @@ implements AciTargetMatchContext, AciEvalContext {
   /**
    * Set to true if an entry has already been processsed by an access proxy
    * check.
+   *
    * @param val The value to set the seenEntry boolean to.
    */
     public void setSeenEntry(boolean val) {
@@ -194,11 +295,197 @@ implements AciTargetMatchContext, AciEvalContext {
     }
 
   /**
-   * Returns true if proxied authorization is being used.
-   * @return  True if proxied authorization is being used.
+   * {@inheritDoc}
    */
     public boolean isProxiedAuthorization() {
          return this.proxiedAuthorization;
+    }
+
+  /**
+   * {@inheritDoc}
+   */
+    public boolean isGetEffectiveRightsEval() {
+        return this.isGetEffectiveRightsEval;
+    }
+
+  /**
+   * The container is going to be used in a geteffectiverights evaluation, set
+   * the flag isGetEffectiveRightsEval to true.
+   */
+  public void setGetEffectiveRightsEval() {
+       this.isGetEffectiveRightsEval=true;
+    }
+
+  /**
+   * Return true if the container is being used in a geteffectiverights
+   * evaluation.
+   *
+   * @return True if the container is being used in a geteffectiverights
+   * evaluation.
+   */
+    public boolean hasGetEffectiveRightsControl() {
+      return this.hasGetEffectiveRightsControl;
+    }
+
+  /**
+   * Use the DN from the geteffectiverights control's authzId as the
+   * client DN, rather than the authorization entry's DN.
+   *
+   * @param v The valued to set the useAuthzid to.
+   */
+    public void useAuthzid(boolean v) {
+       this.useAuthzid=v;
+    }
+
+  /**
+   * Return the list of additional attributes specified in the
+   * geteffectiveritghts control.
+   *
+   * @return The list of attributes to return rights information about in the
+   * entry.
+   */
+    public List<AttributeType> getSpecificAttributes() {
+       return this.specificAttrs;
+    }
+
+  /**
+   * During the geteffectiverights entrylevel read evaluation, an entry with all
+   * of the attributes used in the AciHandler's maysend method evaluation is
+   * needed to perform the evaluation over again. This entry was saved
+   * in the operation's attachment mechanism when the container was created
+   * during the SearchOperation read evaluation.
+   *
+   * This method is used to replace the current resource entry with that saved
+   * entry to perform the entrylevel read evaluation described above and to
+   * switch back to the current resource entry when needed.
+   *
+   * @param val Specifies if the saved entry should be used or not. True if it
+   * should be used, false if the original resource entry should be used.
+   *
+   */
+    public void useFullResourceEntry(boolean val) {
+      if(val)
+        resourceEntry=fullEntry;
+      else
+        resourceEntry=saveResourceEntry;
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public void addTargAttrFiltersMatchAci(Aci aci) {
+      this.targAttrFilterAcis.put(aci, aci);
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public boolean hasTargAttrFiltersMatchAci(Aci aci) {
+      return this.targAttrFilterAcis.containsKey(aci);
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public boolean isTargAttrFilterMatchAciEmpty() {
+       return this.targAttrFilterAcis.isEmpty();
+    }
+
+  /**
+   * Reset the values used by the geteffectiverights evaluation to
+   * original values. The geteffectiverights evaluation uses the same container
+   * repeatedly for different rights evaluations (read, write, proxy,...) and
+   * this method resets variables that are specific to a single evaluation.
+   */
+    public void resetEffectiveRightsParams() {
+      this.targAttrFilterAcis.clear();
+      this.decidingAci=null;
+      this.evalReason=null;
+      this.targAttrFiltersMatch=false;
+      this.summaryString=null;
+      this.targAttrMatch=0;
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public void setTargAttrFiltersAciName(String name) {
+      this.targAttrFiltersAciName=name;
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public String getTargAttrFiltersAciName() {
+      return this.targAttrFiltersAciName;
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public void setTargAttrFiltersMatchOp(int flag) {
+      this.targAttrMatch |= flag;
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public boolean hasTargAttrFiltersMatchOp(int flag) {
+       return (this.targAttrMatch & flag) != 0;
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public void setDecidingAci(Aci aci) {
+      this.decidingAci=aci;
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public String getDecidingAciName() {
+      if(this.decidingAci != null)
+         return this.decidingAci.getName();
+      else return null;
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public void setEvalReason(EnumEvalReason reason) {
+      this.evalReason=reason;
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public EnumEvalReason getEvalReason() {
+      return this.evalReason;
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+    public void setEvalSummary(String summary) {
+      this.summaryString=summary;
+    }
+
+   /**
+    * {@inheritDoc}
+    */
+     public String getEvalSummary() {
+      return this.summaryString;
+    }
+
+  /**
+   * Returns true if the geteffectiverights control's authZid DN is equal to the
+   * authoritzation entry's DN.
+   *
+   * @return True if the authZid is equal to the authorization entry's DN.
+   */
+    public boolean isAuthzidAuthorizationDN() {
+     return this.authzid.equals(this.authorizationEntry.getDN());
     }
 
   /**
@@ -216,228 +503,194 @@ implements AciTargetMatchContext, AciEvalContext {
         authorizationEntry=saveAuthorizationEntry;
     }
 
-    /**
-     * The list of deny ACIs. These are all of the applicable
-     * ACIs that have a deny permission. Note that an ACI can
-     * be on both allow and deny list if it has multiple
-     * permission-bind rule pairs.
-     *
-     * @param denys The list of deny ACIs.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public void setDenyList(LinkedList<Aci> denys) {
         denyList=denys;
     }
 
-    /**
-     * The list of allow ACIs. These are all of the applicable
-     * ACIs that have an allow permission.
-     *
-     * @param allows  The list of allow ACIs.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public void setAllowList(LinkedList<Aci> allows) {
         allowList=allows;
     }
 
-    /**
-     * Return the current attribute type being evaluated.
-     * @return  Attribute type being evaluated.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public AttributeType getCurrentAttributeType() {
         return attributeType;
     }
 
-    /**
-     * Return the current attribute type value being evaluated.
-     * @return Attribute type value being evaluated.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public AttributeValue getCurrentAttributeValue() {
         return attributeValue;
     }
 
-    /**
-     * Set the attribute type to be evaluated.
-     * @param type The attribute type to evaluate.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public void setCurrentAttributeType(AttributeType type) {
         attributeType=type;
     }
 
-    /**
-     * Set the attribute type value to be evaluated.
-     * @param value The attribute type value to evaluate.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public void setCurrentAttributeValue(AttributeValue value) {
         attributeValue=value;
     }
 
-    /**
-     * Check is this the first attribute being evaluated in an entry.
-     * @return  True if it is the first attribute.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public boolean isFirstAttribute() {
         return isFirst;
     }
 
-    /**
-     * Set if this is the first attribute in the entry.
-     * @param val True if this is the first attribute being evaluated in the
-     * entry.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public void setIsFirstAttribute(boolean val) {
         isFirst=val;
     }
 
-    /**
-     * Check if an entry test rule was seen during target evaluation.
-     * @return True if an entry test rule was seen.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public boolean hasEntryTestRule() {
         return isEntryTestRule;
     }
 
-    /**
-     * Used to set if an entry test rule was seen during target evaluation.
-     * @param val Set to true if an entry test rule was seen.
-     */
-    public void setEntryTestRule(boolean val) {
+   /**
+    * {@inheritDoc}
+    */
+   public void setEntryTestRule(boolean val) {
         isEntryTestRule=val;
     }
 
-    /**
-     * Get the entry being evaluated (known as the resource entry).
-     * @return  The entry being evaluated.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public Entry getResourceEntry() {
         return resourceEntry;
     }
 
-    /**
-     * Get the entry that corresponds to the client DN.
-     * @return The client entry.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public Entry getClientEntry() {
       return this.authorizationEntry;
     }
 
-    /**
-     * Get the deny list of ACIs.
-     * @return The deny ACI list.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public LinkedList<Aci> getDenyList() {
         return denyList;
      }
 
-    /**
-     * Get the allow list of ACIs.
-     * @return The allow ACI list.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public LinkedList<Aci> getAllowList() {
        return allowList;
     }
 
-    /**
-     * Check is this is a deny ACI evaluation.
-     * @return  True if the evaluation is using an ACI from
-     * deny list.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public boolean isDenyEval() {
         return isDenyEval;
     }
 
-    /**
-     * Check is this operation bound anonymously.
-     * @return  True if the authentication is anonymous.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public boolean isAnonymousUser() {
         return !clientConnection.getAuthenticationInfo().isAuthenticated();
     }
 
-    /**
-     * Set the deny evaluation flag.
-     * @param val True if this evaluation is a deny ACI.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public void setDenyEval(boolean val) {
         isDenyEval = val;
     }
 
-    /**
-     * Returns the client authorization DN known as the client DN.
-     * @return  The client's authorization DN.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public DN getClientDN() {
-      return this.authorizationEntry.getDN();
+      if(this.useAuthzid)
+        return this.authzid;
+      else
+       return this.authorizationEntry.getDN();
     }
 
-    /**
-     * Get the DN of the entry being evaluated.
-     * @return The DN of the entry.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public DN getResourceDN() {
         return resourceEntry.getDN();
     }
 
-    /**
-     * Checks if the container's rights has the specified rights.
-     * @param  rights The rights to check for.
-     * @return True if the container's rights has the specified rights.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public boolean hasRights(int rights) {
        return (this.rights & rights) != 0;
     }
 
-    /**
-     * Return the rights set for this container's LDAP operation.
-     * @return  The rights set for the container's LDAP operation.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public int getRights() {
         return this.rights;
     }
 
-    /**
-     * Sets the rights for this container to the specified rights.
-     * @param rights The rights to set the container's rights to.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public void setRights(int rights) {
          this.rights=rights;
     }
 
-    /**
-     * Gets the hostname of the remote client.
-     * @return  Cannonical hostname of remote client.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public String getHostName() {
         return clientConnection.getRemoteAddress().getCanonicalHostName();
     }
 
-    /**
-     * Gets the remote client's address information.
-     * @return  Remote client's address.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public InetAddress getRemoteAddress() {
         return clientConnection.getRemoteAddress();
     }
 
-    /**
-     * Return true if the current operation is a LDAP add operation.
-     * @return True if this is an add operation.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public boolean isAddOperation() {
         return isAddOp;
     }
 
-    /**
-     * Set to true  if the ACI had a targattrfilter rule that matched.
-     * @param v  The value to use.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public void setTargAttrFiltersMatch(boolean v) {
         this.targAttrFiltersMatch=v;
     }
 
-    /**
-     * Return the value of the targAttrFiltersMatch variable. This is set to
-     * true if the ACI had a targattrfilter rule that matched.
-     * @return  True if the ACI had a targattrfilter rule that matched.
-     */
+   /**
+    * {@inheritDoc}
+    */
     public boolean getTargAttrFiltersMatch() {
         return targAttrFiltersMatch;
     }
@@ -498,12 +751,9 @@ implements AciTargetMatchContext, AciEvalContext {
       return matched;
     }
 
-    /**
-     * Convenience method that checks if the the clientDN is a member of the
-     * specified group.
-     * @param group The group to check membership in.
-     * @return True if the clientDN is a member of the specified group.
-     */
+  /**
+   * {@inheritDoc}
+   */
     public boolean isMemberOf(Group group) {
         boolean ret;
         try {
@@ -513,4 +763,32 @@ implements AciTargetMatchContext, AciEvalContext {
         }
         return  ret;
     }
+
+  /**
+   * {@inheritDoc}
+   */
+    public String rightToString() {
+      if(hasRights(ACI_SEARCH))
+        return "search";
+      else if(hasRights(ACI_COMPARE))
+        return "compare";
+      else if(hasRights(ACI_READ))
+        return "read";
+      else if(hasRights(ACI_DELETE))
+        return "delete";
+      else if(hasRights(ACI_ADD))
+        return "add";
+      else if(hasRights(ACI_WRITE))
+        return "write";
+      else if(hasRights(ACI_PROXY))
+        return "proxy";
+      else if(hasRights(ACI_IMPORT))
+        return "import";
+      else if(hasRights(ACI_EXPORT))
+        return "export";
+      else if(hasRights(ACI_WRITE) &&
+              hasRights(ACI_SELF))
+        return "selfwrite";
+      return null;
+  }
 }

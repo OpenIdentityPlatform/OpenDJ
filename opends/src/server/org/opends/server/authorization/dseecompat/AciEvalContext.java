@@ -29,6 +29,7 @@ package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.AttributeType;
 import org.opends.server.api.Group;
 
 import java.net.InetAddress;
@@ -146,4 +147,161 @@ public interface AciEvalContext
      * member of the specified group.
      */
     public boolean isMemberOf(Group group);
+
+  /**
+   * Returns true if the hashtable of ACIs that matched the targattrfilters
+   * keyword evaluation is empty.  Used by geteffectiverights evaluation to
+   * determine the access value to put in the "write" rights evaluation field.
+   *
+   * @return True if there were not any ACIs that matched targattrfilters
+   *         keyword evaluation.
+   */
+    public boolean isTargAttrFilterMatchAciEmpty();
+
+  /**
+   * The context maintains a hashtable of ACIs that matched the targattrfilters
+   * keyword evaluation.  The hasTargAttrFiltersMatchAci method returns true if
+   * the specified ACI is contained in that hashtable. Used by
+   * geteffectiverights evaluation to determine the access value to put in the
+   * "write" rights evaluation field.
+   *
+   * @param aci The ACI that to evaluate if it contains a match during
+   *            targattrfilters keyword evaluation.
+   *
+   * @return True if a specified ACI matched targattrfilters evaluation.
+   */
+    public boolean hasTargAttrFiltersMatchAci(Aci aci);
+
+  /**
+   * Return true if an ACI that evaluated to deny or allow has an
+   * targattrfilters keyword. Used by geteffectiverights
+   * evaluation to determine the access value to put in the "write" rights
+   * evaluation field.
+   *
+   * @param flag  The integer value specifying either a deny or allow, but not
+   * both.
+   *
+   * @return   True if the ACI that evaluated to
+   */
+    public boolean hasTargAttrFiltersMatchOp(int flag);
+
+  /**
+   * Returns true if the evaluation context is being used in a
+   * geteffectiverights evaluation.
+   *
+   * @return  True if the evaluation context is being used in a
+   * geteffectiverights evaluation.
+   */
+    public boolean isGetEffectiveRightsEval();
+
+  /**
+   * Set the name of the ACI that last matched a targattrfilters rule. Used
+   * in geteffectiverights targattrfilters "write" rights evaluation.
+   *
+   * @param name The ACI name string matching the targattrfilters rule.
+   */
+    public void setTargAttrFiltersAciName(String name);
+
+  /**
+   * Set a flag that specifies that a ACI that evaluated to either deny or
+   * allow contains a targattrfilters keyword. Used by geteffectiverights
+   * evaluation to determine the access value to put in the "write" rights
+   * evaluation field.
+   *
+   * @param flag Either the integer value representing an allow or a deny,
+   *             but not both.
+   */
+    public void setTargAttrFiltersMatchOp(int flag);
+
+  /**
+   * Set the reason the last access evaluation was evaluated the way it
+   * was. Used by geteffectiverights evaluation to eventually build the
+   * summary string.
+   *
+   * @param reason  The enumeration representing the reason of the last access
+   * evaluation.
+   */
+    public void setEvalReason(EnumEvalReason reason);
+
+  /**
+   * Return the reason the last access evaluation was evaluated the way it
+   * was. Used by geteffectiverights evaluation to build the summary string.
+   *
+   * @return The enumeration representing the reason of the last access
+   * evaluation.
+   */
+    public EnumEvalReason getEvalReason();
+
+  /**
+   * Set the ACI that decided that last access evaluation. Used by
+   * geteffectiverights evaluation to the build summary string.
+   *
+   * @param aci The ACI that decided the last access evaluation.
+   */
+    public void setDecidingAci(Aci aci);
+
+  /**
+   * Check if an evaluation context contains a set of access rights.
+   *
+   * @param rights The rights mask to check.
+   *
+   * @return True if the evaluation context contains a access right set.
+   */
+    public boolean hasRights(int rights);
+
+  /**
+   * Return the name of the ACI that decided the last access evaluation. Used
+   * by geteffectiverights evaluation to build the summmary string.
+   *
+   * @return The name of the ACI that decided the last access evaluation.
+   */
+    public String getDecidingAciName();
+
+  /**
+   * Return true if a evaluation context is being used in proxied authorization
+   * evaluation.
+   *
+   * @return  True if evaluation context is being used in proxied authorization
+   * evaluation.
+   */
+    public boolean isProxiedAuthorization();
+
+    /**
+     * Get the current attribute type being evaluated.
+     *
+     * @return  The attribute type currently being evaluated.
+     */
+    public AttributeType getCurrentAttributeType();
+
+  /**
+   * Set the value of the summary string to the specified string.
+   * Used in geteffectiverights evaluation to build summary string.
+   *
+   * @param summary The string to set the summary string to
+   */
+    public void setEvalSummary(String summary);
+
+  /**
+   * Return the access evaluation summary string. Used by the geteffectiverights
+   * evaluation when a aclRightsInfo attribute was specified in a search.
+   *
+   * @return   The string describing the access evaluation.
+   */
+    public String getEvalSummary();
+
+  /**
+   * Return a string representation of the current right being evaluated.
+   * Used in geteffectiverights evaluation to build summary string.
+   *
+   * @return  String representation of the current right being evaluated.
+   */
+    public String rightToString();
+
+    /**
+   * Return the name of the ACI that last matched a targattrfilters rule. Used
+   * in geteffectiverights evaluation.
+   *
+   * @return   The name of the ACI that last matched a targattrfilters rule.
+   */
+    public String getTargAttrFiltersAciName();
 }

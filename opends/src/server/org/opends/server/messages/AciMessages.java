@@ -731,6 +731,31 @@ public class AciMessages {
    public static final int MSGID_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER =
         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 72;
 
+  /**
+   * The message ID for the message that will be used if a attribute type with
+   * a DN syntax failed to DN decode in the selfwrite access checking. This
+   * takes one argument, which is the invalid DN string.
+   */
+  public static final int MSGID_ACI_NOT_VALID_DN =
+       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 73;
+
+    /**
+   * The message ID for the message that will be used if a targetattr
+   * keyword expression contains both operational and user attribute
+   * types. This takes one argument, which is the targetattr expression string.
+   */
+  public static final int MSGID_ACI_TARGETATTR_INVALID_OP_USER_ATTR =
+       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 74;
+
+      /**
+   * The message ID for the message that will be used if a targetattr
+   * keyword expression performs both an inequality operation using
+   * operational attribute types. This takes one argument, which is the
+   * targetattr expression string.
+   */
+  public static final int MSGID_ACI_TARGATTR_INVALID_OP_ATTR_INEQUALITY =
+       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 75;
+
     /**
      * Associates a set of generic messages with the message IDs defined in
      * this class.
@@ -1148,5 +1173,21 @@ public class AciMessages {
 
       registerMessage(MSGID_ACI_HANDLER_CANNOT_LOCK_NEW_SUPERIOR_USER,
           "Unable to obtain a lock on the ModifyDN new superior entry %s");
+
+      registerMessage(MSGID_ACI_NOT_VALID_DN,
+          "Selfwrite check skipped because an attribute \"%s\" with a " +
+          "distinguished name syntax was not a valid DN");
+
+      registerMessage(MSGID_ACI_TARGETATTR_INVALID_OP_USER_ATTR,
+              "The provided Access Control Instruction (ACI) " +
+              "targetattr expression value \"%s\" is invalid because" +
+              " the expression contains both operational attribute types" +
+              " and user attribute types");
+
+      registerMessage(MSGID_ACI_TARGATTR_INVALID_OP_ATTR_INEQUALITY,
+              "The provided Access Control Instruction (ACI) " +
+              "targetattr expression value \"%s\" is invalid because" +
+              " the expression performs an inequality operation using " +
+              "operational attribute types");
     }
 }

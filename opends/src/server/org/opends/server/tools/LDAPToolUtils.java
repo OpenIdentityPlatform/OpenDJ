@@ -121,6 +121,11 @@ public class LDAPToolUtils
     {
       controlOID = OID_VIRTUAL_ATTRS_ONLY;
     }
+    else if(lowerOID.equals("effectiverights") ||
+              lowerOID.equals("geteffectiverights"))
+    {
+      controlOID = OID_GET_EFFECTIVE_RIGHTS;
+    }
 
     if (idx < 0)
     {

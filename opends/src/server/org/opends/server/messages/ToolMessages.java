@@ -7067,6 +7067,31 @@ public class ToolMessages
   public static final int MSGID_LDIFIMPORT_CANNOT_READ_FILE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 887;
 
+/**
+  * The message ID for the message that will be used as the description of the
+  * geteffectiverights control authzid argument.  This does not take any
+  * arguments.
+  */
+ public static final int MSGID_DESCRIPTION_EFFECTIVERIGHTS_USER =
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 888;
+
+
+ /**
+  * The message ID for the message that will be used as the description of the
+  * geteffectiverights control specific attribute list argument.  This does
+  * not take any arguments.
+  */
+ public static final int MSGID_DESCRIPTION_EFFECTIVERIGHTS_ATTR =
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 889;
+
+
+ /**
+  * The message ID for the message that will be used as the description of the
+  * geteffectiverights authzid when it does not start with the required string
+  * "dn:". This takes a single argument, which is the authzid string.
+  */
+ public static final int MSGID_EFFECTIVERIGHTS_INVALID_AUTHZID =
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 890;
 
 
   /**
@@ -9294,6 +9319,19 @@ public class ToolMessages
 
     registerMessage(MSGID_LDIFIMPORT_CANNOT_READ_FILE,
                     "The specified LDIF file %s cannot be read");
+
+   registerMessage(MSGID_DESCRIPTION_EFFECTIVERIGHTS_USER,
+                    "Use geteffectiverights control with the provided " +
+                    "authzid");
+
+    registerMessage(MSGID_DESCRIPTION_EFFECTIVERIGHTS_ATTR,
+                    "Specifies geteffectiverights control specific " +
+                    "attribute list");
+
+   registerMessage(MSGID_EFFECTIVERIGHTS_INVALID_AUTHZID,
+                    "The authorization ID \"%s\" contained in the " +
+                     "geteffectiverights control is invalid because it does" +
+                     " not start with \"dn:\" to indicate a user DN");
   }
 }
 

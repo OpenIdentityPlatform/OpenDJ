@@ -42,12 +42,7 @@ import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.api.plugin.SearchEntryPluginResult;
 import org.opends.server.api.plugin.SearchReferencePluginResult;
-import org.opends.server.controls.AccountUsableResponseControl;
-import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.controls.MatchedValuesControl;
-import org.opends.server.controls.PersistentSearchControl;
-import org.opends.server.controls.ProxiedAuthV1Control;
-import org.opends.server.controls.ProxiedAuthV2Control;
+import org.opends.server.controls.*;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Attribute;
@@ -1922,6 +1917,43 @@ searchProcessing:
           else if (oid.equals(OID_VIRTUAL_ATTRS_ONLY))
           {
             virtualAttributesOnly = true;
+          } else if(oid.equals(OID_GET_EFFECTIVE_RIGHTS)) {
+            GetEffectiveRights effectiveRightsControl;
+            if (c instanceof GetEffectiveRights)
+            {
+              effectiveRightsControl = (GetEffectiveRights) c;
+            }
+            else
+            {
+              try
+              {
+                effectiveRightsControl = GetEffectiveRights.decodeControl(c);
+              }
+              catch (LDAPException le)
+              {
+                if (debugEnabled())
+                {
+                  debugCaught(DebugLogLevel.ERROR, le);
+                }
+
+                setResultCode(ResultCode.valueOf(le.getResultCode()));
+                appendErrorMessage(le.getMessage());
+
+                break searchProcessing;
+              }
+            }
+
+              if (!AccessControlConfigManager.getInstance()
+                   .getAccessControlHandler().
+                    isGetEffectiveRightsAllowed(this, effectiveRightsControl)) {
+                 setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+                 int msgID =
+                        MSGID_SEARCH_EFFECTIVERIGHTS_INSUFFICIENT_ACCESS_RIGHTS;
+                 appendErrorMessage(getMessage(msgID, String.valueOf(baseDN)));
+
+                 skipPostOperation = true;
+                 break searchProcessing;
+               }
           }
 
           // NYI -- Add support for additional controls.
