@@ -28,17 +28,21 @@ package org.opends.server.extensions;
 
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockType;
+import org.opends.server.types.ResultCode;
 
 
 
@@ -50,7 +54,8 @@ import org.opends.server.types.LockType;
  * <CODE>putEntry</CODE> will return immediately without doing anything.
  */
 public class DefaultEntryCache
-       extends EntryCache
+       extends EntryCache<EntryCacheCfg>
+       implements ConfigurationChangeListener<EntryCacheCfg>
 {
 
 
@@ -67,21 +72,9 @@ public class DefaultEntryCache
 
 
   /**
-   * Initializes this entry cache implementation so that it will be available
-   * for storing and retrieving entries.
-   *
-   * @param  configEntry  The configuration entry containing the settings to use
-   *                      for this entry cache.
-   *
-   * @throws  ConfigException  If there is a problem with the provided
-   *                           configuration entry that would prevent this
-   *                           entry cache from being used.
-   *
-   * @throws  InitializationException  If a problem occurs during the
-   *                                   initialization process that is not
-   *                                   related to the configuration.
+   * {@inheritDoc}
    */
-  public void initializeEntryCache(ConfigEntry configEntry)
+  public void initializeEntryCache(EntryCacheCfg configEntry)
          throws ConfigException, InitializationException
   {
     // No implementation required.
@@ -90,9 +83,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Performs any necessary cleanup work (e.g., flushing all cached entries and
-   * releasing any other held resources) that should be performed when the
-   * server is to be shut down or the entry cache destroyed or replaced.
+   * {@inheritDoc}
    */
   public void finalizeEntryCache()
   {
@@ -102,14 +93,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Indicates whether the entry cache currently contains the entry with the
-   * specified DN.  This method may be called without holding any locks if a
-   * point-in-time check is all that is required.
-   *
-   * @param  entryDN  The DN for which to make the determination.
-   *
-   * @return  <CODE>true</CODE> if the entry cache currently contains the entry
-   *          with the specified DN, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
   public boolean containsEntry(DN entryDN)
   {
@@ -120,14 +104,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Retrieves the entry with the specified DN from the cache.  The caller
-   * should have already acquired a read or write lock for the entry if such
-   * protection is needed.
-   *
-   * @param  entryDN  The DN of the entry to retrieve.
-   *
-   * @return  The requested entry if it is present in the cache, or
-   *          <CODE>null</CODE> if it is not present.
+   * {@inheritDoc}
    */
   public Entry getEntry(DN entryDN)
   {
@@ -138,14 +115,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Retrieves the entry ID for the entry with the specified DN from the cache.
-   * The caller should have already acquired a read or write lock for the entry
-   * if such protection is needed.
-   *
-   * @param  entryDN  The DN of the entry for which to retrieve the entry ID.
-   *
-   * @return  The entry ID for the requested entry, or -1 if it is not present
-   *          in the cache.
+   * {@inheritDoc}
    */
   public long getEntryID(DN entryDN)
   {
@@ -156,20 +126,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Retrieves the entry with the specified DN from the cache, obtaining a lock
-   * on the entry before it is returned.  If the entry is present in the cache,
-   * then a lock will be obtained for that entry and appended to the provided
-   * list before the entry is returned.  If the entry is not present, then no
-   * lock will be obtained.
-   *
-   * @param  entryDN   The DN of the entry to retrieve.
-   * @param  lockType  The type of lock to obtain (it may be <CODE>NONE</CODE>).
-   * @param  lockList  The list to which the obtained lock will be added (note
-   *                   that no lock will be added if the lock type was
-   *                   <CODE>NONE</CODE>).
-   *
-   * @return  The requested entry if it is present in the cache, or
-   *          <CODE>null</CODE> if it is not present.
+   * {@inheritDoc}
    */
   public Entry getEntry(DN entryDN, LockType lockType, List<Lock> lockList)
   {
@@ -180,22 +137,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Retrieves the requested entry if it is present in the cache, obtaining a
-   * lock on the entry before it is returned.  If the entry is present in the
-   * cache, then a lock  will be obtained for that entry and appended to the
-   * provided list before the entry is returned.  If the entry is not present,
-   * then no lock will be obtained.
-   *
-   * @param  backend   The backend associated with the entry to retrieve.
-   * @param  entryID   The entry ID within the provided backend for the
-   *                   specified entry.
-   * @param  lockType  The type of lock to obtain (it may be <CODE>NONE</CODE>).
-   * @param  lockList  The list to which the obtained lock will be added (note
-   *                   that no lock will be added if the lock type was
-   *                   <CODE>NONE</CODE>).
-   *
-   * @return  The requested entry if it is present in the cache, or
-   *          <CODE>null</CODE> if it is not present.
+   * {@inheritDoc}
    */
   public Entry getEntry(Backend backend, long entryID, LockType lockType,
                         List<Lock> lockList)
@@ -207,14 +149,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Stores the provided entry in the cache.  Note that the mechanism that it
-   * uses to achieve this is implementation-dependent, and it is acceptable for
-   * the entry to not actually be stored in any cache.
-   *
-   * @param  entry    The entry to store in the cache.
-   * @param  backend  The backend with which the entry is associated.
-   * @param  entryID  The entry ID within the provided backend that uniquely
-   *                  identifies the specified entry.
+   * {@inheritDoc}
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
@@ -224,22 +159,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Stores the provided entry in the cache only if it does not conflict with an
-   * entry that already exists.  Note that the mechanism that it uses to achieve
-   * this is implementation-dependent, and it is acceptable for the entry to not
-   * actually be stored in any cache.  However, this method must not overwrite
-   * an existing version of the entry.
-   *
-   * @param  entry    The entry to store in the cache.
-   * @param  backend  The backend with which the entry is associated.
-   * @param  entryID  The entry ID within the provided backend that uniquely
-   *                  identifies the specified entry.
-   *
-   * @return  <CODE>false</CODE> if an existing entry or some other problem
-   *          prevented the method from completing successfully, or
-   *          <CODE>true</CODE> if there was no conflict and the entry was
-   *          either stored or the cache determined that this entry should never
-   *          be cached for some reason.
+   * {@inheritDoc}
    */
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
@@ -251,9 +171,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Removes the specified entry from the cache.
-   *
-   * @param  entryDN  The DN of the entry to remove from the cache.
+   * {@inheritDoc}
    */
   public void removeEntry(DN entryDN)
   {
@@ -263,8 +181,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Removes all entries from the cache.  The cache should still be available
-   * for future use.
+   * {@inheritDoc}
    */
   public void clear()
   {
@@ -274,10 +191,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Removes all entries from the cache that are associated with the provided
-   * backend.
-   *
-   * @param  backend  The backend for which to flush the associated entries.
+   * {@inheritDoc}
    */
   public void clearBackend(Backend backend)
   {
@@ -287,9 +201,7 @@ public class DefaultEntryCache
 
 
   /**
-   * Removes all entries from the cache that are below the provided DN.
-   *
-   * @param  baseDN  The base DN below which all entries should be flushed.
+   * {@inheritDoc}
    */
   public void clearSubtree(DN baseDN)
   {
@@ -299,15 +211,44 @@ public class DefaultEntryCache
 
 
   /**
-   * Attempts to react to a scenario in which it is determined that the system
-   * is running low on available memory.  In this case, the entry cache should
-   * attempt to free some memory if possible to try to avoid out of memory
-   * errors.
+   * {@inheritDoc}
    */
   public void handleLowMemory()
   {
     // This implementation does not store entries, so there are no resources
     // that it can free.
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      EntryCacheCfg configuration,
+      List<String>  unacceptableReasons
+      )
+  {
+    // No implementation required.
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+      EntryCacheCfg configuration
+      )
+  {
+    // No implementation required.
+
+    ConfigChangeResult changeResult = new ConfigChangeResult(
+        ResultCode.SUCCESS, false, new ArrayList<String>()
+        );
+
+    return changeResult;
+    }
 }
 

@@ -41,10 +41,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.server.api.Backend;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.EntryCache;
+import org.opends.server.admin.std.server.FIFOEntryCacheCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.IntegerConfigAttribute;
 import org.opends.server.config.IntegerWithUnitConfigAttribute;
@@ -54,8 +54,6 @@ import org.opends.server.types.CacheEntry;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.LockType;
@@ -66,11 +64,9 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -100,8 +96,8 @@ import static org.opends.server.util.StaticUtils.*;
  * of the given filters will be stored in the cache.
  */
 public class FIFOEntryCache
-       extends EntryCache
-       implements ConfigurableComponent
+       extends EntryCache <FIFOEntryCacheCfg>
+       implements ConfigurationChangeListener<FIFOEntryCacheCfg>
 {
 
 
@@ -179,291 +175,35 @@ public class FIFOEntryCache
 
 
   /**
-   * Initializes this entry cache implementation so that it will be available
-   * for storing and retrieving entries.
-   *
-   * @param  configEntry  The configuration entry containing the settings to use
-   *                      for this entry cache.
-   *
-   * @throws  ConfigException  If there is a problem with the provided
-   *                           configuration entry that would prevent this
-   *                           entry cache from being used.
-   *
-   * @throws  InitializationException  If a problem occurs during the
-   *                                   initialization process that is not
-   *                                   related to the configuration.
+   * {@inheritDoc}
    */
-  public void initializeEntryCache(ConfigEntry configEntry)
-         throws ConfigException, InitializationException
+  public void initializeEntryCache(
+      FIFOEntryCacheCfg configuration
+      )
+      throws ConfigException, InitializationException
   {
-    configEntryDN = configEntry.getDN();
-
+    configuration.addFIFOChangeListener (this);
+    configEntryDN = configuration.dn();
 
     // Initialize the cache structures.
     idMap     = new HashMap<Backend,HashMap<Long,CacheEntry>>();
     dnMap     = new LinkedHashMap<DN,CacheEntry>();
     cacheLock = new ReentrantLock();
-    runtime   = Runtime.getRuntime();
 
 
-    // Determine the maximum memory usage as a percentage of the total JVM
-    // memory.
-    maxMemoryPercent = DEFAULT_FIFOCACHE_MAX_MEMORY_PCT;
-    int msgID = MSGID_FIFOCACHE_DESCRIPTION_MAX_MEMORY_PCT;
-    IntegerConfigAttribute maxMemoryPctStub =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_MAX_MEMORY_PCT,
-                                    getMessage(msgID), true, false, false, true,
-                                    1, true, 100);
-    try
-    {
-      IntegerConfigAttribute maxMemoryPctAttr =
-           (IntegerConfigAttribute)
-           configEntry.getConfigAttribute(maxMemoryPctStub);
-      if (maxMemoryPctAttr == null)
-      {
-        // This is fine -- we'll just use the default.
-      }
-      else
-      {
-        maxMemoryPercent = maxMemoryPctAttr.activeIntValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // Log an error message.
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_FIFOCACHE_CANNOT_DETERMINE_MAX_MEMORY_PCT,
-               String.valueOf(configEntryDN), getExceptionMessage(e),
-               maxMemoryPercent);
-    }
-
-    maxAllowedMemory = runtime.maxMemory() / 100 * maxMemoryPercent;
-
-
-    // Determine the maximum number of entries that we will allow in the cache.
-    maxEntries = DEFAULT_FIFOCACHE_MAX_ENTRIES;
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_MAX_ENTRIES;
-    IntegerConfigAttribute maxEntriesStub =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_MAX_ENTRIES,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0);
-    try
-    {
-      IntegerConfigAttribute maxEntriesAttr =
-           (IntegerConfigAttribute)
-           configEntry.getConfigAttribute(maxEntriesStub);
-      if (maxEntriesAttr == null)
-      {
-        // This is fine -- we'll just use the default.
-      }
-      else
-      {
-        maxEntries = maxEntriesAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // Log an error message.
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_FIFOCACHE_CANNOT_DETERMINE_MAX_ENTRIES,
-               String.valueOf(configEntryDN), getExceptionMessage(e));
-    }
-
-
-    // Determine the lock timeout to use when interacting with the lock manager.
-    lockTimeout = DEFAULT_FIFOCACHE_LOCK_TIMEOUT;
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerWithUnitConfigAttribute lockTimeoutStub =
-         new IntegerWithUnitConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
-                                            getMessage(msgID), false, timeUnits,
-                                            true, 0, false, 0);
-    try
-    {
-      IntegerWithUnitConfigAttribute lockTimeoutAttr =
-             (IntegerWithUnitConfigAttribute)
-             configEntry.getConfigAttribute(lockTimeoutStub);
-      if (lockTimeoutAttr == null)
-      {
-        // This is fine -- we'll just use the default.
-      }
-      else
-      {
-        lockTimeout = lockTimeoutAttr.activeCalculatedValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // Log an error message.
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_FIFOCACHE_CANNOT_DETERMINE_LOCK_TIMEOUT,
-               String.valueOf(configEntryDN), getExceptionMessage(e),
-               lockTimeout);
-    }
-
-
-    // Determine the set of cache filters that can be used to control the
-    // entries that should be included in the cache.
-    includeFilters = new HashSet<SearchFilter>();
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_INCLUDE_FILTERS;
-    StringConfigAttribute includeStub =
-         new StringConfigAttribute(ATTR_FIFOCACHE_INCLUDE_FILTER,
-                                   getMessage(msgID), false, true, false);
-    try
-    {
-      StringConfigAttribute includeAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(includeStub);
-      if (includeAttr == null)
-      {
-        // This is fine -- we'll just use the default.
-      }
-      else
-      {
-        List<String> filterStrings = includeAttr.activeValues();
-        if ((filterStrings == null) || filterStrings.isEmpty())
-        {
-          // There are no include filters, so we'll allow anything by default.
-        }
-        else
-        {
-          for (String filterString : filterStrings)
-          {
-            try
-            {
-              includeFilters.add(
-                   SearchFilter.createFilterFromString(filterString));
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              // We couldn't decode this filter.  Log a warning and continue.
-              logError(ErrorLogCategory.CONFIGURATION,
-                       ErrorLogSeverity.SEVERE_WARNING,
-                       MSGID_FIFOCACHE_CANNOT_DECODE_INCLUDE_FILTER,
-                       String.valueOf(configEntryDN), filterString,
-                       getExceptionMessage(e));
-            }
-          }
-
-          if (includeFilters.isEmpty())
-          {
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     MSGID_FIFOCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
-                     String.valueOf(configEntryDN));
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // Log an error message.
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_FIFOCACHE_CANNOT_DETERMINE_INCLUDE_FILTERS,
-               String.valueOf(configEntryDN), getExceptionMessage(e));
-    }
-
-
-    // Determine the set of cache filters that can be used to control the
-    // entries that should be excluded from the cache.
-    excludeFilters = new HashSet<SearchFilter>();
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_EXCLUDE_FILTERS;
-    StringConfigAttribute excludeStub =
-         new StringConfigAttribute(ATTR_FIFOCACHE_EXCLUDE_FILTER,
-                                   getMessage(msgID), false, true, false);
-    try
-    {
-      StringConfigAttribute excludeAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(excludeStub);
-      if (excludeAttr == null)
-      {
-        // This is fine -- we'll just use the default.
-      }
-      else
-      {
-        List<String> filterStrings = excludeAttr.activeValues();
-        if ((filterStrings == null) || filterStrings.isEmpty())
-        {
-          // There are no exclude filters, so we'll allow anything by default.
-        }
-        else
-        {
-          for (String filterString : filterStrings)
-          {
-            try
-            {
-              excludeFilters.add(
-                   SearchFilter.createFilterFromString(filterString));
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              // We couldn't decode this filter.  Log a warning and continue.
-              logError(ErrorLogCategory.CONFIGURATION,
-                       ErrorLogSeverity.SEVERE_WARNING,
-                       MSGID_FIFOCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
-                       String.valueOf(configEntryDN), filterString,
-                       getExceptionMessage(e));
-            }
-          }
-
-          if (excludeFilters.isEmpty())
-          {
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_ERROR,
-                     MSGID_FIFOCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
-                     String.valueOf(configEntryDN));
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // Log an error message.
-      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-               MSGID_FIFOCACHE_CANNOT_DETERMINE_EXCLUDE_FILTERS,
-               String.valueOf(configEntryDN), getExceptionMessage(e));
-    }
+    // Read configuration and apply changes.
+    boolean applyChanges = true;
+    EntryCacheCommon.ConfigErrorHandler errorHandler =
+      EntryCacheCommon.getConfigErrorHandler (
+          EntryCacheCommon.ConfigPhase.PHASE_INIT, null, null
+          );
+    processEntryCacheConfig (configuration, applyChanges, errorHandler);
   }
 
 
 
   /**
-   * Performs any necessary cleanup work (e.g., flushing all cached entries and
-   * releasing any other held resources) that should be performed when the
-   * server is to be shut down or the entry cache destroyed or replaced.
+   * {@inheritDoc}
    */
   public void finalizeEntryCache()
   {
@@ -492,14 +232,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Indicates whether the entry cache currently contains the entry with the
-   * specified DN.  This method may be called without holding any locks if a
-   * point-in-time check is all that is required.
-   *
-   * @param  entryDN  The DN for which to make the determination.
-   *
-   * @return  <CODE>true</CODE> if the entry cache currently contains the entry
-   *          with the specified DN, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
   public boolean containsEntry(DN entryDN)
   {
@@ -510,14 +243,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Retrieves the entry with the specified DN from the cache.  The caller
-   * should have already acquired a read or write lock for the entry if such
-   * protection is needed.
-   *
-   * @param  entryDN  The DN of the entry to retrieve.
-   *
-   * @return  The requested entry if it is present in the cache, or
-   *          <CODE>null</CODE> if it is not present.
+   * {@inheritDoc}
    */
   public Entry getEntry(DN entryDN)
   {
@@ -536,14 +262,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Retrieves the entry ID for the entry with the specified DN from the cache.
-   * The caller should have already acquired a read or write lock for the entry
-   * if such protection is needed.
-   *
-   * @param  entryDN  The DN of the entry for which to retrieve the entry ID.
-   *
-   * @return  The entry ID for the requested entry, or -1 if it is not present
-   *          in the cache.
+   * {@inheritDoc}
    */
   public long getEntryID(DN entryDN)
   {
@@ -562,20 +281,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Retrieves the entry with the specified DN from the cache, obtaining a lock
-   * on the entry before it is returned.  If the entry is present in the cache,
-   * then a lock will be obtained for that entry and appended to the provided
-   * list before the entry is returned.  If the entry is not present, then no
-   * lock will be obtained.
-   *
-   * @param  entryDN   The DN of the entry to retrieve.
-   * @param  lockType  The type of lock to obtain (it may be <CODE>NONE</CODE>).
-   * @param  lockList  The list to which the obtained lock will be added (note
-   *                   that no lock will be added if the lock type was
-   *                   <CODE>NONE</CODE>).
-   *
-   * @return  The requested entry if it is present in the cache, or
-   *          <CODE>null</CODE> if it is not present.
+   * {@inheritDoc}
    */
   public Entry getEntry(DN entryDN, LockType lockType, List<Lock> lockList)
   {
@@ -684,22 +390,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Retrieves the requested entry if it is present in the cache, obtaining a
-   * lock on the entry before it is returned.  If the entry is present in the
-   * cache, then a lock  will be obtained for that entry and appended to the
-   * provided list before the entry is returned.  If the entry is not present,
-   * then no lock will be obtained.
-   *
-   * @param  backend   The backend associated with the entry to retrieve.
-   * @param  entryID   The entry ID within the provided backend for the
-   *                   specified entry.
-   * @param  lockType  The type of lock to obtain (it may be <CODE>NONE</CODE>).
-   * @param  lockList  The list to which the obtained lock will be added (note
-   *                   that no lock will be added if the lock type was
-   *                   <CODE>NONE</CODE>).
-   *
-   * @return  The requested entry if it is present in the cache, or
-   *          <CODE>null</CODE> if it is not present.
+   * {@inheritDoc}
    */
   public Entry getEntry(Backend backend, long entryID, LockType lockType,
                         List<Lock> lockList)
@@ -820,14 +511,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Stores the provided entry in the cache.  Note that the mechanism that it
-   * uses to achieve this is implementation-dependent, and it is acceptable for
-   * the entry to not actually be stored in any cache.
-   *
-   * @param  entry    The entry to store in the cache.
-   * @param  backend  The backend with which the entry is associated.
-   * @param  entryID  The entry ID within the provided backend that uniquely
-   *                  identifies the specified entry.
+   * {@inheritDoc}
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
@@ -999,22 +683,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Stores the provided entry in the cache only if it does not conflict with an
-   * entry that already exists.  Note that the mechanism that it uses to achieve
-   * this is implementation-dependent, and it is acceptable for the entry to not
-   * actually be stored in any cache.  However, this method must not overwrite
-   * an existing version of the entry.
-   *
-   * @param  entry    The entry to store in the cache.
-   * @param  backend  The backend with which the entry is associated.
-   * @param  entryID  The entry ID within the provided backend that uniquely
-   *                  identifies the specified entry.
-   *
-   * @return  <CODE>false</CODE> if an existing entry or some other problem
-   *          prevented the method from completing successfully, or
-   *          <CODE>true</CODE> if there was no conflict and the entry was
-   *          either stored or the cache determined that this entry should never
-   *          be cached for some reason.
+   * {@inheritDoc}
    */
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
@@ -1201,9 +870,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Removes the specified entry from the cache.
-   *
-   * @param  entryDN  The DN of the entry to remove from the cache.
+   * {@inheritDoc}
    */
   public void removeEntry(DN entryDN)
   {
@@ -1257,8 +924,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Removes all entries from the cache.  The cache should still be available
-   * for future use.
+   * {@inheritDoc}
    */
   public void clear()
   {
@@ -1295,10 +961,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Removes all entries from the cache that are associated with the provided
-   * backend.
-   *
-   * @param  backend  The backend for which to flush the associated entries.
+   * {@inheritDoc}
    */
   public void clearBackend(Backend backend)
   {
@@ -1359,9 +1022,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Removes all entries from the cache that are below the provided DN.
-   *
-   * @param  baseDN  The base DN below which all entries should be flushed.
+   * {@inheritDoc}
    */
   public void clearSubtree(DN baseDN)
   {
@@ -1403,11 +1064,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Clears all entries at or below the specified base DN that are associated
-   * with the given backend.  The caller must already hold the cache lock.
-   *
-   * @param  baseDN   The base DN below which all entries should be flushed.
-   * @param  backend  The backend for which to remove the appropriate entries.
+   * {@inheritDoc}
    */
   private void clearSubtree(DN baseDN, Backend backend)
   {
@@ -1474,10 +1131,7 @@ public class FIFOEntryCache
 
 
   /**
-   * Attempts to react to a scenario in which it is determined that the system
-   * is running low on available memory.  In this case, the entry cache should
-   * attempt to free some memory if possible to try to avoid out of memory
-   * errors.
+   * {@inheritDoc}
    */
   public void handleLowMemory()
   {
@@ -1618,235 +1272,55 @@ public class FIFOEntryCache
 
 
   /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(
+      FIFOEntryCacheCfg configuration,
+      List<String>      unacceptableReasons
+      )
   {
-    // Start out assuming that the configuration is valid.
-    boolean configIsAcceptable = true;
+    // Make sure that we can process the defined character sets.  If so, then
+    // we'll accept the new configuration.
+    boolean applyChanges = false;
+    EntryCacheCommon.ConfigErrorHandler errorHandler =
+      EntryCacheCommon.getConfigErrorHandler (
+          EntryCacheCommon.ConfigPhase.PHASE_ACCEPTABLE,
+          unacceptableReasons,
+          null
+        );
+    processEntryCacheConfig (configuration, applyChanges, errorHandler);
+
+    return errorHandler.getIsAcceptable();
+  }
 
 
-    // Determine the maximum memory usage as a percentage of the total JVM
-    // memory.
-    int msgID = MSGID_FIFOCACHE_DESCRIPTION_MAX_MEMORY_PCT;
-    IntegerConfigAttribute maxMemoryPctStub =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_MAX_MEMORY_PCT,
-                                    getMessage(msgID), true, false, false, true,
-                                    1, true, 100);
-    try
-    {
-      IntegerConfigAttribute maxMemoryPctAttr =
-           (IntegerConfigAttribute)
-           configEntry.getConfigAttribute(maxMemoryPctStub);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      // An error occurred, so the provided value must not be valid.
-      msgID = MSGID_FIFOCACHE_INVALID_MAX_MEMORY_PCT;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         getExceptionMessage(e)));
-      configIsAcceptable = false;
-    }
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+      FIFOEntryCacheCfg configuration
+      )
+  {
+    // Make sure that we can process the defined character sets.  If so, then
+    // activate the new configuration.
+    boolean applyChanges = false;
+    ArrayList<String> errorMessages = new ArrayList<String>();
+    EntryCacheCommon.ConfigErrorHandler errorHandler =
+      EntryCacheCommon.getConfigErrorHandler (
+          EntryCacheCommon.ConfigPhase.PHASE_APPLY, null, errorMessages
+          );
+    processEntryCacheConfig (configuration, applyChanges, errorHandler);
 
 
-    // Determine the maximum number of entries that we will allow in the cache.
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_MAX_ENTRIES;
-    IntegerConfigAttribute maxEntriesStub =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_MAX_ENTRIES,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0);
-    try
-    {
-      IntegerConfigAttribute maxEntriesAttr =
-           (IntegerConfigAttribute)
-           configEntry.getConfigAttribute(maxEntriesStub);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
+    boolean adminActionRequired = false;
+    ConfigChangeResult changeResult = new ConfigChangeResult(
+        errorHandler.getResultCode(),
+        adminActionRequired,
+        errorHandler.getErrorMessages()
+        );
 
-      // An error occurred, so the provided value must not be valid.
-      msgID = MSGID_FIFOCACHE_INVALID_MAX_ENTRIES;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         getExceptionMessage(e)));
-      configIsAcceptable = false;
-    }
-
-
-    // Determine the lock timeout to use when interacting with the lock manager.
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerWithUnitConfigAttribute lockTimeoutStub =
-         new IntegerWithUnitConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
-                                            getMessage(msgID), false, timeUnits,
-                                            true, 0, false, 0);
-    try
-    {
-      IntegerWithUnitConfigAttribute lockTimeoutAttr =
-             (IntegerWithUnitConfigAttribute)
-             configEntry.getConfigAttribute(lockTimeoutStub);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // An error occurred, so the provided value must not be valid.
-      msgID = MSGID_FIFOCACHE_INVALID_LOCK_TIMEOUT;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         getExceptionMessage(e)));
-      configIsAcceptable = false;
-    }
-
-
-    // Determine the set of cache filters that can be used to control the
-    // entries that should be included in the cache.
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_INCLUDE_FILTERS;
-    StringConfigAttribute includeStub =
-         new StringConfigAttribute(ATTR_FIFOCACHE_INCLUDE_FILTER,
-                                   getMessage(msgID), false, true, false);
-    try
-    {
-      StringConfigAttribute includeAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(includeStub);
-      if (includeAttr == null)
-      {
-        // This is fine -- we'll just use the default.
-      }
-      else
-      {
-        List<String> filterStrings = includeAttr.activeValues();
-        if ((filterStrings == null) || filterStrings.isEmpty())
-        {
-          // There are no include filters, so we'll allow anything by default.
-        }
-        else
-        {
-          for (String filterString : filterStrings)
-          {
-            try
-            {
-              SearchFilter.createFilterFromString(filterString);
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              // We couldn't decode this filter, so it isn't valid.
-              msgID = MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER;
-              unacceptableReasons.add(getMessage(msgID,
-                                           String.valueOf(configEntryDN),
-                                            filterString,
-                                            getExceptionMessage(e)));
-              configIsAcceptable = false;
-            }
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // An error occurred, so the provided value must not be valid.
-      msgID = MSGID_FIFOCACHE_INVALID_INCLUDE_FILTERS;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         getExceptionMessage(e)));
-      configIsAcceptable = false;
-    }
-
-
-    // Determine the set of cache filters that can be used to control the
-    // entries that should be excluded from the cache.
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_EXCLUDE_FILTERS;
-    StringConfigAttribute excludeStub =
-         new StringConfigAttribute(ATTR_FIFOCACHE_EXCLUDE_FILTER,
-                                   getMessage(msgID), false, true, false);
-    try
-    {
-      StringConfigAttribute excludeAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(excludeStub);
-      if (excludeAttr == null)
-      {
-        // This is fine -- we'll just use the default.
-      }
-      else
-      {
-        List<String> filterStrings = excludeAttr.activeValues();
-        if ((filterStrings == null) || filterStrings.isEmpty())
-        {
-          // There are no exclude filters, so we'll allow anything by default.
-        }
-        else
-        {
-          for (String filterString : filterStrings)
-          {
-            try
-            {
-              SearchFilter.createFilterFromString(filterString);
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              // We couldn't decode this filter, so it isn't valid.
-              msgID = MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTER;
-              unacceptableReasons.add(getMessage(msgID,
-                                           String.valueOf(configEntryDN),
-                                            filterString,
-                                            getExceptionMessage(e)));
-              configIsAcceptable = false;
-            }
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // An error occurred, so the provided value must not be valid.
-      msgID = MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTERS;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                         getExceptionMessage(e)));
-      configIsAcceptable = false;
-    }
-
-
-    return configIsAcceptable;
+    return changeResult;
   }
 
 
@@ -1860,335 +1334,159 @@ public class FIFOEntryCache
    * successfully (and optionally about parameters that were not changed) should
    * also be included.
    *
-   * @param  configEntry      The entry containing the new configuration to
+   * @param  configuration    The entry containing the new configuration to
    *                          apply for this component.
    * @param  detailedResults  Indicates whether detailed information about the
    *                          processing should be added to the list.
    *
    * @return  Information about the result of the configuration update.
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyNewConfiguration(
+      FIFOEntryCacheCfg configuration,
+      boolean           detailedResults
+      )
   {
-    // Create a set of variables to use for the result.
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-    boolean           configIsAcceptable  = true;
+    // Store the current value to detect changes.
+    long                  prevLockTimeout      = lockTimeout;
+    long                  prevMaxEntries       = maxEntries;
+    int                   prevMaxMemoryPercent = maxMemoryPercent;
+    HashSet<SearchFilter> prevIncludeFilters   = includeFilters;
+    HashSet<SearchFilter> prevExcludeFilters   = excludeFilters;
 
+    // Activate the new configuration.
+    ConfigChangeResult changeResult = applyConfigurationChange(configuration);
 
-    // Determine the maximum memory usage as a percentage of the total JVM
-    // memory.
-    int newMaxMemoryPercent = DEFAULT_FIFOCACHE_MAX_MEMORY_PCT;
-    int msgID = MSGID_FIFOCACHE_DESCRIPTION_MAX_MEMORY_PCT;
-    IntegerConfigAttribute maxMemoryPctStub =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_MAX_MEMORY_PCT,
-                                    getMessage(msgID), true, false, false, true,
-                                    1, true, 100);
-    try
+    // Add detailed messages if needed.
+    ResultCode resultCode = changeResult.getResultCode();
+    boolean configIsAcceptable = (resultCode == ResultCode.SUCCESS);
+    if (detailedResults && configIsAcceptable)
     {
-      IntegerConfigAttribute maxMemoryPctAttr =
-           (IntegerConfigAttribute)
-           configEntry.getConfigAttribute(maxMemoryPctStub);
-      if (maxMemoryPctAttr != null)
+      if (maxMemoryPercent != prevMaxMemoryPercent)
       {
-        newMaxMemoryPercent = maxMemoryPctAttr.pendingIntValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
+        changeResult.addMessage(
+            getMessage(
+                MSGID_FIFOCACHE_UPDATED_MAX_MEMORY_PCT,
+                maxMemoryPercent,
+                maxAllowedMemory));
       }
 
-      // An error occurred, so the provided value must not be valid.
-      msgID = MSGID_FIFOCACHE_INVALID_MAX_MEMORY_PCT;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              getExceptionMessage(e)));
-      resultCode = ResultCode.CONSTRAINT_VIOLATION;
-      configIsAcceptable = false;
-    }
 
-
-    // Determine the maximum number of entries that we will allow in the cache.
-    long newMaxEntries = DEFAULT_FIFOCACHE_MAX_ENTRIES;
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_MAX_ENTRIES;
-    IntegerConfigAttribute maxEntriesStub =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_MAX_ENTRIES,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0);
-    try
-    {
-      IntegerConfigAttribute maxEntriesAttr =
-           (IntegerConfigAttribute)
-           configEntry.getConfigAttribute(maxEntriesStub);
-      if (maxEntriesAttr != null)
+      if (maxEntries != prevMaxEntries)
       {
-        newMaxEntries = maxEntriesAttr.pendingValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
+        changeResult.addMessage(
+            getMessage (MSGID_FIFOCACHE_UPDATED_MAX_ENTRIES, maxEntries));
       }
 
-      // An error occurred, so the provided value must not be valid.
-      msgID = MSGID_FIFOCACHE_INVALID_MAX_ENTRIES;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              getExceptionMessage(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
+      if (lockTimeout != prevLockTimeout)
       {
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
+        changeResult.addMessage(
+            getMessage (MSGID_FIFOCACHE_UPDATED_LOCK_TIMEOUT, lockTimeout));
       }
 
-      configIsAcceptable = false;
-    }
-
-
-    // Determine the lock timeout to use when interacting with the lock manager.
-    long newLockTimeout = DEFAULT_FIFOCACHE_LOCK_TIMEOUT;
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerWithUnitConfigAttribute lockTimeoutStub =
-         new IntegerWithUnitConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
-                                            getMessage(msgID), false, timeUnits,
-                                            true, 0, false, 0);
-    try
-    {
-      IntegerWithUnitConfigAttribute lockTimeoutAttr =
-             (IntegerWithUnitConfigAttribute)
-             configEntry.getConfigAttribute(lockTimeoutStub);
-      if (lockTimeoutAttr != null)
+      if (!includeFilters.equals(prevIncludeFilters))
       {
-        newLockTimeout = lockTimeoutAttr.pendingCalculatedValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
+        changeResult.addMessage(
+            getMessage (MSGID_FIFOCACHE_UPDATED_INCLUDE_FILTERS));
       }
 
-      // An error occurred, so the provided value must not be valid.
-      msgID = MSGID_FIFOCACHE_INVALID_LOCK_TIMEOUT;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              getExceptionMessage(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
+      if (!excludeFilters.equals(prevExcludeFilters))
       {
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
-      }
-
-      configIsAcceptable = false;
-    }
-
-
-    // Determine the set of cache filters that can be used to control the
-    // entries that should be included in the cache.
-    HashSet<SearchFilter> newIncludeFilters = new HashSet<SearchFilter>();
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_INCLUDE_FILTERS;
-    StringConfigAttribute includeStub =
-         new StringConfigAttribute(ATTR_FIFOCACHE_INCLUDE_FILTER,
-                                   getMessage(msgID), false, true, false);
-    try
-    {
-      StringConfigAttribute includeAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(includeStub);
-      if (includeAttr != null)
-      {
-        List<String> filterStrings = includeAttr.activeValues();
-        if ((filterStrings == null) || filterStrings.isEmpty())
-        {
-          // There are no include filters, so we'll allow anything by default.
-        }
-        else
-        {
-          for (String filterString : filterStrings)
-          {
-            try
-            {
-              newIncludeFilters.add(
-                   SearchFilter.createFilterFromString(filterString));
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              // We couldn't decode this filter, so it isn't valid.
-              msgID = MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER;
-              messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                      filterString,
-                                      getExceptionMessage(e)));
-
-              if (resultCode == ResultCode.SUCCESS)
-              {
-                resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-              }
-
-              configIsAcceptable = false;
-            }
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // An error occurred, so the provided value must not be valid.
-      msgID = MSGID_FIFOCACHE_INVALID_INCLUDE_FILTERS;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              getExceptionMessage(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
-      }
-
-      configIsAcceptable = false;
-    }
-
-
-    // Determine the set of cache filters that can be used to control the
-    // entries that should be exclude from the cache.
-    HashSet<SearchFilter> newExcludeFilters = new HashSet<SearchFilter>();
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_EXCLUDE_FILTERS;
-    StringConfigAttribute excludeStub =
-         new StringConfigAttribute(ATTR_FIFOCACHE_EXCLUDE_FILTER,
-                                   getMessage(msgID), false, true, false);
-    try
-    {
-      StringConfigAttribute excludeAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(excludeStub);
-      if (excludeAttr != null)
-      {
-        List<String> filterStrings = excludeAttr.activeValues();
-        if ((filterStrings == null) || filterStrings.isEmpty())
-        {
-          // There are no exclude filters, so we'll allow anything by default.
-        }
-        else
-        {
-          for (String filterString : filterStrings)
-          {
-            try
-            {
-              newExcludeFilters.add(
-                   SearchFilter.createFilterFromString(filterString));
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              // We couldn't decode this filter, so it isn't valid.
-              msgID = MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTER;
-              messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                      filterString, getExceptionMessage(e)));
-
-              if (resultCode == ResultCode.SUCCESS)
-              {
-                resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-              }
-
-              configIsAcceptable = false;
-            }
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // An error occurred, so the provided value must not be valid.
-      msgID = MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTERS;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              getExceptionMessage(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
-      }
-
-      configIsAcceptable = false;
-    }
-
-
-    if (configIsAcceptable)
-    {
-      if (maxMemoryPercent != newMaxMemoryPercent)
-      {
-        maxMemoryPercent = newMaxMemoryPercent;
-        maxAllowedMemory = runtime.maxMemory() / 100 * maxMemoryPercent;
-
-        if (detailedResults)
-        {
-          messages.add(getMessage(MSGID_FIFOCACHE_UPDATED_MAX_MEMORY_PCT,
-                                  maxMemoryPercent, maxAllowedMemory));
-        }
-      }
-
-      if (maxEntries != newMaxEntries)
-      {
-        maxEntries = newMaxEntries;
-
-        if (detailedResults)
-        {
-          messages.add(getMessage(MSGID_FIFOCACHE_UPDATED_MAX_ENTRIES,
-                                  maxEntries));
-        }
-      }
-
-      if (lockTimeout != newLockTimeout)
-      {
-        lockTimeout = newLockTimeout;
-
-        if (detailedResults)
-        {
-          messages.add(getMessage(MSGID_FIFOCACHE_UPDATED_LOCK_TIMEOUT,
-                                  lockTimeout));
-        }
-      }
-
-      if (!includeFilters.equals(newIncludeFilters))
-      {
-        includeFilters = newIncludeFilters;
-
-        if (detailedResults)
-        {
-          messages.add(getMessage(MSGID_FIFOCACHE_UPDATED_INCLUDE_FILTERS));
-        }
-      }
-
-      if (!excludeFilters.equals(newExcludeFilters))
-      {
-        excludeFilters = newExcludeFilters;
-
-        if (detailedResults)
-        {
-          messages.add(getMessage(MSGID_FIFOCACHE_UPDATED_EXCLUDE_FILTERS));
-        }
+        changeResult.addMessage(
+            getMessage (MSGID_FIFOCACHE_UPDATED_EXCLUDE_FILTERS));
       }
     }
 
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return changeResult;
   }
+
+
+
+  /**
+   * Parses the provided configuration and configure the entry cache.
+   *
+   * @param configuration  The new configuration containing the changes.
+   * @param applyChanges   If true then take into account the new configuration.
+   * @param errorHandler   An handler used to report errors.
+   *
+   * @return  The mapping between strings of character set values and the
+   *          minimum number of characters required from those sets.
+   */
+  public boolean processEntryCacheConfig(
+      FIFOEntryCacheCfg                   configuration,
+      boolean                             applyChanges,
+      EntryCacheCommon.ConfigErrorHandler errorHandler
+      )
+  {
+    // Local variables to read configuration.
+    DN                    newConfigEntryDN;
+    long                  newLockTimeout;
+    long                  newMaxEntries;
+    int                   newMaxMemoryPercent;
+    long                  newMaxAllowedMemory;
+    HashSet<SearchFilter> newIncludeFilters = null;
+    HashSet<SearchFilter> newExcludeFilters = null;
+
+    // Read configuration.
+    newConfigEntryDN = configuration.dn();
+    newLockTimeout   = configuration.getLockTimeout();
+    newMaxEntries    = configuration.getMaxEntries();
+
+    // Maximum memory the cache can use.
+    newMaxMemoryPercent = (int) configuration.getMaxMemoryPercent();
+    long maxJvmHeapSize = Runtime.getRuntime().maxMemory();
+    newMaxAllowedMemory = (maxJvmHeapSize / 100) * newMaxMemoryPercent;
+
+    // Get include and exclude filters.
+    switch (errorHandler.getConfigPhase())
+    {
+    case PHASE_INIT:
+      newIncludeFilters = EntryCacheCommon.getFilters (
+          configuration.getIncludeFilter(),
+          MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER,
+          MSGID_FIFOCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
+          errorHandler,
+          configEntryDN
+          );
+      newExcludeFilters = EntryCacheCommon.getFilters (
+          configuration.getExcludeFilter(),
+          MSGID_FIFOCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
+          MSGID_FIFOCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
+          errorHandler,
+          configEntryDN
+          );
+      break;
+    case PHASE_ACCEPTABLE:  // acceptable and apply are using the same
+    case PHASE_APPLY:       // error ID codes
+      newIncludeFilters = EntryCacheCommon.getFilters (
+          configuration.getIncludeFilter(),
+          MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER,
+          0,
+          errorHandler,
+          configEntryDN
+          );
+      newExcludeFilters = EntryCacheCommon.getFilters (
+          configuration.getExcludeFilter(),
+          MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTER,
+          0,
+          errorHandler,
+          configEntryDN
+          );
+      break;
+    }
+
+    if (applyChanges && errorHandler.getIsAcceptable())
+    {
+      configEntryDN    = newConfigEntryDN;
+      lockTimeout      = newLockTimeout;
+      maxEntries       = newMaxEntries;
+      maxMemoryPercent = newMaxMemoryPercent;
+      maxAllowedMemory = newMaxAllowedMemory;
+      includeFilters   = newIncludeFilters;
+      excludeFilters   = newExcludeFilters;
+    }
+
+    return errorHandler.getIsAcceptable();
+  }
+
 }
 

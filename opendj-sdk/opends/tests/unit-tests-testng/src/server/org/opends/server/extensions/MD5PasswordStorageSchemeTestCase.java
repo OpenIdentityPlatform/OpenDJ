@@ -28,6 +28,9 @@ package org.opends.server.extensions;
 
 
 
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
 
@@ -62,7 +65,14 @@ public class MD5PasswordStorageSchemeTestCase
          throws Exception
   {
     MD5PasswordStorageScheme scheme = new MD5PasswordStorageScheme();
-    scheme.initializePasswordStorageScheme(configEntry);
+
+    PasswordStorageSchemeCfg configuration =
+      AdminTestCaseUtils.getConfiguration(
+          PasswordStorageSchemeCfgDefn.getInstance(),
+          configEntry.getEntry()
+          );
+
+    scheme.initializePasswordStorageScheme(configuration);
     return scheme;
   }
 }

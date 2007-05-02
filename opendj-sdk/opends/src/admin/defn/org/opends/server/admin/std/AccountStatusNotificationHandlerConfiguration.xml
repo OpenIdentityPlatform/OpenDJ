@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object
+  name="account-status-notification-handler"
+  plural-name="account-status-notification-handlers"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap"
+  >
+
+  <adm:synopsis>
+    <adm:user-friendly-name />
+    is invoked whenever certain types of events occur that could change
+    the status of a user account. The
+    <adm:user-friendly-name />
+    may be used to notify the user and/or administrators of the change.
+  </adm:synopsis>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.75</ldap:oid>
+      <ldap:name>ds-cfg-account-status-notification-handler</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property name="enabled" mandatory="true">
+    <adm:synopsis>
+      Indicate whether the
+      <adm:user-friendly-name />
+      is enabled for use.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.282</ldap:oid>
+        <ldap:name>ds-cfg-account-status-notification-handler-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="notification-handler-class" mandatory="true">
+    <adm:synopsis>
+      The fully-qualified name of the Java class that provides the
+      <adm:user-friendly-name />
+      implementation.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:java-class>
+        <adm:instance-of>
+          org.opends.server.api.AccountStatusNotificationHandler
+        </adm:instance-of>
+      </adm:java-class>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.281</ldap:oid>
+        <ldap:name>ds-cfg-account-status-notification-handler-class</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+</adm:managed-object>
+

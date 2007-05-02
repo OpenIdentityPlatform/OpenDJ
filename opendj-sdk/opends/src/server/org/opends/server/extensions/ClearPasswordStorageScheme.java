@@ -28,8 +28,8 @@ package org.opends.server.extensions;
 
 
 
+import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringFactory;
@@ -52,7 +52,7 @@ import java.util.Arrays;
  * applications.
  */
 public class ClearPasswordStorageScheme
-       extends PasswordStorageScheme
+       extends PasswordStorageScheme <PasswordStorageSchemeCfg>
 {
 
 
@@ -74,8 +74,10 @@ public class ClearPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public void initializePasswordStorageScheme(ConfigEntry configEntry)
-         throws ConfigException, InitializationException
+  public void initializePasswordStorageScheme(
+      PasswordStorageSchemeCfg configuration
+      )
+  throws ConfigException, InitializationException
   {
     // No initialization is required.
   }
