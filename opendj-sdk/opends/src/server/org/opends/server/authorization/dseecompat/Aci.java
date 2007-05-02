@@ -151,13 +151,13 @@ public class Aci  {
     /**
      * ACI_ADD is used to set the container rights for a LDAP add operation.
      */
-    public static final int ACI_ADD = 0x0001;
+    public static final int ACI_ADD = 0x0020;
 
     /**
      * ACI_DELETE is used to set the container rights for a LDAP
      * delete operation.
      */
-    public static final int ACI_DELETE = 0x0002;
+    public static final int ACI_DELETE = 0x0010;
 
     /**
      * ACI_READ is used to set the container rights for a LDAP
@@ -175,12 +175,12 @@ public class Aci  {
      * ACI_COMPARE is used to set the container rights for a LDAP
      * compare operation.
      */
-    public static final int ACI_COMPARE = 0x0010;
+    public static final int ACI_COMPARE = 0x0001;
 
     /**
      * ACI_SEARCH is used to set the container rights a LDAP search operation.
      */
-    public static final int ACI_SEARCH = 0x0020;
+    public static final int ACI_SEARCH = 0x0002;
 
     /**
      * ACI_SELF is used for the SELFWRITE right.
@@ -219,6 +219,11 @@ public class Aci  {
      * ACI_WRITE_DELETE is used by the LDAP modify operation.
      */
     public static final int ACI_WRITE_DELETE = 0x400;
+
+    /**
+     * ACI_SKIP_PROXY_CHECK is used to bypass the proxy access check.
+     */
+    public static final int ACI_SKIP_PROXY_CHECK = 0x4000;
 
     /**
      * TARGATTRFILTER_ADD is used to specify that a
@@ -271,8 +276,6 @@ public class Aci  {
      * @return  Returns a decoded ACI representing the string argument.
      * @throws AciException If the parsing of the ACI string fails.
      */
-
-    //MPD remove ConfigException after fixing David's problem
     public static Aci decode (ByteString byteString, DN dn)
     throws AciException {
         String input=byteString.stringValue();
@@ -338,6 +341,15 @@ public class Aci  {
      */
     public static boolean
     isApplicable(Aci aci, AciTargetMatchContext matchCtx) {
+        int ctxRights=matchCtx.getRights();
+       //First check if the ACI and context have similar rights.
+        if(!aci.hasRights(ctxRights)) {
+           //TODO This check might be able to be removed further testing
+           //     is needed.
+           if(!(aci.hasRights(ACI_SEARCH| ACI_READ) &&
+                 matchCtx.hasRights(ACI_SEARCH | ACI_READ)))
+              return false;
+        }
         return AciTargets.isTargetApplicable(aci, matchCtx) &&
                 AciTargets.isTargetFilterApplicable(aci, matchCtx) &&
                 AciTargets.isTargAttrFiltersApplicable(aci, matchCtx) &&
@@ -383,5 +395,13 @@ public class Aci  {
      */
     public static EnumEvalResult evaluate(AciEvalContext evalCtx, Aci aci) {
         return aci.evaluate(evalCtx);
+    }
+
+  /**
+   * Returns the name string of this ACI.
+   * @return The name string.
+   */
+    public String getName() {
+      return this.body.getName();
     }
 }

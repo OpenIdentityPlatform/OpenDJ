@@ -47,7 +47,7 @@ public class AciBody {
     private static final int VERSION = 1;
 
     /*
-     * Regular expression group position for the namr string.
+     * Regular expression group position for the name string.
      */
     private static final int NAME = 2;
 
@@ -309,5 +309,13 @@ public class AciBody {
             }
         }
         return res;
+    }
+
+  /**
+   * Returns the name string.
+   * @return The name string.
+   */
+  public String getName() {
+      return this.name;
     }
 }

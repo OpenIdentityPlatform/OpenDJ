@@ -143,6 +143,28 @@ public interface AciTargetMatchContext {
      * @return  True if the ACI had a targattrfilter rule that matched.
      */
     public boolean getTargAttrFiltersMatch();
+
+    /**
+     * Add the specified ACI to a list of ACIs that have a targattrfilters rule
+     * that matched. This is used by geteffectiverights to determine the rights
+     * of an attribute that possibly might evaluate to true.
+     * @param aci The ACI to save.
+     */
+    public void addTargAttrFiltersMatchAci(Aci aci);
+
+    /**
+     * Save the name of the last ACI that matched a targattrfilters rule. This
+     * is used by geteffectiverights evaluation.
+     * @param name The ACI's name to save.
+     */
+    void setTargAttrFiltersAciName(String name);
+
+    /**
+     * Returns true of a match context is performing a geteffectiverights
+     * evaluation.
+     * @return  True if a match context is evaluating geteffectiverights.
+     */
+    boolean isGetEffectiveRightsEval();
 }
 
 

@@ -43,6 +43,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.ServerConstants.OID_GET_EFFECTIVE_RIGHTS;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -74,6 +75,14 @@ public class AciHandler extends AccessControlHandler
      * attachment if a proxied authorization control was seen.
      */
     public static String ORIG_AUTH_ENTRY="origAuthorizationEntry";
+
+   /**
+     * String used to save a resource entry containing all the attributes in
+     * the SearchOperation attachment list. This is only used during
+     * geteffectiverights read right processing when all of an entry'ss
+     * attributes need to examined.
+     */
+    public static String ALL_ATTRS_RESOURCE_ENTRY = "allAttrsResourceEntry";
 
     /**
      * This constructor instantiates the ACI handler class that performs the
@@ -352,28 +361,71 @@ public class AciHandler extends AccessControlHandler
      */
     private boolean testApplicableLists(AciEvalContext evalCtx) {
         EnumEvalResult res=EnumEvalResult.FALSE;
-        //First check deny lists
+        evalCtx.setEvalReason(EnumEvalReason.NO_REASON);
         LinkedList<Aci>denys=evalCtx.getDenyList();
+        LinkedList<Aci>allows=evalCtx.getAllowList();
+        //If allows list is empty and not doing geteffectiverights return
+        //false.
+        if(allows.isEmpty() && !(evalCtx.isGetEffectiveRightsEval() &&
+              !evalCtx.hasRights(ACI_SELF) &&
+              evalCtx.isTargAttrFilterMatchAciEmpty())) {
+          evalCtx.setEvalReason(EnumEvalReason.NO_ALLOW_ACIS);
+          evalCtx.setDecidingAci(null);
+          return false;
+        }
         evalCtx.setDenyEval(true);
         for(Aci denyAci : denys) {
            res=Aci.evaluate(evalCtx, denyAci);
             //Failure could be returned if a system limit is hit or
             //search fails
-           if((res.equals(EnumEvalResult.FAIL) ||
-              (res.equals(EnumEvalResult.TRUE)))) {
-               return false;
+           if(res.equals(EnumEvalResult.FAIL)) {
+              evalCtx.setEvalReason(EnumEvalReason.EVALUATED_DENY_ACI);
+              evalCtx.setDecidingAci(denyAci);
+              return false;
+          } else if (res.equals(EnumEvalResult.TRUE)) {
+              if(evalCtx.isGetEffectiveRightsEval() &&
+                 !evalCtx.hasRights(ACI_SELF) &&
+                 !evalCtx.isTargAttrFilterMatchAciEmpty()) {
+                  //Iterate to next only if deny ACI contains a targattrfilters
+                  //keyword.
+                  if(AciEffectiveRights.setTargAttrAci(evalCtx, denyAci, true))
+                    continue;
+                evalCtx.setEvalReason(EnumEvalReason.EVALUATED_DENY_ACI);
+                evalCtx.setDecidingAci(denyAci);
+                return false;
+              } else {
+                evalCtx.setEvalReason(EnumEvalReason.EVALUATED_DENY_ACI);
+                evalCtx.setDecidingAci(denyAci);
+                return false;
+              }
            }
         }
         //Now check the allows -- flip the deny flag to false first.
         evalCtx.setDenyEval(false);
-        LinkedList<Aci>allows=evalCtx.getAllowList();
         for(Aci allowAci : allows) {
-           res=Aci.evaluate(evalCtx, allowAci);
-           if(res.equals(EnumEvalResult.TRUE)) {
-               break;
-           }
+        res=Aci.evaluate(evalCtx, allowAci);
+          if(res.equals(EnumEvalResult.TRUE)) {
+            if(evalCtx.isGetEffectiveRightsEval() &&
+               !evalCtx.hasRights(ACI_SELF) &&
+               !evalCtx.isTargAttrFilterMatchAciEmpty()) {
+               //Iterate to next only if deny ACI contains a targattrfilters
+               //keyword.
+               if(AciEffectiveRights.setTargAttrAci(evalCtx, allowAci, false))
+                  continue;
+               evalCtx.setEvalReason(EnumEvalReason.EVALUATED_ALLOW_ACI);
+               evalCtx.setDecidingAci(allowAci);
+               return true;
+            } else {
+              evalCtx.setEvalReason(EnumEvalReason.EVALUATED_ALLOW_ACI);
+              evalCtx.setDecidingAci(allowAci);
+              return true;
+            }
+          }
         }
-        return res.getBoolVal();
+        //Nothing matched fall through.
+        evalCtx.setEvalReason(EnumEvalReason.NO_MATCHED_ALLOWS_ACIS);
+        evalCtx.setDecidingAci(null);
+        return false;
     }
 
     /**
@@ -397,6 +449,8 @@ public class AciHandler extends AccessControlHandler
                    allows.add(aci);
                 }
             }
+           if(targetMatchCtx.getTargAttrFiltersMatch())
+              targetMatchCtx.setTargAttrFiltersMatch(false);
         }
         targetMatchCtx.setAllowList(allows);
         targetMatchCtx.setDenyList(denys);
@@ -425,7 +479,7 @@ public class AciHandler extends AccessControlHandler
      *
      * @return True if access is allowed.
      */
-    private boolean accessAllowed(AciContainer container)
+     boolean accessAllowed(AciContainer container)
     {
         DN dn = container.getResourceEntry().getDN();
         //For ACI_WRITE_ADD and ACI_WRITE_DELETE set the ACI_WRITE
@@ -439,9 +493,9 @@ public class AciHandler extends AccessControlHandler
         if((container.getCurrentAttributeValue() != null) &&
            (container.hasRights(ACI_WRITE)) &&
            (isAttributeDN(container.getCurrentAttributeType())))  {
+          String DNString=null;
           try {
-            String DNString =
-                        container.getCurrentAttributeValue().getStringValue();
+           DNString  =  container.getCurrentAttributeValue().getStringValue();
             DN tmpDN = DN.decode(DNString);
             //Have a valid DN, compare to clientDN to see if the ACI_SELF
             //right should be set.
@@ -449,7 +503,11 @@ public class AciHandler extends AccessControlHandler
               container.setRights(container.getRights() | ACI_SELF);
             }
           } catch (DirectoryException ex) {
-             return false;
+             //Log a message and keep going.
+             int  msgID  = MSGID_ACI_NOT_VALID_DN;
+             String message = getMessage(msgID, DNString);
+             logError(ErrorLogCategory.ACCESS_CONTROL,
+                     ErrorLogSeverity.INFORMATIONAL, message, msgID);
           }
         }
 
@@ -458,8 +516,9 @@ public class AciHandler extends AccessControlHandler
         //only do a proxy check if the right is not set to ACI_PROXY and the
         //proxied authorization control has been decoded.
         if(!container.hasSeenEntry()) {
-          if(!container.hasRights(ACI_PROXY) &&
-             container.isProxiedAuthorization()) {
+          if(container.isProxiedAuthorization() &&
+             !container.hasRights(ACI_PROXY) &&
+             !container.hasRights(ACI_SKIP_PROXY_CHECK)) {
               int currentRights=container.getRights();
               //Save the current rights so they can be put back if on success.
               container.setRights(ACI_PROXY);
@@ -488,9 +547,13 @@ public class AciHandler extends AccessControlHandler
          */
         createApplicableList(candidates,container);
         /*
-         * Lastly, evaluate the applicable list.
+         * Evaluate the applicable list.
          */
-        return(testApplicableLists(container));
+        boolean ret=testApplicableLists(container);
+        //Build summary string if doing geteffectiverights eval.
+        if(container.isGetEffectiveRightsEval())
+          AciEffectiveRights.createSummary(container, ret, "main");
+        return ret;
     }
 
   /**
@@ -578,7 +641,7 @@ public class AciHandler extends AccessControlHandler
      *
      * @return True if access is allowed.
      */
-    private boolean accessAllowedEntry(AciLDAPOperationContainer container) {
+     boolean accessAllowedEntry(AciLDAPOperationContainer container) {
         boolean ret=false;
         //set flag that specifies this is the first attribute evaluated
         //in the entry
@@ -816,6 +879,8 @@ public class AciHandler extends AccessControlHandler
               ret=accessAllowedEntry(operationContainer);
           }
       }
+      if(ret && operation.getAttachment(OID_GET_EFFECTIVE_RIGHTS) != null)
+         operation.setAttachment(ALL_ATTRS_RESOURCE_ENTRY, entry );
       return ret;
   }
 
@@ -844,10 +909,17 @@ public class AciHandler extends AccessControlHandler
       //method, set the seen flag to true to bypass any proxy check.
       operationContainer.setSeenEntry(true);
       SearchResultEntry returnEntry;
-      if(!skipAccessCheck(operation)) {
+      boolean skipCheck=skipAccessCheck(operation);
+      if(!skipCheck) {
           returnEntry=accessAllowedAttrs(operationContainer);
       } else
           returnEntry=entry;
+      if(operationContainer.hasGetEffectiveRightsControl()) {
+          returnEntry =
+            AciEffectiveRights.addRightsToEntry(this, operation.getAttributes(),
+                                               operationContainer, returnEntry,
+                                               skipCheck);
+      }
       return returnEntry;
   }
 
@@ -1006,6 +1078,19 @@ public class AciHandler extends AccessControlHandler
    */
   public boolean isProxiedAuthAllowed(Operation operation, Entry entry) {
     operation.setAttachment(ORIG_AUTH_ENTRY, operation.getAuthorizationEntry());
+    return true;
+  }
+
+  /**
+   * Called when a geteffectiverights request control was decoded. Currently
+   * used to save the control in the specified operation's attachment list.
+   * Eventually will be used to check access to the actual control.
+   * @param operation The operation to save the attachment to.
+   * @param c  The request control to save.
+   * @return  True if the control is allowed access.
+   */
+  public boolean isGetEffectiveRightsAllowed(Operation operation, Control c) {
+    operation.setAttachment(OID_GET_EFFECTIVE_RIGHTS, c);
     return true;
   }
 

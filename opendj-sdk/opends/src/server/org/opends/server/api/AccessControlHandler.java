@@ -29,11 +29,7 @@ package org.opends.server.api;
 
 
 import org.opends.server.core.*;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -251,5 +247,24 @@ public abstract class AccessControlHandler
    */
   public abstract boolean isProxiedAuthAllowed(Operation operation,
                                         Entry newAuthorizationEntry);
+
+  /**
+   * Indicates whether a geteffectiverights control is allowed
+   * based on the current operation and the control contents.
+   *
+   * @param operation
+   *        The operation with which the geteffectiverights
+   *        control is associated. This is always a
+   *       SearchOperation.
+   * @param control
+   *        The control class containing the decoded
+   *        geteffectiverights control contents.
+   * @return  <CODE>true</CODE> if the operation should be allowed
+   *          by the access control configuration, or
+   *          <CODE>false</CODE> if not.
+   */
+  public abstract
+  boolean isGetEffectiveRightsAllowed(Operation operation,
+                                      Control control);
 }
 

@@ -34,7 +34,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.Entry;
+import org.opends.server.types.*;
 
 /**
  * This class implements a default access control provider for the
@@ -208,6 +208,14 @@ class DefaultAccessControlProvider
     @Override
     public boolean isProxiedAuthAllowed(Operation operation, Entry entry) {
      return true;
+    }
+
+     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isGetEffectiveRightsAllowed(Operation operation, Control c) {
+        return true;
     }
   }
 }

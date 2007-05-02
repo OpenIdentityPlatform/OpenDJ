@@ -385,7 +385,7 @@ public class AciTargets {
                      targAttrFilters.hasMask(TARGATTRFILTERS_ADD)) ||
                     (matchCtx.hasRights(ACI_WRITE_DELETE) &&
                     targAttrFilters.hasMask(TARGATTRFILTERS_DELETE)))
-                ret=targAttrFilters.isApplicableMod(matchCtx);
+                ret=targAttrFilters.isApplicableMod(matchCtx, aci);
         }
         return ret;
     }
@@ -423,7 +423,8 @@ public class AciTargets {
                 else
                     ret = false;
             }
-            if((isFirstAttr) && (aci.getTargets().getTargetAttr() == null))
+            if((isFirstAttr) && (aci.getTargets().getTargetAttr() == null)
+                && aci.getTargets().getTargAttrFilters() == null)
                 targetMatchCtx.setEntryTestRule(true);
         }
         return ret;

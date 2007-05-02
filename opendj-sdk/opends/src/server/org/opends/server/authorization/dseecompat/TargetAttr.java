@@ -54,6 +54,11 @@ public class TargetAttr {
      */
     private HashSet<AttributeType> attributes = new HashSet<AttributeType>();
 
+  /**
+   * HashSet of the operational attribute types parsed by the constructor.
+   */
+  private HashSet<AttributeType> opAttributes = new HashSet<AttributeType>();
+
     /*
      * Regular expression that matches one or more ATTR_NAME's separated by
      * the "||" token.
@@ -93,6 +98,22 @@ public class TargetAttr {
                         //Add each element of array to attributes HashSet
                         //after converting it to AttributeType.
                         arrayToAttributeTypes(attributeArray);
+                       //Must be either all operational attrs or all user attrs,
+                       //but not both.
+                        if(!opAttributes.isEmpty() && !attributes.isEmpty()) {
+                            int msgID =
+                             MSGID_ACI_TARGETATTR_INVALID_OP_USER_ATTR;
+                            String message = getMessage(msgID, attrString);
+                            throw new AciException(msgID, message);
+                        }
+                        //Inequality not allowed with operational attrs.
+                        if(!opAttributes.isEmpty() &&
+                            operator.equals(EnumTargetOperator.NOT_EQUALITY)) {
+                            int msgID =
+                               MSGID_ACI_TARGATTR_INVALID_OP_ATTR_INEQUALITY;
+                            String message = getMessage(msgID, attrString);
+                            throw new AciException(msgID, message);
+                        }
                     } else {
                       int msgID =
                          MSGID_ACI_SYNTAX_INVALID_TARGETATTRKEYWORD_EXPRESSION;
@@ -106,7 +127,8 @@ public class TargetAttr {
 
     /**
      * Converts each element of an array of attribute type strings
-     * to attribute types and adds them to the attributes HashSet.
+     * to attribute types and adds them to either the attributes HashSet or
+     * the operational attributes HashSet if they are operational.
      * @param attributeArray The array of attribute type strings.
      */
     private void arrayToAttributeTypes(String[] attributeArray) {
@@ -117,6 +139,9 @@ public class TargetAttr {
                     DirectoryServer.getAttributeType(attribute)) == null)
                 attributeType =
                         DirectoryServer.getDefaultAttributeType(attribute);
+          if(attributeType.isOperational())
+           opAttributes.add(attributeType);
+          else
             attributes.add(attributeType);
         }
     }
@@ -147,6 +172,15 @@ public class TargetAttr {
         return attributes;
     }
 
+  /**
+   * Return array holding  operational attribute types to be evaluated
+   * in the expression.
+   * @return  Array holding attribute types.
+   */
+  public HashSet<AttributeType> getOpAttributes() {
+        return opAttributes;
+    }
+
     /**
      * Decodes an targetattr expression string into a targetattr class suitable
      * for evaluation.
@@ -167,12 +201,24 @@ public class TargetAttr {
      *
      *       targetattrs="*"
      *
-     * is  seen when an ACI is parsed. If the isAllAttributes boolean is
-     * true, the second check is skipped and the TargetAttr's operator is
-     * checked to see if the method should return false (NOT_EQUALITY)
-     * instead of true.
+     * is  seen when an ACI is parsed.  This boolean only applies to
+     * non-operational attribute types. If the attribute type being evaluated
+     * and the isAllAttributes is true, then the evaluation will return false
+     * because operational attributes must be explicity defined.
      *
-     * If the isAllAttributes boolean is false, then the TargeAttr's
+     * If the isAllAttributes boolean is true (and the attribute is
+     * non-operational), the second check is skipped and the TargetAttr's
+     * operator is checked to see if the method should return false
+     * (NOT_EQUALITY) instead of true.
+     *
+     * If the isAllAttributes boolean is false, then the attribute type is
+     * checked to see if it is operational. If it is, then the operational
+     * HashSet is searched to see if it contains the operational attribute
+     * type. If it is found then true is returned, else false is returned
+     * if it isn't found. The NOT_EQUALITY operator is invalid for operational
+     * attribute types and is not checked.
+     *
+     * If the attribute is not operational,  then the TargeAttr's user
      * attribute type HashSet is searched to see if it contains the
      * specified attribute type. That result could be negated depending
      * on if the TargetAttr's operator is NOT_EQUALITY.
@@ -183,25 +229,33 @@ public class TargetAttr {
      * TargetAttr's operator value applied to the test result.
      */
     public static boolean isApplicable(AttributeType a,
-                          TargetAttr targetAttr) {
+                                       TargetAttr targetAttr) {
       boolean ret;
       if(targetAttr.isAllAttributes()) {
-          //If it is an operational attribute, then access is denied for all
-          //attributes wild-card. Operational attributes must be
-          // explicitly defined.
-          if(a.isOperational()) {
-              ret=false;
-          } else
-              ret =
-              !targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY);
-      }  else {
+        //If it is an operational attribute, then access is denied for all
+        //attributes wild-card. Operational attributes must be
+        // explicitly defined and cannot be negated.
+        if(a.isOperational()) {
           ret=false;
+        } else
+          ret =
+             !targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY);
+      }  else {
+        ret=false;
           HashSet<AttributeType> attributes=targetAttr.getAttributes();
-          if(attributes.contains(a))
+          HashSet<AttributeType> opAttributes=targetAttr.getOpAttributes();
+           //Check if the attribute is operational, if so check the
+           //operation HashSet.
+           if(a.isOperational()) {
+             if(opAttributes.contains(a))
+               ret=true;
+         } else {
+            if(attributes.contains(a))
               ret=true;
-          if(targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY))
+            if(targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY))
               ret = !ret;
-      }
+          }
+       }
       return ret;
     }
 }

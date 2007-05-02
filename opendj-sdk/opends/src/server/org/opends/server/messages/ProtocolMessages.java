@@ -4578,6 +4578,36 @@ public class ProtocolMessages
 
 
   /**
+  * The message ID for the message that will be used if an error occurs parsing
+  * the geteffectiverights authzid because it does not start with the required
+  * string "dn:". This takes one argument, which is the authzid string.
+  */
+ public static final int MSGID_GETEFFECTIVERIGHTS_INVALID_AUTHZID =
+      CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 424;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode the value of an geteffectiverights request control.
+   * This takes a single argument, which is a message explaining the problem
+   * that occurred.
+   */
+  public static final int MSGID_GETEFFECTIVERIGHTS_DECODE_ERROR =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 425;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to decode the geteffectiverights authzid DN string.  This takes two
+   * arguments, which are the authzid string and a message explaining the
+   * problem that was encountered.
+   */
+  public static final int MSGID_CANNOT_DECODE_GETEFFECTIVERIGHTS_AUTHZID_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 426;
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6540,6 +6570,18 @@ public class ProtocolMessages
     registerMessage(MSGID_VLVRES_CONTROL_CANNOT_DECODE_VALUE,
                     "Unable to process the provided VLV response control " +
                     "because an error occurred while attempting to decode " +
-                    "the control value:  %s");  }
+                    "the control value:  %s");
+   registerMessage(MSGID_GETEFFECTIVERIGHTS_INVALID_AUTHZID,
+                    "The authorization ID \"%s\" contained in the " +
+                     "geteffectiverights control is invalid because it does" +
+                     " not start with \"dn:\" to indicate a user DN");
+    registerMessage(MSGID_GETEFFECTIVERIGHTS_DECODE_ERROR,
+            "Cannot decode the provided geteffectiverights " +
+             "request control:  %s");
+    registerMessage(MSGID_CANNOT_DECODE_GETEFFECTIVERIGHTS_AUTHZID_DN,
+                    "Unable to decode authzid DN string \"%s\" as a valid " +
+                    "distinguished name:  %s"); }
+
+
 }
 
