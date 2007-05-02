@@ -28,6 +28,7 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.Application;
+import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
@@ -187,17 +188,30 @@ public class RemoteBuildManager {
 
     try {
       is = conn.getInputStream();
+      int length = conn.getContentLength();
       fos = new FileOutputStream(destination);
       int i = 0;
       int bytesRead = 0;
       byte[] buf = new byte[1024];
+      app.notifyListeners(0,
+              getMsg("build-manager-downloading-build"),
+              null);
       while ((i = is.read(buf)) != -1) {
         fos.write(buf, 0, i);
-        bytesRead += i;
         if (app != null) {
-          app.notifyListeners(".");
+          bytesRead += i;
+          if (length > 0) {
+            int progress = (bytesRead * 100) / length;
+            app.notifyListeners(0,
+                    getMsg("build-manager-downloading-build-progress",
+                            String.valueOf(progress)),
+                    null);
+          }
         }
       }
+      app.notifyListeners(0,
+              getMsg("build-manager-downloading-build-done"),
+              null);
     } finally {
       if (is != null) {
         is.close();
@@ -377,6 +391,14 @@ public class RemoteBuildManager {
       }
       return new Build(displayName, downloadUrl, category);
     }
+  }
+
+  private String getMsg(String key) {
+    return ResourceProvider.getInstance().getMsg(key);
+  }
+
+  private String getMsg(String key, String... args) {
+    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
   /**

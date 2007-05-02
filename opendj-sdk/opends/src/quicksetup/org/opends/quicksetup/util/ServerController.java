@@ -28,12 +28,15 @@
 package org.opends.quicksetup.util;
 
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.installer.InstallerHelper;
 
 import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -42,6 +45,9 @@ import java.io.IOException;
  * Class used to manipulate an OpenDS server.
  */
 public class ServerController {
+
+  static private final Logger LOG =
+          Logger.getLogger(ServerController.class.getName());
 
   private Application application;
 
@@ -57,15 +63,21 @@ public class ServerController {
   }
 
   /**
+   * Creates a new instance that will operate on <code>application</code>'s
+   * installation.
+   * @param installation representing the server instance to control
+   */
+  public ServerController(Installation installation) {
+    this(null, installation);
+  }
+
+  /**
    * Creates a new instance that will operate on <code>installation</code>
    * and use <code>application</code> for notifications.
    * @param application to use for notifications
    * @param installation representing the server instance to control
    */
   public ServerController(Application application, Installation installation) {
-    if (application == null) {
-      throw new NullPointerException("application cannot be null");
-    }
     if (installation == null) {
       throw new NullPointerException("installation cannot be null");
     }
@@ -79,10 +91,13 @@ public class ServerController {
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
   public void stopServer() throws ApplicationException {
-    application.notifyListeners(
-            application.getFormattedProgress(
-                    application.getMsg("progress-stopping")) +
-                    application.getLineBreak());
+    if (application != null) {
+      application.notifyListeners(
+              application.getFormattedProgress(
+                      application.getMsg("progress-stopping")) +
+                      application.getLineBreak());
+    }
+    LOG.log(Level.INFO, "stopping server");
 
     ArrayList<String> argList = new ArrayList<String>();
     argList.add(Utils.getPath(installation.getServerStopCommandFile()));
@@ -131,11 +146,15 @@ public class ServerController {
             stopped = !CurrentInstallStatus.isServerRunning(
                     installation.getLocksDirectory());
             if (!stopped) {
-              String msg =
-                      application.getFormattedLog(
-                        application.getMsg("progress-server-waiting-to-stop")) +
-                        application.getLineBreak();
-              application.notifyListeners(msg);
+              if (application != null) {
+                String msg =
+                        application.getFormattedLog(
+                                application.getMsg(
+                                        "progress-server-waiting-to-stop")) +
+                                application.getLineBreak();
+                application.notifyListeners(msg);
+              }
+              LOG.log(Level.FINE, "waiting for server to stop");
               try {
                 Thread.sleep(5000);
               }
@@ -151,36 +170,38 @@ public class ServerController {
       }
 
       if (returnValue == clientSideError) {
-        String msg = application.getLineBreak() +
-                application.getFormattedLog(
-                        application.getMsg("progress-server-already-stopped")) +
-                    application.getLineBreak();
-        application.notifyListeners(msg);
+        if (application != null) {
+          String msg = application.getLineBreak() +
+                  application.getFormattedLog(
+                          application.getMsg(
+                                  "progress-server-already-stopped")) +
+                  application.getLineBreak();
+          application.notifyListeners(msg);
+        }
+        LOG.log(Level.INFO, "server already stopped");
 
       } else if (returnValue != 0) {
-        String[] arg = {String.valueOf(returnValue)};
-        String msg = application.getMsg("error-stopping-server-code", arg);
-
         /*
          * The return code is not the one expected, assume the server could
          * not be stopped.
          */
         throw new ApplicationException(ApplicationException.Type.STOP_ERROR,
-                msg,
+                ResourceProvider.getInstance().getMsg(
+                        "error-stopping-server-code",
+                        String.valueOf(returnValue)),
                 null);
       } else {
-        String msg = application.getFormattedLog(
-                application.getMsg("progress-server-stopped"));
-        application.notifyListeners(msg);
+        if (application != null) {
+          String msg = application.getFormattedLog(
+                  application.getMsg("progress-server-stopped"));
+          application.notifyListeners(msg);
+        }
+        LOG.log(Level.INFO, "server stopped");
       }
 
-    } catch (IOException ioe) {
+    } catch (Exception e) {
       throw new ApplicationException(ApplicationException.Type.STOP_ERROR,
-              application.getThrowableMsg("error-stopping-server", ioe), ioe);
-    }
-    catch (InterruptedException ie) {
-      throw new ApplicationException(ApplicationException.Type.BUG,
-              application.getThrowableMsg("error-stopping-server", ie), ie);
+              getThrowableMsg("error-stopping-server", e), e);
     }
   }
 
@@ -245,10 +266,13 @@ public class ServerController {
           throws ApplicationException
   {
     OperationOutput output = new OperationOutput();
-    application.notifyListeners(
-            application.getFormattedProgress(
-                    application.getMsg("progress-starting")) +
-        application.getLineBreak());
+    if (application != null) {
+      application.notifyListeners(
+              application.getFormattedProgress(
+                      application.getMsg("progress-starting")) +
+          application.getLineBreak());
+    }
+    LOG.log(Level.INFO, "starting server");
 
     ArrayList<String> argList = new ArrayList<String>();
     argList.add(Utils.getPath(installation.getServerStartCommandFile()));
@@ -331,15 +355,18 @@ public class ServerController {
          * Try 5 times with an interval of 1 second between try.
          */
         boolean connected = false;
-        Configuration config =
-                application.getInstallation().getCurrentConfiguration();
+        Configuration config = installation.getCurrentConfiguration();
         int port = config.getPort();
         String ldapUrl = "ldap://localhost:" + port;
 
         // See if the application has prompted for credentials.  If
         // not we'll just try to connect anonymously.
-        String userDn = application.getUserData().getDirectoryManagerDn();
-        String userPw = application.getUserData().getDirectoryManagerPwd();
+        String userDn = null;
+        String userPw = null;
+        if (application != null) {
+          userDn = application.getUserData().getDirectoryManagerDn();
+          userPw = application.getUserData().getDirectoryManagerPwd();
+        }
         if (userDn == null || userPw == null) {
           userDn = null;
           userPw = null;
@@ -370,20 +397,21 @@ public class ServerController {
         }
         if (!connected)
         {
-          String[] arg = {String.valueOf(port)};
           if (Utils.isWindows())
           {
-
             throw new ApplicationException(
                 ApplicationException.Type.START_ERROR,
-                application.getMsg("error-starting-server-in-windows", arg),
+                    getMsg("error-starting-server-in-windows",
+                            String.valueOf(port)),
                     null);
           }
           else
           {
             throw new ApplicationException(
                 ApplicationException.Type.START_ERROR,
-                application.getMsg("error-starting-server-in-unix", arg), null);
+                    getMsg("error-starting-server-in-unix",
+                            String.valueOf(port)),
+                    null);
           }
         }
       }
@@ -391,7 +419,8 @@ public class ServerController {
     } catch (IOException ioe)
     {
       throw new ApplicationException(ApplicationException.Type.START_ERROR,
-          application.getThrowableMsg("error-starting-server", ioe), ioe);
+              getThrowableMsg("error-starting-server", ioe),
+              ioe);
     }
     return output;
   }
@@ -421,7 +450,7 @@ public class ServerController {
     directoryServer.bootstrapServer();
     String configClass = "org.opends.server.extensions.ConfigFileHandler";
     String configPath = Utils.getPath(
-            application.getInstallation().getCurrentConfigurationFile());
+            installation.getCurrentConfigurationFile());
     directoryServer.initializeConfiguration(configClass, configPath);
     directoryServer.startServer();
   }
@@ -444,39 +473,40 @@ public class ServerController {
      * @param isError a boolean indicating whether the BufferedReader
      *        corresponds to the standard error or to the standard output.
      */
-    public StopReader(final BufferedReader reader, final boolean isError) {
+    public StopReader(final BufferedReader reader,
+                                      final boolean isError) {
       final String errorTag =
               isError ? "error-reading-erroroutput" : "error-reading-output";
 
       isFirstLine = true;
-
       Thread t = new Thread(new Runnable() {
         public void run() {
           try {
             String line = reader.readLine();
             while (line != null) {
-              StringBuilder buf = new StringBuilder();
-              if (!isFirstLine) {
-                buf.append(application.getProgressMessageFormatter().
-                        getLineBreak());
+              if (application != null) {
+                StringBuilder buf = new StringBuilder();
+                if (!isFirstLine) {
+                  buf.append(application.getProgressMessageFormatter().
+                          getLineBreak());
+                }
+                if (isError) {
+                  buf.append(application.getFormattedLogError(line));
+                } else {
+                  buf.append(application.getFormattedLog(line));
+                }
+                application.notifyListeners(buf.toString());
+                isFirstLine = false;
               }
-              if (isError) {
-                buf.append(application.getFormattedLogError(line));
-              } else {
-                buf.append(application.getFormattedLog(line));
-              }
-              application.notifyListeners(buf.toString());
-              isFirstLine = false;
-
+              LOG.log(Level.INFO, "server: " + line);
               line = reader.readLine();
             }
-          } catch (IOException ioe) {
-            String errorMsg = application.getThrowableMsg(errorTag, ioe);
-            application.notifyListeners(errorMsg);
-
           } catch (Throwable t) {
-            String errorMsg = application.getThrowableMsg(errorTag, t);
-            application.notifyListeners(errorMsg);
+            if (application != null) {
+              String errorMsg = application.getThrowableMsg(errorTag, t);
+              application.notifyListeners(errorMsg);
+            }
+            LOG.log(Level.INFO, "error reading server messages",t);
           }
         }
       });
@@ -537,22 +567,24 @@ public class ServerController {
             String line = reader.readLine();
             while (line != null)
             {
-              StringBuffer buf = new StringBuffer();
-              if (!isFirstLine)
-              {
-                buf.append(application.getProgressMessageFormatter().
-                        getLineBreak());
+              if (application != null) {
+                StringBuffer buf = new StringBuffer();
+                if (!isFirstLine)
+                {
+                  buf.append(application.getProgressMessageFormatter().
+                          getLineBreak());
+                }
+                if (isError)
+                {
+                  buf.append(application.getFormattedLogError(line));
+                } else
+                {
+                  buf.append(application.getFormattedLog(line));
+                }
+                application.notifyListeners(buf.toString());
+                isFirstLine = false;
               }
-              if (isError)
-              {
-                buf.append(application.getFormattedLogError(line));
-              } else
-              {
-                buf.append(application.getFormattedLog(line));
-              }
-              application.notifyListeners(buf.toString());
-              isFirstLine = false;
-
+              LOG.log(Level.INFO, "server: " + line);
               if (line.indexOf("id=" + startedId) != -1)
               {
                 isFinished = true;
@@ -569,19 +601,12 @@ public class ServerController {
 
               line = reader.readLine();
             }
-          } catch (IOException ioe)
-          {
-            String errorMsg = application.getThrowableMsg(errorTag, ioe);
-            ex =
-                new ApplicationException(ApplicationException.Type.START_ERROR,
-                    errorMsg, ioe);
-
           } catch (Throwable t)
           {
-            String errorMsg = application.getThrowableMsg(errorTag, t);
             ex =
                 new ApplicationException(ApplicationException.Type.START_ERROR,
-                    errorMsg, t);
+                    getThrowableMsg(errorTag, t), t);
+
           }
           isFinished = true;
         }
@@ -614,6 +639,19 @@ public class ServerController {
     {
       return isFinished;
     }
+  }
+
+  private String getMsg(String key) {
+    return ResourceProvider.getInstance().getMsg(key);
+  }
+
+  private String getMsg(String key, String... args) {
+    return ResourceProvider.getInstance().getMsg(key, args);
+  }
+
+  private String getThrowableMsg(String key, Throwable t) {
+    return Utils.getThrowableMsg(ResourceProvider.getInstance(),
+            key, null, t);
   }
 
 }

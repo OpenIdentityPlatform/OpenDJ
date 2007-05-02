@@ -37,6 +37,8 @@ import java.util.zip.ZipEntry;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Class for extracting the contents of a zip file and managing
@@ -44,12 +46,27 @@ import java.util.HashMap;
  */
 public class ZipExtractor {
 
+  static private final Logger LOG =
+          Logger.getLogger(ZipExtractor.class.getName());
+
   private InputStream is;
   private int minRatio;
   private int maxRatio;
   private int numberZipEntries;
   private String zipFileName;
   private Application application;
+
+  /**
+   * Creates an instance of an ZipExtractor.
+   * @param zipFile File the zip file to extract
+   * @throws FileNotFoundException if the specified file does not exist
+   * @throws IllegalArgumentException if the zip file is not a zip file
+   */
+  public ZipExtractor(File zipFile)
+    throws FileNotFoundException, IllegalArgumentException
+  {
+    this(zipFile, 0, 0, 1, null);
+  }
 
   /**
    * Creates an instance of an ZipExtractor.
@@ -146,7 +163,7 @@ public class ZipExtractor {
           try
           {
             copyZipEntry(entry, destination, zipFirstPath, zipIn,
-            ratioBeforeCompleted, ratioWhenCompleted, permissions, application);
+            ratioBeforeCompleted, ratioWhenCompleted, permissions);
 
           } catch (IOException ioe)
           {
@@ -219,13 +236,11 @@ public class ZipExtractor {
    * copied.
    * @param permissions an ArrayList with permissions whose contents will be
    * updated.
-   * @param app Application to be notified about progress
    * @throws IOException if an error occurs.
    */
   private void copyZipEntry(ZipEntry entry, String basePath,
       String zipFirstPath, ZipInputStream is, int ratioBeforeCompleted,
-      int ratioWhenCompleted, Map<String, ArrayList<String>> permissions,
-      Application app)
+      int ratioWhenCompleted, Map<String, ArrayList<String>> permissions)
       throws IOException
   {
     String entryName = entry.getName();
@@ -235,10 +250,13 @@ public class ZipExtractor {
       entryName = entryName.substring(zipFirstPath.length());
     }
     File path = new File(basePath, entryName);
-    String progressSummary =
-            ResourceProvider.getInstance().getMsg("progress-extracting",
-                    new String[]{ Utils.getPath(path) });
-    app.notifyListeners(ratioBeforeCompleted, progressSummary);
+    if (application != null) {
+      String progressSummary =
+              ResourceProvider.getInstance().getMsg("progress-extracting",
+                      new String[]{ Utils.getPath(path) });
+      application.notifyListeners(ratioBeforeCompleted, progressSummary);
+    }
+    LOG.log(Level.INFO, "extracting " + Utils.getPath(path));
     if (Utils.insureParentsExist(path))
     {
       if (entry.isDirectory())
@@ -272,7 +290,9 @@ public class ZipExtractor {
     {
       throw new IOException("Could not create parent path: " + path);
     }
-    application.notifyListenersDone(ratioWhenCompleted);
+    if (application != null) {
+      application.notifyListenersDone(ratioWhenCompleted);
+    }
   }
 
   /**
