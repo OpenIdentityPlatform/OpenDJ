@@ -40,6 +40,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import static org.opends.server.util.StaticUtils.createEntry;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
@@ -134,6 +135,8 @@ public class PrivilegeTestCase
       "ds-privilege-name: -ldif-export",
       "ds-privilege-name: -backend-backup",
       "ds-privilege-name: -backend-restore",
+      "ds-privilege-name: -index-rebuild",
+      "ds-privilege-name: -unindexed-search",
       "",
       "dn: cn=Proxy Root,cn=Root DNs,cn=config",
       "objectClass: top",
@@ -168,6 +171,8 @@ public class PrivilegeTestCase
       "ds-privilege-name: backend-restore",
       "ds-privilege-name: proxied-auth",
       "ds-privilege-name: bypass-acl",
+      "ds-privilege-name: index-rebuild",
+      "ds-privilege-name: unindexed-search",
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config",
       "",
@@ -250,6 +255,30 @@ public class PrivilegeTestCase
       connections[i] = connList.get(i);
       successful[i]  = successList.get(i);
     }
+
+    TestCaseUtils.addEntries(
+        "dn: dc=unindexed,dc=jeb",
+        "objectClass: top",
+        "objectClass: domain",
+        "",
+        "dn: cn=test1 user,dc=unindexed,dc=jeb",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "cn: test1 user",
+        "givenName: user",
+        "sn: test1",
+        "",
+        "dn: cn=test2 user,dc=unindexed,dc=jeb",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "cn: test2 user",
+        "givenName: user",
+        "sn: test2"
+    );
   }
 
 
@@ -322,6 +351,43 @@ public class PrivilegeTestCase
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.decode("cn=config"), SearchScope.BASE_OBJECT,
               SearchFilter.createFilterFromString("(objectClass=*)"));
+    if (hasPrivilege)
+    {
+      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    }
+    else
+    {
+      assertEquals(searchOperation.getResultCode(),
+                   ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+    }
+  }
+
+  /**
+   * Tests to ensure that unindexed search operations properly respect the
+   * UNINDEXED_SEARCH privilege.
+   *
+   * @param conn The client connection to use to perform the search operation.
+   *
+   * @param hasPrivilege Indicates whether the authenticated user is expected
+   *                     to have the UNINDEXED_SEARCH privilege and therefore
+   *                     the search should succeed.
+   * @throws Exception If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "testdata")
+  public void testUnindexedSearch(InternalClientConnection conn,
+                                  boolean hasPrivilege)
+         throws Exception
+  {
+    assertEquals(conn.hasPrivilege(Privilege.UNINDEXED_SEARCH, null), hasPrivilege);
+
+    for(DN dn : DirectoryServer.getBaseDNs().keySet())
+    {
+      System.out.println(dn.toString());
+    }
+
+    InternalSearchOperation searchOperation =
+        conn.processSearch(DN.decode("dc=unindexed,dc=jeb"), SearchScope.WHOLE_SUBTREE,
+             SearchFilter.createFilterFromString("(sn=test*)"));
     if (hasPrivilege)
     {
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -995,6 +1061,52 @@ public class PrivilegeTestCase
       "ds-task-class-name: org.opends.server.tasks.ImportTask",
       "ds-task-import-backend-id: userRoot",
       "ds-task-import-ldif-file: " + path);
+
+    AddOperation addOperation =
+         conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),
+                         taskEntry.getUserAttributes(),
+                         taskEntry.getOperationalAttributes());
+
+    if (hasPrivilege)
+    {
+      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+      Task task = getCompletedTask(taskEntry.getDN());
+      assertNotNull(task);
+      assertTrue(TaskState.isSuccessful(task.getTaskState()));
+    }
+    else
+    {
+      assertEquals(addOperation.getResultCode(),
+                   ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+    }
+  }
+
+  /**
+   * Test to ensure that attempts to rebuild indexes will property respect
+   * the INDEX_REBUILD privilege.
+   *
+   * @param conn The client connection to use to perform the rebuild.
+   * @param hasPrivilege Indicates weather the authenticated user is
+   *                     expected to have the INDEX_REBUILD privilege
+   *                     and therefore the rebuild should succeed.
+   * @throws Exception if an unexpected problem occurs.
+   */
+  @Test(dataProvider = "testdata", groups = { "slow" })
+  public void testRebuildIndex(InternalClientConnection conn,
+                               boolean hasPrivilege)
+      throws Exception
+  {
+    assertEquals(conn.hasPrivilege(Privilege.INDEX_REBUILD, null), hasPrivilege);
+
+    Entry taskEntry = TestCaseUtils.makeEntry(
+      "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+      "objectclass: top",
+      "objectclass: ds-task",
+      "objectclass: ds-task-rebuild",
+      "ds-task-class-name: org.opends.server.tasks.RebuildTask",
+      "ds-task-rebuild-base-dn: dc=example,dc=com",
+      "ds-task-rebuild-index: cn");
 
     AddOperation addOperation =
          conn.processAdd(taskEntry.getDN(), taskEntry.getObjectClasses(),

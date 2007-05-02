@@ -31,6 +31,7 @@ import com.sleepycat.je.*;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -43,22 +44,7 @@ import org.opends.server.controls.PagedResultsControl;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.ServerSideSortResponseControl;
 import org.opends.server.controls.VLVRequestControl;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.CancelledOperationException;
-import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.LockType;
-import org.opends.server.types.Modification;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
 
@@ -720,8 +706,7 @@ public class EntryContainer
 
     // Evaluate the search scope against the id2children and id2subtree indexes.
     boolean candidatesAreInScope = false;
-    if (entryIDList.isDefined() &&
-            entryIDList.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
+    if (entryIDList.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
     {
       // Read the ID from dn2id.
       EntryID baseID = dn2id.get(null, baseDN);
@@ -820,6 +805,17 @@ public class EntryContainer
     }
     else
     {
+      ClientConnection clientConnection =
+          searchOperation.getClientConnection();
+      if(! clientConnection.hasPrivilege(Privilege.UNINDEXED_SEARCH,
+                                         searchOperation))
+      {
+        int msgID = MSGID_JEB_SEARCH_UNINDEXED_INSUFFICIENT_PRIVILEGES;
+        String message = getMessage(msgID);
+        throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                                     message, msgID);
+      }
+
       if (sortRequest != null)
       {
         // FIXME -- Add support for sorting unindexed searches using indexes
