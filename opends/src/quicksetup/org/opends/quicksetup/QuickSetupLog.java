@@ -55,6 +55,7 @@ public class QuickSetupLog {
       FileHandler fileHandler = new FileHandler(logFile.getCanonicalPath());
       fileHandler.setFormatter(new SimpleFormatter());
       Logger logger = Logger.getLogger("org.opends.quicksetup");
+      logger.setUseParentHandlers(false); // disable logging to console
       logger.addHandler(fileHandler);
       logger.log(Level.INFO, getInitialLogRecord());
     }

@@ -40,6 +40,8 @@ public class ApplicationException extends Exception
 {
   private static final long serialVersionUID = -3527273444231560341L;
 
+  private String formattedMsg = null;
+
   private Type type;
 
   /**
@@ -124,12 +126,35 @@ public class ApplicationException extends Exception
   }
 
   /**
+   * The constructor of the ApplicationException.
+   * @param type the type of error we have.
+   * @param localizedMsg a localized string describing the problem.
+   * @param formattedMsg a localized message with extra formatting
+   * @param rootCause the root cause of this exception.
+   */
+  public ApplicationException(Type type, String localizedMsg,
+                              String formattedMsg, Throwable rootCause)
+  {
+    super(localizedMsg, rootCause);
+    this.formattedMsg = formattedMsg;
+    this.type = type;
+  }
+
+  /**
    * Returns the Type of this exception.
    * @return the Type of this exception.
    */
   public Type getType()
   {
     return type;
+  }
+
+  /**
+   * Gets the localized message with extra formatting markup.
+   * @return String representing a formatted message.
+   */
+  public String getFormattedMessage() {
+    return formattedMsg;
   }
 
   /**

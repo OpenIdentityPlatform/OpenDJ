@@ -38,6 +38,8 @@ import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import java.io.File;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * BuildExtractor unzips an OpenDS installation package (.zip file) from a user
@@ -54,11 +56,23 @@ import java.io.FileNotFoundException;
  */
 public class BuildExtractor extends Application implements Runnable {
 
+  static private final Logger LOG =
+          Logger.getLogger(BuildExtractor.class.getName());
+
   /**
    * Creates and run a BuildExtractor using command line arguments.
    * @param args String[] command line arguments
    */
   public static void main(String[] args) {
+    try {
+      QuickSetupLog.initLogFileHandler(
+              File.createTempFile(
+                      UpgradeLauncher.LOG_FILE_PREFIX + "-ext-",
+                      UpgradeLauncher.LOG_FILE_SUFFIX));
+    } catch (Throwable t) {
+      System.err.println("Unable to initialize log");
+      t.printStackTrace();
+    }
     new BuildExtractor(args).run();
   }
 
@@ -100,6 +114,7 @@ public class BuildExtractor extends Application implements Runnable {
       retCode = 1;
       notifyListeners(t.getLocalizedMessage() + getLineBreak());
     }
+    LOG.log(Level.INFO, "extractor exiting code=" + retCode);
     System.exit(retCode);
   }
 
@@ -125,10 +140,10 @@ public class BuildExtractor extends Application implements Runnable {
 
   private void expandZipFile(File buildFile)
           throws ApplicationException, IOException {
-    ZipExtractor extractor = new ZipExtractor(buildFile,
-            1, 10, // TODO figure out these values
-            Utils.getNumberZipEntries(), this);
+    LOG.log(Level.INFO, "expanding zip file " + buildFile.getPath());
+    ZipExtractor extractor = new ZipExtractor(buildFile);
     extractor.extract(getStageDirectory());
+    LOG.log(Level.INFO, "extraction finished");
   }
 
   private File getStageDirectory() throws ApplicationException {
@@ -136,7 +151,7 @@ public class BuildExtractor extends Application implements Runnable {
     Installation installation = new Installation(getInstallationPath());
     stageDir = installation.getTemporaryUpgradeDirectory();
     if (stageDir.exists()) {
-      FileManager fm = new FileManager(this);
+      FileManager fm = new FileManager();
       fm.deleteRecursively(stageDir);
     }
     if (!stageDir.mkdirs()) {
@@ -144,6 +159,7 @@ public class BuildExtractor extends Application implements Runnable {
       throw ApplicationException.createFileSystemException(
               "failed to create staging directory " + stageDir, null);
     }
+    LOG.log(Level.INFO, "stage directory " + stageDir.getPath());
     return stageDir;
   }
 

@@ -31,6 +31,8 @@ import org.opends.quicksetup.*;
 import org.opends.quicksetup.i18n.ResourceProvider;
 
 import java.io.*;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Utility class for use by applications containing methods for managing
@@ -39,11 +41,22 @@ import java.io.*;
  */
 public class FileManager {
 
+  static private final Logger LOG =
+          Logger.getLogger(FileManager.class.getName());
+
   private Application application = null;
 
   /**
    * Creates a new file manager.
-   * @param app Application managing files.
+   */
+  public FileManager() {
+    // do nothing;
+  }
+
+  /**
+   * Creates a new file manager.
+   * @param app Application managing files to which progress notifications
+   * will be sent
    */
   public FileManager(Application app) {
     this.application = app;
@@ -208,8 +221,13 @@ public class FileManager {
     } else {
       // Just tell that the file/directory does not exist.
       String[] arg = {file.toString()};
-      application.notifyListeners(application.getFormattedWarning(
-              getMsg("file-does-not-exist", arg)));
+
+
+      if (application != null) {
+        application.notifyListeners(application.getFormattedWarning(
+                getMsg("file-does-not-exist", arg)));
+      }
+      LOG.log(Level.INFO, "file '" + file.toString() + "' does not exist");
     }
   }
 
@@ -299,9 +317,13 @@ public class FileManager {
 
         if (!destination.exists()) {
           if (Utils.insureParentsExist(destination)) {
-            application.notifyListeners(application.getFormattedWithPoints(
-                    getMsg("progress-copying-file", args)));
-
+            if (application != null) {
+              application.notifyListeners(application.getFormattedWithPoints(
+                      getMsg("progress-copying-file", args)));
+            }
+            LOG.log(Level.INFO, "copying file '" +
+                    objectFile.getAbsolutePath() + "' to '" +
+                    destination.getAbsolutePath() + "'");
             try {
               FileInputStream fis = new FileInputStream(objectFile);
               FileOutputStream fos = new FileOutputStream(destination);
@@ -325,8 +347,10 @@ public class FileManager {
                 }
               }
 
-              application.notifyListeners(application.getFormattedDone() +
-                      application.getLineBreak());
+              if (application != null) {
+                application.notifyListeners(application.getFormattedDone() +
+                        application.getLineBreak());
+              }
 
             } catch (Exception e) {
               String errMsg = getMsg("error-copying-file", args);
@@ -340,8 +364,13 @@ public class FileManager {
                     ApplicationException.Type.FILE_SYSTEM_ERROR, errMsg, null);
           }
         } else {
-          application.notifyListeners(getMsg("info-ignoring-file", args) +
-                  application.getLineBreak());
+          LOG.log(Level.INFO, "Ignoring file '" +
+                  objectFile.getAbsolutePath() + "' since '" +
+                  destination.getAbsolutePath() + "' already exists");
+          if (application != null) {
+            application.notifyListeners(getMsg("info-ignoring-file", args) +
+                    application.getLineBreak());
+          }
         }
       }
     }
@@ -382,13 +411,18 @@ public class FileManager {
       String[] arg = {file.getAbsolutePath()};
       boolean isFile = file.isFile();
 
-      if (isFile) {
-        application.notifyListeners(application.getFormattedWithPoints(
-                getMsg("progress-deleting-file", arg)));
-      } else {
-        application.notifyListeners(application.getFormattedWithPoints(
-                getMsg("progress-deleting-directory", arg)));
+      if (application != null) {
+        if (isFile) {
+          application.notifyListeners(application.getFormattedWithPoints(
+                  getMsg("progress-deleting-file", arg)));
+        } else {
+          application.notifyListeners(application.getFormattedWithPoints(
+                  getMsg("progress-deleting-directory", arg)));
+        }
       }
+      LOG.log(Level.INFO, "deleting " +
+              (isFile ? " file " : " directory ") +
+              file.getAbsolutePath());
 
       boolean delete = false;
       /*
@@ -425,8 +459,10 @@ public class FileManager {
                 ApplicationException.Type.FILE_SYSTEM_ERROR, errMsg, null);
       }
 
-      application.notifyListeners(application.getFormattedDone() +
-              application.getLineBreak());
+      if (application != null) {
+        application.notifyListeners(application.getFormattedDone() +
+                application.getLineBreak());
+      }
     }
   }
 

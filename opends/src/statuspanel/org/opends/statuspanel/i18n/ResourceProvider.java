@@ -129,7 +129,7 @@ extends org.opends.quicksetup.i18n.ResourceProvider
    * @throws IllegalArgumentException if the key could not be found in the
    * properties file.
    */
-  public String getMsg(String key, String[] args)
+  public String getMsg(String key, String... args)
   throws IllegalArgumentException
   {
     String msg;
