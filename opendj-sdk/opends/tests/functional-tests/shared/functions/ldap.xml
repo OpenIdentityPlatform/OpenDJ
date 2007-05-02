@@ -529,6 +529,18 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
+      <script>
+        SearchRC=RC
+        SearchResult=STAXResult
+      </script>
+      
+      <call function="'checkRC'">
+        { 'returncode' : SearchRC ,
+          'result'     : SearchResult }
+      </call>
+          
+      <return>SearchResult</return>
+
     </sequence>
   </function>
   
