@@ -59,7 +59,7 @@ public class PropertyIsMandatoryException extends PropertyException {
   @Override
   public String getMessage() {
     return "The property \"" + getPropertyDefinition().getName()
-        + "\" must not be removed as it is mandatory";
+        + "\" must be specified as it is mandatory";
   }
 
 }
