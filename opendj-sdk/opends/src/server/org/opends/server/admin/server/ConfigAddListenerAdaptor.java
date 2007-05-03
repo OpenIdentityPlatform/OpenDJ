@@ -58,7 +58,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     AbstractConfigListenerAdaptor implements ConfigAddListener {
 
   // The managed object path of the parent.
-  private final ManagedObjectPath path;
+  private final ManagedObjectPath<?, ?> path;
 
   // The instantiable relation.
   private final InstantiableRelationDefinition<?, S> instantiableRelation;

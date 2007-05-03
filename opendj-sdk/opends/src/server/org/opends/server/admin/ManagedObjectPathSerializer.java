@@ -31,48 +31,83 @@ package org.opends.server.admin;
 /**
  * A strategy for serializing managed object paths.
  * <p>
- * This interface provides a generic means for serializing managed object paths
- * into application specific forms. For example, a JNDI client would use this
- * interface to construct <code>LdapName</code> objects from a path.
- * Similarly, on the server side, a serialization strategy is used to construct
- * <code>DN</code> instances from a path.
+ * This interface provides a generic means for serializing managed
+ * object paths into application specific forms. For example, a JNDI
+ * client would use this interface to construct <code>LdapName</code>
+ * objects from a path. Similarly, on the server side, a serialization
+ * strategy is used to construct <code>DN</code> instances from a
+ * path.
  * <p>
- * During serialization the serializer is invoked for each element in the
- * managed object path in big-endian order, starting from the root and
- * proceeding down to the leaf element.
+ * During serialization the serializer is invoked for each element in
+ * the managed object path in big-endian order, starting from the root
+ * and proceeding down to the leaf element.
  */
 public interface ManagedObjectPathSerializer {
 
   /**
-   * Append a managed object path element identified by an instantiable relation
-   * and an instance name.
+   * Append a managed object path element identified by an
+   * instantiable relation and an instance name.
    *
+   * @param <C>
+   *          The type of client managed object configuration that
+   *          this path element references.
+   * @param <S>
+   *          The type of server managed object configuration that
+   *          this path element references.
    * @param r
    *          The instantiable relation.
+   * @param d
+   *          The managed object definition.
    * @param name
    *          The instance name.
    */
-  void appendManagedObjectPathElement(InstantiableRelationDefinition<?, ?> r,
-      String name);
+  <C extends ConfigurationClient, S extends Configuration>
+      void appendManagedObjectPathElement(
+      InstantiableRelationDefinition<? super C, ? super S> r,
+      AbstractManagedObjectDefinition<C, S> d, String name);
 
 
 
   /**
-   * Append a managed object path element identified by a optional relation.
+   * Append a managed object path element identified by an optional
+   * relation.
    *
+   * @param <C>
+   *          The type of client managed object configuration that
+   *          this path element references.
+   * @param <S>
+   *          The type of server managed object configuration that
+   *          this path element references.
    * @param r
    *          The optional relation.
+   * @param d
+   *          The managed object definition.
    */
-  void appendManagedObjectPathElement(OptionalRelationDefinition<?, ?> r);
+  <C extends ConfigurationClient, S extends Configuration>
+      void appendManagedObjectPathElement(
+      OptionalRelationDefinition<? super C, ? super S> r,
+      AbstractManagedObjectDefinition<C, S> d);
 
 
 
   /**
-   * Append a managed object path element identified by a singleton relation.
+   * Append a managed object path element identified by a singleton
+   * relation.
    *
+   * @param <C>
+   *          The type of client managed object configuration that
+   *          this path element references.
+   * @param <S>
+   *          The type of server managed object configuration that
+   *          this path element references.
    * @param r
    *          The singleton relation.
+   * @param d
+   *          The managed object definition.
    */
-  void appendManagedObjectPathElement(SingletonRelationDefinition<?, ?> r);
+  <C extends ConfigurationClient, S extends Configuration>
+      void appendManagedObjectPathElement(
+      SingletonRelationDefinition<? super C, ? super S> r,
+      AbstractManagedObjectDefinition<C, S> d);
 
 }

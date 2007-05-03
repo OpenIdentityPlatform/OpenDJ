@@ -35,6 +35,9 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
+import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectPath;
@@ -106,8 +109,10 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
   /**
    * {@inheritDoc}
    */
-  public void appendManagedObjectPathElement(
-      InstantiableRelationDefinition<?, ?> r, String name) {
+  public <C extends ConfigurationClient, S extends Configuration>
+      void appendManagedObjectPathElement(
+          InstantiableRelationDefinition<? super C, ? super S> r,
+          AbstractManagedObjectDefinition<C, S> d, String name) {
     // Add the RDN sequence representing the relation.
     appendManagedObjectPathElement((RelationDefinition) r);
 
@@ -146,8 +151,10 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
   /**
    * {@inheritDoc}
    */
-  public void appendManagedObjectPathElement(
-      OptionalRelationDefinition<?, ?> r) {
+  public <C extends ConfigurationClient, S extends Configuration>
+      void appendManagedObjectPathElement(
+          OptionalRelationDefinition<? super C, ? super S> r,
+          AbstractManagedObjectDefinition<C, S> d) {
     // Add the RDN sequence representing the relation.
     appendManagedObjectPathElement((RelationDefinition) r);
   }
@@ -157,8 +164,10 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
   /**
    * {@inheritDoc}
    */
-  public void appendManagedObjectPathElement(
-      SingletonRelationDefinition<?, ?> r) {
+  public <C extends ConfigurationClient, S extends Configuration>
+      void appendManagedObjectPathElement(
+          SingletonRelationDefinition<? super C, ? super S> r,
+          AbstractManagedObjectDefinition<C, S> d) {
     // Add the RDN sequence representing the relation.
     appendManagedObjectPathElement((RelationDefinition) r);
   }

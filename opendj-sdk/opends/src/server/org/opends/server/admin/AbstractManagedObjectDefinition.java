@@ -29,9 +29,11 @@ package org.opends.server.admin;
 
 
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -90,52 +92,15 @@ public abstract class AbstractManagedObjectDefinition
       AbstractManagedObjectDefinition<? super C, ? super S> parent) {
     this.name = name;
     this.parent = parent;
+    this.propertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
+    this.relationDefinitions = new HashMap<String, RelationDefinition<?,?>>();
+    this.children = new HashMap<String,
+      AbstractManagedObjectDefinition<? extends C, ? extends S>>();
 
     // If we have a parent definition then inherit its features.
     if (parent != null) {
-      this.propertyDefinitions = new HashMap<String, PropertyDefinition<?>>(
-          parent.propertyDefinitions);
-      this.relationDefinitions = new HashMap<String, RelationDefinition<?,?>>(
-          parent.relationDefinitions);
       parent.children.put(name, this);
-    } else {
-      this.propertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
-      this.relationDefinitions = new HashMap<String, RelationDefinition<?,?>>();
     }
-
-    this.children = new HashMap<String,
-      AbstractManagedObjectDefinition<? extends C, ? extends S>>();
-  }
-
-
-
-  /**
-   * Get the named child managed object definition which inherits from this
-   * managed object definition.
-   *
-   * @param name
-   *          The name of the managed object definition sub-type.
-   * @return Returns the named child managed object definition which inherits
-   *         from this managed object definition.
-   * @throws IllegalArgumentException
-   *           If the specified managed object definition name was null or empty
-   *           or if the requested subordinate managed object definition was not
-   *           found.
-   */
-  public final AbstractManagedObjectDefinition<? extends C, ? extends S>
-      getChild(String name) throws IllegalArgumentException {
-    if ((name == null) || (name.length() == 0)) {
-      throw new IllegalArgumentException("null or empty managed object name");
-    }
-
-    AbstractManagedObjectDefinition<? extends C, ? extends S> d = children
-        .get(name);
-    if (d == null) {
-      throw new IllegalArgumentException("managed object definition \"" + name
-          + "\" not found");
-    }
-
-    return d;
   }
 
 
@@ -147,6 +112,121 @@ public abstract class AbstractManagedObjectDefinition
    * @return Returns an unmodifiable collection containing all the
    *         subordinate managed object definitions which inherit from
    *         this managed object definition.
+   */
+  public final Collection<AbstractManagedObjectDefinition
+      <? extends C, ? extends S>> getAllChildren() {
+    List<AbstractManagedObjectDefinition<? extends C, ? extends S>> list =
+      new ArrayList<AbstractManagedObjectDefinition<? extends C, ? extends S>>(
+        children.values());
+
+    for (AbstractManagedObjectDefinition<? extends C, ? extends S> child :
+        children.values()) {
+      list.addAll(child.getAllChildren());
+    }
+
+    return Collections.unmodifiableCollection(list);
+  }
+
+
+
+  /**
+   * Get all the property definitions associated with this type of
+   * managed object. The returned collection will contain inherited
+   * property definitions.
+   *
+   * @return Returns an unmodifiable collection containing all the
+   *         property definitions associated with this type of managed
+   *         object.
+   */
+  public final Collection<PropertyDefinition<?>> getAllPropertyDefinitions() {
+    if (parent == null) {
+      return getPropertyDefinitions();
+    } else {
+      List<PropertyDefinition<?>> list = new ArrayList<PropertyDefinition<?>>(
+          propertyDefinitions.values());
+      list.addAll(parent.getAllPropertyDefinitions());
+      return Collections.unmodifiableCollection(list);
+    }
+  }
+
+
+
+  /**
+   * Get all the relation definitions associated with this type of
+   * managed object. The returned collection will contain inherited
+   * relation definitions.
+   *
+   * @return Returns an unmodifiable collection containing all the
+   *         relation definitions associated with this type of managed
+   *         object.
+   */
+  public final Collection<RelationDefinition<?, ?>>
+      getAllRelationDefinitions() {
+    if (parent == null) {
+      return getRelationDefinitions();
+    } else {
+      List<RelationDefinition<?, ?>> list =
+        new ArrayList<RelationDefinition<?, ?>>(relationDefinitions.values());
+      list.addAll(parent.getAllRelationDefinitions());
+      return Collections.unmodifiableCollection(list);
+    }
+  }
+
+
+
+  /**
+   * Get the named child managed object definition which inherits from
+   * this managed object definition. This method will recursively
+   * search down through the inheritance hierarchy.
+   *
+   * @param name
+   *          The name of the managed object definition sub-type.
+   * @return Returns the named child managed object definition which
+   *         inherits from this managed object definition.
+   * @throws IllegalArgumentException
+   *           If the specified managed object definition name was
+   *           null or empty or if the requested subordinate managed
+   *           object definition was not found.
+   */
+  public final AbstractManagedObjectDefinition<? extends C, ? extends S>
+      getChild(String name) throws IllegalArgumentException {
+    if ((name == null) || (name.length() == 0)) {
+      throw new IllegalArgumentException("null or empty managed object name");
+    }
+
+    AbstractManagedObjectDefinition<? extends C, ? extends S> d = children
+        .get(name);
+
+    if (d == null) {
+      // Recursively search.
+      for (AbstractManagedObjectDefinition<? extends C, ? extends S> child :
+          children.values()) {
+        try {
+          d = child.getChild(name);
+          break;
+        } catch (IllegalArgumentException e) {
+          // Try the next child.
+        }
+      }
+    }
+
+    if (d == null) {
+      throw new IllegalArgumentException("child managed object definition \""
+          + name + "\" not found");
+    }
+
+    return d;
+  }
+
+
+
+  /**
+   * Get the child managed object definitions which inherit directly
+   * from this managed object definition.
+   *
+   * @return Returns an unmodifiable collection containing the
+   *         subordinate managed object definitions which inherit
+   *         directly from this managed object definition.
    */
   public final Collection<AbstractManagedObjectDefinition
       <? extends C, ? extends S>> getChildren() {
@@ -216,16 +296,17 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
-   * Get the specified property definition associated with this type of managed
-   * object.
+   * Get the specified property definition associated with this type
+   * of managed object. The search will include any inherited property
+   * definitions.
    *
    * @param name
    *          The name of the property definition to be retrieved.
-   * @return Returns the specified property definition associated with this type
-   *         of managed object.
+   * @return Returns the specified property definition associated with
+   *         this type of managed object.
    * @throws IllegalArgumentException
-   *           If the specified property name was null or empty or if the
-   *           requested property definition was not found.
+   *           If the specified property name was null or empty or if
+   *           the requested property definition was not found.
    */
   public final PropertyDefinition getPropertyDefinition(String name)
       throws IllegalArgumentException {
@@ -234,9 +315,14 @@ public abstract class AbstractManagedObjectDefinition
     }
 
     PropertyDefinition d = propertyDefinitions.get(name);
+
     if (d == null) {
-      throw new IllegalArgumentException("property definition \"" + name
-          + "\" not found");
+      if (parent != null) {
+        return parent.getPropertyDefinition(name);
+      } else {
+        throw new IllegalArgumentException("property definition \"" + name
+            + "\" not found");
+      }
     }
 
     return d;
@@ -245,12 +331,13 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
-   * Get all the property definitions associated with this type of
-   * managed object.
+   * Get the property definitions defined by this managed object
+   * definition. The returned collection will not contain inherited
+   * property definitions.
    *
-   * @return Returns an unmodifiable collection containing all the
-   *         property definitions associated with this type of managed
-   *         object.
+   * @return Returns an unmodifiable collection containing the
+   *         property definitions defined by this managed object
+   *         definition.
    */
   public final Collection<PropertyDefinition<?>> getPropertyDefinitions() {
     return Collections.unmodifiableCollection(propertyDefinitions
@@ -260,16 +347,17 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
-   * Get the specified relation definition associated with this type of managed
-   * object.
+   * Get the specified relation definition associated with this type
+   * of managed object.The search will include any inherited relation
+   * definitions.
    *
    * @param name
    *          The name of the relation definition to be retrieved.
-   * @return Returns the specified relation definition associated with this type
-   *         of managed object.
+   * @return Returns the specified relation definition associated with
+   *         this type of managed object.
    * @throws IllegalArgumentException
-   *           If the specified relation name was null or empty or if the
-   *           requested relation definition was not found.
+   *           If the specified relation name was null or empty or if
+   *           the requested relation definition was not found.
    */
   public final RelationDefinition getRelationDefinition(String name)
       throws IllegalArgumentException {
@@ -278,9 +366,14 @@ public abstract class AbstractManagedObjectDefinition
     }
 
     RelationDefinition d = relationDefinitions.get(name);
+
     if (d == null) {
-      throw new IllegalArgumentException("relation definition \"" + name
-          + "\" not found");
+      if (parent != null) {
+        return parent.getRelationDefinition(name);
+      } else {
+        throw new IllegalArgumentException("relation definition \"" + name
+            + "\" not found");
+      }
     }
 
     return d;
@@ -289,16 +382,16 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
-   * Get all the relation definitions associated with this type of
-   * managed object.
+   * Get the relation definitions defined by this managed object
+   * definition. The returned collection will not contain inherited
+   * relation definitions.
    *
-   * @return Returns an unmodifiable collection containing all the
-   *         relation definitions associated with this type of managed
-   *         object.
+   * @return Returns an unmodifiable collection containing the
+   *         relation definitions defined by this managed object
+   *         definition.
    */
   public final Collection<RelationDefinition<?,?>> getRelationDefinitions() {
-    return Collections.unmodifiableCollection(relationDefinitions
-        .values());
+    return Collections.unmodifiableCollection(relationDefinitions.values());
   }
 
 

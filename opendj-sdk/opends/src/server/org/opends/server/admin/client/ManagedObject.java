@@ -154,8 +154,7 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    *           If an attempt was made to remove a mandatory property.
    * @throws IllegalArgumentException
    *           If the specified property definition is not associated
-   *           with this managed object, or if the property is
-   *           read-only.
+   *           with this managed object.
    */
   public <T> void setPropertyValue(PropertyDefinition<T> d, T value)
       throws IllegalPropertyValueException,
@@ -191,8 +190,7 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    *           If an attempt was made to remove a mandatory property.
    * @throws IllegalArgumentException
    *           If the specified property definition is not associated
-   *           with this managed object, or if the property is
-   *           read-only.
+   *           with this managed object.
    */
   public <T> void setPropertyValues(PropertyDefinition<T> d,
       Collection<T> values) throws IllegalPropertyValueException,

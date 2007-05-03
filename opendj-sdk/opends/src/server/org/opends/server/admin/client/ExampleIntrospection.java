@@ -32,17 +32,14 @@ import static org.opends.server.loggers.Error.removeAllErrorLoggers;
 import static org.opends.server.util.ServerConstants.PROPERTY_SERVER_ROOT;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.AggregationRelationDefinition;
 import org.opends.server.admin.AttributeTypePropertyDefinition;
+import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
@@ -136,7 +133,7 @@ public final class ExampleIntrospection implements
     RootCfgDefn d = RootCfgDefn.getInstance();
 
     String operands = "";
-    for (RelationDefinition<?, ?> r : d.getRelationDefinitions()) {
+    for (RelationDefinition<?, ?> r : d.getAllRelationDefinitions()) {
       r.accept(this, operands);
     }
   }
@@ -316,22 +313,7 @@ public final class ExampleIntrospection implements
   private void processManagedObjectDefinition(
       AbstractManagedObjectDefinition<?, ?> parent,
       AbstractManagedObjectDefinition<?, ?> child, String operands) {
-    Set<RelationDefinition<?, ?>> parentRelations;
-    Set<RelationDefinition<?, ?>> childRelations;
-
-    if (parent != null) {
-      parentRelations = new HashSet<RelationDefinition<?, ?>>(parent
-          .getRelationDefinitions());
-    } else {
-      parentRelations = Collections.emptySet();
-    }
-
-    // Only process relations not defined in parent.
-    childRelations = new HashSet<RelationDefinition<?, ?>>(child
-        .getRelationDefinitions());
-    childRelations.removeAll(parentRelations);
-
-    for (RelationDefinition<?, ?> r : childRelations) {
+    for (RelationDefinition<?, ?> r : child.getRelationDefinitions()) {
       r.accept(this, operands);
     }
 

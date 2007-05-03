@@ -60,7 +60,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
     ConfigDeleteListener {
 
   // The managed object path of the parent.
-  private final ManagedObjectPath path;
+  private final ManagedObjectPath<?, ?> path;
 
   // The instantiable relation.
   private final InstantiableRelationDefinition<?, S> instantiableRelation;
