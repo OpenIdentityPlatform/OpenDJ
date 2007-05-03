@@ -32,6 +32,8 @@ import static org.testng.Assert.assertEquals;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
@@ -73,7 +75,7 @@ public final class DNBuilderTest extends AdminTestCase {
   @Test
   public void testCreateOneToMany() throws Exception {
     // First create the path.
-    ManagedObjectPath path = ManagedObjectPath.emptyPath();
+    ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath.emptyPath();
 
     InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg> r1 = new InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg>(
         RootCfgDefn.getInstance(), "test-parent", "test-parents",
@@ -108,7 +110,7 @@ public final class DNBuilderTest extends AdminTestCase {
   @Test
   public void testCreateOneToOne() throws Exception {
     // First create the path.
-    ManagedObjectPath path = ManagedObjectPath.emptyPath();
+    ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath.emptyPath();
 
     InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg> r1 = new InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg>(
         RootCfgDefn.getInstance(), "test-parent", "test-parents",
@@ -143,7 +145,7 @@ public final class DNBuilderTest extends AdminTestCase {
   @Test
   public void testCreateOneToZeroOrOne() throws Exception {
     // First create the path.
-    ManagedObjectPath path = ManagedObjectPath.emptyPath();
+    ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath.emptyPath();
 
     InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg> r1 = new InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg>(
         RootCfgDefn.getInstance(), "test-parent", "test-parents",
