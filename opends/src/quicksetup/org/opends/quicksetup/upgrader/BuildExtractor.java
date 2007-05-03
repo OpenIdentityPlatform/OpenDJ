@@ -67,7 +67,7 @@ public class BuildExtractor extends Application implements Runnable {
     try {
       QuickSetupLog.initLogFileHandler(
               File.createTempFile(
-                      UpgradeLauncher.LOG_FILE_PREFIX + "-ext-",
+                      UpgradeLauncher.LOG_FILE_PREFIX + "ext-",
                       UpgradeLauncher.LOG_FILE_SUFFIX));
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
