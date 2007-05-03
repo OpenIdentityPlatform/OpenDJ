@@ -28,7 +28,12 @@ package org.opends.server.api.plugin;
 
 
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.LinkedList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
@@ -50,10 +55,595 @@ public class DirectoryServerPluginTestCase
        extends PluginAPITestCase
 {
   @BeforeClass
-  public void initServer() throws Exception 
+  public void initServer() throws Exception
   {
     TestCaseUtils.startServer();
   }
+
+
+
+  /**
+   * Tests to ensure that no new abstract methods have been introduced which
+   * could impact backwards compatibility.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAbstractMethods()
+         throws Exception
+  {
+    LinkedList<LinkedList<String>> expectedAbstractMethods =
+      new LinkedList<LinkedList<String>>();
+
+    LinkedList<String> sigList = new LinkedList<String>();
+    sigList.add("initializePlugin");
+    sigList.add("void");
+    sigList.add("java.util.Set");
+    sigList.add("org.opends.server.admin.std.server.PluginCfg");
+    sigList.add("org.opends.server.config.ConfigException");
+    sigList.add("org.opends.server.types.InitializationException");
+    expectedAbstractMethods.add(sigList);
+
+
+    LinkedList<LinkedList<String>> newAbstractMethods =
+         new LinkedList<LinkedList<String>>();
+    Class pluginClass = DirectoryServerPlugin.class;
+    for (Method m : pluginClass.getMethods())
+    {
+      if (Modifier.isAbstract(m.getModifiers()))
+      {
+        LinkedList<String> foundList = new LinkedList<String>();
+        foundList.add(m.getName());
+        foundList.add(m.getReturnType().getName());
+        for (Class c : m.getParameterTypes())
+        {
+          foundList.add(c.getName());
+        }
+        for (Class c : m.getExceptionTypes())
+        {
+          foundList.add(c.getName());
+        }
+
+        Iterator<LinkedList<String>> iterator =
+             expectedAbstractMethods.iterator();
+        boolean found = false;
+        while (iterator.hasNext())
+        {
+          sigList = iterator.next();
+          if (foundList.equals(sigList))
+          {
+            found = true;
+            iterator.remove();
+            break;
+          }
+        }
+
+        if (! found)
+        {
+          newAbstractMethods.add(foundList);
+        }
+      }
+    }
+
+    if (! newAbstractMethods.isEmpty())
+    {
+      System.err.println("It appears that one or more new abstract methods " +
+                         "have been added to the plugin API:");
+      for (LinkedList<String> methodList : newAbstractMethods)
+      {
+        for (String s : methodList)
+        {
+          System.err.print(s + " ");
+        }
+        System.err.println();
+      }
+
+      System.err.println();
+    }
+
+    if (! expectedAbstractMethods.isEmpty())
+    {
+      System.err.println("It appears that one or more abstract methods have " +
+                         "been removed from the plugin API:");
+      for (LinkedList<String> methodList : expectedAbstractMethods)
+      {
+        for (String s : methodList)
+        {
+          System.err.print(s + " ");
+        }
+        System.err.println();
+      }
+
+      System.err.println();
+    }
+
+    if ((! newAbstractMethods.isEmpty()) ||
+        (! expectedAbstractMethods.isEmpty()))
+    {
+      fail("It appears that set of abstract methods defined in the plugin " +
+           "API have been altered.  This will only be allowed under " +
+           "extremely limited circumstances, as it will impact backward " +
+           "compatibility.");
+    }
+  }
+
+
+
+  /**
+   * Tests to ensure that none of the non-abstract public methods exposed by the
+   * plugin interface as part of the public API have been removed.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testNonAbstractPublicAPIMethods()
+         throws Exception
+  {
+    LinkedList<LinkedList<String>> expectedPublicMethods =
+      new LinkedList<LinkedList<String>>();
+
+    LinkedList<String> sigList = new LinkedList<String>();
+    sigList.add("finalizePlugin");
+    sigList.add("void");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doStartup");
+    sigList.add("org.opends.server.api.plugin.StartupPluginResult");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doShutdown");
+    sigList.add("void");
+    sigList.add("java.lang.String");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostConnect");
+    sigList.add("org.opends.server.api.plugin.PostConnectPluginResult");
+    sigList.add("org.opends.server.api.ClientConnection");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostDisconnect");
+    sigList.add("org.opends.server.api.plugin.PostDisconnectPluginResult");
+    sigList.add("org.opends.server.api.ClientConnection");
+    sigList.add("org.opends.server.types.DisconnectReason");
+    sigList.add("int");
+    sigList.add("java.lang.String");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doLDIFImport");
+    sigList.add("org.opends.server.api.plugin.LDIFPluginResult");
+    sigList.add("org.opends.server.types.LDIFImportConfig");
+    sigList.add("org.opends.server.types.Entry");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doLDIFExport");
+    sigList.add("org.opends.server.api.plugin.LDIFPluginResult");
+    sigList.add("org.opends.server.types.LDIFExportConfig");
+    sigList.add("org.opends.server.types.Entry");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreParse");
+    sigList.add("org.opends.server.api.plugin.PreParsePluginResult");
+    sigList.add("org.opends.server.types.operation.PreParseAbandonOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreParse");
+    sigList.add("org.opends.server.api.plugin.PreParsePluginResult");
+    sigList.add("org.opends.server.types.operation.PreParseModifyOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreParse");
+    sigList.add("org.opends.server.api.plugin.PreParsePluginResult");
+    sigList.add("org.opends.server.types.operation.PreParseAddOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreParse");
+    sigList.add("org.opends.server.api.plugin.PreParsePluginResult");
+    sigList.add("org.opends.server.types.operation.PreParseBindOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreParse");
+    sigList.add("org.opends.server.api.plugin.PreParsePluginResult");
+    sigList.add("org.opends.server.types.operation.PreParseCompareOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreParse");
+    sigList.add("org.opends.server.api.plugin.PreParsePluginResult");
+    sigList.add("org.opends.server.types.operation.PreParseDeleteOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreParse");
+    sigList.add("org.opends.server.api.plugin.PreParsePluginResult");
+    sigList.add("org.opends.server.types.operation.PreParseExtendedOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreParse");
+    sigList.add("org.opends.server.api.plugin.PreParsePluginResult");
+    sigList.add("org.opends.server.types.operation.PreParseUnbindOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreParse");
+    sigList.add("org.opends.server.api.plugin.PreParsePluginResult");
+    sigList.add("org.opends.server.types.operation.PreParseModifyDNOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreParse");
+    sigList.add("org.opends.server.api.plugin.PreParsePluginResult");
+    sigList.add("org.opends.server.types.operation.PreParseSearchOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreOperation");
+    sigList.add("org.opends.server.api.plugin.PreOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PreOperationExtendedOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreOperation");
+    sigList.add("org.opends.server.api.plugin.PreOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PreOperationDeleteOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreOperation");
+    sigList.add("org.opends.server.api.plugin.PreOperationPluginResult");
+    sigList.add("org.opends.server.types.operation.PreOperationBindOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreOperation");
+    sigList.add("org.opends.server.api.plugin.PreOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PreOperationSearchOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreOperation");
+    sigList.add("org.opends.server.api.plugin.PreOperationPluginResult");
+    sigList.add("org.opends.server.types.operation.PreOperationAddOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreOperation");
+    sigList.add("org.opends.server.api.plugin.PreOperationPluginResult");
+    sigList.add("org.opends.server.types.operation."+
+                "PreOperationCompareOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreOperation");
+    sigList.add("org.opends.server.api.plugin.PreOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PreOperationModifyOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPreOperation");
+    sigList.add("org.opends.server.api.plugin.PreOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PreOperationModifyDNOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostOperation");
+    sigList.add("org.opends.server.api.plugin.PostOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostOperationCompareOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostOperation");
+    sigList.add("org.opends.server.api.plugin.PostOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostOperationModifyDNOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostOperation");
+    sigList.add("org.opends.server.api.plugin.PostOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostOperationExtendedOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostOperation");
+    sigList.add("org.opends.server.api.plugin.PostOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostOperationBindOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostOperation");
+    sigList.add("org.opends.server.api.plugin.PostOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostOperationAbandonOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostOperation");
+    sigList.add("org.opends.server.api.plugin.PostOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostOperationUnbindOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostOperation");
+    sigList.add("org.opends.server.api.plugin.PostOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostOperationModifyOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostOperation");
+    sigList.add("org.opends.server.api.plugin.PostOperationPluginResult");
+    sigList.add("org.opends.server.types.operation.PostOperationAddOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostOperation");
+    sigList.add("org.opends.server.api.plugin.PostOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostOperationDeleteOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostOperation");
+    sigList.add("org.opends.server.api.plugin.PostOperationPluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostOperationSearchOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostResponse");
+    sigList.add("org.opends.server.api.plugin.PostResponsePluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostResponseCompareOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostResponse");
+    sigList.add("org.opends.server.api.plugin.PostResponsePluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostResponseDeleteOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostResponse");
+    sigList.add("org.opends.server.api.plugin.PostResponsePluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostResponseSearchOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostResponse");
+    sigList.add("org.opends.server.api.plugin.PostResponsePluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostResponseExtendedOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostResponse");
+    sigList.add("org.opends.server.api.plugin.PostResponsePluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostResponseModifyOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostResponse");
+    sigList.add("org.opends.server.api.plugin.PostResponsePluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "PostResponseModifyDNOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostResponse");
+    sigList.add("org.opends.server.api.plugin.PostResponsePluginResult");
+    sigList.add("org.opends.server.types.operation.PostResponseAddOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostResponse");
+    sigList.add("org.opends.server.api.plugin.PostResponsePluginResult");
+    sigList.add("org.opends.server.types.operation.PostResponseBindOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("processSearchEntry");
+    sigList.add("org.opends.server.api.plugin.SearchEntryPluginResult");
+    sigList.add("org.opends.server.types.operation.SearchEntrySearchOperation");
+    sigList.add("org.opends.server.types.SearchResultEntry");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("processSearchReference");
+    sigList.add("org.opends.server.api.plugin.SearchReferencePluginResult");
+    sigList.add("org.opends.server.types.operation." +
+                "SearchReferenceSearchOperation");
+    sigList.add("org.opends.server.types.SearchResultReference");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("processIntermediateResponse");
+    sigList.add("org.opends.server.api.plugin." +
+                "IntermediateResponsePluginResult");
+    sigList.add("org.opends.server.types.IntermediateResponse");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("initializeInternal");
+    sigList.add("void");
+    sigList.add("org.opends.server.types.DN");
+    sigList.add("java.util.Set");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("getPluginEntryDN");
+    sigList.add("org.opends.server.types.DN");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("getPluginTypes");
+    sigList.add("java.util.Set");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("getClass");
+    sigList.add("java.lang.Class");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("equals");
+    sigList.add("boolean");
+    sigList.add("java.lang.Object");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("hashCode");
+    sigList.add("int");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("toString");
+    sigList.add("java.lang.String");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("wait");
+    sigList.add("void");
+    sigList.add("java.lang.InterruptedException");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("wait");
+    sigList.add("void");
+    sigList.add("long");
+    sigList.add("java.lang.InterruptedException");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("wait");
+    sigList.add("void");
+    sigList.add("long");
+    sigList.add("int");
+    sigList.add("java.lang.InterruptedException");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("notify");
+    sigList.add("void");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("notifyAll");
+    sigList.add("void");
+    expectedPublicMethods.add(sigList);
+
+
+    LinkedList<LinkedList<String>> newPublicMethods =
+         new LinkedList<LinkedList<String>>();
+    Class pluginClass = DirectoryServerPlugin.class;
+    for (Method m : pluginClass.getMethods())
+    {
+      if (Modifier.isPublic(m.getModifiers()) &&
+          (! Modifier.isAbstract(m.getModifiers())))
+      {
+        LinkedList<String> foundList = new LinkedList<String>();
+        foundList.add(m.getName());
+        foundList.add(m.getReturnType().getName());
+        for (Class c : m.getParameterTypes())
+        {
+          foundList.add(c.getName());
+        }
+        for (Class c : m.getExceptionTypes())
+        {
+          foundList.add(c.getName());
+        }
+
+        Iterator<LinkedList<String>> iterator =
+             expectedPublicMethods.iterator();
+        boolean found = false;
+        while (iterator.hasNext())
+        {
+          sigList = iterator.next();
+          if (foundList.equals(sigList))
+          {
+            found = true;
+            iterator.remove();
+            break;
+          }
+        }
+
+        if (! found)
+        {
+          newPublicMethods.add(foundList);
+        }
+      }
+    }
+
+    if (! expectedPublicMethods.isEmpty())
+    {
+      System.err.println("It appears that one or more public methods have " +
+                         "been removed from the plugin API:");
+      for (LinkedList<String> methodList : expectedPublicMethods)
+      {
+        for (String s : methodList)
+        {
+          System.err.print(s + " ");
+        }
+        System.err.println();
+      }
+
+      System.err.println();
+
+      fail("It appears that set of methods defined in the plugin API has " +
+           "been altered in a manner that could impact backward " +
+           "compatibility.  This will only be allowed under extremely " +
+           "limited circumstances.");
+    }
+
+
+    if (! newPublicMethods.isEmpty())
+    {
+      System.err.println("It appears that one or more new public methods " +
+                         "have been added to the plugin API:");
+      for (LinkedList<String> methodList : newPublicMethods)
+      {
+        for (String s : methodList)
+        {
+          System.err.print(s + " ");
+        }
+        System.err.println();
+      }
+
+      System.err.println();
+
+      fail("It appears that one or more new public methods have been added " +
+           "to the plugin API.  This is not actually an error, but if you " +
+           "intend to make the new method(s) part of the official plugin API " +
+           "then you must add its signature to the expectedPublicMethods " +
+           "list above so that we can ensure that it is not removed or " +
+           "altered in an incompatible way in the future.");
+    }
+  }
+
+
 
   /**
    * Tests the <CODE>getPluginEntryDN</CODE> method.
