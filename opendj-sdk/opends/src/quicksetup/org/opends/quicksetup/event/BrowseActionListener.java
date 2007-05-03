@@ -189,6 +189,10 @@ public class BrowseActionListener implements ActionListener
       returnVal = fc.showOpenDialog(parent);
       break;
 
+    case OPEN_ZIP_FILE:
+      returnVal = fc.showOpenDialog(parent);
+      break;
+
     case GENERIC_FILE:
       returnVal = fc.showOpenDialog(parent);
       break;

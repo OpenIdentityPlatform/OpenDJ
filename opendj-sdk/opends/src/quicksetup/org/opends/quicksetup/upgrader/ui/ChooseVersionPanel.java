@@ -169,7 +169,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
 
     BrowseActionListener l =
             new BrowseActionListener(tfFile,
-                    BrowseActionListener.BrowseType.LOCATION_DIRECTORY,
+                    BrowseActionListener.BrowseType.OPEN_ZIP_FILE,
                     getMainWindow());
     butBrowse.addActionListener(l);
 
