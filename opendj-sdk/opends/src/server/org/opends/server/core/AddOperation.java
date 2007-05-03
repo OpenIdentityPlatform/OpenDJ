@@ -1352,12 +1352,12 @@ addProcessing:
           break addProcessing;
         }
 
-
-        // Check to see if the entry contains one or more passwords and if they
+        // If it's not an internal or synchronization operation, then check
+        // to see if the entry contains one or more passwords and if they
         // are valid in accordance with the password policies associated with
         // the user.  Also perform any encoding that might be required by
         // password storage schemes.
-        if ((! isInternalOperation()) || (! isSynchronizationOperation()))
+        if (! (isInternalOperation() || isSynchronizationOperation()))
         {
           // FIXME -- We need to check to see if the password policy subentry
           //          might be specified virtually rather than as a real
