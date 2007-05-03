@@ -319,16 +319,18 @@ public class RemoteBuildManager {
         String line;
         try {
           while (null != (line = reader.readLine())) {
-            try {
-              Build build = parseBuildLine(line);
-              builds.add(build);
-            } catch (IllegalArgumentException iae) {
-              StringBuffer msg = new StringBuffer()
-                      .append("Error parsing line '")
-                      .append(line)
-                      .append("': ")
-                      .append(iae.getMessage());
-              LOG.log(Level.INFO, msg.toString());
+            if (!isComment(line)) {
+              try {
+                Build build = parseBuildLine(line);
+                builds.add(build);
+              } catch (IllegalArgumentException iae) {
+                StringBuffer msg = new StringBuffer()
+                        .append("Error parsing line '")
+                        .append(line)
+                        .append("': ")
+                        .append(iae.getMessage());
+                LOG.log(Level.INFO, msg.toString());
+              }
             }
           }
         } catch (IOException e) {
@@ -338,6 +340,10 @@ public class RemoteBuildManager {
         LOG.log(Level.WARNING, "build list page is null");
       }
       return builds;
+    }
+
+    static private boolean isComment(String line) {
+      return line != null && line.startsWith("#");
     }
 
     static private Build parseBuildLine(String line)
