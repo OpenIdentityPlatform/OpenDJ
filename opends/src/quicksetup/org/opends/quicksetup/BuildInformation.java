@@ -163,7 +163,7 @@ public class BuildInformation implements Comparable {
    * {@inheritDoc}
    */
   public String toString() {
-    return getName();
+    return getName() + " rev=" + getRevisionNumber();
   }
 
   /**
