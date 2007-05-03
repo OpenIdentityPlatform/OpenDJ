@@ -22,27 +22,31 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
+
+
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.*;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-import org.opends.server.core.*;
+
+
 
 /**
  * This class defines the set of methods and structures that must be
  * implemented for a Directory Server access log publisher.
  *
- * @param <T> The type of access log publisher configuration handled
- *            by this log publisher implementation.
+ * @param  <T>  The type of access log publisher configuration handled
+ *              by this log publisher implementation.
  */
 public abstract class AccessLogPublisher
-    <T extends AccessLogPublisherCfg>
+       <T extends AccessLogPublisherCfg>
 {
   /**
    * Indicates if internal operations should be omited in the messages
@@ -50,28 +54,37 @@ public abstract class AccessLogPublisher
    */
   protected boolean suppressInternalOperations = true;
 
+
+
   /**
    * Initializes this access publisher provider based on the
    * information in the provided debug publisher configuration.
    *
-   * @param config
-   *          The access publisher configuration that contains the
-   *          information to use to initialize this access publisher.
-   * @throws org.opends.server.config.ConfigException
-   *           If an unrecoverable problem arises in the process of
-   *           performing the initialization as a result of the server
-   *           configuration.
-   * @throws org.opends.server.types.InitializationException
-   *           If a problem occurs during initialization that is not
-   *           related to the server configuration.
+   * @param  config  The access publisher configuration that contains
+   *                 the information to use to initialize this access
+   *                 publisher.
+   *
+   * @throws  ConfigException  If an unrecoverable problem arises in
+   *                           the process of performing the
+   *                           initialization as a result of the
+   *                           server configuration.
+   *
+   * @throws  InitializationException  If a problem occurs during
+   *                                   initialization that is not
+   *                                   related to the server
+   *                                   configuration.
    */
   public abstract void initializeAccessLogPublisher(T config)
-      throws ConfigException, InitializationException;
+         throws ConfigException, InitializationException;
+
+
 
   /**
    * Close this publisher.
    */
   public abstract void close();
+
+
 
   /**
    * Writes a message to the access logger with information about a
@@ -97,10 +110,10 @@ public abstract class AccessLogPublisher
    *                           provide additional information about
    *                           the disconnect.
    */
-  public abstract void
-  logDisconnect(ClientConnection clientConnection,
-                DisconnectReason disconnectReason,
-                String message);
+  public abstract void logDisconnect(
+                            ClientConnection clientConnection,
+                            DisconnectReason disconnectReason,
+                            String message);
 
 
 
@@ -112,8 +125,9 @@ public abstract class AccessLogPublisher
    *                           information to use to log the abandon
    *                           request.
    */
-  public abstract void logAbandonRequest(AbandonOperation
-      abandonOperation);
+  public abstract void logAbandonRequest(
+                            AbandonOperation abandonOperation);
+
 
 
   /**
@@ -124,8 +138,8 @@ public abstract class AccessLogPublisher
    *                           information to use to log the abandon
    *                           request.
    */
-  public abstract void logAbandonResult(AbandonOperation
-      abandonOperation);
+  public abstract void logAbandonResult(
+                            AbandonOperation abandonOperation);
 
 
 
@@ -183,8 +197,8 @@ public abstract class AccessLogPublisher
    *                           information to use to log the compare
    *                           request.
    */
-  public abstract void logCompareRequest(CompareOperation
-      compareOperation);
+  public abstract void logCompareRequest(
+                            CompareOperation compareOperation);
 
 
 
@@ -196,8 +210,8 @@ public abstract class AccessLogPublisher
    *                           information to use to log the compare
    *                           response.
    */
-  public abstract void logCompareResponse(CompareOperation
-      compareOperation);
+  public abstract void logCompareResponse(
+                            CompareOperation compareOperation);
 
 
 
@@ -209,8 +223,8 @@ public abstract class AccessLogPublisher
    *                          information to use to log the delete
    *                          request.
    */
-  public abstract void logDeleteRequest(DeleteOperation
-      deleteOperation);
+  public abstract void logDeleteRequest(
+                            DeleteOperation deleteOperation);
 
 
 
@@ -222,8 +236,8 @@ public abstract class AccessLogPublisher
    *                          information to use to log the delete
    *                          response.
    */
-  public abstract void logDeleteResponse(DeleteOperation
-      deleteOperation);
+  public abstract void logDeleteResponse(
+                            DeleteOperation deleteOperation);
 
 
 
@@ -235,8 +249,8 @@ public abstract class AccessLogPublisher
    *                            information to use to log the extended
    *                            request.
    */
-  public abstract void logExtendedRequest(ExtendedOperation
-      extendedOperation);
+  public abstract void logExtendedRequest(
+                            ExtendedOperation extendedOperation);
 
 
 
@@ -249,8 +263,8 @@ public abstract class AccessLogPublisher
    *                            information to use to log the extended
    *                            response.
    */
-  public abstract void logExtendedResponse(ExtendedOperation
-      extendedOperation);
+  public abstract void logExtendedResponse(
+                            ExtendedOperation extendedOperation);
 
 
 
@@ -262,8 +276,8 @@ public abstract class AccessLogPublisher
    *                          information to use to log the modify
    *                          request.
    */
-  public abstract void logModifyRequest(ModifyOperation
-      modifyOperation);
+  public abstract void logModifyRequest(
+                            ModifyOperation modifyOperation);
 
 
 
@@ -275,8 +289,8 @@ public abstract class AccessLogPublisher
    *                          information to use to log the modify
    *                          response.
    */
-  public abstract void logModifyResponse(ModifyOperation
-      modifyOperation);
+  public abstract void logModifyResponse(
+                            ModifyOperation modifyOperation);
 
 
 
@@ -289,8 +303,8 @@ public abstract class AccessLogPublisher
    *                            information to use to log the modify
    *                            DN request.
    */
-  public abstract void logModifyDNRequest(ModifyDNOperation
-      modifyDNOperation);
+  public abstract void logModifyDNRequest(
+                            ModifyDNOperation modifyDNOperation);
 
 
 
@@ -303,8 +317,8 @@ public abstract class AccessLogPublisher
    *                            information to use to log the modify
    *                            DN response.
    */
-  public abstract void logModifyDNResponse(ModifyDNOperation
-      modifyDNOperation);
+  public abstract void logModifyDNResponse(
+                            ModifyDNOperation modifyDNOperation);
 
 
 
@@ -316,8 +330,8 @@ public abstract class AccessLogPublisher
    *                          information to use to log the search
    *                          request.
    */
-  public abstract void logSearchRequest(SearchOperation
-      searchOperation);
+  public abstract void logSearchRequest(
+                            SearchOperation searchOperation);
 
 
 
@@ -331,8 +345,8 @@ public abstract class AccessLogPublisher
    * @param  searchEntry      The search result entry to be logged.
    */
   public abstract void logSearchResultEntry(
-      SearchOperation searchOperation,
-      SearchResultEntry searchEntry);
+                            SearchOperation searchOperation,
+                            SearchResultEntry searchEntry);
 
 
 
@@ -347,8 +361,8 @@ public abstract class AccessLogPublisher
    *                          logged.
    */
   public abstract void logSearchResultReference(
-      SearchOperation searchOperation,
-      SearchResultReference searchReference);
+                            SearchOperation searchOperation,
+                            SearchResultReference searchReference);
 
 
 
@@ -360,8 +374,8 @@ public abstract class AccessLogPublisher
    *                          information to use to log the search
    *                          result done message.
    */
-  public abstract void logSearchResultDone(SearchOperation
-      searchOperation);
+  public abstract void logSearchResultDone(
+                            SearchOperation searchOperation);
 
 
 
@@ -375,3 +389,4 @@ public abstract class AccessLogPublisher
    */
   public abstract void logUnbind(UnbindOperation unbindOperation);
 }
+
