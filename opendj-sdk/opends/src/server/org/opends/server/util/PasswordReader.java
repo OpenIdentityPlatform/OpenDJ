@@ -210,17 +210,13 @@ public class PasswordReader
         if ((charRead == -1) || (charRead == '\n'))
         {
           // This is the end of the value.
-          if (pos == 0)
+          pwChars = new char[pos];
+          if (0 < pos)
           {
-            return null;
-          }
-          else
-          {
-            pwChars = new char[pos];
             System.arraycopy(pwBuffer, 0, pwChars, 0, pos);
             Arrays.fill(pwBuffer, '\u0000');
-            return pwChars;
           }
+          return pwChars;
         }
         else if (charRead == '\r')
         {

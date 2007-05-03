@@ -1099,7 +1099,8 @@ public class LDAPSearch
         err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
         return 1;
       }
-    } else if(bindPasswordValue == null)
+    }
+    else if(bindPasswordValue == null)
     {
       // Read from file if it exists.
       bindPasswordValue = bindPasswordFile.getValue();
